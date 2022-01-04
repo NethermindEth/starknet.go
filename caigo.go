@@ -12,7 +12,7 @@ import (
 // N_ELEMENT_BITS_HASH = FIELD_PRIME.bit_length()
 // assert N_ELEMENT_BITS_HASH == 252
 
-func Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey, sc StarkCurve) bool {
+func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
 	w := sc.InvModCurveSize(s)
 
 	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
