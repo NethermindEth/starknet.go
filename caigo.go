@@ -1,9 +1,9 @@
 package caigo
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 	"math/big"
-	"crypto/ecdsa"
 )
 
 // N_ELEMENT_BITS_ECDSA = math.floor(math.log(FIELD_PRIME, 2))
@@ -88,26 +88,53 @@ func Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey, sc StarkCurve) bool {
 	return false
 }
 
-func hashElements(elems []*big.Int) (hash *big.Int, err error) {
+func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
+	if len(elems) < 2 {
+		return hash, fmt.Errorf("must have element slice larger than 2 for hashing")
+	}
+	hash = big.NewInt(0)
+	for _, h := range elems {
+		hash, err = sc.PedersenHash([]*big.Int{hash, h})
+		if err != nil {
+			return hash, err
+		}
+	}
 	return hash, err
 }
 
-func pedersenHash(x, y *big.Int) (hash *big.Int, err error) {
-	curv := SC()
-
-	if x.Cmp(big.NewInt(0)) != 1 && x.Cmp(curv.P) != -1 {
-		return hash, fmt.Errorf("invalid x: %v", x)
-	}
-	if y.Cmp(big.NewInt(0)) != 1 && y.Cmp(curv.P) != -1 {
-		return hash, fmt.Errorf("invalid y: %v", y)
+func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
+	// TODO: implement/test the starkware fast pedersen hash 
+	if (len(sc.ConstantPoints) == 0) {
+		return hash, fmt.Errorf("must initiate precomputed constant points")
 	}
 
-	for i := 0; i < 252; i++ {
-		ptx := new(big.Int)
-		pty := new(big.Int)
-		fmt.Println("PTS: ", ptx, pty)
-		// ptx := ptx.
-		
+	ptx := new(big.Int)
+	pty := new(big.Int)
+	ptx = ptx.Set(sc.Gx)
+	pty = pty.Set(sc.Gy)
+	for i, elem := range elems {
+		x := new(big.Int)
+		x = x.Set(elem)
+	
+		if x.Cmp(big.NewInt(0)) != 1 && x.Cmp(sc.P) != -1 {
+			return hash, fmt.Errorf("invalid x: %v", x)
+		}
+
+		for j := 0; j < 252; j++ {
+			idx := 2 + (i * 252) + j
+			xin := new(big.Int)
+			yin := new(big.Int)
+			xin = xin.Set(sc.ConstantPoints[idx][0])
+			yin = yin.Set(sc.ConstantPoints[idx][1])
+			if xin.Cmp(ptx) == 0 {
+				return hash, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
+			}
+			if x.Bit(0) == 1 {
+				ptx, pty = sc.Add(ptx, pty, xin, yin)
+			}
+			x = x.Rsh(x, 1)
+		}	
 	}
-	return hash, err
+
+	return ptx, nil
 }

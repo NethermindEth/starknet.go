@@ -1,15 +1,13 @@
-// golang transcription for https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/crypto/starkware/crypto
-// use at your own risk
 package caigo
 
 import (
-	"os"
+	"crypto/elliptic"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"crypto/elliptic"
+	"os"
 )
 
 var sc StarkCurve
@@ -21,17 +19,17 @@ type StarkCurve struct {
 	MinusShiftPointX *big.Int
 	MinusShiftPointY *big.Int
 	Alpha            *big.Int
-	ConstantPoints	 [][]*big.Int
+	ConstantPoints   [][]*big.Int
 }
 
 type StarkCurvePayload struct {
-	License        []string  `json:"_license"`
-	Comment        string    `json:"_comment"`
+	License        []string     `json:"_license"`
+	Comment        string       `json:"_comment"`
 	FieldPrime     *big.Int     `json:"FIELD_PRIME"`
-	FieldGen       int       `json:"FIELD_GEN"`
-	EcOrder        *big.Int      `json:"EC_ORDER"`
-	Alpha          int64       `json:"ALPHA"`
-	Beta           *big.Int      `json:"BETA"`
+	FieldGen       int          `json:"FIELD_GEN"`
+	EcOrder        *big.Int     `json:"EC_ORDER"`
+	Alpha          int64        `json:"ALPHA"`
+	Beta           *big.Int     `json:"BETA"`
 	ConstantPoints [][]*big.Int `json:"CONSTANT_POINTS"`
 }
 
@@ -80,21 +78,21 @@ func InitWithConstants(path string) (err error) {
 	} else {
 		url := "https://raw.githubusercontent.com/starkware-libs/cairo-lang/master/src/starkware/crypto/starkware/crypto/signature/pedersen_params.json"
 		method := "GET"
-	
+
 		client := &http.Client{}
-	
+
 		req, err := http.NewRequest(method, url, nil)
 		if err != nil {
 			return err
 		}
 		req.Header.Add("Content-Type", "application/json")
-	
+
 		resp, err := client.Do(req)
 		if err != nil {
 			return err
 		}
 		defer resp.Body.Close()
-	
+
 		err = json.NewDecoder(resp.Body).Decode(scPayload)
 		if err != nil {
 			return err

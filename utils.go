@@ -1,21 +1,21 @@
 package caigo
 
 import (
-	"fmt"
-	"strings"
-	"math/big"
-	"encoding/hex"
 	"crypto/ecdsa"
+	"encoding/hex"
+	"fmt"
+	"math/big"
+	"strings"
 )
 
 func XToPubKey(x string) ecdsa.PublicKey {
-	crv := SC()
+	curve := SC()
 	xin := HexToBN(x)
 
-	yout := crv.GetYCoordinate(xin)
+	yout := curve.GetYCoordinate(xin)
 
 	return ecdsa.PublicKey{
-		Curve: crv,
+		Curve: curve,
 		X:     xin,
 		Y:     yout,
 	}

@@ -1,11 +1,52 @@
 package caigo
 
 import (
-	"testing"
-	"math/big"
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"math/big"
+	"testing"
 )
+
+func TestPedersenHash(t *testing.T) {
+	curve, err := SCWithConstants("./pedersen_params.json")
+	if err != nil {
+		t.Errorf("Could not init with constant points: %v\n", err)
+	}
+
+	hash, err := curve.PedersenHash([]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	if err != nil {
+		t.Errorf("Hashing err: %v\n", err)
+	}
+
+	if hash.Cmp(HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca")) != 0 {
+		t.Errorf("incorrect hash %v got %v needed", hash, HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"))
+	}
+	jtx := JSTransaction{
+		Calldata: []string{"2914367423676101327401096153024331591451054625738519726725779300741401683065", "1284328616562954354594453552152941613439836383012703358554726925609665244667", "3", "1242951120254381876598", "9", "22108152553797646456187940211", "14"},
+		ContractAddress: "0x6f8b21c8354e8ba21ead656932eaa21e728f8c81f001488c186a336d7038cf1",
+		EntryPointSelector: "0x240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
+		EntryPointType: "EXTERNAL",
+		JSSignature: []string{"1941185432155203218742540925113146991052744726484097092312705586406341211736", "1060098570318028605648271956533461104484177708855341648099672514178101492604"},
+		TransactionHash: "0x14ac93b17d35cc984ff7f186172175cd4341520d32748a406627e48605b38df",
+		Nonce: "0xe",
+	}
+	
+	tx, err := jtx.ConvertTx()
+	if err != nil {
+		t.Errorf("Could not convert JS transaction: %v\n", err)
+	}
+
+	hashFinal, err := tx.HashTx(
+		HexToBN("0x6f8b21c8354e8ba21ead656932eaa21e728f8c81f001488c186a336d7038cf1"),
+		curve,
+	)
+	if err != nil {
+		t.Errorf("Could not hash tx arguments: %v\n", err)
+	}
+	if hashFinal.Cmp(HexToBN("0x2c50e0db592d8149ef09c215846d629206b0d2d40509d313a0b1072f172f0ad")) != 0 {
+		t.Errorf("Incorrect hash: got %v expected %v\n", hashFinal, HexToBN("0x2c50e0db592d8149ef09c215846d629206b0d2d40509d313a0b1072f172f0ad"))
+	}
+}
 
 func TestInitCurveWithConstants(t *testing.T) {
 	curve, err := SCWithConstants("./pedersen_params.json")
