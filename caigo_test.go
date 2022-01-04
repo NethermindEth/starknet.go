@@ -7,6 +7,36 @@ import (
 	"testing"
 )
 
+// struct to catch starknet.js transaction payloads
+type JSTransaction struct {
+	Calldata           []string `json:"calldata"`
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	EntryPointType     string   `json:"entry_point_type"`
+	JSSignature        []string `json:"signature"`
+	TransactionHash    string   `json:"transaction_hash"`
+	Type               string   `json:"type"`
+	Nonce              string   `json:"nonce"`
+}
+
+func (jtx JSTransaction) ConvertTx() (tx Transaction) {
+	tx = Transaction{
+		ContractAddress: HexToBN(jtx.ContractAddress),
+		EntryPointSelector: HexToBN(jtx.EntryPointSelector),
+		EntryPointType: jtx.EntryPointType,
+		TransactionHash: HexToBN(jtx.TransactionHash),
+		Type: jtx.Type,
+		Nonce: HexToBN(jtx.Nonce),
+	}
+	for _, cd := range jtx.Calldata {
+		tx.Calldata = append(tx.Calldata, StrToBig(cd))
+	}
+	for _, sigElem := range jtx.JSSignature {
+		tx.Signature = append(tx.Signature, StrToBig(sigElem))
+	}
+	return tx
+}
+
 func TestPedersenHash(t *testing.T) {
 	curve, err := SCWithConstants("./pedersen_params.json")
 	if err != nil {
@@ -31,14 +61,10 @@ func TestPedersenHash(t *testing.T) {
 		Nonce: "0xe",
 	}
 	
-	tx, err := jtx.ConvertTx()
-	if err != nil {
-		t.Errorf("Could not convert JS transaction: %v\n", err)
-	}
-
-	hashFinal, err := tx.HashTx(
+	tx := jtx.ConvertTx()
+	hashFinal, err := curve.HashTx(
 		HexToBN("0x6f8b21c8354e8ba21ead656932eaa21e728f8c81f001488c186a336d7038cf1"),
-		curve,
+		tx,
 	)
 	if err != nil {
 		t.Errorf("Could not hash tx arguments: %v\n", err)
@@ -65,7 +91,7 @@ func TestInitCurveWithConstants(t *testing.T) {
 		X:     x,
 		Y:     y,
 	}
-	if !Verify(hash, r, s, pub, curve) {
+	if !curve.Verify(hash, r, s, pub) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }
@@ -146,7 +172,7 @@ func TestVerifySignature(t *testing.T) {
 		X:     x,
 		Y:     y,
 	}
-	if !Verify(hash, r, s, pub, curve) {
+	if !curve.Verify(hash, r, s, pub) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }
@@ -159,7 +185,7 @@ func TestUIVerifySignature(t *testing.T) {
 
 	pub := XToPubKey("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10")
 
-	if !Verify(hash, r, s, pub, curve) {
+	if !curve.Verify(hash, r, s, pub) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }
