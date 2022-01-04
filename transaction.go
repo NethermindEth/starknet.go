@@ -45,6 +45,16 @@ func (jtx JSTransaction) ConvertTx() (tx Transaction, err error) {
 	return tx, err
 }
 
+func (jtx JSTransaction) HashTx(pubkey *big.Int, sc StarkCurve) (hash *big.Int, err error) {
+	tx, err := jtx.ConvertTx()
+	if err != nil {
+		return hash, nil
+	}
+
+	hash, err = tx.HashTx(pubkey, sc)
+	return hash, err
+}
+
 func (tx Transaction) HashTx(pubkey *big.Int, sc StarkCurve) (hash *big.Int, err error) {
 	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
 	cdHash, err := sc.HashElements(tx.Calldata)
