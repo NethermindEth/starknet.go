@@ -1,24 +1,18 @@
 package caigo
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"math/big"
 	"strings"
 )
 
-func XToPubKey(x string) ecdsa.PublicKey {
-	curve := SC()
+func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
 	xin := HexToBN(x)
 
-	yout := curve.GetYCoordinate(xin)
+	yout := sc.GetYCoordinate(xin)
 
-	return ecdsa.PublicKey{
-		Curve: curve,
-		X:     xin,
-		Y:     yout,
-	}
+	return xin, yout
 }
 
 func StrToBig(str string) *big.Int {

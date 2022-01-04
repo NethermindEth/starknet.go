@@ -1,7 +1,6 @@
 package caigo
 
 import (
-	"crypto/ecdsa"
 	"crypto/elliptic"
 	"math/big"
 	"testing"
@@ -86,12 +85,7 @@ func TestInitCurveWithConstants(t *testing.T) {
 
 	h, _ := HexToBytes("04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456")
 	x, y := elliptic.Unmarshal(curve, h)
-	pub := ecdsa.PublicKey{
-		Curve: curve,
-		X:     x,
-		Y:     y,
-	}
-	if !curve.Verify(hash, r, s, pub) {
+	if !curve.Verify(hash, r, s, x, y) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }
@@ -167,12 +161,8 @@ func TestVerifySignature(t *testing.T) {
 
 	h, _ := HexToBytes("04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456")
 	x, y := elliptic.Unmarshal(curve, h)
-	pub := ecdsa.PublicKey{
-		Curve: curve,
-		X:     x,
-		Y:     y,
-	}
-	if !curve.Verify(hash, r, s, pub) {
+
+	if !curve.Verify(hash, r, s, x, y) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }
@@ -183,9 +173,9 @@ func TestUIVerifySignature(t *testing.T) {
 	r, _ := new(big.Int).SetString("2849277527182985104629156126825776904262411756563556603659114084811678482647", 10)
 	s, _ := new(big.Int).SetString("3156340738553451171391693475354397094160428600037567299774561739201502791079", 10)
 
-	pub := XToPubKey("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10")
+	pubX, pubY := curve.XToPubKey("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10")
 
-	if !curve.Verify(hash, r, s, pub) {
+	if !curve.Verify(hash, r, s, pubX, pubY) {
 		t.Errorf("successful signature did not verify\n")
 	}
 }

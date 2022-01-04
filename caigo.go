@@ -1,7 +1,6 @@
 package caigo
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"math/big"
 )
@@ -12,7 +11,7 @@ import (
 // N_ELEMENT_BITS_HASH = FIELD_PRIME.bit_length()
 // assert N_ELEMENT_BITS_HASH == 252
 
-func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
+func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
 
 	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
@@ -27,7 +26,7 @@ func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.BitLen() > 502 {
 		return false
 	}
-	if !sc.IsOnCurve(pub.X, pub.Y) {
+	if !sc.IsOnCurve(pubX, pubY) {
 		return false
 	}
 	holdHash := new(big.Int)
@@ -43,7 +42,7 @@ func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
 		return false
 	}
 
-	rQx, rQy, err := sc.MimicEcMultAir(r, pub.X, pub.Y, sc.Gx, sc.Gy)
+	rQx, rQy, err := sc.MimicEcMultAir(r, pubX, pubY, sc.Gx, sc.Gy)
 	if err != nil {
 		return false
 	}
@@ -58,9 +57,9 @@ func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
 		return true
 	} else {
 		altY := new(big.Int)
-		altY = altY.Neg(pub.Y)
+		altY = altY.Neg(pubY)
 		altY = altY.Mod(altY, sc.P)
-		pub.Y = altY
+		pubY = altY
 
 		rSigIn := new(big.Int)
 		rSigIn = rSigIn.Set(rSig)
@@ -70,7 +69,7 @@ func (sc StarkCurve) Verify(msgHash, r, s *big.Int, pub ecdsa.PublicKey) bool {
 			return false
 		}
 
-		rQx, rQy, err = sc.MimicEcMultAir(rSig, pub.X, pub.Y, sc.Gx, sc.Gy)
+		rQx, rQy, err = sc.MimicEcMultAir(rSig, pubX, pubY, sc.Gx, sc.Gy)
 		if err != nil {
 			return false
 		}
