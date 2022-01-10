@@ -1,8 +1,8 @@
 package caigo
 
 /*
-	Although the library adheres to the 'elliptic/curve' interface. 
-	All testing has been done against library function explicity. 
+	Although the library adheres to the 'elliptic/curve' interface.
+	All testing has been done against library function explicity.
 	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 */
 import (
@@ -242,7 +242,6 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 		return false
 	}
 }
-
 
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {

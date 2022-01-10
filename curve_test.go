@@ -1,9 +1,9 @@
 package caigo
 
 import (
-	"testing"
-	"math/big"
 	"crypto/elliptic"
+	"math/big"
+	"testing"
 )
 
 func TestPedersenHash(t *testing.T) {
@@ -52,7 +52,7 @@ func TestDivMod(t *testing.T) {
 }
 
 func TestEcMult(t *testing.T) {
-	
+
 }
 
 func TestAdd(t *testing.T) {

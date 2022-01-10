@@ -1,14 +1,14 @@
 package caigo
 
 import (
+	"crypto/hmac"
 	"encoding/hex"
 	"fmt"
+	"hash"
 	"math/big"
 	"math/rand"
 	"strings"
 	"time"
-	"crypto/hmac"
-	"hash"
 )
 
 // given x will find corresponding public key coordinate on curve

@@ -1,11 +1,11 @@
 package caigo
 
 import (
-	"fmt"
 	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"hash"
 	"math/big"
-	"crypto/sha256"
 )
 
 /*
@@ -85,7 +85,7 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	Signs the hash value of contents with the provided private key.
 	Secret is generated using a golang implementation of RFC 6979.
 	Implementation does not yet include "extra entropy" or "retry gen".
-	
+
 	(ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
 func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) {
@@ -137,7 +137,7 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) 
 
 /*
 	Hashes the contents of a given array using a golang Pedersen Hash implementation.
-	
+
 	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
