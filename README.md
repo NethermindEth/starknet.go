@@ -1,4 +1,4 @@
-<h4 align="center">Golang Library for StarkNet/Cairo</h4>
+<h1 align="center">Golang Library for StarkNet/Cairo</h1>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
