@@ -111,6 +111,3 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	h.Write(m)
 	return h.Sum(buf[:0])
 }
-
-// Returns True if n is a quadratic residue mod p.
-func isQuadResidue()

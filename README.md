@@ -1,7 +1,5 @@
 ## Golang Library for StarkNet/Cairo
 
-<!-- :exclamation::exclamation::exclamation: Dr. Spacemn is not a cryptographer and this library has not been audited by Starkware Ltd. :exclamation::exclamation::exclamation: -->
-
 ### Caigo is predominately a transcription of the following libraries:
 - https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature
 - https://github.com/seanjameshan/starknet.js
