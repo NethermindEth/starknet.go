@@ -176,51 +176,11 @@ func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 }
 
 func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
-	var _scalarMult func(x1, y1 *big.Int, k []byte) (x, y *big.Int)
-	var _add func(x1, y1, x2, y2 *big.Int) (x, y *big.Int)
-
-	_add = func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-		yDelta := new(big.Int)
-		xDelta := new(big.Int)
-		yDelta.Sub(y1, y2)
-		xDelta.Sub(x1, x2)
-
-		m := DivMod(yDelta, xDelta, sc.P)
-
-		xm := new(big.Int)
-		xm = xm.Mul(m, m)
-
-		x = new(big.Int)
-		x = x.Sub(xm, x1)
-		x = x.Sub(x, x2)
-		x = x.Mod(x, sc.P)
-
-		y = new(big.Int)
-		y = y.Sub(x1, x)
-		y = y.Mul(m, y)
-		y = y.Sub(y, y1)
-		y = y.Mod(y, sc.P)
-
-		return x, y
-	}
-
-	_scalarMult = func(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
-		if len(k) == 1 {
-			return x1, y1
-		}
-		m := new(big.Int)
-		m = m.Mod(big.NewInt(int64(k[0])), big.NewInt(2))
-		if m.Cmp(big.NewInt(0)) == 0 {
-			h := new(big.Int)
-			h = h.Div(big.NewInt(int64(k[0])), big.NewInt(2))
-			c, d := sc.Double(x1, y1)
-			return _scalarMult(c, d, k[1:])
-		}
-		e, f := _scalarMult(x1, y1, k[1:])
-		return _add(e, f, x1, y1)
-	}
-
-	x, y = _scalarMult(x1, y1, k)
+	fmt.Println("K HERE: ", k)
+	m := new(big.Int)
+	m = m.SetBytes(k)
+	fmt.Println("M HERE: ", m)
+	x, y = sc.EcMult(m, x1, y1)
 	return x, y
 }
 
@@ -273,7 +233,9 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 	return y
 }
 
-func (sc StarkCurve) MimicEcMultAir(m, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
+func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
+	m := new(big.Int)
+	m = m.Set(mout)
 	// N_ELEMENT_BITS_ECDSA = 251
 	if m.Cmp(big.NewInt(0)) != 1 || m.BitLen() > 502 {
 		return x, y, fmt.Errorf("too many bits %v", m.BitLen())
@@ -285,9 +247,6 @@ func (sc StarkCurve) MimicEcMultAir(m, x1, y1, x2, y2 *big.Int) (x *big.Int, y *
 		if psx == x1 {
 			return x, y, fmt.Errorf("xs are the same")
 		}
-		// fmt.Println("INNER CHECK: ", psx, psy)
-		// fmt.Println("INNER HASH: ", m)
-		// fmt.Println("")
 		if m.Bit(0) == 1 {
 			psx, psy = sc.Add(psx, psy, x1, y1)
 		}
@@ -298,6 +257,58 @@ func (sc StarkCurve) MimicEcMultAir(m, x1, y1, x2, y2 *big.Int) (x *big.Int, y *
 		return psx, psy, fmt.Errorf("m doesn't equal zero")
 	}
 	return psx, psy, nil
+}
+
+func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
+	var _add func(x1, y1, x2, y2 *big.Int) (x, y *big.Int)
+
+	_add = func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
+		yDelta := new(big.Int)
+		xDelta := new(big.Int)
+		yDelta.Sub(y1, y2)
+		xDelta.Sub(x1, x2)
+
+		m := DivMod(yDelta, xDelta, sc.P)
+
+		xm := new(big.Int)
+		xm = xm.Mul(m, m)
+
+		x = new(big.Int)
+		x = x.Sub(xm, x1)
+		x = x.Sub(x, x2)
+		x = x.Mod(x, sc.P)
+
+		y = new(big.Int)
+		y = y.Sub(x1, x)
+		y = y.Mul(m, y)
+		y = y.Sub(y, y1)
+		y = y.Mod(y, sc.P)
+
+		return x, y
+	}
+
+	// alpha is our Y
+	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		if m.BitLen() == 1 {
+			return x1, y1
+		}
+		mk := new(big.Int)
+		mk = mk.Mod(m, big.NewInt(2))
+		if mk.Cmp(big.NewInt(0)) == 0 {
+			h := new(big.Int)
+			h = h.Div(m, big.NewInt(2))
+			c, d := sc.Double(x1, y1)
+			return _ecMult(h, c, d)
+		}
+		n := new(big.Int)
+		n = n.Sub(m, big.NewInt(1))
+		e, f := _ecMult(n, x1, y1)
+		return _add(e, f, x1, y1)
+	}
+
+	x, y = _ecMult(m, x1, y1)
+	return x, y
 }
 
 func DivMod(n, m, p *big.Int) *big.Int {

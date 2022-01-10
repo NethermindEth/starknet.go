@@ -8,10 +8,10 @@ type Transaction struct {
 	Calldata           []*big.Int `json:"calldata"`
 	ContractAddress    *big.Int   `json:"contract_address"`
 	EntryPointSelector *big.Int   `json:"entry_point_selector"`
-	EntryPointType     string   `json:"entry_point_type"`
+	EntryPointType     string     `json:"entry_point_type"`
 	Signature          []*big.Int `json:"signature"`
 	TransactionHash    *big.Int   `json:"transaction_hash"`
-	Type               string   `json:"type"`
+	Type               string     `json:"type"`
 	Nonce              *big.Int   `json:"nonce,omitempty"`
 }
 
@@ -23,7 +23,7 @@ func (sc StarkCurve) HashTx(pubkey *big.Int, tx Transaction) (hash *big.Int, err
 	}
 
 	txHashData := []*big.Int{
-		pubkey, 
+		pubkey,
 		tx.ContractAddress,
 		tx.EntryPointSelector,
 		cdHash,

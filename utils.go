@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"math/rand"
+	"time"
 )
 
 func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
@@ -40,4 +42,22 @@ func HexToBytes(hexString string) ([]byte, error) {
 
 func BigToHex(in *big.Int) string {
 	return fmt.Sprintf("0x%x", in)
+}
+
+func (sc StarkCurve) GetRandomPrivateKey() *big.Int {
+	max := new(big.Int)
+	max = max.Sub(sc.N, big.NewInt(1))
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	priv := new(big.Int)
+	priv = priv.Rand(r, max)
+	return priv
+}
+
+func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
+	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
+		return x, y, fmt.Errorf("private key not in curve range")
+	}
+	x, y = sc.EcMult(privKey, sc.EcGenX, sc.EcGenY)
+	return x, y, nil
 }

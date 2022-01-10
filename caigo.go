@@ -29,13 +29,6 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	if !sc.IsOnCurve(pubX, pubY) {
 		return false
 	}
-	holdHash := new(big.Int)
-	holdHash = holdHash.Set(msgHash)
-	wHold := new(big.Int)
-	wHold = wHold.Set(w)
-
-	rSig := new(big.Int)
-	rSig = rSig.Set(r)
 
 	zGx, zGy, err := sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 	if err != nil {
@@ -53,7 +46,7 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	}
 
 	outX, _ := sc.Add(wBx, wBy, sc.MinusShiftPointX, sc.MinusShiftPointY)
-	if rSig.Cmp(outX) == 0 {
+	if r.Cmp(outX) == 0 {
 		return true
 	} else {
 		altY := new(big.Int)
@@ -61,31 +54,30 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 		altY = altY.Mod(altY, sc.P)
 		pubY = altY
 
-		rSigIn := new(big.Int)
-		rSigIn = rSigIn.Set(rSig)
 
-		zGx, zGy, err = sc.MimicEcMultAir(holdHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
+		zGx, zGy, err = sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 		if err != nil {
 			return false
 		}
 
-		rQx, rQy, err = sc.MimicEcMultAir(rSig, pubX, pubY, sc.Gx, sc.Gy)
+		rQx, rQy, err = sc.MimicEcMultAir(r, pubX, pubY, sc.Gx, sc.Gy)
 		if err != nil {
 			return false
 		}
 		inX, inY = sc.Add(zGx, zGy, rQx, rQy)
-		wBx, wBy, err = sc.MimicEcMultAir(wHold, inX, inY, sc.Gx, sc.Gy)
+		wBx, wBy, err = sc.MimicEcMultAir(w, inX, inY, sc.Gx, sc.Gy)
 		if err != nil {
 			return false
 		}
 
 		outX, _ = sc.Add(wBx, wBy, sc.MinusShiftPointX, sc.MinusShiftPointY)
-		if rSigIn.Cmp(outX) == 0 {
+		if r.Cmp(outX) == 0 {
 			return true
 		}
 	}
 	return false
 }
+
 
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	if len(elems) < 2 {
@@ -102,8 +94,8 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
-	// TODO: implement/test the starkware fast pedersen hash 
-	if (len(sc.ConstantPoints) == 0) {
+	// TODO: implement/test the starkware fast pedersen hash
+	if len(sc.ConstantPoints) == 0 {
 		return hash, fmt.Errorf("must initiate precomputed constant points")
 	}
 
@@ -114,7 +106,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	for i, elem := range elems {
 		x := new(big.Int)
 		x = x.Set(elem)
-	
+
 		if x.Cmp(big.NewInt(0)) != 1 && x.Cmp(sc.P) != -1 {
 			return hash, fmt.Errorf("invalid x: %v", x)
 		}
@@ -132,7 +124,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 				ptx, pty = sc.Add(ptx, pty, xin, yin)
 			}
 			x = x.Rsh(x, 1)
-		}	
+		}
 	}
 
 	return ptx, nil
