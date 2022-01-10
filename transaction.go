@@ -4,6 +4,7 @@ import (
 	"math/big"
 )
 
+// Starknet transaction composition
 type Transaction struct {
 	Calldata           []*big.Int `json:"calldata"`
 	ContractAddress    *big.Int   `json:"contract_address"`
@@ -15,6 +16,7 @@ type Transaction struct {
 	Nonce              *big.Int   `json:"nonce,omitempty"`
 }
 
+// Adheres to 'starknet.js' hash non typedData
 func (sc StarkCurve) HashTx(pubkey *big.Int, tx Transaction) (hash *big.Int, err error) {
 	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
 	cdHash, err := sc.HashElements(tx.Calldata)

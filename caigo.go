@@ -8,6 +8,13 @@ import (
 	"crypto/sha256"
 )
 
+/*
+	Verifies the validity of the stark curve signature
+	given the message hash, and public key (x, y) coordinates
+	used to sign the message.
+
+	(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+*/
 func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
 
@@ -74,6 +81,13 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	return false
 }
 
+/*
+	Signs the hash value of contents with the provided private key.
+	Secret is generated using a golang implementation of RFC 6979.
+	Implementation does not yet include "extra entropy" or "retry gen".
+	
+	(ref: https://datatracker.ietf.org/doc/html/rfc6979)
+*/
 func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.BitLen() > 502 {
 		return x, y, fmt.Errorf("invalid bit length")
@@ -121,6 +135,11 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) 
 	return x, y, nil
 }
 
+/*
+	Hashes the contents of a given array using a golang Pedersen Hash implementation.
+	
+	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+*/
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	if len(elems) < 2 {
 		return hash, fmt.Errorf("must have element slice larger than 2 for hashing")
@@ -135,6 +154,12 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	return hash, err
 }
 
+/*
+	Provides the pedersen hash of given array of big integers.
+	NOTE: This function assumes the curve has been initialized with contant points
+
+	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+*/
 func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	if len(sc.ConstantPoints) == 0 {
 		return hash, fmt.Errorf("must initiate precomputed constant points")

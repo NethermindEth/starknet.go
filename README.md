@@ -6,6 +6,8 @@
 - https://github.com/software-mansion/starknet.py
 - https://github.com/codahale/rfc6979/blob/master/rfc6979.go
 
+### THIS LIBRARY HAS YET BEEN AUDITED BY THE STARKWARE TEAM
+
 ### Usage
 Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 

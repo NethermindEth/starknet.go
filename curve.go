@@ -1,5 +1,10 @@
 package caigo
 
+/*
+	Although the library adheres to the 'elliptic/curve' interface. 
+	All testing has been done against library function explicity. 
+	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
+*/
 import (
 	"crypto/elliptic"
 	"encoding/json"
@@ -12,6 +17,10 @@ import (
 
 var sc StarkCurve
 
+/*
+	Returned stark curve includes several values above and beyond
+	what the 'elliptic' interface calls for to facilitate common starkware functions
+*/
 type StarkCurve struct {
 	*elliptic.CurveParams
 	EcGenX           *big.Int
@@ -22,6 +31,7 @@ type StarkCurve struct {
 	ConstantPoints   [][]*big.Int
 }
 
+// struct definition for parsing 'pedersen_params.json'
 type StarkCurvePayload struct {
 	License        []string     `json:"_license"`
 	Comment        string       `json:"_comment"`
@@ -43,6 +53,11 @@ func SCWithConstants(path string) (StarkCurve, error) {
 	return sc, err
 }
 
+/*
+	Not all operations require a stark curve initialization
+	including the provided constant points. Here you can
+	initialize the curve without the constant points
+*/
 func InitCurve() {
 	sc.CurveParams = &elliptic.CurveParams{Name: "stark-curve"}
 	sc.P, _ = new(big.Int).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020481", 10)  // Field Prime ./pedersen_json
@@ -58,6 +73,13 @@ func InitCurve() {
 	sc.BitSize = 251
 }
 
+/*
+	Various starknet functions require constant points be initialized.
+	In this case use 'InitWithConstants'. Given an empty string this will
+	init the curve by pulling the 'pedersen_params.json' file from Starkware
+	official github repository. For production deployments it is recommended
+	to have the file stored locally.
+*/
 func InitWithConstants(path string) (err error) {
 	sc.CurveParams = &elliptic.CurveParams{Name: "stark-curve-with-constants"}
 	scPayload := &StarkCurvePayload{}
@@ -123,6 +145,10 @@ func (sc StarkCurve) Params() *elliptic.CurveParams {
 	return sc.CurveParams
 }
 
+// Gets two points on an elliptic curve mod p and returns their sum.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	yDelta := new(big.Int)
 	xDelta := new(big.Int)
@@ -148,6 +174,10 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	return x, y
 }
 
+// Doubles a point on an elliptic curve with the equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 	xin := new(big.Int)
 	xin = xin.Mul(big.NewInt(3), x1)
@@ -213,10 +243,17 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 	}
 }
 
+
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 	return DivMod(big.NewInt(1), x, sc.N)
 }
 
+// Given the x coordinate of a stark_key, returns a possible y coordinate such that together the
+// point (x,y) is on the curve.
+// Note: the real y coordinate is either y or -y.
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 	y := new(big.Int)
 	y = y.Mul(starkX, starkX)
@@ -232,6 +269,10 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 	return y
 }
 
+// Computes m * point + shift_point using the same steps like the AIR and throws an exception if
+// and only if the AIR errors.
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
 	m := new(big.Int)
 	m = m.Set(mout)
@@ -257,6 +298,10 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 	return psx, psy, nil
 }
 
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
 	var _add func(x1, y1, x2, y2 *big.Int) (x, y *big.Int)
@@ -309,6 +354,9 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	return x, y
 }
 
+// Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func DivMod(n, m, p *big.Int) *big.Int {
 	q := new(big.Int)
 	gx := new(big.Int)
