@@ -228,7 +228,6 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 	y = y.Add(y, sc.B)
 	y = y.Mod(y, sc.P)
 
-	// stark library checks for quad residue which is not in this implementation
 	y = y.ModSqrt(y, sc.P)
 	return y
 }
@@ -236,7 +235,6 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
 	m := new(big.Int)
 	m = m.Set(mout)
-	// N_ELEMENT_BITS_ECDSA = 251
 	if m.Cmp(big.NewInt(0)) != 1 || m.BitLen() > 502 {
 		return x, y, fmt.Errorf("too many bits %v", m.BitLen())
 	}

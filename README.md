@@ -1,4 +1,4 @@
-## Golang Library for StarkNet
+## Golang Library for StarkNet/Cairo
 
 <!-- :exclamation::exclamation::exclamation: Dr. Spacemn is not a cryptographer and this library has not been audited by Starkware Ltd. :exclamation::exclamation::exclamation: -->
 
@@ -6,29 +6,93 @@
 - https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature
 - https://github.com/seanjameshan/starknet.js
 - https://github.com/software-mansion/starknet.py
+- https://github.com/codahale/rfc6979/blob/master/rfc6979.go
 
+### Usage
+Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
+####
+```go
+package main
 
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/dontpanicdao/caigo"
+)
+
+func main() {
+	// NOTE: when not given local file path this pulls the curve data from Starkware github repo
+	curve, err := caigo.SCWithConstants("")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	hash, err := curve.PedersenHash([]*big.Int{caigo.HexToBN("0x12773"), caigo.HexToBN("0x872362")})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	priv := curve.GetRandomPrivateKey()
+
+	x, y, err := curve.PrivateToPoint(priv)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	r, s, err := curve.Sign(hash, priv)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if curve.Verify(hash, r, s, x, y) {
+		fmt.Println("signature is valid")
+	} else {
+		fmt.Println("signature is invalid")
+	}
+}
+```
 
 #### Test
 ```go
-$ go test -v
+go test -v
+=== RUN   TestBadSignature
+--- PASS: TestBadSignature (0.06s)
+=== RUN   TestKnownSignature
+--- PASS: TestKnownSignature (0.02s)
+=== RUN   TestDerivedSignature
+--- PASS: TestDerivedSignature (0.01s)
+=== RUN   TestTransactionHash
+--- PASS: TestTransactionHash (0.02s)
+=== RUN   TestVerifySignature
+--- PASS: TestVerifySignature (0.01s)
+=== RUN   TestUIVerifySignature
+--- PASS: TestUIVerifySignature (0.02s)
 === RUN   TestPedersenHash
---- PASS: TestPedersenHash (0.02s)
+--- PASS: TestPedersenHash (0.00s)
 === RUN   TestInitCurveWithConstants
 --- PASS: TestInitCurveWithConstants (0.01s)
 === RUN   TestDivMod
 --- PASS: TestDivMod (0.00s)
+=== RUN   TestEcMult
+--- PASS: TestEcMult (0.00s)
 === RUN   TestAdd
 --- PASS: TestAdd (0.00s)
 === RUN   TestMultAir
 --- PASS: TestMultAir (0.00s)
 === RUN   TestGetY
 --- PASS: TestGetY (0.00s)
-=== RUN   TestVerifySignature
---- PASS: TestVerifySignature (0.01s)
-=== RUN   TestUIVerifySignature
---- PASS: TestUIVerifySignature (0.02s)
 PASS
-ok      github.com/dontpanicdao/caigo   0.605s
+ok      github.com/dontpanicdao/caigo   0.454s
 ```
+
+## Issues
+
+If you find an issue/bug or have a feature request please submit an issue here
+[Issues](https://github.com/dontpanicdao/caigo/issues)
+
+## Contributing
+
+If you are looking to contribute, please head to the
+[Contributing](https://github.com/dontpanicdao/caigo/blob/main/CONTRIBUTING.md) section.
