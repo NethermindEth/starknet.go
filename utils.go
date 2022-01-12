@@ -9,7 +9,17 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/sha3"
 )
+
+// KeccakState wraps sha3.state. In addition to the usual hash methods, it also supports
+// Read to get a variable amount of data from the hash state. Read is faster than Sum
+// because it doesn't copy the internal state, but also modifies the internal state.
+type KeccakState interface {
+	hash.Hash
+	Read([]byte) (int, error)
+}
 
 // given x will find corresponding public key coordinate on curve
 func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
@@ -18,6 +28,14 @@ func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
 	yout := sc.GetYCoordinate(xin)
 
 	return xin, yout
+}
+
+// convert utf8 string to big int
+func UTF8StrToBig(str string) *big.Int {
+	hexStr := hex.EncodeToString([]byte(str))
+	b, _ := new(big.Int).SetString(hexStr, 16)
+
+	return b
 }
 
 // convert decimal string to big int
@@ -118,4 +136,50 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	h := hmac.New(alg, k)
 	h.Write(m)
 	return h.Sum(buf[:0])
+}
+
+
+func getSelectorFromName(funcName string) *big.Int {
+	kec := Keccak256([]byte(funcName))
+
+	maskedKec := MaskBits(250, 8, kec)
+	ret := new(big.Int)
+	ret = ret.SetBytes(maskedKec)
+
+	return ret
+}
+
+// Keccak256 calculates and returns the Keccak256 hash of the input data.
+// (ref: https://github.com/ethereum/go-ethereum/blob/master/crypto/crypto.go)
+func Keccak256(data ...[]byte) []byte {
+	b := make([]byte, 32)
+	d := NewKeccakState()
+	for _, b := range data {
+		d.Write(b)
+	}
+	d.Read(b)
+	return b
+}
+
+// NewKeccakState creates a new KeccakState
+// (ref: https://github.com/ethereum/go-ethereum/blob/master/crypto/crypto.go)
+func NewKeccakState() KeccakState {
+	return sha3.NewLegacyKeccak256().(KeccakState)
+}
+
+func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
+	excess := len(slice) * wordSize - mask
+	for _, by := range slice {
+		if excess > 0  {
+			if excess > wordSize {
+				excess = excess - wordSize
+				continue
+			}
+			by <<= excess
+			by >>= excess
+			excess = 0
+		}
+		ret = append(ret, by)
+	}
+	return ret
 }

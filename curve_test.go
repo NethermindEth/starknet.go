@@ -20,6 +20,15 @@ func TestPedersenHash(t *testing.T) {
 	if hash.Cmp(HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca")) != 0 {
 		t.Errorf("incorrect hash %v got %v needed", hash, HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"))
 	}
+	hash, err = curve.PedersenHash([]*big.Int{HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), HexToBN("0x537461726b4e6574204d61696c")})
+	if err != nil {
+		t.Errorf("Hashing err: %v\n", err)
+	}
+
+	exp := "0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c"
+	if BigToHex(hash) != exp {
+		t.Errorf("incorrect hash %v got %v\n", BigToHex(hash), exp)
+	}
 }
 
 func TestInitCurveWithConstants(t *testing.T) {
