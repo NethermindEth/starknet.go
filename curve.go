@@ -206,10 +206,8 @@ func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 }
 
 func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
-	fmt.Println("K HERE: ", k)
 	m := new(big.Int)
 	m = m.SetBytes(k)
-	fmt.Println("M HERE: ", m)
 	x, y = sc.EcMult(m, x1, y1)
 	return x, y
 }
