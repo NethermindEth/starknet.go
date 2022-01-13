@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"fmt"
 	"testing"
 	"math/big"
 )
@@ -77,6 +78,28 @@ func TestGetMessageHash(t *testing.T) {
 	if BigToHex(hash) != exp {
 		t.Errorf("type hash: %v does not match expected %v\n", BigToHex(hash), exp)
 	}
+}
+
+func BenchmarkGetMessageHash(b *testing.B) {
+	ttd := MockTypedData()
+
+	curve, _ := SCWithConstants("./pedersen_params.json")
+
+	mail := Mail{
+		From: Person{
+			Name: "Cow",
+			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+		},
+		To: Person{
+			Name: "Bob",
+			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+		},
+		Contents: "Hello, Bob!",
+	}
+	addr := HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
+	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
+		ttd.GetMessageHash(addr, mail, curve)
+	})
 }
 
 func TestGetDomainHash(t *testing.T) {

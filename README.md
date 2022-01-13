@@ -18,7 +18,7 @@
 - https://github.com/software-mansion/starknet.py
 - https://github.com/codahale/rfc6979/blob/master/rfc6979.go
 
-### !!! THIS LIBRARY HAS YET BEEN AUDITED BY THE STARKWARE TEAM !!!
+### !!! THIS LIBRARY HAS NOT YET BEEN AUDITED BY THE STARKWARE TEAM !!!
 
 ### Usage
 Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
@@ -64,6 +64,24 @@ func main() {
 		fmt.Println("signature is invalid")
 	}
 }
+
+```
+#### Benchmark
+```go
+goos: darwin
+goarch: amd64
+pkg: github.com/dontpanicdao/caigo
+cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
+BenchmarkSignatureVerify/sign_input_size_249-12                 1000000000               0.002313 ns/op
+BenchmarkSignatureVerify/verify_input_size_249-12               1000000000               0.006192 ns/op
+BenchmarkPedersenHash/input_size_17_24-12                       1000000000               0.0001771 ns/op
+BenchmarkPedersenHash/input_size_37_48-12                       1000000000               0.0002878 ns/op
+BenchmarkPedersenHash/input_size_37_160-12                      1000000000               0.0006268 ns/op
+BenchmarkPedersenHash/input_size_160_48-12                      1000000000               0.0008042 ns/op
+BenchmarkPedersenHash/input_size_160_160-12                     1000000000               0.001161 ns/op
+BenchmarkPedersenHash/input_size_251_249-12                     1000000000               0.001569 ns/op
+BenchmarkPedersenHash/input_size_251_251-12                     1000000000               0.001523 ns/op
+BenchmarkGetMessageHash/input_size_160-12                       1000000000               0.02341 ns/op
 ```
 
 #### Test

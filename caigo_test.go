@@ -1,10 +1,9 @@
 package caigo
 
 import (
-	// "fmt"
+	"fmt"
 	"crypto/elliptic"
 	"math/big"
-	// "crypto/rand"
 	"crypto/ecdsa"
 	"strings"
 	"testing"
@@ -87,6 +86,40 @@ func TestBadSignature(t *testing.T) {
 	if curve.Verify(badHash, r, s, x, y) {
 		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
+}
+
+func BenchmarkSignatureVerify(b *testing.B) {
+	curve, _ := SCWithConstants("./pedersen_params.json")
+
+	pr := curve.GetRandomPrivateKey()
+
+	prin := new(big.Int)
+	prin = prin.Set(pr)
+	x, y, _ := curve.PrivateToPoint(prin)
+
+	priv := &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     x,
+			Y:     y,
+		},
+		D: pr,
+	}
+
+	hash, _ := curve.PedersenHash(
+		[]*big.Int{
+			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+		})
+
+	r, s, _ := curve.Sign(hash, priv.D)
+
+	b.Run(fmt.Sprintf("sign_input_size_%d", hash.BitLen()), func(b *testing.B) {
+		curve.Sign(hash, priv.D)
+	})
+	b.Run(fmt.Sprintf("verify_input_size_%d", hash.BitLen()), func(b *testing.B) {
+		curve.Verify(hash, r, s, x, y)
+	})
 }
 
 func TestKnownSignature(t *testing.T) {

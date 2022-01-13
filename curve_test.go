@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"fmt"
 	"crypto/elliptic"
 	"math/big"
 	"testing"
@@ -28,6 +29,24 @@ func TestPedersenHash(t *testing.T) {
 	exp := "0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c"
 	if BigToHex(hash) != exp {
 		t.Errorf("incorrect hash %v got %v\n", BigToHex(hash), exp)
+	}
+}
+
+func BenchmarkPedersenHash(b *testing.B) {
+	curve, _ := SCWithConstants("./pedersen_params.json")
+
+	var suite [][]*big.Int
+	suite = append(suite, []*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	suite = append(suite, []*big.Int{HexToBN("0x1277312773"), HexToBN("0x872362872362")})
+	suite = append(suite, []*big.Int{HexToBN("0x1277312773"), HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")})
+	suite = append(suite, []*big.Int{HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), HexToBN("0x872362872362")})
+	suite = append(suite, []*big.Int{HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")})
+	suite = append(suite, []*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")})
+	suite = append(suite, []*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")})
+	for _, test := range suite {
+		b.Run(fmt.Sprintf("input_size_%d_%d", test[0].BitLen(), test[1].BitLen()), func(b *testing.B) {
+			curve.PedersenHash(test)
+		})
 	}
 }
 
