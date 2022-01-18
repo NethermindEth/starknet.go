@@ -188,9 +188,9 @@ func TestGetTypeHash(t *testing.T) {
 }
 
 func TestGetSelectorFromName(t *testing.T) {
-	sel1 := BigToHex(getSelectorFromName("initialize"))
-	sel2 := BigToHex(getSelectorFromName("mint"))
-	sel3 := BigToHex(getSelectorFromName("test"))
+	sel1 := BigToHex(GetSelectorFromName("initialize"))
+	sel2 := BigToHex(GetSelectorFromName("mint"))
+	sel3 := BigToHex(GetSelectorFromName("test"))
 
 	exp1 := "0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463"
 	exp2 := "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"

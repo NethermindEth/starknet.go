@@ -124,7 +124,7 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 	if err != nil {
 		return ret, err
 	}
-	sel := getSelectorFromName(enc)
+	sel := GetSelectorFromName(enc)
 	return sel, nil
 }
 

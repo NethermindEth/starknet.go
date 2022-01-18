@@ -139,7 +139,7 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 }
 
 
-func getSelectorFromName(funcName string) *big.Int {
+func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
 	maskedKec := MaskBits(250, 8, kec)
