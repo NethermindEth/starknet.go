@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"math/big"
 )
 
 type StarkNetRequest struct {
@@ -23,20 +24,24 @@ type TransactionStatus struct {
 	BlockHash string `json:"block_hash"`
 }
 
-type Transaction struct {
+type StarknetTransaction struct {
 	TransactionIndex int `json:"transaction_index"`
 	BlockNumber      int `json:"block_number"`
-	Transaction      struct {
-		Signature          []string `json:"signature"`
-		EntryPointType     string   `json:"entry_point_type"`
-		TransactionHash    string   `json:"transaction_hash"`
-		Calldata           []string `json:"calldata"`
-		EntryPointSelector string   `json:"entry_point_selector"`
-		ContractAddress    string   `json:"contract_address"`
-		Type               string   `json:"type"`
-	} `json:"transaction"`
+	Transaction      Transaction `json:"transaction"`
 	BlockHash string `json:"block_hash"`
 	Status    string `json:"status"`
+}
+
+// Starknet transaction composition
+type Transaction struct {
+	Calldata           []*big.Int `json:"calldata"`
+	ContractAddress    *big.Int   `json:"contract_address"`
+	EntryPointSelector *big.Int   `json:"entry_point_selector"`
+	EntryPointType     string     `json:"entry_point_type"`
+	Signature          []*big.Int `json:"signature"`
+	TransactionHash    *big.Int   `json:"transaction_hash"`
+	Type               string     `json:"type"`
+	Nonce              *big.Int   `json:"nonce,omitempty"`
 }
 
 func (sn StarkNetRequest) Call(providerBaseUri string) (resp []string, err error) {
@@ -89,7 +94,7 @@ func GetTransactionStatus(providerBaseUri, txHash string) (status TransactionSta
 	return status, nil
 }
 
-func GetTransaction(providerBaseUri, txHash string) (tx Transaction, err error) {
+func GetTransaction(providerBaseUri, txHash string) (tx StarknetTransaction, err error) {
 	url := fmt.Sprintf("%s/get_transaction?transactionHash=%s", providerBaseUri, txHash)
 	
 	method := "GET"
@@ -110,3 +115,25 @@ func GetTransaction(providerBaseUri, txHash string) (tx Transaction, err error) 
 	json.NewDecoder(res.Body).Decode(&tx)
 	return tx, nil
 }
+
+
+// Adheres to 'starknet.js' hash non typedData
+func (sc StarkCurve) HashTx(pubkey *big.Int, tx Transaction) (hash *big.Int, err error) {
+	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
+	cdHash, err := sc.HashElements(tx.Calldata)
+	if err != nil {
+		return hash, err
+	}
+
+	txHashData := []*big.Int{
+		pubkey,
+		tx.ContractAddress,
+		tx.EntryPointSelector,
+		cdHash,
+		tx.Nonce,
+	}
+	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
+	hash, err = sc.HashElements(txHashData)
+	return hash, err
+}
+

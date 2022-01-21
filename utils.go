@@ -208,6 +208,14 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) (fact *big.Int
 	return ret, err
 }
 
+func SplitFactStr(fact string) (fact_low, fact_high string) {
+	factBN := HexToBN(fact)
+	factBytes := factBN.Bytes()
+	low := BytesToBig(factBytes[16:])
+	high := BytesToBig(factBytes[:16])
+	return BigToHex(low), BigToHex(high)
+}
+
 func FmtKecBytes(buf []byte, in *big.Int, rolen int) []byte {
 	buf = append(buf, in.Bytes()...)
 
