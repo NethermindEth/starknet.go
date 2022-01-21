@@ -47,7 +47,8 @@ func StrToBig(str string) *big.Int {
 
 func HexToShortStr(hexStr string) string {
 	numStr := strings.Replace(hexStr, "0x", "", -1)
-	hb := StrToBig(numStr)
+	hb, _ := new(big.Int).SetString(numStr, 16)
+
 	return string(hb.Bytes())
 }
 
