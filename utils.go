@@ -45,6 +45,11 @@ func StrToBig(str string) *big.Int {
 	return b
 }
 
+func HexToShortStr(str string) string {
+	hb := StrToBig(str)
+	return string(hb.Bytes())
+}
+
 // trim "0x" prefix(if exists) and converts hexidecimal string to big int
 func HexToBN(hexString string) (n *big.Int) {
 	numStr := strings.Replace(hexString, "0x", "", -1)
