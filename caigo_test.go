@@ -47,6 +47,39 @@ func jsToBN(str string) *big.Int {
 	}
 }
 
+func TestComputeFact(t *testing.T) {
+	fmt.Println(BigToHex(GetSelectorFromName("get_count")))
+	progHash := "0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"
+	progOutput := []*big.Int{big.NewInt(289)}
+	hash, err := ComputeFact(HexToBN(progHash), progOutput)
+	if err != nil {
+		t.Errorf("Err computing hash: %v\n", err)
+	}
+
+	if hash.Cmp(HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4")) != 0 {
+		t.Errorf("Fact does not equal ex %v\n", hash)
+	}
+
+	progHash = "0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"
+	out, _ := new(big.Int).SetString("2754806153357301156380357983574496185342034785016738734224771556919270737441", 10)
+	progOutput = []*big.Int{out}
+	hash, err = ComputeFact(HexToBN(progHash), progOutput)
+	if err != nil {
+		t.Errorf("Err computing hash: %v\n", err)
+	}
+
+	if hash.Cmp(HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db")) != 0 {
+		t.Errorf("Fact does not equal ex %v %v\n", hash, HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"))
+	}
+
+	secIn, _ := HexToBytes("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab")
+	fmt.Println("SECIN: ", BytesToBig(secIn[:16]), BytesToBig(secIn[16:]))
+	hashBy := hash.Bytes()
+	outputKec := Keccak256(FmtKecBytes([]byte{}, out, 32))
+	fmt.Println("OUTPUT: ", BytesToBig(outputKec[:16]), BytesToBig(outputKec[16:]))
+	fmt.Println("FINAL: ", BytesToBig(hashBy[:16]), BytesToBig(hashBy[16:]))
+}
+
 func TestBadSignature(t *testing.T) {
 	curve, err := SCWithConstants("./pedersen_params.json")
 	if err != nil {

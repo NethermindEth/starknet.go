@@ -64,6 +64,13 @@ func HexToBytes(hexString string) ([]byte, error) {
 	return hex.DecodeString(numStr)
 }
 
+func BytesToBig(bytes []byte) (*big.Int) {
+	ret := new(big.Int)
+	ret = ret.SetBytes(bytes)
+
+	return ret
+}
+
 // convert big int to hexidecimal string
 func BigToHex(in *big.Int) string {
 	return fmt.Sprintf("0x%x", in)
@@ -182,4 +189,35 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 		ret = append(ret, by)
 	}
 	return ret
+}
+
+func ComputeFact(programHash *big.Int, programOutputs []*big.Int) (fact *big.Int, err error) {
+	var progOutBuf []byte
+	for _, programOutput := range programOutputs {
+		progOutBuf = FmtKecBytes(progOutBuf, programOutput, 32)
+	}
+
+	var kecBuf []byte
+	kecBuf = FmtKecBytes(kecBuf, programHash, 32)
+
+	kecBuf = append(kecBuf, Keccak256(progOutBuf)...)
+
+	ret := new(big.Int)
+	ret = ret.SetBytes(Keccak256(kecBuf))
+
+	return ret, err
+}
+
+func FmtKecBytes(buf []byte, in *big.Int, rolen int) []byte {
+	buf = append(buf, in.Bytes()...)
+
+	// pad with zeros if too short
+	if len(buf) < rolen {
+		padded := make([]byte, rolen)
+		copy(padded[rolen - len(buf):], buf)
+
+		return padded
+	}
+
+	return buf
 }
