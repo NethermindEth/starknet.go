@@ -1,8 +1,8 @@
 package caigo
 
 import (
-	"fmt"
 	"crypto/elliptic"
+	"fmt"
 	"math/big"
 	"testing"
 )
@@ -77,10 +77,6 @@ func TestDivMod(t *testing.T) {
 	if divR.Cmp(DIVMODRES) != 0 {
 		t.Errorf("DivMod Res %v does not == expected %v\n", divR, DIVMODRES)
 	}
-}
-
-func TestEcMult(t *testing.T) {
-
 }
 
 func TestAdd(t *testing.T) {

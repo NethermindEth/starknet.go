@@ -2,18 +2,18 @@ package caigo
 
 import (
 	"fmt"
-	"testing"
 	"math/big"
+	"testing"
 )
 
 type Mail struct {
-	From Person
-	To Person
+	From     Person
+	To       Person
 	Contents string
 }
 
 type Person struct {
-	Name string
+	Name   string
 	Wallet string
 }
 
@@ -40,7 +40,7 @@ func MockTypedData() (ttd TypedData) {
 	exampleTypes["Person"] = TypeDef{Definitions: persDefs}
 
 	dm := Domain{
-		Name: "StarkNet Mail",
+		Name:    "StarkNet Mail",
 		Version: "1",
 		ChainId: 1,
 	}
@@ -59,11 +59,11 @@ func TestGetMessageHash(t *testing.T) {
 
 	mail := Mail{
 		From: Person{
-			Name: "Cow",
+			Name:   "Cow",
 			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 		},
 		To: Person{
-			Name: "Bob",
+			Name:   "Bob",
 			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
 		},
 		Contents: "Hello, Bob!",
@@ -87,11 +87,11 @@ func BenchmarkGetMessageHash(b *testing.B) {
 
 	mail := Mail{
 		From: Person{
-			Name: "Cow",
+			Name:   "Cow",
 			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 		},
 		To: Person{
-			Name: "Bob",
+			Name:   "Bob",
 			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
 		},
 		Contents: "Hello, Bob!",
@@ -127,11 +127,11 @@ func TestGetTypedMessageHash(t *testing.T) {
 
 	mail := Mail{
 		From: Person{
-			Name: "Cow",
+			Name:   "Cow",
 			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 		},
 		To: Person{
-			Name: "Bob",
+			Name:   "Bob",
 			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
 		},
 		Contents: "Hello, Bob!",

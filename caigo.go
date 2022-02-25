@@ -141,9 +141,10 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) 
 	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
-	if len(elems) < 2 {
-		return hash, fmt.Errorf("must have element slice larger than 2 for hashing")
+	if len(elems) == 0 {
+		elems = append(elems, big.NewInt(0))
 	}
+
 	hash = big.NewInt(0)
 	for _, h := range elems {
 		hash, err = sc.PedersenHash([]*big.Int{hash, h})

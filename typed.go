@@ -1,27 +1,27 @@
 package caigo
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"math/big"
 	"strconv"
 )
 
 type TypedData struct {
-	Types map[string]TypeDef
+	Types       map[string]TypeDef
 	PrimaryType string
-	Domain Domain
-	Message TypedMessage
+	Domain      Domain
+	Message     TypedMessage
 }
 
 type Domain struct {
-	Name string
+	Name    string
 	Version string
 	ChainId int
 }
 
 type TypeDef struct {
-	Encoding *big.Int
+	Encoding    *big.Int
 	Definitions []Definition
 }
 
@@ -49,9 +49,9 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 
 func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{
-		Types: types,
+		Types:       types,
 		PrimaryType: pType,
-		Domain: dom,
+		Domain:      dom,
 	}
 	if _, ok := td.Types[pType]; !ok {
 		return td, fmt.Errorf("invalid primary type: %v\n", pType)
@@ -106,7 +106,7 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc Star
 		fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
 		innerElements = append(innerElements, fmtDefinitions...)
 		innerElements = append(innerElements, big.NewInt(int64(len(innerElements))))
-		
+
 		innerHash, err := sc.HashElements(innerElements)
 		if err != nil {
 			return hash, fmt.Errorf("error hashing internal elements: %v %v\n", innerElements, err)
@@ -128,7 +128,6 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 	return sel, nil
 }
 
-
 func (td TypedData) EncodeType(inType string) (enc string, err error) {
 	var typeDefs TypeDef
 	var ok bool
@@ -145,7 +144,7 @@ func (td TypedData) EncodeType(inType string) (enc string, err error) {
 			if customTypeDef, ok = td.Types[def.Type]; !ok {
 				return enc, fmt.Errorf("can't parse type %v from types %v\n", def.Type, td.Types)
 			}
-			customTypes[def.Type] = customTypeDef 
+			customTypes[def.Type] = customTypeDef
 		}
 		buf.WriteString(fmt.Sprintf("%s:%s", def.Name, def.Type))
 		if i != (len(typeDefs.Definitions) - 1) {

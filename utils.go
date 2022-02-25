@@ -71,7 +71,7 @@ func HexToBytes(hexString string) ([]byte, error) {
 	return hex.DecodeString(numStr)
 }
 
-func BytesToBig(bytes []byte) (*big.Int) {
+func BytesToBig(bytes []byte) *big.Int {
 	ret := new(big.Int)
 	ret = ret.SetBytes(bytes)
 
@@ -152,7 +152,6 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	return h.Sum(buf[:0])
 }
 
-
 func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
@@ -182,9 +181,9 @@ func NewKeccakState() KeccakState {
 }
 
 func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
-	excess := len(slice) * wordSize - mask
+	excess := len(slice)*wordSize - mask
 	for _, by := range slice {
-		if excess > 0  {
+		if excess > 0 {
 			if excess > wordSize {
 				excess = excess - wordSize
 				continue
@@ -201,13 +200,15 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 func ComputeFact(programHash *big.Int, programOutputs []*big.Int) (fact *big.Int, err error) {
 	var progOutBuf []byte
 	for _, programOutput := range programOutputs {
-		progOutBuf = FmtKecBytes(progOutBuf, programOutput, 32)
+		inBuf := FmtKecBytes(programOutput, 32)
+		progOutBuf = append(progOutBuf[:], inBuf...)
 	}
 
-	var kecBuf []byte
-	kecBuf = FmtKecBytes(kecBuf, programHash, 32)
+	kecBuf := FmtKecBytes(programHash, 32)
+	inter := new(big.Int)
+	inter = inter.SetBytes(Keccak256(progOutBuf))
 
-	kecBuf = append(kecBuf, Keccak256(progOutBuf)...)
+	kecBuf = append(kecBuf[:], Keccak256(progOutBuf)...)
 
 	ret := new(big.Int)
 	ret = ret.SetBytes(Keccak256(kecBuf))
@@ -223,13 +224,13 @@ func SplitFactStr(fact string) (fact_low, fact_high string) {
 	return BigToHex(low), BigToHex(high)
 }
 
-func FmtKecBytes(buf []byte, in *big.Int, rolen int) []byte {
+func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	buf = append(buf, in.Bytes()...)
 
 	// pad with zeros if too short
 	if len(buf) < rolen {
 		padded := make([]byte, rolen)
-		copy(padded[rolen - len(buf):], buf)
+		copy(padded[rolen-len(buf):], buf)
 
 		return padded
 	}

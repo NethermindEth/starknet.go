@@ -1,49 +1,41 @@
 package caigo
 
 import (
-	"fmt"
-	"crypto/elliptic"
-	"math/big"
 	"crypto/ecdsa"
-	"strings"
+	"crypto/elliptic"
+	"fmt"
+	"math/big"
 	"testing"
 )
 
-// struct to catch starknet.js transaction payloads
-type JSTransaction struct {
-	Calldata           []string `json:"calldata"`
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	EntryPointType     string   `json:"entry_point_type"`
-	JSSignature        []string `json:"signature"`
-	TransactionHash    string   `json:"transaction_hash"`
-	Type               string   `json:"type"`
-	Nonce              string   `json:"nonce"`
-}
+func TestHashAndSign(t *testing.T) {
+	curve, err := SCWithConstants("./pedersen_params.json")
+	if err != nil {
+		t.Errorf("Could not init with constant points: %v\n", err)
+	}
 
-func (jtx JSTransaction) ConvertTx() (tx Transaction) {
-	tx = Transaction{
-		ContractAddress:    jsToBN(jtx.ContractAddress),
-		EntryPointSelector: jsToBN(jtx.EntryPointSelector),
-		EntryPointType:     jtx.EntryPointType,
-		TransactionHash:    jsToBN(jtx.TransactionHash),
-		Type:               jtx.Type,
-		Nonce:              jsToBN(jtx.Nonce),
+	keys := []string{"true", "submit_l1", "true"}
+	var bigs []*big.Int
+	for _, key := range keys {
+		bigs = append(bigs, UTF8StrToBig(key))
 	}
-	for _, cd := range jtx.Calldata {
-		tx.Calldata = append(tx.Calldata, jsToBN(cd))
-	}
-	for _, sigElem := range jtx.JSSignature {
-		tx.Signature = append(tx.Signature, jsToBN(sigElem))
-	}
-	return tx
-}
 
-func jsToBN(str string) *big.Int {
-	if strings.Contains(str, "0x") {
-		return HexToBN(str)
-	} else {
-		return StrToBig(str)
+	hashy, err := curve.HashElements(bigs)
+
+	priv := curve.GetRandomPrivateKey()
+
+	r, s, err := curve.Sign(hashy, priv)
+	if err != nil {
+		t.Errorf("Could not convert gen signature: %v\n", err)
+	}
+
+	x, y, err := curve.PrivateToPoint(priv)
+	if err != nil {
+		t.Errorf("Could not convert random private key to point: %v\n", err)
+	}
+
+	if !curve.Verify(hashy, r, s, x, y) {
+		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
 }
 
@@ -233,7 +225,7 @@ func TestTransactionHash(t *testing.T) {
 	}
 
 	tx := jtx.ConvertTx()
-	hashFinal, err := curve.HashTx(
+	hashFinal, err := curve.HashMsg(
 		HexToBN("0x6f8b21c8354e8ba21ead656932eaa21e728f8c81f001488c186a336d7038cf1"),
 		tx,
 	)
