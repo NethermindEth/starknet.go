@@ -27,6 +27,7 @@ type StarkCurve struct {
 	EcGenY           *big.Int
 	MinusShiftPointX *big.Int
 	MinusShiftPointY *big.Int
+	Max              *big.Int
 	Alpha            *big.Int
 	ConstantPoints   [][]*big.Int
 }
@@ -69,8 +70,9 @@ func InitCurve() {
 	sc.EcGenY, _ = new(big.Int).SetString("152666792071518830868575557812948353041420400780739481342941381225525861407", 10)
 	sc.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
 	sc.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
+	sc.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10)              // 2 ** 251
 	sc.Alpha = big.NewInt(1)
-	sc.BitSize = 251
+	sc.BitSize = 252
 }
 
 /*
@@ -134,8 +136,9 @@ func InitWithConstants(path string) (err error) {
 	sc.EcGenY = scPayload.ConstantPoints[1][1]
 	sc.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
 	sc.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10)
+	sc.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10) // 2 ** 251
 	sc.Alpha = big.NewInt(scPayload.Alpha)
-	sc.BitSize = 251
+	sc.BitSize = 252
 	sc.ConstantPoints = scPayload.ConstantPoints
 
 	return nil
@@ -273,7 +276,7 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
 	m := new(big.Int)
 	m = m.Set(mout)
-	if m.Cmp(big.NewInt(0)) != 1 || m.BitLen() > 502 {
+	if m.Cmp(big.NewInt(0)) != 1 || m.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("too many bits %v", m.BitLen())
 	}
 

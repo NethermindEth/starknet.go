@@ -22,7 +22,7 @@ func TestHashAndSign(t *testing.T) {
 
 	hashy, err := curve.HashElements(bigs)
 
-	priv := curve.GetRandomPrivateKey()
+	priv, _ := curve.GetRandomPrivateKey()
 
 	r, s, err := curve.Sign(hashy, priv)
 	if err != nil {
@@ -42,10 +42,7 @@ func TestHashAndSign(t *testing.T) {
 func TestComputeFact(t *testing.T) {
 	progHash := "0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"
 	progOutput := []*big.Int{big.NewInt(289)}
-	hash, err := ComputeFact(HexToBN(progHash), progOutput)
-	if err != nil {
-		t.Errorf("Err computing hash: %v\n", err)
-	}
+	hash := ComputeFact(HexToBN(progHash), progOutput)
 
 	if hash.Cmp(HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4")) != 0 {
 		t.Errorf("Fact does not equal ex %v\n", hash)
@@ -54,10 +51,7 @@ func TestComputeFact(t *testing.T) {
 	progHash = "0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"
 	out, _ := new(big.Int).SetString("2754806153357301156380357983574496185342034785016738734224771556919270737441", 10)
 	progOutput = []*big.Int{out}
-	hash, err = ComputeFact(HexToBN(progHash), progOutput)
-	if err != nil {
-		t.Errorf("Err computing hash: %v\n", err)
-	}
+	hash = ComputeFact(HexToBN(progHash), progOutput)
 
 	if hash.Cmp(HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db")) != 0 {
 		t.Errorf("Fact does not equal ex %v %v\n", hash, HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"))
@@ -75,7 +69,7 @@ func TestBadSignature(t *testing.T) {
 		t.Errorf("Hashing err: %v\n", err)
 	}
 
-	priv := curve.GetRandomPrivateKey()
+	priv, _ := curve.GetRandomPrivateKey()
 
 	x, y, err := curve.PrivateToPoint(priv)
 	if err != nil {
@@ -108,7 +102,7 @@ func TestBadSignature(t *testing.T) {
 func BenchmarkSignatureVerify(b *testing.B) {
 	curve, _ := SCWithConstants("./pedersen_params.json")
 
-	pr := curve.GetRandomPrivateKey()
+	pr, _ := curve.GetRandomPrivateKey()
 
 	prin := new(big.Int)
 	prin = prin.Set(pr)
@@ -178,7 +172,7 @@ func TestDerivedSignature(t *testing.T) {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
 
-	pr := curve.GetRandomPrivateKey()
+	pr, _ := curve.GetRandomPrivateKey()
 
 	prin := new(big.Int)
 	prin = prin.Set(pr)

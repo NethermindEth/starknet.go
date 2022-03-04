@@ -7,7 +7,28 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
+	"time"
 )
+
+var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
+
+const (
+	INVOKE       string = "INVOKE_FUNCTION"
+	DEPLOY       string = "DEPLOY"
+	GOERLI_BASE  string = "https://alpha4.starknet.io"
+	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
+)
+
+const (
+	NOT_RECIEVED = TxStatus(iota)
+	REJECTED
+	RECEIVED
+	PENDING
+	ACCEPTED_ON_L2
+	ACCEPTED_ON_L1
+)
+
+type TxStatus int
 
 type TransactionStatus struct {
 	TxStatus  string `json:"tx_status"`
@@ -35,10 +56,9 @@ type Transaction struct {
 }
 
 type StarknetGateway struct {
-	Base    string   `json:"base"`
-	Feeder  string   `json:"feeder"`
-	Gateway string   `json:"gateway"`
-	ChainId *big.Int `json:"chainId"`
+	Base    string `json:"base"`
+	Feeder  string `json:"feeder"`
+	Gateway string `json:"gateway"`
 }
 
 type Block struct {
@@ -102,11 +122,32 @@ type ABI struct {
 	StateMutability string        `json:"stateMutability,omitempty"`
 }
 
+func (s TxStatus) String() string {
+	return statuses[s]
+}
+
+func FindTxStatus(stat string) int {
+	for i, val := range statuses {
+		if val == strings.ToUpper(stat) {
+			return i
+		}
+	}
+	return 0
+}
+
 func NewGateway(chainId ...string) (sg StarknetGateway) {
-	sg = StarknetGateway{"https://alpha4.starknet.io", "https://alpha4.starknet.io/feeder_gateway", "https://alpha4.starknet.io/gateway", UTF8StrToBig("SN_GOERLI")}
+	sg = StarknetGateway{
+		Base:    GOERLI_BASE,
+		Feeder:  GOERLI_BASE + "/feeder_gateway",
+		Gateway: GOERLI_BASE + " /gateway",
+	}
 	if len(chainId) == 1 {
 		if chainId[0] == "mainnet" || chainId[0] == "main" || chainId[0] == "SN_MAIN" {
-			sg = StarknetGateway{"https://alpha-mainnet.starknet.io", "https://alpha-mainnet.starknet.io/feeder_gateway", "https://alpha-mainnet.starknet.io/gateway", UTF8StrToBig("SN_MAIN")}
+			sg = StarknetGateway{
+				Base:    MAINNET_BASE,
+				Feeder:  MAINNET_BASE + "/feeder_gateway",
+				Gateway: MAINNET_BASE + "/gateway",
+			}
 		}
 	}
 	return sg
@@ -227,6 +268,29 @@ func (sg StarknetGateway) GetTransactionReceipt(txHash string) (receipt Transact
 
 	err = json.Unmarshal(resp, &receipt)
 	return receipt, err
+}
+
+func (sg StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, maxPoll int) (n int, status string, err error) {
+	err = fmt.Errorf("could find tx status for tx:  %s\n", txHash)
+
+	ticker := time.NewTicker(time.Duration(interval) * time.Second)
+	cow := 0
+	for range ticker.C {
+		if cow >= maxPoll {
+			return cow, status, err
+		}
+		cow++
+
+		stat, err := sg.GetTransactionStatus(txHash)
+		if err != nil {
+			return cow, status, err
+		}
+		sInt := FindTxStatus(stat.TxStatus)
+		if sInt >= int(threshold) {
+			return cow, stat.TxStatus, nil
+		}
+	}
+	return cow, status, err
 }
 
 func fmtBlockId(blockId string) string {

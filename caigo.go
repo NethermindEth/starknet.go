@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"hash"
 	"math/big"
 )
 
@@ -21,13 +20,13 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
 		return false
 	}
-	if r.Cmp(big.NewInt(0)) != 1 || r.BitLen() > 502 {
+	if r.Cmp(big.NewInt(0)) != 1 || r.Cmp(sc.Max) != -1 {
 		return false
 	}
-	if w.Cmp(big.NewInt(0)) != 1 || w.BitLen() > 502 {
+	if w.Cmp(big.NewInt(0)) != 1 || w.Cmp(sc.Max) != -1 {
 		return false
 	}
-	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.BitLen() > 502 {
+	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
 		return false
 	}
 	if !sc.IsOnCurve(pubX, pubY) {
@@ -53,17 +52,15 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	if r.Cmp(outX) == 0 {
 		return true
 	} else {
-		altY := new(big.Int)
-		altY = altY.Neg(pubY)
-		altY = altY.Mod(altY, sc.P)
-		pubY = altY
+		altY := new(big.Int).Neg(pubY)
+		altY = altY
 
 		zGx, zGy, err = sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 		if err != nil {
 			return false
 		}
 
-		rQx, rQy, err = sc.MimicEcMultAir(r, pubX, pubY, sc.Gx, sc.Gy)
+		rQx, rQy, err = sc.MimicEcMultAir(r, pubX, new(big.Int).Set(altY), sc.Gx, sc.Gy)
 		if err != nil {
 			return false
 		}
@@ -88,40 +85,37 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 
 	(ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
-func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) {
-	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.BitLen() > 502 {
+func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
+	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("invalid bit length")
 	}
 
 	invalidK := true
 	for invalidK {
-		k := sc.GenerateSecret(msgHash, privKey, sha256.New)
+		inSeed := big.NewInt(0)
+		if len(seed) == 1 {
+			inSeed = seed[0]
+		}
+		k := sc.GenerateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
 
-		r := new(big.Int)
-		kin := new(big.Int)
-		kin = kin.Set(k)
-		r, _ = sc.EcMult(kin, sc.EcGenX, sc.EcGenY)
+		r, _ := sc.EcMult(k, sc.EcGenX, sc.EcGenY)
 
 		// DIFF: in classic ECDSA, we take int(x) % n.
-		if r.Cmp(big.NewInt(0)) != 1 || r.BitLen() >= 502 {
+		if r.Cmp(big.NewInt(0)) != 1 || r.Cmp(sc.Max) != -1 {
 			// Bad value. This fails with negligible probability.
 			continue
 		}
 
-		agg := new(big.Int)
-		agg = agg.Mul(r, privKey)
+		agg := new(big.Int).Mul(r, privKey)
 		agg = agg.Add(agg, msgHash)
 
-		cagg := new(big.Int)
-		cagg = cagg.Mod(agg, sc.N)
-		if cagg.Cmp(big.NewInt(0)) == 0 {
+		if new(big.Int).Mod(agg, sc.N).Cmp(big.NewInt(0)) == 0 {
 			// Bad value. This fails with negligible probability.
 			continue
 		}
 
-		w := new(big.Int)
-		w = DivMod(k, agg, sc.N)
-		if w.Cmp(big.NewInt(0)) != 1 || w.BitLen() >= 502 {
+		w := DivMod(k, agg, sc.N)
+		if w.Cmp(big.NewInt(0)) != 1 || w.Cmp(sc.Max) != -1 {
 			// Bad value. This fails with negligible probability.
 			continue
 		}
@@ -129,7 +123,6 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int) (x, y *big.Int, err error) 
 		s := new(big.Int)
 		s = sc.InvModCurveSize(w)
 		return r, s, nil
-
 	}
 
 	return x, y, nil
@@ -166,13 +159,10 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 		return hash, fmt.Errorf("must initiate precomputed constant points")
 	}
 
-	ptx := new(big.Int)
-	pty := new(big.Int)
-	ptx = ptx.Set(sc.Gx)
-	pty = pty.Set(sc.Gy)
+	ptx := new(big.Int).Set(sc.Gx)
+	pty := new(big.Int).Set(sc.Gy)
 	for i, elem := range elems {
-		x := new(big.Int)
-		x = x.Set(elem)
+		x := new(big.Int).Set(elem)
 
 		if x.Cmp(big.NewInt(0)) != 1 && x.Cmp(sc.P) != -1 {
 			return hash, fmt.Errorf("invalid x: %v", x)
@@ -180,10 +170,8 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 
 		for j := 0; j < 252; j++ {
 			idx := 2 + (i * 252) + j
-			xin := new(big.Int)
-			yin := new(big.Int)
-			xin = xin.Set(sc.ConstantPoints[idx][0])
-			yin = yin.Set(sc.ConstantPoints[idx][1])
+			xin := new(big.Int).Set(sc.ConstantPoints[idx][0])
+			yin := new(big.Int).Set(sc.ConstantPoints[idx][1])
 			if xin.Cmp(ptx) == 0 {
 				return hash, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
 			}
@@ -198,11 +186,20 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
-func (sc StarkCurve) GenerateSecret(msgHash, privKey *big.Int, alg func() hash.Hash) (secret *big.Int) {
+func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
+	alg := sha256.New
 	holen := alg().Size()
 	rolen := (sc.BitSize + 7) >> 3
 
-	by := append(int2octets(privKey, rolen), bits2octets(msgHash.Bytes(), sc.N, sc.BitSize, rolen)...)
+	if msgHash.BitLen()%8 <= 4 && msgHash.BitLen() >= 248 {
+		msgHash = msgHash.Mul(msgHash, big.NewInt(16))
+	}
+
+	by := append(int2octets(privKey, rolen), bits2octets(msgHash, sc.N, sc.BitSize, rolen)...)
+
+	if seed.Cmp(big.NewInt(0)) == 1 {
+		by = append(by, seed.Bytes()...)
+	}
 
 	v := bytes.Repeat([]byte{0x01}, holen)
 
@@ -224,7 +221,7 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey *big.Int, alg func() hash.H
 			t = append(t, v...)
 		}
 
-		secret = bits2int(t, sc.BitSize)
+		secret = bits2int(new(big.Int).SetBytes(t), sc.BitSize)
 		// TODO: implement seed here, final gating function
 		if secret.Cmp(big.NewInt(0)) == 1 && secret.Cmp(sc.N) == -1 {
 			return secret

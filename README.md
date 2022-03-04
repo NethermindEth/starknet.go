@@ -46,7 +46,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	priv := curve.GetRandomPrivateKey()
+	priv, _ := curve.GetRandomPrivateKey()
 
 	x, y, err := curve.PrivateToPoint(priv)
 	if err != nil {

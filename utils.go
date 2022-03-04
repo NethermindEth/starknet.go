@@ -2,13 +2,12 @@ package caigo
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"hash"
 	"math/big"
-	"math/rand"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/sha3"
 )
@@ -53,11 +52,10 @@ func HexToShortStr(hexStr string) string {
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to big int
-func HexToBN(hexString string) (n *big.Int) {
+func HexToBN(hexString string) *big.Int {
 	numStr := strings.Replace(hexString, "0x", "", -1)
 
-	n = new(big.Int)
-	n.SetString(numStr, 16)
+	n, _ := new(big.Int).SetString(numStr, 16)
 	return n
 }
 
@@ -72,10 +70,7 @@ func HexToBytes(hexString string) ([]byte, error) {
 }
 
 func BytesToBig(bytes []byte) *big.Int {
-	ret := new(big.Int)
-	ret = ret.SetBytes(bytes)
-
-	return ret
+	return new(big.Int).SetBytes(bytes)
 }
 
 // convert big int to hexidecimal string
@@ -85,14 +80,24 @@ func BigToHex(in *big.Int) string {
 
 // obtain random primary key on stark curve
 // NOTE: to be used for testing purposes
-func (sc StarkCurve) GetRandomPrivateKey() *big.Int {
-	max := new(big.Int)
-	max = max.Sub(sc.N, big.NewInt(1))
+func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
+	max := new(big.Int).Sub(sc.Max, big.NewInt(1))
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	priv := new(big.Int)
-	priv = priv.Rand(r, max)
-	return priv
+	priv, err = rand.Int(rand.Reader, max)
+	if err != nil {
+		return priv, err
+	}
+
+	x, y, err := sc.PrivateToPoint(priv)
+	if err != nil {
+		return priv, err
+	}
+
+	if !sc.IsOnCurve(x, y) {
+		return priv, fmt.Errorf("key gen is not on stark cruve")
+	}
+
+	return priv, nil
 }
 
 // obtain public key coordinates from stark curve given the private key
@@ -126,7 +131,7 @@ func int2octets(v *big.Int, rolen int) []byte {
 }
 
 // https://tools.ietf.org/html/rfc6979#section-2.3.4
-func bits2octets(in []byte, q *big.Int, qlen, rolen int) []byte {
+func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 	z1 := bits2int(in, qlen)
 	z2 := new(big.Int).Sub(z1, q)
 	if z2.Sign() < 0 {
@@ -136,13 +141,12 @@ func bits2octets(in []byte, q *big.Int, qlen, rolen int) []byte {
 }
 
 // https://tools.ietf.org/html/rfc6979#section-2.3.2
-func bits2int(in []byte, qlen int) *big.Int {
-	vlen := len(in) * 8
-	v := new(big.Int).SetBytes(in)
-	if vlen > qlen {
-		v = new(big.Int).Rsh(v, uint(vlen-qlen))
+func bits2int(in *big.Int, qlen int) *big.Int {
+	blen := len(in.Bytes()) * 8
+	if blen > qlen {
+		return new(big.Int).Rsh(in, uint(blen-qlen))
 	}
-	return v
+	return in
 }
 
 // mac returns an HMAC of the given key and message.
@@ -197,7 +201,7 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	return ret
 }
 
-func ComputeFact(programHash *big.Int, programOutputs []*big.Int) (fact *big.Int, err error) {
+func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	var progOutBuf []byte
 	for _, programOutput := range programOutputs {
 		inBuf := FmtKecBytes(programOutput, 32)
@@ -205,15 +209,9 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) (fact *big.Int
 	}
 
 	kecBuf := FmtKecBytes(programHash, 32)
-	inter := new(big.Int)
-	inter = inter.SetBytes(Keccak256(progOutBuf))
-
 	kecBuf = append(kecBuf[:], Keccak256(progOutBuf)...)
 
-	ret := new(big.Int)
-	ret = ret.SetBytes(Keccak256(kecBuf))
-
-	return ret, err
+	return new(big.Int).SetBytes(Keccak256(kecBuf))
 }
 
 func SplitFactStr(fact string) (fact_low, fact_high string) {
