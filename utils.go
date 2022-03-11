@@ -160,10 +160,8 @@ func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
 	maskedKec := MaskBits(250, 8, kec)
-	ret := new(big.Int)
-	ret = ret.SetBytes(maskedKec)
 
-	return ret
+	return new(big.Int).SetBytes(maskedKec)
 }
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
@@ -234,4 +232,12 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	}
 
 	return buf
+}
+
+func jsToBN(str string) *big.Int {
+	if strings.Contains(str, "0x") {
+		return HexToBN(str)
+	} else {
+		return StrToBig(str)
+	}
 }

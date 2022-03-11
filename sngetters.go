@@ -33,6 +33,9 @@ type TxStatus int
 type TransactionStatus struct {
 	TxStatus  string `json:"tx_status"`
 	BlockHash string `json:"block_hash"`
+	TxFailureReason struct{
+		ErrorMessage string `json:"error_message,omitempty"`
+	} `json:"tx_failure_reason,omitempty"`
 }
 
 type StarknetTransaction struct {
@@ -139,7 +142,7 @@ func NewGateway(chainId ...string) (sg StarknetGateway) {
 	sg = StarknetGateway{
 		Base:    GOERLI_BASE,
 		Feeder:  GOERLI_BASE + "/feeder_gateway",
-		Gateway: GOERLI_BASE + " /gateway",
+		Gateway: GOERLI_BASE + "/gateway",
 	}
 	if len(chainId) == 1 {
 		if chainId[0] == "mainnet" || chainId[0] == "main" || chainId[0] == "SN_MAIN" {
@@ -147,6 +150,19 @@ func NewGateway(chainId ...string) (sg StarknetGateway) {
 				Base:    MAINNET_BASE,
 				Feeder:  MAINNET_BASE + "/feeder_gateway",
 				Gateway: MAINNET_BASE + "/gateway",
+			}
+		} else if chainId[0] == "local" || chainId[0] == "localhost" || chainId[0] == "dev" {
+			LOCAL := "http://localhost:5000"
+			sg = StarknetGateway{
+				Base:    LOCAL,
+				Feeder:  LOCAL + "/feeder_gateway",
+				Gateway: LOCAL + "/gateway",
+			}
+		} else {
+			sg = StarknetGateway{
+				Base:    chainId[0],
+				Feeder:  chainId[0] + "/feeder_gateway",
+				Gateway: chainId[0] + "/gateway",
 			}
 		}
 	}
@@ -286,7 +302,9 @@ func (sg StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, ma
 			return cow, status, err
 		}
 		sInt := FindTxStatus(stat.TxStatus)
-		if sInt >= int(threshold) {
+		if sInt == 1 {
+			return cow, status, fmt.Errorf(stat.TxFailureReason.ErrorMessage)
+		} else if sInt >= int(threshold) {
 			return cow, stat.TxStatus, nil
 		}
 	}

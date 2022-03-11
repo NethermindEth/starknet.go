@@ -11,7 +11,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"strconv"
 )
+
+const PREFIX_TRANSACTION = "StarkNet Transaction"
 
 type StarkResp struct {
 	Result []string `json:"result"`
@@ -26,6 +29,14 @@ type RawContractDefinition struct {
 	ABI               []ABI                  `json:"abi"`
 	EntryPointsByType EntryPointsByType      `json:"entry_points_by_type"`
 	Program           map[string]interface{} `json:"program"`
+}
+
+type Signer struct {
+	private *big.Int
+	Curve StarkCurve
+	Gateway StarknetGateway
+	PublicX *big.Int
+	PublicY *big.Int
 }
 
 type DeployRequest struct {
@@ -72,6 +83,26 @@ type EntryPointsByType struct {
 	L1Handler []interface{} `json:"L1_HANDLER"`
 }
 
+func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) (signer Signer, err error) {
+	if len(sc.ConstantPoints) == 0 {
+		return signer, fmt.Errorf("must initiate precomputed constant points")
+	}
+	var gw StarknetGateway
+	if len(chainId) == 1 {
+		gw = NewGateway(chainId[0])
+	} else {
+		gw = NewGateway()
+	}
+
+	return Signer{
+		private: private,
+		Curve: sc,
+		Gateway: gw,
+		PublicX: pubX,
+		PublicY: pubY,
+	}, nil
+}
+
 func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []string, err error) {
 	bid := ""
 	if len(blockId) == 1 {
@@ -80,10 +111,18 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 
 	url := fmt.Sprintf("%s/call_contract%s", sg.Feeder, strings.Replace(bid, "&", "?", 1))
 
+	if len(sn.Calldata) == 0 {
+		sn.Calldata = []string{}
+	}
+	if len(sn.Signature) == 0 {
+		sn.Signature = []string{}
+	}
+
 	pay, err := json.Marshal(sn)
 	if err != nil {
 		return resp, err
 	}
+	fmt.Println("PAY: ", string(pay))
 
 	rawResp, err := postHelper(pay, url)
 	if err != nil {
@@ -102,6 +141,7 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 	if err != nil {
 		return addResp, err
 	}
+	fmt.Println("DIS: ", string(pay))
 
 	rawResp, err := postHelper(pay, url)
 	if err != nil {
@@ -112,24 +152,36 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 	return addResp, err
 }
 
-// {
-// 	"type": "INVOKE_FUNCTION",
-// 	"contract_address": "0x0217d176acd37d6d456c433dd5246af96afc03d9f4d9241e815917ad81d639a1",
-// 	"entry_point_selector": "0x240060cdb34fcc260f41eac7474ee1d7c80b7e3607daff9ac67c7ea2ebb1c44",
-// 	"calldata": ["432476587373182848195563808259184426232857568687880284101194381213081650114", "216030643445273762074482936742625134427639679021380938148798651889117677069", "0", "26"],
-//  "signature": ["1578457523021167749085824996732041607588313391654072972372699055154472126961", "1347141126837834920895919552157519075364938231173830585544694984729726519574"]
-//   }
-// func (sg StarknetGateway) Execute(address *big.Int, calldata []*big.Int) (addResp AddTxResponse, err error) {
-// 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
+func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
+	nonce, err := signer.Gateway.GetAccountNonce(address)
+	if err != nil {
+		return addResp, err
+	}
 
-// 	rawResp, err := sn.postHelper(url)
-// 	if err != nil {
-// 		return addResp, err
-// 	}
+	hash, err := signer.Curve.HashMulticall(address, nonce, big.NewInt(0), big.NewInt(0), txs)
+	if err != nil {
+		return addResp, err
+	}
+	exp, _ := new(big.Int).SetString("303039478180100935883132162839533500076307020484752911895848045150679512896", 10)
+	fmt.Println("GOT: ", hash)
+	fmt.Println("EXP: ", exp)
 
-// 	err = json.Unmarshal(rawResp, &addResp)
-// 	return addResp, err
-// }
+
+	r, s, err := signer.Curve.Sign(hash, signer.private)
+	if err != nil {
+		return addResp, err
+	}
+
+	req := StarknetRequest{
+		Type:               "INVOKE_FUNCTION",
+		ContractAddress:    BigToHex(address),
+		EntryPointSelector: BigToHex(GetSelectorFromName("__execute__")),
+		Calldata:           FmtExecuteCalldata(nonce, txs),
+		Signature:          []string{r.String(), s.String()},
+	}
+
+	return signer.Gateway.Invoke(req)
+}
 
 func (sg StarknetGateway) Deploy(filePath string, dr DeployRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
@@ -143,7 +195,6 @@ func (sg StarknetGateway) Deploy(filePath string, dr DeployRequest) (addResp Add
 	if err != nil {
 		return addResp, err
 	}
-	fmt.Println("RAW DEF: ", rawDef.ABI, rawDef.EntryPointsByType)
 
 	dr.ContractDefinition.ABI = rawDef.ABI
 	dr.ContractDefinition.EntryPointsByType = rawDef.EntryPointsByType
@@ -151,7 +202,6 @@ func (sg StarknetGateway) Deploy(filePath string, dr DeployRequest) (addResp Add
 	if err != nil {
 		return addResp, err
 	}
-	fmt.Println("PROG: ", dr.ContractDefinition.Program)
 
 	pay, err := json.Marshal(dr)
 	if err != nil {
@@ -165,6 +215,21 @@ func (sg StarknetGateway) Deploy(filePath string, dr DeployRequest) (addResp Add
 
 	err = json.Unmarshal(rawResp, &addResp)
 	return addResp, err
+}
+
+func (sg StarknetGateway) GetAccountNonce(address *big.Int) (nonce *big.Int, err error) {
+	resp, err := sg.Call(StarknetRequest{
+		ContractAddress: BigToHex(address),
+		EntryPointSelector: BigToHex(GetSelectorFromName("get_nonce")),
+	})
+	if err != nil {
+		return nonce, err
+	}
+	if len(resp) == 0 {
+		return nonce, fmt.Errorf("no resp in contract call 'get_nonce' %v\n", BigToHex(address))
+	}
+
+	return HexToBN(resp[0]), nil
 }
 
 func postHelper(pay []byte, url string) (resp []byte, err error) {
@@ -189,6 +254,28 @@ func postHelper(pay []byte, url string) (resp []byte, err error) {
 	}
 
 	return resp, err
+}
+
+func FmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldata []string) {
+	var callArray, calldataArray []string
+	calldata = append(calldata, strconv.Itoa(len(txs)))
+
+	for i, tx := range txs {
+		callArray = append(callArray, tx.ContractAddress.String(), tx.EntryPointSelector.String(), strconv.Itoa(i), strconv.Itoa(len(tx.Calldata)))
+		if len(tx.Calldata) == 0 {
+			calldataArray = append(calldataArray, "0")
+		} else {
+			for _, val :=  range tx.Calldata {
+				calldataArray = append(calldataArray, val.String())
+			}
+		}
+	}
+
+	calldata = append(calldata, callArray...)
+	calldata = append(calldata, strconv.Itoa(len(calldataArray)))
+	calldata = append(calldata, calldataArray...)
+	calldata = append(calldata, nonce.String())
+	return calldata 
 }
 
 func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
@@ -228,16 +315,27 @@ func (jtx JSTransaction) ConvertTx() (tx Transaction) {
 	return tx
 }
 
-func jsToBN(str string) *big.Int {
-	if strings.Contains(str, "0x") {
-		return HexToBN(str)
-	} else {
-		return StrToBig(str)
+func (sc StarkCurve) HashMulticall(addr, nonce, max_fee, version *big.Int, txs []Transaction) (hash *big.Int, err error) {
+	for _, tx := range txs {
+		hash, err = sc.HashTx(addr, tx)
 	}
+
+	multiHashData := []*big.Int{
+		UTF8StrToBig(PREFIX_TRANSACTION),
+		addr,
+		new(big.Int).Set(hash),
+		nonce,
+		max_fee,
+		version,
+	}
+
+	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))	
+	hash, err = sc.HashElements(multiHashData)
+	return hash, err
 }
 
 // Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashMsg(pubkey *big.Int, tx Transaction) (hash *big.Int, err error) {
+func (sc StarkCurve) HashMsg(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
 	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
 	cdHash, err := sc.HashElements(tx.Calldata)
 	if err != nil {
@@ -245,19 +343,20 @@ func (sc StarkCurve) HashMsg(pubkey *big.Int, tx Transaction) (hash *big.Int, er
 	}
 
 	txHashData := []*big.Int{
-		pubkey,
+		addr,
 		tx.ContractAddress,
 		tx.EntryPointSelector,
 		cdHash,
 		tx.Nonce,
 	}
 
-	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
+	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))	
 	hash, err = sc.HashElements(txHashData)
 	return hash, err
 }
 
-func (sc StarkCurve) HashTx(prefix, chainId *big.Int, tx Transaction) (hash *big.Int, err error) {
+// Adheres to 'starknet.js' hash non typedData
+func (sc StarkCurve) HashTx(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
 	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
 	cdHash, err := sc.HashElements(tx.Calldata)
 	if err != nil {
@@ -265,15 +364,12 @@ func (sc StarkCurve) HashTx(prefix, chainId *big.Int, tx Transaction) (hash *big
 	}
 
 	txHashData := []*big.Int{
-		prefix,
 		tx.ContractAddress,
 		tx.EntryPointSelector,
 		cdHash,
-		// chainId,
-		tx.Nonce,
 	}
 
-	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
+	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))	
 	hash, err = sc.HashElements(txHashData)
 	return hash, err
 }

@@ -153,23 +153,18 @@ func (sc StarkCurve) Params() *elliptic.CurveParams {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-	yDelta := new(big.Int)
-	xDelta := new(big.Int)
-	yDelta.Sub(y1, y2)
-	xDelta.Sub(x1, x2)
+	yDelta := new(big.Int).Sub(y1, y2)
+	xDelta := new(big.Int).Sub(x1, x2)
 
 	m := DivMod(yDelta, xDelta, sc.P)
 
-	xm := new(big.Int)
-	xm = xm.Mul(m, m)
+	xm := new(big.Int).Mul(m, m)
 
-	x = new(big.Int)
-	x = x.Sub(xm, x1)
+	x = new(big.Int).Sub(xm, x1)
 	x = x.Sub(x, x2)
 	x = x.Mod(x, sc.P)
 
-	y = new(big.Int)
-	y = y.Sub(x1, x)
+	y = new(big.Int).Sub(x1, x)
 	y = y.Mul(m, y)
 	y = y.Sub(y, y1)
 	y = y.Mod(y, sc.P)
@@ -182,25 +177,20 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
-	xin := new(big.Int)
-	xin = xin.Mul(big.NewInt(3), x1)
+	xin := new(big.Int).Mul(big.NewInt(3), x1)
 	xin = xin.Mul(xin, x1)
 	xin = xin.Add(xin, sc.Alpha)
 
-	yin := new(big.Int)
-	yin = yin.Mul(y1, big.NewInt(2))
+	yin := new(big.Int).Mul(y1, big.NewInt(2))
 
 	m := DivMod(xin, yin, sc.P)
 
-	xout := new(big.Int)
-	xout = xout.Mul(m, m)
-	xmed := new(big.Int)
-	xmed = xmed.Mul(big.NewInt(2), x1)
+	xout := new(big.Int).Mul(m, m)
+	xmed := new(big.Int).Mul(big.NewInt(2), x1)
 	xout = xout.Sub(xout, xmed)
 	xout = xout.Mod(xout, sc.P)
 
-	yout := new(big.Int)
-	yout = yout.Sub(x1, xout)
+	yout := new(big.Int).Sub(x1, xout)
 	yout = yout.Mul(m, yout)
 	yout = yout.Sub(yout, y1)
 	yout = yout.Mod(yout, sc.P)
@@ -209,8 +199,7 @@ func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 }
 
 func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
-	m := new(big.Int)
-	m = m.SetBytes(k)
+	m := new(big.Int).SetBytes(k)
 	x, y = sc.EcMult(m, x1, y1)
 	return x, y
 }
@@ -220,18 +209,14 @@ func (sc StarkCurve) ScalarBaseMult(k []byte) (x, y *big.Int) {
 }
 
 func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
-	left := new(big.Int)
-	left = left.Mul(y, y)
+	left := new(big.Int).Mul(y, y)
 	left = left.Mod(left, sc.P)
 
-	right := new(big.Int)
-	right = right.Mul(x, x)
+	right := new(big.Int).Mul(x, x)
 	right = right.Mul(right, x)
 	right = right.Mod(right, sc.P)
 
-	ri := new(big.Int)
-	// ALPHA = big.NewInt(1)
-	ri = ri.Mul(big.NewInt(1), x)
+	ri := new(big.Int).Mul(big.NewInt(1), x)
 
 	right = right.Add(right, ri)
 	right = right.Add(right, sc.B)
@@ -255,11 +240,9 @@ func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
-	y := new(big.Int)
-	y = y.Mul(starkX, starkX)
+	y := new(big.Int).Mul(starkX, starkX)
 	y = y.Mul(y, starkX)
-	yin := new(big.Int)
-	yin = yin.Mul(sc.Alpha, starkX)
+	yin := new(big.Int).Mul(sc.Alpha, starkX)
 
 	y = y.Add(y, yin)
 	y = y.Add(y, sc.B)
@@ -274,8 +257,7 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
-	m := new(big.Int)
-	m = m.Set(mout)
+	m := new(big.Int).Set(mout)
 	if m.Cmp(big.NewInt(0)) != 1 || m.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("too many bits %v", m.BitLen())
 	}
@@ -307,23 +289,18 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _add func(x1, y1, x2, y2 *big.Int) (x, y *big.Int)
 
 	_add = func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-		yDelta := new(big.Int)
-		xDelta := new(big.Int)
-		yDelta.Sub(y1, y2)
-		xDelta.Sub(x1, x2)
+		yDelta := new(big.Int).Sub(y1, y2)
+		xDelta := new(big.Int).Sub(x1, x2)
 
 		m := DivMod(yDelta, xDelta, sc.P)
 
-		xm := new(big.Int)
-		xm = xm.Mul(m, m)
+		xm := new(big.Int).Mul(m, m)
 
-		x = new(big.Int)
-		x = x.Sub(xm, x1)
+		x = new(big.Int).Sub(xm, x1)
 		x = x.Sub(x, x2)
 		x = x.Mod(x, sc.P)
 
-		y = new(big.Int)
-		y = y.Sub(x1, x)
+		y = new(big.Int).Sub(x1, x)
 		y = y.Mul(m, y)
 		y = y.Sub(y, y1)
 		y = y.Mod(y, sc.P)
@@ -336,16 +313,13 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 		if m.BitLen() == 1 {
 			return x1, y1
 		}
-		mk := new(big.Int)
-		mk = mk.Mod(m, big.NewInt(2))
+		mk := new(big.Int).Mod(m, big.NewInt(2))
 		if mk.Cmp(big.NewInt(0)) == 0 {
-			h := new(big.Int)
-			h = h.Div(m, big.NewInt(2))
+			h := new(big.Int).Div(m, big.NewInt(2))
 			c, d := sc.Double(x1, y1)
 			return _ecMult(h, c, d)
 		}
-		n := new(big.Int)
-		n = n.Sub(m, big.NewInt(1))
+		n := new(big.Int).Sub(m, big.NewInt(1))
 		e, f := _ecMult(n, x1, y1)
 		return _add(e, f, x1, y1)
 	}
@@ -363,8 +337,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 	gy := new(big.Int)
 	q = q.GCD(gx, gy, m, p)
 
-	r := new(big.Int)
-	r = r.Mul(n, gx)
+	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)
 	return r
 }
