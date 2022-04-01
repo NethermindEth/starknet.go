@@ -144,7 +144,9 @@ func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 // https://tools.ietf.org/html/rfc6979#section-2.3.2
 func bits2int(in *big.Int, qlen int) *big.Int {
 	blen := len(in.Bytes()) * 8
+
 	if blen > qlen {
+
 		return new(big.Int).Rsh(in, uint(blen-qlen))
 	}
 	return in
