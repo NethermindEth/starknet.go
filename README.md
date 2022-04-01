@@ -12,55 +12,98 @@
     </a>
 </p>
 
-### Usage
-Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
+## Examples
 
-#### call/invoke
+### deploy/call/invoke
+Deploy a compiled contrac to testnet, query the initial state, and invoke a state transition.
+
 ```go
-
 package main
 
 import (
 	"fmt"
-	"math/big"
 
 	"github.com/dontpanicdao/caigo"
 )
 
 func main() {
-	gw := caigo.NewGateway() //defaults to goerli
-
-	priv, _ := curve.GetRandomPrivateKey()
-	x, y, err := curve.PrivateToPoint(priv)
+	// init the stark curve with constants
+	curve, err := caigo.SCWithConstants("../pedersen_params.json")
 	if err != nil {
 		panic(err.Error())
 	}
+	
+	// init starknet gateway client
+	gw := caigo.NewGateway() //defaults to goerli
 
-	deployRequest := DeployRequest{
-		ContractAddressSalt: BigToHex(y),
+	// get random value for salt
+	priv, _ := curve.GetRandomPrivateKey()
+
+	// deploy StarkNet contract with random salt
+	deployRequest := caigo.DeployRequest{
+		ContractAddressSalt: caigo.BigToHex(priv),
 		ConstructorCalldata: []string{},
 	}
 
-	resp, err := gw.Deploy("tmp/counter_compiled.json", deployRequest)
+	// example: https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
+	deployResponse, err := gw.Deploy("counter_compiled.json", deployRequest)
 	if err != nil {
-		t.Errorf("Could not deploy contract: %v\n", err)
+		panic(err.Error())
 	}
+	fmt.Printf("Deployment Response: \n\t%+v\n\n", deployResponse)
 
-	req := caigo.StarknetRequest{
-		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
-		EntryPointSelector: BigToHex(GetSelectorFromName("increment")),
+	// poll until the desired transaction status
+	pollInterval := 5
+	n, status, err := gw.PollTx(deployResponse.TransactionHash, caigo.ACCEPTED_ON_L2, pollInterval, 150)
+	if err != nil {
+		panic(err.Error())
 	}
+	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
 
-	txResp, err := gw.Invoke(req)
+	// fetch transaction details
+	tx, err := gw.GetTransaction(deployResponse.TransactionHash)
 	if err != nil {
 		panic(err.Error())
 	}
 
+	// call StarkNet contract
+	callResp, err := gw.Call(caigo.StarknetRequest{
+		ContractAddress:    tx.Transaction.ContractAddress,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Counter is currently at: ", callResp[0])
 	
+	// invoke StarkNet contract external function
+	invResp, err := gw.Invoke(caigo.StarknetRequest{
+		ContractAddress:    tx.Transaction.ContractAddress,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("increment")),
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	n, status, err = gw.PollTx(invResp.TransactionHash, caigo.ACCEPTED_ON_L2, 5, 150)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
+
+	callResp, err = gw.Call(caigo.StarknetRequest{
+		ContractAddress:    tx.Transaction.ContractAddress,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Counter is currently at: ", callResp[0])
 }
 ```
 
-#### sign/verify
+### sign/verify
+Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
 ```go
 package main
@@ -102,57 +145,15 @@ func main() {
 		fmt.Println("signature is invalid")
 	}
 }
-
-```
-#### Benchmark
-```go
-goos: darwin
-goarch: amd64
-pkg: github.com/dontpanicdao/caigo
-cpu: Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-BenchmarkSignatureVerify/sign_input_size_249-12                 1000000000               0.002313 ns/op
-BenchmarkSignatureVerify/verify_input_size_249-12               1000000000               0.006192 ns/op
-BenchmarkPedersenHash/input_size_17_24-12                       1000000000               0.0001771 ns/op
-BenchmarkPedersenHash/input_size_37_48-12                       1000000000               0.0002878 ns/op
-BenchmarkPedersenHash/input_size_37_160-12                      1000000000               0.0006268 ns/op
-BenchmarkPedersenHash/input_size_160_48-12                      1000000000               0.0008042 ns/op
-BenchmarkPedersenHash/input_size_160_160-12                     1000000000               0.001161 ns/op
-BenchmarkPedersenHash/input_size_251_249-12                     1000000000               0.001569 ns/op
-BenchmarkPedersenHash/input_size_251_251-12                     1000000000               0.001523 ns/op
-BenchmarkGetMessageHash/input_size_160-12                       1000000000               0.02341 ns/op
 ```
 
-#### Test
+### Test && Benchmark
 ```go
+// run tests
 go test -v
-=== RUN   TestBadSignature
---- PASS: TestBadSignature (0.06s)
-=== RUN   TestKnownSignature
---- PASS: TestKnownSignature (0.02s)
-=== RUN   TestDerivedSignature
---- PASS: TestDerivedSignature (0.01s)
-=== RUN   TestTransactionHash
---- PASS: TestTransactionHash (0.02s)
-=== RUN   TestVerifySignature
---- PASS: TestVerifySignature (0.01s)
-=== RUN   TestUIVerifySignature
---- PASS: TestUIVerifySignature (0.02s)
-=== RUN   TestPedersenHash
---- PASS: TestPedersenHash (0.00s)
-=== RUN   TestInitCurveWithConstants
---- PASS: TestInitCurveWithConstants (0.01s)
-=== RUN   TestDivMod
---- PASS: TestDivMod (0.00s)
-=== RUN   TestEcMult
---- PASS: TestEcMult (0.00s)
-=== RUN   TestAdd
---- PASS: TestAdd (0.00s)
-=== RUN   TestMultAir
---- PASS: TestMultAir (0.00s)
-=== RUN   TestGetY
---- PASS: TestGetY (0.00s)
-PASS
-ok      github.com/dontpanicdao/caigo   0.454s
+
+// run benchmarks
+go test -bench=.
 ```
 
 ## Issues
