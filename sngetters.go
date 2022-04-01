@@ -15,12 +15,9 @@ import (
 */
 func NewGateway(chainId ...string) (sg StarknetGateway) {
 	sg = StarknetGateway{
-		Base: GOERLI_BASE,
-
-		Feeder: GOERLI_BASE + "/feeder_gateway",
-
+		Base:    GOERLI_BASE,
+		Feeder:  GOERLI_BASE + "/feeder_gateway",
 		Gateway: GOERLI_BASE + "/gateway",
-
 		ChainId: GOERLI_ID,
 	}
 	if len(chainId) == 1 {
