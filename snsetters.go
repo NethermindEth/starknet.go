@@ -13,78 +13,13 @@ import (
 	"strings"
 )
 
-type StarkResp struct {
-	Result []string `json:"result"`
-}
-
-type AddTxResponse struct {
-	Code            string `json:"code"`
-	TransactionHash string `json:"transaction_hash"`
-}
-
-type FeeEstimate struct {
-	Amount *big.Int `json:"amount"`
-	Unit   string   `json:"unit"`
-}
-
-type RawContractDefinition struct {
-	ABI               []ABI                  `json:"abi"`
-	EntryPointsByType EntryPointsByType      `json:"entry_points_by_type"`
-	Program           map[string]interface{} `json:"program"`
-}
-
-type Signer struct {
-	private *big.Int
-	Curve   StarkCurve
-	Gateway StarknetGateway
-	PublicX *big.Int
-	PublicY *big.Int
-}
-
-type DeployRequest struct {
-	Type                string   `json:"type"`
-	ContractAddressSalt string   `json:"contract_address_salt"`
-	ConstructorCalldata []string `json:"constructor_calldata"`
-	ContractDefinition  struct {
-		ABI               []ABI             `json:"abi"`
-		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-		Program           string            `json:"program"`
-	} `json:"contract_definition"`
-}
-
-type StarknetRequest struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
-	Type               string   `json:"type,omitempty"`
-	Nonce              string   `json:"nonce,omitempty"`
-}
-
-// struct to catch starknet.js transaction payloads
-type JSTransaction struct {
-	Calldata           []string `json:"calldata"`
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	EntryPointType     string   `json:"entry_point_type"`
-	JSSignature        []string `json:"signature"`
-	TransactionHash    string   `json:"transaction_hash"`
-	Type               string   `json:"type"`
-	Nonce              string   `json:"nonce"`
-}
-
-type EntryPointsByType struct {
-	Constructor []struct {
-		Offset   string `json:"offset"`
-		Selector string `json:"selector"`
-	} `json:"CONSTRUCTOR"`
-	External []struct {
-		Offset   string `json:"offset"`
-		Selector string `json:"selector"`
-	} `json:"EXTERNAL"`
-	L1Handler []interface{} `json:"L1_HANDLER"`
-}
-
+/*
+	Instantiate a new StarkNet Signer which includes structures for calling the network and signing transactions:
+	- private signing key
+	- stark curve definition
+	- full StarknetGateway definition
+	- public key pair for signature verifications
+*/
 func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) (signer Signer, err error) {
 	if len(sc.ConstantPoints) == 0 {
 		return signer, fmt.Errorf("must initiate precomputed constant points")
@@ -105,6 +40,9 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 	}, nil
 }
 
+/*
+	'call_contract' wrapper and can accept a blockId in the hash or height format
+*/
 func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []string, err error) {
 	bid := ""
 	if len(blockId) == 1 {
@@ -135,6 +73,9 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 	return snResp.Result, err
 }
 
+/*
+	'add_transaction' wrapper for invokation requests
+*/
 func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
 
@@ -160,6 +101,54 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 	return addResp, err
 }
 
+/*
+	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
+*/
+func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
+	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
+
+	dat, err := os.ReadFile(filePath)
+	if err != nil {
+		return addResp, err
+	}
+
+	deployRequest.Type = DEPLOY
+	if len(deployRequest.ConstructorCalldata) == 0 {
+		deployRequest.ConstructorCalldata = []string{}
+	}
+
+	var rawDef RawContractDefinition
+	err = json.Unmarshal(dat, &rawDef)
+	if err != nil {
+		return addResp, err
+	}
+
+	deployRequest.ContractDefinition.ABI = rawDef.ABI
+	deployRequest.ContractDefinition.EntryPointsByType = rawDef.EntryPointsByType
+	deployRequest.ContractDefinition.Program, err = CompressCompiledContract(rawDef.Program)
+	if err != nil {
+		return addResp, err
+	}
+
+	pay, err := json.Marshal(deployRequest)
+	if err != nil {
+		return addResp, err
+	}
+
+	rawResp, err := postHelper(pay, url)
+	if err != nil {
+		return addResp, err
+	}
+
+	err = json.Unmarshal(rawResp, &addResp)
+	return addResp, err
+}
+
+/*
+	invocation wrapper for StarkNet account calls to '__execute__' contact calls through an account abstraction
+	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
+	- accepts a multicall
+*/
 func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
 	nonce, err := signer.Gateway.GetAccountNonce(address)
 	if err != nil {
@@ -202,46 +191,6 @@ func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTx
 	}
 
 	return signer.Gateway.Invoke(req)
-}
-
-func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
-	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
-
-	dat, err := os.ReadFile(filePath)
-	if err != nil {
-		return addResp, err
-	}
-
-	deployRequest.Type = DEPLOY
-	if len(deployRequest.ConstructorCalldata) == 0 {
-		deployRequest.ConstructorCalldata = []string{}
-	}
-
-	var rawDef RawContractDefinition
-	err = json.Unmarshal(dat, &rawDef)
-	if err != nil {
-		return addResp, err
-	}
-
-	deployRequest.ContractDefinition.ABI = rawDef.ABI
-	deployRequest.ContractDefinition.EntryPointsByType = rawDef.EntryPointsByType
-	deployRequest.ContractDefinition.Program, err = CompressCompiledContract(rawDef.Program)
-	if err != nil {
-		return addResp, err
-	}
-
-	pay, err := json.Marshal(deployRequest)
-	if err != nil {
-		return addResp, err
-	}
-
-	rawResp, err := postHelper(pay, url)
-	if err != nil {
-		return addResp, err
-	}
-
-	err = json.Unmarshal(rawResp, &addResp)
-	return addResp, err
 }
 
 func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err error) {
@@ -308,6 +257,9 @@ func FmtExecuteCalldataStrings(nonce *big.Int, txs []Transaction) (calldataStrin
 	return calldataStrings
 }
 
+/*
+	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
+*/
 func FmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
 

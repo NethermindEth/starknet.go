@@ -15,7 +15,53 @@
 ### Usage
 Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 
-####
+#### call/invoke
+```go
+
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/dontpanicdao/caigo"
+)
+
+func main() {
+	gw := caigo.NewGateway() //defaults to goerli
+
+	priv, _ := curve.GetRandomPrivateKey()
+	x, y, err := curve.PrivateToPoint(priv)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	deployRequest := DeployRequest{
+		ContractAddressSalt: BigToHex(y),
+		ConstructorCalldata: []string{},
+	}
+
+	resp, err := gw.Deploy("tmp/counter_compiled.json", deployRequest)
+	if err != nil {
+		t.Errorf("Could not deploy contract: %v\n", err)
+	}
+
+	req := caigo.StarknetRequest{
+		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
+		EntryPointSelector: BigToHex(GetSelectorFromName("increment")),
+	}
+
+	txResp, err := gw.Invoke(req)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	
+}
+```
+
+#### sign/verify
+
 ```go
 package main
 

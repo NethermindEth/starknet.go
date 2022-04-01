@@ -144,6 +144,7 @@ func InitWithConstants(path string) (err error) {
 	return nil
 }
 
+// Get relevant elliptic curve parameters for the Stark Cruve
 func (sc StarkCurve) Params() *elliptic.CurveParams {
 	return sc.CurveParams
 }

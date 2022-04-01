@@ -34,6 +34,9 @@ type TypedMessage interface {
 	FmtDefinitionEncoding(string) []*big.Int
 }
 
+/*
+	encoding definition for standard StarkNet Domain messages
+*/
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	switch field {
 	case "name":
@@ -47,6 +50,9 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	return fmtEnc
 }
 
+/*
+	'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
+*/
 func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{
 		Types:       types,
@@ -63,11 +69,12 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 			return td, fmt.Errorf("error encoding type hash: %v %v\n", enc, err)
 		}
 		v.Encoding = enc
-		td.Types[k] = v
+			td.Types[k] = v
 	}
 	return td, nil
 }
 
+// (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
 func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkCurve) (hash *big.Int, err error) {
 	elements := []*big.Int{UTF8StrToBig("StarkNet Message")}
 

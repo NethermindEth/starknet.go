@@ -4,173 +4,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"net/http"
 	"strings"
 	"time"
 )
 
-var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
-
-const (
-	INVOKE              string = "INVOKE_FUNCTION"
-	DEPLOY              string = "DEPLOY"
-	GOERLI_BASE         string = "https://alpha4.starknet.io"
-	MAINNET_BASE        string = "https://alpha-mainnet.starknet.io"
-	EXECUTE_SELECTOR    string = "__execute__"
-	TRANSACTION_PREFIX  string = "invoke"
-	TRANSACTION_VERSION int64  = 0
-)
-
-const (
-	NOT_RECIEVED = TxStatus(iota)
-	REJECTED
-	RECEIVED
-	PENDING
-	ACCEPTED_ON_L2
-	ACCEPTED_ON_L1
-)
-
-type TxStatus int
-
-type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash"`
-	TxFailureReason struct {
-		ErrorMessage string `json:"error_message,omitempty"`
-	} `json:"tx_failure_reason,omitempty"`
-}
-
-type StarknetTransaction struct {
-	TransactionIndex int           `json:"transaction_index"`
-	BlockNumber      int           `json:"block_number"`
-	Transaction      JSTransaction `json:"transaction"`
-	BlockHash        string        `json:"block_hash"`
-	Status           string        `json:"status"`
-}
-
-// Starknet transaction composition
-type Transaction struct {
-	Calldata           []*big.Int `json:"calldata"`
-	ContractAddress    *big.Int   `json:"contract_address"`
-	EntryPointSelector *big.Int   `json:"entry_point_selector"`
-	EntryPointType     string     `json:"entry_point_type"`
-	Signature          []*big.Int `json:"signature"`
-	TransactionHash    *big.Int   `json:"transaction_hash"`
-	Type               string     `json:"type"`
-	Nonce              *big.Int   `json:"nonce,omitempty"`
-}
-
-type StarknetGateway struct {
-	Base    string `json:"base"`
-	Feeder  string `json:"feeder"`
-	Gateway string `json:"gateway"`
-	ChainId string `json:"chainId"`
-}
-
-type Block struct {
-	BlockHash           string               `json:"block_hash"`
-	ParentBlockHash     string               `json:"parent_block_hash"`
-	BlockNumber         int                  `json:"block_number"`
-	StateRoot           string               `json:"state_root"`
-	Status              string               `json:"status"`
-	Transactions        []JSTransaction      `json:"transactions"`
-	Timestamp           int                  `json:"timestamp"`
-	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
-}
-
-type TransactionReceipt struct {
-	Status                string `json:"status"`
-	BlockHash             string `json:"block_hash"`
-	BlockNumber           int    `json:"block_number"`
-	TransactionIndex      int    `json:"transaction_index"`
-	TransactionHash       string `json:"transaction_hash"`
-	L1ToL2ConsumedMessage struct {
-		FromAddress string   `json:"from_address"`
-		ToAddress   string   `json:"to_address"`
-		Selector    string   `json:"selector"`
-		Payload     []string `json:"payload"`
-	} `json:"l1_to_l2_consumed_message"`
-	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
-	Events             []interface{} `json:"events"`
-	ExecutionResources struct {
-		NSteps                 int `json:"n_steps"`
-		BuiltinInstanceCounter struct {
-			PedersenBuiltin   int `json:"pedersen_builtin"`
-			RangeCheckBuiltin int `json:"range_check_builtin"`
-			BitwiseBuiltin    int `json:"bitwise_builtin"`
-			OutputBuiltin     int `json:"output_builtin"`
-			EcdsaBuiltin      int `json:"ecdsa_builtin"`
-			EcOpBuiltin       int `json:"ec_op_builtin"`
-		} `json:"builtin_instance_counter"`
-		NMemoryHoles int `json:"n_memory_holes"`
-	} `json:"execution_resources"`
-}
-
-type ContractCode struct {
-	Bytecode []string `json:"bytecode"`
-	Abi      []ABI    `json:"abi"`
-}
-
-type ABI struct {
-	Members []struct {
-		Name   string `json:"name"`
-		Offset int    `json:"offset"`
-		Type   string `json:"type"`
-	} `json:"members,omitempty"`
-	Name   string `json:"name"`
-	Size   int    `json:"size,omitempty"`
-	Type   string `json:"type"`
-	Inputs []struct {
-		Name string `json:"name"`
-		Type string `json:"type"`
-	} `json:"inputs,omitempty"`
-	Outputs         []interface{} `json:"outputs,omitempty"`
-	StateMutability string        `json:"stateMutability,omitempty"`
-}
-
-func (s TxStatus) String() string {
-	return statuses[s]
-}
-
-func FindTxStatus(stat string) int {
-	for i, val := range statuses {
-		if val == strings.ToUpper(stat) {
-			return i
-		}
-	}
-	return 0
-}
-
+/*
+	Instantiate a new StarkNet Gateway client
+	- defaults to the GOERLI endpoints
+*/
 func NewGateway(chainId ...string) (sg StarknetGateway) {
 	sg = StarknetGateway{
 		Base:    GOERLI_BASE,
 		Feeder:  GOERLI_BASE + "/feeder_gateway",
 		Gateway: GOERLI_BASE + "/gateway",
-		ChainId: "SN_GOERLI",
+		ChainId: GOERLI_ID,
 	}
 	if len(chainId) == 1 {
-		if chainId[0] == "mainnet" || chainId[0] == "main" || chainId[0] == "SN_MAIN" {
+		if strings.Contains("main", strings.ToLower(chainId[0])) {
 			sg = StarknetGateway{
 				Base:    MAINNET_BASE,
 				Feeder:  MAINNET_BASE + "/feeder_gateway",
 				Gateway: MAINNET_BASE + "/gateway",
-				ChainId: "SN_MAIN",
+				ChainId: MAINNET_ID,
 			}
-		} else if chainId[0] == "local" || chainId[0] == "localhost" || chainId[0] == "dev" {
-			LOCAL := "http://localhost:5000"
+		} else if strings.Contains("local", strings.ToLower(chainId[0])) || strings.Contains("dev", strings.ToLower(chainId[0])) {
 			sg = StarknetGateway{
-				Base:    LOCAL,
-				Feeder:  LOCAL + "/feeder_gateway",
-				Gateway: LOCAL + "/gateway",
-				ChainId: "SN_GOERLI",
+				Base:    LOCAL_BASE,
+				Feeder:  LOCAL_BASE + "/feeder_gateway",
+				Gateway: LOCAL_BASE + "/gateway",
+				ChainId: GOERLI_ID,
 			}
 		} else {
 			sg = StarknetGateway{
 				Base:    chainId[0],
 				Feeder:  chainId[0] + "/feeder_gateway",
 				Gateway: chainId[0] + "/gateway",
-				ChainId: "SN_GOERLI",
+				ChainId: GOERLI_ID,
 			}
 		}
 	}
