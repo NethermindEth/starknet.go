@@ -69,7 +69,7 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 			return td, fmt.Errorf("error encoding type hash: %v %v\n", enc, err)
 		}
 		v.Encoding = enc
-			td.Types[k] = v
+		td.Types[k] = v
 	}
 	return td, nil
 }

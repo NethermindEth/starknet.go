@@ -1,8 +1,8 @@
 package caigo
 
 import (
-	"strings"
 	"math/big"
+	"strings"
 )
 
 /*
