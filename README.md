@@ -28,7 +28,8 @@ import (
 
 func main() {
 	// init the stark curve with constants
-	curve, err := caigo.SCWithConstants("../pedersen_params.json")
+	// will pull the 'pedersen_params.json' file if you don't have it locally
+	curve, err := caigo.SCWithConstants("")
 	if err != nil {
 		panic(err.Error())
 	}
