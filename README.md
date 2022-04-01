@@ -1,4 +1,4 @@
-<h1 align="center">Golang Library for StarkNet/Cairo</h1>
+<h1 align="center">Golang Library for StarkNet</h1>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
@@ -11,14 +11,6 @@
         <img src="https://img.shields.io/badge/powered_by-StarkWare-navy">
     </a>
 </p>
-
-### Caigo is predominately a transcription of the following libraries:
-- https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature
-- https://github.com/seanjameshan/starknet.js
-- https://github.com/software-mansion/starknet.py
-- https://github.com/codahale/rfc6979/blob/master/rfc6979.go
-
-### !!! THIS LIBRARY HAS NOT YET BEEN AUDITED BY THE STARKWARE TEAM !!!
 
 ### Usage
 Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).

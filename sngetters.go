@@ -13,10 +13,13 @@ import (
 var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
 
 const (
-	INVOKE       string = "INVOKE_FUNCTION"
-	DEPLOY       string = "DEPLOY"
-	GOERLI_BASE  string = "https://alpha4.starknet.io"
-	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
+	INVOKE              string = "INVOKE_FUNCTION"
+	DEPLOY              string = "DEPLOY"
+	GOERLI_BASE         string = "https://alpha4.starknet.io"
+	MAINNET_BASE        string = "https://alpha-mainnet.starknet.io"
+	EXECUTE_SELECTOR    string = "__execute__"
+	TRANSACTION_PREFIX  string = "invoke"
+	TRANSACTION_VERSION int64  = 0
 )
 
 const (
@@ -31,9 +34,9 @@ const (
 type TxStatus int
 
 type TransactionStatus struct {
-	TxStatus  string `json:"tx_status"`
-	BlockHash string `json:"block_hash"`
-	TxFailureReason struct{
+	TxStatus        string `json:"tx_status"`
+	BlockHash       string `json:"block_hash"`
+	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`
 }
@@ -62,6 +65,7 @@ type StarknetGateway struct {
 	Base    string `json:"base"`
 	Feeder  string `json:"feeder"`
 	Gateway string `json:"gateway"`
+	ChainId string `json:"chainId"`
 }
 
 type Block struct {
@@ -143,6 +147,7 @@ func NewGateway(chainId ...string) (sg StarknetGateway) {
 		Base:    GOERLI_BASE,
 		Feeder:  GOERLI_BASE + "/feeder_gateway",
 		Gateway: GOERLI_BASE + "/gateway",
+		ChainId: "SN_GOERLI",
 	}
 	if len(chainId) == 1 {
 		if chainId[0] == "mainnet" || chainId[0] == "main" || chainId[0] == "SN_MAIN" {
@@ -150,6 +155,7 @@ func NewGateway(chainId ...string) (sg StarknetGateway) {
 				Base:    MAINNET_BASE,
 				Feeder:  MAINNET_BASE + "/feeder_gateway",
 				Gateway: MAINNET_BASE + "/gateway",
+				ChainId: "SN_MAIN",
 			}
 		} else if chainId[0] == "local" || chainId[0] == "localhost" || chainId[0] == "dev" {
 			LOCAL := "http://localhost:5000"
@@ -157,12 +163,14 @@ func NewGateway(chainId ...string) (sg StarknetGateway) {
 				Base:    LOCAL,
 				Feeder:  LOCAL + "/feeder_gateway",
 				Gateway: LOCAL + "/gateway",
+				ChainId: "SN_GOERLI",
 			}
 		} else {
 			sg = StarknetGateway{
 				Base:    chainId[0],
 				Feeder:  chainId[0] + "/feeder_gateway",
 				Gateway: chainId[0] + "/gateway",
+				ChainId: "SN_GOERLI",
 			}
 		}
 	}
