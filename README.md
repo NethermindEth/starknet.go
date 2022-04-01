@@ -15,7 +15,7 @@
 ## Examples
 
 ### deploy/call/invoke
-Deploy a compiled contrac to testnet, query the initial state, and invoke a state transition.
+Deploy a compiled contract to testnet, query the initial state, and invoke a state transition.
 
 ```go
 package main
