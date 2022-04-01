@@ -11,17 +11,16 @@ import (
 var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
 
 const (
-	INVOKE             string = "INVOKE_FUNCTION"
-	DEPLOY             string = "DEPLOY"
-	GOERLI_ID          string = "SN_GOERLI"
-	MAINNET_ID         string = "SN_MAIN"
-	LOCAL_BASE         string = "http://localhost:5000"
-	GOERLI_BASE        string = "https://alpha4.starknet.io"
-	MAINNET_BASE       string = "https://alpha-mainnet.starknet.io"
-	EXECUTE_SELECTOR   string = "__execute__"
-	TRANSACTION_PREFIX string = "invoke"
-
-	TRANSACTION_VERSION int64 = 0
+	INVOKE              string = "INVOKE_FUNCTION"
+	DEPLOY              string = "DEPLOY"
+	GOERLI_ID           string = "SN_GOERLI"
+	MAINNET_ID          string = "SN_MAIN"
+	LOCAL_BASE          string = "http://localhost:5000"
+	GOERLI_BASE         string = "https://alpha4.starknet.io"
+	MAINNET_BASE        string = "https://alpha-mainnet.starknet.io"
+	EXECUTE_SELECTOR    string = "__execute__"
+	TRANSACTION_PREFIX  string = "invoke"
+	TRANSACTION_VERSION int64  = 0
 )
 
 const (
