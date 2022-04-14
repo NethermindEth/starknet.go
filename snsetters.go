@@ -24,7 +24,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 	if len(sc.ConstantPoints) == 0 {
 		return signer, fmt.Errorf("must initiate precomputed constant points")
 	}
-	var gw StarknetGateway
+	var gw *StarknetGateway
 	if len(chainId) == 1 {
 		gw = NewGateway(chainId[0])
 	} else {
@@ -43,7 +43,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []string, err error) {
+func (sg *StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []string, err error) {
 	bid := ""
 	if len(blockId) == 1 {
 		bid = fmtBlockId(blockId[0])
@@ -76,7 +76,7 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err error) {
+func (sg *StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
 
 	sn.Type = INVOKE
@@ -104,7 +104,7 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 /*
 	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
+func (sg *StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
 
 	dat, err := os.ReadFile(filePath)
@@ -150,7 +150,7 @@ func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (
 	- accepts a multicall
 */
 func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
-	nonce, err := signer.Gateway.GetAccountNonce(address)
+	nonce, err := signer.Gateway.AccountNonce(address)
 	if err != nil {
 		return addResp, err
 	}
@@ -193,7 +193,7 @@ func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTx
 	return signer.Gateway.Invoke(req)
 }
 
-func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err error) {
+func (sg *StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err error) {
 	url := fmt.Sprintf("%s/estimate_fee", sg.Feeder)
 
 	pay, err := json.Marshal(sn)
@@ -208,21 +208,6 @@ func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err 
 
 	err = json.Unmarshal(rawResp, &fee)
 	return fee, err
-}
-
-func (sg StarknetGateway) GetAccountNonce(address *big.Int) (nonce *big.Int, err error) {
-	resp, err := sg.Call(StarknetRequest{
-		ContractAddress:    BigToHex(address),
-		EntryPointSelector: BigToHex(GetSelectorFromName("get_nonce")),
-	})
-	if err != nil {
-		return nonce, err
-	}
-	if len(resp) == 0 {
-		return nonce, fmt.Errorf("no resp in contract call 'get_nonce' %v\n", BigToHex(address))
-	}
-
-	return HexToBN(resp[0]), nil
 }
 
 func postHelper(pay []byte, url string) (resp []byte, err error) {

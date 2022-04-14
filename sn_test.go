@@ -79,22 +79,22 @@ func TestLocalStarkNet(t *testing.T) {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
 
-	tx, err := gw.GetTransaction(resp.TransactionHash)
+	tx, err := gw.Transaction(resp.TransactionHash)
 	if err != nil || tx.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx: %v\n", err)
 	}
 
-	receipt, err := gw.GetTransactionReceipt(resp.TransactionHash)
+	receipt, err := gw.TransactionReceipt(resp.TransactionHash)
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
 
-	block, err := gw.GetBlock(tx.BlockHash)
+	block, err := gw.Block(tx.BlockHash)
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}
 
-	_, err = gw.GetStorageAt(tx.Transaction.ContractAddress, "0", "0")
+	_, err = gw.StorageAt(tx.Transaction.ContractAddress, "0", "0")
 	if err != nil {
 		t.Errorf("Could not get storage: %v\n", err)
 	}

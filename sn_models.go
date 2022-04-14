@@ -160,7 +160,7 @@ type RawContractDefinition struct {
 type Signer struct {
 	private *big.Int
 	Curve   StarkCurve
-	Gateway StarknetGateway
+	Gateway *StarknetGateway
 	PublicX *big.Int
 	PublicY *big.Int
 }
