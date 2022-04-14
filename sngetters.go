@@ -13,44 +13,51 @@ import (
 	Instantiate a new StarkNet Gateway client
 	- defaults to the GOERLI endpoints
 */
-func NewGateway(chainId ...string) (sg StarknetGateway) {
-	sg = StarknetGateway{
-		Base:    GOERLI_BASE,
-		Feeder:  GOERLI_BASE + "/feeder_gateway",
-		Gateway: GOERLI_BASE + "/gateway",
-		ChainId: GOERLI_ID,
+func NewGateway(opts ...GatewayOption) (sg StarknetGateway) {
+	gopts := gatewayOptions{
+		chainID: GOERLI_ID,
+		client:  http.DefaultClient,
 	}
-	if len(chainId) == 1 {
-		if strings.Contains("main", strings.ToLower(chainId[0])) {
-			sg = StarknetGateway{
-				Base:    MAINNET_BASE,
-				Feeder:  MAINNET_BASE + "/feeder_gateway",
-				Gateway: MAINNET_BASE + "/gateway",
-				ChainId: MAINNET_ID,
-			}
-		} else if strings.Contains("local", strings.ToLower(chainId[0])) || strings.Contains("dev", strings.ToLower(chainId[0])) {
-			sg = StarknetGateway{
-				Base:    LOCAL_BASE,
-				Feeder:  LOCAL_BASE + "/feeder_gateway",
-				Gateway: LOCAL_BASE + "/gateway",
-				ChainId: GOERLI_ID,
-			}
-		} else {
-			sg = StarknetGateway{
-				Base:    chainId[0],
-				Feeder:  chainId[0] + "/feeder_gateway",
-				Gateway: chainId[0] + "/gateway",
-				ChainId: GOERLI_ID,
-			}
+
+	for _, opt := range opts {
+		opt.apply(&gopts)
+	}
+
+	switch id := strings.ToLower(gopts.chainID); {
+	case strings.Contains("main", id):
+		sg = StarknetGateway{
+			Base:    MAINNET_BASE,
+			Feeder:  MAINNET_BASE + "/feeder_gateway",
+			Gateway: MAINNET_BASE + "/gateway",
+			ChainId: MAINNET_ID,
+		}
+	case strings.Contains("local", id):
+		fallthrough
+	case strings.Contains("dev", id):
+		sg = StarknetGateway{
+			Base:    LOCAL_BASE,
+			Feeder:  LOCAL_BASE + "/feeder_gateway",
+			Gateway: LOCAL_BASE + "/gateway",
+			ChainId: GOERLI_ID,
+		}
+	default:
+		sg = StarknetGateway{
+			Base:    GOERLI_BASE,
+			Feeder:  GOERLI_BASE + "/feeder_gateway",
+			Gateway: GOERLI_BASE + "/gateway",
+			ChainId: GOERLI_ID,
 		}
 	}
+
+	sg.client = gopts.client
+
 	return sg
 }
 
 func (sg StarknetGateway) GetBlockHashById(blockId string) (block string, err error) {
 	url := fmt.Sprintf("%s/get_block_hash_by_id?blockId=%s", sg.Feeder, blockId)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return block, err
 	}
@@ -61,7 +68,7 @@ func (sg StarknetGateway) GetBlockHashById(blockId string) (block string, err er
 func (sg StarknetGateway) GetBlockIdByHash(blockHash string) (block string, err error) {
 	url := fmt.Sprintf("%s/get_block_id_by_hash?blockHash=%s", sg.Feeder, blockHash)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return block, err
 	}
@@ -72,7 +79,7 @@ func (sg StarknetGateway) GetBlockIdByHash(blockHash string) (block string, err 
 func (sg StarknetGateway) GetTransactionHashById(txId string) (tx string, err error) {
 	url := fmt.Sprintf("%s/get_transaction_hash_by_id?transactionId=%s", sg.Feeder, txId)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return tx, err
 	}
@@ -83,7 +90,7 @@ func (sg StarknetGateway) GetTransactionHashById(txId string) (tx string, err er
 func (sg StarknetGateway) GetTransactionIdByHash(txHash string) (tx string, err error) {
 	url := fmt.Sprintf("%s/get_transaction_id_by_hash?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return tx, err
 	}
@@ -94,7 +101,7 @@ func (sg StarknetGateway) GetTransactionIdByHash(txHash string) (tx string, err 
 func (sg StarknetGateway) GetStorageAt(contractAddress, key, blockId string) (storage string, err error) {
 	url := fmt.Sprintf("%s/get_storage_at?contractAddress=%s&key=%s%s", sg.Feeder, contractAddress, key, fmtBlockId(blockId))
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return storage, err
 	}
@@ -105,7 +112,7 @@ func (sg StarknetGateway) GetStorageAt(contractAddress, key, blockId string) (st
 func (sg StarknetGateway) GetCode(contractAddress, blockId string) (code ContractCode, err error) {
 	url := fmt.Sprintf("%s/get_code?contractAddress=%s%s", sg.Feeder, contractAddress, fmtBlockId(blockId))
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return code, err
 	}
@@ -119,7 +126,7 @@ func (sg StarknetGateway) GetBlock(blockId string) (block Block, err error) {
 
 	url := fmt.Sprintf("%s/get_block%s", sg.Feeder, strings.Replace(bid, "&", "?", 1))
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return block, err
 	}
@@ -131,7 +138,7 @@ func (sg StarknetGateway) GetBlock(blockId string) (block Block, err error) {
 func (sg StarknetGateway) GetTransactionStatus(txHash string) (status TransactionStatus, err error) {
 	url := fmt.Sprintf("%s/get_transaction_status?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return status, err
 	}
@@ -143,7 +150,7 @@ func (sg StarknetGateway) GetTransactionStatus(txHash string) (status Transactio
 func (sg StarknetGateway) GetTransaction(txHash string) (tx StarknetTransaction, err error) {
 	url := fmt.Sprintf("%s/get_transaction?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return tx, err
 	}
@@ -155,7 +162,7 @@ func (sg StarknetGateway) GetTransaction(txHash string) (tx StarknetTransaction,
 func (sg StarknetGateway) GetTransactionReceipt(txHash string) (receipt TransactionReceipt, err error) {
 	url := fmt.Sprintf("%s/get_transaction_receipt?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := getHelper(url)
+	resp, err := sg.getHelper(url)
 	if err != nil {
 		return receipt, err
 	}
@@ -200,17 +207,16 @@ func fmtBlockId(blockId string) string {
 	return fmt.Sprintf("&blockNumber=%s", blockId)
 }
 
-func getHelper(url string) (resp []byte, err error) {
+func (sg *StarknetGateway) getHelper(url string) (resp []byte, err error) {
 	method := "GET"
 
-	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return resp, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := sg.client.Do(req)
 	if err != nil {
 		return resp, err
 	}

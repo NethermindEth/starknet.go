@@ -26,7 +26,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 	}
 	var gw StarknetGateway
 	if len(chainId) == 1 {
-		gw = NewGateway(chainId[0])
+		gw = NewGateway(WithChain(chainId[0]))
 	} else {
 		gw = NewGateway()
 	}
@@ -63,7 +63,7 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 		return resp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(pay, url)
 	if err != nil {
 		return resp, err
 	}
@@ -92,7 +92,7 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 		return addResp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(pay, url)
 	if err != nil {
 		return addResp, err
 	}
@@ -135,7 +135,7 @@ func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (
 		return addResp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(pay, url)
 	if err != nil {
 		return addResp, err
 	}
@@ -201,7 +201,7 @@ func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err 
 		return fee, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(pay, url)
 	if err != nil {
 		return fee, err
 	}
@@ -225,17 +225,16 @@ func (sg StarknetGateway) GetAccountNonce(address *big.Int) (nonce *big.Int, err
 	return HexToBN(resp[0]), nil
 }
 
-func postHelper(pay []byte, url string) (resp []byte, err error) {
+func (sg *StarknetGateway) postHelper(pay []byte, url string) (resp []byte, err error) {
 	method := "POST"
 
-	client := &http.Client{}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(pay))
 	if err != nil {
 		return resp, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := sg.client.Do(req)
 	if err != nil {
 		return resp, err
 	}

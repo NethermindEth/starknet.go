@@ -2,6 +2,7 @@ package caigo
 
 import (
 	"math/big"
+	"net/http"
 	"strings"
 )
 
@@ -70,6 +71,7 @@ type StarknetGateway struct {
 	Feeder  string `json:"feeder"`
 	Gateway string `json:"gateway"`
 	ChainId string `json:"chainId"`
+	client  *http.Client
 }
 
 type Block struct {

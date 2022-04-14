@@ -65,7 +65,7 @@ func TestLocalStarkNet(t *testing.T) {
 
 	curve := SC()
 
-	gw := NewGateway("local")
+	gw := NewGateway(WithChain("local"))
 
 	pr, _ := curve.GetRandomPrivateKey()
 
