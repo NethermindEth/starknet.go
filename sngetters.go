@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -56,10 +57,10 @@ func NewGateway(opts ...GatewayOption) *StarknetGateway {
 	return sg
 }
 
-func (sg *StarknetGateway) BlockHashById(blockId string) (block string, err error) {
+func (sg *StarknetGateway) BlockHashById(ctx context.Context, blockId string) (block string, err error) {
 	url := fmt.Sprintf("%s/get_block_hash_by_id?blockId=%s", sg.Feeder, blockId)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return block, err
 	}
@@ -67,10 +68,10 @@ func (sg *StarknetGateway) BlockHashById(blockId string) (block string, err erro
 	return strings.Replace(string(resp), "\"", "", -1), nil
 }
 
-func (sg *StarknetGateway) BlockIdByHash(blockHash string) (block string, err error) {
+func (sg *StarknetGateway) BlockIdByHash(ctx context.Context, blockHash string) (block string, err error) {
 	url := fmt.Sprintf("%s/get_block_id_by_hash?blockHash=%s", sg.Feeder, blockHash)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return block, err
 	}
@@ -78,10 +79,10 @@ func (sg *StarknetGateway) BlockIdByHash(blockHash string) (block string, err er
 	return strings.Replace(string(resp), "\"", "", -1), nil
 }
 
-func (sg *StarknetGateway) TransactionHashById(txId string) (tx string, err error) {
+func (sg *StarknetGateway) TransactionHashById(ctx context.Context, txId string) (tx string, err error) {
 	url := fmt.Sprintf("%s/get_transaction_hash_by_id?transactionId=%s", sg.Feeder, txId)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return tx, err
 	}
@@ -89,10 +90,10 @@ func (sg *StarknetGateway) TransactionHashById(txId string) (tx string, err erro
 	return strings.Replace(string(resp), "\"", "", -1), nil
 }
 
-func (sg *StarknetGateway) TransactionIdByHash(txHash string) (tx string, err error) {
+func (sg *StarknetGateway) TransactionIdByHash(ctx context.Context, txHash string) (tx string, err error) {
 	url := fmt.Sprintf("%s/get_transaction_id_by_hash?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return tx, err
 	}
@@ -100,10 +101,10 @@ func (sg *StarknetGateway) TransactionIdByHash(txHash string) (tx string, err er
 	return strings.Replace(string(resp), "\"", "", -1), nil
 }
 
-func (sg *StarknetGateway) StorageAt(contractAddress, key, blockId string) (storage string, err error) {
+func (sg *StarknetGateway) StorageAt(ctx context.Context, contractAddress, key, blockId string) (storage string, err error) {
 	url := fmt.Sprintf("%s/get_storage_at?contractAddress=%s&key=%s%s", sg.Feeder, contractAddress, key, fmtBlockId(blockId))
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return storage, err
 	}
@@ -111,10 +112,10 @@ func (sg *StarknetGateway) StorageAt(contractAddress, key, blockId string) (stor
 	return strings.Replace(string(resp), "\"", "", -1), nil
 }
 
-func (sg *StarknetGateway) Code(contractAddress, blockId string) (code ContractCode, err error) {
+func (sg *StarknetGateway) Code(ctx context.Context, contractAddress, blockId string) (code ContractCode, err error) {
 	url := fmt.Sprintf("%s/get_code?contractAddress=%s%s", sg.Feeder, contractAddress, fmtBlockId(blockId))
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return code, err
 	}
@@ -123,12 +124,12 @@ func (sg *StarknetGateway) Code(contractAddress, blockId string) (code ContractC
 	return code, err
 }
 
-func (sg *StarknetGateway) Block(blockId string) (block Block, err error) {
+func (sg *StarknetGateway) Block(ctx context.Context, blockId string) (block Block, err error) {
 	bid := fmtBlockId(blockId)
 
 	url := fmt.Sprintf("%s/get_block%s", sg.Feeder, strings.Replace(bid, "&", "?", 1))
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return block, err
 	}
@@ -137,10 +138,10 @@ func (sg *StarknetGateway) Block(blockId string) (block Block, err error) {
 	return block, err
 }
 
-func (sg *StarknetGateway) TransactionStatus(txHash string) (status TransactionStatus, err error) {
+func (sg *StarknetGateway) TransactionStatus(ctx context.Context, txHash string) (status TransactionStatus, err error) {
 	url := fmt.Sprintf("%s/get_transaction_status?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return status, err
 	}
@@ -149,10 +150,10 @@ func (sg *StarknetGateway) TransactionStatus(txHash string) (status TransactionS
 	return status, err
 }
 
-func (sg *StarknetGateway) Transaction(txHash string) (tx StarknetTransaction, err error) {
+func (sg *StarknetGateway) Transaction(ctx context.Context, txHash string) (tx StarknetTransaction, err error) {
 	url := fmt.Sprintf("%s/get_transaction?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return tx, err
 	}
@@ -161,10 +162,10 @@ func (sg *StarknetGateway) Transaction(txHash string) (tx StarknetTransaction, e
 	return tx, err
 }
 
-func (sg *StarknetGateway) TransactionReceipt(txHash string) (receipt TransactionReceipt, err error) {
+func (sg *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (receipt TransactionReceipt, err error) {
 	url := fmt.Sprintf("%s/get_transaction_receipt?transactionHash=%s", sg.Feeder, txHash)
 
-	resp, err := sg.getHelper(url)
+	resp, err := sg.getHelper(ctx, url)
 	if err != nil {
 		return receipt, err
 	}
@@ -173,7 +174,7 @@ func (sg *StarknetGateway) TransactionReceipt(txHash string) (receipt Transactio
 	return receipt, err
 }
 
-func (sg *StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, maxPoll int) (n int, status string, err error) {
+func (sg *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold TxStatus, interval, maxPoll int) (n int, status string, err error) {
 	err = fmt.Errorf("could find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -184,7 +185,7 @@ func (sg *StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, m
 		}
 		cow++
 
-		stat, err := sg.TransactionStatus(txHash)
+		stat, err := sg.TransactionStatus(ctx, txHash)
 		if err != nil {
 			return cow, status, err
 		}
@@ -198,8 +199,8 @@ func (sg *StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, m
 	return cow, status, err
 }
 
-func (sg *StarknetGateway) AccountNonce(address *big.Int) (nonce *big.Int, err error) {
-	resp, err := sg.Call(StarknetRequest{
+func (sg *StarknetGateway) AccountNonce(ctx context.Context, address *big.Int) (nonce *big.Int, err error) {
+	resp, err := sg.Call(ctx, StarknetRequest{
 		ContractAddress:    BigToHex(address),
 		EntryPointSelector: BigToHex(GetSelectorFromName("get_nonce")),
 	})
@@ -224,10 +225,10 @@ func fmtBlockId(blockId string) string {
 	return fmt.Sprintf("&blockNumber=%s", blockId)
 }
 
-func (sg *StarknetGateway) getHelper(url string) (resp []byte, err error) {
+func (sg *StarknetGateway) getHelper(ctx context.Context, url string) (resp []byte, err error) {
 	method := "GET"
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		return resp, err
 	}

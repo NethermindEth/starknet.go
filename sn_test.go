@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -40,7 +41,7 @@ func TestExecuteGoerli(t *testing.T) {
 		},
 	}
 
-	_, err = signer.Execute(HexToBN("0x6f0f7e2594028a454bed6bd856cc566763a6bef3d9965d79bd888ccea7426fc"), calls)
+	_, err = signer.Execute(context.Background(), HexToBN("0x6f0f7e2594028a454bed6bd856cc566763a6bef3d9965d79bd888ccea7426fc"), calls)
 	if err != nil {
 		t.Errorf("Could not execute multicall with account: %v\n", err)
 	}
@@ -54,7 +55,7 @@ func TestInvokeContract(t *testing.T) {
 		EntryPointSelector: BigToHex(GetSelectorFromName("increment")),
 	}
 
-	_, err := gw.Invoke(req)
+	_, err := gw.Invoke(context.Background(), req)
 	if err != nil {
 		t.Errorf("Could not add tx: %v\n", err)
 	}
@@ -74,27 +75,27 @@ func TestLocalStarkNet(t *testing.T) {
 		ConstructorCalldata: []string{},
 	}
 
-	resp, err := gw.Deploy("tmp/counter_compiled.json", deployRequest)
+	resp, err := gw.Deploy(context.Background(), "tmp/counter_compiled.json", deployRequest)
 	if err != nil {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
 
-	tx, err := gw.Transaction(resp.TransactionHash)
+	tx, err := gw.Transaction(context.Background(), resp.TransactionHash)
 	if err != nil || tx.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx: %v\n", err)
 	}
 
-	receipt, err := gw.TransactionReceipt(resp.TransactionHash)
+	receipt, err := gw.TransactionReceipt(context.Background(), resp.TransactionHash)
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
 
-	block, err := gw.Block(tx.BlockHash)
+	block, err := gw.Block(context.Background(), tx.BlockHash)
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}
 
-	_, err = gw.StorageAt(tx.Transaction.ContractAddress, "0", "0")
+	_, err = gw.StorageAt(context.Background(), tx.Transaction.ContractAddress, "0", "0")
 	if err != nil {
 		t.Errorf("Could not get storage: %v\n", err)
 	}
