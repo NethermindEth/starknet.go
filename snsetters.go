@@ -3,6 +3,7 @@ package caigo
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -24,9 +25,9 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 	if len(sc.ConstantPoints) == 0 {
 		return signer, fmt.Errorf("must initiate precomputed constant points")
 	}
-	var gw StarknetGateway
+	var gw *StarknetGateway
 	if len(chainId) == 1 {
-		gw = NewGateway(chainId[0])
+		gw = NewGateway(WithChain(chainId[0]))
 	} else {
 		gw = NewGateway()
 	}
@@ -43,7 +44,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []string, err error) {
+func (sg *StarknetGateway) Call(ctx context.Context, sn StarknetRequest, blockId ...string) (resp []string, err error) {
 	bid := ""
 	if len(blockId) == 1 {
 		bid = fmtBlockId(blockId[0])
@@ -63,7 +64,7 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 		return resp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(ctx, pay, url)
 	if err != nil {
 		return resp, err
 	}
@@ -76,7 +77,7 @@ func (sg StarknetGateway) Call(sn StarknetRequest, blockId ...string) (resp []st
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err error) {
+func (sg *StarknetGateway) Invoke(ctx context.Context, sn StarknetRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
 
 	sn.Type = INVOKE
@@ -92,7 +93,7 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 		return addResp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(ctx, pay, url)
 	if err != nil {
 		return addResp, err
 	}
@@ -104,7 +105,7 @@ func (sg StarknetGateway) Invoke(sn StarknetRequest) (addResp AddTxResponse, err
 /*
 	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
+func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRequest DeployRequest) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
 
 	dat, err := os.ReadFile(filePath)
@@ -135,7 +136,7 @@ func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (
 		return addResp, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(ctx, pay, url)
 	if err != nil {
 		return addResp, err
 	}
@@ -149,8 +150,8 @@ func (sg StarknetGateway) Deploy(filePath string, deployRequest DeployRequest) (
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
-	nonce, err := signer.Gateway.GetAccountNonce(address)
+func (signer Signer) Execute(ctx context.Context, address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
+	nonce, err := signer.Gateway.AccountNonce(ctx, address)
 	if err != nil {
 		return addResp, err
 	}
@@ -190,10 +191,10 @@ func (signer Signer) Execute(address *big.Int, txs []Transaction) (addResp AddTx
 		Signature:          []string{r.String(), s.String()},
 	}
 
-	return signer.Gateway.Invoke(req)
+	return signer.Gateway.Invoke(ctx, req)
 }
 
-func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err error) {
+func (sg *StarknetGateway) EstimateFee(ctx context.Context, sn StarknetRequest) (fee FeeEstimate, err error) {
 	url := fmt.Sprintf("%s/estimate_fee", sg.Feeder)
 
 	pay, err := json.Marshal(sn)
@@ -201,7 +202,7 @@ func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err 
 		return fee, err
 	}
 
-	rawResp, err := postHelper(pay, url)
+	rawResp, err := sg.postHelper(ctx, pay, url)
 	if err != nil {
 		return fee, err
 	}
@@ -210,32 +211,16 @@ func (sg StarknetGateway) EstimateFee(sn StarknetRequest) (fee FeeEstimate, err 
 	return fee, err
 }
 
-func (sg StarknetGateway) GetAccountNonce(address *big.Int) (nonce *big.Int, err error) {
-	resp, err := sg.Call(StarknetRequest{
-		ContractAddress:    BigToHex(address),
-		EntryPointSelector: BigToHex(GetSelectorFromName("get_nonce")),
-	})
-	if err != nil {
-		return nonce, err
-	}
-	if len(resp) == 0 {
-		return nonce, fmt.Errorf("no resp in contract call 'get_nonce' %v\n", BigToHex(address))
-	}
-
-	return HexToBN(resp[0]), nil
-}
-
-func postHelper(pay []byte, url string) (resp []byte, err error) {
+func (sg *StarknetGateway) postHelper(ctx context.Context, pay []byte, url string) (resp []byte, err error) {
 	method := "POST"
 
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(pay))
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(pay))
 	if err != nil {
 		return resp, err
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := sg.client.Do(req)
 	if err != nil {
 		return resp, err
 	}

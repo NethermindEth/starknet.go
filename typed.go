@@ -60,13 +60,13 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 		Domain:      dom,
 	}
 	if _, ok := td.Types[pType]; !ok {
-		return td, fmt.Errorf("invalid primary type: %v\n", pType)
+		return td, fmt.Errorf("invalid primary type: %s", pType)
 	}
 
 	for k, v := range td.Types {
 		enc, err := td.GetTypeHash(k)
 		if err != nil {
-			return td, fmt.Errorf("error encoding type hash: %v %v\n", enc, err)
+			return td, fmt.Errorf("error encoding type hash: %s %w", enc.String(), err)
 		}
 		v.Encoding = enc
 		td.Types[k] = v
@@ -80,14 +80,14 @@ func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkC
 
 	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
 	if err != nil {
-		return hash, fmt.Errorf("could not hash domain: %v\n", err)
+		return hash, fmt.Errorf("could not hash domain: %w", err)
 	}
 	elements = append(elements, domEnc)
 	elements = append(elements, account)
 
 	msgEnc, err := td.GetTypedMessageHash(td.PrimaryType, msg, sc)
 	if err != nil {
-		return hash, fmt.Errorf("could not hash message: %v\n", err)
+		return hash, fmt.Errorf("could not hash message: %w", err)
 	}
 
 	elements = append(elements, msgEnc)
@@ -116,7 +116,7 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc Star
 
 		innerHash, err := sc.HashElements(innerElements)
 		if err != nil {
-			return hash, fmt.Errorf("error hashing internal elements: %v %v\n", innerElements, err)
+			return hash, fmt.Errorf("error hashing internal elements: %v %w", innerElements, err)
 		}
 		elements = append(elements, innerHash)
 	}
@@ -139,7 +139,7 @@ func (td TypedData) EncodeType(inType string) (enc string, err error) {
 	var typeDefs TypeDef
 	var ok bool
 	if typeDefs, ok = td.Types[inType]; !ok {
-		return enc, fmt.Errorf("can't parse type %v from types %v\n", inType, td.Types)
+		return enc, fmt.Errorf("can't parse type %s from types %v", inType, td.Types)
 	}
 	var buf bytes.Buffer
 	customTypes := make(map[string]TypeDef)
@@ -149,7 +149,7 @@ func (td TypedData) EncodeType(inType string) (enc string, err error) {
 		if def.Type != "felt" {
 			var customTypeDef TypeDef
 			if customTypeDef, ok = td.Types[def.Type]; !ok {
-				return enc, fmt.Errorf("can't parse type %v from types %v\n", def.Type, td.Types)
+				return enc, fmt.Errorf("can't parse type %s from types %v", def.Type, td.Types)
 			}
 			customTypes[def.Type] = customTypeDef
 		}

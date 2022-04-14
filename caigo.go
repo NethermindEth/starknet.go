@@ -53,7 +53,6 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 		return true
 	} else {
 		altY := new(big.Int).Neg(pubY)
-		altY = altY
 
 		zGx, zGy, err = sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 		if err != nil {
@@ -120,8 +119,7 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 			continue
 		}
 
-		s := new(big.Int)
-		s = sc.InvModCurveSize(w)
+		s := sc.InvModCurveSize(w)
 		return r, s, nil
 	}
 
@@ -229,6 +227,4 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 		k = mac(alg, k, append(v, 0x00), k)
 		v = mac(alg, k, v, v)
 	}
-
-	return secret
 }

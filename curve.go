@@ -287,9 +287,8 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
-	var _add func(x1, y1, x2, y2 *big.Int) (x, y *big.Int)
 
-	_add = func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
+	_add := func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 		yDelta := new(big.Int).Sub(y1, y2)
 		xDelta := new(big.Int).Sub(x1, x2)
 
