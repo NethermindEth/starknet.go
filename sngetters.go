@@ -174,7 +174,7 @@ func (sg *StarknetGateway) TransactionReceipt(txHash string) (receipt Transactio
 }
 
 func (sg *StarknetGateway) PollTx(txHash string, threshold TxStatus, interval, maxPoll int) (n int, status string, err error) {
-	err = fmt.Errorf("could find tx status for tx:  %s\n", txHash)
+	err = fmt.Errorf("could find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	cow := 0
@@ -207,7 +207,7 @@ func (sg *StarknetGateway) AccountNonce(address *big.Int) (nonce *big.Int, err e
 		return nonce, err
 	}
 	if len(resp) == 0 {
-		return nonce, fmt.Errorf("no resp in contract call 'get_nonce' %v\n", BigToHex(address))
+		return nonce, fmt.Errorf("no resp in contract call 'get_nonce' %v", BigToHex(address))
 	}
 
 	return HexToBN(resp[0]), nil

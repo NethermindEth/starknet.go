@@ -21,6 +21,9 @@ func TestHashAndSign(t *testing.T) {
 	}
 
 	hashy, err := curve.HashElements(bigs)
+	if err != nil {
+		t.Errorf("Hasing elements: %v\n", err)
+	}
 
 	priv, _ := curve.GetRandomPrivateKey()
 

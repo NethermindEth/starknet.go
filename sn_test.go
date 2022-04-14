@@ -28,12 +28,12 @@ func TestExecuteGoerli(t *testing.T) {
 	i2, _ := new(big.Int).SetString("1500000000000000000000", 10)
 	i3, _ := new(big.Int).SetString("0", 10)
 	calls := []Transaction{
-		Transaction{
+		{
 			ContractAddress:    HexToBN("0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10"),
 			EntryPointSelector: GetSelectorFromName("mint"),
 			Calldata:           []*big.Int{i1, i2, i3},
 		},
-		Transaction{
+		{
 			ContractAddress:    HexToBN("0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10"),
 			EntryPointSelector: GetSelectorFromName("transfer"),
 			Calldata:           []*big.Int{HexToBN("0x02e1b1ae589af66432469af22a38e84a6ac17202c55e3af2d40f8e18d3395398"), i2, i3},
