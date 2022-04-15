@@ -5,8 +5,9 @@ import (
 )
 
 type gatewayOptions struct {
-	client  *http.Client
-	chainID string
+	client       *http.Client
+	chainID      string
+	errorHandler func(e error) error
 }
 
 type curveOptions struct {
@@ -44,6 +45,13 @@ func WithHttpClient(client http.Client) GatewayOption {
 func WithChain(chainID string) GatewayOption {
 	return newFuncGatewayOption(func(o *gatewayOptions) {
 		o.chainID = chainID
+	})
+}
+
+// WithErrorHandler returns an Option to set the error handler to be used.
+func WithErrorHandler(f func(e error) error) GatewayOption {
+	return newFuncGatewayOption(func(o *gatewayOptions) {
+		o.errorHandler = f
 	})
 }
 

@@ -11,52 +11,6 @@ import (
 	"time"
 )
 
-/*
-	Instantiate a new StarkNet Gateway client
-	- defaults to the GOERLI endpoints
-*/
-func NewGateway(opts ...GatewayOption) *StarknetGateway {
-	gopts := gatewayOptions{
-		chainID: GOERLI_ID,
-		client:  http.DefaultClient,
-	}
-
-	for _, opt := range opts {
-		opt.apply(&gopts)
-	}
-
-	var sg *StarknetGateway
-	switch id := strings.ToLower(gopts.chainID); {
-	case strings.Contains("main", id):
-		sg = &StarknetGateway{
-			Base:    MAINNET_BASE,
-			Feeder:  MAINNET_BASE + "/feeder_gateway",
-			Gateway: MAINNET_BASE + "/gateway",
-			ChainId: MAINNET_ID,
-		}
-	case strings.Contains("local", id):
-		fallthrough
-	case strings.Contains("dev", id):
-		sg = &StarknetGateway{
-			Base:    LOCAL_BASE,
-			Feeder:  LOCAL_BASE + "/feeder_gateway",
-			Gateway: LOCAL_BASE + "/gateway",
-			ChainId: GOERLI_ID,
-		}
-	default:
-		sg = &StarknetGateway{
-			Base:    GOERLI_BASE,
-			Feeder:  GOERLI_BASE + "/feeder_gateway",
-			Gateway: GOERLI_BASE + "/gateway",
-			ChainId: GOERLI_ID,
-		}
-	}
-
-	sg.client = gopts.client
-
-	return sg
-}
-
 func (sg *StarknetGateway) BlockHashById(ctx context.Context, blockId string) (block string, err error) {
 	url := fmt.Sprintf("%s/get_block_hash_by_id?blockId=%s", sg.Feeder, blockId)
 
@@ -122,20 +76,6 @@ func (sg *StarknetGateway) Code(ctx context.Context, contractAddress, blockId st
 
 	err = json.Unmarshal(resp, &code)
 	return code, err
-}
-
-func (sg *StarknetGateway) Block(ctx context.Context, blockId string) (block Block, err error) {
-	bid := fmtBlockId(blockId)
-
-	url := fmt.Sprintf("%s/get_block%s", sg.Feeder, strings.Replace(bid, "&", "?", 1))
-
-	resp, err := sg.getHelper(ctx, url)
-	if err != nil {
-		return block, err
-	}
-
-	err = json.Unmarshal(resp, &block)
-	return block, err
 }
 
 func (sg *StarknetGateway) TransactionStatus(ctx context.Context, txHash string) (status TransactionStatus, err error) {
