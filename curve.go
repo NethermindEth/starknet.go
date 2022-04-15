@@ -54,10 +54,10 @@ func SC(opts ...CurveOption) (StarkCurve, error) {
 	if gopts.initConstants {
 		err := InitWithConstants(gopts.paramsPath)
 		return sc, err
-	} else {
-		InitCurve()
-		return sc, nil
 	}
+
+	InitCurve()
+	return sc, nil
 }
 
 /*
