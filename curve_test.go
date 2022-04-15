@@ -8,7 +8,7 @@ import (
 )
 
 func TestPedersenHash(t *testing.T) {
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -33,7 +33,7 @@ func TestPedersenHash(t *testing.T) {
 }
 
 func BenchmarkPedersenHash(b *testing.B) {
-	curve, _ := SCWithConstants("./pedersen_params.json")
+	curve, _ := SC(WithConstants("./pedersen_params.json"))
 
 	var suite [][]*big.Int
 	suite = append(suite, []*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
@@ -51,7 +51,7 @@ func BenchmarkPedersenHash(b *testing.B) {
 }
 
 func TestInitCurveWithConstants(t *testing.T) {
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -68,7 +68,7 @@ func TestInitCurveWithConstants(t *testing.T) {
 }
 
 func TestDivMod(t *testing.T) {
-	curve := SC()
+	curve, _ := SC()
 	inX, _ := new(big.Int).SetString("311379432064974854430469844112069886938521247361583891764940938105250923060", 10)
 	inY, _ := new(big.Int).SetString("621253665351494585790174448601059271924288186997865022894315848222045687999", 10)
 	DIVMODRES, _ := new(big.Int).SetString("2577265149861519081806762825827825639379641276854712526969977081060187505740", 10)
@@ -80,7 +80,7 @@ func TestDivMod(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	curve := SC()
+	curve, _ := SC()
 	pub0, _ := new(big.Int).SetString("1468732614996758835380505372879805860898778283940581072611506469031548393285", 10)
 	pub1, _ := new(big.Int).SetString("1402551897475685522592936265087340527872184619899218186422141407423956771926", 10)
 	EXPX, _ := new(big.Int).SetString("2573054162739002771275146649287762003525422629677678278801887452213127777391", 10)
@@ -97,7 +97,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestMultAir(t *testing.T) {
-	curve := SC()
+	curve, _ := SC()
 	ry, _ := new(big.Int).SetString("2458502865976494910213617956670505342647705497324144349552978333078363662855", 10)
 	pubx, _ := new(big.Int).SetString("1468732614996758835380505372879805860898778283940581072611506469031548393285", 10)
 	puby, _ := new(big.Int).SetString("1402551897475685522592936265087340527872184619899218186422141407423956771926", 10)
@@ -119,7 +119,7 @@ func TestMultAir(t *testing.T) {
 }
 
 func TestGetY(t *testing.T) {
-	curve := SC()
+	curve, _ := SC()
 	h, _ := HexToBytes("04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456")
 	x, y := elliptic.Unmarshal(curve, h)
 

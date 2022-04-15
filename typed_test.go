@@ -52,7 +52,7 @@ func MockTypedData() (ttd TypedData) {
 func TestGetMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -83,7 +83,7 @@ func TestGetMessageHash(t *testing.T) {
 func BenchmarkGetMessageHash(b *testing.B) {
 	ttd := MockTypedData()
 
-	curve, _ := SCWithConstants("./pedersen_params.json")
+	curve, _ := SC(WithConstants("./pedersen_params.json"))
 
 	mail := Mail{
 		From: Person{
@@ -105,7 +105,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 func TestGetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -137,7 +137,7 @@ func TestGetTypedMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}

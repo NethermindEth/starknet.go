@@ -12,7 +12,7 @@ import (
 )
 
 func TestExecuteGoerli(t *testing.T) {
-	curve, err := SCWithConstants("./pedersen_params.json")
+	curve, err := SC(WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -64,7 +64,7 @@ func TestInvokeContract(t *testing.T) {
 func TestLocalStarkNet(t *testing.T) {
 	setupTestEnvironment()
 
-	curve := SC()
+	curve, _ := SC()
 
 	gw := NewGateway(WithChain("local"))
 
