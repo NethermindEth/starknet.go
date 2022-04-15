@@ -12,150 +12,46 @@
     </a>
 </p>
 
-## Examples
+Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs.starknet.io/docs/intro).
 
-### deploy/call/invoke
-Deploy a compiled contract to testnet, query the initial state, and invoke a state transition.
+### Getting Started
+- library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
+- [example](./examples/starkcurve) initializing the StarkCurve for signing and verification
+- [example](./examples/starknet) for StarkNet interactions including deploy, call, invoke, and poll transaction
 
+### Compatibility and stability
+Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
+*NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
+
+
+### Run Examples
+starkcurve
 ```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/dontpanicdao/caigo"
-)
-
-func main() {
-	// init the stark curve with constants
-	// will pull the 'pedersen_params.json' file if you don't have it locally
-	curve, err := caigo.SCWithConstants("")
-	if err != nil {
-		panic(err.Error())
-	}
-	
-	// init starknet gateway client
-	gw := caigo.NewGateway() //defaults to goerli
-
-	// get random value for salt
-	priv, _ := curve.GetRandomPrivateKey()
-
-	// deploy StarkNet contract with random salt
-	deployRequest := caigo.DeployRequest{
-		ContractAddressSalt: caigo.BigToHex(priv),
-		ConstructorCalldata: []string{},
-	}
-
-	// example: https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
-	deployResponse, err := gw.Deploy("counter_compiled.json", deployRequest)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Printf("Deployment Response: \n\t%+v\n\n", deployResponse)
-
-	// poll until the desired transaction status
-	pollInterval := 5
-	n, status, err := gw.PollTx(deployResponse.TransactionHash, caigo.ACCEPTED_ON_L2, pollInterval, 150)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
-
-	// fetch transaction details
-	tx, err := gw.GetTransaction(deployResponse.TransactionHash)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// call StarkNet contract
-	callResp, err := gw.Call(caigo.StarknetRequest{
-		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
-	})
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Counter is currently at: ", callResp[0])
-	
-	// invoke StarkNet contract external function
-	invResp, err := gw.Invoke(caigo.StarknetRequest{
-		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("increment")),
-	})
-	if err != nil {
-		panic(err.Error())
-	}
-
-	n, status, err = gw.PollTx(invResp.TransactionHash, caigo.ACCEPTED_ON_L2, 5, 150)
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
-
-	callResp, err = gw.Call(caigo.StarknetRequest{
-		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
-	})
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Counter is currently at: ", callResp[0])
-}
+cd examples/starkcurve
+go run main.go
 ```
 
-### sign/verify
-Although the library adheres to the 'elliptic/curve' interface. All testing has been done against library function explicity. It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
-
+starknet
 ```go
-package main
-
-import (
-	"fmt"
-	"math/big"
-
-	"github.com/dontpanicdao/caigo"
-)
-
-func main() {
-	// NOTE: when not given local file path this pulls the curve data from Starkware github repo
-	curve, err := caigo.SCWithConstants("")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	hash, err := curve.PedersenHash([]*big.Int{caigo.HexToBN("0x12773"), caigo.HexToBN("0x872362")})
-	if err != nil {
-		panic(err.Error())
-	}
-
-	priv, _ := curve.GetRandomPrivateKey()
-
-	x, y, err := curve.PrivateToPoint(priv)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	r, s, err := curve.Sign(hash, priv)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if curve.Verify(hash, r, s, x, y) {
-		fmt.Println("signature is valid")
-	} else {
-		fmt.Println("signature is invalid")
-	}
-}
+cd examples/starknet
+wget https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
+python3.7 -m venv ~/cairo_venv; source ~/cairo_venv/bin/activate; export STARKNET_NETWORK=alpha-goerli
+starknet-compile counter.cairo --output counter_compiled.json --abi counter_abi.json
+go run main.go
 ```
 
-### Test && Benchmark
+### Run Tests
+
 ```go
-// run tests
 go test -v
+```
 
-// run benchmarks
+### Run Benchmarks
+
+```go
 go test -bench=.
 ```
+
 
 ## Issues
 

@@ -9,6 +9,11 @@ type gatewayOptions struct {
 	chainID string
 }
 
+type curveOptions struct {
+	initConstants bool
+	paramsPath    string
+}
+
 // funcGatewayOption wraps a function that modifies gatewayOptions into an
 // implementation of the GatewayOption interface.
 type funcGatewayOption struct {
@@ -39,5 +44,37 @@ func WithHttpClient(client http.Client) GatewayOption {
 func WithChain(chainID string) GatewayOption {
 	return newFuncGatewayOption(func(o *gatewayOptions) {
 		o.chainID = chainID
+	})
+}
+
+// funcCurveOptions wraps a function that modifies curveOptions into an
+// implementation of the CurveOption interface.
+type funcCurveOption struct {
+	f func(*curveOptions)
+}
+
+func (fso *funcCurveOption) apply(do *curveOptions) {
+	fso.f(do)
+}
+
+func newFuncCurveOption(f func(*curveOptions)) *funcCurveOption {
+	return &funcCurveOption{
+		f: f,
+	}
+}
+
+type CurveOption interface {
+	apply(*curveOptions)
+}
+
+// functions that require pedersen hashes must be run on
+// a curve initialized with constant points
+func WithConstants(paramsPath ...string) CurveOption {
+	return newFuncCurveOption(func(o *curveOptions) {
+		o.initConstants = true
+
+		if len(paramsPath) == 1 && paramsPath[0] != "" {
+			o.paramsPath = paramsPath[0]
+		}
 	})
 }

@@ -44,14 +44,20 @@ type StarkCurvePayload struct {
 	ConstantPoints [][]*big.Int `json:"CONSTANT_POINTS"`
 }
 
-func SC() StarkCurve {
-	InitCurve()
-	return sc
-}
+func SC(opts ...CurveOption) (StarkCurve, error) {
+	var gopts curveOptions
 
-func SCWithConstants(path string) (StarkCurve, error) {
-	err := InitWithConstants(path)
-	return sc, err
+	for _, opt := range opts {
+		opt.apply(&gopts)
+	}
+
+	if gopts.initConstants {
+		err := InitWithConstants(gopts.paramsPath)
+		return sc, err
+	} else {
+		InitCurve()
+		return sc, nil
+	}
 }
 
 /*
