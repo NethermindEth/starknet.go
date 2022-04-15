@@ -130,6 +130,7 @@ func (sg *StarknetGateway) do(req *http.Request, v interface{}) error {
 	if v != nil {
 		return json.NewDecoder(resp.Body).Decode(v)
 	}
+
 	return nil
 }
 

@@ -62,6 +62,7 @@ func TestInvokeContract(t *testing.T) {
 }
 
 func TestLocalStarkNet(t *testing.T) {
+	ctx := context.Background()
 	setupTestEnvironment()
 
 	curve, _ := SC()
@@ -75,27 +76,27 @@ func TestLocalStarkNet(t *testing.T) {
 		ConstructorCalldata: []string{},
 	}
 
-	resp, err := gw.Deploy(context.Background(), "tmp/counter_compiled.json", deployRequest)
+	resp, err := gw.Deploy(ctx, "tmp/counter_compiled.json", deployRequest)
 	if err != nil {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
 
-	tx, err := gw.Transaction(context.Background(), resp.TransactionHash)
+	tx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: resp.TransactionHash})
 	if err != nil || tx.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx: %v\n", err)
 	}
 
-	receipt, err := gw.TransactionReceipt(context.Background(), resp.TransactionHash)
+	receipt, err := gw.TransactionReceipt(ctx, resp.TransactionHash)
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
 
-	block, err := gw.Block(context.Background(), &BlockOptions{BlockHash: tx.BlockHash})
+	block, err := gw.Block(ctx, &BlockOptions{BlockHash: tx.BlockHash})
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}
 
-	_, err = gw.StorageAt(context.Background(), tx.Transaction.ContractAddress, "0", "0")
+	_, err = gw.StorageAt(ctx, tx.Transaction.ContractAddress, "0", "0")
 	if err != nil {
 		t.Errorf("Could not get storage: %v\n", err)
 	}

@@ -2,7 +2,9 @@ package caigo
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/google/go-querystring/query"
 )
@@ -41,4 +43,32 @@ func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*Bloc
 
 	var resp Block
 	return &resp, sg.do(req, &resp)
+}
+
+func (sg *StarknetGateway) BlockHashByID(ctx context.Context, id uint64) (block string, err error) {
+	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_hash_by_id", nil)
+	if err != nil {
+		return "", err
+	}
+
+	appendQueryValues(req, url.Values{
+		"blockId": []string{fmt.Sprint(id)},
+	})
+
+	var resp string
+	return resp, sg.do(req, &resp)
+}
+
+func (sg *StarknetGateway) BlockIDByHash(ctx context.Context, hash string) (block uint64, err error) {
+	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_id_by_hash", nil)
+	if err != nil {
+		return 0, err
+	}
+
+	appendQueryValues(req, url.Values{
+		"blockHash": []string{hash},
+	})
+
+	var resp uint64
+	return resp, sg.do(req, &resp)
 }

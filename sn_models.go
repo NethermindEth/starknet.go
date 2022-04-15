@@ -37,60 +37,12 @@ const (
 */
 type TxStatus int
 
-type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash"`
-	TxFailureReason struct {
-		ErrorMessage string `json:"error_message,omitempty"`
-	} `json:"tx_failure_reason,omitempty"`
-}
-
 type StarknetTransaction struct {
 	TransactionIndex int           `json:"transaction_index"`
 	BlockNumber      int           `json:"block_number"`
 	Transaction      JSTransaction `json:"transaction"`
 	BlockHash        string        `json:"block_hash"`
 	Status           string        `json:"status"`
-}
-
-// Starknet transaction composition
-type Transaction struct {
-	Calldata           []*big.Int `json:"calldata"`
-	ContractAddress    *big.Int   `json:"contract_address"`
-	EntryPointSelector *big.Int   `json:"entry_point_selector"`
-	EntryPointType     string     `json:"entry_point_type"`
-	Signature          []*big.Int `json:"signature"`
-	TransactionHash    *big.Int   `json:"transaction_hash"`
-	Type               string     `json:"type"`
-	Nonce              *big.Int   `json:"nonce,omitempty"`
-}
-
-type TransactionReceipt struct {
-	Status                string `json:"status"`
-	BlockHash             string `json:"block_hash"`
-	BlockNumber           int    `json:"block_number"`
-	TransactionIndex      int    `json:"transaction_index"`
-	TransactionHash       string `json:"transaction_hash"`
-	L1ToL2ConsumedMessage struct {
-		FromAddress string   `json:"from_address"`
-		ToAddress   string   `json:"to_address"`
-		Selector    string   `json:"selector"`
-		Payload     []string `json:"payload"`
-	} `json:"l1_to_l2_consumed_message"`
-	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
-	Events             []interface{} `json:"events"`
-	ExecutionResources struct {
-		NSteps                 int `json:"n_steps"`
-		BuiltinInstanceCounter struct {
-			PedersenBuiltin   int `json:"pedersen_builtin"`
-			RangeCheckBuiltin int `json:"range_check_builtin"`
-			BitwiseBuiltin    int `json:"bitwise_builtin"`
-			OutputBuiltin     int `json:"output_builtin"`
-			EcdsaBuiltin      int `json:"ecdsa_builtin"`
-			EcOpBuiltin       int `json:"ec_op_builtin"`
-		} `json:"builtin_instance_counter"`
-		NMemoryHoles int `json:"n_memory_holes"`
-	} `json:"execution_resources"`
 }
 
 type ContractCode struct {

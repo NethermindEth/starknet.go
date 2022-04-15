@@ -11,28 +11,6 @@ import (
 	"time"
 )
 
-func (sg *StarknetGateway) BlockHashById(ctx context.Context, blockId string) (block string, err error) {
-	url := fmt.Sprintf("%s/get_block_hash_by_id?blockId=%s", sg.Feeder, blockId)
-
-	resp, err := sg.getHelper(ctx, url)
-	if err != nil {
-		return block, err
-	}
-
-	return strings.Replace(string(resp), "\"", "", -1), nil
-}
-
-func (sg *StarknetGateway) BlockIdByHash(ctx context.Context, blockHash string) (block string, err error) {
-	url := fmt.Sprintf("%s/get_block_id_by_hash?blockHash=%s", sg.Feeder, blockHash)
-
-	resp, err := sg.getHelper(ctx, url)
-	if err != nil {
-		return block, err
-	}
-
-	return strings.Replace(string(resp), "\"", "", -1), nil
-}
-
 func (sg *StarknetGateway) TransactionHashById(ctx context.Context, txId string) (tx string, err error) {
 	url := fmt.Sprintf("%s/get_transaction_hash_by_id?transactionId=%s", sg.Feeder, txId)
 
@@ -78,30 +56,6 @@ func (sg *StarknetGateway) Code(ctx context.Context, contractAddress, blockId st
 	return code, err
 }
 
-func (sg *StarknetGateway) TransactionStatus(ctx context.Context, txHash string) (status TransactionStatus, err error) {
-	url := fmt.Sprintf("%s/get_transaction_status?transactionHash=%s", sg.Feeder, txHash)
-
-	resp, err := sg.getHelper(ctx, url)
-	if err != nil {
-		return status, err
-	}
-
-	err = json.Unmarshal(resp, &status)
-	return status, err
-}
-
-func (sg *StarknetGateway) Transaction(ctx context.Context, txHash string) (tx StarknetTransaction, err error) {
-	url := fmt.Sprintf("%s/get_transaction?transactionHash=%s", sg.Feeder, txHash)
-
-	resp, err := sg.getHelper(ctx, url)
-	if err != nil {
-		return tx, err
-	}
-
-	err = json.Unmarshal(resp, &tx)
-	return tx, err
-}
-
 func (sg *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (receipt TransactionReceipt, err error) {
 	url := fmt.Sprintf("%s/get_transaction_receipt?transactionHash=%s", sg.Feeder, txHash)
 
@@ -125,7 +79,9 @@ func (sg *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold 
 		}
 		cow++
 
-		stat, err := sg.TransactionStatus(ctx, txHash)
+		stat, err := sg.TransactionStatus(ctx, TransactionStatusOptions{
+			TransactionHash: txHash,
+		})
 		if err != nil {
 			return cow, status, err
 		}
