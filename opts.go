@@ -52,7 +52,7 @@ func WithChain(chainID string) GatewayOption {
 func WithErrorHandler(f func(e error) error) GatewayOption {
 	return newFuncGatewayOption(func(o *gatewayOptions) {
 		o.errorHandler = f
-  })
+	})
 }
 
 // funcCurveOptions wraps a function that modifies curveOptions into an
