@@ -90,7 +90,7 @@ func TestLocalStarkNet(t *testing.T) {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
 
-	block, err := gw.Block(context.Background(), tx.BlockHash)
+	block, err := gw.Block(context.Background(), &BlockOptions{BlockHash: tx.BlockHash})
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}

@@ -2,7 +2,6 @@ package caigo
 
 import (
 	"math/big"
-	"net/http"
 	"strings"
 )
 
@@ -64,25 +63,6 @@ type Transaction struct {
 	TransactionHash    *big.Int   `json:"transaction_hash"`
 	Type               string     `json:"type"`
 	Nonce              *big.Int   `json:"nonce,omitempty"`
-}
-
-type StarknetGateway struct {
-	Base    string `json:"base"`
-	Feeder  string `json:"feeder"`
-	Gateway string `json:"gateway"`
-	ChainId string `json:"chainId"`
-	client  *http.Client
-}
-
-type Block struct {
-	BlockHash           string               `json:"block_hash"`
-	ParentBlockHash     string               `json:"parent_block_hash"`
-	BlockNumber         int                  `json:"block_number"`
-	StateRoot           string               `json:"state_root"`
-	Status              string               `json:"status"`
-	Transactions        []JSTransaction      `json:"transactions"`
-	Timestamp           int                  `json:"timestamp"`
-	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
 }
 
 type TransactionReceipt struct {
