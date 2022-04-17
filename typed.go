@@ -42,8 +42,7 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	case "name":
 		fmtEnc = append(fmtEnc, UTF8StrToBig(dm.Name))
 	case "version":
-		n, _ := strconv.ParseInt(dm.Version, 10, 64)
-		fmtEnc = append(fmtEnc, big.NewInt(int64(n)))
+		fmtEnc = append(fmtEnc, UTF8StrToBig(dm.Version))
 	case "chainId":
 		fmtEnc = append(fmtEnc, big.NewInt(int64(dm.ChainId)))
 	}
