@@ -2,13 +2,7 @@ package caigo
 
 import (
 	"math/big"
-	"strings"
 )
-
-/*
-	StarkNet transaction states
-*/
-var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
 
 const (
 	INVOKE              string = "INVOKE_FUNCTION"
@@ -23,28 +17,9 @@ const (
 	TRANSACTION_VERSION int64  = 0
 )
 
-const (
-	NOT_RECIEVED = TxStatus(iota)
-	REJECTED
-	RECEIVED
-	PENDING
-	ACCEPTED_ON_L2
-	ACCEPTED_ON_L1
-)
-
 /*
 	GETTER Models
 */
-type TxStatus int
-
-type StarknetTransaction struct {
-	TransactionIndex int           `json:"transaction_index"`
-	BlockNumber      int           `json:"block_number"`
-	Transaction      JSTransaction `json:"transaction"`
-	BlockHash        string        `json:"block_hash"`
-	Status           string        `json:"status"`
-}
-
 type ContractCode struct {
 	Bytecode []string `json:"bytecode"`
 	Abi      []ABI    `json:"abi"`
@@ -110,27 +85,6 @@ type DeployRequest struct {
 	} `json:"contract_definition"`
 }
 
-type StarknetRequest struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
-	Type               string   `json:"type,omitempty"`
-	Nonce              string   `json:"nonce,omitempty"`
-}
-
-// struct to catch starknet.js transaction payloads
-type JSTransaction struct {
-	Calldata           []string `json:"calldata"`
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	EntryPointType     string   `json:"entry_point_type"`
-	JSSignature        []string `json:"signature"`
-	TransactionHash    string   `json:"transaction_hash"`
-	Type               string   `json:"type"`
-	Nonce              string   `json:"nonce"`
-}
-
 type EntryPointsByType struct {
 	Constructor []struct {
 		Offset   string `json:"offset"`
@@ -141,17 +95,4 @@ type EntryPointsByType struct {
 		Selector string `json:"selector"`
 	} `json:"EXTERNAL"`
 	L1Handler []interface{} `json:"L1_HANDLER"`
-}
-
-func (s TxStatus) String() string {
-	return statuses[s]
-}
-
-func FindTxStatus(stat string) int {
-	for i, val := range statuses {
-		if val == strings.ToUpper(stat) {
-			return i
-		}
-	}
-	return 0
 }

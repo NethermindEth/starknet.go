@@ -15,7 +15,7 @@ type Block struct {
 	BlockNumber         int                  `json:"block_number"`
 	StateRoot           string               `json:"state_root"`
 	Status              string               `json:"status"`
-	Transactions        []JSTransaction      `json:"transactions"`
+	Transactions        []Transaction        `json:"transactions"`
 	Timestamp           int                  `json:"timestamp"`
 	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
 }

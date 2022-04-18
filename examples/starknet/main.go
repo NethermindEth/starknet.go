@@ -44,15 +44,15 @@ func main() {
 	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
 
 	// fetch transaction details
-	tx, err := gw.Transaction(context.Background(), deployResponse.TransactionHash)
+	tx, err := gw.Transaction(context.Background(), caigo.TransactionOptions{TransactionHash: deployResponse.TransactionHash})
 	if err != nil {
 		panic(err.Error())
 	}
 
 	// call StarkNet contract
-	callResp, err := gw.Call(context.Background(), caigo.StarknetRequest{
+	callResp, err := gw.Call(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
+		EntryPointSelector: "get_count",
 	})
 	if err != nil {
 		panic(err.Error())
@@ -60,9 +60,9 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 	
 	// invoke StarkNet contract external function
-	invResp, err := gw.Invoke(context.Background(), caigo.StarknetRequest{
+	invResp, err := gw.Invoke(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("increment")),
+		EntryPointSelector: "increment",
 	})
 	if err != nil {
 		panic(err.Error())
@@ -74,9 +74,9 @@ func main() {
 	}
 	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
 
-	callResp, err = gw.Call(context.Background(), caigo.StarknetRequest{
+	callResp, err = gw.Call(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName("get_count")),
+		EntryPointSelector: "get_count",
 	})
 	if err != nil {
 		panic(err.Error())

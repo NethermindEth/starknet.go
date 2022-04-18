@@ -2,12 +2,31 @@ package caigo
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/google/go-querystring/query"
 )
+
+/*
+	StarkNet transaction states
+*/
+const (
+	NOT_RECIEVED = TxStatus(iota)
+	REJECTED
+	RECEIVED
+	PENDING
+	ACCEPTED_ON_L2
+	ACCEPTED_ON_L1
+)
+
+var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
+
+type TxStatus int
 
 type TransactionStatus struct {
 	TxStatus        string `json:"tx_status"`
@@ -19,14 +38,22 @@ type TransactionStatus struct {
 
 // Starknet transaction composition
 type Transaction struct {
-	Calldata           []*big.Int `json:"calldata"`
-	ContractAddress    *big.Int   `json:"contract_address"`
-	EntryPointSelector *big.Int   `json:"entry_point_selector"`
-	EntryPointType     string     `json:"entry_point_type"`
-	Signature          []*big.Int `json:"signature"`
-	TransactionHash    *big.Int   `json:"transaction_hash"`
-	Type               string     `json:"type"`
-	Nonce              *big.Int   `json:"nonce,omitempty"`
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
+	Signature          []string `json:"signature"`
+	EntryPointType     string   `json:"entry_point_type,omitempty"`
+	TransactionHash    string   `json:"transaction_hash,omitempty"`
+	Type               string   `json:"type,omitempty"`
+	Nonce              string   `json:"nonce,omitempty"`
+}
+
+type StarknetTransaction struct {
+	TransactionIndex int         `json:"transaction_index"`
+	BlockNumber      int         `json:"block_number"`
+	Transaction      Transaction `json:"transaction"`
+	BlockHash        string      `json:"block_hash"`
+	Status           string      `json:"status"`
 }
 
 type TransactionReceipt struct {
@@ -139,4 +166,63 @@ func (gw *StarknetGateway) TransactionHash(ctx context.Context, id *big.Int) (st
 	}
 
 	return resp, nil
+}
+
+// Get transaction receipt for specific tx
+//
+// [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L104)
+func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (*TransactionReceipt, error) {
+	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_receipt", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	appendQueryValues(req, url.Values{
+		"transactionHash": []string{txHash},
+	})
+
+	var resp TransactionReceipt
+	return &resp, gw.do(req, &resp)
+}
+
+// Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
+// or the transaction reverts
+func (gw *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold TxStatus, interval, maxPoll int) (n int, status string, err error) {
+	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
+
+	ticker := time.NewTicker(time.Duration(interval) * time.Second)
+	cow := 0
+	for range ticker.C {
+		if cow >= maxPoll {
+			return cow, status, err
+		}
+		cow++
+
+		stat, err := gw.TransactionStatus(ctx, TransactionStatusOptions{
+			TransactionHash: txHash,
+		})
+		if err != nil {
+			return cow, status, err
+		}
+		sInt := FindTxStatus(stat.TxStatus)
+		if sInt == 1 {
+			return cow, status, fmt.Errorf(stat.TxFailureReason.ErrorMessage)
+		} else if sInt >= int(threshold) {
+			return cow, stat.TxStatus, nil
+		}
+	}
+	return cow, status, err
+}
+
+func (s TxStatus) String() string {
+	return statuses[s]
+}
+
+func FindTxStatus(stat string) int {
+	for i, val := range statuses {
+		if val == strings.ToUpper(stat) {
+			return i
+		}
+	}
+	return 0
 }
