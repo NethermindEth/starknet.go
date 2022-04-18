@@ -44,22 +44,23 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *StarknetGateway) Call(ctx context.Context, sn StarknetRequest, blockId ...string) (resp []string, err error) {
+func (sg *StarknetGateway) Call(ctx context.Context, tx Transaction, blockId ...string) (resp []string, err error) {
 	bid := ""
 	if len(blockId) == 1 {
 		bid = fmtBlockId(blockId[0])
 	}
 
 	url := fmt.Sprintf("%s/call_contract%s", sg.Feeder, strings.Replace(bid, "&", "?", 1))
+	tx.EntryPointSelector = BigToHex(GetSelectorFromName(tx.EntryPointSelector))
 
-	if len(sn.Calldata) == 0 {
-		sn.Calldata = []string{}
+	if len(tx.Calldata) == 0 {
+		tx.Calldata = []string{}
 	}
-	if len(sn.Signature) == 0 {
-		sn.Signature = []string{}
+	if len(tx.Signature) == 0 {
+		tx.Signature = []string{}
 	}
 
-	pay, err := json.Marshal(sn)
+	pay, err := json.Marshal(tx)
 	if err != nil {
 		return resp, err
 	}
@@ -77,18 +78,19 @@ func (sg *StarknetGateway) Call(ctx context.Context, sn StarknetRequest, blockId
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *StarknetGateway) Invoke(ctx context.Context, sn StarknetRequest) (addResp AddTxResponse, err error) {
+func (sg *StarknetGateway) Invoke(ctx context.Context, tx Transaction) (addResp AddTxResponse, err error) {
 	url := fmt.Sprintf("%s/add_transaction", sg.Gateway)
+	tx.EntryPointSelector = BigToHex(GetSelectorFromName(tx.EntryPointSelector))
+	tx.Type = INVOKE
 
-	sn.Type = INVOKE
-	if len(sn.Calldata) == 0 {
-		sn.Calldata = []string{}
+	if len(tx.Calldata) == 0 {
+		tx.Calldata = []string{}
 	}
-	if len(sn.Signature) == 0 {
-		sn.Signature = []string{}
+	if len(tx.Signature) == 0 {
+		tx.Signature = []string{}
 	}
 
-	pay, err := json.Marshal(sn)
+	pay, err := json.Marshal(tx)
 	if err != nil {
 		return addResp, err
 	}
@@ -150,7 +152,7 @@ func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRe
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer Signer) Execute(ctx context.Context, address *big.Int, txs []Transaction) (addResp AddTxResponse, err error) {
+func (signer Signer) Execute(ctx context.Context, address string, txs []Transaction) (addResp AddTxResponse, err error) {
 	nonce, err := signer.Gateway.AccountNonce(ctx, address)
 	if err != nil {
 		return addResp, err
@@ -163,9 +165,9 @@ func (signer Signer) Execute(ctx context.Context, address *big.Int, txs []Transa
 	// 		cdStrings = append(cdStrings, data.String())
 	// 	}
 
-	// 	innerFee, err := signer.Gateway.EstimateFee(StarknetRequest{
-	// 		ContractAddress: BigToHex(tx.ContractAddress),
-	// 		EntryPointSelector: BigToHex(tx.EntryPointSelector),
+	// 	innerFee, err := signer.Gateway.EstimateFee(Transaction{
+	// 		ContractAddress: tx.ContractAddress,
+	// 		EntryPointSelector: tx.EntryPointSelector,
 	// 		Calldata: cdStrings,
 	// 		Signature: []string{},
 	// 	})
@@ -184,8 +186,8 @@ func (signer Signer) Execute(ctx context.Context, address *big.Int, txs []Transa
 		return addResp, err
 	}
 
-	req := StarknetRequest{
-		ContractAddress:    BigToHex(address),
+	req := Transaction{
+		ContractAddress:    address,
 		EntryPointSelector: BigToHex(GetSelectorFromName(EXECUTE_SELECTOR)),
 		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
 		Signature:          []string{r.String(), s.String()},
@@ -194,10 +196,10 @@ func (signer Signer) Execute(ctx context.Context, address *big.Int, txs []Transa
 	return signer.Gateway.Invoke(ctx, req)
 }
 
-func (sg *StarknetGateway) EstimateFee(ctx context.Context, sn StarknetRequest) (fee FeeEstimate, err error) {
+func (sg *StarknetGateway) EstimateFee(ctx context.Context, tx Transaction) (fee FeeEstimate, err error) {
 	url := fmt.Sprintf("%s/estimate_fee", sg.Feeder)
 
-	pay, err := json.Marshal(sn)
+	pay, err := json.Marshal(tx)
 	if err != nil {
 		return fee, err
 	}
@@ -249,12 +251,14 @@ func FmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldataArray []*big
 	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
 
 	for _, tx := range txs {
-		callArray = append(callArray, tx.ContractAddress, tx.EntryPointSelector)
+		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
 		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
 		} else {
 			callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
-			calldataArray = append(calldataArray, tx.Calldata...)
+			for _, cd := range tx.Calldata {
+				calldataArray = append(calldataArray, SNValToBN(cd))
+			}
 		}
 	}
 
@@ -283,25 +287,7 @@ func CompressCompiledContract(program map[string]interface{}) (cc string, err er
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
-func (jtx JSTransaction) ConvertTx() (tx Transaction) {
-	tx = Transaction{
-		ContractAddress:    jsToBN(jtx.ContractAddress),
-		EntryPointSelector: jsToBN(jtx.EntryPointSelector),
-		EntryPointType:     jtx.EntryPointType,
-		TransactionHash:    jsToBN(jtx.TransactionHash),
-		Type:               jtx.Type,
-		Nonce:              jsToBN(jtx.Nonce),
-	}
-	for _, cd := range jtx.Calldata {
-		tx.Calldata = append(tx.Calldata, jsToBN(cd))
-	}
-	for _, sigElem := range jtx.JSSignature {
-		tx.Signature = append(tx.Signature, jsToBN(sigElem))
-	}
-	return tx
-}
-
-func (sc StarkCurve) HashMulticall(addr, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {
+func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {
 	callArray := FmtExecuteCalldata(nonce, txs)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := sc.HashElements(callArray)
@@ -312,7 +298,7 @@ func (sc StarkCurve) HashMulticall(addr, nonce, maxFee, chainId *big.Int, txs []
 	multiHashData := []*big.Int{
 		UTF8StrToBig(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
-		addr,
+		SNValToBN(addr),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
 		maxFee,
@@ -326,18 +312,22 @@ func (sc StarkCurve) HashMulticall(addr, nonce, maxFee, chainId *big.Int, txs []
 
 // Adheres to 'starknet.js' hash non typedData
 func (sc StarkCurve) HashMsg(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
-	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
-	cdHash, err := sc.HashElements(tx.Calldata)
+	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
+	for _, cd := range tx.Calldata {
+		calldataArray = append(calldataArray, HexToBN(cd))
+	}
+
+	cdHash, err := sc.HashElements(calldataArray)
 	if err != nil {
 		return hash, err
 	}
 
 	txHashData := []*big.Int{
 		addr,
-		tx.ContractAddress,
-		tx.EntryPointSelector,
+		SNValToBN(tx.ContractAddress),
+		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
-		tx.Nonce,
+		SNValToBN(tx.Nonce),
 	}
 
 	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
@@ -347,15 +337,19 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx Transaction) (hash *big.Int, err 
 
 // Adheres to 'starknet.js' hash non typedData
 func (sc StarkCurve) HashTx(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
-	tx.Calldata = append(tx.Calldata, big.NewInt(int64(len(tx.Calldata))))
-	cdHash, err := sc.HashElements(tx.Calldata)
+	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
+	for _, cd := range tx.Calldata {
+		calldataArray = append(calldataArray, SNValToBN(cd))
+	}
+
+	cdHash, err := sc.HashElements(calldataArray)
 	if err != nil {
 		return hash, err
 	}
 
 	txHashData := []*big.Int{
-		tx.ContractAddress,
-		tx.EntryPointSelector,
+		SNValToBN(tx.ContractAddress),
+		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
 	}
 

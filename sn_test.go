@@ -25,23 +25,28 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
 
-	i1, _ := new(big.Int).SetString("3139631220741201955103162951941433790693684583007823827564831473435921360636", 10)
-	i2, _ := new(big.Int).SetString("1500000000000000000000", 10)
-	i3, _ := new(big.Int).SetString("0", 10)
 	calls := []Transaction{
 		{
-			ContractAddress:    HexToBN("0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10"),
-			EntryPointSelector: GetSelectorFromName("mint"),
-			Calldata:           []*big.Int{i1, i2, i3},
+			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+			EntryPointSelector: "mint",
+			Calldata: []string{
+				"3139631220741201955103162951941433790693684583007823827564831473435921360636",
+				"1500000000000000000000",
+				"0",
+			},
 		},
 		{
-			ContractAddress:    HexToBN("0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10"),
-			EntryPointSelector: GetSelectorFromName("transfer"),
-			Calldata:           []*big.Int{HexToBN("0x02e1b1ae589af66432469af22a38e84a6ac17202c55e3af2d40f8e18d3395398"), i2, i3},
+			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+			EntryPointSelector: "transfer",
+			Calldata: []string{
+				"0x02e1b1ae589af66432469af22a38e84a6ac17202c55e3af2d40f8e18d3395398",
+				"1500000000000000000000",
+				"0",
+			},
 		},
 	}
 
-	_, err = signer.Execute(context.Background(), HexToBN("0x6f0f7e2594028a454bed6bd856cc566763a6bef3d9965d79bd888ccea7426fc"), calls)
+	_, err = signer.Execute(context.Background(), "0x6f0f7e2594028a454bed6bd856cc566763a6bef3d9965d79bd888ccea7426fc", calls)
 	if err != nil {
 		t.Errorf("Could not execute multicall with account: %v\n", err)
 	}
@@ -50,9 +55,9 @@ func TestExecuteGoerli(t *testing.T) {
 func TestInvokeContract(t *testing.T) {
 	gw := NewGateway()
 
-	req := StarknetRequest{
+	req := Transaction{
 		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
-		EntryPointSelector: BigToHex(GetSelectorFromName("increment")),
+		EntryPointSelector: "increment",
 	}
 
 	_, err := gw.Invoke(context.Background(), req)
@@ -62,6 +67,7 @@ func TestInvokeContract(t *testing.T) {
 }
 
 func TestLocalStarkNet(t *testing.T) {
+	ctx := context.Background()
 	setupTestEnvironment()
 
 	curve, _ := SC()
@@ -75,27 +81,27 @@ func TestLocalStarkNet(t *testing.T) {
 		ConstructorCalldata: []string{},
 	}
 
-	resp, err := gw.Deploy(context.Background(), "tmp/counter_compiled.json", deployRequest)
+	resp, err := gw.Deploy(ctx, "tmp/counter_compiled.json", deployRequest)
 	if err != nil {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
 
-	tx, err := gw.Transaction(context.Background(), resp.TransactionHash)
+	tx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: resp.TransactionHash})
 	if err != nil || tx.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx: %v\n", err)
 	}
 
-	receipt, err := gw.TransactionReceipt(context.Background(), resp.TransactionHash)
+	receipt, err := gw.TransactionReceipt(ctx, resp.TransactionHash)
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
 
-	block, err := gw.Block(context.Background(), &BlockOptions{BlockHash: tx.BlockHash})
+	block, err := gw.Block(ctx, &BlockOptions{BlockHash: tx.BlockHash})
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}
 
-	_, err = gw.StorageAt(context.Background(), tx.Transaction.ContractAddress, "0", "0")
+	_, err = gw.StorageAt(ctx, tx.Transaction.ContractAddress, "0", "0")
 	if err != nil {
 		t.Errorf("Could not get storage: %v\n", err)
 	}

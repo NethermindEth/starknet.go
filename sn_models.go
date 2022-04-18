@@ -2,13 +2,7 @@ package caigo
 
 import (
 	"math/big"
-	"strings"
 )
-
-/*
-	StarkNet transaction states
-*/
-var statuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
 
 const (
 	INVOKE              string = "INVOKE_FUNCTION"
@@ -23,76 +17,9 @@ const (
 	TRANSACTION_VERSION int64  = 0
 )
 
-const (
-	NOT_RECIEVED = TxStatus(iota)
-	REJECTED
-	RECEIVED
-	PENDING
-	ACCEPTED_ON_L2
-	ACCEPTED_ON_L1
-)
-
 /*
 	GETTER Models
 */
-type TxStatus int
-
-type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash"`
-	TxFailureReason struct {
-		ErrorMessage string `json:"error_message,omitempty"`
-	} `json:"tx_failure_reason,omitempty"`
-}
-
-type StarknetTransaction struct {
-	TransactionIndex int           `json:"transaction_index"`
-	BlockNumber      int           `json:"block_number"`
-	Transaction      JSTransaction `json:"transaction"`
-	BlockHash        string        `json:"block_hash"`
-	Status           string        `json:"status"`
-}
-
-// Starknet transaction composition
-type Transaction struct {
-	Calldata           []*big.Int `json:"calldata"`
-	ContractAddress    *big.Int   `json:"contract_address"`
-	EntryPointSelector *big.Int   `json:"entry_point_selector"`
-	EntryPointType     string     `json:"entry_point_type"`
-	Signature          []*big.Int `json:"signature"`
-	TransactionHash    *big.Int   `json:"transaction_hash"`
-	Type               string     `json:"type"`
-	Nonce              *big.Int   `json:"nonce,omitempty"`
-}
-
-type TransactionReceipt struct {
-	Status                string `json:"status"`
-	BlockHash             string `json:"block_hash"`
-	BlockNumber           int    `json:"block_number"`
-	TransactionIndex      int    `json:"transaction_index"`
-	TransactionHash       string `json:"transaction_hash"`
-	L1ToL2ConsumedMessage struct {
-		FromAddress string   `json:"from_address"`
-		ToAddress   string   `json:"to_address"`
-		Selector    string   `json:"selector"`
-		Payload     []string `json:"payload"`
-	} `json:"l1_to_l2_consumed_message"`
-	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
-	Events             []interface{} `json:"events"`
-	ExecutionResources struct {
-		NSteps                 int `json:"n_steps"`
-		BuiltinInstanceCounter struct {
-			PedersenBuiltin   int `json:"pedersen_builtin"`
-			RangeCheckBuiltin int `json:"range_check_builtin"`
-			BitwiseBuiltin    int `json:"bitwise_builtin"`
-			OutputBuiltin     int `json:"output_builtin"`
-			EcdsaBuiltin      int `json:"ecdsa_builtin"`
-			EcOpBuiltin       int `json:"ec_op_builtin"`
-		} `json:"builtin_instance_counter"`
-		NMemoryHoles int `json:"n_memory_holes"`
-	} `json:"execution_resources"`
-}
-
 type ContractCode struct {
 	Bytecode []string `json:"bytecode"`
 	Abi      []ABI    `json:"abi"`
@@ -158,27 +85,6 @@ type DeployRequest struct {
 	} `json:"contract_definition"`
 }
 
-type StarknetRequest struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
-	Type               string   `json:"type,omitempty"`
-	Nonce              string   `json:"nonce,omitempty"`
-}
-
-// struct to catch starknet.js transaction payloads
-type JSTransaction struct {
-	Calldata           []string `json:"calldata"`
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	EntryPointType     string   `json:"entry_point_type"`
-	JSSignature        []string `json:"signature"`
-	TransactionHash    string   `json:"transaction_hash"`
-	Type               string   `json:"type"`
-	Nonce              string   `json:"nonce"`
-}
-
 type EntryPointsByType struct {
 	Constructor []struct {
 		Offset   string `json:"offset"`
@@ -189,17 +95,4 @@ type EntryPointsByType struct {
 		Selector string `json:"selector"`
 	} `json:"EXTERNAL"`
 	L1Handler []interface{} `json:"L1_HANDLER"`
-}
-
-func (s TxStatus) String() string {
-	return statuses[s]
-}
-
-func FindTxStatus(stat string) int {
-	for i, val := range statuses {
-		if val == strings.ToUpper(stat) {
-			return i
-		}
-	}
-	return 0
 }

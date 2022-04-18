@@ -242,7 +242,7 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 }
 
 // used in string conversions when interfacing with the APIs
-func jsToBN(str string) *big.Int {
+func SNValToBN(str string) *big.Int {
 	if strings.Contains(str, "0x") {
 		return HexToBN(str)
 	} else {
