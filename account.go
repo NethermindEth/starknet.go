@@ -27,7 +27,7 @@ type FeeEstimate struct {
 	- full StarknetGateway definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) (signer Signer, err error) {
+func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) (signer *Signer, err error) {
 	if len(sc.ConstantPoints) == 0 {
 		return signer, fmt.Errorf("must initiate precomputed constant points")
 	}
@@ -38,7 +38,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 		gw = NewGateway()
 	}
 
-	return Signer{
+	return &Signer{
 		private: private,
 		Curve:   sc,
 		Gateway: gw,
@@ -52,7 +52,7 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) 
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer Signer) Execute(ctx context.Context, address string, txs []Transaction) (addResp AddTxResponse, err error) {
+func (signer *Signer) Execute(ctx context.Context, address string, txs []Transaction) (addResp AddTxResponse, err error) {
 	nonce, err := signer.Gateway.AccountNonce(ctx, address)
 	if err != nil {
 		return addResp, err
