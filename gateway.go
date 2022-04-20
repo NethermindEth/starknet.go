@@ -69,7 +69,12 @@ func NewGateway(opts ...GatewayOption) *StarknetGateway {
 func (sg *StarknetGateway) newRequest(
 	ctx context.Context, method, endpoint string, body interface{},
 ) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, method, sg.Feeder+endpoint, nil)
+	url := sg.Feeder+endpoint
+	if strings.Contains(endpoint, "add_transaction") {
+		url = sg.Gateway+endpoint
+	}
+	
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		return nil, err
 	}

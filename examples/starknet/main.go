@@ -53,7 +53,7 @@ func main() {
 	callResp, err := gw.Call(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	})
+	}, nil)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -77,7 +77,7 @@ func main() {
 	callResp, err = gw.Call(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	})
+	}, nil)
 	if err != nil {
 		panic(err.Error())
 	}
