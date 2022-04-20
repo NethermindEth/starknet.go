@@ -101,7 +101,7 @@ func TestLocalStarkNet(t *testing.T) {
 		t.Errorf("Could not get block by hash: %v\n", err)
 	}
 
-	_, err = gw.StorageAt(ctx, tx.Transaction.ContractAddress, "0", "0")
+	_, err = gw.StorageAt(ctx, tx.Transaction.ContractAddress, 0, &StorageAtOptions{BlockNumber: 0})
 	if err != nil {
 		t.Errorf("Could not get storage: %v\n", err)
 	}
