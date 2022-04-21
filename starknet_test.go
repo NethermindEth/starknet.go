@@ -20,7 +20,7 @@ func TestExecuteGoerli(t *testing.T) {
 	priv, _ := new(big.Int).SetString("3904bd288b88a1dcd73e648b10642d63cb9b2ffd86526deee9d073f0690139e", 16)
 	x, y, _ := curve.PrivateToPoint(priv)
 
-	signer, err := curve.NewSigner(priv, x, y)
+	signer, err := curve.NewSigner(priv, x, y, NewGateway())
 	if err != nil {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
