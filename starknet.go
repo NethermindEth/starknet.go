@@ -147,8 +147,7 @@ func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRe
 	}
 
 	var rawDef RawContractDefinition
-	err = json.Unmarshal(dat, &rawDef)
-	if err != nil {
+	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}
 
@@ -175,8 +174,7 @@ func CompressCompiledContract(program map[string]interface{}) (cc string, err er
 
 	var buf bytes.Buffer
 	zw := gzip.NewWriter(&buf)
-	_, err = zw.Write(pay)
-	if err != nil {
+	if _, err = zw.Write(pay); err != nil {
 		return cc, err
 	}
 	if err := zw.Close(); err != nil {

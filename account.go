@@ -27,15 +27,9 @@ type FeeEstimate struct {
 	- full StarknetGateway definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, chainId ...string) (signer *Signer, err error) {
+func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, gw *StarknetGateway) (*Signer, error) {
 	if len(sc.ConstantPoints) == 0 {
-		return signer, fmt.Errorf("must initiate precomputed constant points")
-	}
-	var gw *StarknetGateway
-	if len(chainId) == 1 {
-		gw = NewGateway(WithChain(chainId[0]))
-	} else {
-		gw = NewGateway()
+		return nil, fmt.Errorf("must initiate precomputed constant points")
 	}
 
 	return &Signer{
@@ -143,13 +137,16 @@ func FmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldataArray []*big
 
 	for _, tx := range txs {
 		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
+
 		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
-		} else {
-			callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
-			for _, cd := range tx.Calldata {
-				calldataArray = append(calldataArray, SNValToBN(cd))
-			}
+
+			continue
+		}
+
+		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
+		for _, cd := range tx.Calldata {
+			calldataArray = append(calldataArray, SNValToBN(cd))
 		}
 	}
 
