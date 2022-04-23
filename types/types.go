@@ -1,4 +1,4 @@
-package caigo
+package types
 
 type Block struct {
 	BlockHash           string               `json:"block_hash"`

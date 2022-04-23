@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -24,7 +25,7 @@ func (sg *StarknetGateway) ChainID(context.Context) (string, error) {
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *StarknetGateway) Call(ctx context.Context, tx caigo.Transaction, opts *BlockOptions) ([]string, error) {
+func (sg *StarknetGateway) Call(ctx context.Context, tx types.Transaction, opts *BlockOptions) ([]string, error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	if len(tx.Calldata) == 0 {
 		tx.Calldata = []string{}
@@ -53,7 +54,7 @@ func (sg *StarknetGateway) Call(ctx context.Context, tx caigo.Transaction, opts 
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *StarknetGateway) Invoke(ctx context.Context, tx caigo.Transaction) (resp caigo.AddTxResponse, err error) {
+func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (resp types.AddTxResponse, err error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	tx.Type = INVOKE
 
@@ -75,7 +76,7 @@ func (sg *StarknetGateway) Invoke(ctx context.Context, tx caigo.Transaction) (re
 /*
 	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRequest caigo.DeployRequest) (resp caigo.AddTxResponse, err error) {
+func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return resp, err
@@ -86,7 +87,7 @@ func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRe
 		deployRequest.ConstructorCalldata = []string{}
 	}
 
-	var rawDef caigo.RawContractDefinition
+	var rawDef types.RawContractDefinition
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}

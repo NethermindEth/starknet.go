@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -18,7 +18,7 @@ type BlockOptions struct {
 // Gets the block information from a block ID.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L27-L31)
-func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*caigo.Block, error) {
+func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*types.Block, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block", nil)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*caig
 		appendQueryValues(req, vs)
 	}
 
-	var resp caigo.Block
+	var resp types.Block
 	return &resp, sg.do(req, &resp)
 }
 
@@ -63,10 +63,10 @@ func (sg *StarknetGateway) BlockIDByHash(ctx context.Context, hash string) (bloc
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *StarknetGateway) BlockByHash(ctx context.Context, hash string) (*caigo.Block, error) {
+func (sg *StarknetGateway) BlockByHash(ctx context.Context, hash string) (*types.Block, error) {
 	return sg.Block(ctx, &BlockOptions{BlockHash: hash})
 }
 
-func (sg *StarknetGateway) BlockByNumber(ctx context.Context, number uint64) (*caigo.Block, error) {
+func (sg *StarknetGateway) BlockByNumber(ctx context.Context, number uint64) (*types.Block, error) {
 	return sg.Block(ctx, &BlockOptions{BlockNumber: number})
 }

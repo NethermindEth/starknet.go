@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func (sg *StarknetGateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
-	resp, err := sg.Call(ctx, caigo.Transaction{
+	resp, err := sg.Call(ctx, types.Transaction{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
 	}, nil)
@@ -24,7 +25,7 @@ func (sg *StarknetGateway) AccountNonce(ctx context.Context, address string) (*b
 	return caigo.HexToBN(resp[0]), nil
 }
 
-func (sg *StarknetGateway) EstimateFee(ctx context.Context, tx caigo.Transaction) (fee caigo.FeeEstimate, err error) {
+func (sg *StarknetGateway) EstimateFee(ctx context.Context, tx types.Transaction) (fee caigo.FeeEstimate, err error) {
 	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", tx)
 	if err != nil {
 		return fee, err

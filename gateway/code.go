@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // Gets a contracts code.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L55)
-func (sg *StarknetGateway) CodeAt(ctx context.Context, contract string, blockNumber *big.Int) (*caigo.Code, error) {
+func (sg *StarknetGateway) CodeAt(ctx context.Context, contract string, blockNumber *big.Int) (*types.Code, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_code", nil)
 	if err != nil {
 		return nil, err
@@ -24,6 +24,6 @@ func (sg *StarknetGateway) CodeAt(ctx context.Context, contract string, blockNum
 		appendQueryValues(req, url.Values{"blockNumber": []string{blockNumber.String()}})
 	}
 
-	var resp caigo.Code
+	var resp types.Code
 	return &resp, sg.do(req, &resp)
 }

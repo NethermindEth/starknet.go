@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 type Signer struct {
 	private  *big.Int
 	Curve    StarkCurve
-	provider Provider
+	provider types.Provider
 	PublicX  *big.Int
 	PublicY  *big.Int
 }
@@ -32,7 +34,7 @@ type FeeEstimate struct {
 	- full StarknetGateway definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider Provider) (*Signer, error) {
+func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Provider) (*Signer, error) {
 	if len(sc.ConstantPoints) == 0 {
 		return nil, fmt.Errorf("must initiate precomputed constant points")
 	}
@@ -51,29 +53,29 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider Provider) 
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer *Signer) Execute(ctx context.Context, address string, txs []Transaction) (AddTxResponse, error) {
+func (signer *Signer) Execute(ctx context.Context, address string, txs []types.Transaction) (*types.AddTxResponse, error) {
 	nonce, err := signer.provider.AccountNonce(ctx, address)
 	if err != nil {
-		return AddTxResponse{}, err
+		return nil, err
 	}
 
 	maxFee := big.NewInt(0)
 	chainID, err := signer.provider.ChainID(ctx)
 	if err != nil {
-		return AddTxResponse{}, err
+		return nil, err
 	}
 
 	hash, err := signer.Curve.HashMulticall(address, nonce, maxFee, UTF8StrToBig(chainID), txs)
 	if err != nil {
-		return AddTxResponse{}, err
+		return nil, err
 	}
 
 	r, s, err := signer.Curve.Sign(hash, signer.private)
 	if err != nil {
-		return AddTxResponse{}, err
+		return nil, err
 	}
 
-	req := Transaction{
+	req := types.Transaction{
 		ContractAddress:    address,
 		EntryPointSelector: BigToHex(GetSelectorFromName(EXECUTE_SELECTOR)),
 		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
@@ -83,7 +85,7 @@ func (signer *Signer) Execute(ctx context.Context, address string, txs []Transac
 	return signer.provider.Invoke(ctx, req)
 }
 
-func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int, txs []Transaction) (hash *big.Int, err error) {
+func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int, txs []types.Transaction) (hash *big.Int, err error) {
 	callArray := FmtExecuteCalldata(nonce, txs)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := sc.HashElements(callArray)
@@ -106,7 +108,7 @@ func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int,
 	return hash, err
 }
 
-func FmtExecuteCalldataStrings(nonce *big.Int, txs []Transaction) (calldataStrings []string) {
+func FmtExecuteCalldataStrings(nonce *big.Int, txs []types.Transaction) (calldataStrings []string) {
 	callArray := FmtExecuteCalldata(nonce, txs)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, data.String())
@@ -117,7 +119,7 @@ func FmtExecuteCalldataStrings(nonce *big.Int, txs []Transaction) (calldataStrin
 /*
 	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func FmtExecuteCalldata(nonce *big.Int, txs []Transaction) (calldataArray []*big.Int) {
+func FmtExecuteCalldata(nonce *big.Int, txs []types.Transaction) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
 
 	for _, tx := range txs {

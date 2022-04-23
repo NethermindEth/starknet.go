@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func TestExecuteGoerli(t *testing.T) {
@@ -27,7 +28,7 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
 
-	calls := []caigo.Transaction{
+	calls := []types.Transaction{
 		{
 			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
 			EntryPointSelector: "mint",
@@ -57,7 +58,7 @@ func TestExecuteGoerli(t *testing.T) {
 func TestInvokeContract(t *testing.T) {
 	gw := NewClient()
 
-	req := caigo.Transaction{
+	req := types.Transaction{
 		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
 		EntryPointSelector: "increment",
 	}
@@ -78,7 +79,7 @@ func TestLocalStarkNet(t *testing.T) {
 
 	pr, _ := curve.GetRandomPrivateKey()
 
-	deployRequest := caigo.DeployRequest{
+	deployRequest := types.DeployRequest{
 		ContractAddressSalt: caigo.BigToHex(pr),
 		ConstructorCalldata: []string{},
 	}

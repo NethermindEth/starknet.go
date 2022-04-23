@@ -1,4 +1,4 @@
-package caigo
+package types
 
 import (
 	"context"
@@ -10,5 +10,5 @@ type Provider interface {
 	BlockByHash(context.Context, string) (*Block, error)
 	BlockByNumber(context.Context, uint64) (*Block, error)
 	ChainID(context.Context) (string, error)
-	Invoke(context.Context, Transaction) (AddTxResponse, error)
+	Invoke(context.Context, Transaction) (*AddTxResponse, error)
 }

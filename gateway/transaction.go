@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -21,7 +21,7 @@ type TransactionOptions struct {
 // Gets the transaction information from a tx id.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L54-L58)
-func (gw *StarknetGateway) Transaction(ctx context.Context, opts TransactionOptions) (*caigo.StarknetTransaction, error) {
+func (gw *StarknetGateway) Transaction(ctx context.Context, opts TransactionOptions) (*types.StarknetTransaction, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction", nil)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (gw *StarknetGateway) Transaction(ctx context.Context, opts TransactionOpti
 	}
 	appendQueryValues(req, vs)
 
-	var resp caigo.StarknetTransaction
+	var resp types.StarknetTransaction
 	return &resp, gw.do(req, &resp)
 }
 
@@ -44,7 +44,7 @@ type TransactionStatusOptions struct {
 // Gets the transaction status from a txn.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L87)
-func (gw *StarknetGateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*caigo.TransactionStatus, error) {
+func (gw *StarknetGateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*types.TransactionStatus, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_status", nil)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (gw *StarknetGateway) TransactionStatus(ctx context.Context, opts Transacti
 	}
 	appendQueryValues(req, vs)
 
-	var resp caigo.TransactionStatus
+	var resp types.TransactionStatus
 	return &resp, gw.do(req, &resp)
 }
 
@@ -100,7 +100,7 @@ func (gw *StarknetGateway) TransactionHash(ctx context.Context, id *big.Int) (st
 // Get transaction receipt for specific tx
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L104)
-func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (*caigo.TransactionReceipt, error) {
+func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (*types.TransactionReceipt, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_receipt", nil)
 	if err != nil {
 		return nil, err
@@ -110,13 +110,13 @@ func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string
 		"transactionHash": []string{txHash},
 	})
 
-	var resp caigo.TransactionReceipt
+	var resp types.TransactionReceipt
 	return &resp, gw.do(req, &resp)
 }
 
 // Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
 // or the transaction reverts
-func (gw *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold caigo.TxStatus, interval, maxPoll int) (n int, status string, err error) {
+func (gw *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, status string, err error) {
 	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -144,7 +144,7 @@ func (gw *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold 
 }
 
 func FindTxStatus(stat string) int {
-	for i, val := range caigo.TxStatuses {
+	for i, val := range types.TxStatuses {
 		if val == strings.ToUpper(stat) {
 			return i
 		}

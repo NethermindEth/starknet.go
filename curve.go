@@ -13,6 +13,8 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 var sc StarkCurve
@@ -349,7 +351,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 }
 
 // Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashTx(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
+func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
 		calldataArray = append(calldataArray, SNValToBN(cd))
@@ -372,7 +374,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx Transaction) (hash *big.Int, err e
 }
 
 // Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashMsg(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
+func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
 		calldataArray = append(calldataArray, HexToBN(cd))
