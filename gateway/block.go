@@ -1,4 +1,4 @@
-package caigo
+package gateway
 
 import (
 	"context"
@@ -6,29 +6,19 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/google/go-querystring/query"
 )
 
-type Block struct {
-	BlockHash           string               `json:"block_hash"`
-	ParentBlockHash     string               `json:"parent_block_hash"`
-	BlockNumber         int                  `json:"block_number"`
-	StateRoot           string               `json:"state_root"`
-	Status              string               `json:"status"`
-	Transactions        []Transaction        `json:"transactions"`
-	Timestamp           int                  `json:"timestamp"`
-	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
-}
-
 type BlockOptions struct {
-	BlockNumber int    `url:"blockNumber,omitempty"`
+	BlockNumber uint64 `url:"blockNumber,omitempty"`
 	BlockHash   string `url:"blockHash,omitempty"`
 }
 
 // Gets the block information from a block ID.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L27-L31)
-func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error) {
+func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*caigo.Block, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block", nil)
 	if err != nil {
 		return nil, err
@@ -41,7 +31,7 @@ func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*Bloc
 		appendQueryValues(req, vs)
 	}
 
-	var resp Block
+	var resp caigo.Block
 	return &resp, sg.do(req, &resp)
 }
 
@@ -71,4 +61,12 @@ func (sg *StarknetGateway) BlockIDByHash(ctx context.Context, hash string) (bloc
 
 	var resp uint64
 	return resp, sg.do(req, &resp)
+}
+
+func (sg *StarknetGateway) BlockByHash(ctx context.Context, hash string) (*caigo.Block, error) {
+	return sg.Block(ctx, &BlockOptions{BlockHash: hash})
+}
+
+func (sg *StarknetGateway) BlockByNumber(ctx context.Context, number uint64) (*caigo.Block, error) {
+	return sg.Block(ctx, &BlockOptions{BlockNumber: number})
 }

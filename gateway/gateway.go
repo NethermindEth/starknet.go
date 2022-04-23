@@ -1,4 +1,4 @@
-package caigo
+package gateway
 
 import (
 	"bytes"
@@ -9,6 +9,16 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+)
+
+const (
+	INVOKE       string = "INVOKE_FUNCTION"
+	DEPLOY       string = "DEPLOY"
+	GOERLI_ID    string = "SN_GOERLI"
+	MAINNET_ID   string = "SN_MAIN"
+	LOCAL_BASE   string = "http://localhost:5000"
+	GOERLI_BASE  string = "https://alpha4.starknet.io"
+	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
 )
 
 type StarknetGateway struct {

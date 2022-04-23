@@ -347,3 +347,51 @@ func DivMod(n, m, p *big.Int) *big.Int {
 	r = r.Mod(r, p)
 	return r
 }
+
+// Adheres to 'starknet.js' hash non typedData
+func (sc StarkCurve) HashTx(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
+	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
+	for _, cd := range tx.Calldata {
+		calldataArray = append(calldataArray, SNValToBN(cd))
+	}
+
+	cdHash, err := sc.HashElements(calldataArray)
+	if err != nil {
+		return hash, err
+	}
+
+	txHashData := []*big.Int{
+		SNValToBN(tx.ContractAddress),
+		GetSelectorFromName(tx.EntryPointSelector),
+		cdHash,
+	}
+
+	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
+	hash, err = sc.HashElements(txHashData)
+	return hash, err
+}
+
+// Adheres to 'starknet.js' hash non typedData
+func (sc StarkCurve) HashMsg(addr *big.Int, tx Transaction) (hash *big.Int, err error) {
+	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
+	for _, cd := range tx.Calldata {
+		calldataArray = append(calldataArray, HexToBN(cd))
+	}
+
+	cdHash, err := sc.HashElements(calldataArray)
+	if err != nil {
+		return hash, err
+	}
+
+	txHashData := []*big.Int{
+		addr,
+		SNValToBN(tx.ContractAddress),
+		GetSelectorFromName(tx.EntryPointSelector),
+		cdHash,
+		SNValToBN(tx.Nonce),
+	}
+
+	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
+	hash, err = sc.HashElements(txHashData)
+	return hash, err
+}

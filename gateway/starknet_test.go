@@ -1,4 +1,4 @@
-package caigo
+package gateway
 
 import (
 	"context"
@@ -9,10 +9,12 @@ import (
 	"os"
 	"os/exec"
 	"testing"
+
+	"github.com/dontpanicdao/caigo"
 )
 
 func TestExecuteGoerli(t *testing.T) {
-	curve, err := SC(WithConstants("./pedersen_params.json"))
+	curve, err := caigo.SC(caigo.WithConstants("./pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
@@ -25,7 +27,7 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
 
-	calls := []Transaction{
+	calls := []caigo.Transaction{
 		{
 			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
 			EntryPointSelector: "mint",
@@ -55,7 +57,7 @@ func TestExecuteGoerli(t *testing.T) {
 func TestInvokeContract(t *testing.T) {
 	gw := NewGateway()
 
-	req := Transaction{
+	req := caigo.Transaction{
 		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
 		EntryPointSelector: "increment",
 	}
@@ -70,14 +72,14 @@ func TestLocalStarkNet(t *testing.T) {
 	ctx := context.Background()
 	setupTestEnvironment()
 
-	curve, _ := SC()
+	curve, _ := caigo.SC()
 
 	gw := NewGateway(WithChain("local"))
 
 	pr, _ := curve.GetRandomPrivateKey()
 
-	deployRequest := DeployRequest{
-		ContractAddressSalt: BigToHex(pr),
+	deployRequest := caigo.DeployRequest{
+		ContractAddressSalt: caigo.BigToHex(pr),
 		ConstructorCalldata: []string{},
 	}
 
