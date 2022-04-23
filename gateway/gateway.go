@@ -34,8 +34,8 @@ type StarknetGateway struct {
 	Instantiate a new StarkNet Gateway client
 	- defaults to the GOERLI endpoints
 */
-func NewGateway(opts ...GatewayOption) *StarknetGateway {
-	gopts := gatewayOptions{
+func NewClient(opts ...Option) *StarknetGateway {
+	gopts := options{
 		chainID: GOERLI_ID,
 		client:  http.DefaultClient,
 	}

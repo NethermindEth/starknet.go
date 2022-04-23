@@ -22,7 +22,7 @@ func TestExecuteGoerli(t *testing.T) {
 	priv, _ := new(big.Int).SetString("3904bd288b88a1dcd73e648b10642d63cb9b2ffd86526deee9d073f0690139e", 16)
 	x, y, _ := curve.PrivateToPoint(priv)
 
-	signer, err := curve.NewSigner(priv, x, y, NewGateway())
+	signer, err := curve.NewSigner(priv, x, y, NewClient())
 	if err != nil {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
@@ -55,7 +55,7 @@ func TestExecuteGoerli(t *testing.T) {
 }
 
 func TestInvokeContract(t *testing.T) {
-	gw := NewGateway()
+	gw := NewClient()
 
 	req := caigo.Transaction{
 		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
@@ -74,7 +74,7 @@ func TestLocalStarkNet(t *testing.T) {
 
 	curve, _ := caigo.SC()
 
-	gw := NewGateway(WithChain("local"))
+	gw := NewClient(WithChain("local"))
 
 	pr, _ := curve.GetRandomPrivateKey()
 

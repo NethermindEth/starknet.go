@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"github.com/dontpanicdao/caigo"
 )
@@ -14,9 +14,9 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	
+
 	// init starknet gateway client
-	gw := caigo.NewGateway() //defaults to goerli
+	gw := caigo.NewClient() //defaults to goerli
 
 	// get random value for salt
 	priv, _ := curve.GetRandomPrivateKey()
@@ -41,7 +41,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
+	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n*pollInterval, n, deployResponse.TransactionHash, status)
 
 	// fetch transaction details
 	tx, err := gw.Transaction(context.Background(), caigo.TransactionOptions{TransactionHash: deployResponse.TransactionHash})
@@ -58,7 +58,7 @@ func main() {
 		panic(err.Error())
 	}
 	fmt.Println("Counter is currently at: ", callResp[0])
-	
+
 	// invoke StarkNet contract external function
 	invResp, err := gw.Invoke(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,
@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n * pollInterval, n, deployResponse.TransactionHash, status)
+	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n*pollInterval, n, deployResponse.TransactionHash, status)
 
 	callResp, err = gw.Call(context.Background(), caigo.Transaction{
 		ContractAddress:    tx.Transaction.ContractAddress,

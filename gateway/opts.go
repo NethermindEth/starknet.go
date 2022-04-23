@@ -4,48 +4,48 @@ import (
 	"net/http"
 )
 
-type gatewayOptions struct {
+type options struct {
 	client       *http.Client
 	chainID      string
 	errorHandler func(e error) error
 }
 
-// funcGatewayOption wraps a function that modifies gatewayOptions into an
-// implementation of the GatewayOption interface.
-type funcGatewayOption struct {
-	f func(*gatewayOptions)
+// funcOption wraps a function that modifies options into an
+// implementation of the Option interface.
+type funcOption struct {
+	f func(*options)
 }
 
-func (fso *funcGatewayOption) apply(do *gatewayOptions) {
+func (fso *funcOption) apply(do *options) {
 	fso.f(do)
 }
 
-func newFuncGatewayOption(f func(*gatewayOptions)) *funcGatewayOption {
-	return &funcGatewayOption{
+func newFuncOption(f func(*options)) *funcOption {
+	return &funcOption{
 		f: f,
 	}
 }
 
-// GatewayOption configures how we set up the connection.
-type GatewayOption interface {
-	apply(*gatewayOptions)
+// Option configures how we set up the connection.
+type Option interface {
+	apply(*options)
 }
 
-func WithHttpClient(client http.Client) GatewayOption {
-	return newFuncGatewayOption(func(o *gatewayOptions) {
+func WithHttpClient(client http.Client) Option {
+	return newFuncOption(func(o *options) {
 		o.client = &client
 	})
 }
 
-func WithChain(chainID string) GatewayOption {
-	return newFuncGatewayOption(func(o *gatewayOptions) {
+func WithChain(chainID string) Option {
+	return newFuncOption(func(o *options) {
 		o.chainID = chainID
 	})
 }
 
 // WithErrorHandler returns an Option to set the error handler to be used.
-func WithErrorHandler(f func(e error) error) GatewayOption {
-	return newFuncGatewayOption(func(o *gatewayOptions) {
+func WithErrorHandler(f func(e error) error) Option {
+	return newFuncOption(func(o *options) {
 		o.errorHandler = f
 	})
 }

@@ -28,7 +28,7 @@ func TestProvider_Code(t *testing.T) {
 		blockNumber: big.NewInt(582),
 	}} {
 		ctx := context.Background()
-		sg := NewGateway(WithChain("main"))
+		sg := NewClient(WithChain("main"))
 		got, err := sg.CodeAt(ctx, tc.address, tc.blockNumber)
 		if err != nil {
 			t.Fatalf("getting code: %v", err)
