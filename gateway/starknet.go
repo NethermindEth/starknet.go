@@ -54,7 +54,7 @@ func (sg *StarknetGateway) Call(ctx context.Context, tx types.Transaction, opts 
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (resp types.AddTxResponse, err error) {
+func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	tx.Type = INVOKE
 
@@ -67,10 +67,11 @@ func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (re
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 
-	return resp, sg.do(req, &resp)
+	var resp types.AddTxResponse
+	return &resp, sg.do(req, &resp)
 }
 
 /*
