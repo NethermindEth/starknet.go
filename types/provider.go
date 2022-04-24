@@ -11,4 +11,5 @@ type Provider interface {
 	BlockByNumber(context.Context, uint64) (*Block, error)
 	ChainID(context.Context) (string, error)
 	Invoke(context.Context, Transaction) (*AddTxResponse, error)
+	TransactionByHash(context.Context, string) (*Transaction, error)
 }

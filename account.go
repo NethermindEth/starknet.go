@@ -31,7 +31,7 @@ type FeeEstimate struct {
 	Instantiate a new StarkNet Signer which includes structures for calling the network and signing transactions:
 	- private signing key
 	- stark curve definition
-	- full Gateway definition
+	- full provider definition
 	- public key pair for signature verifications
 */
 func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Provider) (*Signer, error) {

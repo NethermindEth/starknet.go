@@ -33,3 +33,12 @@ func (p *GatewayProvider) BlockByNumber(ctx context.Context, number uint64) (*ty
 
 	return b.Normalize(), nil
 }
+
+func (p *GatewayProvider) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
+	t, err := p.Transaction(ctx, TransactionOptions{TransactionHash: hash})
+	if err != nil {
+		return nil, err
+	}
+
+	return t.Transaction.Normalize(), nil
+}

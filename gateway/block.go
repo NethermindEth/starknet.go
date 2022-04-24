@@ -23,7 +23,7 @@ type Block struct {
 }
 
 func (b Block) Normalize() *types.Block {
-	return &types.Block{
+	normalized := types.Block{
 		BlockHash:       b.BlockHash,
 		ParentBlockHash: b.ParentBlockHash,
 		BlockNumber:     b.BlockNumber,
@@ -31,6 +31,12 @@ func (b Block) Normalize() *types.Block {
 		Status:          b.Status,
 		AcceptedTime:    time.Unix(int64(b.Timestamp), 0).UTC(),
 	}
+
+	for _, txn := range b.Transactions {
+		normalized.Transactions = append(normalized.Transactions, txn.Normalize())
+	}
+
+	return &normalized
 }
 
 type BlockOptions struct {
