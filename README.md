@@ -26,17 +26,22 @@ Caigo is currently under active development and will under go breaking changes u
 
 ### Run Examples
 starkcurve
-```go
+```sh
 cd examples/starkcurve
 go mod tidy
 go run main.go
 ```
 
 starknet
-```go
+```sh
 cd examples/starknet
 go mod tidy
+
+# Download counter.cairo example
 wget https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
+# or if your machine doesn't have wget
+curl https://raw.githubusercontent.com/starknet-edu/ultimate-env/main/counter.cairo > counter.cairo
+
 python3.7 -m venv ~/cairo_venv; source ~/cairo_venv/bin/activate; export STARKNET_NETWORK=alpha-goerli
 starknet-compile counter.cairo --output counter_compiled.json --abi counter_abi.json
 go run main.go
