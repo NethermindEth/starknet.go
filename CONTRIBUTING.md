@@ -1,7 +1,7 @@
 # Contributors Guide
 
-valid8r is an open-source Ethereum 2.0 validator linter written by Pondron LLC.
-We welcome all contributions to this repository to help enrich the Ethereum community.
+caigo is an open-source Golang Library for Cairo written by dontpanicdao.
+We welcome all contributions to this repository to help enrich the StarkNet community.
 
 ## How to Contribute
 
