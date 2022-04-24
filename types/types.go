@@ -1,14 +1,16 @@
 package types
 
+import "time"
+
 type Block struct {
-	BlockHash           string               `json:"block_hash"`
-	ParentBlockHash     string               `json:"parent_block_hash"`
-	BlockNumber         int                  `json:"block_number"`
-	StateRoot           string               `json:"state_root"`
-	Status              string               `json:"status"`
-	Transactions        []Transaction        `json:"transactions"`
-	Timestamp           int                  `json:"timestamp"`
-	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
+	BlockHash       string        `json:"block_hash"`
+	ParentBlockHash string        `json:"parent_hash"`
+	BlockNumber     int           `json:"block_number"`
+	NewRoot         string        `json:"new_root"`
+	OldRoot         string        `json:"old_root"`
+	Status          string        `json:"status"`
+	AcceptedTime    time.Time     `json:"accepted_time"`
+	Transactions    []Transaction `json:"transactions"`
 }
 
 type Code struct {
@@ -53,24 +55,17 @@ type TransactionStatus struct {
 	} `json:"tx_failure_reason,omitempty"`
 }
 
-// Starknet transaction composition
 type Transaction struct {
+	TransactionHash    string   `json:"transaction_hash,omitempty"`
 	ContractAddress    string   `json:"contract_address"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
+	Status             string   `json:"status"`
+	StatusData         string   `json:"status_data"`
 	EntryPointType     string   `json:"entry_point_type,omitempty"`
-	TransactionHash    string   `json:"transaction_hash,omitempty"`
 	Type               string   `json:"type,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
-}
-
-type StarknetTransaction struct {
-	TransactionIndex int         `json:"transaction_index"`
-	BlockNumber      int         `json:"block_number"`
-	Transaction      Transaction `json:"transaction"`
-	BlockHash        string      `json:"block_hash"`
-	Status           string      `json:"status"`
 }
 
 type TransactionReceipt struct {

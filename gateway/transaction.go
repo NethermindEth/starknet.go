@@ -13,6 +13,53 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
+type StarknetTransaction struct {
+	TransactionIndex int         `json:"transaction_index"`
+	BlockNumber      int         `json:"block_number"`
+	Transaction      Transaction `json:"transaction"`
+	BlockHash        string      `json:"block_hash"`
+	Status           string      `json:"status"`
+}
+
+type Transaction struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
+	Signature          []string `json:"signature"`
+	EntryPointType     string   `json:"entry_point_type,omitempty"`
+	TransactionHash    string   `json:"transaction_hash,omitempty"`
+	Type               string   `json:"type,omitempty"`
+	Nonce              string   `json:"nonce,omitempty"`
+}
+
+type TransactionReceipt struct {
+	Status                string `json:"status"`
+	BlockHash             string `json:"block_hash"`
+	BlockNumber           int    `json:"block_number"`
+	TransactionIndex      int    `json:"transaction_index"`
+	TransactionHash       string `json:"transaction_hash"`
+	L1ToL2ConsumedMessage struct {
+		FromAddress string   `json:"from_address"`
+		ToAddress   string   `json:"to_address"`
+		Selector    string   `json:"selector"`
+		Payload     []string `json:"payload"`
+	} `json:"l1_to_l2_consumed_message"`
+	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
+	Events             []interface{} `json:"events"`
+	ExecutionResources struct {
+		NSteps                 int `json:"n_steps"`
+		BuiltinInstanceCounter struct {
+			PedersenBuiltin   int `json:"pedersen_builtin"`
+			RangeCheckBuiltin int `json:"range_check_builtin"`
+			BitwiseBuiltin    int `json:"bitwise_builtin"`
+			OutputBuiltin     int `json:"output_builtin"`
+			EcdsaBuiltin      int `json:"ecdsa_builtin"`
+			EcOpBuiltin       int `json:"ec_op_builtin"`
+		} `json:"builtin_instance_counter"`
+		NMemoryHoles int `json:"n_memory_holes"`
+	} `json:"execution_resources"`
+}
+
 type TransactionOptions struct {
 	TransactionId   uint64 `url:"transactionId,omitempty"`
 	TransactionHash string `url:"transactionHash,omitempty"`
@@ -21,7 +68,7 @@ type TransactionOptions struct {
 // Gets the transaction information from a tx id.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L54-L58)
-func (gw *StarknetGateway) Transaction(ctx context.Context, opts TransactionOptions) (*types.StarknetTransaction, error) {
+func (gw *Gateway) Transaction(ctx context.Context, opts TransactionOptions) (*StarknetTransaction, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction", nil)
 	if err != nil {
 		return nil, err
@@ -32,7 +79,7 @@ func (gw *StarknetGateway) Transaction(ctx context.Context, opts TransactionOpti
 	}
 	appendQueryValues(req, vs)
 
-	var resp types.StarknetTransaction
+	var resp StarknetTransaction
 	return &resp, gw.do(req, &resp)
 }
 
@@ -44,7 +91,7 @@ type TransactionStatusOptions struct {
 // Gets the transaction status from a txn.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L87)
-func (gw *StarknetGateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*types.TransactionStatus, error) {
+func (gw *Gateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*types.TransactionStatus, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_status", nil)
 	if err != nil {
 		return nil, err
@@ -62,7 +109,7 @@ func (gw *StarknetGateway) TransactionStatus(ctx context.Context, opts Transacti
 // Gets the transaction id from its hash.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L137)
-func (gw *StarknetGateway) TransactionID(ctx context.Context, hash string) (*big.Int, error) {
+func (gw *Gateway) TransactionID(ctx context.Context, hash string) (*big.Int, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_id_by_hash", nil)
 	if err != nil {
 		return nil, err
@@ -79,7 +126,7 @@ func (gw *StarknetGateway) TransactionID(ctx context.Context, hash string) (*big
 // Gets the transaction hash from its id.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L130)
-func (gw *StarknetGateway) TransactionHash(ctx context.Context, id *big.Int) (string, error) {
+func (gw *Gateway) TransactionHash(ctx context.Context, id *big.Int) (string, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_hash_by_id", nil)
 	if err != nil {
 		return "", err
@@ -100,7 +147,7 @@ func (gw *StarknetGateway) TransactionHash(ctx context.Context, id *big.Int) (st
 // Get transaction receipt for specific tx
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L104)
-func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string) (*types.TransactionReceipt, error) {
+func (gw *Gateway) TransactionReceipt(ctx context.Context, txHash string) (*types.TransactionReceipt, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_receipt", nil)
 	if err != nil {
 		return nil, err
@@ -116,7 +163,7 @@ func (gw *StarknetGateway) TransactionReceipt(ctx context.Context, txHash string
 
 // Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
 // or the transaction reverts
-func (gw *StarknetGateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, status string, err error) {
+func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, status string, err error) {
 	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)

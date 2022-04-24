@@ -21,7 +21,7 @@ const (
 	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
 )
 
-type StarknetGateway struct {
+type Gateway struct {
 	Base         string `json:"base"`
 	Feeder       string `json:"feeder"`
 	Gateway      string `json:"gateway"`
@@ -34,7 +34,7 @@ type StarknetGateway struct {
 	Instantiate a new StarkNet Gateway client
 	- defaults to the GOERLI endpoints
 */
-func NewClient(opts ...Option) *StarknetGateway {
+func NewClient(opts ...Option) *Gateway {
 	gopts := options{
 		chainID: GOERLI_ID,
 		client:  http.DefaultClient,
@@ -44,10 +44,10 @@ func NewClient(opts ...Option) *StarknetGateway {
 		opt.apply(&gopts)
 	}
 
-	var sg *StarknetGateway
+	var sg *Gateway
 	switch id := strings.ToLower(gopts.chainID); {
 	case strings.Contains("main", id):
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    MAINNET_BASE,
 			Feeder:  MAINNET_BASE + "/feeder_gateway",
 			Gateway: MAINNET_BASE + "/gateway",
@@ -56,14 +56,14 @@ func NewClient(opts ...Option) *StarknetGateway {
 	case strings.Contains("local", id):
 		fallthrough
 	case strings.Contains("dev", id):
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    LOCAL_BASE,
 			Feeder:  LOCAL_BASE + "/feeder_gateway",
 			Gateway: LOCAL_BASE + "/gateway",
 			ChainId: GOERLI_ID,
 		}
 	default:
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    GOERLI_BASE,
 			Feeder:  GOERLI_BASE + "/feeder_gateway",
 			Gateway: GOERLI_BASE + "/gateway",
@@ -76,7 +76,7 @@ func NewClient(opts ...Option) *StarknetGateway {
 	return sg
 }
 
-func (sg *StarknetGateway) newRequest(
+func (sg *Gateway) newRequest(
 	ctx context.Context, method, endpoint string, body interface{},
 ) (*http.Request, error) {
 	url := sg.Feeder + endpoint
@@ -127,7 +127,7 @@ func NewError(resp *http.Response) error {
 	return &apiErr
 }
 
-func (sg *StarknetGateway) do(req *http.Request, v interface{}) error {
+func (sg *Gateway) do(req *http.Request, v interface{}) error {
 	resp, err := sg.client.Do(req)
 	if err != nil {
 		return err

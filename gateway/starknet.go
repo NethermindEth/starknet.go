@@ -18,14 +18,14 @@ type StarkResp struct {
 	Result []string `json:"result"`
 }
 
-func (sg *StarknetGateway) ChainID(context.Context) (string, error) {
+func (sg *Gateway) ChainID(context.Context) (string, error) {
 	return sg.ChainId, nil
 }
 
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *StarknetGateway) Call(ctx context.Context, tx types.Transaction, opts *BlockOptions) ([]string, error) {
+func (sg *Gateway) Call(ctx context.Context, tx Transaction, opts *BlockOptions) ([]string, error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	if len(tx.Calldata) == 0 {
 		tx.Calldata = []string{}
@@ -54,7 +54,7 @@ func (sg *StarknetGateway) Call(ctx context.Context, tx types.Transaction, opts 
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
+func (sg *Gateway) Invoke(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	tx.Type = INVOKE
 
@@ -77,7 +77,7 @@ func (sg *StarknetGateway) Invoke(ctx context.Context, tx types.Transaction) (*t
 /*
 	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *StarknetGateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddTxResponse, err error) {
+func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return resp, err

@@ -11,8 +11,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// NotFound is returned by API methods if the requested item does not exist.
-var NotFound = errors.New("not found")
+// ErrNotFound is returned by API methods if the requested item does not exist.
+var ErrNotFound = errors.New("not found")
 
 type Client struct {
 	c *rpc.Client
@@ -50,12 +50,12 @@ func (sc *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(&result), err
 }
 
-func (sc *Client) BlockByHash(ctx context.Context, hash string) (*types.Block, error) {
-	return sc.getBlock(ctx, "starknet_getBlockByHash", hash)
+func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
+	return sc.getBlock(ctx, "starknet_getBlockByHash", hash, scope)
 }
 
-func (sc *Client) BlockByNumber(ctx context.Context, number uint64) (*types.Block, error) {
-	return sc.getBlock(ctx, "starknet_getBlockByHash", number)
+func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
+	return sc.getBlock(ctx, "starknet_getBlockByHash", toBlockNumArg(number), scope)
 }
 
 func (sc *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*types.Block, error) {
@@ -64,8 +64,19 @@ func (sc *Client) getBlock(ctx context.Context, method string, args ...interface
 	if err != nil {
 		return nil, err
 	} else if len(raw) == 0 {
-		return nil, NotFound
+		return nil, ErrNotFound
 	}
 
 	return nil, nil
+}
+
+func toBlockNumArg(number *big.Int) string {
+	if number == nil {
+		return "latest"
+	}
+	pending := big.NewInt(-1)
+	if number.Cmp(pending) == 0 {
+		return "pending"
+	}
+	return hexutil.EncodeBig(number)
 }

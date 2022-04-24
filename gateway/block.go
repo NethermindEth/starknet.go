@@ -5,10 +5,33 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
+
+type Block struct {
+	BlockHash           string               `json:"block_hash"`
+	ParentBlockHash     string               `json:"parent_block_hash"`
+	BlockNumber         int                  `json:"block_number"`
+	StateRoot           string               `json:"state_root"`
+	Status              string               `json:"status"`
+	Transactions        []Transaction        `json:"transactions"`
+	Timestamp           int                  `json:"timestamp"`
+	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
+}
+
+func (b Block) Normalize() *types.Block {
+	return &types.Block{
+		BlockHash:       b.BlockHash,
+		ParentBlockHash: b.ParentBlockHash,
+		BlockNumber:     b.BlockNumber,
+		NewRoot:         b.StateRoot,
+		Status:          b.Status,
+		AcceptedTime:    time.Unix(int64(b.Timestamp), 0).UTC(),
+	}
+}
 
 type BlockOptions struct {
 	BlockNumber uint64 `url:"blockNumber,omitempty"`
@@ -18,7 +41,7 @@ type BlockOptions struct {
 // Gets the block information from a block ID.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L27-L31)
-func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*types.Block, error) {
+func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block", nil)
 	if err != nil {
 		return nil, err
@@ -31,11 +54,11 @@ func (sg *StarknetGateway) Block(ctx context.Context, opts *BlockOptions) (*type
 		appendQueryValues(req, vs)
 	}
 
-	var resp types.Block
+	var resp Block
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *StarknetGateway) BlockHashByID(ctx context.Context, id uint64) (block string, err error) {
+func (sg *Gateway) BlockHashByID(ctx context.Context, id uint64) (block string, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_hash_by_id", nil)
 	if err != nil {
 		return "", err
@@ -49,7 +72,7 @@ func (sg *StarknetGateway) BlockHashByID(ctx context.Context, id uint64) (block 
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *StarknetGateway) BlockIDByHash(ctx context.Context, hash string) (block uint64, err error) {
+func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_id_by_hash", nil)
 	if err != nil {
 		return 0, err
@@ -61,12 +84,4 @@ func (sg *StarknetGateway) BlockIDByHash(ctx context.Context, hash string) (bloc
 
 	var resp uint64
 	return resp, sg.do(req, &resp)
-}
-
-func (sg *StarknetGateway) BlockByHash(ctx context.Context, hash string) (*types.Block, error) {
-	return sg.Block(ctx, &BlockOptions{BlockHash: hash})
-}
-
-func (sg *StarknetGateway) BlockByNumber(ctx context.Context, number uint64) (*types.Block, error) {
-	return sg.Block(ctx, &BlockOptions{BlockNumber: number})
 }

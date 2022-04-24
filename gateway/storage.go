@@ -17,7 +17,7 @@ type StorageAtOptions struct {
 // Get a storage slots value.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L70)
-func (sg *StarknetGateway) StorageAt(ctx context.Context, address string, key uint64, opts *StorageAtOptions) (string, error) {
+func (sg *Gateway) StorageAt(ctx context.Context, address string, key uint64, opts *StorageAtOptions) (string, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_storage_at", nil)
 	if err != nil {
 		return "", err
