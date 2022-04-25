@@ -1,7 +1,5 @@
 package types
 
-import "time"
-
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -9,7 +7,7 @@ type Block struct {
 	NewRoot         string         `json:"new_root"`
 	OldRoot         string         `json:"old_root"`
 	Status          string         `json:"status"`
-	AcceptedTime    time.Time      `json:"accepted_time"`
+	AcceptedTime    uint64         `json:"accepted_time"`
 	Transactions    []*Transaction `json:"transactions"`
 }
 

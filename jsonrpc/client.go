@@ -79,16 +79,24 @@ func (sc *Client) getBlock(ctx context.Context, method string, args ...interface
 		return nil, ErrNotFound
 	}
 
-	return nil, nil
+	var block types.Block
+	if err := json.Unmarshal(raw, &block); err != nil {
+		return nil, err
+	}
+
+	return &block, nil
 }
 
-func toBlockNumArg(number *big.Int) string {
+func toBlockNumArg(number *big.Int) interface{} {
+	var numOrTag interface{}
+
 	if number == nil {
-		return "latest"
+		numOrTag = "latest"
+	} else if number.Cmp(big.NewInt(-1)) == 0 {
+		numOrTag = "pending"
+	} else {
+		numOrTag = number.Uint64()
 	}
-	pending := big.NewInt(-1)
-	if number.Cmp(pending) == 0 {
-		return "pending"
-	}
-	return hexutil.EncodeBig(number)
+
+	return numOrTag
 }

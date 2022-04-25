@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
@@ -29,7 +28,7 @@ func (b Block) Normalize() *types.Block {
 		BlockNumber:     b.BlockNumber,
 		NewRoot:         b.StateRoot,
 		Status:          b.Status,
-		AcceptedTime:    time.Unix(int64(b.Timestamp), 0).UTC(),
+		AcceptedTime:    uint64(b.Timestamp),
 	}
 
 	for _, txn := range b.Transactions {
