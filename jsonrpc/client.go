@@ -33,7 +33,7 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 
 // NewClient creates a client that uses the given RPC client.
 func NewClient(c *rpc.Client) *Client {
-	return &Client{c}
+	return &Client{c: c}
 }
 
 func (sc *Client) Close() {
@@ -50,12 +50,24 @@ func (sc *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	return (*big.Int)(&result), err
 }
 
+func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
+	panic("not implemented")
+}
+
 func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
 	return sc.getBlock(ctx, "starknet_getBlockByHash", hash, scope)
 }
 
 func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
-	return sc.getBlock(ctx, "starknet_getBlockByHash", toBlockNumArg(number), scope)
+	return sc.getBlock(ctx, "starknet_getBlockByNumber", toBlockNumArg(number), scope)
+}
+
+func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
+	panic("not implemented")
+}
+
+func (sc *Client) TransactionByHash(context.Context, string) (*types.Transaction, error) {
+	panic("not implemented")
 }
 
 func (sc *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*types.Block, error) {

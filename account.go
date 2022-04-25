@@ -65,7 +65,7 @@ func (signer *Signer) Execute(ctx context.Context, address string, txs []types.T
 		return nil, err
 	}
 
-	hash, err := signer.Curve.HashMulticall(address, nonce, maxFee, UTF8StrToBig(chainID), txs)
+	hash, err := signer.Curve.HashMulticall(address, nonce, maxFee, chainID, txs)
 	if err != nil {
 		return nil, err
 	}
