@@ -1,17 +1,14 @@
 package jsonrpc
 
 import (
-	"testing"
 	"context"
 	"math/big"
-
-	// "github.com/dontpanicdao/caigo"
-	// "github.com/dontpanicdao/caigo/types"
+	"testing"
 )
 
 // Requires a StarkNet JSON-RPC compliant node (e.g. pathfinder)
 // (ref: https://github.com/eqlabs/pathfinder)
-func TestJsonRpc(t *testing.T) {
+func TestJsonRpcClient(t *testing.T) {
 	client, err := DialContext(context.Background(), "http://localhost:9545")
 	if err != nil {
 		t.Errorf("Could not connect to local StarkNet node: %v\n", err)
