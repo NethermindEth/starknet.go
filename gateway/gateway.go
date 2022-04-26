@@ -1,4 +1,4 @@
-package caigo
+package gateway
 
 import (
 	"bytes"
@@ -11,7 +11,17 @@ import (
 	"strings"
 )
 
-type StarknetGateway struct {
+const (
+	INVOKE       string = "INVOKE_FUNCTION"
+	DEPLOY       string = "DEPLOY"
+	GOERLI_ID    string = "SN_GOERLI"
+	MAINNET_ID   string = "SN_MAIN"
+	LOCAL_BASE   string = "http://localhost:5000"
+	GOERLI_BASE  string = "https://alpha4.starknet.io"
+	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
+)
+
+type Gateway struct {
 	Base         string `json:"base"`
 	Feeder       string `json:"feeder"`
 	Gateway      string `json:"gateway"`
@@ -24,8 +34,8 @@ type StarknetGateway struct {
 	Instantiate a new StarkNet Gateway client
 	- defaults to the GOERLI endpoints
 */
-func NewGateway(opts ...GatewayOption) *StarknetGateway {
-	gopts := gatewayOptions{
+func NewClient(opts ...Option) *Gateway {
+	gopts := options{
 		chainID: GOERLI_ID,
 		client:  http.DefaultClient,
 	}
@@ -34,10 +44,10 @@ func NewGateway(opts ...GatewayOption) *StarknetGateway {
 		opt.apply(&gopts)
 	}
 
-	var sg *StarknetGateway
+	var sg *Gateway
 	switch id := strings.ToLower(gopts.chainID); {
 	case strings.Contains("main", id):
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    MAINNET_BASE,
 			Feeder:  MAINNET_BASE + "/feeder_gateway",
 			Gateway: MAINNET_BASE + "/gateway",
@@ -46,14 +56,14 @@ func NewGateway(opts ...GatewayOption) *StarknetGateway {
 	case strings.Contains("local", id):
 		fallthrough
 	case strings.Contains("dev", id):
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    LOCAL_BASE,
 			Feeder:  LOCAL_BASE + "/feeder_gateway",
 			Gateway: LOCAL_BASE + "/gateway",
 			ChainId: GOERLI_ID,
 		}
 	default:
-		sg = &StarknetGateway{
+		sg = &Gateway{
 			Base:    GOERLI_BASE,
 			Feeder:  GOERLI_BASE + "/feeder_gateway",
 			Gateway: GOERLI_BASE + "/gateway",
@@ -66,7 +76,7 @@ func NewGateway(opts ...GatewayOption) *StarknetGateway {
 	return sg
 }
 
-func (sg *StarknetGateway) newRequest(
+func (sg *Gateway) newRequest(
 	ctx context.Context, method, endpoint string, body interface{},
 ) (*http.Request, error) {
 	url := sg.Feeder + endpoint
@@ -117,7 +127,7 @@ func NewError(resp *http.Response) error {
 	return &apiErr
 }
 
-func (sg *StarknetGateway) do(req *http.Request, v interface{}) error {
+func (sg *Gateway) do(req *http.Request, v interface{}) error {
 	resp, err := sg.client.Do(req)
 	if err != nil {
 		return err

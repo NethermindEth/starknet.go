@@ -1,4 +1,4 @@
-package caigo
+package gateway
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func TestProvider_StorageAt(t *testing.T) {
 		opts:    &StorageAtOptions{BlockHash: "0x182d83f0ed972e97fa529be0088e20b5a7cb32e3bba0d164d668147713e79f9"},
 	}} {
 		ctx := context.Background()
-		sg := NewGateway(WithChain("main"))
+		sg := NewClient(WithChain("main"))
 		got, err := sg.StorageAt(ctx, tc.address, tc.key, tc.opts)
 		if err != nil {
 			t.Fatalf("getting storage at: %v", err)
