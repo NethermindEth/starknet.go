@@ -1,7 +1,5 @@
 package types
 
-import "math/big"
-
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -56,7 +54,8 @@ type TransactionStatus struct {
 }
 
 type Transaction struct {
-	TransactionHash    string   `json:"transaction_hash,omitempty"`
+	TransactionReceipt
+	TransactionHash    string   `json:"txn_hash,omitempty"`
 	ContractAddress    string   `json:"contract_address"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
@@ -66,22 +65,27 @@ type Transaction struct {
 }
 
 type L1Message struct {
-	ToAddress string   `json:"to_address"`
-	Payload   []string `json:"payload"`
+	ToAddress string  `json:"to_address"`
+	Payload   []*Felt `json:"payload"`
+}
+
+type L2Message struct {
+	FromAddress string  `json:"from_address"`
+	Payload     []*Felt `json:"payload"`
 }
 
 type Event struct {
-	FromAddress string     `json:"from_address"`
-	Keys        []*big.Int `json:"keys"`
-	Values      []*big.Int `json:"values"`
+	FromAddress string  `json:"from_address"`
+	Keys        []*Felt `json:"keys"`
+	Values      []*Felt `json:"values"`
 }
 
 type TransactionReceipt struct {
-	TransactionHash string      `json:"transaction_hash,omitempty"`
+	TransactionHash string      `json:"txn_hash,omitempty"`
 	Status          string      `json:"status"`
 	StatusData      string      `json:"status_data"`
 	MessagesSent    []L1Message `json:"messages_sent,omitempty"`
-	L1OriginMessage string      `json:"l1_origin_message,omitempty"`
+	L1OriginMessage L2Message   `json:"l1_origin_message,omitempty"`
 	Events          []Event     `json:"events"`
 }
 
