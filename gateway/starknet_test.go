@@ -15,7 +15,7 @@ import (
 )
 
 func TestExecuteGoerli(t *testing.T) {
-	curve, err := caigo.SC(caigo.WithConstants("./pedersen_params.json"))
+	curve, err := caigo.SC(caigo.WithConstants("../pedersen_params.json"))
 	if err != nil {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}

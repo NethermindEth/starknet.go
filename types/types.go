@@ -56,37 +56,37 @@ type TransactionStatus struct {
 type Transaction struct {
 	TransactionReceipt
 	TransactionHash    string   `json:"txn_hash,omitempty"`
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
+	ContractAddress    string   `json:"contract_address,omitempty"`
+	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
+	Calldata           []string `json:"calldata,omitempty"`
+	Signature          []string `json:"signature,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
 	Type               string   `json:"type,omitempty"`
 }
 
 type L1Message struct {
-	ToAddress string  `json:"to_address"`
-	Payload   []*Felt `json:"payload"`
+	ToAddress string  `json:"to_address,omitempty"`
+	Payload   []*Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress string  `json:"from_address"`
-	Payload     []*Felt `json:"payload"`
+	FromAddress string  `json:"from_address,omitempty"`
+	Payload     []*Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
-	FromAddress string  `json:"from_address"`
-	Keys        []*Felt `json:"keys"`
-	Values      []*Felt `json:"values"`
+	FromAddress string  `json:"from_address,omitempty"`
+	Keys        []*Felt `json:"keys,omitempty"`
+	Values      []*Felt `json:"values,omitempty"`
 }
 
 type TransactionReceipt struct {
-	TransactionHash string      `json:"txn_hash,omitempty"`
-	Status          string      `json:"status"`
-	StatusData      string      `json:"status_data"`
-	MessagesSent    []L1Message `json:"messages_sent,omitempty"`
-	L1OriginMessage L2Message   `json:"l1_origin_message,omitempty"`
-	Events          []Event     `json:"events"`
+	TransactionHash string       `json:"txn_hash,omitempty"`
+	Status          string       `json:"status,omitempty"`
+	StatusData      string       `json:"status_data,omitempty"`
+	MessagesSent    []*L1Message `json:"messages_sent,omitempty"`
+	L1OriginMessage *L2Message   `json:"l1_origin_message,omitempty"`
+	Events          []*Event     `json:"events,omitempty"`
 }
 
 type ABI struct {
