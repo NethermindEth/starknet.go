@@ -58,8 +58,8 @@ type Transaction struct {
 	TransactionHash    string   `json:"txn_hash,omitempty"`
 	ContractAddress    string   `json:"contract_address,omitempty"`
 	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
-	Calldata           []string `json:"calldata,omitempty"`
-	Signature          []string `json:"signature,omitempty"`
+	Calldata           []string `json:"calldata"`
+	Signature          []string `json:"signature"`
 	Nonce              string   `json:"nonce,omitempty"`
 	Type               string   `json:"type,omitempty"`
 }
