@@ -18,10 +18,6 @@ type StarkResp struct {
 	Result []string `json:"result"`
 }
 
-func (sg *Gateway) ChainID(context.Context) (string, error) {
-	return sg.ChainId, nil
-}
-
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */

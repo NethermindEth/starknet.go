@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -41,13 +40,13 @@ func (sc *Client) Close() {
 }
 
 // ChainID retrieves the current chain ID for transaction replay protection.
-func (sc *Client) ChainID(ctx context.Context) (*big.Int, error) {
-	var result hexutil.Big
+func (sc *Client) ChainID(ctx context.Context) (string, error) {
+	var result string
 	err := sc.c.CallContext(ctx, &result, "starknet_chainId")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return (*big.Int)(&result), err
+	return result, err
 }
 
 func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {

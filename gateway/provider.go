@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/dontpanicdao/caigo/types"
 )
@@ -16,7 +17,7 @@ func NewProvider(opts ...Option) *GatewayProvider {
 	}
 }
 
-func (p *GatewayProvider) BlockByHash(ctx context.Context, hash string) (*types.Block, error) {
+func (p *GatewayProvider) BlockByHash(ctx context.Context, hash, scope string) (*types.Block, error) {
 	b, err := p.Block(ctx, &BlockOptions{BlockHash: hash})
 	if err != nil {
 		return nil, err
@@ -25,8 +26,8 @@ func (p *GatewayProvider) BlockByHash(ctx context.Context, hash string) (*types.
 	return b.Normalize(), nil
 }
 
-func (p *GatewayProvider) BlockByNumber(ctx context.Context, number uint64) (*types.Block, error) {
-	b, err := p.Block(ctx, &BlockOptions{BlockNumber: number})
+func (p *GatewayProvider) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
+	b, err := p.Block(ctx, &BlockOptions{BlockNumber: number.Uint64()})
 	if err != nil {
 		return nil, err
 	}

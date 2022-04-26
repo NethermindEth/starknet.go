@@ -1,5 +1,7 @@
 package types
 
+import "math/big"
+
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -59,39 +61,28 @@ type Transaction struct {
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
-	Status             string   `json:"status"`
-	StatusData         string   `json:"status_data"`
-	EntryPointType     string   `json:"entry_point_type,omitempty"`
-	Type               string   `json:"type,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
+	Type               string   `json:"type,omitempty"`
+}
+
+type L1Message struct {
+	ToAddress string   `json:"to_address"`
+	Payload   []string `json:"payload"`
+}
+
+type Event struct {
+	FromAddress string     `json:"from_address"`
+	Keys        []*big.Int `json:"keys"`
+	Values      []*big.Int `json:"values"`
 }
 
 type TransactionReceipt struct {
-	Status                string `json:"status"`
-	BlockHash             string `json:"block_hash"`
-	BlockNumber           int    `json:"block_number"`
-	TransactionIndex      int    `json:"transaction_index"`
-	TransactionHash       string `json:"transaction_hash"`
-	L1ToL2ConsumedMessage struct {
-		FromAddress string   `json:"from_address"`
-		ToAddress   string   `json:"to_address"`
-		Selector    string   `json:"selector"`
-		Payload     []string `json:"payload"`
-	} `json:"l1_to_l2_consumed_message"`
-	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
-	Events             []interface{} `json:"events"`
-	ExecutionResources struct {
-		NSteps                 int `json:"n_steps"`
-		BuiltinInstanceCounter struct {
-			PedersenBuiltin   int `json:"pedersen_builtin"`
-			RangeCheckBuiltin int `json:"range_check_builtin"`
-			BitwiseBuiltin    int `json:"bitwise_builtin"`
-			OutputBuiltin     int `json:"output_builtin"`
-			EcdsaBuiltin      int `json:"ecdsa_builtin"`
-			EcOpBuiltin       int `json:"ec_op_builtin"`
-		} `json:"builtin_instance_counter"`
-		NMemoryHoles int `json:"n_memory_holes"`
-	} `json:"execution_resources"`
+	TransactionHash string      `json:"transaction_hash,omitempty"`
+	Status          string      `json:"status"`
+	StatusData      string      `json:"status_data"`
+	MessagesSent    []L1Message `json:"messages_sent,omitempty"`
+	L1OriginMessage string      `json:"l1_origin_message,omitempty"`
+	Events          []Event     `json:"events"`
 }
 
 type ABI struct {
