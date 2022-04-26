@@ -50,7 +50,7 @@ go run main.go
 ### Run Tests
 
 ```go
-go test -v
+go test -v ./...
 ```
 
 ### Run Benchmarks
