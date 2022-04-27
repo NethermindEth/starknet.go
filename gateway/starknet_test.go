@@ -69,6 +69,8 @@ func TestInvokeContract(t *testing.T) {
 	}
 }
 
+// requires starknet-devnet to be running and accessible on port 5000
+// (ref: https://github.com/Shard-Labs/starknet-devnet)
 func TestLocalStarkNet(t *testing.T) {
 	ctx := context.Background()
 	setupTestEnvironment()

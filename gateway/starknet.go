@@ -25,7 +25,7 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *Gateway) Call(ctx context.Context, tx Transaction, opts *BlockOptions) ([]string, error) {
+func (sg *Gateway) Call(ctx context.Context, tx types.Transaction, opts *BlockOptions) ([]string, error) {
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	if len(tx.Calldata) == 0 {
 		tx.Calldata = []string{}
