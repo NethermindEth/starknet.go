@@ -55,46 +55,38 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 
 func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var blockNumber big.Int
-	err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber")
-	if err != nil {
-		return nil, err
-	}
-	return &blockNumber, err
-}
-
-func (sc *Client) LatestBlock(ctx context.Context, scope string) (*types.Block, error) {
-	blockNumber, err := sc.BlockNumber(ctx)
-	if err != nil {
+	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
 		return nil, err
 	}
 
-	block, err := sc.BlockByNumber(ctx, blockNumber, scope)
-	if err != nil {
-		return nil, err
-	}
-
-	return block, err
+	return &blockNumber, nil
 }
 
 func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
 	var block types.Block
-	err := sc.fetchStructure(ctx, "starknet_getBlockByHash", block, hash, scope)
+	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
+		return nil, err
+	}
 
-	return &block, err
+	return &block, nil
 }
 
 func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
 	var block types.Block
-	err := sc.fetchStructure(ctx, "starknet_getBlockByNumber", block, toBlockNumArg(number), scope)
+	if err := sc.do(ctx, "starknet_getBlockByNumber", &block, toBlockNumArg(number), scope); err != nil {
+		return nil, err
+	}
 
-	return &block, err
+	return &block, nil
 }
 
 func (sc *Client) CodeByAddress(ctx context.Context, address string) (*types.Code, error) {
 	var contract types.Code
-	err := sc.fetchStructure(ctx, "starknet_getCode", contract, address)
+	if err := sc.do(ctx, "starknet_getCode", &contract, address); err != nil {
+		return nil, err
+	}
 
-	return &contract, err
+	return &contract, nil
 }
 
 func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
@@ -103,12 +95,14 @@ func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxRespon
 
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
 	var tx types.Transaction
-	err := sc.fetchStructure(ctx, "starknet_getTransactionByHash", tx, hash)
+	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
+		return nil, err
+	}
 
-	return &tx, err
+	return &tx, nil
 }
 
-func (sc *Client) fetchStructure(ctx context.Context, method string, data interface{}, args ...interface{}) error {
+func (sc *Client) do(ctx context.Context, method string, data interface{}, args ...interface{}) error {
 	var raw json.RawMessage
 	err := sc.c.CallContext(ctx, &raw, method, args...)
 	if err != nil {

@@ -36,7 +36,7 @@ func TestJsonRpcClient(t *testing.T) {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
 
-	_, err = client.LatestBlock(context.Background(), "FULL_TXNS")
+	_, err = client.BlockNumber(context.Background())
 	if err != nil {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
