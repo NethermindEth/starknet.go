@@ -97,9 +97,23 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
+	} else if tx.TransactionHash == "" {
+		return nil, ErrNotFound
 	}
 
 	return &tx, nil
+}
+
+func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
+	var receipt types.TransactionReceipt
+	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt, hash)
+	if err != nil {
+		return nil, err
+	} else if receipt.TransactionHash == "" {
+		return nil, ErrNotFound
+	}
+
+	return &receipt, nil
 }
 
 func (sc *Client) do(ctx context.Context, method string, data interface{}, args ...interface{}) error {
