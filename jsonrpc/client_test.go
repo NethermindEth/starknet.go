@@ -35,4 +35,14 @@ func TestJsonRpcClient(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
+
+	_, err = client.BlockNumber(context.Background())
+	if err != nil {
+		t.Errorf("Could not retrieve block: %v\n", err)
+	}
+
+	_, err = client.CodeByAddress(context.Background(), "0x050c47150563ff7cf60dd60f7d0bd4d62a9cc5331441916e5099e905bdd8c4bc")
+	if err != nil {
+		t.Errorf("Could not retrieve code: %v\n", err)
+	}
 }
