@@ -80,7 +80,7 @@ func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope stri
 	return &block, nil
 }
 
-func (sc *Client) CodeByAddress(ctx context.Context, address string) (*types.Code, error) {
+func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, error) {
 	var contract types.Code
 	if err := sc.do(ctx, "starknet_getCode", &contract, address); err != nil {
 		return nil, err
