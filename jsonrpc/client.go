@@ -53,37 +53,75 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
+func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
+	var blockNumber big.Int
+	err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber")
+	if err != nil {
+		return nil, err
+	}
+	return &blockNumber, err
+}
+
+func (sc *Client) LatestBlock(ctx context.Context, scope string) (*types.Block, error) {
+	blockNumber, err := sc.BlockNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	block, err := sc.BlockByNumber(ctx, blockNumber, scope)
+	if err != nil {
+		return nil, err
+	}
+
+	return block, err
+}
+
 func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
-	return sc.getBlock(ctx, "starknet_getBlockByHash", hash, scope)
+	var block types.Block
+	err := sc.fetchStructure(ctx, "starknet_getBlockByHash", block, hash, scope)
+
+	return &block, err
 }
 
 func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
-	return sc.getBlock(ctx, "starknet_getBlockByNumber", toBlockNumArg(number), scope)
+	var block types.Block
+	err := sc.fetchStructure(ctx, "starknet_getBlockByNumber", block, toBlockNumArg(number), scope)
+
+	return &block, err
+}
+
+func (sc *Client) CodeByAddress(ctx context.Context, address string) (*types.Code, error) {
+	var contract types.Code
+	err := sc.fetchStructure(ctx, "starknet_getCode", contract, address)
+
+	return &contract, err
 }
 
 func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
 	panic("not implemented")
 }
 
-func (sc *Client) TransactionByHash(context.Context, string) (*types.Transaction, error) {
-	panic("not implemented")
+func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
+	var tx types.Transaction
+	err := sc.fetchStructure(ctx, "starknet_getTransactionByHash", tx, hash)
+
+	return &tx, err
 }
 
-func (sc *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*types.Block, error) {
+func (sc *Client) fetchStructure(ctx context.Context, method string, data interface{}, args ...interface{}) error {
 	var raw json.RawMessage
 	err := sc.c.CallContext(ctx, &raw, method, args...)
 	if err != nil {
-		return nil, err
+		return err
 	} else if len(raw) == 0 {
-		return nil, ErrNotFound
+		return ErrNotFound
 	}
 
-	var block types.Block
-	if err := json.Unmarshal(raw, &block); err != nil {
-		return nil, err
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return err
 	}
 
-	return &block, nil
+	return nil
 }
 
 func toBlockNumArg(number *big.Int) interface{} {
