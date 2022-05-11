@@ -12,4 +12,5 @@ type Provider interface {
 	ChainID(context.Context) (string, error)
 	Invoke(context.Context, Transaction) (*AddTxResponse, error)
 	TransactionByHash(context.Context, string) (*Transaction, error)
+	TransactionReceipt(context.Context, string) (*TransactionReceipt, error)
 }
