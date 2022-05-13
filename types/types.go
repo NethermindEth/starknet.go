@@ -103,9 +103,3 @@ type EntryPointsByType struct {
 	} `json:"EXTERNAL"`
 	L1Handler []interface{} `json:"L1_HANDLER"`
 }
-
-type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -15,6 +16,12 @@ var ErrNotFound = errors.New("not found")
 
 type Client struct {
 	c *rpc.Client
+}
+
+type FunctionCall struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
 }
 
 // Dial connects a client to the given URL.
@@ -53,8 +60,13 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
-func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]types.Felt, error) {
-	var result []types.Felt
+func (sc *Client) Call(ctx context.Context, call FunctionCall, hash string) ([]string, error) {
+	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
+	if len(call.Calldata) == 0 {
+		call.Calldata = make([]string, 0)
+	}
+
+	var result []string
 	if err := sc.do(ctx, "starknet_call", &result, call, hash); err != nil {
 		return nil, err
 	}
