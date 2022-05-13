@@ -53,6 +53,15 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
+func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]types.Felt, error) {
+	var result []types.Felt
+	if err := sc.do(ctx, "starknet_call", &result, call, hash); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var blockNumber big.Int
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
@@ -81,8 +90,19 @@ func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope stri
 }
 
 func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, error) {
-	var contract types.Code
-	if err := sc.do(ctx, "starknet_getCode", &contract, address); err != nil {
+	var contractRaw struct {
+		Bytecode []string `json:"bytecode"`
+		AbiRaw   string   `json:"abi"`
+		Abi      types.ABI
+	}
+	if err := sc.do(ctx, "starknet_getCode", &contractRaw, address); err != nil {
+		return nil, err
+	}
+
+	contract := types.Code{
+		Bytecode: contractRaw.Bytecode,
+	}
+	if err := json.Unmarshal([]byte(contractRaw.AbiRaw), &contract.Abi); err != nil {
 		return nil, err
 	}
 
