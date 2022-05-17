@@ -9,6 +9,8 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/dontpanicdao/caigo"
 )
 
 type Felt struct {
@@ -86,13 +88,13 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 }
 
 func (f Felt) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(f.String()))
+	fmt.Fprint(w, strconv.Quote(caigo.BigToHex(f.Int)))
 }
 
 func (b *Felt) UnmarshalGQL(v interface{}) error {
 	if bi, ok := v.(string); ok {
 		b.Int = new(big.Int)
-		b.Int, ok = b.Int.SetString(bi, 10)
+		b.Int, ok = b.Int.SetString(bi, 16)
 		if !ok {
 			return fmt.Errorf("invalid big number: %s", bi)
 		}
