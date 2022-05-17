@@ -54,4 +54,12 @@ func TestJsonRpcClient(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
+
+	_, err = client.Call(context.Background(), FunctionCall{
+		ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
+		EntryPointSelector: "decimals",
+	}, "0x02ecb1ac7d4925714279245073eb712e13af1263eec175c7917700eafba710b6")
+	if err != nil {
+		t.Errorf("Could not call contract function: %v\n", err)
+	}
 }
