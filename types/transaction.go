@@ -24,7 +24,7 @@ type L2Message struct {
 type Event struct {
 	FromAddress string  `json:"from_address,omitempty"`
 	Keys        []*Felt `json:"keys,omitempty"`
-	Values      []*Felt `json:"values,omitempty"`
+	Data        []*Felt `json:"data,omitempty"`
 }
 
 type TransactionReceipt struct {
