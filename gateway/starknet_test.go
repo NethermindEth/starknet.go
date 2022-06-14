@@ -28,7 +28,7 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
 
-	calls := []types.Transaction{
+	calls := []types.Call{
 		{
 			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
 			EntryPointSelector: "mint",
