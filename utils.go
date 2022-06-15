@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/hex"
@@ -221,6 +222,8 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 func SplitFactStr(fact string) (fact_low, fact_high string) {
 	factBN := HexToBN(fact)
 	factBytes := factBN.Bytes()
+	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
+	factBytes = append(lpadfactBytes, factBytes...)
 	low := BytesToBig(factBytes[16:])
 	high := BytesToBig(factBytes[:16])
 	return BigToHex(low), BigToHex(high)
