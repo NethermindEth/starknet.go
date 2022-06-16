@@ -7,6 +7,7 @@ type Transaction struct {
 	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
+	MaxFee              string   `json:"max_fee,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
 	Type               string   `json:"type,omitempty"`
 }

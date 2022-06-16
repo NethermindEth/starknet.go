@@ -1,5 +1,9 @@
 package types
 
+import (
+	"math/big"
+)
+
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -92,6 +96,19 @@ type DeployRequest struct {
 	} `json:"contract_definition"`
 }
 
+type DeclareRequest struct {
+	Type               string   `json:"type"`
+	SenderAddress      string   `json:"sender_address"`
+	MaxFee             string   `json:"max_fee"`
+	Nonce              string   `json:"nonce"`
+	Signature          []string `json:"signature"`
+	ContractClass struct {
+		ABI               []ABI             `json:"abi"`
+		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+		Program           string            `json:"program"`
+	} `json:"contract_class"`
+}
+
 type EntryPointsByType struct {
 	Constructor []struct {
 		Offset   string `json:"offset"`
@@ -102,4 +119,9 @@ type EntryPointsByType struct {
 		Selector string `json:"selector"`
 	} `json:"EXTERNAL"`
 	L1Handler []interface{} `json:"L1_HANDLER"`
+}
+
+type FeeEstimate struct {
+	Amount *big.Int `json:"amount"`
+	Unit   string   `json:"unit"`
 }

@@ -15,16 +15,11 @@ const (
 )
 
 type Signer struct {
-	private  *big.Int
 	Curve    StarkCurve
-	provider types.Provider
+	Provider types.Provider
+	private  *big.Int
 	PublicX  *big.Int
 	PublicY  *big.Int
-}
-
-type FeeEstimate struct {
-	Amount *big.Int `json:"amount"`
-	Unit   string   `json:"unit"`
 }
 
 /*
@@ -40,12 +35,12 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Prov
 	}
 
 	return &Signer{
-		private:  private,
 		Curve:    sc,
-		provider: provider,
+		Provider: provider,
+		private:  private,
 		PublicX:  pubX,
 		PublicY:  pubY,
-	}, nil
+ 	}, nil
 }
 
 /*
@@ -54,38 +49,47 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Prov
 	- accepts a multicall
 */
 func (signer *Signer) Execute(ctx context.Context, address string, txs []types.Transaction) (*types.AddTxResponse, error) {
-	nonce, err := signer.provider.AccountNonce(ctx, address)
+	chainID, err := signer.Provider.ChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	maxFee := big.NewInt(0)
-	chainID, err := signer.provider.ChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	hash, err := signer.Curve.HashMulticall(address, nonce, maxFee, UTF8StrToBig(chainID), txs)
-	if err != nil {
-		return nil, err
-	}
-
-	r, s, err := signer.Curve.Sign(hash, signer.private)
+	nonce, err := signer.Provider.AccountNonce(ctx, address)
 	if err != nil {
 		return nil, err
 	}
 
 	req := types.Transaction{
 		ContractAddress:    address,
-		EntryPointSelector: BigToHex(GetSelectorFromName(EXECUTE_SELECTOR)),
+		EntryPointSelector: EXECUTE_SELECTOR,
 		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
-		Signature:          []string{r.String(), s.String()},
 	}
 
-	return signer.provider.Invoke(ctx, req)
+	feeR, feeS, err := signer.SignMulticall(address, chainID, "0", nonce, txs)
+	req.Signature = []string{feeR.String(), feeS.String()}
+
+	fee, err := signer.Provider.EstimateFee(ctx, req)
+	req.MaxFee = BigToHex(fee.Amount)
+	r, s, err := signer.SignMulticall(address, chainID, req.MaxFee, nonce, txs)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Signature = []string{r.String(), s.String()}
+
+	return signer.Provider.Invoke(ctx, req)
 }
 
-func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int, txs []types.Transaction) (hash *big.Int, err error) {
+func (signer *Signer) SignMulticall(address, chainID, maxFee string, nonce *big.Int, txs []types.Transaction) (*big.Int, *big.Int, error) {
+	hash, err := signer.Curve.HashMulticall(address, chainID, maxFee, nonce, txs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return signer.Curve.Sign(hash, signer.private)
+}
+
+func (sc StarkCurve) HashMulticall(addr, chainId, fee string, nonce *big.Int, txs []types.Transaction) (hash *big.Int, err error) {
 	callArray := FmtExecuteCalldata(nonce, txs)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := sc.HashElements(callArray)
@@ -99,8 +103,8 @@ func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int,
 		SNValToBN(addr),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
-		maxFee,
-		chainId,
+		SNValToBN(fee),
+		UTF8StrToBig(chainId),
 	}
 
 	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))

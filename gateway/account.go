@@ -25,11 +25,13 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, 
 	return caigo.HexToBN(resp[0]), nil
 }
 
-func (sg *Gateway) EstimateFee(ctx context.Context, tx types.Transaction) (fee caigo.FeeEstimate, err error) {
+func (sg *Gateway) EstimateFee(ctx context.Context, tx types.Transaction) (*types.FeeEstimate, error) {
+	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", tx)
 	if err != nil {
-		return fee, err
+		return nil, err
 	}
 
-	return fee, sg.do(req, &fee)
+	var resp types.FeeEstimate
+	return &resp, sg.do(req, &resp)
 }

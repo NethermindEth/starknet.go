@@ -108,6 +108,41 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 	return resp, sg.do(req, &resp)
 }
 
+/*
+	'add_transaction' wrapper for compressing and declaring a contract class
+*/
+func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddTxResponse, err error) {
+	dat, err := os.ReadFile(filePath)
+	if err != nil {
+		return resp, err
+	}
+
+	declareRequest.Type = DECLARE
+	declareRequest.SenderAddress = "0x1"
+	declareRequest.MaxFee = "0x0"
+	declareRequest.Nonce = "0x0"
+	declareRequest.Signature = []string{}
+
+	var rawDef types.RawContractDefinition
+	if err = json.Unmarshal(dat, &rawDef); err != nil {
+		return resp, err
+	}
+
+	declareRequest.ContractClass.ABI = rawDef.ABI
+	declareRequest.ContractClass.EntryPointsByType = rawDef.EntryPointsByType
+	declareRequest.ContractClass.Program, err = CompressCompiledContract(rawDef.Program)
+	if err != nil {
+		return resp, err
+	}
+
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, sg.do(req, &resp)
+}
+
 func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
 	pay, err := json.Marshal(program)
 	if err != nil {

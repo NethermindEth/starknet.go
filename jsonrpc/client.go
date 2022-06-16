@@ -60,6 +60,10 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
+func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
+	panic("not implemented")
+}
+
 func (sc *Client) Call(ctx context.Context, call FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {

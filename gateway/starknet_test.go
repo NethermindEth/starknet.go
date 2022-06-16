@@ -20,7 +20,7 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
 
-	priv, _ := new(big.Int).SetString("3904bd288b88a1dcd73e648b10642d63cb9b2ffd86526deee9d073f0690139e", 16)
+	priv, _ := new(big.Int).SetString("879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126", 16)
 	x, y, _ := curve.PrivateToPoint(priv)
 
 	signer, err := curve.NewSigner(priv, x, y, NewProvider())
@@ -28,44 +28,39 @@ func TestExecuteGoerli(t *testing.T) {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
 
-	calls := []types.Transaction{
-		{
-			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-			EntryPointSelector: "mint",
-			Calldata: []string{
-				"3139631220741201955103162951941433790693684583007823827564831473435921360636",
-				"1500000000000000000000",
-				"0",
-			},
-		},
-		{
-			ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
-			EntryPointSelector: "transfer",
-			Calldata: []string{
-				"0x02e1b1ae589af66432469af22a38e84a6ac17202c55e3af2d40f8e18d3395398",
-				"1500000000000000000000",
-				"0",
-			},
-		},
+	tx := types.Transaction{
+		ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+		EntryPointSelector: "update_struct_store",
+		Calldata: []string{"435921360636", "1500000000000000000000", "0"},
+		Signature: []string{},
 	}
+	
+	// fee, err := signer.Provider.EstimateFee(context.Background(), tx)
 
-	_, err = signer.Execute(context.Background(), "0x6f0f7e2594028a454bed6bd856cc566763a6bef3d9965d79bd888ccea7426fc", calls)
+	// calls := []types.Transaction{
+	// 	{
+	// 		ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+	// 		EntryPointSelector: "mint",
+	// 		Calldata: []string{
+	// 			"3139631220741201955103162951941433790693684583007823827564831473435921360636",
+	// 			"1500000000000000000000",
+	// 			"0",
+	// 		},
+	// 	},
+	// 	{
+	// 		ContractAddress:    "0x07394cbe418daa16e42b87ba67372d4ab4a5df0b05c6e554d158458ce245bc10",
+	// 		EntryPointSelector: "transfer",
+	// 		Calldata: []string{
+	// 			"0x02e1b1ae589af66432469af22a38e84a6ac17202c55e3af2d40f8e18d3395398",
+	// 			"1500000000000000000000",
+	// 			"0",
+	// 		},
+	// 	},
+	// }
+
+	resp, err := signer.Execute(context.Background(), "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246", []types.Transaction{tx})
 	if err != nil {
 		t.Errorf("Could not execute multicall with account: %v\n", err)
-	}
-}
-
-func TestInvokeContract(t *testing.T) {
-	gw := NewClient()
-
-	req := types.Transaction{
-		ContractAddress:    "0x077fd9aee87891eb334448c26e01020c8cffec0bf62a959bd373490542bdd812",
-		EntryPointSelector: "increment",
-	}
-
-	_, err := gw.Invoke(context.Background(), req)
-	if err != nil {
-		t.Errorf("Could not add tx: %v\n", err)
 	}
 }
 
@@ -90,6 +85,12 @@ func TestLocalStarkNet(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
+	
+	// bug in starknet-devnet can only declare one class per devnet run
+	resp, err = gw.Declare(ctx, "tmp/counter_compiled.json", types.DeclareRequest{})
+	if err != nil {
+		t.Errorf("Could not deploy contract: %v\n", err)
+	}
 
 	tx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: resp.TransactionHash})
 	if err != nil || tx.Status != "ACCEPTED_ON_L2" {
@@ -100,15 +101,10 @@ func TestLocalStarkNet(t *testing.T) {
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
-
+	
 	block, err := gw.Block(ctx, &BlockOptions{BlockHash: tx.BlockHash})
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
-	}
-
-	_, err = gw.StorageAt(ctx, tx.Transaction.ContractAddress, 0, &StorageAtOptions{BlockNumber: 0})
-	if err != nil {
-		t.Errorf("Could not get storage: %v\n", err)
 	}
 }
 
