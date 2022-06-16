@@ -21,9 +21,9 @@ func TestExecuteGoerli(t *testing.T) {
 	}
 
 	priv, _ := new(big.Int).SetString("879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126", 16)
-	x, y, _ := curve.PrivateToPoint(priv)
+	addr := "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
 
-	signer, err := curve.NewSigner(priv, x, y, NewProvider())
+	signer, err := curve.NewSigner(priv, addr, NewProvider())
 	if err != nil {
 		t.Errorf("Could not create signer: %v\n", err)
 	}
@@ -32,7 +32,6 @@ func TestExecuteGoerli(t *testing.T) {
 		ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
 		EntryPointSelector: "update_struct_store",
 		Calldata: []string{"435921360636", "1500000000000000000000", "0"},
-		Signature: []string{},
 	}
 	
 	// fee, err := signer.Provider.EstimateFee(context.Background(), tx)
@@ -58,7 +57,8 @@ func TestExecuteGoerli(t *testing.T) {
 	// 	},
 	// }
 
-	resp, err := signer.Execute(context.Background(), "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246", []types.Transaction{tx})
+	resp, err := signer.ExecuteSingle(context.Background(), tx)
+	fmt.Println("RESP: ", resp)
 	if err != nil {
 		t.Errorf("Could not execute multicall with account: %v\n", err)
 	}

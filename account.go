@@ -17,6 +17,7 @@ const (
 type Signer struct {
 	Curve    StarkCurve
 	Provider types.Provider
+	Address  string
 	private  *big.Int
 	PublicX  *big.Int
 	PublicY  *big.Int
@@ -29,48 +30,84 @@ type Signer struct {
 	- full provider definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Provider) (*Signer, error) {
+func (sc StarkCurve) NewSigner(private *big.Int, address string, provider types.Provider) (*Signer, error) {
 	if len(sc.ConstantPoints) == 0 {
 		return nil, fmt.Errorf("must initiate precomputed constant points")
+	}
+	x, y, err := sc.PrivateToPoint(private)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Signer{
 		Curve:    sc,
 		Provider: provider,
+		Address:  address,
 		private:  private,
-		PublicX:  pubX,
-		PublicY:  pubY,
+		PublicX:  x,
+		PublicY:  y,
  	}, nil
 }
+
 
 /*
 	invocation wrapper for StarkNet account calls to '__execute__' contact calls through an account abstraction
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer *Signer) Execute(ctx context.Context, address string, txs []types.Transaction) (*types.AddTxResponse, error) {
+func (signer *Signer) Execute(ctx context.Context, maxFee string, txs []types.Transaction) (*types.AddTxResponse, error) {
 	chainID, err := signer.Provider.ChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	nonce, err := signer.Provider.AccountNonce(ctx, address)
+	nonce, err := signer.Provider.AccountNonce(ctx, signer.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	req := types.Transaction{
-		ContractAddress:    address,
+		ContractAddress:    signer.Address,
+		EntryPointSelector: EXECUTE_SELECTOR,
+		MaxFee:				maxFee,
+		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
+	}
+
+	r, s, err := signer.SignMulticall(signer.Address, chainID, maxFee, nonce, txs)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Signature = []string{r.String(), s.String()}
+
+	return signer.Provider.Invoke(ctx, req)
+}
+
+func (signer *Signer) ExecuteSingle(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
+	txs := []types.Transaction{tx}
+
+	chainID, err := signer.Provider.ChainID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := signer.Provider.AccountNonce(ctx, signer.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	req := types.Transaction{
+		ContractAddress:    signer.Address,
 		EntryPointSelector: EXECUTE_SELECTOR,
 		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
 	}
 
-	feeR, feeS, err := signer.SignMulticall(address, chainID, "0", nonce, txs)
+	feeR, feeS, err := signer.SignMulticall(signer.Address, chainID, "0", nonce, txs)
 	req.Signature = []string{feeR.String(), feeS.String()}
 
 	fee, err := signer.Provider.EstimateFee(ctx, req)
 	req.MaxFee = BigToHex(fee.Amount)
-	r, s, err := signer.SignMulticall(address, chainID, req.MaxFee, nonce, txs)
+	r, s, err := signer.SignMulticall(signer.Address, chainID, req.MaxFee, nonce, txs)
 	if err != nil {
 		return nil, err
 	}
