@@ -7,11 +7,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/google/go-querystring/query"
 )
 
 type StarkResp struct {
@@ -25,7 +25,7 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, opts *BlockOptions) ([]string, error) {
+func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
 		call.Calldata = []string{}
@@ -36,12 +36,10 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, opts *Bloc
 		return nil, err
 	}
 
-	if opts != nil {
-		vs, err := query.Values(opts)
-		if err != nil {
-			return nil, err
-		}
-		appendQueryValues(req, vs)
+	if blockHashOrTag != "" {
+		appendQueryValues(req, url.Values{
+			"blockHash": []string{blockHashOrTag},
+		})
 	}
 
 	var resp StarkResp
