@@ -121,6 +121,34 @@ func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, erro
 	return &contract, nil
 }
 
+func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass, error) {
+	var contract types.ContractClass
+	if err := sc.do(ctx, "starknet_getClass", &contract, hash); err != nil {
+		return nil, err
+	}
+
+	return &contract, nil
+}
+
+func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
+	var contract types.ContractClass
+	if err := sc.do(ctx, "starknet_getClass", &contract, address); err != nil {
+		return nil, err
+	}
+
+	return &contract, nil
+}
+
+func (sc *Client) ClassHashAt(ctx context.Context, contractAddress string) (*types.Felt, error) {
+	var result types.Felt
+	err := sc.c.CallContext(ctx, &result, "starknet_getClassHashAt")
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
 	panic("not implemented")
 }

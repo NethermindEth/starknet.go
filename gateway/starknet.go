@@ -74,6 +74,12 @@ func (sg *Gateway) Invoke(ctx context.Context, tx types.Transaction) (*types.Add
 	return &resp, sg.do(req, &resp)
 }
 
+type RawContractDefinition struct {
+	ABI               []types.ABI             `json:"abi"`
+	EntryPointsByType types.EntryPointsByType `json:"entry_points_by_type"`
+	Program           map[string]interface{}  `json:"program"`
+}
+
 /*
 	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
@@ -88,7 +94,7 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 		deployRequest.ConstructorCalldata = []string{}
 	}
 
-	var rawDef types.RawContractDefinition
+	var rawDef RawContractDefinition
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}
