@@ -49,10 +49,10 @@ func main() {
 	}
 
 	// call StarkNet contract
-	callResp, err := gw.Call(context.Background(), types.Transaction{
+	callResp, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	}, nil)
+	}, "")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -81,10 +81,10 @@ func main() {
 	}
 	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n*pollInterval, n, deployResponse.TransactionHash, status)
 
-	callResp, err = gw.Call(context.Background(), types.Transaction{
+	callResp, err = gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	}, nil)
+	}, "")
 	if err != nil {
 		panic(err.Error())
 	}

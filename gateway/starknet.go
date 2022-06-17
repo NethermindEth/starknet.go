@@ -30,6 +30,9 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	if len(call.Calldata) == 0 {
 		call.Calldata = []string{}
 	}
+	if len(call.Signature) == 0 {
+		call.Signature = []string{}
+	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)
 	if err != nil {
@@ -124,7 +127,7 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	declareRequest.Nonce = "0x0"
 	declareRequest.Signature = []string{}
 
-	var rawDef types.RawContractDefinition
+	var rawDef RawContractDefinition
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}

@@ -55,13 +55,8 @@ func (sc StarkCurve) NewAccount(private, address string, provider types.Provider
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (account *Account) Execute(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
-	txs := []types.Transaction{tx}
-
-	chainID, err := account.Provider.ChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (account *Account) Execute(ctx context.Context, call types.Transaction) (*types.AddTxResponse, error) {
+	calls := []types.Transaction{call}
 
 	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
@@ -71,31 +66,22 @@ func (account *Account) Execute(ctx context.Context, tx types.Transaction) (*typ
 	req := types.Transaction{
 		ContractAddress:    account.Address,
 		EntryPointSelector: EXECUTE_SELECTOR,
-		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
+		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
 	}
 
 	// provide good signature so we can get estimate for ECDSA signing
-	feeR, feeS, err := account.SignMulticall(account.Address, chainID, "0", nonce, txs)
-	req.Signature = []string{feeR.String(), feeS.String()}
-
-	fee, err := account.Provider.EstimateFee(ctx, req)
-	req.MaxFee = BigToHex(fee.Amount)
-	r, s, err := account.SignMulticall(account.Address, chainID, req.MaxFee, nonce, txs)
-	if err != nil {
-		return nil, err
+	if fee, err := account.EstimateFeeMultiCall(ctx, req, nonce, calls); err == nil {
+		req.MaxFee = fee
 	}
 
-	req.Signature = []string{r.String(), s.String()}
+	if r, s, err := account.SignMultiCall(req.MaxFee, nonce, calls); err == nil {
+		req.Signature = []string{r.String(), s.String()}
+	}
 
 	return account.Provider.Invoke(ctx, req)
 }
 
-func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, txs []types.Transaction) (*types.AddTxResponse, error) {
-	chainID, err := account.Provider.ChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, calls []types.Transaction) (*types.AddTxResponse, error) {
 	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
 		return nil, err
@@ -105,10 +91,10 @@ func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, txs
 		ContractAddress:    account.Address,
 		EntryPointSelector: EXECUTE_SELECTOR,
 		MaxFee:             maxFee,
-		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
+		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
 	}
 
-	r, s, err := account.SignMulticall(account.Address, chainID, maxFee, nonce, txs)
+	r, s, err := account.SignMultiCall(maxFee, nonce, calls)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +104,8 @@ func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, txs
 	return account.Provider.Invoke(ctx, req)
 }
 
-func (account *Account) SignMulticall(address, chainID, maxFee string, nonce *big.Int, txs []types.Transaction) (*big.Int, *big.Int, error) {
-	hash, err := account.Curve.HashMulticall(address, chainID, maxFee, nonce, txs)
+func (account *Account) SignMultiCall(maxFee string, nonce *big.Int, calls []types.Transaction) (*big.Int, *big.Int, error) {
+	hash, err := account.HashMultiCall(maxFee, nonce, calls)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -127,8 +113,13 @@ func (account *Account) SignMulticall(address, chainID, maxFee string, nonce *bi
 	return account.Curve.Sign(hash, account.private)
 }
 
-func (sc StarkCurve) HashMulticall(addr, chainId, fee string, nonce *big.Int, txs []types.Transaction) (hash *big.Int, err error) {
-	callArray := FmtExecuteCalldata(nonce, txs)
+func (account *Account) HashMultiCall(fee string, nonce *big.Int, calls []types.Transaction) (hash *big.Int, err error) {
+	chainID, err := account.Provider.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	callArray := FmtExecuteCalldata(nonce, calls)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := sc.HashElements(callArray)
 	if err != nil {
@@ -138,20 +129,32 @@ func (sc StarkCurve) HashMulticall(addr, chainId, fee string, nonce *big.Int, tx
 	multiHashData := []*big.Int{
 		UTF8StrToBig(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
-		SNValToBN(addr),
+		SNValToBN(account.Address),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
 		SNValToBN(fee),
-		UTF8StrToBig(chainId),
+		UTF8StrToBig(chainID),
 	}
 
 	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	hash, err = sc.HashElements(multiHashData)
+	hash, err = account.Curve.HashElements(multiHashData)
 	return hash, err
 }
 
-func FmtExecuteCalldataStrings(nonce *big.Int, txs []types.Transaction) (calldataStrings []string) {
-	callArray := FmtExecuteCalldata(nonce, txs)
+func (account *Account) EstimateFeeMultiCall(ctx context.Context, req types.Transaction, nonce *big.Int, calls []types.Transaction) (string, error) {
+	r, s, err := account.SignMultiCall("0", nonce, calls)
+	if err != nil {
+		return "", err
+	}
+
+	req.Signature = []string{r.String(), s.String()}
+	fee, err := account.Provider.EstimateFee(ctx, req)
+
+	return BigToHex(fee.Amount), err
+}
+
+func FmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
+	callArray := FmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, data.String())
 	}
@@ -161,10 +164,10 @@ func FmtExecuteCalldataStrings(nonce *big.Int, txs []types.Transaction) (calldat
 /*
 	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func FmtExecuteCalldata(nonce *big.Int, txs []types.Transaction) (calldataArray []*big.Int) {
-	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
+func FmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
+	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
-	for _, tx := range txs {
+	for _, tx := range calls {
 		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {

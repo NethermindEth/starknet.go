@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
-func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*types.RawContractDefinition, error) {
+func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDefinition, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_by_hash", nil)
 	if err != nil {
 		return nil, err
@@ -19,7 +18,7 @@ func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*types.RawCont
 		"classHash": []string{hash},
 	})
 
-	var resp types.RawContractDefinition
+	var resp RawContractDefinition
 	return &resp, sg.do(req, &resp)
 }
 
