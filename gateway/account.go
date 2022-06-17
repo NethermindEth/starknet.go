@@ -11,10 +11,10 @@ import (
 )
 
 func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
-	resp, err := sg.Call(ctx, types.Transaction{
+	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
-	}, nil)
+	}, "")
 	if err != nil {
 		return nil, err
 	}

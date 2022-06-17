@@ -18,12 +18,6 @@ type Client struct {
 	c *rpc.Client
 }
 
-type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-}
-
 // Dial connects a client to the given URL.
 func Dial(rawurl string) (*Client, error) {
 	return DialContext(context.Background(), rawurl)
@@ -60,7 +54,7 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
-func (sc *Client) Call(ctx context.Context, call FunctionCall, hash string) ([]string, error) {
+func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
 		call.Calldata = make([]string, 0)

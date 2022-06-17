@@ -98,3 +98,9 @@ type EntryPointList struct {
 	Offset   string `json:"offset"`
 	Selector string `json:"selector"`
 }
+
+type FunctionCall struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
+}
