@@ -354,7 +354,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, SNValToBN(cd))
+		calldataArray = append(calldataArray, snValToBN(cd))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)
@@ -363,7 +363,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 	}
 
 	txHashData := []*big.Int{
-		SNValToBN(tx.ContractAddress),
+		snValToBN(tx.ContractAddress),
 		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
 	}
@@ -377,7 +377,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, HexToBN(cd))
+		calldataArray = append(calldataArray, snValToBN(cd))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)
@@ -387,10 +387,10 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int
 
 	txHashData := []*big.Int{
 		addr,
-		SNValToBN(tx.ContractAddress),
+		snValToBN(tx.ContractAddress),
 		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
-		SNValToBN(tx.Nonce),
+		snValToBN(tx.Nonce),
 	}
 
 	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))

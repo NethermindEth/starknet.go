@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func main() {

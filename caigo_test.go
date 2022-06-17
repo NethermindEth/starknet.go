@@ -45,19 +45,19 @@ func TestHashAndSign(t *testing.T) {
 func TestComputeFact(t *testing.T) {
 	progHash := "0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"
 	progOutput := []*big.Int{big.NewInt(289)}
-	hash := ComputeFact(HexToBN(progHash), progOutput)
+	hash := ComputeFact(snValToBN(progHash), progOutput)
 
-	if hash.Cmp(HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4")) != 0 {
+	if hash.Cmp(snValToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4")) != 0 {
 		t.Errorf("Fact does not equal ex %v\n", hash)
 	}
 
 	progHash = "0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"
 	out, _ := new(big.Int).SetString("2754806153357301156380357983574496185342034785016738734224771556919270737441", 10)
 	progOutput = []*big.Int{out}
-	hash = ComputeFact(HexToBN(progHash), progOutput)
+	hash = ComputeFact(snValToBN(progHash), progOutput)
 
-	if hash.Cmp(HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db")) != 0 {
-		t.Errorf("Fact does not equal ex %v %v\n", hash, HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"))
+	if hash.Cmp(snValToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db")) != 0 {
+		t.Errorf("Fact does not equal ex %v %v\n", hash, snValToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"))
 	}
 }
 
@@ -67,7 +67,7 @@ func TestBadSignature(t *testing.T) {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
 
-	hash, err := curve.PedersenHash([]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	hash, err := curve.PedersenHash([]*big.Int{snValToBN("0x12773"), snValToBN("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
@@ -122,8 +122,8 @@ func BenchmarkSignatureVerify(b *testing.B) {
 
 	hash, _ := curve.PedersenHash(
 		[]*big.Int{
-			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+			snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
 		})
 
 	r, s, _ := curve.Sign(hash, priv.D)
@@ -193,7 +193,7 @@ func TestDerivedSignature(t *testing.T) {
 		D: pr,
 	}
 
-	hash, err := curve.PedersenHash([]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	hash, err := curve.PedersenHash([]*big.Int{snValToBN("0x12773"), snValToBN("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
@@ -210,7 +210,7 @@ func TestDerivedSignature(t *testing.T) {
 
 func TestVerifySignature(t *testing.T) {
 	curve, _ := SC()
-	hash := HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd")
+	hash := snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd")
 	r, _ := new(big.Int).SetString("2458502865976494910213617956670505342647705497324144349552978333078363662855", 10)
 	s, _ := new(big.Int).SetString("3439514492576562277095748549117516048613512930236865921315982886313695689433", 10)
 
@@ -224,7 +224,7 @@ func TestVerifySignature(t *testing.T) {
 
 func TestUIVerifySignature(t *testing.T) {
 	curve, _ := SC()
-	hash := HexToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c")
+	hash := snValToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c")
 	r, _ := new(big.Int).SetString("2849277527182985104629156126825776904262411756563556603659114084811678482647", 10)
 	s, _ := new(big.Int).SetString("3156340738553451171391693475354397094160428600037567299774561739201502791079", 10)
 

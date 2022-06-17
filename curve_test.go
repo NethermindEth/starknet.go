@@ -13,15 +13,15 @@ func TestPedersenHash(t *testing.T) {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
 
-	hash, err := curve.PedersenHash([]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	hash, err := curve.PedersenHash([]*big.Int{snValToBN("0x12773"), snValToBN("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
 
-	if hash.Cmp(HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca")) != 0 {
-		t.Errorf("incorrect hash %v got %v needed", hash, HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"))
+	if hash.Cmp(snValToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca")) != 0 {
+		t.Errorf("incorrect hash %v got %v needed", hash, snValToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"))
 	}
-	hash, err = curve.PedersenHash([]*big.Int{HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), HexToBN("0x537461726b4e6574204d61696c")})
+	hash, err = curve.PedersenHash([]*big.Int{snValToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), snValToBN("0x537461726b4e6574204d61696c")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
@@ -36,13 +36,13 @@ func BenchmarkPedersenHash(b *testing.B) {
 	curve, _ := SC(WithConstants("./pedersen_params.json"))
 
 	var suite [][]*big.Int
-	suite = append(suite, []*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
-	suite = append(suite, []*big.Int{HexToBN("0x1277312773"), HexToBN("0x872362872362")})
-	suite = append(suite, []*big.Int{HexToBN("0x1277312773"), HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")})
-	suite = append(suite, []*big.Int{HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), HexToBN("0x872362872362")})
-	suite = append(suite, []*big.Int{HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")})
-	suite = append(suite, []*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")})
-	suite = append(suite, []*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")})
+	suite = append(suite, []*big.Int{snValToBN("0x12773"), snValToBN("0x872362")})
+	suite = append(suite, []*big.Int{snValToBN("0x1277312773"), snValToBN("0x872362872362")})
+	suite = append(suite, []*big.Int{snValToBN("0x1277312773"), snValToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")})
+	suite = append(suite, []*big.Int{snValToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), snValToBN("0x872362872362")})
+	suite = append(suite, []*big.Int{snValToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), snValToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")})
+	suite = append(suite, []*big.Int{snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), snValToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")})
+	suite = append(suite, []*big.Int{snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")})
 	for _, test := range suite {
 		b.Run(fmt.Sprintf("input_size_%d_%d", test[0].BitLen(), test[1].BitLen()), func(b *testing.B) {
 			curve.PedersenHash(test)
@@ -56,7 +56,7 @@ func TestInitCurveWithConstants(t *testing.T) {
 		t.Errorf("Could not init with constant points: %v\n", err)
 	}
 
-	hash := HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd")
+	hash := snValToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd")
 	r, _ := new(big.Int).SetString("2458502865976494910213617956670505342647705497324144349552978333078363662855", 10)
 	s, _ := new(big.Int).SetString("3439514492576562277095748549117516048613512930236865921315982886313695689433", 10)
 

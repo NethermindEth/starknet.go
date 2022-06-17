@@ -2,8 +2,6 @@ module github.com/dontpanicdao/caigo/examples/starknet
 
 go 1.18
 
-replace github.com/dontpanicdao/caigo => ../../
-
 require github.com/dontpanicdao/caigo v0.2.0
 
 require (

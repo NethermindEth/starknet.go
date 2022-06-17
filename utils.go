@@ -23,7 +23,7 @@ type KeccakState interface {
 
 // given x will find corresponding public key coordinate on curve
 func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
-	xin := HexToBN(x)
+	xin := snValToBN(x)
 
 	yout := sc.GetYCoordinate(xin)
 
@@ -39,7 +39,7 @@ func UTF8StrToBig(str string) *big.Int {
 }
 
 // convert decimal string to big int
-func StrToBig(str string) *big.Int {
+func strToBig(str string) *big.Int {
 	b, _ := new(big.Int).SetString(str, 10)
 
 	return b
@@ -54,11 +54,12 @@ func HexToShortStr(hexStr string) string {
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to big int
-func HexToBN(hexString string) *big.Int {
-	numStr := strings.Replace(hexString, "0x", "", -1)
-
-	n, _ := new(big.Int).SetString(numStr, 16)
-	return n
+func hexToBN(hexString string) *big.Int {
+	if strings.HasPrefix(hexString, "0x") {
+		b, _ := big.NewInt(0).SetString(hexString, 0)
+		return b
+	}
+	return nil
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to byte slice
@@ -220,7 +221,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 
 // split a fact into two felts
 func SplitFactStr(fact string) (fact_low, fact_high string) {
-	factBN := HexToBN(fact)
+	factBN := snValToBN(fact)
 	factBytes := factBN.Bytes()
 	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
 	factBytes = append(lpadfactBytes, factBytes...)
@@ -244,11 +245,10 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	return buf
 }
 
-// used in string conversions when interfacing with the APIs
-func SNValToBN(str string) *big.Int {
-	if strings.Contains(str, "0x") {
-		return HexToBN(str)
-	} else {
-		return StrToBig(str)
-	}
+// snValToBN returns a *big.Int from a string or nil if it cannot. If the string
+// starts with 0x, it is treated as a hex string. Otherwise, it is treated as a
+// decimal string.
+func snValToBN(str string) *big.Int {
+	b, _ := big.NewInt(0).SetString(str, 0)
+	return b
 }

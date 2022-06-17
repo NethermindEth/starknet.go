@@ -21,8 +21,8 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, 
 	if len(resp) == 0 {
 		return nil, fmt.Errorf("no resp in contract call 'get_nonce' %v", address)
 	}
-
-	return caigo.HexToBN(resp[0]), nil
+	b, _ := big.NewInt(0).SetString(resp[0], 0)
+	return b, nil
 }
 
 func (sg *Gateway) EstimateFee(ctx context.Context, tx types.Transaction) (fee caigo.FeeEstimate, err error) {

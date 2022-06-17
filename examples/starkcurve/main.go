@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	/* 
-		Although the library adheres to the 'elliptic/curve' interface. 
-		All testing has been done against library function explicity. 
+	/*
+		Although the library adheres to the 'elliptic/curve' interface.
+		All testing has been done against library function explicity.
 		It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 		NOTE: when not given local file path this pulls the curve data from Starkware github repo
 	*/
@@ -18,8 +18,9 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	hash, err := curve.PedersenHash([]*big.Int{caigo.HexToBN("0x12773"), caigo.HexToBN("0x872362")})
+	v1, _ := big.NewInt(0).SetString("0x12773", 0)
+	v2, _ := big.NewInt(0).SetString("0x872362", 0)
+	hash, err := curve.PedersenHash([]*big.Int{v1, v2})
 	if err != nil {
 		panic(err.Error())
 	}

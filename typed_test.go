@@ -20,10 +20,10 @@ type Person struct {
 func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	if field == "from" {
 		fmtEnc = append(fmtEnc, UTF8StrToBig(mail.From.Name))
-		fmtEnc = append(fmtEnc, HexToBN(mail.From.Wallet))
+		fmtEnc = append(fmtEnc, snValToBN(mail.From.Wallet))
 	} else if field == "to" {
 		fmtEnc = append(fmtEnc, UTF8StrToBig(mail.To.Name))
-		fmtEnc = append(fmtEnc, HexToBN(mail.To.Wallet))
+		fmtEnc = append(fmtEnc, snValToBN(mail.To.Wallet))
 	} else if field == "contents" {
 		fmtEnc = append(fmtEnc, UTF8StrToBig(mail.Contents))
 	}
@@ -69,7 +69,7 @@ func TestGetMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetMessageHash(HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, curve)
+	hash, err := ttd.GetMessageHash(snValToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -96,7 +96,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 		},
 		Contents: "Hello, Bob!",
 	}
-	addr := HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
+	addr := snValToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
 		ttd.GetMessageHash(addr, mail, curve)
 	})
