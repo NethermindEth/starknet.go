@@ -43,3 +43,15 @@ func (p *GatewayProvider) TransactionByHash(ctx context.Context, hash string) (*
 
 	return t.Transaction.Normalize(), nil
 }
+
+func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*types.ContractClass, error) {
+	panic("not implemented")
+}
+
+func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress string) (*types.Felt, error) {
+	panic("not implemented")
+}
+
+func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*types.ContractClass, error) {
+	panic("not implemented")
+}

@@ -79,21 +79,17 @@ type AddTxResponse struct {
 	TransactionHash string `json:"transaction_hash"`
 }
 
-type RawContractDefinition struct {
-	ABI               []ABI                  `json:"abi"`
-	EntryPointsByType EntryPointsByType      `json:"entry_points_by_type"`
-	Program           map[string]interface{} `json:"program"`
+type DeployRequest struct {
+	Type                string        `json:"type"`
+	ContractAddressSalt string        `json:"contract_address_salt"`
+	ConstructorCalldata []string      `json:"constructor_calldata"`
+	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
-type DeployRequest struct {
-	Type                string   `json:"type"`
-	ContractAddressSalt string   `json:"contract_address_salt"`
-	ConstructorCalldata []string `json:"constructor_calldata"`
-	ContractDefinition  struct {
-		ABI               []ABI             `json:"abi"`
-		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-		Program           string            `json:"program"`
-	} `json:"contract_definition"`
+type ContractClass struct {
+	ABI               []ABI             `json:"abi"`
+	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+	Program           string            `json:"program"`
 }
 
 type DeclareRequest struct {
@@ -110,15 +106,20 @@ type DeclareRequest struct {
 }
 
 type EntryPointsByType struct {
-	Constructor []struct {
-		Offset   string `json:"offset"`
-		Selector string `json:"selector"`
-	} `json:"CONSTRUCTOR"`
-	External []struct {
-		Offset   string `json:"offset"`
-		Selector string `json:"selector"`
-	} `json:"EXTERNAL"`
-	L1Handler []interface{} `json:"L1_HANDLER"`
+	Constructor []EntryPointList `json:"CONSTRUCTOR"`
+	External    []EntryPointList `json:"EXTERNAL"`
+	L1Handler   []EntryPointList `json:"L1_HANDLER"`
+}
+
+type EntryPointList struct {
+	Offset   string `json:"offset"`
+	Selector string `json:"selector"`
+}
+
+type FunctionCall struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
 }
 
 type FeeEstimate struct {

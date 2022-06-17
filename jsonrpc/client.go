@@ -18,12 +18,6 @@ type Client struct {
 	c *rpc.Client
 }
 
-type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-}
-
 // Dial connects a client to the given URL.
 func Dial(rawurl string) (*Client, error) {
 	return DialContext(context.Background(), rawurl)
@@ -60,11 +54,7 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
-func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
-	panic("not implemented")
-}
-
-func (sc *Client) Call(ctx context.Context, call FunctionCall, hash string) ([]string, error) {
+func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
 		call.Calldata = make([]string, 0)
@@ -125,7 +115,39 @@ func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, erro
 	return &contract, nil
 }
 
+func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass, error) {
+	var contract types.ContractClass
+	if err := sc.do(ctx, "starknet_getClass", &contract, hash); err != nil {
+		return nil, err
+	}
+
+	return &contract, nil
+}
+
+func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
+	var contract types.ContractClass
+	if err := sc.do(ctx, "starknet_getClass", &contract, address); err != nil {
+		return nil, err
+	}
+
+	return &contract, nil
+}
+
+func (sc *Client) ClassHashAt(ctx context.Context, contractAddress string) (*types.Felt, error) {
+	var result types.Felt
+	err := sc.c.CallContext(ctx, &result, "starknet_getClassHashAt")
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
+	panic("not implemented")
+}
+
+func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
 	panic("not implemented")
 }
 

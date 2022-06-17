@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // Requires a StarkNet JSON-RPC compliant node (e.g. pathfinder)
@@ -55,7 +57,7 @@ func TestJsonRpcClient(t *testing.T) {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
 
-	_, err = client.Call(context.Background(), FunctionCall{
+	_, err = client.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
 		EntryPointSelector: "decimals",
 	}, "0x02ecb1ac7d4925714279245073eb712e13af1263eec175c7917700eafba710b6")
