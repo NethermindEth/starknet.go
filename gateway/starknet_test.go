@@ -20,7 +20,7 @@ func TestContractAddresses(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not get starknet addresses: %v\n", err)
 	}
-	
+
 	if addresses.Starknet != "0xde29d060D45901Fb19ED6C6e959EB22d8626708e" {
 		t.Errorf("Fetched incorrect addresses: %v\n", err)
 	}
@@ -39,11 +39,11 @@ func TestExecute(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create account: %v\n", err)
 	}
-	
+
 	_, err = account.Execute(context.Background(), types.Transaction{
 		ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
 		EntryPointSelector: "update_struct_store",
-		Calldata: []string{"435921360636", "1500000000000000000000", "0"},
+		Calldata:           []string{"435921360636", "1500000000000000000000", "0"},
 	})
 	if err != nil {
 		t.Errorf("Could not execute multicall with account: %v\n", err)
@@ -63,17 +63,17 @@ func TestExecuteMulti(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not create account: %v\n", err)
 	}
-	
+
 	calls := []types.Transaction{
 		{
 			ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
 			EntryPointSelector: "update_single_store",
-			Calldata: []string{"3"},
+			Calldata:           []string{"3"},
 		},
 		{
 			ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
 			EntryPointSelector: "update_multi_store",
-			Calldata: []string{"4", "6"},
+			Calldata:           []string{"4", "6"},
 		},
 	}
 
@@ -105,7 +105,7 @@ func TestLocalStarkNet(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not deploy contract: %v\n", err)
 	}
-	
+
 	depTx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: resp.TransactionHash})
 	if err != nil || depTx.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx: %v\n", err)
@@ -126,7 +126,7 @@ func TestLocalStarkNet(t *testing.T) {
 	if err != nil || receipt.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get tx receipt: %v\n", err)
 	}
-	
+
 	block, err := gw.Block(ctx, &BlockOptions{BlockHash: tx.BlockHash})
 	if err != nil || block.Status != "ACCEPTED_ON_L2" {
 		t.Errorf("Could not get block by hash: %v\n", err)
