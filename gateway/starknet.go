@@ -143,6 +143,16 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	return resp, sg.do(req, &resp)
 }
 
+func (sg *Gateway) ContractAddresses(ctx context.Context) (*types.ContractAddresses, error) {
+	req, err := sg.newRequest(ctx, http.MethodGet, "/get_contract_addresses", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp types.ContractAddresses
+	return &resp, sg.do(req, &resp)
+}
+
 func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
 	pay, err := json.Marshal(program)
 	if err != nil {

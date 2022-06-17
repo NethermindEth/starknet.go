@@ -1,5 +1,13 @@
 package types
 
+type StarknetTransaction struct {
+	TransactionIndex int         `json:"transaction_index"`
+	BlockNumber      int         `json:"block_number"`
+	Transaction      Transaction `json:"transaction"`
+	BlockHash        string      `json:"block_hash"`
+	Status           string      `json:"status"`
+}
+
 type Transaction struct {
 	TransactionReceipt
 	TransactionHash    string   `json:"txn_hash,omitempty"`
@@ -7,7 +15,7 @@ type Transaction struct {
 	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
-	MaxFee              string   `json:"max_fee,omitempty"`
+	MaxFee             string   `json:"max_fee,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
 	Type               string   `json:"type,omitempty"`
 }

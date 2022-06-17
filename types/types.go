@@ -97,11 +97,11 @@ type DeployRequest struct {
 }
 
 type DeclareRequest struct {
-	Type               string   `json:"type"`
-	SenderAddress      string   `json:"sender_address"`
-	MaxFee             string   `json:"max_fee"`
-	Nonce              string   `json:"nonce"`
-	Signature          []string `json:"signature"`
+	Type          string        `json:"type"`
+	SenderAddress string        `json:"sender_address"`
+	MaxFee        string        `json:"max_fee"`
+	Nonce         string        `json:"nonce"`
+	Signature     []string      `json:"signature"`
 	ContractClass struct {
 		ABI               []ABI             `json:"abi"`
 		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
@@ -124,4 +124,9 @@ type EntryPointsByType struct {
 type FeeEstimate struct {
 	Amount *big.Int `json:"amount"`
 	Unit   string   `json:"unit"`
+}
+
+type ContractAddresses struct {
+	Starknet             string `json:"Starknet"`
+	GpsStatementVerifier string `json:"GpsStatementVerifier"`
 }
