@@ -126,7 +126,7 @@ func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass,
 
 func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
 	var contract types.ContractClass
-	if err := sc.do(ctx, "starknet_getClass", &contract, address); err != nil {
+	if err := sc.do(ctx, "starknet_getClassAt", &contract, address); err != nil {
 		return nil, err
 	}
 
