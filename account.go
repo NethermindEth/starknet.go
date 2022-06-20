@@ -70,13 +70,17 @@ func (account *Account) Execute(ctx context.Context, call types.Transaction) (*t
 	}
 
 	// provide good signature so we can get estimate for ECDSA signing
-	if fee, err := account.EstimateFeeMultiCall(ctx, req, nonce, calls); err == nil {
-		req.MaxFee = fee
+	fee, err := account.EstimateFeeMultiCall(ctx, req, nonce, calls)
+	if err != nil {
+		return nil, err
 	}
+	req.MaxFee = fee
 
-	if r, s, err := account.SignMultiCall(req.MaxFee, nonce, calls); err == nil {
-		req.Signature = []string{r.String(), s.String()}
+	r, s, err := account.SignMultiCall(req.MaxFee, nonce, calls)
+	if err != nil {
+		return nil, err
 	}
+	req.Signature = []string{r.String(), s.String()}
 
 	return account.Provider.Invoke(ctx, req)
 }
