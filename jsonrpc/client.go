@@ -147,6 +147,10 @@ func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxRespon
 	panic("not implemented")
 }
 
+func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
+	panic("not implemented")
+}
+
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {

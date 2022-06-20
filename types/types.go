@@ -1,5 +1,9 @@
 package types
 
+import (
+	"math/big"
+)
+
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -88,6 +92,19 @@ type ContractClass struct {
 	Program           []string            `json:"program"`
 }
 
+type DeclareRequest struct {
+	Type          string   `json:"type"`
+	SenderAddress string   `json:"sender_address"`
+	MaxFee        string   `json:"max_fee"`
+	Nonce         string   `json:"nonce"`
+	Signature     []string `json:"signature"`
+	ContractClass struct {
+		ABI               []ABI             `json:"abi"`
+		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+		Program           string            `json:"program"`
+	} `json:"contract_class"`
+}
+
 type EntryPointsByType struct {
 	Constructor []EntryPointList `json:"CONSTRUCTOR"`
 	External    []EntryPointList `json:"EXTERNAL"`
@@ -103,4 +120,15 @@ type FunctionCall struct {
 	ContractAddress    string   `json:"contract_address"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
+	Signature          []string `json:"signature"`
+}
+
+type FeeEstimate struct {
+	Amount *big.Int `json:"amount"`
+	Unit   string   `json:"unit"`
+}
+
+type ContractAddresses struct {
+	Starknet             string `json:"Starknet"`
+	GpsStatementVerifier string `json:"GpsStatementVerifier"`
 }

@@ -14,6 +14,7 @@ type Provider interface {
 	Invoke(context.Context, Transaction) (*AddTxResponse, error)
 	TransactionByHash(context.Context, string) (*Transaction, error)
 	TransactionReceipt(context.Context, string) (*TransactionReceipt, error)
+	EstimateFee(context.Context, Transaction) (*FeeEstimate, error)
 	Class(context.Context, string) (*ContractClass, error)
 	ClassHashAt(context.Context, string) (*Felt, error)
 	ClassAt(context.Context, string) (*ContractClass, error)

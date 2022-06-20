@@ -14,37 +14,39 @@ const (
 	TRANSACTION_VERSION int64  = 0
 )
 
-type Signer struct {
-	private  *big.Int
+type Account struct {
 	Curve    StarkCurve
-	provider types.Provider
+	Provider types.Provider
+	Address  string
+	private  *big.Int
 	PublicX  *big.Int
 	PublicY  *big.Int
 }
 
-type FeeEstimate struct {
-	Amount *big.Int `json:"amount"`
-	Unit   string   `json:"unit"`
-}
-
 /*
-	Instantiate a new StarkNet Signer which includes structures for calling the network and signing transactions:
+	Instantiate a new StarkNet Account which includes structures for calling the network and signing transactions:
 	- private signing key
 	- stark curve definition
 	- full provider definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Provider) (*Signer, error) {
+func (sc StarkCurve) NewAccount(private, address string, provider types.Provider) (*Account, error) {
 	if len(sc.ConstantPoints) == 0 {
 		return nil, fmt.Errorf("must initiate precomputed constant points")
 	}
+	priv := SNValToBN(private)
+	x, y, err := sc.PrivateToPoint(priv)
+	if err != nil {
+		return nil, err
+	}
 
-	return &Signer{
-		private:  private,
+	return &Account{
 		Curve:    sc,
-		provider: provider,
-		PublicX:  pubX,
-		PublicY:  pubY,
+		Provider: provider,
+		Address:  address,
+		private:  priv,
+		PublicX:  x,
+		PublicY:  y,
 	}, nil
 }
 
@@ -53,40 +55,75 @@ func (sc StarkCurve) NewSigner(private, pubX, pubY *big.Int, provider types.Prov
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (signer *Signer) Execute(ctx context.Context, address string, txs []types.Transaction) (*types.AddTxResponse, error) {
-	nonce, err := signer.provider.AccountNonce(ctx, address)
-	if err != nil {
-		return nil, err
-	}
+func (account *Account) Execute(ctx context.Context, call types.Transaction) (*types.AddTxResponse, error) {
+	calls := []types.Transaction{call}
 
-	maxFee := big.NewInt(0)
-	chainID, err := signer.provider.ChainID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	hash, err := signer.Curve.HashMulticall(address, nonce, maxFee, UTF8StrToBig(chainID), txs)
-	if err != nil {
-		return nil, err
-	}
-
-	r, s, err := signer.Curve.Sign(hash, signer.private)
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	req := types.Transaction{
-		ContractAddress:    address,
-		EntryPointSelector: BigToHex(GetSelectorFromName(EXECUTE_SELECTOR)),
-		Calldata:           FmtExecuteCalldataStrings(nonce, txs),
-		Signature:          []string{r.String(), s.String()},
+		ContractAddress:    account.Address,
+		EntryPointSelector: EXECUTE_SELECTOR,
+		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
 	}
 
-	return signer.provider.Invoke(ctx, req)
+	// provide good signature so we can get estimate for ECDSA signing
+	fee, err := account.EstimateFeeMultiCall(ctx, req, nonce, calls)
+	if err != nil {
+		return nil, err
+	}
+	req.MaxFee = fee
+
+	r, s, err := account.SignMultiCall(req.MaxFee, nonce, calls)
+	if err != nil {
+		return nil, err
+	}
+	req.Signature = []string{r.String(), s.String()}
+
+	return account.Provider.Invoke(ctx, req)
 }
 
-func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int, txs []types.Transaction) (hash *big.Int, err error) {
-	callArray := FmtExecuteCalldata(nonce, txs)
+func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, calls []types.Transaction) (*types.AddTxResponse, error) {
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	req := types.Transaction{
+		ContractAddress:    account.Address,
+		EntryPointSelector: EXECUTE_SELECTOR,
+		MaxFee:             maxFee,
+		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
+	}
+
+	r, s, err := account.SignMultiCall(maxFee, nonce, calls)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Signature = []string{r.String(), s.String()}
+
+	return account.Provider.Invoke(ctx, req)
+}
+
+func (account *Account) SignMultiCall(maxFee string, nonce *big.Int, calls []types.Transaction) (*big.Int, *big.Int, error) {
+	hash, err := account.HashMultiCall(maxFee, nonce, calls)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return account.Curve.Sign(hash, account.private)
+}
+
+func (account *Account) HashMultiCall(fee string, nonce *big.Int, calls []types.Transaction) (hash *big.Int, err error) {
+	chainID, err := account.Provider.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	callArray := FmtExecuteCalldata(nonce, calls)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := sc.HashElements(callArray)
 	if err != nil {
@@ -96,20 +133,32 @@ func (sc StarkCurve) HashMulticall(addr string, nonce, maxFee, chainId *big.Int,
 	multiHashData := []*big.Int{
 		UTF8StrToBig(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
-		SNValToBN(addr),
+		SNValToBN(account.Address),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
-		maxFee,
-		chainId,
+		SNValToBN(fee),
+		UTF8StrToBig(chainID),
 	}
 
 	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	hash, err = sc.HashElements(multiHashData)
+	hash, err = account.Curve.HashElements(multiHashData)
 	return hash, err
 }
 
-func FmtExecuteCalldataStrings(nonce *big.Int, txs []types.Transaction) (calldataStrings []string) {
-	callArray := FmtExecuteCalldata(nonce, txs)
+func (account *Account) EstimateFeeMultiCall(ctx context.Context, req types.Transaction, nonce *big.Int, calls []types.Transaction) (string, error) {
+	r, s, err := account.SignMultiCall("0", nonce, calls)
+	if err != nil {
+		return "", err
+	}
+
+	req.Signature = []string{r.String(), s.String()}
+	fee, err := account.Provider.EstimateFee(ctx, req)
+
+	return BigToHex(fee.Amount), err
+}
+
+func FmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
+	callArray := FmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, data.String())
 	}
@@ -119,10 +168,10 @@ func FmtExecuteCalldataStrings(nonce *big.Int, txs []types.Transaction) (calldat
 /*
 	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func FmtExecuteCalldata(nonce *big.Int, txs []types.Transaction) (calldataArray []*big.Int) {
-	callArray := []*big.Int{big.NewInt(int64(len(txs)))}
+func FmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
+	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
-	for _, tx := range txs {
+	for _, tx := range calls {
 		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {

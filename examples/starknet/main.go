@@ -49,34 +49,42 @@ func main() {
 	}
 
 	// call StarkNet contract
-	callResp, err := gw.Call(context.Background(), types.Transaction{
+	callResp, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	}, nil)
+	}, "")
 	if err != nil {
 		panic(err.Error())
 	}
 	fmt.Println("Counter is currently at: ", callResp[0])
 
-	// invoke StarkNet contract external function
-	invResp, err := gw.Invoke(context.Background(), types.Transaction{
-		ContractAddress:    tx.Transaction.ContractAddress,
+	// create a account for paying invocation fees
+	accountPriv := "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
+	addr := "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
+
+	account, err := curve.NewAccount(accountPriv, addr, gateway.NewProvider())
+	if err != nil {
+		panic(err.Error())
+	}
+	
+	execResp, err := account.Execute(context.Background(), types.Transaction{
+		ContractAddress:   tx.Transaction.ContractAddress,
 		EntryPointSelector: "increment",
 	})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	n, status, err = gw.PollTx(context.Background(), invResp.TransactionHash, types.ACCEPTED_ON_L2, 5, 150)
+	n, status, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 5, 150)
 	if err != nil {
 		panic(err.Error())
 	}
 	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) status: %s\n\n", n*pollInterval, n, deployResponse.TransactionHash, status)
 
-	callResp, err = gw.Call(context.Background(), types.Transaction{
+	callResp, err = gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    tx.Transaction.ContractAddress,
 		EntryPointSelector: "get_count",
-	}, nil)
+	}, "")
 	if err != nil {
 		panic(err.Error())
 	}
