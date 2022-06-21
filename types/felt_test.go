@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"bytes"
 	"encoding/json"
 	"math/big"
@@ -43,12 +44,12 @@ func TestJSONUnmarshal(t *testing.T) {
 	for _, felt := range feltTest.Felts {
 		f := StrToFelt(felt.Value)
 
-		if f.Int.Cmp(felt.Expected.Int) != 0 {
-			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Int, felt.Expected.Int)
+		if f.Int.Cmp(felt.Expected.Big()) != 0 {
+			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Big(), felt.Expected.Big())
 		}
 
 		if f.String() != felt.Expected.String() {
-			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Int, felt.Expected.Int)
+			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Big(), felt.Expected.Big())
 		}
 	}
 }
@@ -57,7 +58,7 @@ func TestJSONMarshal(t *testing.T) {
 	var newFelts FeltTest
 	var newBigs []*big.Int
 	for i, felt := range feltTest.Felts {
-		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Int)
+		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Big())
 		newBigs = append(newBigs, nb)
 
 		felt.Expected.Int = nb
@@ -72,15 +73,9 @@ func TestJSONMarshal(t *testing.T) {
 	var newTest FeltTest
 	json.Unmarshal(raw, &newTest)
 
-	for _, nb := range newBigs {
-		innerBytes := []byte(nb.String())
-		result := bytes.Index(raw, innerBytes)
-
-		if result <= 0 {
-			t.Errorf("Could not marshal felt: %v\n", result)
-		}
-		if string(raw[result:result+len(innerBytes)]) != string(innerBytes) {
-			t.Errorf("Could not marshal felt: %v\n", result)
+	for i, nb := range newBigs {
+		if fmt.Sprintf("0x%x", nb) != newTest.Felts[i].Expected.String() {
+			t.Errorf("Incorrect marshal entries: %s %s\n", nb.String(), newTest.Felts[i].Expected.String())
 		}
 	}
 }
@@ -101,7 +96,8 @@ func TestGQLMarshal(t *testing.T) {
 		buf := bytes.NewBuffer(nil)
 		felt.Expected.MarshalGQL(buf)
 
-		cmp := &Felt{Int: new(big.Int).Add(big.NewInt(int64(i)+7), ToFelt(felt.Value).Int)}
+		newVal := new(big.Int).Add(big.NewInt(int64(i)+7), StrToFelt(felt.Value).Big())
+		cmp := BigToFelt(newVal)
 
 		if buf.String() != strconv.Quote(cmp.String()) {
 			t.Errorf("Could not marshal GQL for felt: %v %v\n", buf.String(), strconv.Quote(cmp.String()))
