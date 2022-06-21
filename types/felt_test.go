@@ -18,14 +18,13 @@ var (
 			{"value": "2458502865976494910213617956670505342647705497324144349552978333078363662855", "expected": "2458502865976494910213617956670505342647705497324144349552978333078363662855"}
 		]
 	}`
-
 )
 
 var feltTest FeltTest
 
 type FeltTest struct {
-	MaxFelt *big.Int `json:"max_felt"`
-	Felts  []FeltValue "json:'felts'"
+	MaxFelt *big.Int    `json:"max_felt"`
+	Felts   []FeltValue `json:"felts"`
 }
 
 type FeltValue struct {
@@ -37,7 +36,7 @@ func TestJSONUnmarshal(t *testing.T) {
 	json.Unmarshal([]byte(rawTest), &feltTest)
 
 	fetchedMax := &Felt{feltTest.MaxFelt}
-	if fetchedMax.Hex() != MaxFelt.Hex() {
+	if fetchedMax.String() != MaxFelt.String() {
 		t.Errorf("Incorrect unmarshal and for max felt: %v %v\n", MaxFelt, feltTest.MaxFelt)
 	}
 
@@ -48,7 +47,7 @@ func TestJSONUnmarshal(t *testing.T) {
 			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Int, felt.Expected.Int)
 		}
 
-		if f.Hex() != felt.Expected.Hex() {
+		if f.String() != felt.Expected.String() {
 			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Int, felt.Expected.Int)
 		}
 	}
@@ -58,25 +57,25 @@ func TestJSONMarshal(t *testing.T) {
 	var newFelts FeltTest
 	var newBigs []*big.Int
 	for i, felt := range feltTest.Felts {
-		nb := new(big.Int).Add(big.NewInt(int64(i)+7) ,felt.Expected.Int)
+		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Int)
 		newBigs = append(newBigs, nb)
 
 		felt.Expected.Int = nb
 		newFelts.Felts = append(newFelts.Felts, felt)
 	}
-	
+
 	raw, err := json.Marshal(newFelts)
 	if err != nil {
 		t.Errorf("Could not marshal felt: %v\n", err)
 	}
-	
+
 	var newTest FeltTest
 	json.Unmarshal(raw, &newTest)
 
 	for _, nb := range newBigs {
 		innerBytes := []byte(nb.String())
 		result := bytes.Index(raw, innerBytes)
-		
+
 		if result <= 0 {
 			t.Errorf("Could not marshal felt: %v\n", result)
 		}
@@ -103,9 +102,9 @@ func TestGQLMarshal(t *testing.T) {
 		felt.Expected.MarshalGQL(buf)
 
 		cmp := &Felt{Int: new(big.Int).Add(big.NewInt(int64(i)+7), ToFelt(felt.Value).Int)}
-		
-		if buf.String() != strconv.Quote(cmp.Hex()) {
-			t.Errorf("Could not marshal GQL for felt: %v %v\n", buf.String(), strconv.Quote(cmp.Hex()))
+
+		if buf.String() != strconv.Quote(cmp.String()) {
+			t.Errorf("Could not marshal GQL for felt: %v %v\n", buf.String(), strconv.Quote(cmp.String()))
 		}
 	}
 }
