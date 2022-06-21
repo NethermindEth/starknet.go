@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 )
 
 const (
@@ -18,22 +18,21 @@ const (
 )
 
 var (
-	MaxFelt = StrToFelt(FIELD_PRIME)
+	MaxFelt   = StrToFelt(FIELD_PRIME)
 	utfRegexp = regexp.MustCompile(`\w+`)
 )
 
+// Felt represents Field Element or Felt from cairo.
 type Felt struct {
 	*big.Int
 }
 
-func (f *Felt) Hex() string {
-	return fmt.Sprintf("0x%x", f)
-}
-
+// Big converts a Felt to its big.Int representation.
 func (f *Felt) Big() *big.Int {
 	return new(big.Int).SetBytes(f.Int.Bytes())
 }
 
+// StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
 func StrToFelt(str string) *Felt {
 	f := new(Felt)
 	if ok := f.strToFelt(str); ok {
@@ -42,20 +41,12 @@ func StrToFelt(str string) *Felt {
 	return nil
 }
 
-func BigToFelt(b *big.Int) *Felt {
-	return &Felt{Int: b}
-}
-
-func BytesToFelt(b []byte) *Felt {
-	return &Felt{Int: new(big.Int).SetBytes(b)}
-}
-
 func (f *Felt) strToFelt(str string) bool {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
 		f.Int = b
 		return ok
 	}
-	if IsUTF(str) {
+	if utfRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
 			f.Int = b
@@ -65,14 +56,27 @@ func (f *Felt) strToFelt(str string) bool {
 	return false
 }
 
-func IsUTF(str string) bool {
-	return utfRegexp.MatchString(str)
+// BigToFelt converts a big.Int to its Felt representation.
+func BigToFelt(b *big.Int) *Felt {
+	return &Felt{Int: b}
 }
 
+// BytesToFelt converts a []byte to its Felt representation.
+func BytesToFelt(b []byte) *Felt {
+	return &Felt{Int: new(big.Int).SetBytes(b)}
+}
+
+// String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
+func (f *Felt) String() string {
+	return fmt.Sprintf("0x%x", f)
+}
+
+// MarshalJSON implements the json Marshaller interface to marshal types to []byte.
 func (f Felt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }
 
+// UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.
 func (f *Felt) UnmarshalJSON(p []byte) error {
 	if string(p) == "null" || len(p) == 0 {
 		return nil
@@ -93,10 +97,12 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 	return nil
 }
 
+// MarshalGQL implements the gqlgen Marshaller interface to marshal Felt into an io.Writer.
 func (f Felt) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(f.Hex()))
+	fmt.Fprint(w, strconv.Quote(f.String()))
 }
 
+// UnmarshalGQL implements the gqlgen Unmarshaller interface to unmarshal an interface into a Felt.
 func (b *Felt) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
@@ -109,10 +115,11 @@ func (b *Felt) UnmarshalGQL(v interface{}) error {
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("invalid big number")
 }
 
+// Value is used by database/sql drivers to store data in databases
 func (f Felt) Value() (driver.Value, error) {
 	if f.Int == nil {
 		return "", nil
@@ -120,6 +127,7 @@ func (f Felt) Value() (driver.Value, error) {
 	return f.String(), nil
 }
 
+// Scan implements the database/sql Scanner interface to read Felt from a databases.
 func (f *Felt) Scan(src interface{}) error {
 	var i sql.NullString
 	if err := i.Scan(src); err != nil {
