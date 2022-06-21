@@ -3,11 +3,13 @@ package types
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/big"
 	"strconv"
 	"strings"
+	"regexp"
 )
 
 const (
@@ -16,30 +18,55 @@ const (
 )
 
 var (
-	MaxFelt = ToFelt(FIELD_PRIME)
+	MaxFelt = StrToFelt(FIELD_PRIME)
+	utfRegexp = regexp.MustCompile(`\w+`)
 )
 
 type Felt struct {
 	*big.Int
 }
 
-func ToFelt(str string) *Felt {
-	if b, ok := new(big.Int).SetString(str, 0); ok {
-		return &Felt{Int: b}
+func (f *Felt) Hex() string {
+	return fmt.Sprintf("0x%x", f)
+}
+
+func (f *Felt) Big() *big.Int {
+	return new(big.Int).SetBytes(f.Int.Bytes())
+}
+
+func StrToFelt(str string) *Felt {
+	f := new(Felt)
+	if ok := f.strToFelt(str); ok {
+		return f
 	}
 	return nil
 }
 
-func (f *Felt) setString(str string) bool {
+func BigToFelt(b *big.Int) *Felt {
+	return &Felt{Int: b}
+}
+
+func BytesToFelt(b []byte) *Felt {
+	return &Felt{Int: new(big.Int).SetBytes(b)}
+}
+
+func (f *Felt) strToFelt(str string) bool {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
 		f.Int = b
 		return ok
 	}
+	if IsUTF(str) {
+		hexStr := hex.EncodeToString([]byte(str))
+		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
+			f.Int = b
+			return ok
+		}
+	}
 	return false
 }
 
-func (f *Felt) Hex() string {
-	return fmt.Sprintf("0x%x", f)
+func IsUTF(str string) bool {
+	return utfRegexp.MatchString(str)
 }
 
 func (f Felt) MarshalJSON() ([]byte, error) {
@@ -59,7 +86,7 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 		s = string(p)
 	}
 
-	if ok := f.setString(s); !ok {
+	if ok := f.strToFelt(s); !ok {
 		return fmt.Errorf("unmarshalling big int: %s", string(p))
 	}
 
@@ -73,7 +100,7 @@ func (f Felt) MarshalGQL(w io.Writer) {
 func (b *Felt) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
-		if ok := b.setString(bi); ok {
+		if ok := b.strToFelt(bi); ok {
 			return nil
 		}
 	case int:

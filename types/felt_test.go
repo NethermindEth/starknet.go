@@ -42,7 +42,7 @@ func TestJSONUnmarshal(t *testing.T) {
 	}
 
 	for _, felt := range feltTest.Felts {
-		f := ToFelt(felt.Value)
+		f := StrToFelt(felt.Value)
 
 		if f.Int.Cmp(felt.Expected.Int) != 0 {
 			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Int, felt.Expected.Int)
@@ -102,7 +102,7 @@ func TestGQLMarshal(t *testing.T) {
 		buf := bytes.NewBuffer(nil)
 		felt.Expected.MarshalGQL(buf)
 
-		cmp := &Felt{Int: new(big.Int).Add(big.NewInt(int64(i)+7), ToFelt(felt.Value).Int)}
+		cmp := &Felt{Int: new(big.Int).Add(big.NewInt(int64(i)+7), StrToFelt(felt.Value).Int)}
 		
 		if buf.String() != strconv.Quote(cmp.Hex()) {
 			t.Errorf("Could not marshal GQL for felt: %v %v\n", buf.String(), strconv.Quote(cmp.Hex()))
