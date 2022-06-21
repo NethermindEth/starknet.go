@@ -19,10 +19,12 @@ var (
 	MaxFelt = ToFelt(FIELD_PRIME)
 )
 
+// Felt represents Field Element or Felt from cairo.
 type Felt struct {
 	*big.Int
 }
 
+// ToFelt converts a string containing a decimal or hexadecimal into a Felt.
 func ToFelt(str string) *Felt {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
 		return &Felt{Int: b}
@@ -38,14 +40,17 @@ func (f *Felt) setString(str string) bool {
 	return false
 }
 
-func (f *Felt) Hex() string {
+// String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
+func (f *Felt) String() string {
 	return fmt.Sprintf("0x%x", f)
 }
 
+// MarshalJSON implements the json Marshaller interface to marshal types to []byte.
 func (f Felt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }
 
+// UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.
 func (f *Felt) UnmarshalJSON(p []byte) error {
 	if string(p) == "null" || len(p) == 0 {
 		return nil
@@ -66,10 +71,12 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 	return nil
 }
 
+// MarshalGQL implements the gqlgen Marshaller interface to marshal Felt into an io.Writer.
 func (f Felt) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(f.Hex()))
+	fmt.Fprint(w, strconv.Quote(f.String()))
 }
 
+// UnmarshalGQL implements the gqlgen Unmarshaller interface to unmarshal an interface into a Felt.
 func (b *Felt) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
@@ -82,10 +89,11 @@ func (b *Felt) UnmarshalGQL(v interface{}) error {
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("invalid big number")
 }
 
+// Value is used by database/sql drivers to store data in databases
 func (f Felt) Value() (driver.Value, error) {
 	if f.Int == nil {
 		return "", nil
@@ -93,6 +101,7 @@ func (f Felt) Value() (driver.Value, error) {
 	return f.String(), nil
 }
 
+// Scan implements the database/sql Scanner interface to read Felt from a databases.
 func (f *Felt) Scan(src interface{}) error {
 	var i sql.NullString
 	if err := i.Scan(src); err != nil {
