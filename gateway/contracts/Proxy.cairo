@@ -10,22 +10,16 @@ from contracts.Upgradable import _get_implementation, _set_implementation
 ####################
 
 @constructor
-func constructor{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    } (
-        implementation: felt,
-        selector: felt,
-        calldata_len: felt,
-        calldata: felt*
-    ):
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    implementation : felt, selector : felt, calldata_len : felt, calldata : felt*
+):
     _set_implementation(implementation)
     library_call(
         class_hash=implementation,
         function_selector=selector,
         calldata_size=calldata_len,
-        calldata=calldata)
+        calldata=calldata,
+    )
     return ()
 end
 
@@ -36,46 +30,33 @@ end
 @external
 @raw_input
 @raw_output
-func __default__{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    } (
-        selector : felt,
-        calldata_size : felt,
-        calldata : felt*
-    ) -> (
-        retdata_size : felt,
-        retdata : felt*
-    ):
+func __default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    selector : felt, calldata_size : felt, calldata : felt*
+) -> (retdata_size : felt, retdata : felt*):
     let (implementation) = _get_implementation()
 
     let (retdata_size : felt, retdata : felt*) = library_call(
         class_hash=implementation,
         function_selector=selector,
         calldata_size=calldata_size,
-        calldata=calldata)
+        calldata=calldata,
+    )
     return (retdata_size=retdata_size, retdata=retdata)
 end
 
 @l1_handler
 @raw_input
-func __l1_default__{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    } (
-        selector : felt,
-        calldata_size : felt,
-        calldata : felt*
-    ):
+func __l1_default__{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    selector : felt, calldata_size : felt, calldata : felt*
+):
     let (implementation) = _get_implementation()
 
     library_call_l1_handler(
         class_hash=implementation,
         function_selector=selector,
         calldata_size=calldata_size,
-        calldata=calldata)
+        calldata=calldata,
+    )
     return ()
 end
 
@@ -84,11 +65,9 @@ end
 ####################
 
 @view
-func get_implementation{
-        syscall_ptr: felt*, 
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    } () -> (implementation: felt):
+func get_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    implementation : felt
+):
     let (implementation) = _get_implementation()
     return (implementation=implementation)
 end

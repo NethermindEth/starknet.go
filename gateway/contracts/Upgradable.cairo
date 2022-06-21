@@ -15,22 +15,16 @@ end
 # INTERNAL FUNCTIONS
 ####################
 
-func _get_implementation{
-        syscall_ptr: felt*, 
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    } () -> (implementation: felt):
+func _get_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
+    implementation : felt
+):
     let (res) = _implementation.read()
     return (implementation=res)
 end
 
-func _set_implementation{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    } (
-        implementation: felt
-    ):
+func _set_implementation{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    implementation : felt
+):
     assert_not_zero(implementation)
     _implementation.write(implementation)
     return ()
