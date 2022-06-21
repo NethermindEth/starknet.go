@@ -252,8 +252,3 @@ func SNValToBN(str string) *big.Int {
 		return StrToBig(str)
 	}
 }
-
-// // StarkNet CLI offers a wrapper for account interactions with a default json file at: "~/.starknet_accounts/<wallet provider>.json"
-// func AccountFromFile(sc StarkCurve, path string, provider types.Provider) (*Account, error) {
-	
-// }
