@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -61,15 +62,26 @@ func main() {
 	accountPriv := "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
 	addr := "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
 
-	account, err := curve.NewAccount(accountPriv, addr, gateway.NewProvider())
+	account, err := caigo.NewAccount(&curve, accountPriv, addr, gateway.NewProvider())
 	if err != nil {
 		panic(err.Error())
 	}
 	
-	execResp, err := account.Execute(context.Background(), types.Transaction{
-		ContractAddress:   tx.Transaction.ContractAddress,
-		EntryPointSelector: "increment",
-	})
+	increment := []types.Transaction{
+		types.Transaction{
+			ContractAddress:   tx.Transaction.ContractAddress,
+			EntryPointSelector: "increment",
+		},
+	}
+
+	feeEstimate, err := account.EstimateFee(context.Background(), increment)
+	if err != nil {
+		panic(err.Error())
+	}
+	fee := &types.Felt{big.NewInt(int64(float64(feeEstimate.Amount) * 1.15))}
+	
+
+	execResp, err := account.Execute(context.Background(), fee, increment)
 	if err != nil {
 		panic(err.Error())
 	}

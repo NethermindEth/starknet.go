@@ -47,7 +47,7 @@ func (s TxStatus) String() string {
 
 type TransactionStatus struct {
 	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash"`
+	BlockHash       string `json:"-"` //devnet returns an integer for 'block_hash'
 	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`
@@ -120,8 +120,8 @@ type FunctionCall struct {
 }
 
 type FeeEstimate struct {
-	Amount int64 `json:"amount"`
-	Unit   string   `json:"unit"`
+	Amount int64  `json:"amount"`
+	Unit   string `json:"unit"`
 }
 
 type ContractAddresses struct {

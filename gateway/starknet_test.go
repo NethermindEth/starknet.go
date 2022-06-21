@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
-	// "math/rand"
+	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
-	// "time"
+	"time"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -20,21 +21,26 @@ import (
 
 const (
 	FEE_MARGIN float64 = 1.15
+	SEED int = 100000000
 	PEDERSON_JSON string = "pedersen_params.json"
+	ACCOUNT_CLASS_HASH string = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
 )
 
 var (
 	snTest         StarknetTest
-	snTransactions []string
-	testProxy	*RawContractDefinition
-	testImplementation	*RawContractDefinition
-
+	snTransactions map[string][]string
+	accountClass	RawContractDefinition
+	
 	_, b, _, _   = runtime.Caller(0)
 	projectRoot  = strings.TrimRight(filepath.Dir(b), "gateway")
+	accountCompiled string = projectRoot+"gateway/contracts/account_class.json"
+	proxyTest string = projectRoot+"gateway/contracts/Proxy.cairo"
+	proxyCompiled string = projectRoot+"gateway/contracts/proxy_compiled.json"
 )
 
 type StarknetTest struct {
 	Environments  []TestEnvironment `json:"environments"`
+	AccountCalldata []string `json:"accountCalldata"`
 }
 
 type TestEnvironment struct {
@@ -48,12 +54,11 @@ type TestEnvironment struct {
 	ContractAddresses types.ContractAddresses `json:"contractAddresses"`
 }
 
-// requires starknet-devnet to be running and accessible on port 5000
-// and seed for accounts to be specified to 0
+// requires starknet-devnet to be running and accessible and no seed:
 // ex: starknet-devnet --port 5000 --seed 0
 // (ref: https://github.com/Shard-Labs/starknet-devnet)
 func init() {
-	testFile, err := os.Open(projectRoot + "/gateway/starknet_test.json")
+	testFile, err := os.Open(projectRoot + "gateway/contracts/starknet_test.json")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -62,28 +67,104 @@ func init() {
 
 	raw, _ := ioutil.ReadAll(testFile)
 	json.Unmarshal(raw, &snTest)
-
-	gw := NewClient(WithChain("main"))
-	testProxy, err = gw.FullContract(context.Background(), snTest.Environments[2].Accounts[0].Address)
-	if err != nil {
-		panic(err.Error())
+	snTransactions = make(map[string][]string)
+	for _, env := range snTest.Environments {
+		snTransactions[env.Chain] = []string{}
 	}
 
-	implResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress: snTest.Environments[2].Accounts[0].Address,
-		EntryPointSelector: "get_implementation",
-	}, "")
-	if err != nil {
-		panic(err.Error())
+	if _, err := os.Stat(accountCompiled); os.IsNotExist(err) {
+		accountClass, err := NewClient().ClassByHash(context.Background(), ACCOUNT_CLASS_HASH)
+		if err != nil {
+			panic(err.Error())
+		}
+	
+		file, err := json.Marshal(accountClass)
+		err = ioutil.WriteFile(accountCompiled, file, 0644)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
-
-	fmt.Println("IMPL: ", implResp[0])
-	testImplementation, err = gw.FullContract(context.Background(), implResp[0])
-	if err != nil {
-		panic(err.Error())
+	if _, err := os.Stat(proxyCompiled); os.IsNotExist(err) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err.Error())
+		}
+	
+		err = exec.Command(home+"/cairo_venv/bin/starknet-compile", "--cairo_path", projectRoot+"gateway", proxyTest, "--output", proxyCompiled).Run()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
+}
 
-	fmt.Println("testCont, err: ", err, testImplementation)
+func TestExecute(t *testing.T) {
+	for _, env := range snTest.Environments {
+		// signature scheme for devnet is not curently compatible
+		if env.Chain == "testnet" {
+			for _, testAccount := range env.Accounts {
+				if testAccount.Private != "" {
+					curve, err := caigo.SC(caigo.WithConstants(projectRoot + PEDERSON_JSON))
+					if err != nil {
+						t.Errorf("%s: could not init with constant points: %v\n", env.Chain, err)
+					}
+					
+					account, err := caigo.NewAccount(&curve, testAccount.Private, testAccount.Address, NewProvider(WithChain(env.Chain)))
+					if err != nil {
+						t.Errorf("%s: could not create account: %v\n", env.Chain, err)
+					}
+					
+					feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions)
+					if err != nil {
+						t.Errorf("%s: could not estimate fee for transaction: %v\n", env.Chain, err)
+					}
+					fee := &types.Felt{big.NewInt(int64(float64(feeEstimate.Amount) * FEE_MARGIN))}
+					
+					txResp, err := account.Execute(context.Background(), fee, testAccount.Transactions)
+					if err != nil {
+						t.Errorf("Could not execute test transaction: %v\n", err)
+					}
+					
+					snTransactions[env.Chain] = append(snTransactions[env.Chain], txResp.TransactionHash) 
+				}
+			}
+		}
+	}
+}
+
+func TestDeclareAndDeploy(t *testing.T) {
+	for _, env := range snTest.Environments {
+		if env.Chain != "mainnet" {
+			gw := NewClient(WithChain(env.Chain))
+			declareTx, err := gw.Declare(context.Background(), accountCompiled, types.DeclareRequest{})
+			if err != nil {
+				t.Errorf("%s: could not 'DECLARE' contract: %v\n", env.Chain, err)
+				return
+			}
+		
+			tx, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: declareTx.TransactionHash})
+			if err != nil {
+				t.Errorf("%s: could not get 'DECLARE' transaction: %v\n", env.Chain, err)
+			}
+			if tx.Transaction.Type != DECLARE {
+				t.Errorf("%s: incorrect delcare transaction: %v\n", env.Chain, tx)
+			}
+
+			for _, testAccount := range env.Accounts {
+				salt := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED)
+				calldata := append(snTest.AccountCalldata, caigo.HexToBN(testAccount.Public).String(), "0")
+
+				deployTx, err := gw.Deploy(context.Background(), proxyCompiled, types.DeployRequest{
+					ContractAddressSalt: fmt.Sprintf("0x%x", salt),
+					ConstructorCalldata: calldata,
+				})
+				if err != nil {
+					t.Errorf("%s: could not deploy contract: %v\n", env.Chain, err)
+				}
+
+				snTransactions[env.Chain] = append(snTransactions[env.Chain], deployTx.TransactionHash)
+			}
+		}
+	}
 }
 
 func TestContractAddresses(t *testing.T) {
@@ -129,83 +210,22 @@ func TestCall(t *testing.T) {
 	}
 }
 
-func TestExecute(t *testing.T) {
-	for _, env := range snTest.Environments {
-		// signature scheme for devnet is not curently compatible
-		if env.Chain != "devnet" {
-			for _, testAccount := range env.Accounts {
-				if testAccount.Private != "" {
-					curve, err := caigo.SC(caigo.WithConstants(projectRoot + PEDERSON_JSON))
-					if err != nil {
-						t.Errorf("Could not init with constant points: %v\n", err)
-					}
-					
-					account, err := caigo.NewAccount(&curve, testAccount.Private, testAccount.Address, NewProvider(WithChain(env.Chain)))
-					if err != nil {
-						t.Errorf("Could not create account: %v\n", err)
-					}
-					
-					feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions)
-					if err != nil {
-						t.Errorf("Could not estimate fee for transaction: %v\n", err)
-					}
-					fee := &types.Felt{
-						Int: big.NewInt(int64(float64(feeEstimate.Amount) * FEE_MARGIN)),
-					}
-					
-					// txResp, err := account.Execute(context.Background(), fee, testAccount.Transactions)
-					// if err != nil {
-					// 	t.Errorf("Could not execute test transaction: %v\n", err)
-					// }
-					fmt.Println("RESP: ", fee)
-					
-					// snTransactions = append(snTransactions, txResp.TransactionHash)
-				}
-			}
-		}
-	}
-}
+// func TestTransactions(t *testing.T) {	
+// 	for k, txs := range snTransactions {
+// 		fmt.Println("ENV - ", k)
 
-func TestDeploy(t *testing.T) {
-	// for _, env := range snTest.Environments {
+// 		gw := NewClient(WithChain(k))
+// 		for _, tx := range txs {
+// 			_, status, err := gw.PollTx(context.Background(), tx, types.ACCEPTED_ON_L2, 5, 150)
+// 			if err != nil {
+// 				t.Errorf("Bad transaction poll: %v\n", err)
+// 			}
 
-	// }
-	// ctx := context.Background()
-	// gw := NewClient(WithChain("local"))
-
-	// salt := rand.New(rand.NewSource(time.Now().UnixNano()))
-	// deployTx, err := gw.Deploy(ctx, testContract, types.DeployRequest{
-	// 	ContractAddressSalt: fmt.Sprintf("0x%x", salt.Intn(1000000)),
-	// 	ConstructorCalldata: []string{},
-	// })
-	// if err != nil {
-	// 	t.Errorf("Could not deploy contract: %v\n", err)
-	// }
-
-	// tx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: deployTx.TransactionHash})
-	// fmt.Println("TX: ", tx)
-	// if err != nil {
-	// 	t.Errorf("Could not get tx: %v\n", err)
-	// }
-	// if tx.Transaction.Type != DEPLOY || tx.Status != types.ACCEPTED_ON_L2.String() {
-	// 	t.Errorf("Incorrect deployment transaction: %+v\n", tx)
-	// }
-}
-
-// func TestDevnetDeclare(t *testing.T) {
-// 	ctx := context.Background()
-// 	gw := NewClient(WithChain("local"))
-
-// 	declareTx, err := gw.Declare(ctx, testProxy, types.DeclareRequest{})
-// 	if err != nil {
-// 		t.Errorf("Could not 'DECLARE' contract: %v\n", err)
-// 	}
-
-// 	tx, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: declareTx.TransactionHash})
-// 	if err != nil {
-// 		t.Errorf("Could not get 'DECLARE' transaction: %v\n", err)
-// 	}
-// 	if tx.Transaction.Type != DECLARE || tx.Status != types.ACCEPTED_ON_L2.String() {
-// 		t.Errorf("Incorrect delcare transaction: %v\n", tx)
+// 			transaction, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: tx})
+// 			if err != nil {
+// 				t.Errorf("Bad transaction poll: %v\n", err)
+// 			}
+// 			fmt.Printf("\tTxHash(%s): %s-%s\n", transaction.Transaction.Type, status, tx)
+// 		}
 // 	}
 // }

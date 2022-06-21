@@ -5,6 +5,9 @@ vendor/
 
 tmp/
 
+gateway/contracts/*_class.json
+gateway/contracts/*_compiled.json
+
 examples/**/*.json
 examples/**/*.sum
 
