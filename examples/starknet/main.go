@@ -86,7 +86,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	n, status, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 5, 150)
+	n, status, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, pollInterval, 150)
 	if err != nil {
 		panic(err.Error())
 	}
