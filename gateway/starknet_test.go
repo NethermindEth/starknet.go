@@ -20,31 +20,31 @@ import (
 )
 
 const (
-	FEE_MARGIN float64 = 1.15
-	SEED int = 100000000
-	PEDERSON_JSON string = "pedersen_params.json"
-	ACCOUNT_CLASS_HASH string = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
+	FEE_MARGIN         float64 = 1.15
+	SEED               int     = 100000000
+	PEDERSON_JSON      string  = "pedersen_params.json"
+	ACCOUNT_CLASS_HASH string  = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
 )
 
 var (
 	snTest         StarknetTest
 	snTransactions map[string][]string
-	accountClass	RawContractDefinition
-	
-	_, b, _, _   = runtime.Caller(0)
-	projectRoot  = strings.TrimRight(filepath.Dir(b), "gateway")
-	accountCompiled string = projectRoot+"gateway/contracts/account_class.json"
-	proxyTest string = projectRoot+"gateway/contracts/Proxy.cairo"
-	proxyCompiled string = projectRoot+"gateway/contracts/proxy_compiled.json"
+	accountClass   RawContractDefinition
+
+	_, b, _, _             = runtime.Caller(0)
+	projectRoot            = strings.TrimRight(filepath.Dir(b), "gateway")
+	accountCompiled string = projectRoot + "gateway/contracts/account_class.json"
+	proxyTest       string = projectRoot + "gateway/contracts/Proxy.cairo"
+	proxyCompiled   string = projectRoot + "gateway/contracts/proxy_compiled.json"
 )
 
 type StarknetTest struct {
-	Environments  []TestEnvironment `json:"environments"`
-	AccountCalldata []string `json:"accountCalldata"`
+	Environments    []TestEnvironment `json:"environments"`
+	AccountCalldata []string          `json:"accountCalldata"`
 }
 
 type TestEnvironment struct {
-	Chain      string `json:"chain"`
+	Chain    string `json:"chain"`
 	Accounts []struct {
 		Address      string              `json:"address,omitempty"`
 		Public       string              `json:"public_key,omitempty"`
@@ -77,7 +77,7 @@ func init() {
 		if err != nil {
 			panic(err.Error())
 		}
-	
+
 		file, err := json.Marshal(accountClass)
 		err = ioutil.WriteFile(accountCompiled, file, 0644)
 		if err != nil {
@@ -89,7 +89,7 @@ func init() {
 		if err != nil {
 			panic(err.Error())
 		}
-	
+
 		err = exec.Command(home+"/cairo_venv/bin/starknet-compile", "--cairo_path", projectRoot+"gateway", proxyTest, "--output", proxyCompiled).Run()
 		if err != nil {
 			panic(err.Error())
@@ -107,24 +107,24 @@ func TestExecute(t *testing.T) {
 					if err != nil {
 						t.Errorf("%s: could not init with constant points: %v\n", env.Chain, err)
 					}
-					
+
 					account, err := caigo.NewAccount(&curve, testAccount.Private, testAccount.Address, NewProvider(WithChain(env.Chain)))
 					if err != nil {
 						t.Errorf("%s: could not create account: %v\n", env.Chain, err)
 					}
-					
+
 					feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions)
 					if err != nil {
 						t.Errorf("%s: could not estimate fee for transaction: %v\n", env.Chain, err)
 					}
 					fee := &types.Felt{big.NewInt(int64(float64(feeEstimate.Amount) * FEE_MARGIN))}
-					
+
 					txResp, err := account.Execute(context.Background(), fee, testAccount.Transactions)
 					if err != nil {
 						t.Errorf("Could not execute test transaction: %v\n", err)
 					}
-					
-					snTransactions[env.Chain] = append(snTransactions[env.Chain], txResp.TransactionHash) 
+
+					snTransactions[env.Chain] = append(snTransactions[env.Chain], txResp.TransactionHash)
 				}
 			}
 		}
@@ -140,7 +140,7 @@ func TestDeclareAndDeploy(t *testing.T) {
 				t.Errorf("%s: could not 'DECLARE' contract: %v\n", env.Chain, err)
 				return
 			}
-		
+
 			tx, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: declareTx.TransactionHash})
 			if err != nil {
 				t.Errorf("%s: could not get 'DECLARE' transaction: %v\n", env.Chain, err)
@@ -175,7 +175,7 @@ func TestContractAddresses(t *testing.T) {
 			if err != nil {
 				t.Errorf("%s: could not get starknet addresses - \n%v\n", env.Chain, err)
 			}
-	
+
 			if strings.ToLower(addresses.Starknet) != env.ContractAddresses.Starknet {
 				t.Errorf("%s: fetched incorrect addresses - \n%s %s\n", env.Chain, strings.ToLower(addresses.Starknet), env.ContractAddresses.Starknet)
 			}
@@ -188,7 +188,7 @@ func TestCall(t *testing.T) {
 		gw := NewClient(WithChain(env.Chain))
 		for _, testAccount := range env.Accounts {
 			call := types.FunctionCall{
-				ContractAddress:    testAccount.Address,
+				ContractAddress: testAccount.Address,
 			}
 			if env.Chain == "devnet" {
 				call.EntryPointSelector = "get_public_key"
@@ -202,7 +202,7 @@ func TestCall(t *testing.T) {
 			if len(resp) == 0 {
 				t.Errorf("%s: could get signing key for account: %v\n", env.Chain, err)
 			}
-			
+
 			if resp[0] != testAccount.Public {
 				t.Errorf("%s: signing key is incorrect: \n%s %v\n", env.Chain, resp[0], testAccount.Public)
 			}
@@ -210,7 +210,7 @@ func TestCall(t *testing.T) {
 	}
 }
 
-// func TestTransactions(t *testing.T) {	
+// func TestTransactions(t *testing.T) {
 // 	for k, txs := range snTransactions {
 // 		fmt.Println("ENV - ", k)
 

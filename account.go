@@ -20,7 +20,7 @@ type Account struct {
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
-	curve	 *StarkCurve
+	curve    *StarkCurve
 }
 
 /*
@@ -47,7 +47,7 @@ func NewAccount(sc *StarkCurve, private, address string, provider types.Provider
 		PublicX:  x,
 		PublicY:  y,
 		private:  priv,
-		curve: 	  sc,
+		curve:    sc,
 	}, nil
 }
 
@@ -125,7 +125,7 @@ func (account *Account) FmtExecute(ctx context.Context, maxFee *types.Felt, call
 	if err != nil {
 		return nil, err
 	}
-	
+
 	r, s, err := account.Sign(hash)
 	if err != nil {
 		return nil, err
