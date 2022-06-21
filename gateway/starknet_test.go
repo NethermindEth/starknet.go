@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	FEE_MARGIN         float64 = 1.15
+	FEE_MARGIN         int64 = 115
 	SEED               int     = 100000000
 	ACCOUNT_CLASS_HASH string  = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
 )
@@ -116,7 +116,8 @@ func TestExecute(t *testing.T) {
 					if err != nil {
 						t.Errorf("%s: could not estimate fee for transaction: %v\n", env.Chain, err)
 					}
-					fee := &types.Felt{big.NewInt(int64(float64(feeEstimate.Amount) * FEE_MARGIN))}
+					fee := new(types.Felt)
+					fee.Int = big.NewInt(feeEstimate.Amount * FEE_MARGIN/100)
 
 					txResp, err := account.Execute(context.Background(), fee, testAccount.Transactions)
 					if err != nil {

@@ -68,7 +68,7 @@ func main() {
 	}
 	
 	increment := []types.Transaction{
-		types.Transaction{
+		{
 			ContractAddress:   tx.Transaction.ContractAddress,
 			EntryPointSelector: "increment",
 		},
@@ -78,8 +78,8 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fee := &types.Felt{big.NewInt(int64(float64(feeEstimate.Amount) * 1.15))}
-	
+	fee := new(types.Felt)
+	fee.Int = big.NewInt(feeEstimate.Amount * 115/100)
 
 	execResp, err := account.Execute(context.Background(), fee, increment)
 	if err != nil {
