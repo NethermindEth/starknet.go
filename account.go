@@ -61,7 +61,7 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	- accepts a multicall
 */
 func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
-	req, err := account.FmtExecute(ctx, maxFee, calls)
+	req, err := account.fmtExecute(ctx, maxFee, calls)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 		return nil, err
 	}
 
-	callArray := FmtExecuteCalldata(nonce, calls)
+	callArray := fmtExecuteCalldata(nonce, calls)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
 	cdHash, err := account.curve.HashElements(callArray)
 	if err != nil {
@@ -99,7 +99,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
 	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
-	req, err := account.FmtExecute(ctx, zeroFee, calls)
+	req, err := account.fmtExecute(ctx, zeroFee, calls)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	return account.Provider.EstimateFee(ctx, *req)
 }
 
-func (account *Account) FmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.Transaction, error) {
+func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.Transaction, error) {
 	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (account *Account) FmtExecute(ctx context.Context, maxFee *types.Felt, call
 		ContractAddress:    account.Address,
 		EntryPointSelector: EXECUTE_SELECTOR,
 		MaxFee:             maxFee.Hex(),
-		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
+		Calldata:           fmtExecuteCalldataStrings(nonce, calls),
 	}
 
 	hash, err := account.HashMultiCall(maxFee, nonce, calls)
@@ -135,8 +135,8 @@ func (account *Account) FmtExecute(ctx context.Context, maxFee *types.Felt, call
 	return &req, nil
 }
 
-func FmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
-	callArray := FmtExecuteCalldata(nonce, calls)
+func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
+	callArray := fmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, data.String())
 	}
@@ -146,7 +146,7 @@ func FmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calld
 /*
 	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func FmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
+func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
