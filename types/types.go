@@ -89,7 +89,7 @@ type DeployRequest struct {
 type ContractClass struct {
 	ABI               []ABI             `json:"abi"`
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-	Program           []string            `json:"program"`
+	Program           []string          `json:"program"`
 }
 
 type DeclareRequest struct {

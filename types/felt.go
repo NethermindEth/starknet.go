@@ -3,7 +3,6 @@ package types
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"math/big"
@@ -11,8 +10,87 @@ import (
 	"strings"
 )
 
+const (
+	FIELD_GEN   int    = 3
+	FIELD_PRIME string = "3618502788666131213697322783095070105623107215331596699973092056135872020481"
+)
+
+var (
+	MaxFelt = ToFelt(FIELD_PRIME)
+)
+
 type Felt struct {
 	*big.Int
+}
+
+func ToFelt(str string) *Felt {
+	if b, ok := new(big.Int).SetString(str, 0); ok {
+		return &Felt{Int: b}
+	}
+	return nil
+}
+
+func (f *Felt) setString(str string) bool {
+	if b, ok := new(big.Int).SetString(str, 0); ok {
+		f.Int = b
+		return ok
+	}
+	return false
+}
+
+func (f *Felt) Hex() string {
+	return fmt.Sprintf("0x%x", f)
+}
+
+func (f Felt) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
+}
+
+func (f *Felt) UnmarshalJSON(p []byte) error {
+	if string(p) == "null" || len(p) == 0 {
+		return nil
+	}
+
+	var s string
+	// parse double quotes
+	if p[0] == 0x22 {
+		s = string(p[1 : len(p)-1])
+	} else {
+		s = string(p)
+	}
+
+	if ok := f.setString(s); !ok {
+		return fmt.Errorf("unmarshalling big int: %s", string(p))
+	}
+
+	return nil
+}
+
+func (f Felt) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(f.Hex()))
+}
+
+func (b *Felt) UnmarshalGQL(v interface{}) error {
+	switch bi := v.(type) {
+	case string:
+		if ok := b.setString(bi); ok {
+			return nil
+		}
+	case int:
+		b.Int = big.NewInt(int64(bi))
+		if b.Int != nil {
+			return nil
+		}
+	}
+	
+	return fmt.Errorf("invalid big number")
+}
+
+func (f Felt) Value() (driver.Value, error) {
+	if f.Int == nil {
+		return "", nil
+	}
+	return f.String(), nil
 }
 
 func (f *Felt) Scan(src interface{}) error {
@@ -37,76 +115,4 @@ func (f *Felt) Scan(src interface{}) error {
 		return err
 	}
 	return nil
-}
-
-func (f Felt) Value() (driver.Value, error) {
-	if f.Int == nil {
-		return "", nil
-	}
-	return f.String(), nil
-}
-
-func (f Felt) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
-}
-
-func (f *Felt) UnmarshalJSON(p []byte) error {
-	if string(p) == "null" {
-		return nil
-	}
-
-	f.Int = new(big.Int)
-
-	// Ints are represented as strings in JSON. We
-	// remove the enclosing quotes to provide a plain
-	// string number to SetString.
-	s := string(p[1 : len(p)-1])
-
-	if has0xPrefix(s) {
-		s := s[2:]
-
-		if len(s)%2 == 1 {
-			s = "0" + s
-		}
-
-		b, err := hex.DecodeString(s)
-		if err != nil {
-			return err
-		}
-
-		f.Int.SetBytes(b)
-		return nil
-	}
-
-	if i, _ := f.Int.SetString(s, 10); i == nil {
-		return fmt.Errorf("unmarshalling big int: %s", string(p))
-	}
-
-	return nil
-}
-
-func (f Felt) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(f.Hex()))
-}
-
-func (b *Felt) UnmarshalGQL(v interface{}) error {
-	if bi, ok := v.(string); ok {
-		b.Int = new(big.Int)
-		b.Int, ok = b.Int.SetString(bi, 16)
-		if !ok {
-			return fmt.Errorf("invalid big number: %s", bi)
-		}
-
-		return nil
-	}
-
-	return fmt.Errorf("invalid big number")
-}
-
-func (f Felt) Hex() string {
-	return fmt.Sprintf("0x%x", f)
-}
-
-func has0xPrefix(input string) bool {
-	return len(input) >= 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')
 }
