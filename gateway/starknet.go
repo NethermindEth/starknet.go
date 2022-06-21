@@ -12,10 +12,24 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
+	"github.com/google/go-querystring/query"
 )
 
 type StarkResp struct {
 	Result []string `json:"result"`
+}
+
+type StateUpdate struct {
+	BlockHash string `json:"block_hash"`
+	NewRoot   string `json:"new_root"`
+	OldRoot   string `json:"old_root"`
+	StateDiff struct {
+		StorageDiffs      map[string]interface{} `json:"storage_diffs"`
+		DeployedContracts []struct {
+			Address   string `json:"address"`
+			ClassHash string `json:"class_hash"`
+		} `json:"deployed_contracts"`
+	} `json:"state_diff"`
 }
 
 func (sg *Gateway) ChainID(context.Context) (string, error) {
@@ -145,6 +159,24 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	}
 
 	return resp, sg.do(req, &resp)
+}
+
+func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {
+	req, err := sg.newRequest(ctx, http.MethodGet, "/get_state_update", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if opts != nil {
+		vs, err := query.Values(opts)
+		if err != nil {
+			return nil, err
+		}
+		appendQueryValues(req, vs)
+	}
+
+	var resp StateUpdate
+	return &resp, sg.do(req, &resp)
 }
 
 func (sg *Gateway) ContractAddresses(ctx context.Context) (*types.ContractAddresses, error) {

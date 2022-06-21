@@ -22,7 +22,6 @@ import (
 const (
 	FEE_MARGIN         float64 = 1.15
 	SEED               int     = 100000000
-	PEDERSON_JSON      string  = "pedersen_params.json"
 	ACCOUNT_CLASS_HASH string  = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
 )
 
@@ -103,7 +102,7 @@ func TestExecute(t *testing.T) {
 		if env.Chain == "testnet" {
 			for _, testAccount := range env.Accounts {
 				if testAccount.Private != "" {
-					curve, err := caigo.SC(caigo.WithConstants(projectRoot + PEDERSON_JSON))
+					curve, err := caigo.SC(caigo.WithConstants(projectRoot + "pedersen_params.json"))
 					if err != nil {
 						t.Errorf("%s: could not init with constant points: %v\n", env.Chain, err)
 					}
@@ -178,6 +177,22 @@ func TestContractAddresses(t *testing.T) {
 
 			if strings.ToLower(addresses.Starknet) != env.ContractAddresses.Starknet {
 				t.Errorf("%s: fetched incorrect addresses - \n%s %s\n", env.Chain, strings.ToLower(addresses.Starknet), env.ContractAddresses.Starknet)
+			}
+		}
+	}
+}
+
+func TestStateDiff(t *testing.T) {
+	for _, env := range snTest.Environments {
+		if env.Chain != "devnet" {
+			gw := NewClient(WithChain(env.Chain))
+			diff, err := gw.StateUpdate(context.Background(), nil)
+			if err != nil {
+				t.Errorf("%s: could not get starknet addresses - \n%v\n", env.Chain, err)
+			}
+
+			if diff.OldRoot == "" || diff.NewRoot == "" {
+				t.Errorf("%s: could not fetch accurate state update - \n%s %s\n", env.Chain, diff.OldRoot, diff.NewRoot)
 			}
 		}
 	}
