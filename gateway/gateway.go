@@ -47,16 +47,16 @@ func NewClient(opts ...Option) *Gateway {
 
 	var sg *Gateway
 	switch id := strings.ToLower(gopts.chainID); {
-	case strings.Contains("main", id):
+	case strings.Contains(id, "main"):
 		sg = &Gateway{
 			Base:    MAINNET_BASE,
 			Feeder:  MAINNET_BASE + "/feeder_gateway",
 			Gateway: MAINNET_BASE + "/gateway",
 			ChainId: MAINNET_ID,
 		}
-	case strings.Contains("local", id):
+	case strings.Contains(id, "local"):
 		fallthrough
-	case strings.Contains("dev", id):
+	case strings.Contains(id, "dev"):
 		sg = &Gateway{
 			Base:    LOCAL_BASE,
 			Feeder:  LOCAL_BASE + "/feeder_gateway",

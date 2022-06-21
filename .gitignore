@@ -7,3 +7,6 @@ tmp/
 
 examples/**/*.json
 examples/**/*.sum
+
+*/**/*abi.json
+*/**/*compiled.json

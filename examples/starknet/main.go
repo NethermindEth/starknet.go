@@ -23,8 +23,7 @@ func main() {
 	// get random value for salt
 	priv, _ := curve.GetRandomPrivateKey()
 
-	// example: https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
-	// starknet-compile counter.cairo --output counter_compiled.json --abi counter_abi.json
+	// starknet-compile ../../gateway/contracts/counter.cairo --output counter_compiled.json
 	deployResponse, err := gw.Deploy(context.Background(), "counter_compiled.json", types.DeployRequest{
 		ContractAddressSalt: caigo.BigToHex(priv),
 		ConstructorCalldata: []string{},

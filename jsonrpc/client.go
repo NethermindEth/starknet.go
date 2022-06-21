@@ -143,6 +143,16 @@ func (sc *Client) ClassHashAt(ctx context.Context, contractAddress string) (*typ
 	return &result, err
 }
 
+func (sc *Client) Syncing(ctx context.Context) (*types.Felt, error) {
+	var result types.Felt
+	err := sc.c.CallContext(ctx, &result, "starknet_syncing")
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
 	panic("not implemented")
 }

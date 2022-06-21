@@ -15,17 +15,20 @@
 Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs.starknet.io/docs/intro).
 
 ### Getting Started
+
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
 - [example](./examples/starkcurve) initializing the StarkCurve for signing and verification
 - [example](./examples/starknet) for StarkNet interactions including deploy, call, invoke, and poll transaction
 
 ### Compatibility and stability
+
 Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
 *NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
 
-
 ### Run Examples
+
 starkcurve
+
 ```sh
 cd examples/starkcurve
 go mod tidy
@@ -33,17 +36,13 @@ go run main.go
 ```
 
 starknet
+
 ```sh
 cd examples/starknet
 go mod tidy
 
-# Download counter.cairo example
-wget https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
-# or if your machine doesn't have wget
-curl https://raw.githubusercontent.com/starknet-edu/ultimate-env/main/counter.cairo > counter.cairo
-
 python3.7 -m venv ~/cairo_venv; source ~/cairo_venv/bin/activate; export STARKNET_NETWORK=alpha-goerli
-starknet-compile counter.cairo --output counter_compiled.json --abi counter_abi.json
+starknet-compile ../../gateway/contracts/counter.cairo --output counter_compiled.json
 go run main.go
 ```
 
@@ -58,7 +57,6 @@ go test -v ./...
 ```go
 go test -bench=.
 ```
-
 
 ## Issues
 

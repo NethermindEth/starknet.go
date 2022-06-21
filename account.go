@@ -15,12 +15,12 @@ const (
 )
 
 type Account struct {
-	Curve    StarkCurve
 	Provider types.Provider
 	Address  string
-	private  *big.Int
 	PublicX  *big.Int
 	PublicY  *big.Int
+	private  *big.Int
+	curve	 *StarkCurve
 }
 
 /*
@@ -30,10 +30,11 @@ type Account struct {
 	- full provider definition
 	- public key pair for signature verifications
 */
-func (sc StarkCurve) NewAccount(private, address string, provider types.Provider) (*Account, error) {
+func NewAccount(sc *StarkCurve, private, address string, provider types.Provider) (*Account, error) {
 	if len(sc.ConstantPoints) == 0 {
 		return nil, fmt.Errorf("must initiate precomputed constant points")
 	}
+
 	priv := SNValToBN(private)
 	x, y, err := sc.PrivateToPoint(priv)
 	if err != nil {
@@ -41,13 +42,17 @@ func (sc StarkCurve) NewAccount(private, address string, provider types.Provider
 	}
 
 	return &Account{
-		Curve:    sc,
 		Provider: provider,
 		Address:  address,
-		private:  priv,
 		PublicX:  x,
 		PublicY:  y,
+		private:  priv,
+		curve: 	  sc,
 	}, nil
+}
+
+func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
+	return account.curve.Sign(msgHash, account.private)
 }
 
 /*
@@ -55,69 +60,16 @@ func (sc StarkCurve) NewAccount(private, address string, provider types.Provider
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (account *Account) Execute(ctx context.Context, call types.Transaction) (*types.AddTxResponse, error) {
-	calls := []types.Transaction{call}
-
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
+	req, err := account.FmtExecute(ctx, maxFee, calls)
 	if err != nil {
 		return nil, err
 	}
 
-	req := types.Transaction{
-		ContractAddress:    account.Address,
-		EntryPointSelector: EXECUTE_SELECTOR,
-		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
-	}
-
-	// provide good signature so we can get estimate for ECDSA signing
-	fee, err := account.EstimateFeeMultiCall(ctx, req, nonce, calls)
-	if err != nil {
-		return nil, err
-	}
-	req.MaxFee = fee
-
-	r, s, err := account.SignMultiCall(req.MaxFee, nonce, calls)
-	if err != nil {
-		return nil, err
-	}
-	req.Signature = []string{r.String(), s.String()}
-
-	return account.Provider.Invoke(ctx, req)
+	return account.Provider.Invoke(ctx, *req)
 }
 
-func (account *Account) ExecuteMultiCall(ctx context.Context, maxFee string, calls []types.Transaction) (*types.AddTxResponse, error) {
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	req := types.Transaction{
-		ContractAddress:    account.Address,
-		EntryPointSelector: EXECUTE_SELECTOR,
-		MaxFee:             maxFee,
-		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
-	}
-
-	r, s, err := account.SignMultiCall(maxFee, nonce, calls)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Signature = []string{r.String(), s.String()}
-
-	return account.Provider.Invoke(ctx, req)
-}
-
-func (account *Account) SignMultiCall(maxFee string, nonce *big.Int, calls []types.Transaction) (*big.Int, *big.Int, error) {
-	hash, err := account.HashMultiCall(maxFee, nonce, calls)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return account.Curve.Sign(hash, account.private)
-}
-
-func (account *Account) HashMultiCall(fee string, nonce *big.Int, calls []types.Transaction) (hash *big.Int, err error) {
+func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -125,9 +77,9 @@ func (account *Account) HashMultiCall(fee string, nonce *big.Int, calls []types.
 
 	callArray := FmtExecuteCalldata(nonce, calls)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
-	cdHash, err := sc.HashElements(callArray)
+	cdHash, err := account.curve.HashElements(callArray)
 	if err != nil {
-		return hash, err
+		return nil, err
 	}
 
 	multiHashData := []*big.Int{
@@ -136,25 +88,51 @@ func (account *Account) HashMultiCall(fee string, nonce *big.Int, calls []types.
 		SNValToBN(account.Address),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
-		SNValToBN(fee),
+		fee.Int,
 		UTF8StrToBig(chainID),
 	}
 
 	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	hash, err = account.Curve.HashElements(multiHashData)
-	return hash, err
+	return account.curve.HashElements(multiHashData)
 }
 
-func (account *Account) EstimateFeeMultiCall(ctx context.Context, req types.Transaction, nonce *big.Int, calls []types.Transaction) (string, error) {
-	r, s, err := account.SignMultiCall("0", nonce, calls)
+func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
+	zeroFee := &types.Felt{Int: big.NewInt(0)}
+
+	req, err := account.FmtExecute(ctx, zeroFee, calls)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	req.MaxFee = zeroFee.Hex()
+
+	return account.Provider.EstimateFee(ctx, *req)
+}
+
+func (account *Account) FmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.Transaction, error) {
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+	if err != nil {
+		return nil, err
 	}
 
-	req.Signature = []string{r.String(), s.String()}
-	fee, err := account.Provider.EstimateFee(ctx, req)
+	req := types.Transaction{
+		ContractAddress:    account.Address,
+		EntryPointSelector: EXECUTE_SELECTOR,
+		MaxFee:             maxFee.Hex(),
+		Calldata:           FmtExecuteCalldataStrings(nonce, calls),
+	}
 
-	return BigToHex(fee.Amount), err
+	hash, err := account.HashMultiCall(maxFee, nonce, calls)
+	if err != nil {
+		return nil, err
+	}
+	
+	r, s, err := account.Sign(hash)
+	if err != nil {
+		return nil, err
+	}
+	req.Signature = []string{r.String(), s.String()}
+
+	return &req, nil
 }
 
 func FmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {

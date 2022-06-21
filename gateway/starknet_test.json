@@ -1,0 +1,89 @@
+{
+    "environments": [
+        {
+            "chain": "devnet",
+            "accounts": [
+                {
+                    "private_key": "0xe3e70682c2094cac629f6fbed82c07cd",
+                    "public_key": "0x7e52885445756b313ea16849145363ccb73fb4ab0440dbac333cf9d13de82b9",
+                    "address": "0x065d53c8ec4178096167b35a08e16e548d8075cb08ad7bc63d07966ca13569dc"
+                },
+                {
+                    "private_key": "0xf728b4fa42485e3a0a5d2f346baa9455",
+                    "public_key": "0x175666e92f540a19eb24fa299ce04c23f3b75cb2d2332e3ff2021bf6d615fa5",
+                    "address": "0x07ba598919104bb3d834052f7ae0c3adf0a78f8e3df0bb43f31dbdc3ca5bb035"
+                }
+            ],
+            "contractAddresses": {
+                "Starknet": "not implemented",
+                "GpsStatementVerifier": "not implemented"
+            }
+        },
+        {
+            "chain": "testnet",
+            "accounts": [
+                {
+                    "private_key": "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
+                    "public_key": "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
+                    "address": "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246",
+                    "transactions": [
+                        {
+                            "contract_address": "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+                            "entry_point_selector": "update_single_store",
+                            "calldata": [
+                                "3"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "address": "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c",
+                    "public_key": "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
+                    "private_key": "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
+                    "transactions": [
+                        {
+                            "contract_address": "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+                            "entry_point_selector": "update_multi_store",
+                            "calldata": [
+                                "4",
+                                "6"
+                            ]
+                        },
+                        {
+                            "contract_address": "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+                            "entry_point_selector": "update_struct_store",
+                            "calldata": [
+                                "435921360636",
+                                "1500000000000000000000",
+                                "0"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "contractAddresses": {
+                "Starknet": "0xde29d060d45901fb19ed6c6e959eb22d8626708e",
+                "GpsStatementVerifier": "0xab43ba48c9edf4c2c4bb01237348d1d7b28ef168"
+            }
+        },
+        {
+            "chain": "mainnet",
+            "accounts": [
+                {
+                    "private_key": "",
+                    "public_key": "0x44a778e0ec9b7f2fae836ccc7bf4a3e5227a94e6d2b60f7423b8bd4ae52c2a0",
+                    "address": "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"
+                },
+                {
+                    "private_key": "",
+                    "public_key": "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
+                    "address": "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c"
+                }
+            ],
+            "contractAddresses": {
+                "Starknet": "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
+                "GpsStatementVerifier": "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60"
+            }
+        }
+    ]
+}

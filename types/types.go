@@ -1,9 +1,5 @@
 package types
 
-import (
-	"math/big"
-)
-
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -124,7 +120,7 @@ type FunctionCall struct {
 }
 
 type FeeEstimate struct {
-	Amount *big.Int `json:"amount"`
+	Amount int64 `json:"amount"`
 	Unit   string   `json:"unit"`
 }
 
