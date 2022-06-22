@@ -34,6 +34,7 @@ type L2Message struct {
 }
 
 type Event struct {
+	Order       int     `json:"order,omitempty"`
 	FromAddress string  `json:"from_address,omitempty"`
 	Keys        []*Felt `json:"keys,omitempty"`
 	Data        []*Felt `json:"data,omitempty"`
@@ -46,4 +47,37 @@ type TransactionReceipt struct {
 	MessagesSent    []*L1Message `json:"messages_sent,omitempty"`
 	L1OriginMessage *L2Message   `json:"l1_origin_message,omitempty"`
 	Events          []*Event     `json:"events,omitempty"`
+}
+
+type ExecutionResources struct {
+	NSteps                 int `json:"n_steps"`
+	BuiltinInstanceCounter struct {
+		PedersenBuiltin   int `json:"pedersen_builtin"`
+		RangeCheckBuiltin int `json:"range_check_builtin"`
+		BitwiseBuiltin    int `json:"bitwise_builtin"`
+		OutputBuiltin     int `json:"output_builtin"`
+		EcdsaBuiltin      int `json:"ecdsa_builtin"`
+		EcOpBuiltin       int `json:"ec_op_builtin"`
+	} `json:"builtin_instance_counter"`
+	NMemoryHoles int `json:"n_memory_holes"`
+}
+
+type TransactionTrace struct {
+	FunctionInvocation FunctionInvocation `json:"function_invocation"`
+	Signature          []*Felt            `json:"signature"`
+}
+
+type FunctionInvocation struct {
+	CallerAddress      string               `json:"caller_address"`
+	ContractAddress    string               `json:"contract_address"`
+	Calldata           []string             `json:"calldata"`
+	CallType           string               `json:"call_type"`
+	ClassHash          string               `json:"class_hash"`
+	Selector           string               `json:"selector"`
+	EntryPointType     string               `json:"entry_point_type"`
+	Result             []string             `json:"result"`
+	ExecutionResources ExecutionResources   `json:"execution_resources"`
+	InternalCalls      []FunctionInvocation `json:"internal_calls"`
+	Events             []Event              `json:"events"`
+	Messages           []interface{}        `json:"messages"`
 }

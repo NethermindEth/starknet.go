@@ -100,6 +100,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
 	req, err := account.fmtExecute(ctx, zeroFee, calls)
+	fmt.Printf("REQ: %+v\n", calls)
 	if err != nil {
 		return nil, err
 	}

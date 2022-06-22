@@ -1,5 +1,7 @@
 package types
 
+type Bytecode []string
+
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -8,21 +10,13 @@ type Block struct {
 	OldRoot         string         `json:"old_root"`
 	Status          string         `json:"status"`
 	AcceptedTime    uint64         `json:"accepted_time"`
+	GasPrice        string         `json:"gas_price"`
 	Transactions    []*Transaction `json:"transactions"`
 }
 
 type Code struct {
-	Bytecode []string `json:"bytecode"`
-	Abi      []struct {
-		Inputs []struct {
-			Name string `json:"name"`
-			Type string `json:"type"`
-		} `json:"inputs"`
-		Name            string        `json:"name"`
-		Outputs         []interface{} `json:"outputs"`
-		Type            string        `json:"type"`
-		StateMutability string        `json:"stateMutability,omitempty"`
-	} `json:"abi"`
+	Bytecode Bytecode `json:"bytecode"`
+	Abi      []ABI    `json:"abi"`
 }
 
 /*
@@ -85,20 +79,16 @@ type DeployRequest struct {
 type ContractClass struct {
 	ABI               []ABI             `json:"abi"`
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-	Program           []string            `json:"program"`
+	Program           interface{}       `json:"program"`
 }
 
 type DeclareRequest struct {
-	Type          string   `json:"type"`
-	SenderAddress string   `json:"sender_address"`
-	MaxFee        string   `json:"max_fee"`
-	Nonce         string   `json:"nonce"`
-	Signature     []string `json:"signature"`
-	ContractClass struct {
-		ABI               []ABI             `json:"abi"`
-		EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-		Program           string            `json:"program"`
-	} `json:"contract_class"`
+	Type          string        `json:"type"`
+	SenderAddress string        `json:"sender_address"`
+	MaxFee        string        `json:"max_fee"`
+	Nonce         string        `json:"nonce"`
+	Signature     []string      `json:"signature"`
+	ContractClass ContractClass `json:"contract_class"`
 }
 
 type EntryPointsByType struct {
@@ -116,7 +106,7 @@ type FunctionCall struct {
 	ContractAddress    string   `json:"contract_address"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
+	Signature          []string `json:"signature,omitempty"`
 }
 
 type FeeEstimate struct {

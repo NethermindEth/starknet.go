@@ -45,7 +45,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 		call.Calldata = []string{}
 	}
 	if len(call.Signature) == 0 {
-		call.Signature = []string{}
+		call.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)

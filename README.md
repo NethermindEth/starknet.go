@@ -25,6 +25,42 @@ Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs
 Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
 *NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
 
+### RPC
+
+Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs).
+
+Implementation status:
+
+| Method                        | Implemented           |
+| ----------------------------- | --------------------- |
+| `starknet_getBlockByHash` | :heavy_check_mark: |
+| `starknet_getBlockByNumber` | :heavy_check_mark: |
+| `starknet_getTransactionByHash` | :heavy_check_mark: |
+| `starknet_getTransactionReceipt` | :heavy_check_mark: |
+| `starknet_getClass` | :heavy_check_mark: |
+| `starknet_getClassHashAt` | :heavy_check_mark: |
+| `starknet_getClassAt` | :heavy_check_mark: |
+| `starknet_call` | :heavy_check_mark: |
+| `starknet_blockNumber` | :heavy_check_mark: |
+| `starknet_chainId` | :heavy_check_mark: |
+| `starknet_syncing` | :heavy_check_mark: |
+| `starknet_getEvents` | :heavy_check_mark: |
+| `starknet_addInvokeTransaction` | :X: |
+| `starknet_addDeployTransaction` | :X: |
+| `starknet_addDeclareTransaction` | :X: |
+| `starknet_traceTransaction` | :X: |
+| `starknet_traceBlockTransactions` | :X: |
+| `starknet_getNonce` | :X: |
+| `starknet_protocolVersion` | :X: |
+| `starknet_pendingTransactions` | :X: |
+| `starknet_estimateFee` | :X: |
+| `starknet_getBlockTransactionCountByHash` | :X: |
+| `starknet_getBlockTransactionCountByNumber` | :X: |
+| `starknet_getTransactionByBlockNumberAndIndex` | :X: |
+| `starknet_getTransactionByBlockHashAndIndex` | :X: |
+| `starknet_getStorageAt` | :X: |
+| `starknet_getStateUpdateByHash` | :X: |
+
 ### Run Examples
 
 starkcurve

@@ -1,57 +1,31 @@
-package jsonrpc
+package rpc
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// ErrNotFound is returned by API methods if the requested item does not exist.
-var ErrNotFound = errors.New("not found")
-
-type Client struct {
-	c *rpc.Client
+type Events struct {
+	Events []Event `json:"events"`
 }
 
-// Dial connects a client to the given URL.
-func Dial(rawurl string) (*Client, error) {
-	return DialContext(context.Background(), rawurl)
+type Event struct {
+	*types.Event
+	FromAddress     string `json:"from_address"`
+	BlockHash       string `json:"block_hash"`
+	BlockNumber     int    `json:"block_number"`
+	TransactionHash string `json:"transaction_hash"`
 }
 
-func DialContext(ctx context.Context, rawurl string) (*Client, error) {
-	c, err := rpc.DialContext(ctx, rawurl)
-	if err != nil {
-		return nil, err
-	}
-	return NewClient(c), nil
-}
-
-// NewClient creates a client that uses the given RPC client.
-func NewClient(c *rpc.Client) *Client {
-	return &Client{c: c}
-}
-
-func (sc *Client) Close() {
-	sc.c.Close()
-}
-
-// ChainID retrieves the current chain ID for transaction replay protection.
-func (sc *Client) ChainID(ctx context.Context) (string, error) {
-	var result string
-	err := sc.c.CallContext(ctx, &result, "starknet_chainId")
-	if err != nil {
-		return "", err
-	}
-	return result, err
-}
-
-func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
-	panic("not implemented")
+type EventParams struct {
+	FromBlock  uint64 `json:"fromBlock"`
+	ToBlock    uint64 `json:"toBlock"`
+	PageSize   uint64 `json:"page_size"`
+	PageNumber uint64 `json:"page_number"`
 }
 
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
@@ -116,39 +90,30 @@ func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, erro
 }
 
 func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass, error) {
-	var contract types.ContractClass
-	if err := sc.do(ctx, "starknet_getClass", &contract, hash); err != nil {
+	var rawClass types.ContractClass
+	if err := sc.do(ctx, "starknet_getClass", &rawClass, hash); err != nil {
 		return nil, err
 	}
 
-	return &contract, nil
+	return &rawClass, nil
 }
 
 func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
-	var contract types.ContractClass
-	if err := sc.do(ctx, "starknet_getClassAt", &contract, address); err != nil {
+	var rawClass types.ContractClass
+	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, address); err != nil {
 		return nil, err
 	}
 
-	return &contract, nil
+	return &rawClass, nil
 }
 
-func (sc *Client) ClassHashAt(ctx context.Context, contractAddress string) (*types.Felt, error) {
-	var result types.Felt
-	err := sc.c.CallContext(ctx, &result, "starknet_getClassHashAt")
-	if err != nil {
-		return nil, err
+func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, error) {
+	result := new(string)
+	if err := sc.do(ctx, "starknet_getClassHashAt", &result, address); err != nil {
+		return "", err
 	}
 
-	return &result, err
-}
-
-func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
-	panic("not implemented")
-}
-
-func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
-	panic("not implemented")
+	return *result, nil
 }
 
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
@@ -174,20 +139,21 @@ func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.T
 	return &receipt, nil
 }
 
-func (sc *Client) do(ctx context.Context, method string, data interface{}, args ...interface{}) error {
-	var raw json.RawMessage
-	err := sc.c.CallContext(ctx, &raw, method, args...)
-	if err != nil {
-		return err
-	} else if len(raw) == 0 {
-		return ErrNotFound
+func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, error) {
+	var result Events
+	if err := sc.do(ctx, "starknet_getEvents", &result, evParams); err != nil {
+		return nil, err
 	}
 
-	if err := json.Unmarshal(raw, &data); err != nil {
-		return err
-	}
+	return &result, nil
+}
 
-	return nil
+func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
+	panic("not implemented")
+}
+
+func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
+	panic("not implemented")
 }
 
 func toBlockNumArg(number *big.Int) interface{} {

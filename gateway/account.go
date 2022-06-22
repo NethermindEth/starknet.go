@@ -15,6 +15,7 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, 
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
 	}, "")
+	fmt.Println("resp: ", err, resp)
 	if err != nil {
 		return nil, err
 	}
