@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -23,8 +24,7 @@ func main() {
 	// get random value for salt
 	priv, _ := curve.GetRandomPrivateKey()
 
-	// example: https://github.com/starknet-edu/ultimate-env/blob/main/counter.cairo
-	// starknet-compile counter.cairo --output counter_compiled.json --abi counter_abi.json
+	// starknet-compile ../../gateway/contracts/counter.cairo --output counter_compiled.json
 	deployResponse, err := gw.Deploy(context.Background(), "counter_compiled.json", types.DeployRequest{
 		ContractAddressSalt: caigo.BigToHex(priv),
 		ConstructorCalldata: []string{},
@@ -62,20 +62,31 @@ func main() {
 	accountPriv := "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
 	addr := "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
 
-	account, err := curve.NewAccount(accountPriv, addr, gateway.NewProvider())
+	account, err := caigo.NewAccount(&curve, accountPriv, addr, gateway.NewProvider())
 	if err != nil {
 		panic(err.Error())
 	}
 	
-	execResp, err := account.Execute(context.Background(), types.Transaction{
-		ContractAddress:   tx.Transaction.ContractAddress,
-		EntryPointSelector: "increment",
-	})
+	increment := []types.Transaction{
+		{
+			ContractAddress:   tx.Transaction.ContractAddress,
+			EntryPointSelector: "increment",
+		},
+	}
+
+	feeEstimate, err := account.EstimateFee(context.Background(), increment)
+	if err != nil {
+		panic(err.Error())
+	}
+	fee := new(types.Felt)
+	fee.Int = big.NewInt(feeEstimate.Amount * 115/100)
+
+	execResp, err := account.Execute(context.Background(), fee, increment)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	n, status, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 5, 150)
+	n, status, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, pollInterval, 150)
 	if err != nil {
 		panic(err.Error())
 	}

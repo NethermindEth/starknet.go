@@ -1,9 +1,5 @@
 package types
 
-import (
-	"math/big"
-)
-
 type Block struct {
 	BlockHash       string         `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
@@ -51,7 +47,7 @@ func (s TxStatus) String() string {
 
 type TransactionStatus struct {
 	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash"`
+	BlockHash       string `json:"block_hash,omitempty"`
 	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`
@@ -124,8 +120,8 @@ type FunctionCall struct {
 }
 
 type FeeEstimate struct {
-	Amount *big.Int `json:"amount"`
-	Unit   string   `json:"unit"`
+	Amount int64  `json:"amount"`
+	Unit   string `json:"unit"`
 }
 
 type ContractAddresses struct {

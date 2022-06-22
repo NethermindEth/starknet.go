@@ -23,13 +23,17 @@ type StarknetTransaction struct {
 
 type Transaction struct {
 	TransactionHash    string   `json:"transaction_hash,omitempty"`
-	ContractAddress    string   `json:"contract_address"`
+	ClassHash          string   `json:"class_hash,omitempty"`
+	ContractAddress    string   `json:"contract_address,omitempty"`
+	SenderAddress      string   `json:"sender_address,omitempty"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
 	EntryPointType     string   `json:"entry_point_type,omitempty"`
-	Type               string   `json:"type,omitempty"`
+	MaxFee             string   `json:"max_fee,omitempty"`
 	Nonce              string   `json:"nonce,omitempty"`
+	Version            string   `json:"version,omitempty"`
+	Type               string   `json:"type,omitempty"`
 }
 
 func (t Transaction) Normalize() *types.Transaction {
