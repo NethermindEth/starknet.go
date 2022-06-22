@@ -45,21 +45,21 @@ Implementation status:
 | `starknet_chainId` | :heavy_check_mark: |
 | `starknet_syncing` | :heavy_check_mark: |
 | `starknet_getEvents` | :heavy_check_mark: |
-| `starknet_addInvokeTransaction` | :X: |
-| `starknet_addDeployTransaction` | :X: |
-| `starknet_addDeclareTransaction` | :X: |
-| `starknet_traceTransaction` | :X: |
-| `starknet_traceBlockTransactions` | :X: |
-| `starknet_getNonce` | :X: |
-| `starknet_protocolVersion` | :X: |
-| `starknet_pendingTransactions` | :X: |
-| `starknet_estimateFee` | :X: |
-| `starknet_getBlockTransactionCountByHash` | :X: |
-| `starknet_getBlockTransactionCountByNumber` | :X: |
-| `starknet_getTransactionByBlockNumberAndIndex` | :X: |
-| `starknet_getTransactionByBlockHashAndIndex` | :X: |
-| `starknet_getStorageAt` | :X: |
-| `starknet_getStateUpdateByHash` | :X: |
+| `starknet_addInvokeTransaction` | :x: |
+| `starknet_addDeployTransaction` | :x: |
+| `starknet_addDeclareTransaction` | :x: |
+| `starknet_traceTransaction` | :x: |
+| `starknet_traceBlockTransactions` | :x: |
+| `starknet_getNonce` | :x: |
+| `starknet_protocolVersion` | :x: |
+| `starknet_pendingTransactions` | :x: |
+| `starknet_estimateFee` | :x: |
+| `starknet_getBlockTransactionCountByHash` | :x: |
+| `starknet_getBlockTransactionCountByNumber` | :x: |
+| `starknet_getTransactionByBlockNumberAndIndex` | :x: |
+| `starknet_getTransactionByBlockHashAndIndex` | :x: |
+| `starknet_getStorageAt` | :x: |
+| `starknet_getStateUpdateByHash` | :x: |
 
 ### Run Examples
 
