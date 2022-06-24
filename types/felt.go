@@ -89,6 +89,10 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 	} else {
 		s = string(p)
 	}
+	
+	if len(s)%2 == 1 {
+		s = "0" + s
+	}
 
 	if ok := f.strToFelt(s); !ok {
 		return fmt.Errorf("unmarshalling big int: %s", string(p))
