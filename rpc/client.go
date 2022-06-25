@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
+// SyncResponse is the Starknet RPC type returned by the Syncing method.
 type SyncResponse struct {
 	StartingBlockHash string `json:"starting_block_hash"`
 	StartingBlockNum  string `json:"starting_block_num"`
@@ -20,15 +21,22 @@ type SyncResponse struct {
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var ErrNotFound = errors.New("not found")
 
-type Client struct {
-	c *rpc.Client
+type callCloser interface {
+	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
 }
 
-// Dial connects a client to the given URL.
+// Client provides the client type for caigo/rpc implementation.
+type Client struct {
+	c callCloser
+}
+
+// Dial connects a client to the given URL. It creates a `go-ethereum/rpc` *Client and relies on context.Background().
 func Dial(rawurl string) (*Client, error) {
 	return DialContext(context.Background(), rawurl)
 }
 
+// DialContext connects a client to the given URL with an existing context. It creates a `go-ethereum/rpc` *Client.
 func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 	c, err := rpc.DialContext(ctx, rawurl)
 	if err != nil {
@@ -37,11 +45,12 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 	return NewClient(c), nil
 }
 
-// NewClient creates a client that uses the given RPC client.
+// NewClient creates a *Client from an existing `go-ethereum/rpc` *Client.
 func NewClient(c *rpc.Client) *Client {
 	return &Client{c: c}
 }
 
+// Close closes the underlying client.
 func (sc *Client) Close() {
 	sc.c.Close()
 }
@@ -56,6 +65,7 @@ func (sc *Client) ChainID(ctx context.Context) (string, error) {
 	return result, err
 }
 
+// Syncing
 func (sc *Client) Syncing(ctx context.Context) (*SyncResponse, error) {
 	var result SyncResponse
 	if err := sc.c.CallContext(ctx, &result, "starknet_syncing"); err != nil {
