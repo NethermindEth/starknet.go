@@ -46,7 +46,7 @@ Implementation status:
 | `starknet_syncing` | :heavy_check_mark: |
 | `starknet_getEvents` | :heavy_check_mark: |
 | `starknet_addInvokeTransaction` | :x: |
-| `starknet_addDeployTransaction` | :x: |
+| `starknet_addDeployTransaction` | :heavy_check_mark: |
 | `starknet_addDeclareTransaction` | :x: |
 | `starknet_traceTransaction` | :x: |
 | `starknet_traceBlockTransactions` | :x: |
