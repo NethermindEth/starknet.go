@@ -80,13 +80,12 @@ func (sc *Client) do(ctx context.Context, method string, data interface{}, args 
 	err := sc.c.CallContext(ctx, &raw, method, args...)
 	if err != nil {
 		return err
-	} else if len(raw) == 0 {
+	}
+	if len(raw) == 0 {
 		return ErrNotFound
 	}
-
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
 	}
-
 	return nil
 }

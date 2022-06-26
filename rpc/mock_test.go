@@ -47,6 +47,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClassAt(result, method, args...)
 	case "starknet_getClassHashAt":
 		return mock_starknet_getClassHashAt(result, method, args...)
+	case "starknet_getClass":
+		return mock_starknet_getClass(result, method, args...)
 	default:
 		return ErrNotFound
 	}
@@ -242,8 +244,8 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	classHash, ok := args[0].(string)
-	if !ok || !strings.HasPrefix(classHash, "0x") {
+	contractHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(contractHash, "0x") {
 		return errWrongArgs
 	}
 	var class = types.ContractClass{
@@ -269,6 +271,27 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	}
 	classHash := "0xdeadbeef"
 	outputContent, _ := json.Marshal(classHash)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getClass(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		fmt.Printf("%T\n", result)
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	classHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(classHash, "0x") {
+		return errWrongArgs
+	}
+	var class = types.ContractClass{
+		Program: []string{"0xdeadbeef"},
+	}
+	outputContent, _ := json.Marshal(class)
 	json.Unmarshal(outputContent, r)
 	return nil
 }

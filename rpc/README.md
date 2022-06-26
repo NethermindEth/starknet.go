@@ -50,7 +50,7 @@ The
 | `starknet_getBlockByNumber`   |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_getTransactionByHash` |  :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_getTransactionReceipt` | :heavy_check_mark: | :heavy_check_mark: |
-| `starknet_getClass`           |    :heavy_check_mark: |                :x: |
+| `starknet_getClass`           |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_getClassHashAt`     |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_getClassAt`         |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_getCode`            |    :heavy_check_mark: | :heavy_check_mark: |

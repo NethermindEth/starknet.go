@@ -5,14 +5,6 @@ import (
 	"testing"
 )
 
-// func TestContract(t *testing.T) {
-
-// 	_, err = client.Class(context.Background(), classHash)
-// 	if err != nil {
-// 		t.Errorf("Could not retrieve class: %v\n", err)
-// 	}
-// }
-
 // TestCodeAt tests code for a contract instance. This will be deprecated.
 func TestCodeAt(t *testing.T) {
 	testConfig := beforeEach(t)
@@ -63,32 +55,32 @@ func TestClassAt(t *testing.T) {
 	defer testConfig.client.Close()
 
 	type testSetType struct {
-		ClassHash         string
+		ContractHash      string
 		ExpectedOperation string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ClassHash:         "0xdeadbeef",
+				ContractHash:      "0xdeadbeef",
 				ExpectedOperation: "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				ClassHash:         "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39",
+				ContractHash:      "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39",
 				ExpectedOperation: "0x480680017fff8000",
 			},
 		},
 		"mainnet": {
 			{
-				ClassHash:         "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f",
+				ContractHash:      "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f",
 				ExpectedOperation: "0x20780017fff7ffd",
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		class, err := testConfig.client.ClassAt(context.Background(), test.ClassHash)
+		class, err := testConfig.client.ClassAt(context.Background(), test.ContractHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -146,6 +138,58 @@ func TestClassHashAt(t *testing.T) {
 		}
 		if classhash != test.ExpectedClassHash {
 			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, classhash)
+		}
+	}
+}
+
+// TestClass tests code for a class.
+func TestClass(t *testing.T) {
+	testConfig := beforeEach(t)
+	defer testConfig.client.Close()
+
+	type testSetType struct {
+		ClassHash         string
+		ExpectedOperation string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				ClassHash:         "0xdeadbeef",
+				ExpectedOperation: "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				ClassHash:         "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ExpectedOperation: "0x40780017fff7fff",
+			},
+		},
+		"mainnet": {
+			{
+				ClassHash:         "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
+				ExpectedOperation: "0x40780017fff7fff",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		class, err := testConfig.client.Class(context.Background(), test.ClassHash)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if class == nil || class.Program == nil {
+			t.Fatal("code should exist")
+		}
+		ops, ok := class.Program.([]interface{})
+		if !ok {
+			t.Fatalf("program should return []interface{}, instead %T", class.Program)
+		}
+		if len(ops) == 0 {
+			t.Fatal("program have several operations")
+		}
+		op, _ := ops[0].(string)
+		if op != test.ExpectedOperation {
+			t.Fatalf("op expected %s, got %s", test.ExpectedOperation, op)
 		}
 	}
 }
