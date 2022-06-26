@@ -158,7 +158,9 @@ func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.T
 }
 
 // Events lists events between two blocks
-// TODO: check the query parameters, Pathfinder can filter on entrypoints
+// TODO: check the query parameters as they include filter directives that have
+// not been implemented. For more details, check the
+// [specification](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json)
 func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, error) {
 	var result Events
 	if err := sc.do(ctx, "starknet_getEvents", &result, evParams); err != nil {

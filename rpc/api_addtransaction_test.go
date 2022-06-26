@@ -10,8 +10,8 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-//go:embed tests/account.json
-var accountFile []byte
+//go:embed tests/counter.json
+var counterFile []byte
 
 // TestAddDeployTransaction tests AddDeployTransaction
 func TestAddDeployTransaction(t *testing.T) {
@@ -26,7 +26,7 @@ func TestAddDeployTransaction(t *testing.T) {
 		ExpectedContractAddress string
 	}
 	var contract types.ContractClass
-	err := json.Unmarshal(accountFile, &contract)
+	err := json.Unmarshal(counterFile, &contract)
 	if err != nil {
 		t.Fatal("error loading contract:", err)
 	}
@@ -35,7 +35,7 @@ func TestAddDeployTransaction(t *testing.T) {
 			{
 				Salt:                    "0xffffff",
 				Contract:                contract,
-				ConstructorCallData:     []string{"5ff5eff3bed10c5109c25ab3618323d74a436e7e0b66a512ca6dbab27f08a6"},
+				ConstructorCallData:     []string{},
 				ExpectedTransactionHash: "0xdeadbeef",
 				ExpectedContractAddress: "0xdeadbeef",
 			},
@@ -44,9 +44,9 @@ func TestAddDeployTransaction(t *testing.T) {
 			{
 				Salt:                    "0xffffff",
 				Contract:                contract,
-				ConstructorCallData:     []string{"5ff5eff3bed10c5109c25ab3618323d74a436e7e0b66a512ca6dbab27f08a6"},
-				ExpectedTransactionHash: "0x60206d9eaa2466235831009a8cd12c8ad019566aa4dccb5fd82c2f5c706cbf1",
-				ExpectedContractAddress: "0x2f2ce1da30dbd3727f5e68b4f2ca7ee0e0108a0c9350a08a7b4d46564e9a21c",
+				ConstructorCallData:     []string{},
+				ExpectedTransactionHash: "0x2149bf99d96ed687a488091ea0d2b1e0b24f73fd7ab96809c2640ae2fc0c791",
+				ExpectedContractAddress: "0x30b0fc513edb49b5602f985f5515540a63c8884f3c23a9a9b70f3c14eab7255",
 			},
 		},
 		// TODO: add tests for mainnet when possible or when figure out how to
