@@ -57,20 +57,9 @@ type TransactionReceipt struct {
 		Selector    string   `json:"selector"`
 		Payload     []string `json:"payload"`
 	} `json:"l1_to_l2_consumed_message"`
-	L2ToL1Messages     []interface{} `json:"l2_to_l1_messages"`
-	Events             []interface{} `json:"events"`
-	ExecutionResources struct {
-		NSteps                 int `json:"n_steps"`
-		BuiltinInstanceCounter struct {
-			PedersenBuiltin   int `json:"pedersen_builtin"`
-			RangeCheckBuiltin int `json:"range_check_builtin"`
-			BitwiseBuiltin    int `json:"bitwise_builtin"`
-			OutputBuiltin     int `json:"output_builtin"`
-			EcdsaBuiltin      int `json:"ecdsa_builtin"`
-			EcOpBuiltin       int `json:"ec_op_builtin"`
-		} `json:"builtin_instance_counter"`
-		NMemoryHoles int `json:"n_memory_holes"`
-	} `json:"execution_resources"`
+	L2ToL1Messages     []interface{}            `json:"l2_to_l1_messages"`
+	Events             []interface{}            `json:"events"`
+	ExecutionResources types.ExecutionResources `json:"execution_resources"`
 }
 
 type TransactionOptions struct {
@@ -171,6 +160,20 @@ func (gw *Gateway) TransactionReceipt(ctx context.Context, txHash string) (*type
 	})
 
 	var resp types.TransactionReceipt
+	return &resp, gw.do(req, &resp)
+}
+
+func (gw *Gateway) TransactionTrace(ctx context.Context, txHash string) (*types.TransactionTrace, error) {
+	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_trace", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	appendQueryValues(req, url.Values{
+		"transactionHash": []string{txHash},
+	})
+
+	var resp types.TransactionTrace
 	return &resp, gw.do(req, &resp)
 }
 
