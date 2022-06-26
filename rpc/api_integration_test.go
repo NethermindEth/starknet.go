@@ -1,10 +1,5 @@
 package rpc
 
-// 	if result.BlockHash != "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044" {
-// 		t.Fatal("Transactions error:", result.BlockHash)
-// 	}
-// }
-
 // func TestIntegrationNodeGetBlockTransactionCountByHash(t *testing.T) {
 // 	godotenv.Load()
 // 	if os.Getenv("INTEGRATION") != "true" {

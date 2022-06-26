@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/dontpanicdao/caigo/types"
 )
@@ -36,6 +37,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockByHash(result, method, args...)
 	case "starknet_getBlockByNumber":
 		return mock_starknet_getBlockByNumber(result, method, args...)
+	case "starknet_getTransactionByHash":
+		return mock_starknet_getTransactionByHash(result, method, args...)
 	default:
 		return ErrNotFound
 	}
@@ -152,5 +155,27 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 		HighestBlockNum:  "0x1",
 	}
 	*r = value
+	return nil
+}
+
+func mock_starknet_getTransactionByHash(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	txHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(txHash, "0x") {
+		return errWrongArgs
+	}
+	transaction := types.Transaction{
+		TransactionHash:    txHash,
+		ContractAddress:    "0xdeadbeef",
+		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
 	return nil
 }

@@ -24,45 +24,6 @@ func init() {
 	}
 }
 
-func TestBlock(t *testing.T) {
-	num := big.NewInt(0)
-
-	block, err := client.BlockByNumber(context.Background(), num, "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	block, err = client.BlockByHash(context.Background(), block.BlockHash, "FULL_TXN_AND_RECEIPTS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if block.Transactions[0].TransactionReceipt.Status == "" {
-		t.Errorf("Could not retrieve transaction receipts: %v\n", block.Transactions[0])
-	}
-
-	_, err = client.BlockByHash(context.Background(), block.BlockHash, "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-}
-
-func TestTransaction(t *testing.T) {
-	block, err := client.BlockByHash(context.Background(), "latest", "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	_, err = client.TransactionByHash(context.Background(), block.Transactions[0].TransactionHash)
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	_, err = client.TransactionReceipt(context.Background(), block.Transactions[0].TransactionHash)
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-}
-
 func TestContract(t *testing.T) {
 	block, err := client.BlockByNumber(context.Background(), big.NewInt(5), "FULL_TXNS")
 	if err != nil {
