@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	_ "embed"
 	"testing"
 )
 

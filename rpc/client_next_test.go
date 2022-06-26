@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	_ "embed"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -17,10 +16,8 @@ import (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	environment string
-	client      *Client
-	base        string
-	chainid     string
+	client *Client
+	base   string
 }
 
 var (
@@ -32,25 +29,20 @@ var (
 		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
-			base:    "http://localhost:9545",
-			chainid: "SN_MAIN",
+			base: "http://localhost:9545",
 		},
 		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base:    "http://localhost:9545",
-			chainid: "SN_GOERLI",
+			base: "http://localhost:9545",
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/Shard-Labs/starknet-devnet)
 		"devnet": {
-			base:    "http://localhost:5050/rpc",
-			chainid: "DEVNET",
+			base: "http://localhost:5050/rpc",
 		},
 		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {
-			chainid: "MOCK",
-		},
+		"mock": {},
 	}
 )
 
@@ -91,26 +83,38 @@ func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 	defer testConfig.client.Close()
 
+	type testSetType struct {
+		ChainID string
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {{ChainID: "DEVNET"}},
+		"mainnet": {{ChainID: "SN_MAIN"}},
+		"mock":    {{ChainID: "MOCK"}},
+		"testnet": {{ChainID: "SN_GOERLI"}},
+	}[testEnv]
+
 	fmt.Printf("----------------------------\n")
-	fmt.Printf("Env: %s\n", testConfig.environment)
+	fmt.Printf("Env: %s\n", testEnv)
 	fmt.Printf("Url: %s\n", testConfig.base)
 	fmt.Printf("----------------------------\n")
 
-	chain, err := testConfig.client.ChainID(context.Background())
+	for _, test := range testSet {
+		chain, err := testConfig.client.ChainID(context.Background())
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	chainInt, ok := big.NewInt(0).SetString(chain, 0)
-	if !ok {
-		t.Fatal("could not load str representation of an int")
-	}
-	chainID, err := hex.DecodeString(chainInt.Text(16))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(chainID) != testConfig.chainid {
-		t.Fatalf("expecting %s, instead: %s", testConfig.chainid, string(chainID))
+		if err != nil {
+			t.Fatal(err)
+		}
+		chainInt, ok := big.NewInt(0).SetString(chain, 0)
+		if !ok {
+			t.Fatal("could not load str representation of an int")
+		}
+		chainID, err := hex.DecodeString(chainInt.Text(16))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(chainID) != test.ChainID {
+			t.Fatalf("expecting %s, instead: %s", test.ChainID, string(chainID))
+		}
 	}
 }
 

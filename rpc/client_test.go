@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"math/big"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -21,37 +20,6 @@ func init() {
 	client, err = DialContext(context.Background(), "http://localhost:9545")
 	if err != nil {
 		panic(err.Error())
-	}
-}
-
-func TestContract(t *testing.T) {
-	block, err := client.BlockByNumber(context.Background(), big.NewInt(5), "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	code, err := client.CodeAt(context.Background(), block.Transactions[0].ContractAddress)
-	if err != nil {
-		t.Errorf("Could not retrieve code: %v\n", err)
-	}
-	if len(code.Bytecode) == 0 {
-		t.Errorf("Could not retrieve bytecode: %v\n", err)
-	}
-
-	// tested against pathfinder @ 0313b14ea1fad8f73635a3002d106908813e57f1
-	classHash, err := client.ClassHashAt(context.Background(), accountAddr)
-	if err != nil {
-		t.Errorf("Could not retrieve class hash: %v\n", err)
-	}
-
-	_, err = client.ClassAt(context.Background(), accountAddr)
-	if err != nil {
-		t.Errorf("Could not retrieve class: %v\n", err)
-	}
-
-	_, err = client.Class(context.Background(), classHash)
-	if err != nil {
-		t.Errorf("Could not retrieve class: %v\n", err)
 	}
 }
 

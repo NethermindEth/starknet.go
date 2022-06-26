@@ -214,25 +214,6 @@ package rpc
 // 	}
 // }
 
-// func TestIntegrationNodeGetCode(t *testing.T) {
-// 	godotenv.Load()
-// 	if os.Getenv("INTEGRATION") != "true" {
-// 		t.Skip("Skipping integration test")
-// 	}
-// 	node, err := NewNode("node")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	result, err := node.GetCode(context.Background(), "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-
-// 	if result.ABI == "" {
-// 		t.Fatal("The ABI should appear")
-// 	}
-// }
-
 // func TestIntegrationNodeGetEvents(t *testing.T) {
 // 	godotenv.Load()
 // 	if os.Getenv("INTEGRATION") != "true" {

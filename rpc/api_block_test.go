@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	_ "embed"
 	"math/big"
 	"testing"
 )
@@ -74,7 +73,7 @@ func TestBlockByNumber(t *testing.T) {
 			ExpectedStatus:    "ACCEPTED_ON_L1",
 			ExpectedTx0Hash:   "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
 		}},
-	}[testConfig.environment]
+	}[testEnv]
 
 	for _, test := range testSet {
 		block, err := testConfig.client.BlockByNumber(context.Background(), test.BlockNumber, test.BlockScope)

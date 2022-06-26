@@ -44,33 +44,34 @@ INTEGRATION_BASE=http://localhost:9546
 The table below shows the test coverage
 
 The 
-| Method                        | Implemented           | Tests              | 
-| ----------------------------- | --------------------- |----------------------|
-| `starknet_getBlockByHash`     |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getBlockByNumber`   |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getTransactionByHash` |  :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getTransactionReceipt` | :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getClass`           |    :heavy_check_mark: |                  :x: |
-| `starknet_getClassHashAt`     |    :heavy_check_mark: |                  :x: |
-| `starknet_getClassAt`         |    :heavy_check_mark: |                  :x: |
-| `starknet_call`               |    :heavy_check_mark: |                  :x: |
-| `starknet_blockNumber`        |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_chainId`            |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_syncing`            |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getEvents`          |    :heavy_check_mark: |                  :x: |
-| `starknet_addInvokeTransaction` |                 :x: |                  :x: |
-| `starknet_addDeployTransaction` |                 :x: |                  :x: |
-| `starknet_addDeclareTransaction` |                :x: |                  :x: |
-| `starknet_traceTransaction`   |                   :x: |                  :x: |
-| `starknet_traceBlockTransactions` |               :x: |                  :x: |
-| `starknet_getNonce`           |                   :x: |                  :x: |
-| `starknet_protocolVersion`    |                   :x: |                  :x: |
-| `starknet_pendingTransactions` |                  :x: |                  :x: |
-| `starknet_estimateFee`         |                  :x: |                  :x: |
-| `starknet_getBlockTransactionCountByHash` |       :x: |                  :x: |
-| `starknet_getBlockTransactionCountByNumber` |     :x: |                  :x: |
-| `starknet_getTransactionByBlockNumberAndIndex` |  :x: |                  :x: |
-| `starknet_getTransactionByBlockHashAndIndex` |    :x: |                  :x: |
-| `starknet_getStorageAt`        |                  :x: |                  :x: |
-| `starknet_getStateUpdateByHash` |                 :x: |                  :x: |
-| ----------------------------- | --------------------- |----------------------|
+| Method                        | Implemented           | Test               | 
+| ----------------------------- | --------------------- |--------------------|
+| `starknet_getBlockByHash`     |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_getBlockByNumber`   |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_getTransactionByHash` |  :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_getTransactionReceipt` | :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_getClass`           |    :heavy_check_mark: |                :x: |
+| `starknet_getClassHashAt`     |    :heavy_check_mark: |                :x: |
+| `starknet_getClassAt`         |    :heavy_check_mark: |                :x: |
+| `starknet_getCode`            |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_call`               |    :heavy_check_mark: |                :x: |
+| `starknet_blockNumber`        |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_chainId`            |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_syncing`            |    :heavy_check_mark: | :heavy_check_mark: |
+| `starknet_getEvents`          |    :heavy_check_mark: |                :x: |
+| `starknet_addInvokeTransaction` |                 :x: |                :x: |
+| `starknet_addDeployTransaction` |                 :x: |                :x: |
+| `starknet_addDeclareTransaction` |                :x: |                :x: |
+| `starknet_traceTransaction`   |                   :x: |                :x: |
+| `starknet_traceBlockTransactions` |               :x: |                :x: |
+| `starknet_getNonce`           |                   :x: |                :x: |
+| `starknet_protocolVersion`    |                   :x: |                :x: |
+| `starknet_pendingTransactions` |                  :x: |                :x: |
+| `starknet_estimateFee`         |                  :x: |                :x: |
+| `starknet_getBlockTransactionCountByHash` |       :x: |                :x: |
+| `starknet_getBlockTransactionCountByNumber` |     :x: |                :x: |
+| `starknet_getTransactionByBlockNumberAndIndex` |  :x: |                :x: |
+| `starknet_getTransactionByBlockHashAndIndex` |    :x: |                :x: |
+| `starknet_getStorageAt`        |                  :x: |                :x: |
+| `starknet_getStateUpdateByHash` |                 :x: |                :x: |
+| ----------------------------- | --------------------- |--------------------|

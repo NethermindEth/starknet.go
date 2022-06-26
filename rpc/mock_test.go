@@ -41,6 +41,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getTransactionByHash(result, method, args...)
 	case "starknet_getTransactionReceipt":
 		return mock_starknet_getTransactionReceipt(result, method, args...)
+	case "starknet_getCode":
+		return mock_starknet_getCode(result, method, args...)
 	default:
 		return ErrNotFound
 	}
@@ -199,6 +201,30 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		Status:          "ACCEPTED_ON_L1",
 	}
 	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getCode(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	contractHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(contractHash, "0x") {
+		return errWrongArgs
+	}
+	var codeRaw = struct {
+		Bytecode []string `json:"bytecode"`
+		AbiRaw   string   `json:"abi"`
+	}{
+		Bytecode: types.Bytecode{"0xdeadbeef"},
+		AbiRaw:   `[{"name": "Uint256", "type": "Struct"}]`,
+	}
+	outputContent, _ := json.Marshal(codeRaw)
 	json.Unmarshal(outputContent, r)
 	return nil
 }
