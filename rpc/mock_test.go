@@ -39,6 +39,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockByNumber(result, method, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, method, args...)
+	case "starknet_getTransactionReceipt":
+		return mock_starknet_getTransactionReceipt(result, method, args...)
 	default:
 		return ErrNotFound
 	}
@@ -174,6 +176,27 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		TransactionHash:    txHash,
 		ContractAddress:    "0xdeadbeef",
 		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getTransactionReceipt(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	txHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(txHash, "0x") {
+		return errWrongArgs
+	}
+	transaction := types.TransactionReceipt{
+		TransactionHash: txHash,
+		Status:          "ACCEPTED_ON_L1",
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)

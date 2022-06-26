@@ -57,84 +57,47 @@ func TestTransactionByHash(t *testing.T) {
 	}
 }
 
-// TestTransactionReceiptByHash tests transaction by hash
-func TestTransactionReceiptByHash(t *testing.T) {
-	// _, err = client.TransactionReceipt(context.Background(), block.Transactions[0].TransactionHash)
-	// if err != nil {
-	// 	t.Errorf("Could not retrieve block: %v\n", err)
-	// }
+// TestTransactionReceipt tests transaction receipt
+func TestTransactionReceipt(t *testing.T) {
 
 	testConfig := beforeEach(t)
 	defer testConfig.client.Close()
 
 	type testSetType struct {
-		BlockHash           string
-		BlockScope          string
-		ExpectedBlockNumber int
-		ExpectedTx0Hash     string
-		ExpectedStatus      string
+		TxHash         string
+		ExpectedStatus string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockHash:           "0xdeadbeef",
-				BlockScope:          "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockNumber: 1000,
-				ExpectedTx0Hash:     "0xdeadbeef",
-				ExpectedStatus:      "ACCEPTED_ON_L1",
-			},
-			{
-				BlockHash:           "0xdeadbeef",
-				BlockScope:          "FULL_TXNS",
-				ExpectedBlockNumber: 1000,
-				ExpectedTx0Hash:     "0xdeadbeef",
-				ExpectedStatus:      "",
+				TxHash:         "0xdeadbeef",
+				ExpectedStatus: "ACCEPTED_ON_L1",
 			},
 		},
 		"testnet": {
 			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				BlockScope:          "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockNumber: 242060,
-				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-				ExpectedStatus:      "ACCEPTED_ON_L1",
-			},
-			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				BlockScope:          "FULL_TXNS",
-				ExpectedBlockNumber: 242060,
-				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-				ExpectedStatus:      "",
+				TxHash:         "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
+				ExpectedStatus: "ACCEPTED_ON_L1",
 			},
 		},
-		"mainnet": {{
-			BlockHash:           "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
-			BlockScope:          "FULL_TXN_AND_RECEIPTS",
-			ExpectedBlockNumber: 1500,
-			ExpectedTx0Hash:     "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
-			ExpectedStatus:      "ACCEPTED_ON_L1",
-		}},
+		"mainnet": {
+			{
+				TxHash:         "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
+				ExpectedStatus: "ACCEPTED_ON_L1",
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.BlockByHash(context.Background(), test.BlockHash, test.BlockScope)
+		txReceipt, err := testConfig.client.TransactionReceipt(context.Background(), test.TxHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockNumber != test.ExpectedBlockNumber {
-			t.Fatalf("blockNumber mismatch, expect %d, got %d :",
-				test.ExpectedBlockNumber,
-				block.BlockNumber)
+		if txReceipt == nil || txReceipt.TransactionHash != test.TxHash {
+			t.Fatal("transaction should exist and match the tx hash")
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
-			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
-				test.ExpectedTx0Hash,
-				block.Transactions[0].TransactionHash)
-		}
-		if block.Transactions[0].TransactionReceipt.Status != test.ExpectedStatus {
-			t.Fatalf("tx receipt mismatch, expect %s, got %s :",
-				test.ExpectedStatus,
-				block.Transactions[0].TransactionReceipt.Status)
+		if txReceipt.Status != test.ExpectedStatus {
+			t.Fatalf("expecting status %s, got %s", test.ExpectedStatus, txReceipt.Status)
 		}
 	}
 }

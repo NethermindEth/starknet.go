@@ -48,8 +48,8 @@ The
 | ----------------------------- | --------------------- |----------------------|
 | `starknet_getBlockByHash`     |    :heavy_check_mark: |   :heavy_check_mark: |
 | `starknet_getBlockByNumber`   |    :heavy_check_mark: |   :heavy_check_mark: |
-| `starknet_getTransactionByHash` |  :heavy_check_mark: |                  :x: |
-| `starknet_getTransactionReceipt` | :heavy_check_mark: |                  :x: |
+| `starknet_getTransactionByHash` |  :heavy_check_mark: |   :heavy_check_mark: |
+| `starknet_getTransactionReceipt` | :heavy_check_mark: |   :heavy_check_mark: |
 | `starknet_getClass`           |    :heavy_check_mark: |                  :x: |
 | `starknet_getClassHashAt`     |    :heavy_check_mark: |                  :x: |
 | `starknet_getClassAt`         |    :heavy_check_mark: |                  :x: |
