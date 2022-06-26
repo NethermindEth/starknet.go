@@ -23,22 +23,6 @@ func init() {
 	}
 }
 
-func TestEvents(t *testing.T) {
-	p := EventParams{
-		FromBlock:  800,
-		ToBlock:    1701,
-		PageSize:   1000,
-		PageNumber: 0,
-	}
-	events, err := client.Events(context.Background(), p)
-	if err != nil {
-		t.Errorf("Could not retrieve events: %v\n", err)
-	}
-	if len(events.Events) == 0 {
-		t.Errorf("Could not retrieve events: %v\n", err)
-	}
-}
-
 func TestCall(t *testing.T) {
 	_, err := client.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",

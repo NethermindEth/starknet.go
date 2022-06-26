@@ -58,7 +58,7 @@ The
 | `starknet_blockNumber`        |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_chainId`            |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_syncing`            |    :heavy_check_mark: | :heavy_check_mark: |
-| `starknet_getEvents`          |    :heavy_check_mark: |                :x: |
+| `starknet_getEvents`          |    :heavy_check_mark: | :heavy_check_mark: |
 | `starknet_addInvokeTransaction` |                 :x: |                :x: |
 | `starknet_addDeployTransaction` |                 :x: |                :x: |
 | `starknet_addDeclareTransaction` |                :x: |                :x: |

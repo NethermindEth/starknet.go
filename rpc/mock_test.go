@@ -49,6 +49,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClassHashAt(result, method, args...)
 	case "starknet_getClass":
 		return mock_starknet_getClass(result, method, args...)
+	case "starknet_getEvents":
+		return mock_starknet_getEvents(result, method, args...)
 	default:
 		return ErrNotFound
 	}
@@ -292,6 +294,30 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		Program: []string{"0xdeadbeef"},
 	}
 	outputContent, _ := json.Marshal(class)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getEvents(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	query, ok := args[0].(EventParams)
+	if !ok {
+		return errWrongArgs
+	}
+	events := Events{
+		Events: []Event{
+			{
+				BlockNumber: int(query.FromBlock),
+			},
+		},
+	}
+	outputContent, _ := json.Marshal(events)
 	json.Unmarshal(outputContent, r)
 	return nil
 }
