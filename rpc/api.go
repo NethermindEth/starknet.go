@@ -1,10 +1,7 @@
 package rpc
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"math/big"
 
@@ -29,12 +26,6 @@ type EventParams struct {
 	ToBlock    uint64 `json:"toBlock"`
 	PageSize   uint64 `json:"page_size"`
 	PageNumber uint64 `json:"page_number"`
-}
-
-// AddDeployTransactionOutput provides the output for AddDeployTransaction.
-type AddDeployTransactionOutput struct {
-	TransactionHash string `json:"transaction_hash"`
-	ContractAddress string `json:"contract_address"`
 }
 
 // Call a starknet function without creating a StarkNet transaction.
@@ -183,31 +174,6 @@ func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
 
-// AddDeployTransaction allows to declare a class and instantiate the
-// associated contract in one command. This function will be deprecated and
-// replaced by AddDeclareTransaction to declare a class, followed by
-// AddInvokeTransaction to instantiate the contract. For now, it remains the only
-// way to deploy an account without being charged for it.
-func (sc *Client) AddDeployTransaction(ctx context.Context, contractAddressSalt string, constructorCallData []string, contractDefinition types.ContractClass) (*AddDeployTransactionOutput, error) {
-	program, ok := contractDefinition.Program.(string)
-	if !ok {
-		data, err := json.Marshal(contractDefinition.Program)
-		if err != nil {
-			return nil, err
-		}
-		program, err = encodeProgram(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-	contractDefinition.Program = program
-
-	var result AddDeployTransactionOutput
-	err := sc.do(ctx, "starknet_addDeployTransaction", &result, contractAddressSalt, constructorCallData, contractDefinition)
-
-	return &result, err
-}
-
 func toBlockNumArg(number *big.Int) interface{} {
 	var numOrTag interface{}
 
@@ -220,16 +186,4 @@ func toBlockNumArg(number *big.Int) interface{} {
 	}
 
 	return numOrTag
-}
-
-func encodeProgram(content []byte) (string, error) {
-	buf := bytes.NewBuffer(nil)
-	gzipContent := gzip.NewWriter(buf)
-	_, err := gzipContent.Write(content)
-	if err != nil {
-		return "", err
-	}
-	gzipContent.Close()
-	program := base64.StdEncoding.EncodeToString(buf.Bytes())
-	return program, nil
 }

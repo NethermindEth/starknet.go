@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -64,7 +63,6 @@ func TestAddDeployTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fmt.Printf("%+v\n", output)
 		if output.TransactionHash != test.ExpectedTransactionHash {
 			t.Fatalf("tx expected %s, got %s", test.ExpectedTransactionHash, output.TransactionHash)
 		}
