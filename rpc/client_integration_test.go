@@ -4,62 +4,79 @@ import (
 	"context"
 	_ "embed"
 	"encoding/hex"
+	"flag"
+	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client  *Client
-	base    string
-	chainid string
+	environment string
+	client      *Client
+	base        string
+	chainid     string
 }
 
-// testConfiguration are predefined test configurations
-var testEnvironments = map[string]testConfiguration{
-	// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-	// (ref: https://github.com/eqlabs/pathfinder)
-	"mainnet_pathfinder": {
-		base:    "http://localhost:9545",
-		chainid: "SN_MAIN",
-	},
-	// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-	// (ref: https://github.com/eqlabs/pathfinder)
-	"testnet_pathfinder": {
-		base:    "http://localhost:9545",
-		chainid: "SN_GOERLI",
-	},
-	// Requires a Devnet configuration running locally
-	// (ref: https://github.com/Shard-Labs/starknet-devnet)
-	"devnet": {
-		base:    "http://localhost:5050/rpc",
-		chainid: "DEVNET",
-	},
-	// Used with a mock as a standard configuration, see `mock_test.go``
-	"mock": {
-		chainid: "MOCK",
-	},
+var (
+	// set the environment for the test, default: mock
+	testEnv = "mock"
+
+	// testConfigurations are predefined test configurations
+	testConfigurations = map[string]testConfiguration{
+		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"mainnet": {
+			base:    "http://localhost:9545",
+			chainid: "SN_MAIN",
+		},
+		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"testnet": {
+			base:    "http://localhost:9545",
+			chainid: "SN_GOERLI",
+		},
+		// Requires a Devnet configuration running locally
+		// (ref: https://github.com/Shard-Labs/starknet-devnet)
+		"devnet": {
+			base:    "http://localhost:5050/rpc",
+			chainid: "DEVNET",
+		},
+		// Used with a mock as a standard configuration, see `mock_test.go``
+		"mock": {
+			chainid: "MOCK",
+		},
+	}
+)
+
+func TestMain(m *testing.M) {
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	flag.Parse()
+
+	os.Exit(m.Run())
 }
 
 // beforeEach checks the configuration and initializes it before running the script
 func beforeEach(t *testing.T) *testConfiguration {
-	godotenv.Load()
-	integration := os.Getenv("INTEGRATION")
-	if integration == "" {
-		integration = "mock"
-	}
-	testConfig, ok := testEnvironments[integration]
+	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
+	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
-		t.Fatal("INTEGRATION supports testnet_pathfinder, mainnet_pathfinder or devnet")
+		t.Fatal("env supports mock, testnet, mainnet or devnet")
 	}
-	if integration == "mock" {
+	if testEnv == "mock" {
 		testConfig.client = &Client{
 			c: &rpcMock{},
 		}
 		return &testConfig
+	}
+	base := os.Getenv("INTEGRATION_BASE")
+	if base != "" {
+		testConfig.base = base
 	}
 	client, err := DialContext(context.Background(), testConfig.base)
 	if err != nil {
@@ -69,9 +86,15 @@ func beforeEach(t *testing.T) *testConfiguration {
 	return &testConfig
 }
 
-func TestIntegrationChainID(t *testing.T) {
+// TestChainID checks the chainId matches the one for the environment
+func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 	defer testConfig.client.Close()
+
+	fmt.Printf("----------------------------\n")
+	fmt.Printf("Env: %s\n", testConfig.environment)
+	fmt.Printf("Url: %s\n", testConfig.base)
+	fmt.Printf("----------------------------\n")
 
 	chain, err := testConfig.client.ChainID(context.Background())
 
@@ -91,7 +114,8 @@ func TestIntegrationChainID(t *testing.T) {
 	}
 }
 
-func TestIntegrationSyncing(t *testing.T) {
+// TestSyncing checks the values returned are consistent
+func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 	defer testConfig.client.Close()
 
@@ -103,8 +127,30 @@ func TestIntegrationSyncing(t *testing.T) {
 	if sync == nil || sync.CurrentBlockNum == "" {
 		t.Fatal("should succeed")
 	}
+	if !strings.HasPrefix(sync.CurrentBlockNum, "0x") {
+		t.Fatal("CurrentBlockNum should start with 0x, instead:", sync.CurrentBlockHash)
+	}
 	i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
 	if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-		t.Fatal("returned value should be a number, instead: ", sync.CurrentBlockNum)
+		t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+	}
+}
+
+// TestClose checks the function is called
+func TestClose(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	testConfig.client.Close()
+
+	switch client := testConfig.client.c.(type) {
+	case *rpc.Client:
+		return
+	case *rpcMock:
+		if client.closed {
+			return
+		}
+		t.Fatalf("client should have been closed")
+	default:
+		t.Fatalf("client unsupported type %T", testConfig.client.c)
 	}
 }

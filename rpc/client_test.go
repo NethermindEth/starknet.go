@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	// "github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -25,36 +24,10 @@ func init() {
 	}
 }
 
-func TestClient(t *testing.T) {
-	id, err := client.ChainID(context.Background())
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if id != "0x534e5f4d41494e" {
-		t.Errorf("Not on mainnet node: %v\n", err)
-	}
-
-	_, err = client.Syncing(context.Background())
-	if err != nil {
-		t.Errorf("Could not retrieve sync information: %v\n", err)
-	}
-}
-
 func TestBlock(t *testing.T) {
-	num, err := client.BlockNumber(context.Background())
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
+	num := big.NewInt(0)
 
-	block, err := client.BlockByNumber(context.Background(), num, "FULL_TXN_AND_RECEIPTS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if block.Transactions[0].TransactionReceipt.Status == "" {
-		t.Errorf("Could not retrieve transaction receipts: %v\n", block.Transactions[0])
-	}
-
-	_, err = client.BlockByNumber(context.Background(), num, "FULL_TXNS")
+	block, err := client.BlockByNumber(context.Background(), num, "FULL_TXNS")
 	if err != nil {
 		t.Errorf("Could not retrieve block: %v\n", err)
 	}
@@ -145,8 +118,4 @@ func TestCall(t *testing.T) {
 	if err != nil {
 		t.Errorf("Could not call contract function: %v\n", err)
 	}
-}
-
-func TestClientClose(t *testing.T) {
-	client.Close()
 }

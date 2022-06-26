@@ -1,24 +1,9 @@
 package rpc
 
-import (
-	"context"
-	_ "embed"
-	"testing"
-)
-
-func TestIntegrationBlockNumber(t *testing.T) {
-	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
-
-	blockNumber, err := testConfig.client.BlockNumber(context.Background())
-
-	if err != nil {
-		t.Fatal(err)
-	}
-	if blockNumber == nil || blockNumber.Int64() <= 0 {
-		t.Fatal("current block number should be higher or equal to 1")
-	}
-}
+// 	if result.BlockHash != "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044" {
+// 		t.Fatal("Transactions error:", result.BlockHash)
+// 	}
+// }
 
 // func TestIntegrationNodeGetBlockTransactionCountByHash(t *testing.T) {
 // 	godotenv.Load()
@@ -127,43 +112,6 @@ func TestIntegrationBlockNumber(t *testing.T) {
 
 // 	if result.BlockHash != "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044" {
 // 		t.Fatal("Transactions error:", result.BlockHash)
-// 	}
-// }
-
-// func TestIntegrationNodeGetBlockByNumber(t *testing.T) {
-// 	godotenv.Load()
-// 	if os.Getenv("INTEGRATION") != "true" {
-// 		t.Skip("Skipping integration test")
-// 	}
-// 	node, err := NewNode("node")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	result, err := node.GetBlockByNumber(context.Background(), 242060)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-
-// 	if result.BlockHash != "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044" {
-// 		t.Fatal("Transactions error:", result.BlockHash)
-// 	}
-// }
-
-// func TestIntegrationNodeSyncing(t *testing.T) {
-// 	godotenv.Load()
-// 	if os.Getenv("INTEGRATION") != "true" {
-// 		t.Skip("Skipping integration test")
-// 	}
-// 	node, err := NewNode("node")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	output, err := node.Syncing(context.Background())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	if !strings.HasPrefix(output.CurrentBlockHash, "0x") {
-// 		t.Fatal(output.CurrentBlockHash)
 // 	}
 // }
 
