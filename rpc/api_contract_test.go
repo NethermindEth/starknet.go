@@ -7,12 +7,6 @@ import (
 
 // func TestContract(t *testing.T) {
 
-// 	// tested against pathfinder @ 0313b14ea1fad8f73635a3002d106908813e57f1
-// 	classHash, err := client.ClassHashAt(context.Background(), accountAddr)
-// 	if err != nil {
-// 		t.Errorf("Could not retrieve class hash: %v\n", err)
-// 	}
-
 // 	_, err = client.Class(context.Background(), classHash)
 // 	if err != nil {
 // 		t.Errorf("Could not retrieve class: %v\n", err)
@@ -111,6 +105,47 @@ func TestClassAt(t *testing.T) {
 		op, _ := ops[0].(string)
 		if op != test.ExpectedOperation {
 			t.Fatalf("op expected %s, got %s", test.ExpectedOperation, op)
+		}
+	}
+}
+
+// TestClassHashAt tests code for a getClassHashAt.
+func TestClassHashAt(t *testing.T) {
+	testConfig := beforeEach(t)
+	defer testConfig.client.Close()
+
+	type testSetType struct {
+		ContractHash      string
+		ExpectedClassHash string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				ContractHash:      "0xdeadbeef",
+				ExpectedClassHash: "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				ContractHash:      "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
+				ExpectedClassHash: "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+			},
+		},
+		"mainnet": {
+			{
+				ContractHash:      "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa",
+				ExpectedClassHash: "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		classhash, err := testConfig.client.ClassHashAt(context.Background(), test.ContractHash)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if classhash != test.ExpectedClassHash {
+			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, classhash)
 		}
 	}
 }
