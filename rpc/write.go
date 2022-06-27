@@ -10,6 +10,12 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
+// AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
+type AddDeclareTransactionOutput struct {
+	TransactionHash string `json:"transaction_hash"`
+	ClassHash       string `json:"class_hash"`
+}
+
 // AddDeployTransactionOutput provides the output for AddDeployTransaction.
 type AddDeployTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
@@ -20,8 +26,26 @@ func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxRespon
 	panic("'starknet_addInvokeTransaction' not implemented")
 }
 
-func (sc *Client) Declare(context.Context, types.Transaction) (*types.AddTxResponse, error) {
-	panic("'starknet_addDeclareTransaction' not implemented")
+// AddDeclareTransaction submits a new class declaration transaction.
+func (sc *Client) AddDeclareTransaction(ctx context.Context, contractDefinition types.ContractClass, version string) (*AddDeclareTransactionOutput, error) {
+	program, ok := contractDefinition.Program.(string)
+	if !ok {
+		data, err := json.Marshal(contractDefinition.Program)
+		if err != nil {
+			return nil, err
+		}
+		program, err = encodeProgram(data)
+		if err != nil {
+			return nil, err
+		}
+	}
+	contractDefinition.Program = program
+
+	var result AddDeclareTransactionOutput
+	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, contractDefinition, version); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // AddDeployTransaction allows to declare a class and instantiate the

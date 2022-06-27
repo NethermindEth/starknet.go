@@ -69,6 +69,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_protocolVersion(result, method, args...)
 	case "starknet_call":
 		return mock_starknet_call(result, method, args...)
+	case "starknet_addDeclareTransaction":
+		return mock_starknet_addDeclareTransaction(result, method, args...)
 	case "starknet_addDeployTransaction":
 		return mock_starknet_addDeployTransaction(result, method, args...)
 	default:
@@ -412,6 +414,34 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		return errWrongArgs
 	}
 	output := []string{"0x12"}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_addDeclareTransaction(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok = args[0].(types.ContractClass)
+	if !ok {
+		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
+		return errWrongArgs
+	}
+	_, ok = args[1].(string)
+	if !ok {
+		fmt.Printf("args[1] should be string, got %T\n", args[1])
+		return errWrongArgs
+	}
+	output := AddDeclareTransactionOutput{
+		TransactionHash: "0xdeadbeef",
+		ClassHash:       "0xdeadbeef",
+	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil
