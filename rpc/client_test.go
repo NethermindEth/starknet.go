@@ -56,6 +56,7 @@ func TestMain(m *testing.M) {
 
 // beforeEach checks the configuration and initializes it before running the script
 func beforeEach(t *testing.T) *testConfiguration {
+    t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
