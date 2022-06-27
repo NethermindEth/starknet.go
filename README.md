@@ -1,5 +1,4 @@
-<
-1 align="center">Golang Library for StarkNet</h1>
+<h1 align="center">Golang Library for StarkNet</h1>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
@@ -10,6 +9,9 @@
     </a>
     <a href="https://starkware.co/">
         <img src="https://img.shields.io/badge/powered_by-StarkWare-navy">
+    </a>
+    <a href="https://github.com/dontpanicdao/caigo/actions/workflows/go.yml">
+        <img src="https://github.com/dontpanicdao/caigo/actions/workflows/go.yml/badge.svg?branch=main" alt="Go">
     </a>
 </p>
 
