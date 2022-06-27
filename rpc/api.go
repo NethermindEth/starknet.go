@@ -138,6 +138,64 @@ func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHash
 	return value, nil
 }
 
+// StorageDiff is a change in a single storage item
+type StorageDiff struct {
+	// ContractAddress is the contract address for which the state changed
+	ContractAddress string `json:"address"`
+	// Key returns the key of the changed value
+	Key string `json:"key"`
+	// Value is the new value applied to the given address
+	Value string `json:"value"`
+}
+
+// ContractItem is a new contract added as part of the new state
+type ContractItem struct {
+	// ContractAddress is the address of the contract
+	Address string `json:"address"`
+	// ContractHash is the hash of the contract code
+	ContractHash string `json:"contract_hash"`
+}
+
+// Nonce is a the updated nonce per contract address
+type Nonce struct {
+	// ContractAddress is the address of the contract
+	ContractAddress string `json:"contract_address"`
+	// Nonce is the nonce for the given address at the end of the block"
+	Nonce string `json:"nonce"`
+}
+
+// StateDiff is the change in state applied in this block, given as a
+// mapping of addresses to the new values and/or new contracts.
+type StateDiff struct {
+	// StorageDiffs list storage changes
+	StorageDiffs []StorageDiff `json:"storage_diffs"`
+	// Contracts list new contracts added as part of the new state
+	Contracts []ContractItem `json:"contracts"`
+	// Nonces provides the updated nonces per contract addresses
+	Nonces []Nonce `json:"nonces"`
+}
+
+type GetStateUpdateOutput struct {
+	// BlockHash is the block identifier,
+	BlockHash string `json:"block_hash"`
+	// NewRoot is the new global state root.
+	NewRoot string `json:"new_root"`
+	// OldRoot is the previous global state root.
+	OldRoot string `json:"old_root"`
+	// AcceptedTime is when the block was accepted on L1.
+	AcceptedTime int `json:"accepted_time"`
+	// StateDiff is the change in state applied in this block, given as a
+	// mapping of addresses to the new values and/or new contracts.
+	StateDiff StateDiff `json:"state_diff"`
+}
+
+// GetStateUpdateByHash gets the information about the result of executing the requested block.
+func (sc *Client) GetStateUpdateByHash(ctx context.Context, blockHashOrTag string) (*GetStateUpdateOutput, error) {
+	var result GetStateUpdateOutput
+	err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag)
+	return &result, err
+}
+
 // TransactionByHash gets the details and status of a submitted transaction.
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
 	var tx types.Transaction

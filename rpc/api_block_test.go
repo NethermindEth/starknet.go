@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"testing"
 )
@@ -168,6 +169,39 @@ func TestBlockByHash(t *testing.T) {
 			t.Fatalf("tx receipt mismatch, expect %s, got %s :",
 				test.ExpectedStatus,
 				block.Transactions[0].TransactionReceipt.Status)
+		}
+	}
+}
+
+// TestGetStateUpdateByHash tests GetStateUpdateByHash
+// TODO: this is not implemented yet with pathfinder as you can see from the
+// [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
+// check when it is and test when it is the case.
+func TestGetStateUpdateByHash(t *testing.T) {
+	testConfig := beforeEach(t)
+	defer testConfig.client.Close()
+
+	type testSetType struct {
+		BlockHashOrTag string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockHashOrTag: "0xdeadbeef",
+			},
+		},
+	}[testEnv]
+
+	if len(testSet) == 0 {
+		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+	}
+	for _, test := range testSet {
+		output, err := testConfig.client.GetStateUpdateByHash(context.Background(), test.BlockHashOrTag)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if output.BlockHash != test.BlockHashOrTag {
+			t.Fatalf("expecting block %s, got %s", test.BlockHashOrTag, output.BlockHash)
 		}
 	}
 }
