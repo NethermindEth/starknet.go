@@ -12,9 +12,11 @@ import (
 var (
 	rawTest string = `{
 		"max_felt": 3618502788666131213697322783095070105623107215331596699973092056135872020481,
+		"long_string": "STRINGTHATISLONGERTHANTHIRTYONECHARACTERS",
 		"felts": [
 			{"value": "0x0", "expected": 0},
 			{"value": "0x1277312773", "expected": 79309121395},
+			{"value": "TEST TOKEN", "expected": 397957614361885828400462},
 			{"value": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB", "expected": "1071767867375995473349368877325274214414350531515"},
 			{"value": "2458502865976494910213617956670505342647705497324144349552978333078363662855", "expected": "2458502865976494910213617956670505342647705497324144349552978333078363662855"}
 		]
@@ -25,6 +27,7 @@ var feltTest FeltTest
 
 type FeltTest struct {
 	MaxFelt *big.Int    `json:"max_felt"`
+	LongString string `json:"long_string"`
 	Felts   []FeltValue `json:"felts"`
 }
 
@@ -41,6 +44,10 @@ func TestJSONUnmarshal(t *testing.T) {
 		t.Errorf("Incorrect unmarshal and for max felt: %v %v\n", MaxFelt, feltTest.MaxFelt)
 	}
 
+	if fetchedMax.ShortString() != "" {
+		t.Errorf("Should not convert bad ascii\n")
+	}
+
 	for _, felt := range feltTest.Felts {
 		f := StrToFelt(felt.Value)
 
@@ -51,6 +58,14 @@ func TestJSONUnmarshal(t *testing.T) {
 		if f.String() != felt.Expected.String() {
 			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Big(), felt.Expected.Big())
 		}
+	}
+
+	if StrToFelt(feltTest.LongString) != nil {
+		t.Errorf("Should not convert string longer than 31 characters\n")
+	}
+
+	if StrToFelt(feltTest.LongString[:31]).ShortString() != "STRINGTHATISLONGERTHANTHIRTYONE" {
+		t.Errorf("Could not convert to short string\n")
 	}
 }
 

@@ -19,7 +19,7 @@ const (
 
 var (
 	MaxFelt   = StrToFelt(FIELD_PRIME)
-	utfRegexp = regexp.MustCompile(`\w+`)
+	asciiRegexp = regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 )
 
 // Felt represents Field Element or Felt from cairo.
@@ -46,7 +46,7 @@ func (f *Felt) strToFelt(str string) bool {
 		f.Int = b
 		return ok
 	}
-	if utfRegexp.MatchString(str) {
+	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
 			f.Int = b
@@ -64,6 +64,15 @@ func BigToFelt(b *big.Int) *Felt {
 // BytesToFelt converts a []byte to its Felt representation.
 func BytesToFelt(b []byte) *Felt {
 	return &Felt{Int: new(big.Int).SetBytes(b)}
+}
+
+// String converts a Felt into its 'short string' representation.
+func (f *Felt) ShortString() string {
+	str := string(f.Bytes())
+	if asciiRegexp.MatchString(str) {
+		return str
+	}
+	return ""
 }
 
 // String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
