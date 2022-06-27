@@ -420,7 +420,7 @@ func mock_starknet_getStateUpdateByHash(result interface{}, method string, args 
 		fmt.Printf("args[0] should be string, got %T\n", args[0])
 		return errWrongArgs
 	}
-	output := &GetStateUpdateOutput{
+	output := &StateUpdateOutput{
 		BlockHash: blockHash,
 	}
 	outputContent, _ := json.Marshal(output)

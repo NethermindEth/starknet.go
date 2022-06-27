@@ -179,7 +179,6 @@ func TestBlockByHash(t *testing.T) {
 // check when it is and test when it is the case.
 func TestGetStateUpdateByHash(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockHashOrTag string
@@ -196,7 +195,7 @@ func TestGetStateUpdateByHash(t *testing.T) {
 		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
 	}
 	for _, test := range testSet {
-		output, err := testConfig.client.GetStateUpdateByHash(context.Background(), test.BlockHashOrTag)
+		output, err := testConfig.client.StateUpdateByHash(context.Background(), test.BlockHashOrTag)
 		if err != nil {
 			t.Fatal(err)
 		}
