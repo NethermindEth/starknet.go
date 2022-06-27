@@ -58,7 +58,7 @@ Implementation status:
 | `starknet_getBlockTransactionCountByNumber` | :x: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :x: |
 | `starknet_getTransactionByBlockHashAndIndex` | :x: |
-| `starknet_getStorageAt` | :x: |
+| `starknet_getStorageAt` | :heavy_check_mark: |
 | `starknet_getStateUpdateByHash` | :x: |
 
 ### Run Examples

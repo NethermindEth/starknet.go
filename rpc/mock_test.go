@@ -51,6 +51,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClass(result, method, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, method, args...)
+	case "starknet_getStorageAt":
+		return mock_starknet_getStorageAt(result, method, args...)
 	case "starknet_call":
 		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeployTransaction":
@@ -375,6 +377,28 @@ func mock_starknet_addDeployTransaction(result interface{}, method string, args 
 		TransactionHash: "0xdeadbeef",
 		ContractAddress: "0xdeadbeef",
 	}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getStorageAt(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 3 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	for i := range []int{1, 2, 3} {
+		_, ok = args[i].(string)
+		if !ok {
+			fmt.Printf("args[%d] should be string, got %T\n", i, args[i])
+			return errWrongArgs
+		}
+	}
+	output := "0xdeadbeef"
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil

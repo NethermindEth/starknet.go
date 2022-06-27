@@ -189,3 +189,51 @@ func TestClass(t *testing.T) {
 		}
 	}
 }
+
+// TestGetStorageAt tests GetStorageAt
+func TestGetStorageAt(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		ContractHash   string
+		StorageKey     string
+		BlockHashOrTag string
+		ExpectedValue  string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				ContractHash:   "0xdeadbeef",
+				StorageKey:     "_signer",
+				BlockHashOrTag: "latest",
+				ExpectedValue:  "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				ContractHash:   "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39",
+				StorageKey:     "balance",
+				BlockHashOrTag: "latest",
+				ExpectedValue:  "0x1e240",
+			},
+		},
+		"mainnet": {
+			{
+				ContractHash:   "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101",
+				StorageKey:     "_signer",
+				BlockHashOrTag: "latest",
+				ExpectedValue:  "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		value, err := testConfig.client.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.BlockHashOrTag)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if value != test.ExpectedValue {
+			t.Fatalf("expecting value %s, got %s", test.ExpectedValue, value)
+		}
+	}
+}

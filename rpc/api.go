@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
@@ -126,12 +127,24 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, erro
 	return *result, nil
 }
 
+// GetStorageAt gets the value of the storage at the given address and key.
+func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
+	var value string
+	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
+	if err := sc.do(ctx, "starknet_getStorageAt", &value, contractAddress, hashKey, blockHashOrTag); err != nil {
+		return "", err
+	}
+
+	return value, nil
+}
+
 // TransactionByHash gets the details and status of a submitted transaction.
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
-	} else if tx.TransactionHash == "" {
+	}
+	if tx.TransactionHash == "" {
 		return nil, ErrNotFound
 	}
 
