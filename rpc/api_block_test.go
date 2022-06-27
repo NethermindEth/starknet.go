@@ -173,11 +173,11 @@ func TestBlockByHash(t *testing.T) {
 	}
 }
 
-// TestGetStateUpdateByHash tests GetStateUpdateByHash
+// TestStateUpdateByHash tests StateUpdateByHash
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
-func TestGetStateUpdateByHash(t *testing.T) {
+func TestStateUpdateByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -201,6 +201,86 @@ func TestGetStateUpdateByHash(t *testing.T) {
 		}
 		if output.BlockHash != test.BlockHashOrTag {
 			t.Fatalf("expecting block %s, got %s", test.BlockHashOrTag, output.BlockHash)
+		}
+	}
+}
+
+// TestBlockTransactionCountByHash tests BlockTransactionCountByHash
+func TestBlockTransactionCountByHash(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockHash       string
+		ExpectedTxCount int
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockHash:       "0xdeadbeef",
+				ExpectedTxCount: 7,
+			},
+		},
+		"testnet": {
+			{
+				BlockHash:       "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				ExpectedTxCount: 31,
+			},
+		},
+		"mainnet": {{
+			BlockHash:       "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
+			ExpectedTxCount: 31,
+		}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		txCount, err := testConfig.client.BlockTransactionCountByHash(context.Background(), test.BlockHash)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if txCount != test.ExpectedTxCount {
+			t.Fatalf("txCount mismatch, expect %d, got %d :",
+				test.ExpectedTxCount,
+				txCount)
+		}
+	}
+}
+
+// TestBlockTransactionCountByHash tests BlockTransactionCountByHash
+func TestBlockTransactionCountByNumber(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockNumberOrTag interface{}
+		ExpectedTxCount  int
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockNumberOrTag: 666,
+				ExpectedTxCount:  7,
+			},
+		},
+		"testnet": {
+			{
+				BlockNumberOrTag: 242060,
+				ExpectedTxCount:  31,
+			},
+		},
+		"mainnet": {{
+			BlockNumberOrTag: 1500,
+			ExpectedTxCount:  31,
+		}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		txCount, err := testConfig.client.BlockTransactionCountByNumber(context.Background(), test.BlockNumberOrTag)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if txCount != test.ExpectedTxCount {
+			t.Fatalf("txCount mismatch, expect %d, got %d :",
+				test.ExpectedTxCount,
+				txCount)
 		}
 	}
 }

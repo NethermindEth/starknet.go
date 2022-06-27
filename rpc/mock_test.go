@@ -37,6 +37,14 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockByHash(result, method, args...)
 	case "starknet_getBlockByNumber":
 		return mock_starknet_getBlockByNumber(result, method, args...)
+	case "starknet_getTransactionByBlockHashAndIndex":
+		return mock_starknet_getTransactionByBlockHashAndIndex(result, method, args...)
+	case "starknet_getTransactionByBlockNumberAndIndex":
+		return mock_starknet_getTransactionByBlockNumberAndIndex(result, method, args...)
+	case "starknet_getBlockTransactionCountByNumber":
+		return mock_starknet_getBlockTransactionCountByNumber(result, method, args...)
+	case "starknet_getBlockTransactionCountByHash":
+		return mock_starknet_getBlockTransactionCountByHash(result, method, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, method, args...)
 	case "starknet_getTransactionReceipt":
@@ -51,10 +59,14 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClass(result, method, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, method, args...)
+	case "starknet_getNonce":
+		return mock_starknet_getNonce(result, method, args...)
 	case "starknet_getStorageAt":
 		return mock_starknet_getStorageAt(result, method, args...)
 	case "starknet_getStateUpdateByHash":
 		return mock_starknet_getStateUpdateByHash(result, method, args...)
+	case "starknet_protocolVersion":
+		return mock_starknet_protocolVersion(result, method, args...)
 	case "starknet_call":
 		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeployTransaction":
@@ -192,6 +204,62 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    txHash,
+		ContractAddress:    "0xdeadbeef",
+		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		return errWrongArgs
+	}
+	blockHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(blockHash, "0x") {
+		return errWrongArgs
+	}
+	_, ok = args[1].(int)
+	if !ok {
+		fmt.Printf("args[1] expecting int, got %T\n", args[1])
+		return errWrongArgs
+	}
+	transaction := types.Transaction{
+		TransactionHash:    "0xdeadbeef",
+		ContractAddress:    "0xdeadbeef",
+		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getTransactionByBlockNumberAndIndex(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		return errWrongArgs
+	}
+	_, ok1 := args[0].(int)
+	_, ok2 := args[0].(string)
+	if !ok1 && !ok2 {
+		fmt.Printf("args[0] expecting int or string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	_, ok = args[1].(int)
+	if !ok {
+		fmt.Printf("args[1] expecting int, got %T\n", args[1])
+		return errWrongArgs
+	}
+	transaction := types.Transaction{
+		TransactionHash:    "0xdeadbeef",
 		ContractAddress:    "0xdeadbeef",
 		EntryPointSelector: "0xdeadbeef",
 	}
@@ -423,6 +491,81 @@ func mock_starknet_getStateUpdateByHash(result interface{}, method string, args 
 	output := &StateUpdateOutput{
 		BlockHash: blockHash,
 	}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getBlockTransactionCountByHash(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok = args[0].(string)
+	if !ok {
+		fmt.Printf("args[0] should be string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := 7
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getBlockTransactionCountByNumber(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok1 := args[0].(string)
+	_, ok2 := args[0].(int)
+	if !ok1 && !ok2 {
+		fmt.Printf("args[0] should be int or string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := 7
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_protocolVersion(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 0 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	output := "0x312e30"
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getNonce(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	if _, ok := args[0].(string); !ok {
+		fmt.Printf("args[0] should be string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := big.NewInt(10)
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil

@@ -5,6 +5,122 @@ import (
 	"testing"
 )
 
+// TestTransactionByBlockHashAndIndex tests transaction by blockHash and txIndex
+func TestTransactionByBlockHashAndIndex(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockHash                  string
+		TxIndex                    int
+		ExpectedTxHash             string
+		ExpectedContractAddress    string
+		ExpectedEntrypointSelector string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockHash:                  "0xdeadbeef",
+				TxIndex:                    7,
+				ExpectedTxHash:             "0xdeadbeef",
+				ExpectedContractAddress:    "0xdeadbeef",
+				ExpectedEntrypointSelector: "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				BlockHash:                  "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				TxIndex:                    3,
+				ExpectedTxHash:             "0x179124db5707ea54a44c7e9cc2e654a0160a0f6fa9a3ef8f3f062a659224da1",
+				ExpectedContractAddress:    "0x6bc8601525b88448ecc22de7ce94caa4cd7b3d594ad5c8360f21c7d6bfa5085",
+				ExpectedEntrypointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+			},
+		},
+		"mainnet": {
+			{
+				BlockHash:                  "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
+				TxIndex:                    1,
+				ExpectedTxHash:             "0x2b8ff0898ab240a45082fa2d2e0118bfc2a30959a2d898bf3668d8c453963cb",
+				ExpectedContractAddress:    "0x443df1c1f5b55878b44c623557dc0bf7bee18c01813fe09fc6e47811a467976",
+				ExpectedEntrypointSelector: "0x12ead94ae9d3f9d2bdb6b847cf255f1f398193a1f88884a0ae8e18f24a037b6",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		tx, err := testConfig.client.TransactionByBlockHashAndIndex(context.Background(), test.BlockHash, test.TxIndex)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
+			t.Fatal("transaction should exist and match the tx hash")
+		}
+		if tx.ContractAddress != test.ExpectedContractAddress {
+			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
+		}
+		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
+			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, tx.EntryPointSelector)
+		}
+	}
+}
+
+// TestTransactionByBlockNumberAndIndex tests transaction by blockHash and txIndex
+func TestTransactionByBlockNumberAndIndex(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockNumberOrTag           interface{}
+		TxIndex                    int
+		ExpectedTxHash             string
+		ExpectedContractAddress    string
+		ExpectedEntrypointSelector string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockNumberOrTag:           7,
+				TxIndex:                    7,
+				ExpectedTxHash:             "0xdeadbeef",
+				ExpectedContractAddress:    "0xdeadbeef",
+				ExpectedEntrypointSelector: "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				BlockNumberOrTag:           242060,
+				TxIndex:                    3,
+				ExpectedTxHash:             "0x179124db5707ea54a44c7e9cc2e654a0160a0f6fa9a3ef8f3f062a659224da1",
+				ExpectedContractAddress:    "0x6bc8601525b88448ecc22de7ce94caa4cd7b3d594ad5c8360f21c7d6bfa5085",
+				ExpectedEntrypointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+			},
+		},
+		"mainnet": {
+			{
+				BlockNumberOrTag:           1500,
+				TxIndex:                    1,
+				ExpectedTxHash:             "0x2b8ff0898ab240a45082fa2d2e0118bfc2a30959a2d898bf3668d8c453963cb",
+				ExpectedContractAddress:    "0x443df1c1f5b55878b44c623557dc0bf7bee18c01813fe09fc6e47811a467976",
+				ExpectedEntrypointSelector: "0x12ead94ae9d3f9d2bdb6b847cf255f1f398193a1f88884a0ae8e18f24a037b6",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		tx, err := testConfig.client.TransactionByBlockNumberAndIndex(context.Background(), test.BlockNumberOrTag, test.TxIndex)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
+			t.Fatal("transaction should exist and match the tx hash")
+		}
+		if tx.ContractAddress != test.ExpectedContractAddress {
+			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
+		}
+		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
+			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, tx.EntryPointSelector)
+		}
+	}
+}
+
 // TestTransactionByHash tests transaction by hash
 func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)

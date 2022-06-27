@@ -1,4 +1,5 @@
-<h1 align="center">Golang Library for StarkNet</h1>
+<
+1 align="center">Golang Library for StarkNet</h1>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
@@ -50,16 +51,18 @@ Implementation status:
 | `starknet_addDeclareTransaction` | :x: |
 | `starknet_traceTransaction` | :x: |
 | `starknet_traceBlockTransactions` | :x: |
-| `starknet_getNonce` | :x: |
-| `starknet_protocolVersion` | :x: |
-| `starknet_pendingTransactions` | :x: |
+| `starknet_getNonce` (1) | :x: |
+| `starknet_protocolVersion` (1) | :x: |
+| `starknet_pendingTransactions` (1) | :x: |
 | `starknet_estimateFee` | :x: |
-| `starknet_getBlockTransactionCountByHash` | :x: |
-| `starknet_getBlockTransactionCountByNumber` | :x: |
-| `starknet_getTransactionByBlockNumberAndIndex` | :x: |
-| `starknet_getTransactionByBlockHashAndIndex` | :x: |
+| `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
+| `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
+| `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
+| `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_getStateUpdateByHash` | :x: |
+| `starknet_getStateUpdateByHash` (1) | :x: |
+
+(1) verbs that are not yet implemented by Pathfinder.
 
 ### Run Examples
 

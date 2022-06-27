@@ -75,6 +75,13 @@ func (sc *Client) Syncing(ctx context.Context) (*SyncResponse, error) {
 	return &result, nil
 }
 
+// ProtocolVersion returns the current starknet protocol version identifier, as supported by this sequencer.
+func (sc *Client) ProtocolVersion(ctx context.Context) (string, error) {
+	var protocol string
+	err := sc.do(ctx, "starknet_protocolVersion", &protocol)
+	return protocol, err
+}
+
 func (sc *Client) do(ctx context.Context, method string, data interface{}, args ...interface{}) error {
 	var raw json.RawMessage
 	err := sc.c.CallContext(ctx, &raw, method, args...)
