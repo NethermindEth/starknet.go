@@ -49,8 +49,8 @@ Implementation status:
 | `starknet_addInvokeTransaction` | :x: |
 | `starknet_addDeployTransaction` | :heavy_check_mark: |
 | `starknet_addDeclareTransaction` | :heavy_check_mark: |
-| `starknet_traceTransaction` | :x: |
-| `starknet_traceBlockTransactions` | :x: |
+| `starknet_traceTransaction` (1) | :x: |
+| `starknet_traceBlockTransactions` (1) | :x: |
 | `starknet_getNonce` (1) | :x: |
 | `starknet_protocolVersion` (1) | :x: |
 | `starknet_pendingTransactions` (1) | :x: |
