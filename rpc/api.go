@@ -235,6 +235,32 @@ func (sc *Client) GetTransactionByBlockHashAndIndex(ctx context.Context, blockHa
 	return &tx, nil
 }
 
+// GetBlockTransactionCountByNumber gets the number of transactions in a block given a block number (height).
+func (sc *Client) GetBlockTransactionCountByNumber(ctx context.Context, blockNumberOrTag interface{}) (int, error) {
+	var count int
+	if err := sc.do(ctx, "starknet_getBlockTransactionCountByNumber", &count, blockNumberOrTag); err != nil {
+		return 0, err
+	}
+	if count == 0 {
+		return 0, ErrNotFound
+	}
+
+	return count, nil
+}
+
+// GetBlockTransactionCountByHash gets the number of transactions in a block given a block hash.
+func (sc *Client) GetBlockTransactionCountByHash(ctx context.Context, blockHashOrTag string) (int, error) {
+	var count int
+	if err := sc.do(ctx, "starknet_getBlockTransactionCountByHash", &count, blockHashOrTag); err != nil {
+		return 0, err
+	}
+	if count == 0 {
+		return 0, ErrNotFound
+	}
+
+	return count, nil
+}
+
 // TransactionReceipt gets the transaction receipt by the transaction hash.
 func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
 	var receipt types.TransactionReceipt

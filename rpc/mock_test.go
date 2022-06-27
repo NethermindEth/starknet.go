@@ -41,6 +41,10 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getTransactionByBlockHashAndIndex(result, method, args...)
 	case "starknet_getTransactionByBlockNumberAndIndex":
 		return mock_starknet_getTransactionByBlockNumberAndIndex(result, method, args...)
+	case "starknet_getBlockTransactionCountByNumber":
+		return mock_starknet_getBlockTransactionCountByNumber(result, method, args...)
+	case "starknet_getBlockTransactionCountByHash":
+		return mock_starknet_getBlockTransactionCountByHash(result, method, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, method, args...)
 	case "starknet_getTransactionReceipt":
@@ -483,6 +487,47 @@ func mock_starknet_getStateUpdateByHash(result interface{}, method string, args 
 	output := &StateUpdateOutput{
 		BlockHash: blockHash,
 	}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getBlockTransactionCountByHash(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok = args[0].(string)
+	if !ok {
+		fmt.Printf("args[0] should be string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := 7
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getBlockTransactionCountByNumber(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok1 := args[0].(string)
+	_, ok2 := args[0].(int)
+	if !ok1 && !ok2 {
+		fmt.Printf("args[0] should be int or string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := 7
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil

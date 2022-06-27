@@ -54,8 +54,8 @@ Implementation status:
 | `starknet_protocolVersion` | :x: |
 | `starknet_pendingTransactions` | :x: |
 | `starknet_estimateFee` | :x: |
-| `starknet_getBlockTransactionCountByHash` | :x: |
-| `starknet_getBlockTransactionCountByNumber` | :x: |
+| `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
+| `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
