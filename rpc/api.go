@@ -192,8 +192,10 @@ type GetStateUpdateOutput struct {
 // GetStateUpdateByHash gets the information about the result of executing the requested block.
 func (sc *Client) GetStateUpdateByHash(ctx context.Context, blockHashOrTag string) (*GetStateUpdateOutput, error) {
 	var result GetStateUpdateOutput
-	err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag)
-	return &result, err
+	if err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
