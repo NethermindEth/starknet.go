@@ -103,7 +103,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	if err != nil {
 		return nil, err
 	}
-	req.MaxFee = zeroFee.Hex()
+	req.MaxFee = zeroFee.String()
 
 	return account.Provider.EstimateFee(ctx, *req)
 }
@@ -117,7 +117,7 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 	req := types.Transaction{
 		ContractAddress:    account.Address,
 		EntryPointSelector: EXECUTE_SELECTOR,
-		MaxFee:             maxFee.Hex(),
+		MaxFee:             maxFee.String(),
 		Calldata:           fmtExecuteCalldataStrings(nonce, calls),
 	}
 
