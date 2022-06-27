@@ -131,8 +131,11 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, erro
 func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
-	err := sc.do(ctx, "starknet_getStorageAt", &value, contractAddress, hashKey, blockHashOrTag)
-	return value, err
+		if err := sc.do(ctx, "starknet_getStorageAt", &value, contractAddress, hashKey, blockHashOrTag); err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
