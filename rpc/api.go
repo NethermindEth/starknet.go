@@ -211,6 +211,30 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	return &tx, nil
 }
 
+// GetTransactionByBlockNumberAndIndex get the details of a transaction by a given block number and index.
+func (sc *Client) GetTransactionByBlockNumberAndIndex(ctx context.Context, blockNumberOrTag interface{}, txIndex int) (*types.Transaction, error) {
+	var tx types.Transaction
+	if err := sc.do(ctx, "starknet_getTransactionByBlockNumberAndIndex", &tx, blockNumberOrTag, txIndex); err != nil {
+		return nil, err
+	} else if tx.TransactionHash == "" {
+		return nil, ErrNotFound
+	}
+
+	return &tx, nil
+}
+
+// GetTransactionByBlockHashAndIndex get the details of a transaction by a given block hash and index.
+func (sc *Client) GetTransactionByBlockHashAndIndex(ctx context.Context, blockHash string, txIndex int) (*types.Transaction, error) {
+	var tx types.Transaction
+	if err := sc.do(ctx, "starknet_getTransactionByBlockHashAndIndex", &tx, blockHash, txIndex); err != nil {
+		return nil, err
+	} else if tx.TransactionHash == "" {
+		return nil, ErrNotFound
+	}
+
+	return &tx, nil
+}
+
 // TransactionReceipt gets the transaction receipt by the transaction hash.
 func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
 	var receipt types.TransactionReceipt

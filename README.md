@@ -56,8 +56,8 @@ Implementation status:
 | `starknet_estimateFee` | :x: |
 | `starknet_getBlockTransactionCountByHash` | :x: |
 | `starknet_getBlockTransactionCountByNumber` | :x: |
-| `starknet_getTransactionByBlockNumberAndIndex` | :x: |
-| `starknet_getTransactionByBlockHashAndIndex` | :x: |
+| `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
+| `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
 | `starknet_getStateUpdateByHash` | :x: |
 

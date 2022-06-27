@@ -37,6 +37,10 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockByHash(result, method, args...)
 	case "starknet_getBlockByNumber":
 		return mock_starknet_getBlockByNumber(result, method, args...)
+	case "starknet_getTransactionByBlockHashAndIndex":
+		return mock_starknet_getTransactionByBlockHashAndIndex(result, method, args...)
+	case "starknet_getTransactionByBlockNumberAndIndex":
+		return mock_starknet_getTransactionByBlockNumberAndIndex(result, method, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, method, args...)
 	case "starknet_getTransactionReceipt":
@@ -192,6 +196,62 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    txHash,
+		ContractAddress:    "0xdeadbeef",
+		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		return errWrongArgs
+	}
+	blockHash, ok := args[0].(string)
+	if !ok || !strings.HasPrefix(blockHash, "0x") {
+		return errWrongArgs
+	}
+	_, ok = args[1].(int)
+	if !ok {
+		fmt.Printf("args[1] expecting int, got %T\n", args[1])
+		return errWrongArgs
+	}
+	transaction := types.Transaction{
+		TransactionHash:    "0xdeadbeef",
+		ContractAddress:    "0xdeadbeef",
+		EntryPointSelector: "0xdeadbeef",
+	}
+	outputContent, _ := json.Marshal(transaction)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getTransactionByBlockNumberAndIndex(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		return errWrongArgs
+	}
+	_, ok1 := args[0].(int)
+	_, ok2 := args[0].(string)
+	if !ok1 && !ok2 {
+		fmt.Printf("args[0] expecting int or string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	_, ok = args[1].(int)
+	if !ok {
+		fmt.Printf("args[1] expecting int, got %T\n", args[1])
+		return errWrongArgs
+	}
+	transaction := types.Transaction{
+		TransactionHash:    "0xdeadbeef",
 		ContractAddress:    "0xdeadbeef",
 		EntryPointSelector: "0xdeadbeef",
 	}
