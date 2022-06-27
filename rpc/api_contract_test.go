@@ -229,7 +229,7 @@ func TestGetStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		value, err := testConfig.client.GetStorageAt(context.Background(), test.ContractHash, test.StorageKey, test.BlockHashOrTag)
+		value, err := testConfig.client.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.BlockHashOrTag)
 		if err != nil {
 			t.Fatal(err)
 		}
