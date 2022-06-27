@@ -128,7 +128,7 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, erro
 }
 
 // GetStorageAt gets the value of the storage at the given address and key.
-func (sc *Client) GetStorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
+func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
 	err := sc.do(ctx, "starknet_getStorageAt", &value, contractAddress, hashKey, blockHashOrTag)
