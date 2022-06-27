@@ -46,6 +46,8 @@ func (f *Felt) strToFelt(str string) bool {
 		f.Int = b
 		return ok
 	}
+	
+	// TODO: revisit conversation on seperate 'ShortString' conversion
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
