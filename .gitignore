@@ -1,5 +1,7 @@
 caigo
 vendor/
+.env*
+!.env.template
 
 *.txt
 

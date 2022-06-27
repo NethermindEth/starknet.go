@@ -2,150 +2,162 @@ package rpc
 
 import (
 	"context"
+	"encoding/hex"
+	"flag"
+	"fmt"
 	"math/big"
+	"os"
+	"strings"
 	"testing"
-	// "github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/types"
+
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/joho/godotenv"
 )
+
+// testConfiguration is a type that is used to configure tests
+type testConfiguration struct {
+	client *Client
+	base   string
+}
 
 var (
-	client      *Client
-	accountAddr = "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"
-	classHash   = "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"
+	// set the environment for the test, default: mock
+	testEnv = "mock"
+
+	// testConfigurations are predefined test configurations
+	testConfigurations = map[string]testConfiguration{
+		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"mainnet": {
+			base: "http://localhost:9545",
+		},
+		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"testnet": {
+			base: "http://localhost:9545",
+		},
+		// Requires a Devnet configuration running locally
+		// (ref: https://github.com/Shard-Labs/starknet-devnet)
+		"devnet": {
+			base: "http://localhost:5050/rpc",
+		},
+		// Used with a mock as a standard configuration, see `mock_test.go``
+		"mock": {},
+	}
 )
 
-// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-// (ref: https://github.com/eqlabs/pathfinder)
-func init() {
-	var err error
-	client, err = DialContext(context.Background(), "http://localhost:9545")
+// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+func TestMain(m *testing.M) {
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	flag.Parse()
+
+	os.Exit(m.Run())
+}
+
+// beforeEach checks the configuration and initializes it before running the script
+func beforeEach(t *testing.T) *testConfiguration {
+	t.Helper()
+	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
+	testConfig, ok := testConfigurations[testEnv]
+	if !ok {
+		t.Fatal("env supports mock, testnet, mainnet or devnet")
+	}
+	if testEnv == "mock" {
+		testConfig.client = &Client{
+			c: &rpcMock{},
+		}
+		return &testConfig
+	}
+	base := os.Getenv("INTEGRATION_BASE")
+	if base != "" {
+		testConfig.base = base
+	}
+	client, err := DialContext(context.Background(), testConfig.base)
 	if err != nil {
-		panic(err.Error())
+		t.Fatal("connect should succeed, instead:", err)
+	}
+	testConfig.client = client
+	t.Cleanup(func() {
+		testConfig.client.Close()
+	})
+	return &testConfig
+}
+
+// TestChainID checks the chainId matches the one for the environment
+func TestChainID(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		ChainID string
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {{ChainID: "DEVNET"}},
+		"mainnet": {{ChainID: "SN_MAIN"}},
+		"mock":    {{ChainID: "MOCK"}},
+		"testnet": {{ChainID: "SN_GOERLI"}},
+	}[testEnv]
+
+	fmt.Printf("----------------------------\n")
+	fmt.Printf("Env: %s\n", testEnv)
+	fmt.Printf("Url: %s\n", testConfig.base)
+	fmt.Printf("----------------------------\n")
+
+	for _, test := range testSet {
+		chain, err := testConfig.client.ChainID(context.Background())
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		chainInt, ok := big.NewInt(0).SetString(chain, 0)
+		if !ok {
+			t.Fatal("could not load str representation of an int")
+		}
+		chainID, err := hex.DecodeString(chainInt.Text(16))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(chainID) != test.ChainID {
+			t.Fatalf("expecting %s, instead: %s", test.ChainID, string(chainID))
+		}
 	}
 }
 
-func TestClient(t *testing.T) {
-	id, err := client.ChainID(context.Background())
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if id != "0x534e5f4d41494e" {
-		t.Errorf("Not on mainnet node: %v\n", err)
-	}
+// TestSyncing checks the values returned are consistent
+func TestSyncing(t *testing.T) {
+	testConfig := beforeEach(t)
 
-	_, err = client.Syncing(context.Background())
+	sync, err := testConfig.client.Syncing(context.Background())
+
 	if err != nil {
-		t.Errorf("Could not retrieve sync information: %v\n", err)
+		t.Fatal(err)
+	}
+	if sync == nil || sync.CurrentBlockNum == "" {
+		t.Fatal("should succeed")
+	}
+	if !strings.HasPrefix(sync.CurrentBlockNum, "0x") {
+		t.Fatal("CurrentBlockNum should start with 0x, instead:", sync.CurrentBlockHash)
+	}
+	i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
+	if !ok || i.Cmp(big.NewInt(0)) <= 0 {
+		t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
 	}
 }
 
-func TestBlock(t *testing.T) {
-	num, err := client.BlockNumber(context.Background())
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
+// TestClose checks the function is called
+func TestClose(t *testing.T) {
+	testConfig := beforeEach(t)
 
-	block, err := client.BlockByNumber(context.Background(), num, "FULL_TXN_AND_RECEIPTS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if block.Transactions[0].TransactionReceipt.Status == "" {
-		t.Errorf("Could not retrieve transaction receipts: %v\n", block.Transactions[0])
-	}
+	testConfig.client.Close()
 
-	_, err = client.BlockByNumber(context.Background(), num, "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
+	switch client := testConfig.client.c.(type) {
+	case *rpc.Client:
+		return
+	case *rpcMock:
+		if client.closed {
+			return
+		}
+		t.Fatalf("client should have been closed")
+	default:
+		t.Fatalf("client unsupported type %T", testConfig.client.c)
 	}
-
-	block, err = client.BlockByHash(context.Background(), block.BlockHash, "FULL_TXN_AND_RECEIPTS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-	if block.Transactions[0].TransactionReceipt.Status == "" {
-		t.Errorf("Could not retrieve transaction receipts: %v\n", block.Transactions[0])
-	}
-
-	_, err = client.BlockByHash(context.Background(), block.BlockHash, "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-}
-
-func TestTransaction(t *testing.T) {
-	block, err := client.BlockByHash(context.Background(), "latest", "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	_, err = client.TransactionByHash(context.Background(), block.Transactions[0].TransactionHash)
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	_, err = client.TransactionReceipt(context.Background(), block.Transactions[0].TransactionHash)
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-}
-
-func TestContract(t *testing.T) {
-	block, err := client.BlockByNumber(context.Background(), big.NewInt(5), "FULL_TXNS")
-	if err != nil {
-		t.Errorf("Could not retrieve block: %v\n", err)
-	}
-
-	code, err := client.CodeAt(context.Background(), block.Transactions[0].ContractAddress)
-	if err != nil {
-		t.Errorf("Could not retrieve code: %v\n", err)
-	}
-	if len(code.Bytecode) == 0 {
-		t.Errorf("Could not retrieve bytecode: %v\n", err)
-	}
-
-	// tested against pathfinder @ 0313b14ea1fad8f73635a3002d106908813e57f1
-	classHash, err := client.ClassHashAt(context.Background(), accountAddr)
-	if err != nil {
-		t.Errorf("Could not retrieve class hash: %v\n", err)
-	}
-
-	_, err = client.ClassAt(context.Background(), accountAddr)
-	if err != nil {
-		t.Errorf("Could not retrieve class: %v\n", err)
-	}
-
-	_, err = client.Class(context.Background(), classHash)
-	if err != nil {
-		t.Errorf("Could not retrieve class: %v\n", err)
-	}
-}
-
-func TestEvents(t *testing.T) {
-	p := EventParams{
-		FromBlock:  800,
-		ToBlock:    1701,
-		PageSize:   1000,
-		PageNumber: 0,
-	}
-	events, err := client.Events(context.Background(), p)
-	if err != nil {
-		t.Errorf("Could not retrieve events: %v\n", err)
-	}
-	if len(events.Events) == 0 {
-		t.Errorf("Could not retrieve events: %v\n", err)
-	}
-}
-
-func TestCall(t *testing.T) {
-	_, err := client.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
-		EntryPointSelector: "decimals",
-	}, "0x02ecb1ac7d4925714279245073eb712e13af1263eec175c7917700eafba710b6")
-	if err != nil {
-		t.Errorf("Could not call contract function: %v\n", err)
-	}
-}
-
-func TestClientClose(t *testing.T) {
-	client.Close()
 }

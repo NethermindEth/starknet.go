@@ -42,6 +42,7 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 	return result, nil
 }
 
+// BlockNumber returns the current block managed by the API.
 func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var blockNumber big.Int
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
