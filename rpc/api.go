@@ -293,8 +293,10 @@ func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEst
 }
 
 // AccountNonce gets the latest nonce associated with the given address
-func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
-	panic("not implemented")
+func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*big.Int, error) {
+	var nonce big.Int
+	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
+	return &nonce, err
 }
 
 func toBlockNumArg(number *big.Int) interface{} {

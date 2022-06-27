@@ -59,6 +59,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClass(result, method, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, method, args...)
+	case "starknet_getNonce":
+		return mock_starknet_getNonce(result, method, args...)
 	case "starknet_getStorageAt":
 		return mock_starknet_getStorageAt(result, method, args...)
 	case "starknet_getStateUpdateByHash":
@@ -544,9 +546,26 @@ func mock_starknet_protocolVersion(result interface{}, method string, args ...in
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	output := ProtocolVersionOutput{
-		ProtocolVersion: "0x312e30",
+	output := "0x312e30"
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_getNonce(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
 	}
+	if len(args) != 1 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	if _, ok := args[0].(string); !ok {
+		fmt.Printf("args[0] should be string, got %T\n", args[0])
+		return errWrongArgs
+	}
+	output := big.NewInt(10)
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil

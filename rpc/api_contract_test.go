@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 )
 
@@ -234,6 +235,42 @@ func TestGetStorageAt(t *testing.T) {
 		}
 		if value != test.ExpectedValue {
 			t.Fatalf("expecting value %s, got %s", test.ExpectedValue, value)
+		}
+	}
+}
+
+// TestAccountNonce test AccountNonce
+func TestAccountNonce(t *testing.T) {
+	testConfig := beforeEach(t)
+	defer testConfig.client.Close()
+
+	type testSetType struct {
+		ContractAddress string
+		ExpectedNonce   string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				ContractAddress: "0xdeadbeef",
+				ExpectedNonce:   "10",
+			},
+		},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
+
+	if len(testSet) == 0 {
+		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+	}
+
+	for _, test := range testSet {
+		nonce, err := testConfig.client.AccountNonce(context.Background(), test.ContractAddress)
+
+		if err != nil || nonce == nil {
+			t.Fatal(err)
+		}
+		if nonce.Text(10) != test.ExpectedNonce {
+			t.Fatalf("nonce %s expected, got %s", test.ExpectedNonce, nonce.Text(10))
 		}
 	}
 }

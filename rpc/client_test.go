@@ -168,11 +168,11 @@ func TestProtocolVersion(t *testing.T) {
 
 		protocol, err := testConfig.client.ProtocolVersion(context.Background())
 
-		if err != nil || protocol == nil {
+		if err != nil || protocol == "" {
 			t.Fatal(err)
 		}
-		if protocol.ProtocolVersion != test.ProtocolVersion {
-			t.Fatal("protocol should not be empty")
+		if protocol != test.ProtocolVersion {
+			t.Fatalf("protocol %s expected, got %s", test.ProtocolVersion, protocol)
 		}
 	}
 }

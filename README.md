@@ -1,4 +1,5 @@
-<h1 align="center">Golang Library for StarkNet</h1>
+<
+1 align="center">Golang Library for StarkNet</h1>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
@@ -50,9 +51,9 @@ Implementation status:
 | `starknet_addDeclareTransaction` | :x: |
 | `starknet_traceTransaction` | :x: |
 | `starknet_traceBlockTransactions` | :x: |
-| `starknet_getNonce` | :x: |
+| `starknet_getNonce` (1) | :x: |
 | `starknet_protocolVersion` (1) | :x: |
-| `starknet_pendingTransactions` | :x: |
+| `starknet_pendingTransactions` (1) | :x: |
 | `starknet_estimateFee` | :x: |
 | `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
