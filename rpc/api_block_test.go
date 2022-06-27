@@ -9,7 +9,6 @@ import (
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	blockNumber, err := testConfig.client.BlockNumber(context.Background())
 
@@ -24,7 +23,6 @@ func TestBlockNumber(t *testing.T) {
 // TestBlockByNumber tests BlockByNumber
 func TestBlockByNumber(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockNumber       *big.Int
@@ -101,7 +99,6 @@ func TestBlockByNumber(t *testing.T) {
 // TestBlockByHash tests BlockByHash
 func TestBlockByHash(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockHash           string

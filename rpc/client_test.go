@@ -76,13 +76,15 @@ func beforeEach(t *testing.T) *testConfiguration {
 		t.Fatal("connect should succeed, instead:", err)
 	}
 	testConfig.client = client
+	t.Cleanup(func() {
+		testConfig.client.Close()
+	})
 	return &testConfig
 }
 
 // TestChainID checks the chainId matches the one for the environment
 func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ChainID string
@@ -122,7 +124,6 @@ func TestChainID(t *testing.T) {
 // TestSyncing checks the values returned are consistent
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	sync, err := testConfig.client.Syncing(context.Background())
 

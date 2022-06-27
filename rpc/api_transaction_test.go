@@ -8,7 +8,6 @@ import (
 // TestTransactionByHash tests transaction by hash
 func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		TxHash                     string
@@ -58,9 +57,7 @@ func TestTransactionByHash(t *testing.T) {
 
 // TestTransactionReceipt tests transaction receipt
 func TestTransactionReceipt(t *testing.T) {
-
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		TxHash         string

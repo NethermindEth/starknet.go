@@ -10,7 +10,6 @@ import (
 // TestCall tests Call
 func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractAddress    string

@@ -8,7 +8,6 @@ import (
 // TestEvents tests Events
 func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		FromBlockNumber    uint64

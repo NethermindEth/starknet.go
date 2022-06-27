@@ -8,7 +8,6 @@ import (
 // TestCodeAt tests code for a contract instance. This will be deprecated.
 func TestCodeAt(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractHash      string
@@ -52,7 +51,6 @@ func TestCodeAt(t *testing.T) {
 // TestClassAt tests code for a class.
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractHash      string
@@ -104,7 +102,6 @@ func TestClassAt(t *testing.T) {
 // TestClassHashAt tests code for a getClassHashAt.
 func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractHash      string
@@ -145,7 +142,6 @@ func TestClassHashAt(t *testing.T) {
 // TestClass tests code for a class.
 func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ClassHash         string
