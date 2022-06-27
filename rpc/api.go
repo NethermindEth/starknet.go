@@ -175,7 +175,7 @@ type StateDiff struct {
 	Nonces []Nonce `json:"nonces"`
 }
 
-type GetStateUpdateOutput struct {
+type StateUpdateOutput struct {
 	// BlockHash is the block identifier,
 	BlockHash string `json:"block_hash"`
 	// NewRoot is the new global state root.
