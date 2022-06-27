@@ -141,7 +141,7 @@ func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHash
 // StorageDiff is a change in a single storage item
 type StorageDiff struct {
 	// ContractAddress is the contract address for which the state changed
-	ContractAddress string `json:"address"`
+	Address string `json:"address"`
 	// Key returns the key of the changed value
 	Key string `json:"key"`
 	// Value is the new value applied to the given address
