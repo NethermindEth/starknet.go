@@ -193,7 +193,6 @@ func TestClass(t *testing.T) {
 // TestGetStorageAt tests GetStorageAt
 func TestGetStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractHash   string
