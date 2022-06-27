@@ -51,7 +51,7 @@ Implementation status:
 | `starknet_traceTransaction` | :x: |
 | `starknet_traceBlockTransactions` | :x: |
 | `starknet_getNonce` | :x: |
-| `starknet_protocolVersion` | :x: |
+| `starknet_protocolVersion` (1) | :x: |
 | `starknet_pendingTransactions` | :x: |
 | `starknet_estimateFee` | :x: |
 | `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
@@ -59,7 +59,9 @@ Implementation status:
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_getStateUpdateByHash` | :x: |
+| `starknet_getStateUpdateByHash` (1) | :x: |
+
+(1) verbs that are not yet implemented by Pathfinder.
 
 ### Run Examples
 

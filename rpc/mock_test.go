@@ -63,6 +63,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getStorageAt(result, method, args...)
 	case "starknet_getStateUpdateByHash":
 		return mock_starknet_getStateUpdateByHash(result, method, args...)
+	case "starknet_protocolVersion":
+		return mock_starknet_protocolVersion(result, method, args...)
 	case "starknet_call":
 		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeployTransaction":
@@ -528,6 +530,23 @@ func mock_starknet_getBlockTransactionCountByNumber(result interface{}, method s
 		return errWrongArgs
 	}
 	output := 7
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_protocolVersion(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 0 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	output := ProtocolVersionOutput{
+		ProtocolVersion: "0x312e30",
+	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
 	return nil
