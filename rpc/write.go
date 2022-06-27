@@ -44,9 +44,10 @@ func (sc *Client) AddDeployTransaction(ctx context.Context, contractAddressSalt 
 	contractDefinition.Program = program
 
 	var result AddDeployTransactionOutput
-	err := sc.do(ctx, "starknet_addDeployTransaction", &result, contractAddressSalt, constructorCallData, contractDefinition)
-
-	return &result, err
+	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, contractAddressSalt, constructorCallData, contractDefinition); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 func encodeProgram(content []byte) (string, error) {

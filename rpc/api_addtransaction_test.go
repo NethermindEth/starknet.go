@@ -15,7 +15,6 @@ var counterFile []byte
 // TestAddDeployTransaction tests AddDeployTransaction
 func TestAddDeployTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		Salt                    string
@@ -25,8 +24,8 @@ func TestAddDeployTransaction(t *testing.T) {
 		ExpectedContractAddress string
 	}
 	var contract types.ContractClass
-	err := json.Unmarshal(counterFile, &contract)
-	if err != nil {
+
+	if err := json.Unmarshal(counterFile, &contract); err != nil {
 		t.Fatal("error loading contract:", err)
 	}
 	testSet := map[string][]testSetType{
