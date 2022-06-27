@@ -34,6 +34,8 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, contractDefinition 
 		if err != nil {
 			return nil, err
 		}
+		// TODO: change Program from contractDefinition to have a type that can handle 
+		// compressed and uncompressed data.
 		program, err = encodeProgram(data)
 		if err != nil {
 			return nil, err
