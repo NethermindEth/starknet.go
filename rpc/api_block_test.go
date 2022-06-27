@@ -173,11 +173,11 @@ func TestBlockByHash(t *testing.T) {
 	}
 }
 
-// TestGetStateUpdateByHash tests GetStateUpdateByHash
+// TestStateUpdateByHash tests StateUpdateByHash
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
-func TestGetStateUpdateByHash(t *testing.T) {
+func TestStateUpdateByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -205,10 +205,9 @@ func TestGetStateUpdateByHash(t *testing.T) {
 	}
 }
 
-// TestGetBlockTransactionCountByHash tests GetBlockTransactionCountByHash
-func TestGetBlockTransactionCountByHash(t *testing.T) {
+// TestBlockTransactionCountByHash tests BlockTransactionCountByHash
+func TestBlockTransactionCountByHash(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockHash       string
@@ -234,7 +233,7 @@ func TestGetBlockTransactionCountByHash(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		txCount, err := testConfig.client.GetBlockTransactionCountByHash(context.Background(), test.BlockHash)
+		txCount, err := testConfig.client.BlockTransactionCountByHash(context.Background(), test.BlockHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -246,10 +245,9 @@ func TestGetBlockTransactionCountByHash(t *testing.T) {
 	}
 }
 
-// TestGetBlockTransactionCountByHash tests GetBlockTransactionCountByHash
-func TestGetBlockTransactionCountByNumber(t *testing.T) {
+// TestBlockTransactionCountByHash tests BlockTransactionCountByHash
+func TestBlockTransactionCountByNumber(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockNumberOrTag interface{}
@@ -275,7 +273,7 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		txCount, err := testConfig.client.GetBlockTransactionCountByNumber(context.Background(), test.BlockNumberOrTag)
+		txCount, err := testConfig.client.BlockTransactionCountByNumber(context.Background(), test.BlockNumberOrTag)
 		if err != nil {
 			t.Fatal(err)
 		}

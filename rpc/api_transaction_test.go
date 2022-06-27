@@ -5,10 +5,9 @@ import (
 	"testing"
 )
 
-// TestGetTransactionByBlockHashAndIndex tests transaction by blockHash and txIndex
-func TestGetTransactionByBlockHashAndIndex(t *testing.T) {
+// TestTransactionByBlockHashAndIndex tests transaction by blockHash and txIndex
+func TestTransactionByBlockHashAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockHash                  string
@@ -48,7 +47,7 @@ func TestGetTransactionByBlockHashAndIndex(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		tx, err := testConfig.client.GetTransactionByBlockHashAndIndex(context.Background(), test.BlockHash, test.TxIndex)
+		tx, err := testConfig.client.TransactionByBlockHashAndIndex(context.Background(), test.BlockHash, test.TxIndex)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -64,10 +63,9 @@ func TestGetTransactionByBlockHashAndIndex(t *testing.T) {
 	}
 }
 
-// TestGetTransactionByBlockNumberAndIndex tests transaction by blockHash and txIndex
-func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
+// TestTransactionByBlockNumberAndIndex tests transaction by blockHash and txIndex
+func TestTransactionByBlockNumberAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		BlockNumberOrTag           interface{}
@@ -107,7 +105,7 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		tx, err := testConfig.client.GetTransactionByBlockNumberAndIndex(context.Background(), test.BlockNumberOrTag, test.TxIndex)
+		tx, err := testConfig.client.TransactionByBlockNumberAndIndex(context.Background(), test.BlockNumberOrTag, test.TxIndex)
 		if err != nil {
 			t.Fatal(err)
 		}

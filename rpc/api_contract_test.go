@@ -100,7 +100,7 @@ func TestClassAt(t *testing.T) {
 	}
 }
 
-// TestClassHashAt tests code for a getClassHashAt.
+// TestClassHashAt tests code for a ClassHashAt.
 func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -191,8 +191,8 @@ func TestClass(t *testing.T) {
 	}
 }
 
-// TestGetStorageAt tests GetStorageAt
-func TestGetStorageAt(t *testing.T) {
+// TestStorageAt tests StorageAt
+func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -242,7 +242,6 @@ func TestGetStorageAt(t *testing.T) {
 // TestAccountNonce test AccountNonce
 func TestAccountNonce(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ContractAddress string

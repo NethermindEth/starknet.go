@@ -127,7 +127,7 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, erro
 	return *result, nil
 }
 
-// GetStorageAt gets the value of the storage at the given address and key.
+// StorageAt gets the value of the storage at the given address and key.
 func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
@@ -189,7 +189,7 @@ type StateUpdateOutput struct {
 	StateDiff StateDiff `json:"state_diff"`
 }
 
-// GetStateUpdateByHash gets the information about the result of executing the requested block.
+// StateUpdateByHash gets the information about the result of executing the requested block.
 func (sc *Client) StateUpdateByHash(ctx context.Context, blockHashOrTag string) (*StateUpdateOutput, error) {
 	var result StateUpdateOutput
 	if err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag); err != nil {
@@ -211,8 +211,8 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	return &tx, nil
 }
 
-// GetTransactionByBlockNumberAndIndex get the details of a transaction by a given block number and index.
-func (sc *Client) GetTransactionByBlockNumberAndIndex(ctx context.Context, blockNumberOrTag interface{}, txIndex int) (*types.Transaction, error) {
+// TransactionByBlockNumberAndIndex get the details of a transaction by a given block number and index.
+func (sc *Client) TransactionByBlockNumberAndIndex(ctx context.Context, blockNumberOrTag interface{}, txIndex int) (*types.Transaction, error) {
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockNumberAndIndex", &tx, blockNumberOrTag, txIndex); err != nil {
 		return nil, err
@@ -223,8 +223,8 @@ func (sc *Client) GetTransactionByBlockNumberAndIndex(ctx context.Context, block
 	return &tx, nil
 }
 
-// GetTransactionByBlockHashAndIndex get the details of a transaction by a given block hash and index.
-func (sc *Client) GetTransactionByBlockHashAndIndex(ctx context.Context, blockHash string, txIndex int) (*types.Transaction, error) {
+// TransactionByBlockHashAndIndex get the details of a transaction by a given block hash and index.
+func (sc *Client) TransactionByBlockHashAndIndex(ctx context.Context, blockHash string, txIndex int) (*types.Transaction, error) {
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockHashAndIndex", &tx, blockHash, txIndex); err != nil {
 		return nil, err
@@ -235,8 +235,8 @@ func (sc *Client) GetTransactionByBlockHashAndIndex(ctx context.Context, blockHa
 	return &tx, nil
 }
 
-// GetBlockTransactionCountByNumber gets the number of transactions in a block given a block number (height).
-func (sc *Client) GetBlockTransactionCountByNumber(ctx context.Context, blockNumberOrTag interface{}) (int, error) {
+// BlockTransactionCountByNumber gets the number of transactions in a block given a block number (height).
+func (sc *Client) BlockTransactionCountByNumber(ctx context.Context, blockNumberOrTag interface{}) (int, error) {
 	var count int
 	if err := sc.do(ctx, "starknet_getBlockTransactionCountByNumber", &count, blockNumberOrTag); err != nil {
 		return 0, err
@@ -248,8 +248,8 @@ func (sc *Client) GetBlockTransactionCountByNumber(ctx context.Context, blockNum
 	return count, nil
 }
 
-// GetBlockTransactionCountByHash gets the number of transactions in a block given a block hash.
-func (sc *Client) GetBlockTransactionCountByHash(ctx context.Context, blockHashOrTag string) (int, error) {
+// BlockTransactionCountByHash gets the number of transactions in a block given a block hash.
+func (sc *Client) BlockTransactionCountByHash(ctx context.Context, blockHashOrTag string) (int, error) {
 	var count int
 	if err := sc.do(ctx, "starknet_getBlockTransactionCountByHash", &count, blockHashOrTag); err != nil {
 		return 0, err

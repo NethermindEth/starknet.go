@@ -146,7 +146,6 @@ func TestSyncing(t *testing.T) {
 // TestProtocolVersion test ProtocolVersion
 func TestProtocolVersion(t *testing.T) {
 	testConfig := beforeEach(t)
-	defer testConfig.client.Close()
 
 	type testSetType struct {
 		ProtocolVersion string
