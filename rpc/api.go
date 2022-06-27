@@ -28,6 +28,7 @@ type EventParams struct {
 	PageNumber uint64 `json:"page_number"`
 }
 
+// Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
@@ -42,7 +43,7 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 	return result, nil
 }
 
-// BlockNumber returns the current block managed by the API.
+// BlockNumber gets the most recent accepted block number.
 func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var blockNumber big.Int
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
@@ -52,6 +53,7 @@ func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	return &blockNumber, nil
 }
 
+// BlockByHash gets block information given the block id.
 func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
 	var block types.Block
 	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
@@ -61,6 +63,7 @@ func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*
 	return &block, nil
 }
 
+// BlockByNumber gets block information given the block number (its height).
 func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
 	var block types.Block
 	if err := sc.do(ctx, "starknet_getBlockByNumber", &block, toBlockNumArg(number), scope); err != nil {
@@ -70,6 +73,9 @@ func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope stri
 	return &block, nil
 }
 
+// CodeAt returns the contract and class associated with the an address.
+// Deprecated: you should use ClassAt and TransactionByHash to access the
+// associated values.
 func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, error) {
 	var contractRaw struct {
 		Bytecode []string `json:"bytecode"`
@@ -90,6 +96,7 @@ func (sc *Client) CodeAt(ctx context.Context, address string) (*types.Code, erro
 	return &contract, nil
 }
 
+// Class gets the contract class definition associated with the given hash.
 func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass, error) {
 	var rawClass types.ContractClass
 	if err := sc.do(ctx, "starknet_getClass", &rawClass, hash); err != nil {
@@ -99,6 +106,7 @@ func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass,
 	return &rawClass, nil
 }
 
+// ClassAt get the contract class definition at the given address.
 func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
 	var rawClass types.ContractClass
 	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, address); err != nil {
@@ -108,6 +116,7 @@ func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractC
 	return &rawClass, nil
 }
 
+// ClassHashAt gets the contract class hash for the contract deployed at the given address.
 func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, error) {
 	result := new(string)
 	if err := sc.do(ctx, "starknet_getClassHashAt", &result, address); err != nil {
@@ -117,6 +126,7 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, erro
 	return *result, nil
 }
 
+// TransactionByHash gets the details and status of a submitted transaction.
 func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
@@ -128,6 +138,7 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	return &tx, nil
 }
 
+// TransactionReceipt gets the transaction receipt by the transaction hash.
 func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
 	var receipt types.TransactionReceipt
 	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt, hash)
@@ -140,6 +151,10 @@ func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.T
 	return &receipt, nil
 }
 
+// Events returns all events matching the given filter
+// TODO: check the query parameters as they include filter directives that have
+// not been implemented. For more details, check the
+// [specification](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json)
 func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, error) {
 	var result Events
 	if err := sc.do(ctx, "starknet_getEvents", &result, evParams); err != nil {
@@ -149,10 +164,12 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 	return &result, nil
 }
 
+// Estimate the fee for a given StarkNet transaction.
 func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
 	panic("not implemented")
 }
 
+// AccountNonce gets the latest nonce associated with the given address
 func (sc *Client) AccountNonce(context.Context, string) (*big.Int, error) {
 	panic("not implemented")
 }
