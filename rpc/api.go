@@ -190,7 +190,7 @@ type GetStateUpdateOutput struct {
 }
 
 // GetStateUpdateByHash gets the information about the result of executing the requested block.
-func (sc *Client) GetStateUpdateByHash(ctx context.Context, blockHashOrTag string) (*GetStateUpdateOutput, error) {
+func (sc *Client) StateUpdateByHash(ctx context.Context, blockHashOrTag string) (*StateUpdateOutput, error) {
 	var result GetStateUpdateOutput
 	if err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag); err != nil {
 		return nil, err
