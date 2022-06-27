@@ -70,3 +70,54 @@ func TestAddDeployTransaction(t *testing.T) {
 		}
 	}
 }
+
+// TestAddDeclareTransaction tests AddDeclareTransaction
+func TestAddDeclareTransaction(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		Contract                types.ContractClass
+		Version                 string
+		ExpectedTransactionHash string
+		ExpectedClassHash       string
+	}
+	var contract types.ContractClass
+
+	if err := json.Unmarshal(counterFile, &contract); err != nil {
+		t.Fatal("error loading contract:", err)
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				Contract:                contract,
+				Version:                 "0x0",
+				ExpectedTransactionHash: "0xdeadbeef",
+				ExpectedClassHash:       "0xdeadbeef",
+			},
+		},
+		"testnet": {
+			{
+				Contract:                contract,
+				Version:                 "0x0",
+				ExpectedTransactionHash: "0x3d570dbde5ed56ddcb5f69578fb5f83b362c4af8b2a60e2be33ed229148e10a",
+				ExpectedClassHash:       "0x646552d8029a8fe940dbbe2847bce558d3d1b3e78a5519e970395df6a2b2cc9",
+			},
+		},
+		// TODO: add tests for mainnet when possible or when figure out how to
+		// create a white-listed contract.
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		output, err := testConfig.client.AddDeclareTransaction(context.Background(), test.Contract, test.Version)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if output.TransactionHash != test.ExpectedTransactionHash {
+			t.Fatalf("tx expected %s, got %s", test.ExpectedTransactionHash, output.TransactionHash)
+		}
+		if output.ClassHash != test.ExpectedClassHash {
+			t.Fatalf("class expected %s, got %s", test.ExpectedClassHash, output.ClassHash)
+		}
+	}
+}
