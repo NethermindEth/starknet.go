@@ -121,3 +121,80 @@ func TestAddDeclareTransaction(t *testing.T) {
 		}
 	}
 }
+
+// TestAddInvokeTransaction tests AddInvokeTransaction
+func TestAddInvokeTransaction(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		FunctionCall            types.FunctionCall
+		Signature               []string
+		Version                 string
+		MaxFee                  string
+		ExpectedTransactionHash string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				FunctionCall: types.FunctionCall{
+					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
+					Calldata: []string{
+						"0x1",
+						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
+						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
+						"0x0",
+						"0x1",
+						"0x1",
+						"0x2b",
+						"0x0",
+					},
+					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+				},
+				Signature: []string{
+					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
+					"3202126414680946801789588986259466145787792017299869598314522555275920413944",
+				},
+				MaxFee:                  "0x4f388496839",
+				Version:                 "0x0",
+				ExpectedTransactionHash: "0xdeadbeef",
+			},
+		},
+		"testnet": {},
+		"mainnet": {
+			{
+				FunctionCall: types.FunctionCall{
+					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
+					Calldata: []string{
+						"0x1",
+						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
+						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
+						"0x0",
+						"0x1",
+						"0x1",
+						"0x2b",
+						"0x0",
+					},
+					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+				},
+				Signature: []string{
+					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
+					"3202126414680946801789588986259466145787792017299869598314522555275920413944",
+				},
+				MaxFee:                  "0x4f388496839",
+				Version:                 "0x0",
+				ExpectedTransactionHash: "0x1ce0d76c0c085306fd32679b75f9541fab71851da8d3e3898a691b49ed8175c",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		functionCall := test.FunctionCall
+		output, err := testConfig.client.AddInvokeTransaction(context.Background(), functionCall, test.Signature, test.MaxFee, test.Version)
+		if err != nil || output == nil {
+			t.Fatalf("output is nil, go err %v", err)
+		}
+		if output.TransactionHash != test.ExpectedTransactionHash {
+			t.Fatalf("tx expected %s, got %s", test.ExpectedTransactionHash, output.TransactionHash)
+		}
+	}
+}

@@ -22,8 +22,18 @@ type AddDeployTransactionOutput struct {
 	ContractAddress string `json:"contract_address"`
 }
 
-func (sc *Client) Invoke(context.Context, types.Transaction) (*types.AddTxResponse, error) {
-	panic("'starknet_addInvokeTransaction' not implemented")
+// AddInvokeTransactionOutput provides the output for AddInvokeTransaction.
+type AddInvokeTransactionOutput struct {
+	TransactionHash string `json:"transaction_hash"`
+}
+
+// AddInvokeTransaction estimates the fee for a given StarkNet transaction.
+func (sc *Client) AddInvokeTransaction(ctx context.Context, functionCall types.FunctionCall, signature []string, maxFee, version string) (*AddInvokeTransactionOutput, error) {
+	var output AddInvokeTransactionOutput
+	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, functionCall, signature, maxFee, version); err != nil {
+		return nil, err
+	}
+	return &output, nil
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
@@ -34,7 +44,7 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, contractDefinition 
 		if err != nil {
 			return nil, err
 		}
-		// TODO: change Program from contractDefinition to have a type that can handle 
+		// TODO: change Program from contractDefinition to have a type that can handle
 		// compressed and uncompressed data.
 		program, err = encodeProgram(data)
 		if err != nil {
@@ -62,7 +72,7 @@ func (sc *Client) AddDeployTransaction(ctx context.Context, contractAddressSalt 
 		if err != nil {
 			return nil, err
 		}
-		// TODO: change Program from contractDefinition to have a type that can handle 
+		// TODO: change Program from contractDefinition to have a type that can handle
 		// compressed and uncompressed data.
 		program, err = encodeProgram(data)
 		if err != nil {
