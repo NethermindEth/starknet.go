@@ -7,9 +7,10 @@ on:
   push:
     branches-ignore:
       - master
+  schedule:
+    - cron: '42 2 * * *'
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
