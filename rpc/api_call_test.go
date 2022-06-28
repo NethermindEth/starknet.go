@@ -63,7 +63,7 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall        FunctionCall
+		Transaction         types.Transaction
 		BlockHashOrTag      string
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string
@@ -72,7 +72,7 @@ func TestEstimateFee(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				FunctionCall: FunctionCall{
+				Transaction: types.Transaction{
 					ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
 					Calldata: []string{
 						"0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -103,7 +103,7 @@ func TestEstimateFee(t *testing.T) {
 		"testnet": {},
 		"mainnet": {
 			{
-				FunctionCall: FunctionCall{
+				Transaction: types.Transaction{
 					ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
 					Calldata: []string{
 						"0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -134,8 +134,8 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		functionCall := test.FunctionCall
-		output, err := testConfig.client.EstimateFee(context.Background(), functionCall, test.BlockHashOrTag)
+		tx := test.Transaction
+		output, err := testConfig.client.EstimateFee(context.Background(), tx, test.BlockHashOrTag)
 		if err != nil || output == nil {
 			t.Fatalf("output is nil, go err %v", err)
 		}
