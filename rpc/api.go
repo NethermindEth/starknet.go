@@ -287,9 +287,21 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 	return &result, nil
 }
 
-// Estimate the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(context.Context, types.Transaction) (*types.FeeEstimate, error) {
-	panic("not implemented")
+// EstimateFeeOutput provides a set of properties to understand fee estimations.
+type EstimateFeeOutput struct {
+	OverallFee  string `json:"overall_fee"`
+	GasConsumed string `json:"gas_consumed"`
+	GasPrice    string `json:"gas_price"`
+}
+
+// EstimateFee estimates the fee for a given StarkNet transaction.
+func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHashOrTag string) (*EstimateFeeOutput, error) {
+	var estimate EstimateFeeOutput
+	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
+		return nil, err
+	}
+  
+	return &estimate, nil
 }
 
 // AccountNonce gets the latest nonce associated with the given address
