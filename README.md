@@ -34,7 +34,7 @@ Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/s
 
 Implementation status:
 
-| Method                        | Implemented           |
+| Method                        | Implemented (*)       |
 | ----------------------------- | --------------------- |
 | `starknet_getBlockByHash` | :heavy_check_mark: |
 | `starknet_getBlockByNumber` | :heavy_check_mark: |
@@ -51,20 +51,21 @@ Implementation status:
 | `starknet_addInvokeTransaction` | :heavy_check_mark: |
 | `starknet_addDeployTransaction` | :heavy_check_mark: |
 | `starknet_addDeclareTransaction` | :heavy_check_mark: |
-| `starknet_traceTransaction` (1) | :x: |
-| `starknet_traceBlockTransactions` (1) | :x: |
-| `starknet_getNonce` (1) | :x: |
-| `starknet_protocolVersion` (1) | :x: |
-| `starknet_pendingTransactions` (1) | :x: |
-| `starknet_estimateFee` | :x: |
+| `starknet_traceTransaction` | :x: |
+| `starknet_traceBlockTransactions` | :x: |
+| `starknet_getNonce` | :x: |
+| `starknet_protocolVersion` | :x: |
+| `starknet_pendingTransactions` | :x: |
+| `starknet_estimateFee` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_getStateUpdateByHash` (1) | :x: |
+| `starknet_getStateUpdateByHash` | :x: |
 
-(1) verbs that are not yet implemented by Pathfinder.
+> (*) some methods are not implemented because they are not yet available
+> from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
 
 ### Run Examples
 
