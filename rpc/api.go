@@ -300,6 +300,7 @@ func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHa
 	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
 		return nil, err
 	}
+  
 	return &estimate, nil
 }
 

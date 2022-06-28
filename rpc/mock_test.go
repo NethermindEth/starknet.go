@@ -73,8 +73,6 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addDeclareTransaction(result, method, args...)
 	case "starknet_addDeployTransaction":
 		return mock_starknet_addDeployTransaction(result, method, args...)
-	case "starknet_estimateFee":
-		return mock_starknet_estimateFee(result, method, args...)
 	default:
 		return ErrNotFound
 	}
