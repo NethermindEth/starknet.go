@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
@@ -22,7 +23,9 @@ func main() {
 	gw := gateway.NewClient(gateway.WithChain(name))
 
 	// will fail w/o new seed
-	deployResponse, err := gw.Deploy(context.Background(), contract, types.DeployRequest{})
+	deployResponse, err := gw.Deploy(context.Background(), contract, types.DeployRequest{
+		ContractAddressSalt: fmt.Sprintf("0x%x", time.Now().UnixNano()),
+	})
 	if err != nil {
 		panic(err.Error())
 	}
