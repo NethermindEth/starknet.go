@@ -56,12 +56,12 @@ Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/s
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_traceBlockTransactions`* | :x: |
-| `starknet_getNonce`* | :x: |
-| `starknet_protocolVersion`* | :x: |
-| `starknet_pendingTransactions`* | :x: |
-| `starknet_traceTransaction`* | :x: |
-| `starknet_getStateUpdateByHash`* | :x: |
+| *`starknet_traceBlockTransactions` | :x: |
+| *`starknet_getNonce` | :x: |
+| *`starknet_protocolVersion` | :x: |
+| *`starknet_pendingTransactions` | :x: |
+| *`starknet_traceTransaction` | :x: |
+| *`starknet_getStateUpdateByHash` | :x: |
 
 > (*) some methods are not implemented because they are not yet available
 > from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
