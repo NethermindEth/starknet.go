@@ -68,7 +68,7 @@ Implementation status:
 
 ### Run Examples
 
-starkcurve
+***starkcurve***
 
 ```sh
 cd examples/starkcurve
@@ -76,7 +76,7 @@ go mod tidy
 go run main.go
 ```
 
-starknet contract
+***starknet contract***
 
 ```sh
 cd examples/contract
@@ -84,7 +84,7 @@ go mod tidy
 go run main.go
 ```
 
-starknet account
+***starknet account***
 
 ```sh
 cd examples/account
@@ -98,7 +98,7 @@ go run main.go
 go test -v ./...
 ```
 
-### Run RPC Tests
+### Run RPC Tests(./rpc)
 
 ```go
 go test -v -env [mainnet|devnet|testnet|mock] .
