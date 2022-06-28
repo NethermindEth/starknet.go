@@ -20,8 +20,9 @@ Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs
 ### Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
-- [example](./examples/starkcurve) initializing the StarkCurve for signing and verification
-- [example](./examples/starknet) for StarkNet interactions including deploy, call, invoke, and poll transaction
+- [curve example](./examples/curve) initializing the StarkCurve for signing and verification
+- [contract example](./examples/contract) for smart contract deployment and function call
+- [account example](./examples/contract) for Account initialization and invocation call
 
 ### Compatibility and stability
 
@@ -30,9 +31,7 @@ Caigo is currently under active development and will under go breaking changes u
 
 ### RPC
 
-Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs).
-
-Implementation status:
+Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
 | Method                        | Implemented           |
 | ----------------------------- | --------------------- |
