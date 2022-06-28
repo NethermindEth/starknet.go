@@ -71,7 +71,7 @@ Implementation status:
 ***starkcurve***
 
 ```sh
-cd examples/starkcurve
+cd examples/curve
 go mod tidy
 go run main.go
 ```
@@ -98,10 +98,10 @@ go run main.go
 go test -v ./...
 ```
 
-### Run RPC Tests(./rpc)
+### Run RPC Tests
 
 ```go
-go test -v -env [mainnet|devnet|testnet|mock] .
+go test -v ./rpc -env [mainnet|devnet|testnet|mock]
 ```
 
 ### Run Benchmarks
