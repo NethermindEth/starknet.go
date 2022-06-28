@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	/* 
-		Although the library adheres to the 'elliptic/curve' interface. 
-		All testing has been done against library function explicity. 
+	/*
+		Although the library adheres to the 'elliptic/curve' interface.
+		All testing has been done against library function explicity.
 		It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 		NOTE: when not given local file path this pulls the curve data from Starkware github repo
 	*/
