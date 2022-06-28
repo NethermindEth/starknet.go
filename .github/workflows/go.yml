@@ -1,12 +1,7 @@
 name: Go
 
 on:
-  pull_request:
-    branches: [ master ]
-    types: [ opened, synchronize, closed ]
   push:
-    branches-ignore:
-      - master
   schedule:
     - cron: '42 2 * * *'
 
