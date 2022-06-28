@@ -73,7 +73,7 @@ func NewClient(opts ...Option) *Gateway {
 	}
 
 	sg.client = gopts.client
-	// sg.errorHandler = gopts.errorHandler
+	sg.errorHandler = gopts.errorHandler
 
 	return sg
 }

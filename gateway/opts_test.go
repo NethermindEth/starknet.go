@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 )
@@ -12,7 +11,6 @@ func TestWithErrorHandler(t *testing.T) {
 
 	opt := WithErrorHandler(func(err error) error {
 		*spyPtr = true
-		fmt.Print("spy triggered\n")
 		return err
 	})
 
