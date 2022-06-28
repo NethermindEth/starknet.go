@@ -33,7 +33,7 @@ Caigo is currently under active development and will under go breaking changes u
 
 Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
-| Method                        | Implemented           |
+| Method                        | Implemented (*)       |
 | ----------------------------- | --------------------- |
 | `starknet_getBlockByHash` | :heavy_check_mark: |
 | `starknet_getBlockByNumber` | :heavy_check_mark: |
@@ -56,14 +56,15 @@ Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/s
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_traceBlockTransactions` (1) | :x: |
-| `starknet_getNonce` (1) | :x: |
-| `starknet_protocolVersion` (1) | :x: |
-| `starknet_pendingTransactions` (1) | :x: |
-| `starknet_traceTransaction` (1) | :x: |
-| `starknet_getStateUpdateByHash` (1) | :x: |
+| `starknet_traceBlockTransactions`* | :x: |
+| `starknet_getNonce`* | :x: |
+| `starknet_protocolVersion`* | :x: |
+| `starknet_pendingTransactions`* | :x: |
+| `starknet_traceTransaction`* | :x: |
+| `starknet_getStateUpdateByHash`* | :x: |
 
-(1) verbs that are not yet implemented by Pathfinder.
+> (*) some methods are not implemented because they are not yet available
+> from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
 
 ### Run Examples
 
