@@ -22,12 +22,16 @@ const (
 	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
 )
 
+type doer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Gateway struct {
 	Base         string `json:"base"`
 	Feeder       string `json:"feeder"`
 	Gateway      string `json:"gateway"`
 	ChainId      string `json:"chainId"`
-	client       *http.Client
+	client       doer
 	errorHandler func(e error) error
 }
 
