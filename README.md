@@ -49,20 +49,20 @@ Implementation status:
 | `starknet_addInvokeTransaction` | :x: |
 | `starknet_addDeployTransaction` | :heavy_check_mark: |
 | `starknet_addDeclareTransaction` | :heavy_check_mark: |
-| `starknet_traceTransaction` (1) | :x: |
-| `starknet_traceBlockTransactions` (1) | :x: |
-| `starknet_getNonce` (1) | :x: |
-| `starknet_protocolVersion` (1) | :x: |
-| `starknet_pendingTransactions` (1) | :x: |
-| `starknet_estimateFee` | :x: |
+| `starknet_traceTransaction` | :x: (1) |
+| `starknet_traceBlockTransactions` | :x: (1) |
+| `starknet_getNonce` | :x: (1) |
+| `starknet_protocolVersion` | :x: (1) |
+| `starknet_pendingTransactions` | :x: (1) |
+| `starknet_estimateFee` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_getStateUpdateByHash` (1) | :x: |
+| `starknet_getStateUpdateByHash` | :x: (1) |
 
-(1) verbs that are not yet implemented by Pathfinder.
+(1) methods not yet implemented by Pathfinder.
 
 ### Run Examples
 
