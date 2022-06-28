@@ -294,22 +294,10 @@ type EstimateFeeOutput struct {
 	GasPrice    string `json:"gas_price"`
 }
 
-// FunctionCall provides a local struct for FunctionCall that is required as
-// Pathfinder fails if MaxFee and Version are not set
-// TODO: check how to merge it with types.FunctionCall.
-type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature,omitempty"`
-	MaxFee             string   `json:"max_fee"`
-	Version            string   `json:"version,omitempty"`
-}
-
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, functionCall FunctionCall, blockHashOrTag string) (*EstimateFeeOutput, error) {
+func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHashOrTag string) (*EstimateFeeOutput, error) {
 	var estimate EstimateFeeOutput
-	if err := sc.do(ctx, "starknet_estimateFee", &estimate, functionCall, blockHashOrTag); err != nil {
+	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
 		return nil, err
 	}
 	return &estimate, nil
