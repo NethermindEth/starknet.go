@@ -1,4 +1,4 @@
-module github.com/dontpanicdao/caigo/examples/starkcurve
+module github.com/dontpanicdao/caigo/examples/curve
 
 go 1.18
 

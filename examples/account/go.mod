@@ -1,4 +1,4 @@
-module github.com/dontpanicdao/caigo/examples/starknet
+module github.com/dontpanicdao/caigo/examples/account
 
 go 1.18
 

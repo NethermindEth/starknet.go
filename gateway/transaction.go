@@ -179,31 +179,29 @@ func (gw *Gateway) TransactionTrace(ctx context.Context, txHash string) (*types.
 
 // Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
 // or the transaction reverts
-func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, status string, err error) {
+func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, receipt *types.TransactionReceipt, err error) {
 	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	cow := 0
 	for range ticker.C {
 		if cow >= maxPoll {
-			return cow, status, err
+			return cow, receipt, err
 		}
 		cow++
 
-		stat, err := gw.TransactionStatus(ctx, TransactionStatusOptions{
-			TransactionHash: txHash,
-		})
+		receipt, err = gw.TransactionReceipt(ctx, txHash)
 		if err != nil {
-			return cow, status, err
+			return cow, receipt, err
 		}
-		sInt := FindTxStatus(stat.TxStatus)
+		sInt := FindTxStatus(receipt.Status)
 		if sInt == 1 {
-			return cow, status, fmt.Errorf(stat.TxFailureReason.ErrorMessage)
+			return cow, receipt, fmt.Errorf(receipt.StatusData)
 		} else if sInt >= int(threshold) {
-			return cow, stat.TxStatus, nil
+			return cow, receipt, nil
 		}
 	}
-	return cow, status, err
+	return cow, receipt, err
 }
 
 func FindTxStatus(stat string) int {

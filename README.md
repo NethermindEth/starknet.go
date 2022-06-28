@@ -20,19 +20,39 @@ Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs
 ### Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
-- [example](./examples/starkcurve) initializing the StarkCurve for signing and verification
-- [example](./examples/starknet) for StarkNet interactions including deploy, call, invoke, and poll transaction
+- [curve example](./examples/curve) initializing the StarkCurve for signing and verification
+- [contract example](./examples/contract) for smart contract deployment and function call
+- [account example](./examples/contract) for Account initialization and invocation call
 
-### Compatibility and stability
+### Run Examples
 
-Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
-*NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
+***starkcurve***
+
+```sh
+cd examples/curve
+go mod tidy
+go run main.go
+```
+
+***starknet contract***
+
+```sh
+cd examples/contract
+go mod tidy
+go run main.go
+```
+
+***starknet account***
+
+```sh
+cd examples/account
+go mod tidy
+go run main.go
+```
 
 ### RPC
 
-Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs).
-
-Implementation status:
+Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
 | Method                        | Implemented (*)       |
 | ----------------------------- | --------------------- |
@@ -51,42 +71,21 @@ Implementation status:
 | `starknet_addInvokeTransaction` | :heavy_check_mark: |
 | `starknet_addDeployTransaction` | :heavy_check_mark: |
 | `starknet_addDeclareTransaction` | :heavy_check_mark: |
-| `starknet_traceTransaction` | :x: |
-| `starknet_traceBlockTransactions` | :x: |
-| `starknet_getNonce` | :x: |
-| `starknet_protocolVersion` | :x: |
-| `starknet_pendingTransactions` | :x: |
 | `starknet_estimateFee` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
 | `starknet_getStorageAt` | :heavy_check_mark: |
-| `starknet_getStateUpdateByHash` | :x: |
+| *`starknet_traceBlockTransactions` | :x: |
+| *`starknet_getNonce` | :x: |
+| *`starknet_protocolVersion` | :x: |
+| *`starknet_pendingTransactions` | :x: |
+| *`starknet_traceTransaction` | :x: |
+| *`starknet_getStateUpdateByHash` | :x: |
 
 > (*) some methods are not implemented because they are not yet available
 > from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
-
-### Run Examples
-
-starkcurve
-
-```sh
-cd examples/starkcurve
-go mod tidy
-go run main.go
-```
-
-starknet
-
-```sh
-cd examples/starknet
-go mod tidy
-
-python3.7 -m venv ~/cairo_venv; source ~/cairo_venv/bin/activate; export STARKNET_NETWORK=alpha-goerli
-starknet-compile ../../gateway/contracts/counter.cairo --output counter_compiled.json
-go run main.go
-```
 
 ### Run Tests
 
@@ -94,11 +93,22 @@ go run main.go
 go test -v ./...
 ```
 
+### Run RPC Tests
+
+```go
+go test -v ./rpc -env [mainnet|devnet|testnet|mock]
+```
+
 ### Run Benchmarks
 
 ```go
 go test -bench=.
 ```
+
+### Compatibility and stability
+
+Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
+*NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
 
 ## Issues
 
