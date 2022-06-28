@@ -105,6 +105,9 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 	if len(deployRequest.ConstructorCalldata) == 0 {
 		deployRequest.ConstructorCalldata = []string{}
 	}
+	if deployRequest.ContractAddressSalt == "" {
+		deployRequest.ContractAddressSalt = "0x0"
+	}
 
 	var rawDef RawContractDefinition
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
