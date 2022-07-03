@@ -11,13 +11,24 @@ import (
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	blockNumber, err := testConfig.client.BlockNumber(context.Background())
+	type testSetType struct{}
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if blockNumber == nil || blockNumber.Int64() <= 0 {
-		t.Fatal("current block number should be higher or equal to 1")
+	testSet := map[string][]testSetType{
+		"mock":    {},
+		"testnet": {{}},
+		"mainnet": {{}},
+		"devnet":  {},
+	}[testEnv]
+
+	for range testSet {
+		blockNumber, err := testConfig.client.BlockNumber(context.Background())
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		if blockNumber == nil || blockNumber.Int64() <= 0 {
+			t.Fatal("current block number should be higher or equal to 1")
+		}
 	}
 }
 

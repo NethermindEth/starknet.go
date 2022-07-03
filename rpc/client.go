@@ -60,27 +60,26 @@ func (sc *Client) Close() {
 // ChainID retrieves the current chain ID for transaction replay protection.
 func (sc *Client) ChainID(ctx context.Context) (string, error) {
 	var result string
-	err := sc.c.CallContext(ctx, &result, "starknet_chainId")
+	err := sc.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...)
 	if err != nil {
 		return "", err
 	}
 	return result, err
 }
 
-// Syncing
+// Syncing checks the syncing status of the node.
 func (sc *Client) Syncing(ctx context.Context) (*SyncResponse, error) {
 	var result SyncResponse
-	if err := sc.c.CallContext(ctx, &result, "starknet_syncing"); err != nil {
+	if err := sc.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
 		return nil, err
 	}
-
 	return &result, nil
 }
 
 // ProtocolVersion returns the current starknet protocol version identifier, as supported by this sequencer.
 func (sc *Client) ProtocolVersion(ctx context.Context) (string, error) {
 	var protocol string
-	err := sc.do(ctx, "starknet_protocolVersion", &protocol)
+	err := sc.do(ctx, "starknet_protocolVersion", &protocol, []interface{}{}...)
 	return protocol, err
 }
 
