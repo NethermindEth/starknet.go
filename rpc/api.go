@@ -287,17 +287,10 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 	return &result, nil
 }
 
-// EstimateFeeOutput provides a set of properties to understand fee estimations.
-type EstimateFeeOutput struct {
-	OverallFee  string `json:"overall_fee"`
-	GasConsumed string `json:"gas_consumed"`
-	GasPrice    string `json:"gas_price"`
-}
-
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHashOrTag string) (*EstimateFeeOutput, error) {
-	var estimate EstimateFeeOutput
-	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
+func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionCall, blockHashOrTag string) (*types.FeeEstimate, error) {
+	var estimate types.FeeEstimate
+	if err := sc.do(ctx, "starknet_estimateFee", &estimate, call, blockHashOrTag); err != nil {
 		return nil, err
 	}
 
@@ -323,4 +316,8 @@ func toBlockNumArg(number *big.Int) interface{} {
 	}
 
 	return numOrTag
+}
+
+func (sc *Client) Invoke(context.Context, types.FunctionInvoke) (*types.AddTxResponse, error) {
+	panic("not implemented")
 }

@@ -44,9 +44,6 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	if len(call.Calldata) == 0 {
 		call.Calldata = []string{}
 	}
-	if len(call.Signature) == 0 {
-		call.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
-	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)
 	if err != nil {
@@ -66,18 +63,19 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *Gateway) Invoke(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
+func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
+	var tx types.Transaction
 	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
 	tx.Type = INVOKE
 
-	if len(tx.Calldata) == 0 {
-		tx.Calldata = []string{}
+	if len(invoke.Calldata) == 0 {
+		invoke.Calldata = []string{}
 	}
-	if len(tx.Signature) == 0 {
-		tx.Signature = []string{}
+	if len(invoke.Signature) == 0 {
+		invoke.Signature = []*types.Felt{}
 	}
 
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", invoke)
 	if err != nil {
 		return nil, err
 	}

@@ -39,9 +39,16 @@ type Transaction struct {
 func (t Transaction) Normalize() *types.Transaction {
 	return &types.Transaction{
 		TransactionHash:    t.TransactionHash,
+		ClassHash:          t.ClassHash,
 		ContractAddress:    t.ContractAddress,
+		SenderAddress:      t.SenderAddress,
 		EntryPointSelector: t.EntryPointSelector,
 		Calldata:           t.Calldata,
+		Signature:          t.Signature,
+		MaxFee:             t.MaxFee,
+		Nonce:              t.Nonce,
+		Version:            t.Version,
+		Type:               t.Type,
 	}
 }
 
@@ -65,6 +72,15 @@ type TransactionReceipt struct {
 type TransactionOptions struct {
 	TransactionId   uint64 `url:"transactionId,omitempty"`
 	TransactionHash string `url:"transactionHash,omitempty"`
+}
+
+func (gw *Gateway) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
+	t, err := gw.Transaction(ctx, TransactionOptions{TransactionHash: hash})
+	if err != nil {
+		return nil, err
+	}
+
+	return t.Transaction.Normalize(), nil
 }
 
 // Gets the transaction information from a tx id.

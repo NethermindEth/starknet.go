@@ -103,22 +103,22 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	if err != nil {
 		return nil, err
 	}
-	req.MaxFee = zeroFee.String()
 
-	return account.Provider.EstimateFee(ctx, *req)
+	return account.Provider.EstimateFee(ctx, req.FunctionCall, "latest")
 }
 
-func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.Transaction, error) {
+func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
 	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	req := types.Transaction{
-		ContractAddress:    account.Address,
-		EntryPointSelector: EXECUTE_SELECTOR,
-		MaxFee:             maxFee.String(),
-		Calldata:           fmtExecuteCalldataStrings(nonce, calls),
+	req := types.FunctionInvoke{
+		FunctionCall: types.FunctionCall{
+			ContractAddress:    account.Address,
+			EntryPointSelector: EXECUTE_SELECTOR,
+			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
+		},
 	}
 
 	hash, err := account.HashMultiCall(maxFee, nonce, calls)
@@ -130,7 +130,7 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 	if err != nil {
 		return nil, err
 	}
-	req.Signature = []string{r.String(), s.String()}
+	req.Signature = types.Signature{types.BigToFelt(r), types.BigToFelt(s)}
 
 	return &req, nil
 }

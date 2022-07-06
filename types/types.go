@@ -106,12 +106,24 @@ type FunctionCall struct {
 	ContractAddress    string   `json:"contract_address"`
 	EntryPointSelector string   `json:"entry_point_selector"`
 	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature,omitempty"`
 }
 
+type Signature []*Felt
+
+type FunctionInvoke struct {
+	FunctionCall
+	MaxFee          *Felt     `json:"max_fee,omitempty"`
+	Nonce           *Felt     `json:"nonce,omitempty"`
+	Version         uint64    `json:"version,omitempty"`
+	Signature       Signature `json:"signature,omitempty"`
+	TransactionHash *Felt     `json:"txn_hash,omitempty"`
+}
+
+// FeeEstimate provides a set of properties to understand fee estimations.
 type FeeEstimate struct {
-	Amount int64  `json:"amount"`
-	Unit   string `json:"unit"`
+	OverallFee  uint64 `json:"overall_fee"`
+	GasConsumed uint64 `json:"gas_consumed"`
+	GasPrice    uint64 `json:"gas_price"`
 }
 
 type ContractAddresses struct {
