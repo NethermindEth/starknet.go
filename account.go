@@ -104,7 +104,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 		return nil, err
 	}
 
-	return account.Provider.EstimateFee(ctx, req.FunctionCall, "latest")
+	return account.Provider.EstimateFee(ctx, *req, "")
 }
 
 func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
@@ -119,6 +119,7 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 			EntryPointSelector: EXECUTE_SELECTOR,
 			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
 		},
+		MaxFee: maxFee,
 	}
 
 	hash, err := account.HashMultiCall(maxFee, nonce, calls)
