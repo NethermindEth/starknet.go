@@ -288,7 +288,7 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionCall, blockHashOrTag string) (*types.FeeEstimate, error) {
+func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, blockHashOrTag string) (*types.FeeEstimate, error) {
 	var estimate types.FeeEstimate
 	if err := sc.do(ctx, "starknet_estimateFee", &estimate, call, blockHashOrTag); err != nil {
 		return nil, err
