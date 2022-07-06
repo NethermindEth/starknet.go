@@ -32,8 +32,8 @@ func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*types.Felt
 		"contractAddress": []string{address},
 	})
 
-	var resp string
-	return types.StrToFelt(resp), sg.do(req, &resp)
+	var resp types.Felt
+	return &resp, sg.do(req, &resp)
 }
 
 func (sg *Gateway) Class(context.Context, string) (*types.ContractClass, error) {

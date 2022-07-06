@@ -28,7 +28,6 @@ const (
 var (
 	snTest         StarknetTest
 	snTransactions map[string][]string
-	accountClass   RawContractDefinition
 
 	_, b, _, _             = runtime.Caller(0)
 	projectRoot            = strings.TrimRight(filepath.Dir(b), "gateway")
@@ -78,8 +77,11 @@ func init() {
 		}
 
 		file, err := json.Marshal(accountClass)
-		err = ioutil.WriteFile(accountCompiled, file, 0644)
 		if err != nil {
+			panic(err.Error())
+		}
+
+		if err = ioutil.WriteFile(accountCompiled, file, 0644); err != nil {
 			panic(err.Error())
 		}
 	}
