@@ -33,15 +33,15 @@ func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionCall, has
 	tx.ContractAddress = call.ContractAddress
 	tx.Signature = []string{}
 
+	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", tx)
+	if err != nil {
+		return nil, err
+	}
+
 	if hash != "" {
 		appendQueryValues(req, url.Values{
 			"blockHash": []string{hash},
 		})
-	}
-
-	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", tx)
-	if err != nil {
-		return nil, err
 	}
 
 	var resp types.FeeEstimate

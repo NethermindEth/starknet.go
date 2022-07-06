@@ -36,13 +36,25 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 	return sg.ChainId, nil
 }
 
+type GatewayFunctionCall struct {
+	types.FunctionCall
+	Signature []string
+}
+
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
-	if len(call.Calldata) == 0 {
-		call.Calldata = []string{}
+	gc := GatewayFunctionCall{
+		FunctionCall: call,
+	}
+	gc.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(gc.EntryPointSelector))
+	if len(gc.Calldata) == 0 {
+		gc.Calldata = []string{}
+	}
+
+	if len(gc.Signature) == 0 {
+		gc.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)
