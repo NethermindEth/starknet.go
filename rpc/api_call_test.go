@@ -64,7 +64,7 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		call                types.FunctionCall
+		call                types.FunctionInvoke
 		BlockHashOrTag      string
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string
@@ -73,7 +73,7 @@ func TestEstimateFee(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				call: types.FunctionCall{
+				call: types.FunctionInvoke{
 					ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
 					Calldata: []string{
 						"0x0000000000000000000000000000000000000000000000000000000000000001",
