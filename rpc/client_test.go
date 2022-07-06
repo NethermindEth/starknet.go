@@ -91,7 +91,7 @@ func TestChainID(t *testing.T) {
 		ChainID string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "DEVNET"}},
+		"devnet":  {{ChainID: "SN_GOERLI"}},
 		"mainnet": {{ChainID: "SN_MAIN"}},
 		"mock":    {{ChainID: "MOCK"}},
 		"testnet": {{ChainID: "SN_GOERLI"}},
@@ -126,20 +126,33 @@ func TestChainID(t *testing.T) {
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	sync, err := testConfig.client.Syncing(context.Background())
+	type testSetType struct {
+		ChainID string
+	}
 
-	if err != nil {
-		t.Fatal(err)
-	}
-	if sync == nil || sync.CurrentBlockNum == "" {
-		t.Fatal("should succeed")
-	}
-	if !strings.HasPrefix(sync.CurrentBlockNum, "0x") {
-		t.Fatal("CurrentBlockNum should start with 0x, instead:", sync.CurrentBlockHash)
-	}
-	i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
-	if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-		t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {{ChainID: "SN_MAIN"}},
+		"mock":    {{ChainID: "MOCK"}},
+		"testnet": {{ChainID: "SN_GOERLI"}},
+	}[testEnv]
+
+	for range testSet {
+		sync, err := testConfig.client.Syncing(context.Background())
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		if sync == nil || sync.CurrentBlockNum == "" {
+			t.Fatal("should succeed")
+		}
+		if !strings.HasPrefix(sync.CurrentBlockNum, "0x") {
+			t.Fatal("CurrentBlockNum should start with 0x, instead:", sync.CurrentBlockHash)
+		}
+		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
+		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
+			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+		}
 	}
 }
 
@@ -154,6 +167,11 @@ func TestProtocolVersion(t *testing.T) {
 		"mock": {
 			{
 				ProtocolVersion: "0x312e30",
+			},
+		},
+		"devnet": {
+			{
+				ProtocolVersion: "0x302e31352e30",
 			},
 		},
 		"testnet": {},

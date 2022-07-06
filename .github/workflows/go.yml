@@ -8,6 +8,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet:latest
+        ports:
+        - 5050:5050
+
     steps:
     - uses: actions/checkout@v3
 
@@ -16,5 +23,11 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Test
-      run: go test -v ./rpc/...
+    - name: wait for devnet to be up...
+      run: ./.bin/devnet.sh
+
+    - name: Test RPC with mocks
+      run: cd rpc && go test -v .
+
+    - name: Test RPC with devnet
+      run: cd rpc && go test -v -env devnet .
