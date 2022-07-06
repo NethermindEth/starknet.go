@@ -134,7 +134,7 @@ func TestClassHashAt(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if classhash != test.ExpectedClassHash {
+		if classhash.String() != test.ExpectedClassHash {
 			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, classhash)
 		}
 	}

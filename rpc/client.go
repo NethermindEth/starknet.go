@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -28,6 +29,7 @@ type callCloser interface {
 
 // Client provides the client type for caigo/rpc implementation.
 type Client struct {
+	types.Provider
 	c callCloser
 }
 

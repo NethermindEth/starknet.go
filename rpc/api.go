@@ -118,13 +118,13 @@ func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractC
 }
 
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
-func (sc *Client) ClassHashAt(ctx context.Context, address string) (string, error) {
+func (sc *Client) ClassHashAt(ctx context.Context, address string) (*types.Felt, error) {
 	result := new(string)
 	if err := sc.do(ctx, "starknet_getClassHashAt", &result, address); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return *result, nil
+	return types.StrToFelt(*result), nil
 }
 
 // StorageAt gets the value of the storage at the given address and key.
@@ -300,7 +300,7 @@ func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHa
 	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
 		return nil, err
 	}
-  
+
 	return &estimate, nil
 }
 
