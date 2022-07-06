@@ -24,10 +24,10 @@ while true; do
   sleep 3
 done
 
-if [ "$version" = "0x302e382e30" ]; then
+if [ "$version" = "0x302e31352e30" ]; then
   echo "devnet is running with protocol $version..."
   exit 0
 fi
 
-echo "could not check devnet, fail!!!"
+echo "could not check devnet, version=$version; fail!!!"
 exit 1

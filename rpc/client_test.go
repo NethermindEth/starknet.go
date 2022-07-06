@@ -171,7 +171,7 @@ func TestProtocolVersion(t *testing.T) {
 		},
 		"devnet": {
 			{
-				ProtocolVersion: "0x302e382e30",
+				ProtocolVersion: "0x302e31352e30",
 			},
 		},
 		"testnet": {},
