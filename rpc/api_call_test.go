@@ -74,7 +74,7 @@ func TestEstimateFee(t *testing.T) {
 		"mock": {
 			{
 				call: types.FunctionInvoke{
-					types.FunctionCall{
+					FunctionCall: types.FunctionCall{
 						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -102,7 +102,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					types.FunctionCall{
-						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
+						FunctionCall: ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
 							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
