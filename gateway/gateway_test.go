@@ -30,7 +30,7 @@ var (
 			base: "https://alpha4.starknet.io",
 		},
 		"devnet": {
-			base: "http://localhost:5000",
+			base: "http://localhost:5050",
 		},
 		"mock": {},
 	}

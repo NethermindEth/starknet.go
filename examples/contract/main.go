@@ -10,7 +10,7 @@ import (
 )
 
 // Start Devnet:
-// 	- starknet-devnet --port 5000
+// 	- starknet-devnet
 var (
 	name         string = "local"
 	contract     string = "../../rpc/tests/counter.json"

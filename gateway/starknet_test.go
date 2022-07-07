@@ -44,7 +44,7 @@ type TestAccountType struct {
 }
 
 // requires starknet-devnet to be running and accessible and no seed:
-// ex: starknet-devnet --port 5000
+// ex: starknet-devnet
 // (ref: https://github.com/Shard-Labs/starknet-devnet)
 func init() {
 	if _, err := os.Stat(accountCompiled); os.IsNotExist(err) {
@@ -259,7 +259,7 @@ func TestE2EDevnet(t *testing.T) {
 }
 
 func DevnetAccounts() ([]TestAccountType, error) {
-	req, err := http.NewRequest("GET", "http://localhost:5000/predeployed_accounts", nil)
+	req, err := http.NewRequest("GET", "http://localhost:5050/predeployed_accounts", nil)
 	if err != nil {
 		return nil, err
 	}
