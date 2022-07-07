@@ -36,19 +36,28 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 	return sg.ChainId, nil
 }
 
+type GatewayFunctionCall struct {
+	types.FunctionCall
+	Signature []string `json:"signature"`
+}
+
 /*
 	'call_contract' wrapper and can accept a blockId in the hash or height format
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
-	if len(call.Calldata) == 0 {
-		call.Calldata = []string{}
+	gc := GatewayFunctionCall{
+		FunctionCall: call,
 	}
-	if len(call.Signature) == 0 {
-		call.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
+	gc.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(gc.EntryPointSelector))
+	if len(gc.Calldata) == 0 {
+		gc.Calldata = []string{}
 	}
 
-	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)
+	if len(gc.Signature) == 0 {
+		gc.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
+	}
+
+	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", gc)
 	if err != nil {
 		return nil, err
 	}
@@ -66,15 +75,25 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 /*
 	'add_transaction' wrapper for invokation requests
 */
-func (sg *Gateway) Invoke(ctx context.Context, tx types.Transaction) (*types.AddTxResponse, error) {
-	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
-	tx.Type = INVOKE
-
-	if len(tx.Calldata) == 0 {
-		tx.Calldata = []string{}
+func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
+	tx := types.Transaction{
+		Type:               INVOKE,
+		ContractAddress:    invoke.ContractAddress,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector)),
+		MaxFee:             invoke.MaxFee.String(),
 	}
-	if len(tx.Signature) == 0 {
+
+	if len(invoke.Calldata) == 0 {
+		tx.Calldata = []string{}
+	} else {
+		tx.Calldata = invoke.Calldata
+	}
+
+	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
+	} else {
+		// stop-gap before full types.Felt cutover
+		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)

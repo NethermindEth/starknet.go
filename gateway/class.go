@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/google/go-querystring/query"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDefinition, error) {
@@ -22,24 +22,24 @@ func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDe
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) ClassHashAt(ctx context.Context, address string, opts *BlockOptions) (string, error) {
+func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*types.Felt, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_hash_at", nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	appendQueryValues(req, url.Values{
 		"contractAddress": []string{address},
 	})
 
-	if opts != nil {
-		vs, err := query.Values(opts)
-		if err != nil {
-			return "", err
-		}
-		appendQueryValues(req, vs)
-	}
+	var resp types.Felt
+	return &resp, sg.do(req, &resp)
+}
 
-	var resp string
-	return resp, sg.do(req, &resp)
+func (sg *Gateway) Class(context.Context, string) (*types.ContractClass, error) {
+	panic("not implemented")
+}
+
+func (sg *Gateway) ClassAt(context.Context, string) (*types.ContractClass, error) {
+	panic("not implemented")
 }

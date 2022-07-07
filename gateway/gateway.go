@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 const (
@@ -34,6 +36,8 @@ type Gateway struct {
 	client       doer
 	errorHandler func(e error) error
 }
+
+var _ types.Provider = &Gateway{}
 
 /*
 	Instantiate a new StarkNet Gateway client

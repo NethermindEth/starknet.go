@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 
@@ -89,4 +90,12 @@ func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64
 
 	var resp uint64
 	return resp, sg.do(req, &resp)
+}
+
+func (sg *Gateway) BlockByHash(context.Context, string, string) (*types.Block, error) {
+	panic("not implemented")
+}
+
+func (sg *Gateway) BlockByNumber(context.Context, *big.Int, string) (*types.Block, error) {
+	panic("not implemented")
 }
