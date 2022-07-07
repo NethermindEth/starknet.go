@@ -495,9 +495,9 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.FunctionCall)
+	_, ok = args[0].(types.FunctionInvoke)
 	if !ok {
-		fmt.Printf("args[0] should be types.FunctionCall, got %T\n", args[0])
+		fmt.Printf("args[0] should be types.FunctionInvoke, got %T\n", args[0])
 		return errWrongArgs
 	}
 	_, ok = args[1].(string)
