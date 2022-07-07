@@ -38,7 +38,7 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 
 type GatewayFunctionCall struct {
 	types.FunctionCall
-	Signature []string
+	Signature []string `json:"signature"`
 }
 
 /*
@@ -57,7 +57,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 		gc.Signature = []string{"0", "0"} // allows rpc and http clients to implement(has to be a better way)
 	}
 
-	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", call)
+	req, err := sg.newRequest(ctx, http.MethodPost, "/call_contract", gc)
 	if err != nil {
 		return nil, err
 	}
@@ -76,18 +76,27 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	'add_transaction' wrapper for invokation requests
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
-	var tx types.Transaction
-	tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(tx.EntryPointSelector))
-	tx.Type = INVOKE
+	tx := types.Transaction{
+		Type:               INVOKE,
+		ContractAddress:    invoke.ContractAddress,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector)),
+		MaxFee:             invoke.MaxFee.String(),
+	}
 
 	if len(invoke.Calldata) == 0 {
-		invoke.Calldata = []string{}
-	}
-	if len(invoke.Signature) == 0 {
-		invoke.Signature = []*types.Felt{}
+		tx.Calldata = []string{}
+	} else {
+		tx.Calldata = invoke.Calldata
 	}
 
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", invoke)
+	if len(invoke.Signature) == 0 {
+		tx.Signature = []string{}
+	} else {
+		// stop-gap before full types.Felt cutover
+		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
+	}
+
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
 	if err != nil {
 		return nil, err
 	}
