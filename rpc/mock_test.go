@@ -333,7 +333,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 		return errWrongArgs
 	}
 	var class = types.ContractClass{
-		Program: []string{"0xdeadbeef"},
+		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
 	json.Unmarshal(outputContent, r)
@@ -373,7 +373,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		return errWrongArgs
 	}
 	var class = types.ContractClass{
-		Program: []string{"0xdeadbeef"},
+		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
 	json.Unmarshal(outputContent, r)
@@ -506,10 +506,10 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
-	output := types.FeeEstimate{
-		GasConsumed: 420,
-		GasPrice:    69,
-		OverallFee:  28980,
+	output := rpcFeeEstimate{
+		GasConsumed: "0x01a4",
+		GasPrice:    "0x45",
+		OverallFee:  "0x7134",
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
