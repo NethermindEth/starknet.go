@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -34,7 +33,7 @@ var (
 	projectRoot            = strings.TrimRight(filepath.Dir(b), "gateway")
 	accountCompiled string = projectRoot + "gateway/contracts/account_class.json"
 	proxyTest       string = projectRoot + "gateway/contracts/Proxy.cairo"
-	proxyCompiled   string = projectRoot + "gateway/contracts/proxy_compiled.json"
+	proxyCompiled   string = projectRoot + "gateway/contracts/proxy.json"
 )
 
 type TestAccountType struct {
@@ -60,18 +59,6 @@ func init() {
 		}
 
 		if err = ioutil.WriteFile(accountCompiled, file, 0644); err != nil {
-			panic(err.Error())
-		}
-	}
-
-	if _, err := os.Stat(proxyCompiled); os.IsNotExist(err) {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err.Error())
-		}
-
-		err = exec.Command(home+"/cairo_venv/bin/starknet-compile", "--cairo_path", projectRoot+"gateway", proxyTest, "--output", proxyCompiled).Run()
-		if err != nil {
 			panic(err.Error())
 		}
 	}
