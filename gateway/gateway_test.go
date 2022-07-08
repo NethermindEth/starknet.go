@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -29,7 +30,7 @@ var (
 			base: "https://alpha4.starknet.io",
 		},
 		"devnet": {
-			base: "http://localhost:5000",
+			base: "http://localhost:5050",
 		},
 		"mock": {},
 	}
@@ -86,6 +87,42 @@ func TestGateway(t *testing.T) {
 		}
 		if block.BlockHash != test.BlockHash {
 			t.Fatalf("expecting %s, instead: %s", "", block.BlockHash)
+		}
+	}
+}
+
+func TestContractAddresses(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		Starknet             string
+		GpsStatementVerifier string
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"mock":   {},
+		"testnet": {
+			{
+				Starknet:             "0xde29d060d45901fb19ed6c6e959eb22d8626708e",
+				GpsStatementVerifier: "0xab43ba48c9edf4c2c4bb01237348d1d7b28ef168",
+			},
+		},
+		"mainnet": {
+			{
+				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
+				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		addresses, err := testConfig.client.ContractAddresses(context.Background())
+		if err != nil {
+			t.Errorf("could not get starknet addresses - \n%v\n", err)
+		}
+
+		if strings.ToLower(addresses.Starknet) != test.Starknet {
+			t.Errorf("fetched incorrect addresses - \n%s %s\n", strings.ToLower(addresses.Starknet), test.Starknet)
 		}
 	}
 }

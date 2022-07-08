@@ -19,7 +19,7 @@ const (
 	DECLARE      string = "DECLARE"
 	GOERLI_ID    string = "SN_GOERLI"
 	MAINNET_ID   string = "SN_MAIN"
-	LOCAL_BASE   string = "http://localhost:5000"
+	LOCAL_BASE   string = "http://localhost:5050"
 	GOERLI_BASE  string = "https://alpha4.starknet.io"
 	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
 )

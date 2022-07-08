@@ -86,16 +86,12 @@ func TestClassAt(t *testing.T) {
 		if class == nil || class.Program == nil {
 			t.Fatal("code should exist")
 		}
-		ops, ok := class.Program.([]interface{})
+		ops, ok := class.Program.(interface{})
 		if !ok {
-			t.Fatalf("program should return []interface{}, instead %T", class.Program)
+			t.Fatalf("program should return interface{}, instead %T", class.Program)
 		}
-		if len(ops) == 0 {
-			t.Fatal("program have several operations")
-		}
-		op, _ := ops[0].(string)
-		if op != test.ExpectedOperation {
-			t.Fatalf("op expected %s, got %s", test.ExpectedOperation, op)
+		if _, ok := ops.(string); !ok {
+			t.Fatalf("program should cast to a 'string', instead %T", ops)
 		}
 	}
 }
@@ -177,16 +173,12 @@ func TestClass(t *testing.T) {
 		if class == nil || class.Program == nil {
 			t.Fatal("code should exist")
 		}
-		ops, ok := class.Program.([]interface{})
+		ops, ok := class.Program.(interface{})
 		if !ok {
-			t.Fatalf("program should return []interface{}, instead %T", class.Program)
+			t.Fatalf("program should return interface{}, instead %T", class.Program)
 		}
-		if len(ops) == 0 {
-			t.Fatal("program have several operations")
-		}
-		op, _ := ops[0].(string)
-		if op != test.ExpectedOperation {
-			t.Fatalf("op expected %s, got %s", test.ExpectedOperation, op)
+		if _, ok := ops.(string); !ok {
+			t.Fatalf("program should cast to a 'string', instead %T", ops)
 		}
 	}
 }

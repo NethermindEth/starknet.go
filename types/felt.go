@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	MaxFelt   = StrToFelt(FIELD_PRIME)
+	MaxFelt     = StrToFelt(FIELD_PRIME)
 	asciiRegexp = regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 )
 
@@ -46,7 +46,7 @@ func (f *Felt) strToFelt(str string) bool {
 		f.Int = b
 		return ok
 	}
-	
+
 	// TODO: revisit conversation on seperate 'ShortString' conversion
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
@@ -82,7 +82,12 @@ func (f *Felt) String() string {
 	return fmt.Sprintf("0x%x", f)
 }
 
-// MarshalJSON implements the json Marshaller interface to marshal types to []byte.
+// MarshalJSON implements the json Marshaller interface for a Signature array to marshal types to []byte.
+func (s Signature) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`["%s","%s"]`, s[0].Int.String(), s[1].Int.String())), nil
+}
+
+// MarshalJSON implements the json Marshaller interface for Felt to marshal types to []byte.
 func (f Felt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
+	"strings"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -287,14 +289,37 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 	return &result, nil
 }
 
+type rpcFeeEstimate struct {
+	GasConsumed string `json:"gas_consumed"`
+	GasPrice    string `json:"gas_price"`
+	OverallFee  string `json:"overall_fee"`
+}
+
 // EstimateFee estimates the fee for a given StarkNet transaction.
 func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, blockHashOrTag string) (*types.FeeEstimate, error) {
-	var estimate types.FeeEstimate
-	if err := sc.do(ctx, "starknet_estimateFee", &estimate, call, blockHashOrTag); err != nil {
+	var raw rpcFeeEstimate
+	if err := sc.do(ctx, "starknet_estimateFee", &raw, call, blockHashOrTag); err != nil {
 		return nil, err
 	}
 
-	return &estimate, nil
+	consumed, err := strconv.ParseUint(strings.TrimPrefix(raw.GasConsumed, "0x"), 16, 64)
+	if err != nil {
+		return nil, err
+	}
+	price, err := strconv.ParseUint(strings.TrimPrefix(raw.GasPrice, "0x"), 16, 64)
+	if err != nil {
+		return nil, err
+	}
+	fee, err := strconv.ParseUint(strings.TrimPrefix(raw.OverallFee, "0x"), 16, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.FeeEstimate{
+		GasConsumed: consumed,
+		GasPrice:    price,
+		OverallFee:  fee,
+	}, nil
 }
 
 // AccountNonce gets the latest nonce associated with the given address
