@@ -21,13 +21,6 @@ var (
 )
 
 func main() {
-	// init the stark curve with constants
-	// 'WithConstants()' will pull the StarkNet 'pedersen_params.json' file if you don't have it locally
-	curve, err := caigo.SC(caigo.WithConstants())
-	if err != nil {
-		panic(err.Error())
-	}
-
 	// init starknet gateway client
 	gw := gateway.NewProvider(gateway.WithChain(name))
 
@@ -42,7 +35,7 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewAccount(&curve, privakeKey, address, gw)
+	account, err := caigo.NewAccount(privakeKey, address, gw)
 	if err != nil {
 		panic(err.Error())
 	}

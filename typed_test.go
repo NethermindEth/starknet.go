@@ -52,11 +52,6 @@ func MockTypedData() (ttd TypedData) {
 func TestGetMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	curve, err := SC(WithConstants("./pedersen_params.json"))
-	if err != nil {
-		t.Errorf("Could not init with constant points: %v\n", err)
-	}
-
 	mail := Mail{
 		From: Person{
 			Name:   "Cow",
@@ -69,7 +64,7 @@ func TestGetMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetMessageHash(HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, curve)
+	hash, err := ttd.GetMessageHash(HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -82,8 +77,6 @@ func TestGetMessageHash(t *testing.T) {
 
 func BenchmarkGetMessageHash(b *testing.B) {
 	ttd := MockTypedData()
-
-	curve, _ := SC(WithConstants("./pedersen_params.json"))
 
 	mail := Mail{
 		From: Person{
@@ -98,19 +91,14 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	}
 	addr := HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
-		ttd.GetMessageHash(addr, mail, curve)
+		ttd.GetMessageHash(addr, mail, Curve)
 	})
 }
 
 func TestGetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	curve, err := SC(WithConstants("./pedersen_params.json"))
-	if err != nil {
-		t.Errorf("Could not init with constant points: %v\n", err)
-	}
-
-	hash, err := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain, curve)
+	hash, err := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain, Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -137,12 +125,7 @@ func TestGetTypedMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	curve, err := SC(WithConstants("./pedersen_params.json"))
-	if err != nil {
-		t.Errorf("Could not init with constant points: %v\n", err)
-	}
-
-	hash, err := ttd.GetTypedMessageHash("Mail", mail, curve)
+	hash, err := ttd.GetTypedMessageHash("Mail", mail, Curve)
 	if err != nil {
 		t.Errorf("Could get typed message hash: %v\n", err)
 	}

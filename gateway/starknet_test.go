@@ -122,12 +122,7 @@ func TestDeclare(t *testing.T) {
 
 func TestExecuteGoerli(t *testing.T) {
 	for _, testAccount := range testnetAccounts {
-		curve, err := caigo.SC(caigo.WithConstants(projectRoot + "pedersen_params.json"))
-		if err != nil {
-			t.Errorf("testnet: could not init with constant points: %v\n", err)
-		}
-
-		account, err := caigo.NewAccount(&curve, testAccount.PrivateKey, testAccount.Address, NewProvider())
+		account, err := caigo.NewAccount(testAccount.PrivateKey, testAccount.Address, NewProvider())
 		if err != nil {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
@@ -205,6 +200,9 @@ func TestE2EDevnet(t *testing.T) {
 	}
 
 	txDetails, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: deployTx.TransactionHash})
+	if err != nil {
+		t.Errorf("fetching transaction: %v", err)
+	}
 
 	for i := 0; i < 3; i++ {
 		rand := fmt.Sprintf("0x%x", rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED))
@@ -216,12 +214,8 @@ func TestE2EDevnet(t *testing.T) {
 				Calldata:           []string{rand},
 			},
 		}
-		curve, err := caigo.SC(caigo.WithConstants(projectRoot + "pedersen_params.json"))
-		if err != nil {
-			t.Errorf("testnet: could not init with constant points: %v\n", err)
-		}
 
-		account, err := caigo.NewAccount(&curve, devnetAccounts[i].PrivateKey, devnetAccounts[i].Address, gw)
+		account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, devnetAccounts[i].Address, gw)
 		if err != nil {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
