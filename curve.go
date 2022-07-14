@@ -7,17 +7,16 @@ package caigo
 */
 import (
 	"crypto/elliptic"
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"math/big"
-	"net/http"
-	"os"
 
 	"github.com/dontpanicdao/caigo/types"
 )
 
-var sc StarkCurve
+var Curve StarkCurve
 
 /*
 	Returned stark curve includes several values above and beyond
@@ -34,6 +33,10 @@ type StarkCurve struct {
 	ConstantPoints   [][]*big.Int
 }
 
+//go:embed pedersen_params.json
+var PedersenParamsRaw []byte
+var PedersenParams StarkCurvePayload
+
 // struct definition for parsing 'pedersen_params.json'
 type StarkCurvePayload struct {
 	License        []string     `json:"_license"`
@@ -46,115 +49,49 @@ type StarkCurvePayload struct {
 	ConstantPoints [][]*big.Int `json:"CONSTANT_POINTS"`
 }
 
-func SC(opts ...CurveOption) (StarkCurve, error) {
-	var gopts curveOptions
-
-	for _, opt := range opts {
-		opt.apply(&gopts)
+func init() {
+	if err := json.Unmarshal(PedersenParamsRaw, &PedersenParams); err != nil {
+		log.Fatalf("unmarshalling pedersen params: %v", err)
 	}
 
-	if gopts.initConstants {
-		err := InitWithConstants(gopts.paramsPath)
-		return sc, err
+	if len(PedersenParams.ConstantPoints) == 0 {
+		panic("decoding pedersen params json")
 	}
 
-	InitCurve()
-	return sc, nil
-}
+	Curve.CurveParams = &elliptic.CurveParams{Name: "stark-curve-with-constants"}
 
-/*
-	Not all operations require a stark curve initialization
-	including the provided constant points. Here you can
-	initialize the curve without the constant points
-*/
-func InitCurve() {
-	sc.CurveParams = &elliptic.CurveParams{Name: "stark-curve"}
-	sc.P, _ = new(big.Int).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020481", 10)  // Field Prime ./pedersen_json
-	sc.N, _ = new(big.Int).SetString("3618502788666131213697322783095070105526743751716087489154079457884512865583", 10)  // Order of base point ./pedersen_json
-	sc.B, _ = new(big.Int).SetString("3141592653589793238462643383279502884197169399375105820974944592307816406665", 10)  // Constant of curve equation ./pedersen_json
-	sc.Gx, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // (x, _) of basepoint ./pedersen_json
-	sc.Gy, _ = new(big.Int).SetString("1713931329540660377023406109199410414810705867260802078187082345529207694986", 10) // (_, y) of basepoint ./pedersen_json
-	sc.EcGenX, _ = new(big.Int).SetString("874739451078007766457464989774322083649278607533249481151382481072868806602", 10)
-	sc.EcGenY, _ = new(big.Int).SetString("152666792071518830868575557812948353041420400780739481342941381225525861407", 10)
-	sc.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
-	sc.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
-	sc.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10)              // 2 ** 251
-	sc.Alpha = big.NewInt(1)
-	sc.BitSize = 252
-}
+	Curve.P = PedersenParams.FieldPrime
+	Curve.N = PedersenParams.EcOrder
+	Curve.B = PedersenParams.Beta
+	Curve.Gx = PedersenParams.ConstantPoints[0][0]
+	Curve.Gy = PedersenParams.ConstantPoints[0][1]
+	Curve.EcGenX = PedersenParams.ConstantPoints[1][0]
+	Curve.EcGenY = PedersenParams.ConstantPoints[1][1]
+	Curve.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
+	Curve.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10)
+	Curve.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10) // 2 ** 251
+	Curve.Alpha = big.NewInt(PedersenParams.Alpha)
+	Curve.BitSize = 252
+	Curve.ConstantPoints = PedersenParams.ConstantPoints
 
-/*
-	Various starknet functions require constant points be initialized.
-	In this case use 'InitWithConstants'. Given an empty string this will
-	init the curve by pulling the 'pedersen_params.json' file from Starkware
-	official github repository. For production deployments it is recommended
-	to have the file stored locally.
-*/
-func InitWithConstants(path string) (err error) {
-	sc.CurveParams = &elliptic.CurveParams{Name: "stark-curve-with-constants"}
-	scPayload := &StarkCurvePayload{}
-
-	if path != "" {
-		scFile, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer scFile.Close()
-
-		scBytes, err := ioutil.ReadAll(scFile)
-		if err != nil {
-			return err
-		}
-
-		json.Unmarshal(scBytes, &scPayload)
-	} else {
-		url := "https://raw.githubusercontent.com/starkware-libs/cairo-lang/master/src/starkware/crypto/starkware/crypto/signature/pedersen_params.json"
-		method := "GET"
-
-		client := &http.Client{}
-
-		req, err := http.NewRequest(method, url, nil)
-		if err != nil {
-			return err
-		}
-		req.Header.Add("Content-Type", "application/json")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		err = json.NewDecoder(resp.Body).Decode(scPayload)
-		if err != nil {
-			return err
-		}
-	}
-
-	if len(scPayload.ConstantPoints) == 0 {
-		return fmt.Errorf("could not decode stark curve json")
-	}
-
-	sc.P = scPayload.FieldPrime
-	sc.N = scPayload.EcOrder
-	sc.B = scPayload.Beta
-	sc.Gx = scPayload.ConstantPoints[0][0]
-	sc.Gy = scPayload.ConstantPoints[0][1]
-	sc.EcGenX = scPayload.ConstantPoints[1][0]
-	sc.EcGenY = scPayload.ConstantPoints[1][1]
-	sc.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
-	sc.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10)
-	sc.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10) // 2 ** 251
-	sc.Alpha = big.NewInt(scPayload.Alpha)
-	sc.BitSize = 252
-	sc.ConstantPoints = scPayload.ConstantPoints
-
-	return nil
-}
-
-// Get relevant elliptic curve parameters for the Stark Cruve
-func (sc StarkCurve) Params() *elliptic.CurveParams {
-	return sc.CurveParams
+	/*
+		Not all operations require a stark curve initialization
+		including the provided constant points. Here you can
+		initialize the curve without the constant points
+	*/
+	Curve.CurveParams = &elliptic.CurveParams{Name: "stark-curve"}
+	Curve.P, _ = new(big.Int).SetString("3618502788666131213697322783095070105623107215331596699973092056135872020481", 10)  // Field Prime ./pedersen_json
+	Curve.N, _ = new(big.Int).SetString("3618502788666131213697322783095070105526743751716087489154079457884512865583", 10)  // Order of base point ./pedersen_json
+	Curve.B, _ = new(big.Int).SetString("3141592653589793238462643383279502884197169399375105820974944592307816406665", 10)  // Constant of curve equation ./pedersen_json
+	Curve.Gx, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // (x, _) of basepoint ./pedersen_json
+	Curve.Gy, _ = new(big.Int).SetString("1713931329540660377023406109199410414810705867260802078187082345529207694986", 10) // (_, y) of basepoint ./pedersen_json
+	Curve.EcGenX, _ = new(big.Int).SetString("874739451078007766457464989774322083649278607533249481151382481072868806602", 10)
+	Curve.EcGenY, _ = new(big.Int).SetString("152666792071518830868575557812948353041420400780739481342941381225525861407", 10)
+	Curve.MinusShiftPointX, _ = new(big.Int).SetString("2089986280348253421170679821480865132823066470938446095505822317253594081284", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
+	Curve.MinusShiftPointY, _ = new(big.Int).SetString("1904571459125470836673916673895659690812401348070794621786009710606664325495", 10) // MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
+	Curve.Max, _ = new(big.Int).SetString("3618502788666131106986593281521497120414687020801267626233049500247285301248", 10)              // 2 ** 251
+	Curve.Alpha = big.NewInt(1)
+	Curve.BitSize = 252
 }
 
 // Gets two points on an elliptic curve mod p and returns their sum.

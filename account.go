@@ -2,7 +2,6 @@ package caigo
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -20,7 +19,6 @@ type Account struct {
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
-	curve    *StarkCurve
 }
 
 /*
@@ -30,13 +28,9 @@ type Account struct {
 	- full provider definition
 	- public key pair for signature verifications
 */
-func NewAccount(sc *StarkCurve, private, address string, provider types.Provider) (*Account, error) {
-	if len(sc.ConstantPoints) == 0 {
-		return nil, fmt.Errorf("must initiate precomputed constant points")
-	}
-
+func NewAccount(private, address string, provider types.Provider) (*Account, error) {
 	priv := SNValToBN(private)
-	x, y, err := sc.PrivateToPoint(priv)
+	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +41,11 @@ func NewAccount(sc *StarkCurve, private, address string, provider types.Provider
 		PublicX:  x,
 		PublicY:  y,
 		private:  priv,
-		curve:    sc,
 	}, nil
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return account.curve.Sign(msgHash, account.private)
+	return Curve.Sign(msgHash, account.private)
 }
 
 /*
@@ -77,7 +70,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 
 	callArray := fmtExecuteCalldata(nonce, calls)
 	callArray = append(callArray, big.NewInt(int64(len(callArray))))
-	cdHash, err := account.curve.HashElements(callArray)
+	cdHash, err := Curve.HashElements(callArray)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +86,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	}
 
 	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	return account.curve.HashElements(multiHashData)
+	return Curve.HashElements(multiHashData)
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
