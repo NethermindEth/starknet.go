@@ -84,12 +84,12 @@ func (f *Felt) String() string {
 
 // MarshalJSON implements the json Marshaller interface for a Signature array to marshal types to []byte.
 func (s Signature) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`["%s","%s"]`, s[0].Int.String(), s[1].Int.String())), nil
+	return []byte(fmt.Sprintf(`["0x%x,"0x%x]`, s[0], s[1])), nil
 }
 
 // MarshalJSON implements the json Marshaller interface for Felt to marshal types to []byte.
 func (f Felt) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
+	return []byte(fmt.Sprintf(`"0x%x"`, f)), nil
 }
 
 // UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.

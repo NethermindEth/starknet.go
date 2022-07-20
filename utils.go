@@ -40,6 +40,10 @@ func UTF8StrToBig(str string) *big.Int {
 
 // convert decimal string to big int
 func StrToBig(str string) *big.Int {
+	if str == "" {
+		return new(big.Int)
+	}
+
 	b, _ := new(big.Int).SetString(str, 10)
 
 	return b

@@ -243,7 +243,7 @@ func TestAccountNonce(t *testing.T) {
 		"mock": {
 			{
 				ContractAddress: "0xdeadbeef",
-				ExpectedNonce:   "10",
+				ExpectedNonce:   "18",
 			},
 		},
 		"testnet": {},
@@ -251,7 +251,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	if len(testSet) == 0 {
-		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+		t.Skipf(fmt.Sprintf("not implemented on %s", testEnv))
 	}
 
 	for _, test := range testSet {

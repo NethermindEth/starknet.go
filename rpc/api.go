@@ -323,10 +323,18 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 }
 
 // AccountNonce gets the latest nonce associated with the given address
+// NOTE: Currently account nonces are stored as part of the account contract implementation.
+// In the future, they will be migrated to a protocol parameter.
 func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*big.Int, error) {
-	var nonce big.Int
-	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
-	return &nonce, err
+	res, err := sc.Call(ctx, types.FunctionCall{
+		ContractAddress:    contractAddress,
+		EntryPointSelector: "get_nonce",
+	}, "latest")
+	if err != nil {
+		return nil, err
+	}
+
+	return caigo.HexToBN(res[0]), err
 }
 
 func toBlockNumArg(number *big.Int) interface{} {

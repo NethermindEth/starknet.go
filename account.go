@@ -62,8 +62,8 @@ func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls [
 	return account.Provider.Invoke(ctx, *req)
 }
 
-func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
-	chainID, err := account.Provider.ChainID(context.Background())
+func (account *Account) HashMultiCall(ctx context.Context, fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
+	chainID, err := account.Provider.ChainID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	return Curve.HashElements(multiHashData)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, blockHashOrTag string) (*types.FeeEstimate, error) {
 	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
 	req, err := account.fmtExecute(ctx, zeroFee, calls)
@@ -97,7 +97,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 		return nil, err
 	}
 
-	return account.Provider.EstimateFee(ctx, *req, "")
+	return account.Provider.EstimateFee(ctx, *req, blockHashOrTag)
 }
 
 func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
@@ -109,13 +109,13 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: EXECUTE_SELECTOR,
+			EntryPointSelector: BigToHex(GetSelectorFromName(EXECUTE_SELECTOR)),
 			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
 		},
 		MaxFee: maxFee,
 	}
 
-	hash, err := account.HashMultiCall(maxFee, nonce, calls)
+	hash, err := account.HashMultiCall(ctx, maxFee, nonce, calls)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
 	callArray := fmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, data.String())
+		calldataStrings = append(calldataStrings, BigToHex(data))
 	}
 	return calldataStrings
 }
