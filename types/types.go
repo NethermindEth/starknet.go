@@ -121,11 +121,10 @@ type FunctionInvoke struct {
 
 // FeeEstimate provides a set of properties to understand fee estimations.
 type FeeEstimate struct {
-	OverallFee  uint64 `json:"overall_fee,omitempty"`
-	GasConsumed uint64 `json:"gas_consumed,omitempty"`
-	GasPrice    uint64 `json:"gas_price,omitempty"`
-	Amount      uint64 `json:"amount,omitempty"`
-	Unit        string `json:"unit,omitempty"`
+	OverallFee uint64 `json:"overall_fee,omitempty"`
+	GasUsage   uint64 `json:"gas_usage,omitempty"`
+	GasPrice   uint64 `json:"gas_price,omitempty"`
+	Unit       string `json:"unit,omitempty"`
 }
 
 type ContractAddresses struct {

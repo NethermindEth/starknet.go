@@ -290,9 +290,9 @@ func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, er
 }
 
 type rpcFeeEstimate struct {
-	GasConsumed string `json:"gas_consumed"`
-	GasPrice    string `json:"gas_price"`
-	OverallFee  string `json:"overall_fee"`
+	GasUsage   string `json:"gas_usage"`
+	GasPrice   string `json:"gas_price"`
+	OverallFee string `json:"overall_fee"`
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
@@ -302,7 +302,7 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 		return nil, err
 	}
 
-	consumed, err := strconv.ParseUint(strings.TrimPrefix(raw.GasConsumed, "0x"), 16, 64)
+	usage, err := strconv.ParseUint(strings.TrimPrefix(raw.GasUsage, "0x"), 16, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -316,9 +316,9 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 	}
 
 	return &types.FeeEstimate{
-		GasConsumed: consumed,
-		GasPrice:    price,
-		OverallFee:  fee,
+		GasUsage:   usage,
+		GasPrice:   price,
+		OverallFee: fee,
 	}, nil
 }
 

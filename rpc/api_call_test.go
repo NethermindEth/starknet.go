@@ -64,11 +64,11 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		call                types.FunctionInvoke
-		BlockHashOrTag      string
-		ExpectedOverallFee  string
-		ExpectedGasPrice    string
-		ExpectedGasConsumed string
+		call               types.FunctionInvoke
+		BlockHashOrTag     string
+		ExpectedOverallFee string
+		ExpectedGasPrice   string
+		ExpectedGasUsage   string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -97,10 +97,10 @@ func TestEstimateFee(t *testing.T) {
 					MaxFee:  types.StrToFelt("0x012c72866efa9b"),
 					Version: 0,
 				},
-				BlockHashOrTag:      "0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c",
-				ExpectedOverallFee:  "0x7134",
-				ExpectedGasPrice:    "0x45",
-				ExpectedGasConsumed: "0x1a4",
+				BlockHashOrTag:     "0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c",
+				ExpectedOverallFee: "0x7134",
+				ExpectedGasPrice:   "0x45",
+				ExpectedGasUsage:   "0x1a4",
 			},
 		},
 		"testnet": {},
@@ -130,10 +130,10 @@ func TestEstimateFee(t *testing.T) {
 					MaxFee:  types.StrToFelt("0x012c72866efa9b"),
 					Version: 0,
 				},
-				BlockHashOrTag:      "0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c",
-				ExpectedOverallFee:  "0xc84c599f51bd",
-				ExpectedGasPrice:    "0x5df32828e",
-				ExpectedGasConsumed: "0x221c",
+				BlockHashOrTag:     "0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c",
+				ExpectedOverallFee: "0xc84c599f51bd",
+				ExpectedGasPrice:   "0x5df32828e",
+				ExpectedGasUsage:   "0x221c",
 			},
 		},
 	}[testEnv]
@@ -147,8 +147,8 @@ func TestEstimateFee(t *testing.T) {
 		if fmt.Sprintf("0x%x", output.OverallFee) != test.ExpectedOverallFee {
 			t.Fatalf("expected %s, got %s", test.ExpectedOverallFee, fmt.Sprintf("0x%x", output.OverallFee))
 		}
-		if fmt.Sprintf("0x%x", output.GasConsumed) != test.ExpectedGasConsumed {
-			t.Fatalf("expected %s, got %s", test.ExpectedGasConsumed, fmt.Sprintf("0x%x", output.GasConsumed))
+		if fmt.Sprintf("0x%x", output.GasUsage) != test.ExpectedGasUsage {
+			t.Fatalf("expected %s, got %s", test.ExpectedGasUsage, fmt.Sprintf("0x%x", output.GasUsage))
 		}
 		if fmt.Sprintf("0x%x", output.GasPrice) != test.ExpectedGasPrice {
 			t.Fatalf("expected %s, got %s", test.ExpectedGasPrice, fmt.Sprintf("0x%x", output.GasPrice))
