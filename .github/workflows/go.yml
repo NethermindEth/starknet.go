@@ -32,5 +32,8 @@ jobs:
     - name: Test RPC with devnet
       run: cd rpc && go test -v -env devnet .
 
+    - name: Test Gateway with testnet
+      run: cd gateway && go test -v -env testnet .
+
     - name: Test Gateway with devnet
-      run: cd gateway && go test -v .
+      run: cd gateway && go test -v -env devnet .
