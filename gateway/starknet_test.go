@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -43,67 +41,19 @@ type TestAccountType struct {
 	Transactions []types.Transaction `json:"transactions,omitempty"`
 }
 
-// requires starknet-devnet to be running and accessible and no seed:
-// ex: starknet-devnet
-// (ref: https://github.com/Shard-Labs/starknet-devnet)
-func init() {
-	if _, err := os.Stat(accountCompiled); os.IsNotExist(err) {
-		accountClass, err := NewClient().ClassByHash(context.Background(), ACCOUNT_CLASS_HASH)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		file, err := json.Marshal(accountClass)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		if err = ioutil.WriteFile(accountCompiled, file, 0644); err != nil {
-			panic(err.Error())
-		}
-	}
-
-	var err error
-	if devnetAccounts, err = DevnetAccounts(); err != nil {
-		panic(err.Error())
-	}
-
-	testnetAccounts = []TestAccountType{
-		{
-			PrivateKey: "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
-			PublicKey:  "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
-			Address:    "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c",
-			Transactions: []types.Transaction{
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_single_store",
-					Calldata:           []string{"3"},
-				},
-			},
-		},
-		{
-			PrivateKey: "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
-			PublicKey:  "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
-			Address:    "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246",
-			Transactions: []types.Transaction{
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_multi_store",
-					Calldata:           []string{"4", "7"},
-				},
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_struct_store",
-					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
-				},
-			},
-		},
-	}
-}
-
 func TestDeclare(t *testing.T) {
-	for _, env := range []string{"devnet", "testnet"} {
-		gw := NewClient(WithChain(env))
+	testConfig := beforeEach(t)
+
+	type testSetType struct{}
+	testSet := map[string][]testSetType{
+		"devnet":  {{}},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {{}},
+	}[testEnv]
+
+	for _, env := range testSet {
+		gw := testConfig.client
 		declareTx, err := gw.Declare(context.Background(), accountCompiled, types.DeclareRequest{})
 		if err != nil {
 			t.Errorf("%s: could not 'DECLARE' contract: %v\n", env, err)
@@ -187,67 +137,79 @@ func TestCallGoerli(t *testing.T) {
 }
 
 func TestE2EDevnet(t *testing.T) {
-	gw := NewClient(WithChain("devnet"))
+	testConfig := beforeEach(t)
 
-	deployTx, err := gw.Deploy(context.Background(), "../rpc/tests/counter.json", types.DeployRequest{})
-	if err != nil {
-		t.Errorf("could not deploy devnet counter: %v\n", err)
-	}
+	type testSetType struct{}
+	testSet := map[string][]testSetType{
+		"devnet":  {{}},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {},
+	}[testEnv]
 
-	_, _, err = gw.PollTx(context.Background(), deployTx.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
-	if err != nil {
-		t.Errorf("could not deploy devnet counter: %v\n", err)
-	}
+	for _, env := range testSet {
+		gw := testConfig.client
 
-	txDetails, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: deployTx.TransactionHash})
-	if err != nil {
-		t.Errorf("fetching transaction: %v", err)
-	}
+		deployTx, err := gw.Deploy(context.Background(), "../rpc/tests/counter.json", types.DeployRequest{})
+		if err != nil {
+			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
+		}
 
-	for i := 0; i < 3; i++ {
-		rand := fmt.Sprintf("0x%x", rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED))
+		_, _, err = gw.PollTx(context.Background(), deployTx.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
+		if err != nil {
+			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
+		}
 
-		tx := []types.Transaction{
-			{
+		txDetails, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: deployTx.TransactionHash})
+		if err != nil {
+			t.Errorf("%s: fetching transaction: %v", env, err)
+		}
+
+		for i := 0; i < 3; i++ {
+			rand := fmt.Sprintf("0x%x", rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED))
+
+			tx := []types.Transaction{
+				{
+					ContractAddress:    txDetails.Transaction.ContractAddress,
+					EntryPointSelector: "set_rand",
+					Calldata:           []string{rand},
+				},
+			}
+
+			account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, devnetAccounts[i].Address, gw)
+			if err != nil {
+				t.Errorf("testnet: could not create account: %v\n", err)
+			}
+
+			feeEstimate, err := account.EstimateFee(context.Background(), tx)
+			if err != nil {
+				t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
+			}
+			fee := new(types.Felt)
+			fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
+
+			execResp, err := account.Execute(context.Background(), fee, tx)
+			if err != nil {
+				t.Errorf("Could not execute test transaction: %v\n", err)
+			}
+
+			_, _, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
+			if err != nil {
+				t.Errorf("could not deploy devnet counter: %v\n", err)
+			}
+
+			call := types.FunctionCall{
 				ContractAddress:    txDetails.Transaction.ContractAddress,
-				EntryPointSelector: "set_rand",
-				Calldata:           []string{rand},
-			},
-		}
+				EntryPointSelector: "get_rand",
+			}
+			callResp, err := gw.Call(context.Background(), call, "")
+			if err != nil {
+				t.Errorf("could not call counter contract: %v\n", err)
+			}
 
-		account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, devnetAccounts[i].Address, gw)
-		if err != nil {
-			t.Errorf("testnet: could not create account: %v\n", err)
-		}
-
-		feeEstimate, err := account.EstimateFee(context.Background(), tx)
-		if err != nil {
-			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
-		}
-		fee := new(types.Felt)
-		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
-
-		execResp, err := account.Execute(context.Background(), fee, tx)
-		if err != nil {
-			t.Errorf("Could not execute test transaction: %v\n", err)
-		}
-
-		_, _, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
-		if err != nil {
-			t.Errorf("could not deploy devnet counter: %v\n", err)
-		}
-
-		call := types.FunctionCall{
-			ContractAddress:    txDetails.Transaction.ContractAddress,
-			EntryPointSelector: "get_rand",
-		}
-		callResp, err := gw.Call(context.Background(), call, "")
-		if err != nil {
-			t.Errorf("could not call counter contract: %v\n", err)
-		}
-
-		if rand != callResp[0] {
-			t.Errorf("could not set value on counter contract: %v\n", err)
+			if rand != callResp[0] {
+				t.Errorf("could not set value on counter contract: %v\n", err)
+			}
 		}
 	}
 }
