@@ -120,7 +120,7 @@ func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractC
 }
 
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
-func (sc *Client) ClassHashAt(ctx context.Context, address string) (*types.Felt10, error) {
+func (sc *Client) ClassHashAt(ctx context.Context, address string) (*types.Felt, error) {
 	result := new(string)
 	if err := sc.do(ctx, "starknet_getClassHashAt", &result, address); err != nil {
 		return nil, err

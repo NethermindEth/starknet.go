@@ -108,15 +108,15 @@ type FunctionCall struct {
 	Calldata           []string `json:"calldata"`
 }
 
-type Signature []*Felt10
+type Signature []*Felt
 
 type FunctionInvoke struct {
 	FunctionCall
-	MaxFee          *Felt10   `json:"max_fee,omitempty"`
-	Nonce           *Felt10   `json:"nonce,omitempty"`
+	MaxFee          *Felt     `json:"max_fee,omitempty"`
+	Nonce           *Felt     `json:"nonce,omitempty"`
 	Version         uint64    `json:"version,omitempty"`
 	Signature       Signature `json:"signature,omitempty"`
-	TransactionHash *Felt10   `json:"txn_hash,omitempty"`
+	TransactionHash *Felt     `json:"txn_hash,omitempty"`
 }
 
 // FeeEstimate provides a set of properties to understand fee estimations.

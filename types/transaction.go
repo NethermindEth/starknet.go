@@ -18,26 +18,26 @@ type Transaction struct {
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
 	MaxFee             string   `json:"max_fee,omitempty"`
-	Nonce              Felt10   `json:"nonce,omitempty"`
+	Nonce              Felt     `json:"nonce,omitempty"`
 	Version            string   `json:"version,omitempty"`
 	Type               string   `json:"type,omitempty"`
 }
 
 type L1Message struct {
-	ToAddress string    `json:"to_address,omitempty"`
-	Payload   []*Felt10 `json:"payload,omitempty"`
+	ToAddress string  `json:"to_address,omitempty"`
+	Payload   []*Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress string    `json:"from_address,omitempty"`
-	Payload     []*Felt10 `json:"payload,omitempty"`
+	FromAddress string  `json:"from_address,omitempty"`
+	Payload     []*Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
-	Order       int       `json:"order,omitempty"`
-	FromAddress string    `json:"from_address,omitempty"`
-	Keys        []*Felt10 `json:"keys,omitempty"`
-	Data        []*Felt10 `json:"data,omitempty"`
+	Order       int     `json:"order,omitempty"`
+	FromAddress string  `json:"from_address,omitempty"`
+	Keys        []*Felt `json:"keys,omitempty"`
+	Data        []*Felt `json:"data,omitempty"`
 }
 
 type TransactionReceipt struct {
@@ -64,7 +64,7 @@ type ExecutionResources struct {
 
 type TransactionTrace struct {
 	FunctionInvocation FunctionInvocation `json:"function_invocation"`
-	Signature          []*Felt10          `json:"signature"`
+	Signature          []*Felt            `json:"signature"`
 }
 
 type FunctionInvocation struct {

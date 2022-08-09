@@ -32,14 +32,14 @@ type FeltTest struct {
 }
 
 type FeltValue struct {
-	Value    string  `json:"value"`
-	Expected *Felt10 `json:"expected"`
+	Value    string `json:"value"`
+	Expected *Felt  `json:"expected"`
 }
 
 func TestJSONUnmarshal(t *testing.T) {
 	json.Unmarshal([]byte(rawTest), &feltTest)
 
-	fetchedMax := &Felt10{feltTest.MaxFelt}
+	fetchedMax := &Felt{feltTest.MaxFelt}
 	if fetchedMax.String() != MaxFelt.String() {
 		t.Errorf("Incorrect unmarshal and for max felt: %v %v\n", MaxFelt, feltTest.MaxFelt)
 	}
@@ -97,11 +97,11 @@ func TestJSONMarshal(t *testing.T) {
 
 func TestGQLUnmarshal(t *testing.T) {
 	for _, felt := range feltTest.Felts {
-		if err := new(Felt10).UnmarshalGQL(felt.Value); err != nil {
+		if err := new(Felt).UnmarshalGQL(felt.Value); err != nil {
 			t.Errorf("Could not unmarshal GQL for felt: %v\n", err)
 		}
 	}
-	if err := new(Felt10).UnmarshalGQL(1000000); err != nil {
+	if err := new(Felt).UnmarshalGQL(1000000); err != nil {
 		t.Errorf("Could not unmarshal GQL for felt: %v\n", err)
 	}
 }

@@ -53,7 +53,7 @@ invocation wrapper for StarkNet account calls to '__execute__' contact calls thr
 - implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 - accepts a multicall
 */
-func (account *Account) Execute(ctx context.Context, maxFee *types.Felt10, calls []types.Transaction) (*types.AddTxResponse, error) {
+func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
 	req, err := account.fmtExecute(ctx, maxFee, calls)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (account *Account) Execute(ctx context.Context, maxFee *types.Felt10, calls
 	return account.Provider.Invoke(ctx, *req)
 }
 
-func (account *Account) HashMultiCall(fee *types.Felt10, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
+func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (account *Account) HashMultiCall(fee *types.Felt10, nonce *big.Int, calls [
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
-	zeroFee := &types.Felt10{Int: big.NewInt(0)}
+	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
 	req, err := account.fmtExecute(ctx, zeroFee, calls)
 	if err != nil {
@@ -100,7 +100,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	return account.Provider.EstimateFee(ctx, *req, "")
 }
 
-func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt10, calls []types.Transaction) (*types.FunctionInvoke, error) {
+func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
 	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 	if err != nil {
 		return nil, err

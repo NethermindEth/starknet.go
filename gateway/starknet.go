@@ -92,7 +92,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
 	} else {
-		// stop-gap before full types.Felt10 cutover
+		// stop-gap before full types.Felt cutover
 		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
 	}
 
