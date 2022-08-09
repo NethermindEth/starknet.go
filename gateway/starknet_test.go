@@ -84,7 +84,7 @@ func TestExecuteGoerli(t *testing.T) {
 		fee := new(types.Felt)
 		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
-		_, err = account.Execute(context.Background(), fee, testAccount.Transactions)
+		_, err = account.Execute(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
 		if err != nil {
 			t.Errorf("Could not execute test transaction: %v\n", err)
 		}
@@ -188,7 +188,16 @@ func TestE2EDevnet(t *testing.T) {
 			fee := new(types.Felt)
 			fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
-			execResp, err := account.Execute(context.Background(), fee, tx)
+			nonce, err := gw.AccountNonce(context.Background(), account.Address)
+			if err != nil {
+				t.Errorf("testnet: could not get account nonce: %v", err)
+			}
+
+			execResp, err := account.Execute(context.Background(), tx,
+				caigo.ExecuteDetails{
+					MaxFee: fee,
+					Nonce: nonce,
+				})
 			if err != nil {
 				t.Errorf("Could not execute test transaction: %v\n", err)
 			}

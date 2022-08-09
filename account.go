@@ -21,6 +21,12 @@ type Account struct {
 	private  *big.Int
 }
 
+type ExecuteDetails struct {
+	MaxFee  *types.Felt
+	Nonce   *big.Int
+	Version *uint64 // not used currently
+}
+
 /*
 	Instantiate a new StarkNet Account which includes structures for calling the network and signing transactions:
 	- private signing key
@@ -53,8 +59,26 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 	- accepts a multicall
 */
-func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
-	req, err := account.fmtExecute(ctx, maxFee, calls)
+func (account *Account) Execute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.AddTxResponse, error) {
+	if details.MaxFee == nil {
+		fee, err := account.EstimateFee(ctx, calls)
+		if err != nil {
+			return nil, err
+		}
+		details.MaxFee = &types.Felt{
+			Int: new(big.Int).SetUint64(fee.OverallFee),
+		}
+	}
+
+	if details.Nonce == nil {
+		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+		if err != nil {
+			return nil, err
+		}
+		details.Nonce = nonce
+	}
+
+	req, err := account.fmtExecute(ctx, calls, details)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +116,16 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
 	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
-	req, err := account.fmtExecute(ctx, zeroFee, calls)
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := account.fmtExecute(ctx, calls,
+		ExecuteDetails{
+			MaxFee: zeroFee,
+			Nonce:  nonce,
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -100,22 +133,17 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	return account.Provider.EstimateFee(ctx, *req, "")
 }
 
-func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
-	if err != nil {
-		return nil, err
-	}
-
+func (account *Account) fmtExecute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FunctionInvoke, error) {
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
 			EntryPointSelector: EXECUTE_SELECTOR,
-			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
+			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
 		},
-		MaxFee: maxFee,
+		MaxFee: details.MaxFee,
 	}
 
-	hash, err := account.HashMultiCall(maxFee, nonce, calls)
+	hash, err := account.HashMultiCall(details.MaxFee, details.Nonce, calls)
 	if err != nil {
 		return nil, err
 	}
