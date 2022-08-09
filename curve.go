@@ -19,8 +19,8 @@ import (
 var Curve StarkCurve
 
 /*
-	Returned stark curve includes several values above and beyond
-	what the 'elliptic' interface calls for to facilitate common starkware functions
+Returned stark curve includes several values above and beyond
+what the 'elliptic' interface calls for to facilitate common starkware functions
 */
 type StarkCurve struct {
 	*elliptic.CurveParams
@@ -327,7 +327,7 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int
 		SNValToBN(tx.ContractAddress),
 		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
-		SNValToBN(tx.Nonce),
+		SNValToBN(tx.Nonce.String()),
 	}
 
 	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
