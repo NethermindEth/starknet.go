@@ -54,7 +54,16 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	- accepts a multicall
 */
 func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
-	req, err := account.fmtExecute(ctx, maxFee, calls)
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	return account.ExecuteWithNonce(ctx, maxFee, calls, nonce)
+}
+
+func (account *Account) ExecuteWithNonce(ctx context.Context, maxFee *types.Felt, calls []types.Transaction, nonce *big.Int) (*types.AddTxResponse, error) {
+	req, err := account.fmtExecute(ctx, maxFee, calls, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +101,12 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
 	zeroFee := &types.Felt{Int: big.NewInt(0)}
 
-	req, err := account.fmtExecute(ctx, zeroFee, calls)
+	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := account.fmtExecute(ctx, zeroFee, calls, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +114,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	return account.Provider.EstimateFee(ctx, *req, "")
 }
 
-func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
-	if err != nil {
-		return nil, err
-	}
+func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction, nonce *big.Int) (*types.FunctionInvoke, error) {
 
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
