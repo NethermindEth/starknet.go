@@ -22,7 +22,7 @@ func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDe
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*types.Felt, error) {
+func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*types.Felt10, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_hash_at", nil)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*types.Felt
 		"contractAddress": []string{address},
 	})
 
-	var resp types.Felt
+	var resp types.Felt10
 	return &resp, sg.do(req, &resp)
 }
 

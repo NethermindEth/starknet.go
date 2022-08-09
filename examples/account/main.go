@@ -52,7 +52,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fee := types.Felt{
+	fee := types.Felt10{
 		Int: new(big.Int).SetUint64((feeEstimate.OverallFee * feeMargin) / 100),
 	}
 	fmt.Printf("Fee:\n\tEstimate\t\t%v wei\n\tEstimate+Margin\t\t%v wei\n\n", feeEstimate.OverallFee, fee)

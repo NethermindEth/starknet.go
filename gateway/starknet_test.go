@@ -81,7 +81,7 @@ func TestExecuteGoerli(t *testing.T) {
 		if err != nil {
 			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 		}
-		fee := new(types.Felt)
+		fee := new(types.Felt10)
 		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
 		_, err = account.Execute(context.Background(), fee, testAccount.Transactions)
@@ -185,7 +185,7 @@ func TestE2EDevnet(t *testing.T) {
 			if err != nil {
 				t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 			}
-			fee := new(types.Felt)
+			fee := new(types.Felt10)
 			fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
 			execResp, err := account.Execute(context.Background(), fee, tx)

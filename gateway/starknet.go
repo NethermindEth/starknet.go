@@ -42,7 +42,7 @@ type GatewayFunctionCall struct {
 }
 
 /*
-	'call_contract' wrapper and can accept a blockId in the hash or height format
+'call_contract' wrapper and can accept a blockId in the hash or height format
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
 	gc := GatewayFunctionCall{
@@ -73,7 +73,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 }
 
 /*
-	'add_transaction' wrapper for invokation requests
+'add_transaction' wrapper for invokation requests
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
 	tx := types.Transaction{
@@ -92,7 +92,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
 	} else {
-		// stop-gap before full types.Felt cutover
+		// stop-gap before full types.Felt10 cutover
 		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
 	}
 
@@ -112,7 +112,7 @@ type RawContractDefinition struct {
 }
 
 /*
-	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
+'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
 func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)
@@ -149,7 +149,7 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 }
 
 /*
-	'add_transaction' wrapper for compressing and declaring a contract class
+'add_transaction' wrapper for compressing and declaring a contract class
 */
 func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)

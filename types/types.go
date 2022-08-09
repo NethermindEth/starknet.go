@@ -20,7 +20,7 @@ type Code struct {
 }
 
 /*
-	StarkNet transaction states
+StarkNet transaction states
 */
 const (
 	NOT_RECIEVED = TxStatus(iota)
@@ -108,15 +108,15 @@ type FunctionCall struct {
 	Calldata           []string `json:"calldata"`
 }
 
-type Signature []*Felt
+type Signature []*Felt10
 
 type FunctionInvoke struct {
 	FunctionCall
-	MaxFee          *Felt     `json:"max_fee,omitempty"`
-	Nonce           *Felt     `json:"nonce,omitempty"`
+	MaxFee          *Felt10   `json:"max_fee,omitempty"`
+	Nonce           *Felt10   `json:"nonce,omitempty"`
 	Version         uint64    `json:"version,omitempty"`
 	Signature       Signature `json:"signature,omitempty"`
-	TransactionHash *Felt     `json:"txn_hash,omitempty"`
+	TransactionHash *Felt10   `json:"txn_hash,omitempty"`
 }
 
 // FeeEstimate provides a set of properties to understand fee estimations.

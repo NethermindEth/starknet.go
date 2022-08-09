@@ -22,26 +22,26 @@ var (
 	asciiRegexp = regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 )
 
-// Felt represents Field Element or Felt from cairo.
-type Felt struct {
+// Felt10 represents Field Element or Felt10 from cairo.
+type Felt10 struct {
 	*big.Int
 }
 
-// Big converts a Felt to its big.Int representation.
-func (f *Felt) Big() *big.Int {
+// Big converts a Felt10 to its big.Int representation.
+func (f *Felt10) Big() *big.Int {
 	return new(big.Int).SetBytes(f.Int.Bytes())
 }
 
-// StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
-func StrToFelt(str string) *Felt {
-	f := new(Felt)
+// StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt10.
+func StrToFelt(str string) *Felt10 {
+	f := new(Felt10)
 	if ok := f.strToFelt(str); ok {
 		return f
 	}
 	return nil
 }
 
-func (f *Felt) strToFelt(str string) bool {
+func (f *Felt10) strToFelt(str string) bool {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
 		f.Int = b
 		return ok
@@ -58,18 +58,18 @@ func (f *Felt) strToFelt(str string) bool {
 	return false
 }
 
-// BigToFelt converts a big.Int to its Felt representation.
-func BigToFelt(b *big.Int) *Felt {
-	return &Felt{Int: b}
+// BigToFelt converts a big.Int to its Felt10 representation.
+func BigToFelt(b *big.Int) *Felt10 {
+	return &Felt10{Int: b}
 }
 
-// BytesToFelt converts a []byte to its Felt representation.
-func BytesToFelt(b []byte) *Felt {
-	return &Felt{Int: new(big.Int).SetBytes(b)}
+// BytesToFelt converts a []byte to its Felt10 representation.
+func BytesToFelt(b []byte) *Felt10 {
+	return &Felt10{Int: new(big.Int).SetBytes(b)}
 }
 
-// String converts a Felt into its 'short string' representation.
-func (f *Felt) ShortString() string {
+// String converts a Felt10 into its 'short string' representation.
+func (f *Felt10) ShortString() string {
 	str := string(f.Bytes())
 	if asciiRegexp.MatchString(str) {
 		return str
@@ -77,8 +77,8 @@ func (f *Felt) ShortString() string {
 	return ""
 }
 
-// String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
-func (f *Felt) String() string {
+// String converts a Felt10 into its hexadecimal string representation and implement fmt.Stringer.
+func (f *Felt10) String() string {
 	return fmt.Sprintf("0x%x", f)
 }
 
@@ -87,13 +87,13 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`["%s","%s"]`, s[0].Int.String(), s[1].Int.String())), nil
 }
 
-// MarshalJSON implements the json Marshaller interface for Felt to marshal types to []byte.
-func (f Felt) MarshalJSON() ([]byte, error) {
+// MarshalJSON implements the json Marshaller interface for Felt10 to marshal types to []byte.
+func (f Felt10) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
 }
 
 // UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.
-func (f *Felt) UnmarshalJSON(p []byte) error {
+func (f *Felt10) UnmarshalJSON(p []byte) error {
 	if string(p) == "null" || len(p) == 0 {
 		return nil
 	}
@@ -113,13 +113,13 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 	return nil
 }
 
-// MarshalGQL implements the gqlgen Marshaller interface to marshal Felt into an io.Writer.
-func (f Felt) MarshalGQL(w io.Writer) {
+// MarshalGQL implements the gqlgen Marshaller interface to marshal Felt10 into an io.Writer.
+func (f Felt10) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(f.String()))
 }
 
-// UnmarshalGQL implements the gqlgen Unmarshaller interface to unmarshal an interface into a Felt.
-func (b *Felt) UnmarshalGQL(v interface{}) error {
+// UnmarshalGQL implements the gqlgen Unmarshaller interface to unmarshal an interface into a Felt10.
+func (b *Felt10) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
 		if ok := b.strToFelt(bi); ok {
@@ -136,15 +136,15 @@ func (b *Felt) UnmarshalGQL(v interface{}) error {
 }
 
 // Value is used by database/sql drivers to store data in databases
-func (f Felt) Value() (driver.Value, error) {
+func (f Felt10) Value() (driver.Value, error) {
 	if f.Int == nil {
 		return "", nil
 	}
 	return f.String(), nil
 }
 
-// Scan implements the database/sql Scanner interface to read Felt from a databases.
-func (f *Felt) Scan(src interface{}) error {
+// Scan implements the database/sql Scanner interface to read Felt10 from a databases.
+func (f *Felt10) Scan(src interface{}) error {
 	var i sql.NullString
 	if err := i.Scan(src); err != nil {
 		return err
