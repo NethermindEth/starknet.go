@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -13,28 +14,28 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractAddress    string
+		ContractAddress    types.Felt
 		EntrypointSelector string
 		ExpectedResult     string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:    "0xdeadbeef",
+				ContractAddress:    types.Felt{big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress:    "0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136",
+				ContractAddress:    types.Felt{big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
+				ContractAddress:    types.Felt{big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
@@ -75,7 +76,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					FunctionCall: types.FunctionCall{
-						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
+						ContractAddress: types.Felt{big.NewInt(10000)},
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
 							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
@@ -108,7 +109,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					FunctionCall: types.FunctionCall{
-						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
+						ContractAddress: types.Felt{big.NewInt(10000)},
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
 							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",

@@ -210,7 +210,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    txHash,
-		ContractAddress:    "0xdeadbeef",
+		ContractAddress:    types.Felt{big.NewInt(10000)},
 		EntryPointSelector: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(transaction)
@@ -237,7 +237,7 @@ func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    "0xdeadbeef",
-		ContractAddress:    "0xdeadbeef",
+		ContractAddress:    types.Felt{big.NewInt(10000)},
 		EntryPointSelector: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(transaction)
@@ -266,7 +266,7 @@ func mock_starknet_getTransactionByBlockNumberAndIndex(result interface{}, metho
 	}
 	transaction := types.Transaction{
 		TransactionHash:    "0xdeadbeef",
-		ContractAddress:    "0xdeadbeef",
+		ContractAddress:    types.Felt{big.NewInt(10000)},
 		EntryPointSelector: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(transaction)
@@ -414,7 +414,7 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		return errWrongArgs
 	}
 	function, ok := args[0].(types.FunctionCall)
-	if !ok || function.ContractAddress != "0xdeadbeef" {
+	if !ok || function.ContractAddress.String() != "0xdeadbeef" {
 		return errWrongArgs
 	}
 	output := []string{"0x12"}

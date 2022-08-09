@@ -300,7 +300,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 	}
 
 	txHashData := []*big.Int{
-		SNValToBN(tx.ContractAddress),
+		SNValToBN(tx.ContractAddress.String()),
 		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
 	}
@@ -324,7 +324,7 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int
 
 	txHashData := []*big.Int{
 		addr,
-		SNValToBN(tx.ContractAddress),
+		SNValToBN(tx.ContractAddress.String()),
 		GetSelectorFromName(tx.EntryPointSelector),
 		cdHash,
 		SNValToBN(tx.Nonce.String()),

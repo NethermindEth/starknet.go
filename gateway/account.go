@@ -13,7 +13,7 @@ import (
 
 func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
-		ContractAddress:    address,
+		ContractAddress:    types.Felt{big.NewInt(10000)},
 		EntryPointSelector: "get_nonce",
 	}, "")
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"math/big"
 	"os"
 	"strings"
 	"testing"
@@ -67,10 +68,10 @@ func setupDevnet() {
 		{
 			PrivateKey: "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
 			PublicKey:  "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
-			Address:    "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c",
+			Address:    types.Felt{big.NewInt(10000)},
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+					ContractAddress:    types.Felt{big.NewInt(10000)},
 					EntryPointSelector: "update_single_store",
 					Calldata:           []string{"3"},
 				},
@@ -79,15 +80,15 @@ func setupDevnet() {
 		{
 			PrivateKey: "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
 			PublicKey:  "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
-			Address:    "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246",
+			Address:    types.Felt{big.NewInt(10000)},
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+					ContractAddress:    types.Felt{big.NewInt(10000)},
 					EntryPointSelector: "update_multi_store",
 					Calldata:           []string{"4", "7"},
 				},
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
+					ContractAddress:    types.Felt{big.NewInt(10000)},
 					EntryPointSelector: "update_struct_store",
 					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
 				},

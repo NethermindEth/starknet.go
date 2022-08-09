@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -137,7 +138,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mock": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
+					ContractAddress: types.Felt{big.NewInt(10000)},
 					Calldata: []string{
 						"0x1",
 						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
@@ -163,7 +164,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mainnet": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
+					ContractAddress: types.Felt{big.NewInt(10000)},
 					Calldata: []string{
 						"0x1",
 						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
