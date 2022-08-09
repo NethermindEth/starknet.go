@@ -71,6 +71,7 @@ func TestDeclare(t *testing.T) {
 }
 
 func TestExecuteGoerli(t *testing.T) {
+	gw := NewClient()
 	for _, testAccount := range testnetAccounts {
 		account, err := caigo.NewAccount(testAccount.PrivateKey, testAccount.Address, NewProvider())
 		if err != nil {
@@ -84,7 +85,17 @@ func TestExecuteGoerli(t *testing.T) {
 		fee := new(types.Felt)
 		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
-		_, err = account.Execute(context.Background(), fee, testAccount.Transactions)
+		nonce, err := gw.AccountNonce(context.Background(), testAccount.Address)
+		if err != nil {
+			t.Errorf("testnet: could not get account nonce: %v", err)
+		}
+
+		_, err = account.Execute(context.Background(), 
+			&caigo.ExecuteDetails{
+				Calls: &testAccount.Transactions,
+				MaxFee: fee,
+				Nonce: nonce,
+			})
 		if err != nil {
 			t.Errorf("Could not execute test transaction: %v\n", err)
 		}
@@ -188,7 +199,17 @@ func TestE2EDevnet(t *testing.T) {
 			fee := new(types.Felt)
 			fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
-			execResp, err := account.Execute(context.Background(), fee, tx)
+			nonce, err := gw.AccountNonce(context.Background(), account.Address)
+			if err != nil {
+				t.Errorf("testnet: could not get account nonce: %v", err)
+			}
+
+			execResp, err := account.Execute(context.Background(), 
+				&caigo.ExecuteDetails{
+					Calls: &tx,
+					MaxFee: fee,
+					Nonce: nonce,
+				})
 			if err != nil {
 				t.Errorf("Could not execute test transaction: %v\n", err)
 			}
