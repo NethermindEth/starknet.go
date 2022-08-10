@@ -11,6 +11,7 @@ const (
 	EXECUTE_SELECTOR    string = "__execute__"
 	TRANSACTION_PREFIX  string = "invoke"
 	TRANSACTION_VERSION int64  = 0
+	FEE_MARGIN          uint64 = 115
 )
 
 type Account struct {
@@ -60,22 +61,22 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	- accepts a multicall
 */
 func (account *Account) Execute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.AddTxResponse, error) {
-	if details.MaxFee == nil {
-		fee, err := account.EstimateFee(ctx, calls)
-		if err != nil {
-			return nil, err
-		}
-		details.MaxFee = &types.Felt{
-			Int: new(big.Int).SetUint64(fee.OverallFee),
-		}
-	}
-
 	if details.Nonce == nil {
 		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
 		if err != nil {
 			return nil, err
 		}
 		details.Nonce = nonce
+	}
+
+	if details.MaxFee == nil {
+		fee, err := account.EstimateFee(ctx, calls, details)
+		if err != nil {
+			return nil, err
+		}
+		details.MaxFee = &types.Felt{
+			Int: new(big.Int).SetUint64((fee.OverallFee * FEE_MARGIN) / 100),
+		}
 	}
 
 	req, err := account.fmtExecute(ctx, calls, details)
@@ -113,19 +114,20 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	return Curve.HashElements(multiHashData)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
-	zeroFee := &types.Felt{Int: big.NewInt(0)}
-
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address)
-	if err != nil {
-		return nil, err
+func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FeeEstimate, error) {
+	if details.Nonce == nil {
+		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+		if err != nil {
+			return nil, err
+		}
+		details.Nonce = nonce
 	}
 
-	req, err := account.fmtExecute(ctx, calls,
-		ExecuteDetails{
-			MaxFee: zeroFee,
-			Nonce:  nonce,
-		})
+	if details.MaxFee == nil {
+		details.MaxFee = &types.Felt{Int: big.NewInt(0)}
+	}
+
+	req, err := account.fmtExecute(ctx, calls, details)
 	if err != nil {
 		return nil, err
 	}

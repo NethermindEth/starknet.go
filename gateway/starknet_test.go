@@ -77,14 +77,17 @@ func TestExecuteGoerli(t *testing.T) {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
 
-		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions)
+		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
 		if err != nil {
 			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 		}
 		fee := new(types.Felt)
 		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
-		_, err = account.Execute(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
+		_, err = account.Execute(context.Background(), testAccount.Transactions, 
+			caigo.ExecuteDetails{
+				MaxFee: fee,
+			})
 		if err != nil {
 			t.Errorf("Could not execute test transaction: %v\n", err)
 		}
@@ -181,7 +184,7 @@ func TestE2EDevnet(t *testing.T) {
 				t.Errorf("testnet: could not create account: %v\n", err)
 			}
 
-			feeEstimate, err := account.EstimateFee(context.Background(), tx)
+			feeEstimate, err := account.EstimateFee(context.Background(), tx, caigo.ExecuteDetails{})
 			if err != nil {
 				t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 			}
