@@ -24,12 +24,12 @@ type Transaction struct {
 }
 
 type L1Message struct {
-	ToAddress string  `json:"to_address,omitempty"`
+	ToAddress *Felt   `json:"to_address,omitempty"`
 	Payload   []*Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress string  `json:"from_address,omitempty"`
+	FromAddress *Felt   `json:"from_address,omitempty"`
 	Payload     []*Felt `json:"payload,omitempty"`
 }
 
