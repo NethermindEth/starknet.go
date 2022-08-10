@@ -14,28 +14,28 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractAddress    types.Felt
+		ContractAddress    *types.Felt
 		EntrypointSelector string
 		ExpectedResult     string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:    types.Felt{big.NewInt(10000)},
+				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress:    types.Felt{big.NewInt(10000)},
+				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:    types.Felt{big.NewInt(10000)},
+				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
@@ -76,7 +76,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					FunctionCall: types.FunctionCall{
-						ContractAddress: types.Felt{big.NewInt(10000)},
+						ContractAddress: &types.Felt{Int: big.NewInt(10000)},
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
 							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
@@ -109,7 +109,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					FunctionCall: types.FunctionCall{
-						ContractAddress: types.Felt{big.NewInt(10000)},
+						ContractAddress: &types.Felt{big.NewInt(10000)},
 						Calldata: []string{
 							"0x0000000000000000000000000000000000000000000000000000000000000001",
 							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",

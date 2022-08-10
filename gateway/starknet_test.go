@@ -37,7 +37,7 @@ var (
 type TestAccountType struct {
 	PrivateKey   string              `json:"private_key"`
 	PublicKey    string              `json:"public_key"`
-	Address      types.Felt          `json:"address"`
+	Address      *types.Felt         `json:"address"`
 	Transactions []types.Transaction `json:"transactions,omitempty"`
 }
 

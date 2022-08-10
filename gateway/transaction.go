@@ -22,18 +22,18 @@ type StarknetTransaction struct {
 }
 
 type Transaction struct {
-	TransactionHash    string     `json:"transaction_hash,omitempty"`
-	ClassHash          string     `json:"class_hash,omitempty"`
-	ContractAddress    types.Felt `json:"contract_address,omitempty"`
-	SenderAddress      string     `json:"sender_address,omitempty"`
-	EntryPointSelector string     `json:"entry_point_selector"`
-	Calldata           []string   `json:"calldata"`
-	Signature          []string   `json:"signature"`
-	EntryPointType     string     `json:"entry_point_type,omitempty"`
-	MaxFee             types.Felt `json:"max_fee,omitempty"`
-	Nonce              types.Felt `json:"nonce,omitempty"`
-	Version            string     `json:"version,omitempty"`
-	Type               string     `json:"type,omitempty"`
+	TransactionHash    string      `json:"transaction_hash,omitempty"`
+	ClassHash          string      `json:"class_hash,omitempty"`
+	ContractAddress    *types.Felt `json:"contract_address,omitempty"`
+	SenderAddress      string      `json:"sender_address,omitempty"`
+	EntryPointSelector string      `json:"entry_point_selector"`
+	Calldata           []string    `json:"calldata"`
+	Signature          []string    `json:"signature"`
+	EntryPointType     string      `json:"entry_point_type,omitempty"`
+	MaxFee             types.Felt  `json:"max_fee,omitempty"`
+	Nonce              types.Felt  `json:"nonce,omitempty"`
+	Version            string      `json:"version,omitempty"`
+	Type               string      `json:"type,omitempty"`
 }
 
 func (t Transaction) Normalize() *types.Transaction {

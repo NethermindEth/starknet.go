@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 	"testing"
@@ -68,10 +67,10 @@ func setupDevnet() {
 		{
 			PrivateKey: "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
 			PublicKey:  "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
-			Address:    types.Felt{big.NewInt(10000)},
+			Address:    types.StrToFelt("10000"),
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    types.Felt{big.NewInt(10000)},
+					ContractAddress:    types.StrToFelt("10000"),
 					EntryPointSelector: "update_single_store",
 					Calldata:           []string{"3"},
 				},
@@ -80,15 +79,15 @@ func setupDevnet() {
 		{
 			PrivateKey: "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
 			PublicKey:  "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
-			Address:    types.Felt{big.NewInt(10000)},
+			Address:    types.StrToFelt("20000"),
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    types.Felt{big.NewInt(10000)},
+					ContractAddress:    types.StrToFelt("20000"),
 					EntryPointSelector: "update_multi_store",
 					Calldata:           []string{"4", "7"},
 				},
 				{
-					ContractAddress:    types.Felt{big.NewInt(10000)},
+					ContractAddress:    types.StrToFelt("20000"),
 					EntryPointSelector: "update_struct_store",
 					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
 				},

@@ -28,7 +28,7 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - full provider definition
 - public key pair for signature verifications
 */
-func NewAccount(private string, address types.Felt, provider types.Provider) (*Account, error) {
+func NewAccount(private string, address *types.Felt, provider types.Provider) (*Account, error) {
 	priv := SNValToBN(private)
 	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
@@ -37,7 +37,7 @@ func NewAccount(private string, address types.Felt, provider types.Provider) (*A
 
 	return &Account{
 		Provider: provider,
-		Address:  address,
+		Address:  *address,
 		PublicX:  x,
 		PublicY:  y,
 		private:  priv,
@@ -108,7 +108,7 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
-			ContractAddress:    account.Address,
+			ContractAddress:    &account.Address,
 			EntryPointSelector: EXECUTE_SELECTOR,
 			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
 		},
