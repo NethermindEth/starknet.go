@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/google/go-querystring/query"
 )
@@ -17,7 +16,7 @@ type StorageAtOptions struct {
 // Get a storage slots value.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L70)
-func (sg *Gateway) StorageAt(ctx context.Context, address string, key uint64, opts *StorageAtOptions) (string, error) {
+func (sg *Gateway) StorageAt(ctx context.Context, address string, key string, opts *StorageAtOptions) (string, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_storage_at", nil)
 	if err != nil {
 		return "", err
@@ -25,7 +24,7 @@ func (sg *Gateway) StorageAt(ctx context.Context, address string, key uint64, op
 
 	appendQueryValues(req, url.Values{
 		"contractAddress": []string{address},
-		"key":             []string{strconv.FormatUint(key, 10)},
+		"key":             []string{key},
 	})
 
 	if opts != nil {
