@@ -13,7 +13,7 @@ type Transaction struct {
 	TransactionHash    string   `json:"txn_hash,omitempty"`
 	ClassHash          string   `json:"class_hash,omitempty"`
 	ContractAddress    *Felt    `json:"contract_address,omitempty"`
-	SenderAddress      string   `json:"sender_address,omitempty"`
+	SenderAddress      *Felt    `json:"sender_address,omitempty"`
 	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
 	Calldata           []*Felt  `json:"calldata"`
 	Signature          []string `json:"signature"`
@@ -35,7 +35,7 @@ type L2Message struct {
 
 type Event struct {
 	Order       int     `json:"order,omitempty"`
-	FromAddress string  `json:"from_address,omitempty"`
+	FromAddress *Felt   `json:"from_address,omitempty"`
 	Keys        []*Felt `json:"keys,omitempty"`
 	Data        []*Felt `json:"data,omitempty"`
 }
@@ -70,7 +70,7 @@ type TransactionTrace struct {
 type FunctionInvocation struct {
 	CallerAddress      string               `json:"caller_address"`
 	ContractAddress    string               `json:"contract_address"`
-	Calldata           []string             `json:"calldata"`
+	Calldata           []*Felt              `json:"calldata"`
 	CallType           string               `json:"call_type"`
 	ClassHash          string               `json:"class_hash"`
 	Selector           string               `json:"selector"`
