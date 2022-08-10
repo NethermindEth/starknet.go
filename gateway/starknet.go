@@ -80,7 +80,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		Type:               INVOKE,
 		ContractAddress:    invoke.ContractAddress,
 		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector)),
-		MaxFee:             *invoke.MaxFee,
+		MaxFee:             invoke.MaxFee,
 	}
 
 	if len(invoke.Calldata) == 0 {

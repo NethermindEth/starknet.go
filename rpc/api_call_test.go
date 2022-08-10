@@ -21,21 +21,21 @@ func TestCall(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
+				ContractAddress:    types.StrToFelt("10000"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
+				ContractAddress:    types.StrToFelt("20000"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:    &types.Felt{Int: big.NewInt(10000)},
+				ContractAddress:    types.StrToFelt("30000"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},

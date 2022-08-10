@@ -30,8 +30,8 @@ type Transaction struct {
 	Calldata           []string    `json:"calldata"`
 	Signature          []string    `json:"signature"`
 	EntryPointType     string      `json:"entry_point_type,omitempty"`
-	MaxFee             types.Felt  `json:"max_fee,omitempty"`
-	Nonce              types.Felt  `json:"nonce,omitempty"`
+	MaxFee             *types.Felt `json:"max_fee,omitempty"`
+	Nonce              *types.Felt `json:"nonce,omitempty"`
 	Version            string      `json:"version,omitempty"`
 	Type               string      `json:"type,omitempty"`
 }

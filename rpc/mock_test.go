@@ -210,7 +210,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    txHash,
-		ContractAddress:    &types.Felt{big.NewInt(10000)},
+		ContractAddress:    types.StrToFelt("100000"),
 		EntryPointSelector: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(transaction)
@@ -237,7 +237,7 @@ func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method 
 	}
 	transaction := types.Transaction{
 		TransactionHash:    "0xdeadbeef",
-		ContractAddress:    &types.Felt{big.NewInt(10000)},
+		ContractAddress:    types.StrToFelt("100000"),
 		EntryPointSelector: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(transaction)
