@@ -133,13 +133,13 @@ func TestGateway(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockHash string
+		BlockHash *types.Felt
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
-		"mainnet": {{BlockHash: "0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f"}},
-		"mock":    {{BlockHash: "0xdeadbeef"}},
-		"testnet": {{BlockHash: "0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db"}},
+		"mainnet": {{BlockHash: types.StrToFelt("0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f")}},
+		"mock":    {{BlockHash: types.StrToFelt("0xdeadbeef")}},
+		"testnet": {{BlockHash: types.StrToFelt("0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db")}},
 	}[testEnv]
 
 	for _, test := range testSet {

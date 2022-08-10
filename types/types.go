@@ -3,7 +3,7 @@ package types
 type Bytecode []string
 
 type Block struct {
-	BlockHash       string         `json:"block_hash"`
+	BlockHash       *Felt          `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
 	BlockNumber     int            `json:"block_number"`
 	NewRoot         string         `json:"new_root"`
@@ -41,7 +41,7 @@ func (s TxStatus) String() string {
 
 type TransactionStatus struct {
 	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash,omitempty"`
+	BlockHash       *Felt  `json:"block_hash,omitempty"`
 	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`

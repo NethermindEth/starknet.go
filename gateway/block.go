@@ -12,7 +12,7 @@ import (
 )
 
 type Block struct {
-	BlockHash           string               `json:"block_hash"`
+	BlockHash           *types.Felt          `json:"block_hash"`
 	ParentBlockHash     string               `json:"parent_block_hash"`
 	BlockNumber         int                  `json:"block_number"`
 	StateRoot           string               `json:"state_root"`
@@ -40,8 +40,8 @@ func (b Block) Normalize() *types.Block {
 }
 
 type BlockOptions struct {
-	BlockNumber uint64 `url:"blockNumber,omitempty"`
-	BlockHash   string `url:"blockHash,omitempty"`
+	BlockNumber uint64      `url:"blockNumber,omitempty"`
+	BlockHash   *types.Felt `url:"blockHash,omitempty"`
 }
 
 // Gets the block information from a block ID.
@@ -92,7 +92,7 @@ func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockByHash(context.Context, string, string) (*types.Block, error) {
+func (sg *Gateway) BlockByHash(context.Context, *types.Felt, string) (*types.Block, error) {
 	panic("not implemented")
 }
 

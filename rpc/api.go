@@ -57,7 +57,7 @@ func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 }
 
 // BlockByHash gets block information given the block id.
-func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
+func (sc *Client) BlockByHash(ctx context.Context, hash *types.Felt, scope string) (*types.Block, error) {
 	var block types.Block
 	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
 		return nil, err

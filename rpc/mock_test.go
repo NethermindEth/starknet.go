@@ -123,7 +123,7 @@ func mock_starknet_getBlockByHash(result interface{}, method string, args ...int
 	}
 	output := types.Block{
 		BlockNumber:  1000,
-		BlockHash:    "0xdeadbeef",
+		BlockHash:    types.StrToFelt("0xdeadbeef"),
 		Transactions: []*types.Transaction{&transaction},
 	}
 	outputContent, _ := json.Marshal(output)
@@ -158,7 +158,7 @@ func mock_starknet_getBlockByNumber(result interface{}, method string, args ...i
 		TransactionHash:    "0xdeadbeef",
 	}
 	output := types.Block{
-		BlockHash:    "0xdeadbeef",
+		BlockHash:    types.StrToFelt("0xdeadbeef"),
 		Transactions: []*types.Transaction{&transaction},
 	}
 	outputContent, _ := json.Marshal(output)

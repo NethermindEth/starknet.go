@@ -7,7 +7,7 @@ import (
 
 type Provider interface {
 	AccountNonce(context.Context, string) (*big.Int, error)
-	BlockByHash(context.Context, string, string) (*Block, error)
+	BlockByHash(context.Context, *Felt, string) (*Block, error)
 	BlockByNumber(context.Context, *big.Int, string) (*Block, error)
 	Call(context.Context, FunctionCall, string) ([]string, error)
 	ChainID(context.Context) (string, error)
