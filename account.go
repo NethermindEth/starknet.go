@@ -129,10 +129,10 @@ func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, call
 	return &req, nil
 }
 
-func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
+func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []*types.Felt) {
 	callArray := fmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, data.String())
+		calldataStrings = append(calldataStrings, types.BigToFelt(data))
 	}
 	return calldataStrings
 }
@@ -154,7 +154,7 @@ func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArra
 
 		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
 		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, SNValToBN(cd))
+			calldataArray = append(calldataArray, SNValToBN(cd.String()))
 		}
 	}
 

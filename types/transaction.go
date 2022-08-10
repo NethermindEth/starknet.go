@@ -15,7 +15,7 @@ type Transaction struct {
 	ContractAddress    *Felt    `json:"contract_address,omitempty"`
 	SenderAddress      string   `json:"sender_address,omitempty"`
 	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
-	Calldata           []string `json:"calldata"`
+	Calldata           []*Felt  `json:"calldata"`
 	Signature          []string `json:"signature"`
 	MaxFee             *Felt    `json:"max_fee,omitempty"`
 	Nonce              *Felt    `json:"nonce,omitempty"`

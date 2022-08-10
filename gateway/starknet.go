@@ -50,7 +50,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	}
 	gc.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(gc.EntryPointSelector))
 	if len(gc.Calldata) == 0 {
-		gc.Calldata = []string{}
+		gc.Calldata = []*types.Felt{}
 	}
 
 	if len(gc.Signature) == 0 {
@@ -84,7 +84,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	}
 
 	if len(invoke.Calldata) == 0 {
-		tx.Calldata = []string{}
+		tx.Calldata = []*types.Felt{}
 	} else {
 		tx.Calldata = invoke.Calldata
 	}

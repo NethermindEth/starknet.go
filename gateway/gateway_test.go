@@ -72,7 +72,7 @@ func setupDevnet() {
 				{
 					ContractAddress:    types.StrToFelt("10000"),
 					EntryPointSelector: "update_single_store",
-					Calldata:           []string{"3"},
+					Calldata:           []*types.Felt{types.StrToFelt("3")},
 				},
 			},
 		},
@@ -84,7 +84,7 @@ func setupDevnet() {
 				{
 					ContractAddress:    types.StrToFelt("20000"),
 					EntryPointSelector: "update_multi_store",
-					Calldata:           []string{"4", "7"},
+					Calldata:           []*types.Felt{types.StrToFelt("4"), types.StrToFelt("5")},
 				},
 				{
 					ContractAddress:    types.StrToFelt("20000"),

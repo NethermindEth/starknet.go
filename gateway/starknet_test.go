@@ -172,7 +172,7 @@ func TestE2EDevnet(t *testing.T) {
 				{
 					ContractAddress:    txDetails.Transaction.ContractAddress,
 					EntryPointSelector: "set_rand",
-					Calldata:           []string{rand},
+					Calldata:           []*types.Felt{types.StrToFelt(rand)},
 				},
 			}
 

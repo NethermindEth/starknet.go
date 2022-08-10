@@ -35,7 +35,7 @@ type EventParams struct {
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
-		call.Calldata = make([]string, 0)
+		call.Calldata = make([]*types.Felt, 0)
 	}
 
 	var result []string

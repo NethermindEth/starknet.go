@@ -291,7 +291,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, SNValToBN(cd))
+		calldataArray = append(calldataArray, SNValToBN(cd.String()))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)
@@ -314,7 +314,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, HexToBN(cd))
+		calldataArray = append(calldataArray, HexToBN(cd.String()))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)

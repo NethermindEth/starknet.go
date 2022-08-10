@@ -138,15 +138,15 @@ func TestAddInvokeTransaction(t *testing.T) {
 			{
 				FunctionCall: types.FunctionCall{
 					ContractAddress: types.StrToFelt("10000"),
-					Calldata: []string{
-						"0x1",
-						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
-						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x2b",
-						"0x0",
+					Calldata: []*types.Felt{
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1"),
+						types.StrToFelt("0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320"),
+						types.StrToFelt("0x0"),
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x2b"),
+						types.StrToFelt("0x0"),
 					},
 					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 				},
@@ -164,15 +164,15 @@ func TestAddInvokeTransaction(t *testing.T) {
 			{
 				FunctionCall: types.FunctionCall{
 					ContractAddress: types.StrToFelt("10000"),
-					Calldata: []string{
-						"0x1",
-						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
-						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x2b",
-						"0x0",
+					Calldata: []*types.Felt{
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1"),
+						types.StrToFelt("0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320"),
+						types.StrToFelt("0x0"),
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x1"),
+						types.StrToFelt("0x2b"),
+						types.StrToFelt("0x0"),
 					},
 					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 				},
