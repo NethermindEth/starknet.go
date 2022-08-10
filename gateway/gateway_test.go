@@ -89,7 +89,7 @@ func setupDevnet() {
 				{
 					ContractAddress:    types.StrToFelt("20000"),
 					EntryPointSelector: "update_struct_store",
-					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
+					Calldata:           []*types.Felt{types.StrToFelt("435921360636"), types.StrToFelt("15000000000000000000"), types.StrToFelt("0")},
 				},
 			},
 		},

@@ -10,17 +10,17 @@ type StarknetTransaction struct {
 
 type Transaction struct {
 	TransactionReceipt
-	TransactionHash    string   `json:"txn_hash,omitempty"`
-	ClassHash          string   `json:"class_hash,omitempty"`
-	ContractAddress    *Felt    `json:"contract_address,omitempty"`
-	SenderAddress      *Felt    `json:"sender_address,omitempty"`
-	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
-	Calldata           []*Felt  `json:"calldata"`
-	Signature          []string `json:"signature"`
-	MaxFee             *Felt    `json:"max_fee,omitempty"`
-	Nonce              *Felt    `json:"nonce,omitempty"`
-	Version            string   `json:"version,omitempty"`
-	Type               string   `json:"type,omitempty"`
+	TransactionHash    string  `json:"txn_hash,omitempty"`
+	ClassHash          string  `json:"class_hash,omitempty"`
+	ContractAddress    *Felt   `json:"contract_address,omitempty"`
+	SenderAddress      *Felt   `json:"sender_address,omitempty"`
+	EntryPointSelector string  `json:"entry_point_selector,omitempty"`
+	Calldata           []*Felt `json:"calldata"`
+	Signature          []*Felt `json:"signature"`
+	MaxFee             *Felt   `json:"max_fee,omitempty"`
+	Nonce              *Felt   `json:"nonce,omitempty"`
+	Version            string  `json:"version,omitempty"`
+	Type               string  `json:"type,omitempty"`
 }
 
 type L1Message struct {

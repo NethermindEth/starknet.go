@@ -90,10 +90,10 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	}
 
 	if len(invoke.Signature) == 0 {
-		tx.Signature = []string{}
+		tx.Signature = []*types.Felt{}
 	} else {
 		// stop-gap before full types.Felt cutover
-		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
+		tx.Signature = []*types.Felt{invoke.Signature[0], invoke.Signature[1]}
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
