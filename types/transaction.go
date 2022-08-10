@@ -68,12 +68,12 @@ type TransactionTrace struct {
 }
 
 type FunctionInvocation struct {
-	CallerAddress      string               `json:"caller_address"`
-	ContractAddress    string               `json:"contract_address"`
+	CallerAddress      *Felt                `json:"caller_address"`
+	ContractAddress    *Felt                `json:"contract_address"`
 	Calldata           []*Felt              `json:"calldata"`
 	CallType           string               `json:"call_type"`
 	ClassHash          string               `json:"class_hash"`
-	Selector           string               `json:"selector"`
+	Selector           *Felt                `json:"selector"`
 	EntryPointType     string               `json:"entry_point_type"`
 	Result             []string             `json:"result"`
 	ExecutionResources ExecutionResources   `json:"execution_resources"`
