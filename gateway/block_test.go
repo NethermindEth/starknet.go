@@ -36,21 +36,6 @@ func Test_BlockHashByID(t *testing.T) {
 	}
 }
 
-func TestValueWithFelt(t *testing.T) {
-	v := &BlockOptions{
-		BlockNumber: 0,
-		BlockHash:   &types.Felt{Int: big.NewInt(1)},
-	}
-	output, err := query.Values(v)
-	if err != nil {
-		t.Error(err)
-	}
-	x := output.Get("blockHash")
-	if x != "1" {
-		t.Errorf("Blockhash should be 1 (or 0x1), instead: \"%s\"", x)
-	}
-}
-
 func TestValueWithFeltWithPrepare(t *testing.T) {
 	v := &BlockOptions{
 		BlockNumber: 0,
@@ -78,7 +63,7 @@ func TestValueWithFeltWithPrepare(t *testing.T) {
 }
 
 // TestGateway checks the gateway can be accessed.
-func TestBlockWITHUPDATE(t *testing.T) {
+func TestBlock(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
