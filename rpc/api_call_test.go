@@ -16,6 +16,7 @@ func TestCall(t *testing.T) {
 	type testSetType struct {
 		ContractAddress    *types.Felt
 		EntrypointSelector string
+		Calldata           []*types.Felt
 		ExpectedResult     string
 	}
 	testSet := map[string][]testSetType{
@@ -23,6 +24,7 @@ func TestCall(t *testing.T) {
 			{
 				ContractAddress:    types.StrToFelt("10000"),
 				EntrypointSelector: "decimals",
+				Calldata:           []*types.Felt{types.StrToFelt("1234"), types.StrToFelt("5678")},
 				ExpectedResult:     "0x12",
 			},
 		},
@@ -30,6 +32,7 @@ func TestCall(t *testing.T) {
 			{
 				ContractAddress:    types.StrToFelt("20000"),
 				EntrypointSelector: "decimals",
+				Calldata:           []*types.Felt{types.StrToFelt("78910"), types.StrToFelt("111213")},
 				ExpectedResult:     "0x12",
 			},
 		},
@@ -37,6 +40,7 @@ func TestCall(t *testing.T) {
 			{
 				ContractAddress:    types.StrToFelt("30000"),
 				EntrypointSelector: "decimals",
+				Calldata:           []*types.Felt{types.StrToFelt("141516"), types.StrToFelt("17181920")},
 				ExpectedResult:     "0x12",
 			},
 		},
@@ -46,6 +50,7 @@ func TestCall(t *testing.T) {
 		function := types.FunctionCall{
 			ContractAddress:    test.ContractAddress,
 			EntryPointSelector: test.EntrypointSelector,
+			Calldata:           test.Calldata,
 		}
 		output, err := testConfig.client.Call(context.Background(), function, "latest")
 		if err != nil {

@@ -52,8 +52,21 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	if err != nil {
 		return nil, err
 	}
+
+	// Example of an implementation change to map the real API
+	type tempBlockOptions struct {
+		BlockNumber uint64 `url:"blockNumber,omitempty"`
+		BlockHash   string `url:"blockHash,omitempty"`
+	}
+
+	out := tempBlockOptions{}
 	if opts != nil {
-		vs, err := query.Values(opts)
+		out.BlockNumber = opts.BlockNumber
+		if opts.BlockHash != nil && opts.BlockHash.Int != nil {
+			out.BlockHash = fmt.Sprintf("0x%s", opts.BlockHash.Int.Text(16))
+		}
+
+		vs, err := query.Values(out)
 		if err != nil {
 			return nil, err
 		}

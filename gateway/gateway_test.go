@@ -148,8 +148,8 @@ func TestGateway(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockHash != test.BlockHash {
-			t.Fatalf("expecting %s, instead: %s", "", block.BlockHash)
+		if block == nil || block.BlockHash == nil || block.BlockHash.Cmp(test.BlockHash.Int) != 0 {
+			t.Fatalf("expecting %v, instead: %v", test.BlockHash, block.BlockHash)
 		}
 	}
 }

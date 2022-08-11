@@ -92,8 +92,8 @@ func TestBlockByNumber(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockHash != test.ExpectedBlockHash {
-			t.Fatalf("blockhash mismatch, expect %s, got %s :",
+		if block.BlockHash.String() != test.ExpectedBlockHash.String() {
+			t.Fatalf("blockhash mismatch, expect %v, got %v :",
 				test.ExpectedBlockHash,
 				block.BlockHash)
 		}

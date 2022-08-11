@@ -24,7 +24,7 @@ func TestTransactionByBlockHashAndIndex(t *testing.T) {
 				BlockHash:                  "0xdeadbeef",
 				TxIndex:                    7,
 				ExpectedTxHash:             "0xdeadbeef",
-				ExpectedContractAddress:    types.StrToFelt("10000"),
+				ExpectedContractAddress:    types.StrToFelt("100000"),
 				ExpectedEntrypointSelector: "0xdeadbeef",
 			},
 		},
@@ -56,7 +56,7 @@ func TestTransactionByBlockHashAndIndex(t *testing.T) {
 		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
-		if tx.ContractAddress != test.ExpectedContractAddress {
+		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
 		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
@@ -114,7 +114,7 @@ func TestTransactionByBlockNumberAndIndex(t *testing.T) {
 		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
-		if tx.ContractAddress != test.ExpectedContractAddress {
+		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
 		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
@@ -136,7 +136,7 @@ func TestTransactionByHash(t *testing.T) {
 		"mock": {
 			{
 				TxHash:                     "0xdeadbeef",
-				ExpectedContractAddress:    types.StrToFelt("10000"),
+				ExpectedContractAddress:    types.StrToFelt("100000"),
 				ExpectedEntrypointSelector: "0xdeadbeef",
 			},
 		},
@@ -164,7 +164,7 @@ func TestTransactionByHash(t *testing.T) {
 		if tx == nil || tx.TransactionHash != test.TxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
-		if tx.ContractAddress != test.ExpectedContractAddress {
+		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
 		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
