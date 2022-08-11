@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"net/url"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
@@ -44,6 +43,11 @@ type BlockOptions struct {
 	BlockHash   *types.Felt `url:"blockHash,omitempty"`
 }
 
+type tempBlockOptions struct {
+	BlockNumber uint64 `url:"blockId,omitempty"`
+	BlockHash   string `url:"blockHash,omitempty"`
+}
+
 // Gets the block information from a block ID.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/f464ec4797361b6be8989e36e02ec690e74ef285/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L27-L31)
@@ -54,10 +58,6 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	}
 
 	// Example of an implementation change to map the real API
-	type tempBlockOptions struct {
-		BlockNumber uint64 `url:"blockNumber,omitempty"`
-		BlockHash   string `url:"blockHash,omitempty"`
-	}
 
 	out := tempBlockOptions{}
 	if opts != nil {
@@ -77,29 +77,42 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockHashByID(ctx context.Context, id uint64) (block string, err error) {
+func (sg *Gateway) BlockHashByID(ctx context.Context, id uint64) (block *types.Felt, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_hash_by_id", nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	appendQueryValues(req, url.Values{
-		"blockId": []string{fmt.Sprint(id)},
-	})
+	out := tempBlockOptions{}
 
-	var resp string
+	out.BlockNumber = id
+
+	vs, err := query.Values(out)
+	if err != nil {
+		return nil, err
+	}
+	appendQueryValues(req, vs)
+
+	var resp *types.Felt
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64, err error) {
+func (sg *Gateway) BlockIDByHash(ctx context.Context, hash *types.Felt) (block uint64, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_id_by_hash", nil)
 	if err != nil {
 		return 0, err
 	}
 
-	appendQueryValues(req, url.Values{
-		"blockHash": []string{hash},
-	})
+	out := tempBlockOptions{}
+	if hash != nil && hash.Int != nil {
+		out.BlockHash = fmt.Sprintf("0x%s", hash.Int.Text(16))
+	}
+
+	vs, err := query.Values(out)
+	if err != nil {
+		return 0, err
+	}
+	appendQueryValues(req, vs)
 
 	var resp uint64
 	return resp, sg.do(req, &resp)
