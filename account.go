@@ -137,7 +137,7 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.Transactio
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: EXECUTE_SELECTOR,
+			EntryPointSelector: types.StrToFelt(EXECUTE_SELECTOR),
 			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
 		},
 		MaxFee: details.MaxFee,
@@ -172,7 +172,7 @@ func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArra
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
-		callArray = append(callArray, SNValToBN(tx.ContractAddress.String()), GetSelectorFromName(tx.EntryPointSelector))
+		callArray = append(callArray, SNValToBN(tx.ContractAddress.String()), GetSelectorFromName(tx.EntryPointSelector.String()))
 
 		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))

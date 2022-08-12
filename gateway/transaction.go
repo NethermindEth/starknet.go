@@ -26,10 +26,10 @@ type Transaction struct {
 	ClassHash          string        `json:"class_hash,omitempty"`
 	ContractAddress    *types.Felt   `json:"contract_address,omitempty"`
 	SenderAddress      *types.Felt   `json:"sender_address,omitempty"`
-	EntryPointSelector string        `json:"entry_point_selector"`
+	EntryPointSelector *types.Felt   `json:"entry_point_selector"`
 	Calldata           []*types.Felt `json:"calldata"`
 	Signature          []*types.Felt `json:"signature"`
-	EntryPointType     string        `json:"entry_point_type,omitempty"`
+	EntryPointType     *types.Felt   `json:"entry_point_type,omitempty"`
 	MaxFee             *types.Felt   `json:"max_fee,omitempty"`
 	Nonce              *types.Felt   `json:"nonce,omitempty"`
 	Version            string        `json:"version,omitempty"`

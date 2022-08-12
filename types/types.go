@@ -104,7 +104,7 @@ type EntryPointList struct {
 
 type FunctionCall struct {
 	ContractAddress    *Felt   `json:"contract_address"`
-	EntryPointSelector string  `json:"entry_point_selector"`
+	EntryPointSelector *Felt   `json:"entry_point_selector"`
 	Calldata           []*Felt `json:"calldata"`
 }
 
