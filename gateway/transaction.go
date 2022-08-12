@@ -17,7 +17,7 @@ type StarknetTransaction struct {
 	TransactionIndex int         `json:"transaction_index"`
 	BlockNumber      int         `json:"block_number"`
 	Transaction      Transaction `json:"transaction"`
-	BlockHash        string      `json:"block_hash"`
+	BlockHash        *types.Felt `json:"block_hash"`
 	Status           string      `json:"status"`
 }
 
