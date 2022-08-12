@@ -10,7 +10,7 @@ type StarknetTransaction struct {
 
 type Transaction struct {
 	TransactionReceipt
-	TransactionHash    string  `json:"txn_hash,omitempty"`
+	TransactionHash    *Felt   `json:"txn_hash,omitempty"`
 	ClassHash          string  `json:"class_hash,omitempty"`
 	ContractAddress    *Felt   `json:"contract_address,omitempty"`
 	SenderAddress      *Felt   `json:"sender_address,omitempty"`

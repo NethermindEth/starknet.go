@@ -120,7 +120,7 @@ func mock_starknet_getBlockByHash(result interface{}, method string, args ...int
 	}
 	transaction := types.Transaction{
 		TransactionReceipt: transactionReceipt,
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 	}
 	output := types.Block{
 		BlockNumber:  1000,
@@ -156,7 +156,7 @@ func mock_starknet_getBlockByNumber(result interface{}, method string, args ...i
 	}
 	transaction := types.Transaction{
 		TransactionReceipt: transactionReceipt,
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 	}
 	output := types.Block{
 		BlockHash:    types.StrToFelt("0xdeadbeef"),
@@ -210,7 +210,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    txHash,
+		TransactionHash:    types.StrToFelt(txHash),
 		ContractAddress:    types.StrToFelt("0xdeadbeef"),
 		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}
@@ -237,7 +237,7 @@ func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method 
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 		ContractAddress:    types.StrToFelt("0xdeadbeef"),
 		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}
@@ -266,7 +266,7 @@ func mock_starknet_getTransactionByBlockNumberAndIndex(result interface{}, metho
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 		ContractAddress:    types.StrToFelt("0xdeadbeef"),
 		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}

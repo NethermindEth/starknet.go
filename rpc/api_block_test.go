@@ -97,7 +97,7 @@ func TestBlockByNumber(t *testing.T) {
 				test.ExpectedBlockHash,
 				block.BlockHash)
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
+		if block.Transactions[0].TransactionHash.String() != test.ExpectedTx0Hash {
 			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
 				test.ExpectedTx0Hash,
 				block.Transactions[0].TransactionHash)
@@ -173,7 +173,7 @@ func TestBlockByHash(t *testing.T) {
 				test.ExpectedBlockNumber,
 				block.BlockNumber)
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
+		if block.Transactions[0].TransactionHash.String() != test.ExpectedTx0Hash {
 			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
 				test.ExpectedTx0Hash,
 				block.Transactions[0].TransactionHash)

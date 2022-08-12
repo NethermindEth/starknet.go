@@ -217,7 +217,7 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
 	}
-	if tx.TransactionHash == "" {
+	if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 
@@ -229,7 +229,7 @@ func (sc *Client) TransactionByBlockNumberAndIndex(ctx context.Context, blockNum
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockNumberAndIndex", &tx, blockNumberOrTag, txIndex); err != nil {
 		return nil, err
-	} else if tx.TransactionHash == "" {
+	} else if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 
@@ -241,7 +241,7 @@ func (sc *Client) TransactionByBlockHashAndIndex(ctx context.Context, blockHash 
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockHashAndIndex", &tx, blockHash, txIndex); err != nil {
 		return nil, err
-	} else if tx.TransactionHash == "" {
+	} else if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 

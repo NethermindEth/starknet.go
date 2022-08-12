@@ -53,7 +53,7 @@ func TestTransactionByBlockHashAndIndex(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
+		if tx == nil || tx.TransactionHash.String() != test.ExpectedTxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
@@ -111,7 +111,7 @@ func TestTransactionByBlockNumberAndIndex(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if tx == nil || tx.TransactionHash != test.ExpectedTxHash {
+		if tx == nil || tx.TransactionHash.String() != test.ExpectedTxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
@@ -161,7 +161,7 @@ func TestTransactionByHash(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if tx == nil || tx.TransactionHash != test.TxHash {
+		if tx == nil || tx.TransactionHash.String() != test.TxHash {
 			t.Fatal("transaction should exist and match the tx hash")
 		}
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {

@@ -22,7 +22,7 @@ type StarknetTransaction struct {
 }
 
 type Transaction struct {
-	TransactionHash    string        `json:"transaction_hash,omitempty"`
+	TransactionHash    *types.Felt   `json:"transaction_hash,omitempty"`
 	ClassHash          string        `json:"class_hash,omitempty"`
 	ContractAddress    *types.Felt   `json:"contract_address,omitempty"`
 	SenderAddress      *types.Felt   `json:"sender_address,omitempty"`
