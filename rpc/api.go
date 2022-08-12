@@ -41,19 +41,19 @@ type FunctionCallAdapter struct {
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	callAdapter := FunctionCallAdapter{
 		ContractAddress:    call.ContractAddress.String(),
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector)),
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector.ShortString())),
 	}
 
-	fmt.Println(callAdapter)
 	if len(call.Calldata) == 0 {
 		callAdapter.Calldata = make([]string, 0)
 	}
 
 	var result []string
 	if err := sc.do(ctx, "starknet_call", &result, callAdapter, hash); err != nil {
-
+		fmt.Println(err)
 		return nil, err
 	}
+
 	return result, nil
 }
 
