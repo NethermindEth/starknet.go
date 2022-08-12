@@ -31,15 +31,28 @@ type EventParams struct {
 	PageNumber uint64 `json:"page_number"`
 }
 
+type FunctionCallAdapter struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"function"`
+	Calldata           []string `json:"args"`
+}
+
 // Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
+	var calldata []string
+	for _, felt := range call.Calldata {
+		calldata = append(calldata, felt.String())
+	}
+	callAdapter := FunctionCallAdapter{
+		ContractAddress:    call.ContractAddress.String(),
+		EntryPointSelector: call.EntryPointSelector,
+	}
 	if len(call.Calldata) == 0 {
-		call.Calldata = make([]*types.Felt, 0)
+		callAdapter.Calldata = make([]string, 0)
 	}
 
 	var result []string
-	if err := sc.do(ctx, "starknet_call", &result, call, hash); err != nil {
+	if err := sc.do(ctx, "starknet_call", &result, callAdapter, hash); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +72,7 @@ func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 // BlockByHash gets block information given the block id.
 func (sc *Client) BlockByHash(ctx context.Context, hash *types.Felt, scope string) (*types.Block, error) {
 	var block types.Block
-	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
+	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash.String(), scope); err != nil {
 		return nil, err
 	}
 

@@ -22,7 +22,7 @@ func TestCall(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:    types.StrToFelt("10000"),
+				ContractAddress:    types.StrToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 				EntrypointSelector: "decimals",
 				Calldata:           []*types.Felt{types.StrToFelt("1234"), types.StrToFelt("5678")},
 				ExpectedResult:     "0x12",
@@ -30,7 +30,7 @@ func TestCall(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractAddress:    types.StrToFelt("20000"),
+				ContractAddress:    types.StrToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 				EntrypointSelector: "decimals",
 				Calldata:           []*types.Felt{types.StrToFelt("78910"), types.StrToFelt("111213")},
 				ExpectedResult:     "0x12",
@@ -38,7 +38,7 @@ func TestCall(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				ContractAddress:    types.StrToFelt("30000"),
+				ContractAddress:    types.StrToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 				EntrypointSelector: "decimals",
 				Calldata:           []*types.Felt{types.StrToFelt("141516"), types.StrToFelt("17181920")},
 				ExpectedResult:     "0x12",
@@ -52,6 +52,7 @@ func TestCall(t *testing.T) {
 			EntryPointSelector: test.EntrypointSelector,
 			Calldata:           test.Calldata,
 		}
+
 		output, err := testConfig.client.Call(context.Background(), function, "latest")
 		if err != nil {
 			t.Fatal(err)
@@ -111,7 +112,7 @@ func TestEstimateFee(t *testing.T) {
 			{
 				call: types.FunctionInvoke{
 					FunctionCall: types.FunctionCall{
-						ContractAddress: &types.Felt{big.NewInt(10000)},
+						ContractAddress: types.StrToFelt("0xdeadbeef"),
 						Calldata: []*types.Felt{
 							types.StrToFelt("0x0000000000000000000000000000000000000000000000000000000000000001"),
 							types.StrToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
