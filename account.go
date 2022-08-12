@@ -94,8 +94,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	}
 
 	callArray := fmtExecuteCalldata(nonce, calls)
-	callArray = append(callArray, big.NewInt(int64(len(callArray))))
-	cdHash, err := Curve.HashElements(callArray)
+	cdHash, err := Curve.ComputeHashOnElements(callArray)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +109,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 		UTF8StrToBig(chainID),
 	}
 
-	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	return Curve.HashElements(multiHashData)
+	return Curve.ComputeHashOnElements(multiHashData)
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FeeEstimate, error) {
