@@ -332,9 +332,9 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 }
 
 // AccountNonce gets the latest nonce associated with the given address
-func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*big.Int, error) {
+func (sc *Client) AccountNonce(ctx context.Context, contractAddress *types.Felt) (*big.Int, error) {
 	var nonce big.Int
-	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
+	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress.String())
 	return &nonce, err
 }
 

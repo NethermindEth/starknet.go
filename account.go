@@ -16,7 +16,7 @@ const (
 
 type Account struct {
 	Provider types.Provider
-	Address  types.Felt
+	Address  *types.Felt
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
@@ -44,7 +44,7 @@ func NewAccount(private string, address *types.Felt, provider types.Provider) (*
 
 	return &Account{
 		Provider: provider,
-		Address:  *address,
+		Address:  address,
 		PublicX:  x,
 		PublicY:  y,
 		private:  priv,
@@ -136,7 +136,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 func (account *Account) fmtExecute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FunctionInvoke, error) {
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
-			ContractAddress:    &account.Address,
+			ContractAddress:    account.Address,
 			EntryPointSelector: EXECUTE_SELECTOR,
 			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
 		},
