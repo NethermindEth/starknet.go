@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"testing"
+	"fmt"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-cmp/cmp"
@@ -36,6 +37,46 @@ func TestProvider_Code(t *testing.T) {
 
 		if diff := cmp.Diff(want, got, nil); diff != "" {
 			t.Errorf("Code diff mismatch (-want +got):\n%s", diff)
+		}
+	}
+}
+
+func TestProviderFullContract(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		ABIName	string
+		Starknet             string
+		GpsStatementVerifier string
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"mock":   {},
+		"testnet": {
+			{
+				ABIName: 	"planet_genereted",
+				Starknet:             "0x04358e376b5c68f17dc1cbdbde19914f1dd6e52a2eddb5b4b0d694716fe5d89b",
+				GpsStatementVerifier: "0xab43ba48c9edf4c2c4bb01237348d1d7b28ef168",
+			},
+		},
+		"mainnet": {
+			{
+				ABIName: 	"",
+				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
+				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60",
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		contract, err := testConfig.client.FullContract(context.Background(), test.Starknet)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Println("full contract contract.ABI: ", contract.ABI[1].Name)
+		if contract.ABI[1].Name != test.ABIName {
+			t.Fatalf("expecting %s, instead: %s", "", contract.ABI[1].Name)
 		}
 	}
 }

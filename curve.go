@@ -305,8 +305,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 		cdHash,
 	}
 
-	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
-	hash, err = sc.HashElements(txHashData)
+	hash, err = sc.ComputeHashOnElements(txHashData)
 	return hash, err
 }
 
@@ -330,7 +329,6 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int
 		SNValToBN(tx.Nonce.String()),
 	}
 
-	txHashData = append(txHashData, big.NewInt(int64(len(txHashData))))
-	hash, err = sc.HashElements(txHashData)
+	hash, err = sc.ComputeHashOnElements(txHashData)
 	return hash, err
 }

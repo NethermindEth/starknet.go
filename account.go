@@ -11,6 +11,7 @@ const (
 	EXECUTE_SELECTOR    string = "__execute__"
 	TRANSACTION_PREFIX  string = "invoke"
 	TRANSACTION_VERSION int64  = 0
+	FEE_MARGIN          uint64 = 115
 )
 
 type Account struct {
@@ -19,6 +20,12 @@ type Account struct {
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
+}
+
+type ExecuteDetails struct {
+	MaxFee  *types.Felt
+	Nonce   *big.Int
+	Version *uint64 // not used currently
 }
 
 /*
@@ -53,8 +60,26 @@ invocation wrapper for StarkNet account calls to '__execute__' contact calls thr
 - implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
 - accepts a multicall
 */
-func (account *Account) Execute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.AddTxResponse, error) {
-	req, err := account.fmtExecute(ctx, maxFee, calls)
+func (account *Account) Execute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.AddTxResponse, error) {
+	if details.Nonce == nil {
+		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+		if err != nil {
+			return nil, err
+		}
+		details.Nonce = nonce
+	}
+
+	if details.MaxFee == nil {
+		fee, err := account.EstimateFee(ctx, calls, details)
+		if err != nil {
+			return nil, err
+		}
+		details.MaxFee = &types.Felt{
+			Int: new(big.Int).SetUint64((fee.OverallFee * FEE_MARGIN) / 100),
+		}
+	}
+
+	req, err := account.fmtExecute(ctx, calls, details)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +94,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	}
 
 	callArray := fmtExecuteCalldata(nonce, calls)
-	callArray = append(callArray, big.NewInt(int64(len(callArray))))
-	cdHash, err := Curve.HashElements(callArray)
+	cdHash, err := Curve.ComputeHashOnElements(callArray)
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +109,23 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 		UTF8StrToBig(chainID),
 	}
 
-	multiHashData = append(multiHashData, big.NewInt(int64(len(multiHashData))))
-	return Curve.HashElements(multiHashData)
+	return Curve.ComputeHashOnElements(multiHashData)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction) (*types.FeeEstimate, error) {
-	zeroFee := &types.Felt{Int: big.NewInt(0)}
+func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FeeEstimate, error) {
+	if details.Nonce == nil {
+		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+		if err != nil {
+			return nil, err
+		}
+		details.Nonce = nonce
+	}
 
-	req, err := account.fmtExecute(ctx, zeroFee, calls)
+	if details.MaxFee == nil {
+		details.MaxFee = &types.Felt{Int: big.NewInt(0)}
+	}
+
+	req, err := account.fmtExecute(ctx, calls, details)
 	if err != nil {
 		return nil, err
 	}
@@ -100,22 +133,17 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	return account.Provider.EstimateFee(ctx, *req, "")
 }
 
-func (account *Account) fmtExecute(ctx context.Context, maxFee *types.Felt, calls []types.Transaction) (*types.FunctionInvoke, error) {
-	nonce, err := account.Provider.AccountNonce(ctx, account.Address.String())
-	if err != nil {
-		return nil, err
-	}
-
+func (account *Account) fmtExecute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FunctionInvoke, error) {
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    &account.Address,
 			EntryPointSelector: EXECUTE_SELECTOR,
-			Calldata:           fmtExecuteCalldataStrings(nonce, calls),
+			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
 		},
-		MaxFee: maxFee,
+		MaxFee: details.MaxFee,
 	}
 
-	hash, err := account.HashMultiCall(maxFee, nonce, calls)
+	hash, err := account.HashMultiCall(details.MaxFee, details.Nonce, calls)
 	if err != nil {
 		return nil, err
 	}
