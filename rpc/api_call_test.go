@@ -50,7 +50,6 @@ func TestCall(t *testing.T) {
 		function := types.FunctionCall{
 			ContractAddress:    test.ContractAddress,
 			EntryPointSelector: test.EntrypointSelector,
-			Calldata:           test.Calldata,
 		}
 
 		output, err := testConfig.client.Call(context.Background(), function, "latest")

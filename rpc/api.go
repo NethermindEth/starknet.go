@@ -33,19 +33,15 @@ type EventParams struct {
 
 type FunctionCallAdapter struct {
 	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"function"`
-	Calldata           []string `json:"args"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
 }
 
 // Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
-	var calldata []string
-	for _, felt := range call.Calldata {
-		calldata = append(calldata, felt.String())
-	}
 	callAdapter := FunctionCallAdapter{
 		ContractAddress:    call.ContractAddress.String(),
-		EntryPointSelector: call.EntryPointSelector,
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector)),
 	}
 	if len(call.Calldata) == 0 {
 		callAdapter.Calldata = make([]string, 0)
