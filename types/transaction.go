@@ -72,7 +72,7 @@ type FunctionInvocation struct {
 	ContractAddress    *Felt                `json:"contract_address"`
 	Calldata           []*Felt              `json:"calldata"`
 	CallType           string               `json:"call_type"`
-	ClassHash          string               `json:"class_hash"`
+	ClassHash          *Felt                `json:"class_hash"`
 	Selector           *Felt                `json:"selector"`
 	EntryPointType     string               `json:"entry_point_type"`
 	Result             []string             `json:"result"`
