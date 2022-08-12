@@ -43,15 +43,17 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 		ContractAddress:    call.ContractAddress.String(),
 		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector)),
 	}
+
+	fmt.Println(callAdapter)
 	if len(call.Calldata) == 0 {
 		callAdapter.Calldata = make([]string, 0)
 	}
 
 	var result []string
 	if err := sc.do(ctx, "starknet_call", &result, callAdapter, hash); err != nil {
+
 		return nil, err
 	}
-
 	return result, nil
 }
 

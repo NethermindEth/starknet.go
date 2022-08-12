@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	errWrongType = fmt.Errorf("wrong type")
-	errWrongArgs = fmt.Errorf("wrong number of args")
+	errWrongType  = fmt.Errorf("wrong type")
+	errWrongArgs  = fmt.Errorf("wrong number of args")
+	errWrongValue = fmt.Errorf("wrong value")
 )
 
 // rpcMock is a mock of the go-ethereum Client that can be used for local tests
@@ -413,9 +414,11 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	function, ok := args[0].(types.FunctionCall)
-	if !ok || function.ContractAddress.String() != "0xdeadbeef" {
-		return errWrongArgs
+
+	function, ok := args[0].(FunctionCallAdapter)
+	if !ok || function.ContractAddress != types.StrToFelt("0xdeadbeef").String() {
+		fmt.Println(function.ContractAddress)
+		return errWrongValue
 	}
 	output := []string{"0x12"}
 	outputContent, _ := json.Marshal(output)

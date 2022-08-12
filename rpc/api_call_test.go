@@ -22,7 +22,7 @@ func TestCall(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:    types.StrToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+				ContractAddress:    types.StrToFelt("0xdeadbeef"),
 				EntrypointSelector: "decimals",
 				Calldata:           []*types.Felt{types.StrToFelt("1234"), types.StrToFelt("5678")},
 				ExpectedResult:     "0x12",
