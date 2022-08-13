@@ -334,10 +334,10 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 }
 
 // AccountNonce gets the latest nonce associated with the given address
-func (sc *Client) AccountNonce(ctx context.Context, contractAddress *types.Felt) (*big.Int, error) {
-	var nonce big.Int
+func (sc *Client) AccountNonce(ctx context.Context, contractAddress *types.Felt) (*types.Felt, error) {
+	var nonce *types.Felt
 	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress.String())
-	return &nonce, err
+	return nonce, err
 }
 
 func toBlockNumArg(number *big.Int) interface{} {

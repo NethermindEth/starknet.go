@@ -91,7 +91,7 @@ func TestEstimateFee(t *testing.T) {
 							types.StrToFelt("0x0000000000000000000000000000000000000000000000000000000000000003"),
 							types.StrToFelt("0x0000000000000000000000000000000000000000000000000000000000000001"),
 						},
-						EntryPointSelector: types.StrToFelt("0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+						EntryPointSelector: "0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 					},
 					Signature: []*types.Felt{
 						types.StrToFelt("0x010e400d046147777c2ac5645024e1ee81c86d90b52d76ab8a8125e5f49612f9"),
@@ -124,7 +124,7 @@ func TestEstimateFee(t *testing.T) {
 							types.StrToFelt("0x0000000000000000000000000000000000000000000000000000000000000000"),
 							types.StrToFelt("0x0000000000000000000000000000000000000000000000000000000000000001"),
 						},
-						EntryPointSelector: types.StrToFelt("0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+						EntryPointSelector: "0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 					},
 					Signature: []*types.Felt{
 						types.StrToFelt("0x010e400d046147777c2ac5645024e1ee81c86d90b52d76ab8a8125e5f49612f9"),

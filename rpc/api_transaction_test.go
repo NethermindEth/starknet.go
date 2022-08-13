@@ -59,7 +59,7 @@ func TestTransactionByBlockHashAndIndex(t *testing.T) {
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
-		if tx.EntryPointSelector.String() != test.ExpectedEntrypointSelector {
+		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
 			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, tx.EntryPointSelector)
 		}
 	}
@@ -117,7 +117,7 @@ func TestTransactionByBlockNumberAndIndex(t *testing.T) {
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
-		if tx.EntryPointSelector.String() != test.ExpectedEntrypointSelector {
+		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
 			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, tx.EntryPointSelector)
 		}
 	}
@@ -167,7 +167,7 @@ func TestTransactionByHash(t *testing.T) {
 		if tx.ContractAddress.String() != test.ExpectedContractAddress.String() {
 			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, tx.ContractAddress)
 		}
-		if tx.EntryPointSelector.String() != test.ExpectedEntrypointSelector {
+		if tx.EntryPointSelector != test.ExpectedEntrypointSelector {
 			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, tx.EntryPointSelector)
 		}
 	}

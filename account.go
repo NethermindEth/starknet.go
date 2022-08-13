@@ -24,7 +24,7 @@ type Account struct {
 
 type ExecuteDetails struct {
 	MaxFee  *types.Felt
-	Nonce   *big.Int
+	Nonce   *types.Felt
 	Version *uint64 // not used currently
 }
 
@@ -87,14 +87,21 @@ func (account *Account) Execute(ctx context.Context, calls []types.Transaction, 
 	return account.Provider.Invoke(ctx, *req)
 }
 
-func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
+func (account *Account) HashMultiCall(fee *types.Felt, nonce *types.Felt, calls []types.Transaction) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	callArray := fmtExecuteCalldata(nonce, calls)
-	cdHash, err := Curve.ComputeHashOnElements(callArray)
+	callArray := ExecuteCalldata(nonce, calls)
+
+	// convert callArray into a BigInt array
+	callArrayBigInt := make([]*big.Int, 0)
+	for _, call := range callArray {
+		callArrayBigInt = append(callArrayBigInt, call.Int)
+	}
+
+	cdHash, err := Curve.ComputeHashOnElements(callArrayBigInt)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +144,8 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.Transactio
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: types.StrToFelt(EXECUTE_SELECTOR),
-			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
+			EntryPointSelector: EXECUTE_SELECTOR,
+			Calldata:           ExecuteCalldata(details.Nonce, calls),
 		},
 		MaxFee: details.MaxFee,
 	}
@@ -157,36 +164,28 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.Transactio
 	return &req, nil
 }
 
-func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []*types.Felt) {
-	callArray := fmtExecuteCalldata(nonce, calls)
-	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, types.BigToFelt(data))
-	}
-	return calldataStrings
-}
-
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
-	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
+func ExecuteCalldata(nonce *types.Felt, calls []types.Transaction) (calldataArray []*types.Felt) {
+	callArray := []*types.Felt{types.BigToFelt(big.NewInt(int64(len(calls))))}
 
 	for _, tx := range calls {
-		callArray = append(callArray, SNValToBN(tx.ContractAddress.String()), GetSelectorFromName(tx.EntryPointSelector.String()))
+		callArray = append(callArray, types.BigToFelt(SNValToBN(tx.ContractAddress.String())), types.BigToFelt(GetSelectorFromName(tx.EntryPointSelector)))
 
 		if len(tx.Calldata) == 0 {
-			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
+			callArray = append(callArray, types.BigToFelt(big.NewInt(0)), types.BigToFelt(big.NewInt(0)))
 
 			continue
 		}
 
-		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
+		callArray = append(callArray, types.BigToFelt(big.NewInt(int64(len(calldataArray)))), types.BigToFelt(big.NewInt(int64(len(tx.Calldata)))))
 		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, SNValToBN(cd.String()))
+			calldataArray = append(calldataArray, types.BigToFelt(SNValToBN(cd.String())))
 		}
 	}
 
-	callArray = append(callArray, big.NewInt(int64(len(calldataArray))))
+	callArray = append(callArray, types.BigToFelt(big.NewInt(int64(len(calldataArray)))))
 	callArray = append(callArray, calldataArray...)
 	callArray = append(callArray, nonce)
 	return callArray
