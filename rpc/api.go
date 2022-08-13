@@ -31,15 +31,26 @@ type EventParams struct {
 	PageNumber uint64 `json:"page_number"`
 }
 
+type FunctionCallAdapter struct {
+	ContractAddress    string   `json:"contract_address"`
+	EntryPointSelector string   `json:"entry_point_selector"`
+	Calldata           []string `json:"calldata"`
+}
+
 // Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
+	callAdapter := FunctionCallAdapter{
+		ContractAddress:    call.ContractAddress.String(),
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector.ShortString())),
+	}
+
 	if len(call.Calldata) == 0 {
-		call.Calldata = make([]string, 0)
+		callAdapter.Calldata = make([]string, 0)
 	}
 
 	var result []string
-	if err := sc.do(ctx, "starknet_call", &result, call, hash); err != nil {
+	if err := sc.do(ctx, "starknet_call", &result, callAdapter, hash); err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -57,9 +68,9 @@ func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 }
 
 // BlockByHash gets block information given the block id.
-func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
+func (sc *Client) BlockByHash(ctx context.Context, hash *types.Felt, scope string) (*types.Block, error) {
 	var block types.Block
-	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
+	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash.String(), scope); err != nil {
 		return nil, err
 	}
 
@@ -206,7 +217,7 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
 	}
-	if tx.TransactionHash == "" {
+	if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 
@@ -218,7 +229,7 @@ func (sc *Client) TransactionByBlockNumberAndIndex(ctx context.Context, blockNum
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockNumberAndIndex", &tx, blockNumberOrTag, txIndex); err != nil {
 		return nil, err
-	} else if tx.TransactionHash == "" {
+	} else if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 
@@ -230,7 +241,7 @@ func (sc *Client) TransactionByBlockHashAndIndex(ctx context.Context, blockHash 
 	var tx types.Transaction
 	if err := sc.do(ctx, "starknet_getTransactionByBlockHashAndIndex", &tx, blockHash, txIndex); err != nil {
 		return nil, err
-	} else if tx.TransactionHash == "" {
+	} else if tx.TransactionHash == nil {
 		return nil, ErrNotFound
 	}
 
@@ -323,9 +334,9 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 }
 
 // AccountNonce gets the latest nonce associated with the given address
-func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*big.Int, error) {
+func (sc *Client) AccountNonce(ctx context.Context, contractAddress *types.Felt) (*big.Int, error) {
 	var nonce big.Int
-	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
+	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress.String())
 	return &nonce, err
 }
 

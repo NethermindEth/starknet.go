@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
@@ -42,15 +41,15 @@ type GatewayFunctionCall struct {
 }
 
 /*
-	'call_contract' wrapper and can accept a blockId in the hash or height format
+'call_contract' wrapper and can accept a blockId in the hash or height format
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
 	gc := GatewayFunctionCall{
 		FunctionCall: call,
 	}
-	gc.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(gc.EntryPointSelector))
+
 	if len(gc.Calldata) == 0 {
-		gc.Calldata = []string{}
+		gc.Calldata = []*types.Felt{}
 	}
 
 	if len(gc.Signature) == 0 {
@@ -73,27 +72,27 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 }
 
 /*
-	'add_transaction' wrapper for invokation requests
+'add_transaction' wrapper for invokation requests
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
 	tx := types.Transaction{
 		Type:               INVOKE,
 		ContractAddress:    invoke.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector)),
-		MaxFee:             invoke.MaxFee.String(),
+		EntryPointSelector: invoke.EntryPointSelector,
+		MaxFee:             invoke.MaxFee,
 	}
 
 	if len(invoke.Calldata) == 0 {
-		tx.Calldata = []string{}
+		tx.Calldata = []*types.Felt{}
 	} else {
 		tx.Calldata = invoke.Calldata
 	}
 
 	if len(invoke.Signature) == 0 {
-		tx.Signature = []string{}
+		tx.Signature = []*types.Felt{}
 	} else {
 		// stop-gap before full types.Felt cutover
-		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
+		tx.Signature = []*types.Felt{invoke.Signature[0], invoke.Signature[1]}
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
@@ -112,7 +111,7 @@ type RawContractDefinition struct {
 }
 
 /*
-	'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
+'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
 func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)
@@ -149,7 +148,7 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 }
 
 /*
-	'add_transaction' wrapper for compressing and declaring a contract class
+'add_transaction' wrapper for compressing and declaring a contract class
 */
 func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddTxResponse, err error) {
 	dat, err := os.ReadFile(filePath)

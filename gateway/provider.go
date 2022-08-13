@@ -17,7 +17,7 @@ func NewProvider(opts ...Option) *GatewayProvider {
 	}
 }
 
-func (p *GatewayProvider) BlockByHash(ctx context.Context, hash, scope string) (*types.Block, error) {
+func (p *GatewayProvider) BlockByHash(ctx context.Context, hash *types.Felt, scope string) (*types.Block, error) {
 	b, err := p.Block(ctx, &BlockOptions{BlockHash: hash})
 	if err != nil {
 		return nil, err

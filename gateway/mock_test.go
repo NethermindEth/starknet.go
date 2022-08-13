@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"encoding/json"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // httpMock is a mock of the client.
@@ -37,7 +39,7 @@ func (r *httpMock) Do(req *http.Request) (*http.Response, error) {
 func get_block(req *http.Request) (*http.Response, error) {
 	blockHash := req.URL.Query().Get("blockHash")
 	block := Block{
-		BlockHash: blockHash,
+		BlockHash: types.StrToFelt(blockHash),
 	}
 	body, _ := json.Marshal(block)
 	return &http.Response{

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestCodeAt tests code for a contract instance. This will be deprecated.
@@ -236,13 +238,13 @@ func TestAccountNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractAddress string
+		ContractAddress *types.Felt
 		ExpectedNonce   string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress: "0xdeadbeef",
+				ContractAddress: types.StrToFelt("0xdeadbeef"),
 				ExpectedNonce:   "10",
 			},
 		},

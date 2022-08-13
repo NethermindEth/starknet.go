@@ -1,9 +1,9 @@
 package types
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"strconv"
 	"testing"
@@ -26,9 +26,9 @@ var (
 var feltTest FeltTest
 
 type FeltTest struct {
-	MaxFelt *big.Int    `json:"max_felt"`
-	LongString string `json:"long_string"`
-	Felts   []FeltValue `json:"felts"`
+	MaxFelt    *big.Int    `json:"max_felt"`
+	LongString string      `json:"long_string"`
+	Felts      []FeltValue `json:"felts"`
 }
 
 type FeltValue struct {

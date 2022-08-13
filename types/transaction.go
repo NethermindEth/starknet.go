@@ -4,38 +4,38 @@ type StarknetTransaction struct {
 	TransactionIndex int         `json:"transaction_index"`
 	BlockNumber      int         `json:"block_number"`
 	Transaction      Transaction `json:"transaction"`
-	BlockHash        string      `json:"block_hash"`
+	BlockHash        *Felt       `json:"block_hash"`
 	Status           string      `json:"status"`
 }
 
 type Transaction struct {
 	TransactionReceipt
-	TransactionHash    string   `json:"txn_hash,omitempty"`
-	ClassHash          string   `json:"class_hash,omitempty"`
-	ContractAddress    string   `json:"contract_address,omitempty"`
-	SenderAddress      string   `json:"sender_address,omitempty"`
-	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
-	Calldata           []string `json:"calldata"`
-	Signature          []string `json:"signature"`
-	MaxFee             string   `json:"max_fee,omitempty"`
-	Nonce              string   `json:"nonce,omitempty"`
-	Version            string   `json:"version,omitempty"`
-	Type               string   `json:"type,omitempty"`
+	TransactionHash    *Felt   `json:"txn_hash,omitempty"`
+	ClassHash          *Felt   `json:"class_hash,omitempty"`
+	ContractAddress    *Felt   `json:"contract_address,omitempty"`
+	SenderAddress      *Felt   `json:"sender_address,omitempty"`
+	EntryPointSelector *Felt   `json:"entry_point_selector,omitempty"`
+	Calldata           []*Felt `json:"calldata"`
+	Signature          []*Felt `json:"signature"`
+	MaxFee             *Felt   `json:"max_fee,omitempty"`
+	Nonce              *Felt   `json:"nonce,omitempty"`
+	Version            string  `json:"version,omitempty"`
+	Type               string  `json:"type,omitempty"`
 }
 
 type L1Message struct {
-	ToAddress string  `json:"to_address,omitempty"`
+	ToAddress *Felt   `json:"to_address,omitempty"`
 	Payload   []*Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress string  `json:"from_address,omitempty"`
+	FromAddress *Felt   `json:"from_address,omitempty"`
 	Payload     []*Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
 	Order       int     `json:"order,omitempty"`
-	FromAddress string  `json:"from_address,omitempty"`
+	FromAddress *Felt   `json:"from_address,omitempty"`
 	Keys        []*Felt `json:"keys,omitempty"`
 	Data        []*Felt `json:"data,omitempty"`
 }
@@ -68,12 +68,12 @@ type TransactionTrace struct {
 }
 
 type FunctionInvocation struct {
-	CallerAddress      string               `json:"caller_address"`
-	ContractAddress    string               `json:"contract_address"`
-	Calldata           []string             `json:"calldata"`
+	CallerAddress      *Felt                `json:"caller_address"`
+	ContractAddress    *Felt                `json:"contract_address"`
+	Calldata           []*Felt              `json:"calldata"`
 	CallType           string               `json:"call_type"`
-	ClassHash          string               `json:"class_hash"`
-	Selector           string               `json:"selector"`
+	ClassHash          *Felt                `json:"class_hash"`
+	Selector           *Felt                `json:"selector"`
 	EntryPointType     string               `json:"entry_point_type"`
 	Result             []string             `json:"result"`
 	ExecutionResources ExecutionResources   `json:"execution_resources"`

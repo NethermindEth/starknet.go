@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"net/url"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
 type Block struct {
-	BlockHash           string               `json:"block_hash"`
+	BlockHash           *types.Felt          `json:"block_hash"`
 	ParentBlockHash     string               `json:"parent_block_hash"`
 	BlockNumber         int                  `json:"block_number"`
 	StateRoot           string               `json:"state_root"`
@@ -40,7 +39,12 @@ func (b Block) Normalize() *types.Block {
 }
 
 type BlockOptions struct {
-	BlockNumber uint64 `url:"blockNumber,omitempty"`
+	BlockNumber uint64      `url:"blockNumber,omitempty"`
+	BlockHash   *types.Felt `url:"blockHash,omitempty"`
+}
+
+type tempBlockOptions struct {
+	BlockNumber uint64 `url:"blockId,omitempty"`
 	BlockHash   string `url:"blockHash,omitempty"`
 }
 
@@ -52,8 +56,17 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	if err != nil {
 		return nil, err
 	}
+
+	// Example of an implementation change to map the real API
+
+	out := tempBlockOptions{}
 	if opts != nil {
-		vs, err := query.Values(opts)
+		out.BlockNumber = opts.BlockNumber
+		if opts.BlockHash != nil && opts.BlockHash.Int != nil {
+			out.BlockHash = fmt.Sprintf("0x%s", opts.BlockHash.Int.Text(16))
+		}
+
+		vs, err := query.Values(out)
 		if err != nil {
 			return nil, err
 		}
@@ -64,35 +77,48 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockHashByID(ctx context.Context, id uint64) (block string, err error) {
+func (sg *Gateway) BlockHashByID(ctx context.Context, id uint64) (block *types.Felt, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_hash_by_id", nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	appendQueryValues(req, url.Values{
-		"blockId": []string{fmt.Sprint(id)},
-	})
+	out := tempBlockOptions{}
 
-	var resp string
+	out.BlockNumber = id
+
+	vs, err := query.Values(out)
+	if err != nil {
+		return nil, err
+	}
+	appendQueryValues(req, vs)
+
+	var resp *types.Felt
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64, err error) {
+func (sg *Gateway) BlockIDByHash(ctx context.Context, hash *types.Felt) (block uint64, err error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_block_id_by_hash", nil)
 	if err != nil {
 		return 0, err
 	}
 
-	appendQueryValues(req, url.Values{
-		"blockHash": []string{hash},
-	})
+	out := tempBlockOptions{}
+	if hash != nil && hash.Int != nil {
+		out.BlockHash = fmt.Sprintf("0x%s", hash.Int.Text(16))
+	}
+
+	vs, err := query.Values(out)
+	if err != nil {
+		return 0, err
+	}
+	appendQueryValues(req, vs)
 
 	var resp uint64
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockByHash(context.Context, string, string) (*types.Block, error) {
+func (sg *Gateway) BlockByHash(context.Context, *types.Felt, string) (*types.Block, error) {
 	panic("not implemented")
 }
 

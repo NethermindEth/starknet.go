@@ -67,29 +67,29 @@ func setupDevnet() {
 		{
 			PrivateKey: "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
 			PublicKey:  "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
-			Address:    "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c",
+			Address:    types.StrToFelt("10000"),
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_single_store",
-					Calldata:           []string{"3"},
+					ContractAddress:    types.StrToFelt("10000"),
+					EntryPointSelector: types.StrToFelt("update_single_store"),
+					Calldata:           []*types.Felt{types.StrToFelt("3")},
 				},
 			},
 		},
 		{
 			PrivateKey: "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
 			PublicKey:  "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
-			Address:    "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246",
+			Address:    types.StrToFelt("20000"),
 			Transactions: []types.Transaction{
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_multi_store",
-					Calldata:           []string{"4", "7"},
+					ContractAddress:    types.StrToFelt("20000"),
+					EntryPointSelector: types.StrToFelt("update_multi_store"),
+					Calldata:           []*types.Felt{types.StrToFelt("4"), types.StrToFelt("5")},
 				},
 				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_struct_store",
-					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
+					ContractAddress:    types.StrToFelt("20000"),
+					EntryPointSelector: types.StrToFelt("update_struct_store"),
+					Calldata:           []*types.Felt{types.StrToFelt("435921360636"), types.StrToFelt("15000000000000000000"), types.StrToFelt("0")},
 				},
 			},
 		},
@@ -133,13 +133,13 @@ func TestGateway(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockHash string
+		BlockHash *types.Felt
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
-		"mainnet": {{BlockHash: "0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f"}},
-		"mock":    {{BlockHash: "0xdeadbeef"}},
-		"testnet": {{BlockHash: "0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db"}},
+		"mainnet": {{BlockHash: types.StrToFelt("0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f")}},
+		"mock":    {{BlockHash: types.StrToFelt("0xdeadbeef")}},
+		"testnet": {{BlockHash: types.StrToFelt("0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db")}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -148,8 +148,8 @@ func TestGateway(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockHash != test.BlockHash {
-			t.Fatalf("expecting %s, instead: %s", "", block.BlockHash)
+		if block == nil || block.BlockHash == nil || block.BlockHash.Cmp(test.BlockHash.Int) != 0 {
+			t.Fatalf("expecting %v, instead: %v", test.BlockHash, block.BlockHash)
 		}
 	}
 }

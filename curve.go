@@ -19,8 +19,8 @@ import (
 var Curve StarkCurve
 
 /*
-	Returned stark curve includes several values above and beyond
-	what the 'elliptic' interface calls for to facilitate common starkware functions
+Returned stark curve includes several values above and beyond
+what the 'elliptic' interface calls for to facilitate common starkware functions
 */
 type StarkCurve struct {
 	*elliptic.CurveParams
@@ -291,7 +291,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, SNValToBN(cd))
+		calldataArray = append(calldataArray, SNValToBN(cd.String()))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)
@@ -300,8 +300,8 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 	}
 
 	txHashData := []*big.Int{
-		SNValToBN(tx.ContractAddress),
-		GetSelectorFromName(tx.EntryPointSelector),
+		SNValToBN(tx.ContractAddress.String()),
+		GetSelectorFromName(tx.EntryPointSelector.String()),
 		cdHash,
 	}
 
@@ -313,7 +313,7 @@ func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int,
 func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
 	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
 	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, HexToBN(cd))
+		calldataArray = append(calldataArray, HexToBN(cd.String()))
 	}
 
 	cdHash, err := sc.HashElements(calldataArray)
@@ -323,10 +323,10 @@ func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int
 
 	txHashData := []*big.Int{
 		addr,
-		SNValToBN(tx.ContractAddress),
-		GetSelectorFromName(tx.EntryPointSelector),
+		SNValToBN(tx.ContractAddress.String()),
+		GetSelectorFromName(tx.EntryPointSelector.String()),
 		cdHash,
-		SNValToBN(tx.Nonce),
+		SNValToBN(tx.Nonce.String()),
 	}
 
 	hash, err = sc.ComputeHashOnElements(txHashData)

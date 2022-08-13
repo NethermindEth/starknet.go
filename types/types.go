@@ -3,7 +3,7 @@ package types
 type Bytecode []string
 
 type Block struct {
-	BlockHash       string         `json:"block_hash"`
+	BlockHash       *Felt          `json:"block_hash"`
 	ParentBlockHash string         `json:"parent_hash"`
 	BlockNumber     int            `json:"block_number"`
 	NewRoot         string         `json:"new_root"`
@@ -20,7 +20,7 @@ type Code struct {
 }
 
 /*
-	StarkNet transaction states
+StarkNet transaction states
 */
 const (
 	NOT_RECIEVED = TxStatus(iota)
@@ -41,7 +41,7 @@ func (s TxStatus) String() string {
 
 type TransactionStatus struct {
 	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash,omitempty"`
+	BlockHash       *Felt  `json:"block_hash,omitempty"`
 	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`
@@ -103,9 +103,9 @@ type EntryPointList struct {
 }
 
 type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
-	Calldata           []string `json:"calldata"`
+	ContractAddress    *Felt   `json:"contract_address"`
+	EntryPointSelector *Felt   `json:"entry_point_selector"`
+	Calldata           []*Felt `json:"calldata"`
 }
 
 type Signature []*Felt

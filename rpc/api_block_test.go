@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
@@ -39,7 +41,7 @@ func TestBlockByNumber(t *testing.T) {
 	type testSetType struct {
 		BlockNumber       *big.Int
 		BlockScope        string
-		ExpectedBlockHash string
+		ExpectedBlockHash *types.Felt
 		ExpectedStatus    string
 		ExpectedTx0Hash   string
 	}
@@ -48,14 +50,14 @@ func TestBlockByNumber(t *testing.T) {
 			{
 				BlockNumber:       big.NewInt(1000),
 				BlockScope:        "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockHash: "0xdeadbeef",
+				ExpectedBlockHash: types.StrToFelt("0xdeadbeef"),
 				ExpectedStatus:    "ACCEPTED_ON_L1",
 				ExpectedTx0Hash:   "0xdeadbeef",
 			},
 			{
 				BlockNumber:       big.NewInt(1000),
 				BlockScope:        "FULL_TXNS",
-				ExpectedBlockHash: "0xdeadbeef",
+				ExpectedBlockHash: types.StrToFelt("0xdeadbeef"),
 				ExpectedStatus:    "",
 				ExpectedTx0Hash:   "0xdeadbeef",
 			},
@@ -64,14 +66,14 @@ func TestBlockByNumber(t *testing.T) {
 			{
 				BlockNumber:       big.NewInt(242060),
 				BlockScope:        "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockHash: "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				ExpectedBlockHash: types.StrToFelt("0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044"),
 				ExpectedStatus:    "ACCEPTED_ON_L1",
 				ExpectedTx0Hash:   "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
 			},
 			{
 				BlockNumber:       big.NewInt(242060),
 				BlockScope:        "FULL_TXNS",
-				ExpectedBlockHash: "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				ExpectedBlockHash: types.StrToFelt("0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044"),
 				ExpectedStatus:    "",
 				ExpectedTx0Hash:   "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
 			},
@@ -79,7 +81,7 @@ func TestBlockByNumber(t *testing.T) {
 		"mainnet": {{
 			BlockNumber:       big.NewInt(1500),
 			BlockScope:        "FULL_TXN_AND_RECEIPTS",
-			ExpectedBlockHash: "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
+			ExpectedBlockHash: types.StrToFelt("0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0"),
 			ExpectedStatus:    "ACCEPTED_ON_L1",
 			ExpectedTx0Hash:   "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
 		}},
@@ -90,12 +92,12 @@ func TestBlockByNumber(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockHash != test.ExpectedBlockHash {
-			t.Fatalf("blockhash mismatch, expect %s, got %s :",
+		if block.BlockHash.String() != test.ExpectedBlockHash.String() {
+			t.Fatalf("blockhash mismatch, expect %v, got %v :",
 				test.ExpectedBlockHash,
 				block.BlockHash)
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
+		if block.Transactions[0].TransactionHash.String() != test.ExpectedTx0Hash {
 			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
 				test.ExpectedTx0Hash,
 				block.Transactions[0].TransactionHash)
@@ -113,7 +115,7 @@ func TestBlockByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockHash           string
+		BlockHash           *types.Felt
 		BlockScope          string
 		ExpectedBlockNumber int
 		ExpectedTx0Hash     string
@@ -122,14 +124,14 @@ func TestBlockByHash(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockHash:           "0xdeadbeef",
+				BlockHash:           types.StrToFelt("0xdeadbeef"),
 				BlockScope:          "FULL_TXN_AND_RECEIPTS",
 				ExpectedBlockNumber: 1000,
 				ExpectedTx0Hash:     "0xdeadbeef",
 				ExpectedStatus:      "ACCEPTED_ON_L1",
 			},
 			{
-				BlockHash:           "0xdeadbeef",
+				BlockHash:           types.StrToFelt("0xdeadbeef"),
 				BlockScope:          "FULL_TXNS",
 				ExpectedBlockNumber: 1000,
 				ExpectedTx0Hash:     "0xdeadbeef",
@@ -138,14 +140,14 @@ func TestBlockByHash(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				BlockHash:           types.StrToFelt("0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044"),
 				BlockScope:          "FULL_TXN_AND_RECEIPTS",
 				ExpectedBlockNumber: 242060,
 				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
 				ExpectedStatus:      "ACCEPTED_ON_L1",
 			},
 			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
+				BlockHash:           types.StrToFelt("0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044"),
 				BlockScope:          "FULL_TXNS",
 				ExpectedBlockNumber: 242060,
 				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
@@ -153,7 +155,7 @@ func TestBlockByHash(t *testing.T) {
 			},
 		},
 		"mainnet": {{
-			BlockHash:           "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
+			BlockHash:           types.StrToFelt("0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0"),
 			BlockScope:          "FULL_TXN_AND_RECEIPTS",
 			ExpectedBlockNumber: 1500,
 			ExpectedTx0Hash:     "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
@@ -171,7 +173,7 @@ func TestBlockByHash(t *testing.T) {
 				test.ExpectedBlockNumber,
 				block.BlockNumber)
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
+		if block.Transactions[0].TransactionHash.String() != test.ExpectedTx0Hash {
 			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
 				test.ExpectedTx0Hash,
 				block.Transactions[0].TransactionHash)

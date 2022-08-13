@@ -11,10 +11,10 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
-		EntryPointSelector: "get_nonce",
+		EntryPointSelector: types.StrToFelt("get_nonce"),
 	}, "")
 	if err != nil {
 		return nil, err
@@ -27,8 +27,6 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, 
 }
 
 func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
-
 	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", call)
 	if err != nil {
 		return nil, err

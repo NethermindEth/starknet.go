@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	errWrongType = fmt.Errorf("wrong type")
-	errWrongArgs = fmt.Errorf("wrong number of args")
+	errWrongType  = fmt.Errorf("wrong type")
+	errWrongArgs  = fmt.Errorf("wrong number of args")
+	errWrongValue = fmt.Errorf("wrong value")
 )
 
 // rpcMock is a mock of the go-ethereum Client that can be used for local tests
@@ -119,11 +120,11 @@ func mock_starknet_getBlockByHash(result interface{}, method string, args ...int
 	}
 	transaction := types.Transaction{
 		TransactionReceipt: transactionReceipt,
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 	}
 	output := types.Block{
 		BlockNumber:  1000,
-		BlockHash:    "0xdeadbeef",
+		BlockHash:    types.StrToFelt("0xdeadbeef"),
 		Transactions: []*types.Transaction{&transaction},
 	}
 	outputContent, _ := json.Marshal(output)
@@ -155,10 +156,10 @@ func mock_starknet_getBlockByNumber(result interface{}, method string, args ...i
 	}
 	transaction := types.Transaction{
 		TransactionReceipt: transactionReceipt,
-		TransactionHash:    "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
 	}
 	output := types.Block{
-		BlockHash:    "0xdeadbeef",
+		BlockHash:    types.StrToFelt("0xdeadbeef"),
 		Transactions: []*types.Transaction{&transaction},
 	}
 	outputContent, _ := json.Marshal(output)
@@ -209,9 +210,9 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    txHash,
-		ContractAddress:    "0xdeadbeef",
-		EntryPointSelector: "0xdeadbeef",
+		TransactionHash:    types.StrToFelt(txHash),
+		ContractAddress:    types.StrToFelt("0xdeadbeef"),
+		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
@@ -236,9 +237,9 @@ func mock_starknet_getTransactionByBlockHashAndIndex(result interface{}, method 
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    "0xdeadbeef",
-		ContractAddress:    "0xdeadbeef",
-		EntryPointSelector: "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
+		ContractAddress:    types.StrToFelt("0xdeadbeef"),
+		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
@@ -265,9 +266,9 @@ func mock_starknet_getTransactionByBlockNumberAndIndex(result interface{}, metho
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
-		TransactionHash:    "0xdeadbeef",
-		ContractAddress:    "0xdeadbeef",
-		EntryPointSelector: "0xdeadbeef",
+		TransactionHash:    types.StrToFelt("0xdeadbeef"),
+		ContractAddress:    types.StrToFelt("0xdeadbeef"),
+		EntryPointSelector: types.StrToFelt("0xdeadbeef"),
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
@@ -413,9 +414,11 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	function, ok := args[0].(types.FunctionCall)
-	if !ok || function.ContractAddress != "0xdeadbeef" {
-		return errWrongArgs
+
+	function, ok := args[0].(FunctionCallAdapter)
+	if !ok || function.ContractAddress != types.StrToFelt("0xdeadbeef").String() {
+		fmt.Println(function.ContractAddress)
+		return errWrongValue
 	}
 	output := []string{"0x12"}
 	outputContent, _ := json.Marshal(output)
