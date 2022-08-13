@@ -137,7 +137,7 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.Transactio
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: EXECUTE_SELECTOR,
+			EntryPointSelector: types.StrToFelt(EXECUTE_SELECTOR),
 			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
 		},
 		MaxFee: details.MaxFee,
