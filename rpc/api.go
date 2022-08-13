@@ -41,7 +41,7 @@ type FunctionCallAdapter struct {
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	callAdapter := FunctionCallAdapter{
 		ContractAddress:    call.ContractAddress.String(),
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector.ShortString())),
+		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector)),
 	}
 
 	if len(call.Calldata) == 0 {

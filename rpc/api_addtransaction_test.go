@@ -148,7 +148,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						types.StrToFelt("0x2b"),
 						types.StrToFelt("0x0"),
 					},
-					EntryPointSelector: types.StrToFelt("0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 				},
 				Signature: []string{
 					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
@@ -174,7 +174,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						types.StrToFelt("0x2b"),
 						types.StrToFelt("0x0"),
 					},
-					EntryPointSelector: types.StrToFelt("0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
 				},
 				Signature: []string{
 					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
