@@ -1,47 +1,49 @@
 package types
 
+import "github.com/dontpanicdao/caigo/felt"
+
 type StarknetTransaction struct {
 	TransactionIndex int         `json:"transaction_index"`
 	BlockNumber      uint64      `json:"block_number"`
 	Transaction      Transaction `json:"transaction"`
-	BlockHash        Felt        `json:"block_hash"`
+	BlockHash        felt.Felt   `json:"block_hash"`
 	Status           string      `json:"status"`
 }
 
 type Transaction struct {
 	TransactionReceipt *TransactionReceipt
-	TransactionHash    Felt   `json:"txn_hash,omitempty"`
-	ClassHash          Felt   `json:"class_hash,omitempty"`
-	ContractAddress    Felt   `json:"contract_address,omitempty"`
-	SenderAddress      Felt   `json:"sender_address,omitempty"`
-	EntryPointSelector *Felt  `json:"entry_point_selector,omitempty"`
-	Calldata           []Felt `json:"calldata"`
-	Signature          []Felt `json:"signature"`
-	MaxFee             *Felt  `json:"max_fee,omitempty"`
-	Nonce              *Felt  `json:"nonce,omitempty"`
-	Version            string `json:"version,omitempty"`
-	Type               string `json:"type,omitempty"`
+	TransactionHash    felt.Felt   `json:"txn_hash,omitempty"`
+	ClassHash          felt.Felt   `json:"class_hash,omitempty"`
+	ContractAddress    felt.Felt   `json:"contract_address,omitempty"`
+	SenderAddress      felt.Felt   `json:"sender_address,omitempty"`
+	EntryPointSelector *felt.Felt  `json:"entry_point_selector,omitempty"`
+	Calldata           []felt.Felt `json:"calldata"`
+	Signature          []felt.Felt `json:"signature"`
+	MaxFee             *felt.Felt  `json:"max_fee,omitempty"`
+	Nonce              *felt.Felt  `json:"nonce,omitempty"`
+	Version            string      `json:"version,omitempty"`
+	Type               string      `json:"type,omitempty"`
 }
 
 type L1Message struct {
-	ToAddress Felt   `json:"to_address,omitempty"`
-	Payload   []Felt `json:"payload,omitempty"`
+	ToAddress felt.Felt   `json:"to_address,omitempty"`
+	Payload   []felt.Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress Felt   `json:"from_address,omitempty"`
-	Payload     []Felt `json:"payload,omitempty"`
+	FromAddress felt.Felt   `json:"from_address,omitempty"`
+	Payload     []felt.Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
-	Order       int    `json:"order,omitempty"`
-	FromAddress Felt   `json:"from_address,omitempty"`
-	Keys        []Felt `json:"keys,omitempty"`
-	Data        []Felt `json:"data,omitempty"`
+	Order       int         `json:"order,omitempty"`
+	FromAddress felt.Felt   `json:"from_address,omitempty"`
+	Keys        []felt.Felt `json:"keys,omitempty"`
+	Data        []felt.Felt `json:"data,omitempty"`
 }
 
 type TransactionReceipt struct {
-	TransactionHash Felt        `json:"txn_hash,omitempty"`
+	TransactionHash felt.Felt   `json:"txn_hash,omitempty"`
 	Status          string      `json:"status,omitempty"`
 	StatusData      string      `json:"status_data,omitempty"`
 	MessagesSent    []L1Message `json:"messages_sent,omitempty"`
@@ -64,18 +66,18 @@ type ExecutionResources struct {
 
 type TransactionTrace struct {
 	FunctionInvocation FunctionInvocation `json:"function_invocation"`
-	Signature          []Felt             `json:"signature"`
+	Signature          []felt.Felt        `json:"signature"`
 }
 
 type FunctionInvocation struct {
-	CallerAddress      Felt                 `json:"caller_address"`
-	ContractAddress    Felt                 `json:"contract_address"`
-	Calldata           []Felt               `json:"calldata"`
+	CallerAddress      felt.Felt            `json:"caller_address"`
+	ContractAddress    felt.Felt            `json:"contract_address"`
+	Calldata           []felt.Felt          `json:"calldata"`
 	CallType           string               `json:"call_type"`
-	ClassHash          Felt                 `json:"class_hash"`
-	Selector           Felt                 `json:"selector"`
-	EntryPointType     Felt                 `json:"entry_point_type"`
-	Result             []Felt               `json:"result"`
+	ClassHash          felt.Felt            `json:"class_hash"`
+	Selector           felt.Felt            `json:"selector"`
+	EntryPointType     felt.Felt            `json:"entry_point_type"`
+	Result             []felt.Felt          `json:"result"`
 	ExecutionResources *ExecutionResources  `json:"execution_resources"`
 	InternalCalls      []FunctionInvocation `json:"internal_calls"`
 	Events             []Event              `json:"events"`

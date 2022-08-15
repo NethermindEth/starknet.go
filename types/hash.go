@@ -3,51 +3,56 @@ package types
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/dontpanicdao/caigo/felt"
 )
 
-// Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, SNValToBN(cd.String()))
-	}
+type Curve felt.StarkCurve
 
-	cdHash, err := sc.HashElements(calldataArray)
+// Adheres to 'starknet.js' hash non typedData
+func (sc Curve) HashTx(addr felt.Felt, tx Transaction) (hash *felt.Felt, err error) {
+	calldataArray := []felt.Felt{felt.BigToFelt(big.NewInt(int64(len(tx.Calldata))))}
+	calldataArray = append(calldataArray, tx.Calldata...)
+
+	cdHash, err := felt.StarkCurve(sc).HashElements(calldataArray)
 	if err != nil {
 		return hash, err
 	}
 
-	txHashData := []*big.Int{
-		SNValToBN(tx.ContractAddress.String()),
-		tx.EntryPointSelector.Int,
-		cdHash,
+	txHashData := []felt.Felt{
+		tx.ContractAddress,
 	}
-
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
+	if tx.EntryPointSelector != nil {
+		txHashData = append(txHashData, *tx.EntryPointSelector)
+	}
+	if cdHash != nil {
+		txHashData = append(txHashData, *cdHash)
+	}
+	return felt.StarkCurve(sc).ComputeHashOnElements(txHashData)
 }
 
 // Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, HexToBN(cd.String()))
-	}
+func (sc Curve) HashMsg(addr felt.Felt, tx Transaction) (hash *felt.Felt, err error) {
+	calldataArray := []felt.Felt{felt.BigToFelt(big.NewInt(int64(len(tx.Calldata))))}
+	calldataArray = append(calldataArray, tx.Calldata...)
 
-	cdHash, err := sc.HashElements(calldataArray)
+	cdHash, err := felt.StarkCurve(sc).HashElements(calldataArray)
 	if err != nil {
 		return hash, err
 	}
 
-	txHashData := []*big.Int{
+	txHashData := []felt.Felt{
 		addr,
-		SNValToBN(tx.ContractAddress.String()),
-		tx.EntryPointSelector.Int,
-		cdHash,
-		SNValToBN(tx.Nonce.String()),
+		tx.ContractAddress,
 	}
+	if tx.EntryPointSelector != nil {
+		txHashData = append(txHashData, *tx.EntryPointSelector)
+	}
+	if cdHash != nil {
+		txHashData = append(txHashData, *cdHash)
+	}
+	if tx.Nonce != nil {
+		txHashData = append(txHashData, *tx.Nonce)
 
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
+	}
+	return felt.StarkCurve(sc).ComputeHashOnElements(txHashData)
 }
