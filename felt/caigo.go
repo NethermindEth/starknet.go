@@ -14,7 +14,7 @@ used to sign the message.
 
 (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 */
-func (sc StarkCurve) verify(msgHash, r, s, pubX, pubY *big.Int) bool {
+func (sc StarkCurve) Verify(msgHash Felt, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
 
 	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
@@ -33,7 +33,7 @@ func (sc StarkCurve) verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 		return false
 	}
 
-	zGx, zGy, err := sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
+	zGx, zGy, err := sc.MimicEcMultAir(msgHash.Int, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 	if err != nil {
 		return false
 	}
@@ -54,7 +54,7 @@ func (sc StarkCurve) verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	} else {
 		altY := new(big.Int).Neg(pubY)
 
-		zGx, zGy, err = sc.MimicEcMultAir(msgHash, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
+		zGx, zGy, err = sc.MimicEcMultAir(msgHash.Int, sc.EcGenX, sc.EcGenY, sc.MinusShiftPointX, sc.MinusShiftPointY)
 		if err != nil {
 			return false
 		}
@@ -84,18 +84,17 @@ Implementation does not yet include "extra entropy" or "retry gen".
 
 (ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
-func (sc StarkCurve) Sign(msgHash, privKey Felt, seed ...*big.Int) (x, y *big.Int, err error) {
+func (sc StarkCurve) Sign(msgHash Felt, privKey *big.Int, seed ...*big.Int) (signature *Signature, err error) {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
-		return x, y, fmt.Errorf("invalid bit length")
+		return nil, fmt.Errorf("invalid bit length")
 	}
 
-	invalidK := true
-	for invalidK {
+	for {
 		inSeed := big.NewInt(0)
 		if len(seed) == 1 {
 			inSeed = seed[0]
 		}
-		k := sc.generateSecret(new(big.Int).Set(msgHash.Int), new(big.Int).Set(privKey.Int), inSeed)
+		k := sc.GenerateSecret(msgHash, new(big.Int).Set(privKey), inSeed)
 
 		r, _ := sc.EcMult(k, sc.EcGenX, sc.EcGenY)
 
@@ -105,7 +104,7 @@ func (sc StarkCurve) Sign(msgHash, privKey Felt, seed ...*big.Int) (x, y *big.In
 			continue
 		}
 
-		agg := new(big.Int).Mul(r, privKey.Int)
+		agg := new(big.Int).Mul(r, privKey)
 		agg = agg.Add(agg, msgHash.Int)
 
 		if new(big.Int).Mod(agg, sc.N).Cmp(big.NewInt(0)) == 0 {
@@ -120,10 +119,8 @@ func (sc StarkCurve) Sign(msgHash, privKey Felt, seed ...*big.Int) (x, y *big.In
 		}
 
 		s := sc.InvModCurveSize(w)
-		return r, s, nil
+		return &Signature{Felt{Int: r}, Felt{Int: s}}, nil
 	}
-
-	return x, y, nil
 }
 
 /*
@@ -131,19 +128,20 @@ Hashes the contents of a given array using a golang Pedersen Hash implementation
 
 (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
-func (sc StarkCurve) hashElements(elems []*big.Int) (hash *big.Int, err error) {
+func (sc StarkCurve) HashElements(elems []Felt) (*Felt, error) {
 	if len(elems) == 0 {
-		elems = append(elems, big.NewInt(0))
+		elems = append(elems, Felt{Int: big.NewInt(0)})
 	}
 
-	hash = big.NewInt(0)
+	hash := Felt{Int: big.NewInt(0)}
 	for _, h := range elems {
-		hash, err = sc.PedersenHash([]*big.Int{hash, h})
+		out, err := sc.PedersenHash([]Felt{hash, h})
 		if err != nil {
-			return hash, err
+			return nil, err
 		}
+		hash = *out
 	}
-	return hash, err
+	return &hash, nil
 }
 
 /*
@@ -151,9 +149,9 @@ Hashes the contents of a given array with its size using a golang Pedersen Hash 
 
 (ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
 */
-func (sc StarkCurve) computeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
-	elems = append(elems, big.NewInt(int64(len(elems))))
-	return Curve.hashElements((elems))
+func (sc StarkCurve) ComputeHashOnElements(elems []Felt) (hash *Felt, err error) {
+	elems = append(elems, Felt{Int: big.NewInt(int64(len(elems)))})
+	return Curve.HashElements((elems))
 }
 
 /*
@@ -162,7 +160,7 @@ NOTE: This function assumes the curve has been initialized with contant points
 
 (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
-func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
+func (sc StarkCurve) PedersenHash(elems []Felt) (hash *Felt, err error) {
 	if len(sc.ConstantPoints) == 0 {
 		return hash, fmt.Errorf("must initiate precomputed constant points")
 	}
@@ -170,10 +168,10 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	ptx := new(big.Int).Set(sc.Gx)
 	pty := new(big.Int).Set(sc.Gy)
 	for i, elem := range elems {
-		x := new(big.Int).Set(elem)
+		x := new(big.Int).Set(elem.Int)
 
 		if x.Cmp(big.NewInt(0)) != -1 && x.Cmp(sc.P) != -1 {
-			return ptx, fmt.Errorf("invalid x: %v", x)
+			return nil, fmt.Errorf("invalid x: %v", x)
 		}
 
 		for j := 0; j < 252; j++ {
@@ -181,7 +179,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 			xin := new(big.Int).Set(sc.ConstantPoints[idx][0])
 			yin := new(big.Int).Set(sc.ConstantPoints[idx][1])
 			if xin.Cmp(ptx) == 0 {
-				return hash, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
+				return nil, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
 			}
 			if x.Bit(0) == 1 {
 				ptx, pty = sc.Add(ptx, pty, xin, yin)
@@ -190,20 +188,21 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 		}
 	}
 
-	return ptx, nil
+	return &Felt{Int: ptx}, nil
 }
 
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
-func (sc StarkCurve) generateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
+func (sc StarkCurve) GenerateSecret(msgHash Felt, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
 	rolen := (sc.BitSize + 7) >> 3
 
-	if msgHash.BitLen()%8 <= 4 && msgHash.BitLen() >= 248 {
-		msgHash = msgHash.Mul(msgHash, big.NewInt(16))
+	msgInt := msgHash.Int
+	if msgInt.BitLen()%8 <= 4 && msgInt.BitLen() >= 248 {
+		msgInt = msgInt.Mul(msgInt, big.NewInt(16))
 	}
 
-	by := append(int2octets(privKey, rolen), bits2octets(msgHash, sc.N, sc.BitSize, rolen)...)
+	by := append(int2octets(privKey, rolen), bits2octets(msgInt, sc.N, sc.BitSize, rolen)...)
 
 	if seed.Cmp(big.NewInt(0)) == 1 {
 		by = append(by, seed.Bytes()...)

@@ -60,11 +60,13 @@ func TestJSONUnmarshal(t *testing.T) {
 		}
 	}
 
-	if StrToFelt(feltTest.LongString) != nil {
+	f := StrToFelt(feltTest.LongString)
+	if !(&f).IsNil() {
 		t.Errorf("Should not convert string longer than 31 characters\n")
 	}
 
-	if StrToFelt(feltTest.LongString[:31]).ShortString() != "STRINGTHATISLONGERTHANTHIRTYONE" {
+	f = StrToFelt(feltTest.LongString[:31])
+	if (&f).ShortString() != "STRINGTHATISLONGERTHANTHIRTYONE" {
 		t.Errorf("Could not convert to short string\n")
 	}
 }
@@ -89,8 +91,8 @@ func TestJSONMarshal(t *testing.T) {
 	json.Unmarshal(raw, &newTest)
 
 	for i, nb := range newBigs {
-		if fmt.Sprintf("0x%x", nb) != newTest.Felts[i].Expected.String() {
-			t.Errorf("Incorrect marshal entries: %s %s\n", nb.String(), newTest.Felts[i].Expected.String())
+		if fmt.Sprintf("0x%x", nb) != newTest.Felts[i].Expected.Hex() {
+			t.Errorf("Incorrect marshal entries: 0x%x %s\n", nb, newTest.Felts[i].Expected.Hex())
 		}
 	}
 }

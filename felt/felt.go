@@ -30,28 +30,28 @@ type Felt struct {
 // Signature is a list of Felt.
 type Signature []Felt
 
+// IsNil tests if a Felt is nil
+func (f *Felt) IsNil() bool {
+	return f == nil || f.Int == nil
+}
+
 // Big converts a Felt to its big.Int representation.
-func (f *Felt) big() *big.Int {
-	// TODO: there is a reason why it is done that way
-	return new(big.Int).SetBytes(f.Int.Bytes())
-}
-
-// StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
-func StrToFelt(str string) *Felt {
-	f := new(Felt)
-	if ok := f.strToFelt(str); ok {
-		return f
+func (f *Felt) BigInt() *big.Int {
+	if f == nil || f.Int == nil {
+		return &big.Int{}
 	}
-	return nil
+	return f.Int
 }
 
-func (f *Felt) strToFelt(str string) bool {
+// StrToFelt converts a string containing a decimal, hexadecimal or UTF8
+// charset into a Felt.
+func (f *Felt) StrToFelt(str string) bool {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
 		f.Int = b
 		return ok
 	}
 
-	// TODO: revisit conversation on seperate 'ShortString' conversion
+	// TODO: revisit conversation on separate 'ShortString' conversion
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
@@ -62,18 +62,37 @@ func (f *Felt) strToFelt(str string) bool {
 	return false
 }
 
-// BigToFelt converts a big.Int to its Felt representation.
-func BigToFelt(b *big.Int) Felt {
-	return Felt{Int: b}
+// Add a Felt to an existing Felt
+func NewFelt() *Felt {
+	return &Felt{}
 }
 
-// BytesToFelt converts a []byte to its Felt representation.
-func BytesToFelt(b []byte) *Felt {
-	return &Felt{Int: new(big.Int).SetBytes(b)}
+// Add a Felt to an existing Felt
+func (f *Felt) Add(x, y Felt) *Felt {
+	if f == nil {
+		return nil
+	}
+	if x.IsNil() || y.IsNil() {
+		f.Int = nil
+		return f
+	}
+	if f.Int == nil {
+		f.Int = new(big.Int)
+	}
+	f.Int.Add(x.Int, y.Int)
+	return f
 }
 
-// String converts a Felt into its 'short string' representation.
-func (f *Felt) ShortString() string {
+// Hex converts a Felt into its hexadecimal string representation.
+func (f Felt) Hex() string {
+	return fmt.Sprintf("0x%x", f)
+}
+
+// ShortString converts a Felt into its 'short string' representation.
+func (f Felt) ShortString() string {
+	if f.IsNil() {
+		return ""
+	}
 	str := string(f.Bytes())
 	if asciiRegexp.MatchString(str) {
 		return str
@@ -81,19 +100,22 @@ func (f *Felt) ShortString() string {
 	return ""
 }
 
-// String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
-func (f *Felt) String() string {
-	return fmt.Sprintf("0x%x", f)
+// Equals compares 2 Felts and returns the true if they are not nil and equals
+func (f Felt) Equals(g Felt) bool {
+	if f.Int == nil || g.Int == nil || f.Cmp(g.Int) != 0 {
+		return false
+	}
+	return true
 }
 
 // MarshalJSON implements the json Marshaller interface for a Signature array to marshal types to []byte.
 func (s Signature) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`["%s","%s"]`, s[0].Int.String(), s[1].Int.String())), nil
+	return []byte(fmt.Sprintf(`["%s","%s"]`, s[0].String(), s[1].String())), nil
 }
 
 // MarshalJSON implements the json Marshaller interface for Felt to marshal types to []byte.
-func (f Felt) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
+func (f *Felt) MarshalJSON() ([]byte, error) {
+	return []byte(f.String()), nil
 }
 
 // UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.
@@ -110,7 +132,7 @@ func (f *Felt) UnmarshalJSON(p []byte) error {
 		s = string(p)
 	}
 
-	if ok := f.strToFelt(s); !ok {
+	if ok := f.StrToFelt(s); !ok {
 		return fmt.Errorf("unmarshalling big int: %s", string(p))
 	}
 
@@ -126,7 +148,7 @@ func (f Felt) MarshalGQL(w io.Writer) {
 func (b *Felt) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
-		if ok := b.strToFelt(bi); ok {
+		if ok := b.StrToFelt(bi); ok {
 			return nil
 		}
 	case int:
@@ -170,4 +192,22 @@ func (f *Felt) Scan(src interface{}) error {
 		return err
 	}
 	return nil
+}
+
+// StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
+// mind there guesses and StrToFelt("1") will be 1 and not "1"
+func StrToFelt(str string) Felt {
+	f := Felt{}
+	(&f).StrToFelt(str)
+	return f
+}
+
+// BigToFelt converts a big.Int to its Felt representation.
+func BigToFelt(b *big.Int) Felt {
+	return Felt{Int: b}
+}
+
+// BytesToFelt converts a []byte to its Felt representation.
+func BytesToFelt(b []byte) *Felt {
+	return &Felt{Int: new(big.Int).SetBytes(b)}
 }

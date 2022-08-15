@@ -12,23 +12,28 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	x, y, _ := Curve.PrivateToPoint(private)
 
 	hash, _ := Curve.PedersenHash(
-		[]*big.Int{
-			strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+		[]Felt{
+			StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
 		})
 
-	r, s, _ := Curve.sign(hash, private)
+	signature, _ := Curve.Sign(*hash, private)
+	if signature == nil || len(*signature) != 2 {
+		b.Errorf("Signature should return 2 Felts")
+	}
+	r := (*signature)[0].Int
+	s := (*signature)[1].Int
 
 	b.Run(fmt.Sprintf("sign_input_size_%d", hash.BitLen()), func(b *testing.B) {
-		Curve.sign(hash, private)
+		Curve.Sign(*hash, private)
 	})
 	b.Run(fmt.Sprintf("verify_input_size_%d", hash.BitLen()), func(b *testing.B) {
-		Curve.verify(hash, r, s, x, y)
+		Curve.Verify(*hash, r, s, x, y)
 	})
 }
 
 func TestComputeHashOnElements(t *testing.T) {
-	hashEmptyArray, err := Curve.computeHashOnElements([]*big.Int{})
+	hashEmptyArray, err := Curve.ComputeHashOnElements([]Felt{})
 	expectedHashEmmptyArray := strToBig("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
 	if err != nil {
 		t.Errorf("Could no hash an empty array %v\n", err)
@@ -37,10 +42,10 @@ func TestComputeHashOnElements(t *testing.T) {
 		t.Errorf("Hash empty array wrong value. Expected %v got %v\n", expectedHashEmmptyArray, hashEmptyArray)
 	}
 
-	hashFilledArray, err := Curve.computeHashOnElements([]*big.Int{
-		big.NewInt(123782376),
-		big.NewInt(213984),
-		big.NewInt(128763521321),
+	hashFilledArray, err := Curve.ComputeHashOnElements([]Felt{
+		BigToFelt(big.NewInt(123782376)),
+		BigToFelt(big.NewInt(213984)),
+		BigToFelt(big.NewInt(128763521321)),
 	})
 	expectedHashFilledArray := strToBig("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
 
@@ -53,10 +58,10 @@ func TestComputeHashOnElements(t *testing.T) {
 }
 
 func TestHashAndSign(t *testing.T) {
-	hashy, err := Curve.hashElements([]*big.Int{
-		big.NewInt(1953658213),
-		big.NewInt(126947999705460),
-		big.NewInt(1953658213),
+	hashy, err := Curve.HashElements([]Felt{
+		BigToFelt(big.NewInt(1953658213)),
+		BigToFelt(big.NewInt(126947999705460)),
+		BigToFelt(big.NewInt(1953658213)),
 	})
 	if err != nil {
 		t.Errorf("Hasing elements: %v\n", err)
@@ -68,12 +73,16 @@ func TestHashAndSign(t *testing.T) {
 		t.Errorf("Could not convert random private key to point: %v\n", err)
 	}
 
-	r, s, err := Curve.sign(hashy, priv)
+	signature, err := Curve.Sign(*hashy, priv)
 	if err != nil {
 		t.Errorf("Could not convert gen signature: %v\n", err)
 	}
-
-	if !Curve.verify(hashy, r, s, x, y) {
+	if signature == nil || len(*signature) != 2 {
+		t.Errorf("Signature should return 2 Felts")
+	}
+	r := (*signature)[0].BigInt()
+	s := (*signature)[1].BigInt()
+	if !Curve.Verify(*hashy, r, s, x, y) {
 		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
 }
@@ -105,36 +114,43 @@ func TestComputeFact(t *testing.T) {
 }
 
 func TestBadSignature(t *testing.T) {
-	iHash, err := Curve.PedersenHash([]*big.Int{strToBig("0x12773"), strToBig("0x872362")})
+	iHash, err := Curve.PedersenHash([]Felt{StrToFelt("0x12773"), StrToFelt("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
-	hash := Felt{Int: iHash}
+	hash := *iHash
 
-	iPriv, _ := Curve.GetRandomPrivateKey()
-	x, y, err := Curve.PrivateToPoint(iPriv)
+	priv, _ := Curve.GetRandomPrivateKey()
+	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
 		t.Errorf("Could not convert random private key to point: %v\n", err)
 	}
-	priv := Felt{Int: iPriv}
 
-	r, s, err := Curve.Sign(hash, priv)
+	signature, err := Curve.Sign(hash, priv)
 	if err != nil {
 		t.Errorf("Could not convert gen signature: %v\n", err)
 	}
+	if signature == nil || len(*signature) != 2 {
+		t.Errorf("signature should return 2 Felts\n")
+	}
+	r := (*signature)[0].BigInt()
+	s := (*signature)[1].BigInt()
 
 	badR := new(big.Int).Add(r, big.NewInt(1))
-	if Curve.verify(hash, badR, s, x, y) {
+	if Curve.Verify(hash, badR, s, x, y) {
 		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
 
 	badS := new(big.Int).Add(s, big.NewInt(1))
-	if Curve.verify(hash, r, badS, x, y) {
+	if Curve.Verify(hash, r, badS, x, y) {
 		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
 
-	badHash := new(big.Int).Add(hash, big.NewInt(1))
-	if Curve.verify(badHash, r, s, x, y) {
+	badHash := NewFelt().Add(hash, BigToFelt(big.NewInt(1)))
+	if badHash.IsNil() {
+		t.Errorf("badHash should not be nil\n")
+	}
+	if Curve.Verify(*badHash, r, s, x, y) {
 		t.Errorf("Verified bad signature %v %v\n", r, s)
 	}
 }
@@ -144,7 +160,7 @@ func TestSignature(t *testing.T) {
 		private *big.Int
 		publicX *big.Int
 		publicY *big.Int
-		hash    *big.Int
+		hash    Felt
 		rIn     *big.Int
 		sIn     *big.Int
 		raw     string
@@ -153,18 +169,18 @@ func TestSignature(t *testing.T) {
 			private: strToBig("104397037759416840641267745129360920341912682966983343798870479003077644689"),
 			publicX: strToBig("1913222325711601599563860015182907040361852177892954047964358042507353067365"),
 			publicY: strToBig("798905265292544287704154888908626830160713383708400542998012716235575472365"),
-			hash:    strToBig("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
+			hash:    StrToFelt("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
 			rIn:     strToBig("607684330780324271206686790958794501662789535258258105407533051445036595885"),
 			sIn:     strToBig("453590782387078613313238308551260565642934039343903827708036287031471258875"),
 		},
 		{
-			hash: strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			hash: StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
 			rIn:  strToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
 			sIn:  strToBig("3439514492576562277095748549117516048613512930236865921315982886313695689433"),
 			raw:  "04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456",
 		},
 		{
-			hash:    strToBig("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
+			hash:    StrToFelt("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
 			publicX: strToBig("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10"),
 			rIn:     strToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
 			sIn:     strToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
@@ -186,13 +202,18 @@ func TestSignature(t *testing.T) {
 		}
 
 		if tt.rIn == nil && tt.private != nil {
-			tt.rIn, tt.sIn, err = Curve.sign(tt.hash, tt.private)
+			signature, err := Curve.Sign(tt.hash, tt.private)
 			if err != nil {
 				t.Errorf("Could not sign good hash: %v\n", err)
 			}
+			if signature == nil || len(*signature) != 2 {
+				t.Errorf("signature should return 2 Felts\n")
+			}
+			tt.rIn = (*signature)[0].BigInt()
+			tt.sIn = (*signature)[1].BigInt()
 		}
 
-		if !Curve.verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY) {
+		if !Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY) {
 			t.Errorf("successful signature did not verify\n")
 		}
 	}

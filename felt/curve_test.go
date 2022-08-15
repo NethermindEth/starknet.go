@@ -7,14 +7,14 @@ import (
 )
 
 func BenchmarkPedersenHash(b *testing.B) {
-	suite := [][]*big.Int{
-		{strToBig("0x12773"), strToBig("0x872362")},
-		{strToBig("0x1277312773"), strToBig("0x872362872362")},
-		{strToBig("0x1277312773"), strToBig("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")},
-		{strToBig("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), strToBig("0x872362872362")},
-		{strToBig("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), strToBig("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")},
-		{strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), strToBig("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")},
-		{strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), strToBig("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")},
+	suite := [][]Felt{
+		{StrToFelt("0x12773"), StrToFelt("0x872362")},
+		{StrToFelt("0x1277312773"), StrToFelt("0x872362872362")},
+		{StrToFelt("0x1277312773"), StrToFelt("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")},
+		{StrToFelt("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), StrToFelt("0x872362872362")},
+		{StrToFelt("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), StrToFelt("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")},
+		{StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), StrToFelt("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")},
+		{StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), StrToFelt("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")},
 	}
 
 	for _, test := range suite {
@@ -26,20 +26,20 @@ func BenchmarkPedersenHash(b *testing.B) {
 
 func TestPedersenHash(t *testing.T) {
 	testPedersen := []struct {
-		elements []*big.Int
-		expected *big.Int
+		elements []Felt
+		expected Felt
 	}{
 		{
-			elements: []*big.Int{strToBig("0x12773"), strToBig("0x872362")},
-			expected: strToBig("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"),
+			elements: []Felt{StrToFelt("0x12773"), StrToFelt("0x872362")},
+			expected: StrToFelt("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"),
 		},
 		{
-			elements: []*big.Int{strToBig("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), strToBig("0x537461726b4e6574204d61696c")},
-			expected: strToBig("0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c"),
+			elements: []Felt{StrToFelt("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), StrToFelt("0x537461726b4e6574204d61696c")},
+			expected: StrToFelt("0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c"),
 		},
 		{
-			elements: []*big.Int{big.NewInt(100), big.NewInt(1000)},
-			expected: strToBig("0x45a62091df6da02dce4250cb67597444d1f465319908486b836f48d0f8bf6e7"),
+			elements: []Felt{{Int: big.NewInt(100)}, {Int: big.NewInt(1000)}},
+			expected: StrToFelt("0x45a62091df6da02dce4250cb67597444d1f465319908486b836f48d0f8bf6e7"),
 		},
 	}
 
@@ -48,7 +48,7 @@ func TestPedersenHash(t *testing.T) {
 		if err != nil {
 			t.Errorf("Hashing err: %v\n", err)
 		}
-		if hash.Cmp(tt.expected) != 0 {
+		if !hash.Equals(tt.expected) {
 			t.Errorf("incorrect hash: got %v expected %v\n", hash, tt.expected)
 		}
 	}
