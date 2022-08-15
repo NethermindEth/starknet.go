@@ -1,16 +1,18 @@
 package types
 
+import "github.com/dontpanicdao/caigo/felt"
+
 type Bytecode []string
 
 type Block struct {
-	BlockHash       Felt          `json:"block_hash"`
-	ParentBlockHash *Felt         `json:"parent_hash"`
+	BlockHash       felt.Felt     `json:"block_hash"`
+	ParentBlockHash *felt.Felt    `json:"parent_hash"`
 	BlockNumber     uint64        `json:"block_number"`
 	NewRoot         string        `json:"new_root"`
 	OldRoot         string        `json:"old_root"`
 	Status          string        `json:"status"`
 	AcceptedTime    uint64        `json:"accepted_time"`
-	GasPrice        *Felt         `json:"gas_price"`
+	GasPrice        *felt.Felt    `json:"gas_price"`
 	Transactions    []Transaction `json:"transactions"`
 }
 
@@ -40,8 +42,8 @@ func (s TxStatus) String() string {
 }
 
 type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       *Felt  `json:"block_hash,omitempty"`
+	TxStatus        string     `json:"tx_status"`
+	BlockHash       *felt.Felt `json:"block_hash,omitempty"`
 	TxFailureReason struct {
 		ErrorMessage string `json:"error_message,omitempty"`
 	} `json:"tx_failure_reason,omitempty"`
@@ -65,14 +67,14 @@ type ABI struct {
 }
 
 type AddTxResponse struct {
-	Code            string `json:"code"`
-	TransactionHash Felt   `json:"transaction_hash"`
+	Code            string    `json:"code"`
+	TransactionHash felt.Felt `json:"transaction_hash"`
 }
 
 type DeployRequest struct {
 	Type                string        `json:"type"`
-	ContractAddressSalt *Felt         `json:"contract_address_salt"`
-	ConstructorCalldata []Felt        `json:"constructor_calldata"`
+	ContractAddressSalt *felt.Felt    `json:"contract_address_salt"`
+	ConstructorCalldata []felt.Felt   `json:"constructor_calldata"`
 	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
@@ -83,12 +85,12 @@ type ContractClass struct {
 }
 
 type DeclareRequest struct {
-	Type          string        `json:"type"`
-	SenderAddress Felt          `json:"sender_address"`
-	MaxFee        string        `json:"max_fee"`
-	Nonce         string        `json:"nonce"`
-	Signature     []string      `json:"signature"`
-	ContractClass ContractClass `json:"contract_class"`
+	Type          string         `json:"type"`
+	SenderAddress felt.Felt      `json:"sender_address"`
+	MaxFee        *felt.Felt     `json:"max_fee"`
+	Nonce         *felt.Felt     `json:"nonce"`
+	Signature     felt.Signature `json:"signature"`
+	ContractClass ContractClass  `json:"contract_class"`
 }
 
 type EntryPointsByType struct {
@@ -103,26 +105,26 @@ type EntryPointList struct {
 }
 
 type FunctionCall struct {
-	ContractAddress    Felt   `json:"contract_address"`
-	EntryPointSelector *Felt  `json:"entry_point_selector"`
-	Calldata           []Felt `json:"calldata"`
+	ContractAddress    felt.Felt   `json:"contract_address"`
+	EntryPointSelector *felt.Felt  `json:"entry_point_selector"`
+	Calldata           []felt.Felt `json:"calldata"`
 }
 
 type FunctionInvoke struct {
 	FunctionCall
-	MaxFee          *Felt     `json:"max_fee,omitempty"`
-	Nonce           *Felt     `json:"nonce,omitempty"`
-	Version         *Felt     `json:"version,omitempty"`
-	Signature       Signature `json:"signature,omitempty"`
-	TransactionHash Felt      `json:"txn_hash,omitempty"`
+	MaxFee          *felt.Felt     `json:"max_fee,omitempty"`
+	Nonce           *felt.Felt     `json:"nonce,omitempty"`
+	Version         *felt.Felt     `json:"version,omitempty"`
+	Signature       felt.Signature `json:"signature,omitempty"`
+	TransactionHash felt.Felt      `json:"txn_hash,omitempty"`
 }
 
 // FeeEstimate provides a set of properties to understand fee estimations.
 type FeeEstimate struct {
-	OverallFee *Felt  `json:"overall_fee,omitempty"`
-	GasUsage   *Felt  `json:"gas_usage,omitempty"`
-	GasPrice   *Felt  `json:"gas_price,omitempty"`
-	Unit       string `json:"unit,omitempty"`
+	OverallFee *felt.Felt `json:"overall_fee,omitempty"`
+	GasUsage   *felt.Felt `json:"gas_usage,omitempty"`
+	GasPrice   *felt.Felt `json:"gas_price,omitempty"`
+	Unit       string     `json:"unit,omitempty"`
 }
 
 type ContractAddresses struct {

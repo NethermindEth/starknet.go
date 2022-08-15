@@ -51,12 +51,12 @@ func TestJSONUnmarshal(t *testing.T) {
 	for _, felt := range feltTest.Felts {
 		f := StrToFelt(felt.Value)
 
-		if f.Int.Cmp(felt.Expected.Big()) != 0 {
-			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Big(), felt.Expected.Big())
+		if f.Int.Cmp(felt.Expected.Int) != 0 {
+			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Int, felt.Expected.Int)
 		}
 
 		if f.String() != felt.Expected.String() {
-			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Big(), felt.Expected.Big())
+			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Int, felt.Expected.Int)
 		}
 	}
 
@@ -73,7 +73,7 @@ func TestJSONMarshal(t *testing.T) {
 	var newFelts FeltTest
 	var newBigs []*big.Int
 	for i, felt := range feltTest.Felts {
-		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Big())
+		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Int)
 		newBigs = append(newBigs, nb)
 
 		felt.Expected.Int = nb
@@ -111,7 +111,7 @@ func TestGQLMarshal(t *testing.T) {
 		buf := bytes.NewBuffer(nil)
 		felt.Expected.MarshalGQL(buf)
 
-		newVal := new(big.Int).Add(big.NewInt(int64(i)+7), StrToFelt(felt.Value).Big())
+		newVal := new(big.Int).Add(big.NewInt(int64(i)+7), StrToFelt(felt.Value).Int)
 		cmp := BigToFelt(newVal)
 
 		if buf.String() != strconv.Quote(cmp.String()) {

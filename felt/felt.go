@@ -31,7 +31,8 @@ type Felt struct {
 type Signature []Felt
 
 // Big converts a Felt to its big.Int representation.
-func (f *Felt) Big() *big.Int {
+func (f *Felt) big() *big.Int {
+	// TODO: there is a reason why it is done that way
 	return new(big.Int).SetBytes(f.Int.Bytes())
 }
 
@@ -62,8 +63,8 @@ func (f *Felt) strToFelt(str string) bool {
 }
 
 // BigToFelt converts a big.Int to its Felt representation.
-func BigToFelt(b *big.Int) *Felt {
-	return &Felt{Int: b}
+func BigToFelt(b *big.Int) Felt {
+	return Felt{Int: b}
 }
 
 // BytesToFelt converts a []byte to its Felt representation.

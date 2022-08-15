@@ -84,7 +84,7 @@ Implementation does not yet include "extra entropy" or "retry gen".
 
 (ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
-func (sc StarkCurve) sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
+func (sc StarkCurve) Sign(msgHash, privKey Felt, seed ...*big.Int) (x, y *big.Int, err error) {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("invalid bit length")
 	}
@@ -95,7 +95,7 @@ func (sc StarkCurve) sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 		if len(seed) == 1 {
 			inSeed = seed[0]
 		}
-		k := sc.generateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
+		k := sc.generateSecret(new(big.Int).Set(msgHash.Int), new(big.Int).Set(privKey.Int), inSeed)
 
 		r, _ := sc.EcMult(k, sc.EcGenX, sc.EcGenY)
 
@@ -105,8 +105,8 @@ func (sc StarkCurve) sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 			continue
 		}
 
-		agg := new(big.Int).Mul(r, privKey)
-		agg = agg.Add(agg, msgHash)
+		agg := new(big.Int).Mul(r, privKey.Int)
+		agg = agg.Add(agg, msgHash.Int)
 
 		if new(big.Int).Mod(agg, sc.N).Cmp(big.NewInt(0)) == 0 {
 			// Bad value. This fails with negligible probability.

@@ -2,8 +2,10 @@ package caigo
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 
+	"github.com/dontpanicdao/caigo/felt"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -16,16 +18,16 @@ const (
 
 type Account struct {
 	Provider types.Provider
-	Address  types.Felt
+	Address  felt.Felt
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
 }
 
 type ExecuteDetails struct {
-	MaxFee  *types.Felt
-	Nonce   *types.Felt
-	Version *types.Felt
+	MaxFee  *felt.Felt
+	Nonce   *felt.Felt
+	Version *felt.Felt
 }
 
 /*
@@ -35,13 +37,15 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - full provider definition
 - public key pair for signature verifications
 */
-func NewAccount(private string, address types.Felt, provider types.Provider) (*Account, error) {
-	priv := SNValToBN(private)
-	x, y, err := Curve.PrivateToPoint(priv)
+func NewAccount(private string, address felt.Felt, provider types.Provider) (*Account, error) {
+	priv, ok := big.NewInt(0).SetString(private, 0)
+	if !ok {
+		return nil, fmt.Errorf("wrongPrivate")
+	}
+	x, y, err := felt.GetCurve().PrivateToPoint(priv)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Account{
 		Provider: provider,
 		Address:  address,
@@ -52,7 +56,7 @@ func NewAccount(private string, address types.Felt, provider types.Provider) (*A
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return Curve.Sign(msgHash, account.private)
+	return felt.GetCurve().Sign(msgHash, account.private)
 }
 
 /*
@@ -106,8 +110,8 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *types.Felt, calls 
 		return nil, err
 	}
 
-	multiHashData := []*big.Int{
-		UTF8StrToBig(TRANSACTION_PREFIX),
+	multiHashData := []big.Felt{
+		felt.UTF8StrToFelt(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
 		SNValToBN(account.Address.String()),
 		GetSelectorFromName(EXECUTE_SELECTOR),

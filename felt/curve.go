@@ -47,6 +47,10 @@ type StarkCurvePayload struct {
 	ConstantPoints [][]*big.Int `json:"CONSTANT_POINTS"`
 }
 
+func GetCurve() StarkCurve {
+	return Curve
+}
+
 func init() {
 	if err := json.Unmarshal(PedersenParamsRaw, &PedersenParams); err != nil {
 		log.Fatalf("unmarshalling pedersen params: %v", err)
@@ -277,6 +281,8 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 func DivMod(n, m, p *big.Int) *big.Int {
 	gx := new(big.Int)
 	gy := new(big.Int)
+
+	// TODO: ask the reason for that line since the output is not being used.
 	_ = big.NewInt(0).GCD(gx, gy, m, p)
 
 	r := new(big.Int).Mul(n, gx)

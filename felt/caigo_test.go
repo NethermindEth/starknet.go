@@ -105,18 +105,20 @@ func TestComputeFact(t *testing.T) {
 }
 
 func TestBadSignature(t *testing.T) {
-	hash, err := Curve.PedersenHash([]*big.Int{strToBig("0x12773"), strToBig("0x872362")})
+	iHash, err := Curve.PedersenHash([]*big.Int{strToBig("0x12773"), strToBig("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
+	hash := Felt{Int: iHash}
 
-	priv, _ := Curve.GetRandomPrivateKey()
-	x, y, err := Curve.PrivateToPoint(priv)
+	iPriv, _ := Curve.GetRandomPrivateKey()
+	x, y, err := Curve.PrivateToPoint(iPriv)
 	if err != nil {
 		t.Errorf("Could not convert random private key to point: %v\n", err)
 	}
+	priv := Felt{Int: iPriv}
 
-	r, s, err := Curve.sign(hash, priv)
+	r, s, err := Curve.Sign(hash, priv)
 	if err != nil {
 		t.Errorf("Could not convert gen signature: %v\n", err)
 	}
