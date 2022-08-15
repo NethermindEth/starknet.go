@@ -1,4 +1,4 @@
-package caigo
+package curve
 
 import (
 	"fmt"
