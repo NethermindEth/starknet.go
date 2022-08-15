@@ -1,4 +1,4 @@
-package caigo
+package felt
 
 import (
 	"bytes"
@@ -8,13 +8,13 @@ import (
 )
 
 /*
-	Verifies the validity of the stark curve signature
-	given the message hash, and public key (x, y) coordinates
-	used to sign the message.
+Verifies the validity of the stark curve signature
+given the message hash, and public key (x, y) coordinates
+used to sign the message.
 
-	(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 */
-func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
+func (sc StarkCurve) verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
 
 	if s.Cmp(big.NewInt(0)) != 1 || s.Cmp(sc.N) != -1 {
@@ -78,13 +78,13 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 }
 
 /*
-	Signs the hash value of contents with the provided private key.
-	Secret is generated using a golang implementation of RFC 6979.
-	Implementation does not yet include "extra entropy" or "retry gen".
+Signs the hash value of contents with the provided private key.
+Secret is generated using a golang implementation of RFC 6979.
+Implementation does not yet include "extra entropy" or "retry gen".
 
-	(ref: https://datatracker.ietf.org/doc/html/rfc6979)
+(ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
-func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
+func (sc StarkCurve) sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("invalid bit length")
 	}
@@ -95,7 +95,7 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 		if len(seed) == 1 {
 			inSeed = seed[0]
 		}
-		k := sc.GenerateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
+		k := sc.generateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
 
 		r, _ := sc.EcMult(k, sc.EcGenX, sc.EcGenY)
 
@@ -127,11 +127,11 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 }
 
 /*
-	Hashes the contents of a given array using a golang Pedersen Hash implementation.
+Hashes the contents of a given array using a golang Pedersen Hash implementation.
 
-	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
-func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
+func (sc StarkCurve) hashElements(elems []*big.Int) (hash *big.Int, err error) {
 	if len(elems) == 0 {
 		elems = append(elems, big.NewInt(0))
 	}
@@ -147,20 +147,20 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 /*
-	Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
+Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
 
-	(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
+(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
 */
-func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
+func (sc StarkCurve) computeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
-	return Curve.HashElements((elems))
+	return Curve.hashElements((elems))
 }
 
 /*
-	Provides the pedersen hash of given array of big integers.
-	NOTE: This function assumes the curve has been initialized with contant points
+Provides the pedersen hash of given array of big integers.
+NOTE: This function assumes the curve has been initialized with contant points
 
-	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
 func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	if len(sc.ConstantPoints) == 0 {
@@ -194,7 +194,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
-func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
+func (sc StarkCurve) generateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
 	rolen := (sc.BitSize + 7) >> 3

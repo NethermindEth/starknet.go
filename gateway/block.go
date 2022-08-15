@@ -11,9 +11,9 @@ import (
 )
 
 type Block struct {
-	BlockHash           *types.Felt          `json:"block_hash"`
-	ParentBlockHash     string               `json:"parent_block_hash"`
-	BlockNumber         int                  `json:"block_number"`
+	BlockHash           types.Felt           `json:"block_hash"`
+	ParentBlockHash     *types.Felt          `json:"parent_block_hash"`
+	BlockNumber         uint64               `json:"block_number"`
 	StateRoot           string               `json:"state_root"`
 	Status              string               `json:"status"`
 	Transactions        []Transaction        `json:"transactions"`

@@ -1,4 +1,4 @@
-package caigo
+package felt
 
 /*
 	Although the library adheres to the 'elliptic/curve' interface.
@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 var Curve StarkCurve
@@ -277,58 +275,11 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func DivMod(n, m, p *big.Int) *big.Int {
-	q := new(big.Int)
 	gx := new(big.Int)
 	gy := new(big.Int)
-	q = q.GCD(gx, gy, m, p)
+	_ = big.NewInt(0).GCD(gx, gy, m, p)
 
 	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)
 	return r
-}
-
-// Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, SNValToBN(cd.String()))
-	}
-
-	cdHash, err := sc.HashElements(calldataArray)
-	if err != nil {
-		return hash, err
-	}
-
-	txHashData := []*big.Int{
-		SNValToBN(tx.ContractAddress.String()),
-		GetSelectorFromName(tx.EntryPointSelector),
-		cdHash,
-	}
-
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
-}
-
-// Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, HexToBN(cd.String()))
-	}
-
-	cdHash, err := sc.HashElements(calldataArray)
-	if err != nil {
-		return hash, err
-	}
-
-	txHashData := []*big.Int{
-		addr,
-		SNValToBN(tx.ContractAddress.String()),
-		GetSelectorFromName(tx.EntryPointSelector),
-		cdHash,
-		SNValToBN(tx.Nonce.String()),
-	}
-
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
 }

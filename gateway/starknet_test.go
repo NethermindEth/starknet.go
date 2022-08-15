@@ -122,7 +122,7 @@ func TestCallGoerli(t *testing.T) {
 	for _, testAccount := range testnetAccounts {
 		call := types.FunctionCall{
 			ContractAddress:    testAccount.Address,
-			EntryPointSelector: types.StrToFelt("get_signer"),
+			EntryPointSelector: "get_signer",
 		}
 
 		resp, err := gw.Call(context.Background(), call, "")
@@ -174,7 +174,7 @@ func TestE2EDevnet(t *testing.T) {
 			tx := []types.Transaction{
 				{
 					ContractAddress:    txDetails.Transaction.ContractAddress,
-					EntryPointSelector: types.StrToFelt("set_rand"),
+					EntryPointSelector: "set_rand",
 					Calldata:           []*types.Felt{types.StrToFelt(rand)},
 				},
 			}
@@ -199,7 +199,7 @@ func TestE2EDevnet(t *testing.T) {
 			execResp, err := account.Execute(context.Background(), tx,
 				caigo.ExecuteDetails{
 					MaxFee: fee,
-					Nonce:  nonce,
+					Nonce:  typenonce,
 				})
 			if err != nil {
 				t.Errorf("Could not execute test transaction: %v\n", err)
@@ -212,7 +212,7 @@ func TestE2EDevnet(t *testing.T) {
 
 			call := types.FunctionCall{
 				ContractAddress:    txDetails.Transaction.ContractAddress,
-				EntryPointSelector: types.StrToFelt("get_rand"),
+				EntryPointSelector: "get_rand",
 			}
 			callResp, err := gw.Call(context.Background(), call, "")
 			if err != nil {

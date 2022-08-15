@@ -1,4 +1,4 @@
-package types
+package felt
 
 import (
 	"database/sql"
@@ -26,6 +26,9 @@ var (
 type Felt struct {
 	*big.Int
 }
+
+// Signature is a list of Felt.
+type Signature []Felt
 
 // Big converts a Felt to its big.Int representation.
 func (f *Felt) Big() *big.Int {

@@ -1,4 +1,4 @@
-package caigo
+package felt
 
 import (
 	"bytes"
@@ -13,6 +13,8 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+var errWrongFormat = fmt.Errorf("wrongFormat")
+
 // KeccakState wraps sha3.state. In addition to the usual hash methods, it also supports
 // Read to get a variable amount of data from the hash state. Read is faster than Sum
 // because it doesn't copy the internal state, but also modifies the internal state.
@@ -23,26 +25,21 @@ type KeccakState interface {
 
 // given x will find corresponding public key coordinate on curve
 func (sc StarkCurve) XToPubKey(x string) (*big.Int, *big.Int) {
-	xin := HexToBN(x)
+	xin := strToBig(x)
 
 	yout := sc.GetYCoordinate(xin)
 
 	return xin, yout
 }
 
-// convert utf8 string to big int
-func UTF8StrToBig(str string) *big.Int {
+// UTF8StrToFelt converts an utf8 string to a Felt
+func UTF8StrToFelt(str string) (*Felt, error) {
 	hexStr := hex.EncodeToString([]byte(str))
-	b, _ := new(big.Int).SetString(hexStr, 16)
-
-	return b
-}
-
-// convert decimal string to big int
-func StrToBig(str string) *big.Int {
-	b, _ := new(big.Int).SetString(str, 10)
-
-	return b
+	b, ok := new(big.Int).SetString(hexStr, 16)
+	if !ok {
+		return nil, errWrongFormat
+	}
+	return &Felt{Int: b}, nil
 }
 
 // convert hex string to StarkNet 'short string'
@@ -51,14 +48,6 @@ func HexToShortStr(hexStr string) string {
 	hb, _ := new(big.Int).SetString(numStr, 16)
 
 	return string(hb.Bytes())
-}
-
-// trim "0x" prefix(if exists) and converts hexidecimal string to big int
-func HexToBN(hexString string) *big.Int {
-	numStr := strings.Replace(hexString, "0x", "", -1)
-
-	n, _ := new(big.Int).SetString(numStr, 16)
-	return n
 }
 
 // trim "0x" prefix(if exists) and converts hexidecimal string to byte slice
@@ -160,12 +149,12 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	return h.Sum(buf[:0])
 }
 
-func GetSelectorFromName(funcName string) *big.Int {
+func GetSelectorFromName(funcName string) Felt {
 	kec := Keccak256([]byte(funcName))
 
 	maskedKec := MaskBits(250, 8, kec)
 
-	return new(big.Int).SetBytes(maskedKec)
+	return Felt{Int: big.NewInt(0).SetBytes(maskedKec)}
 }
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
@@ -220,7 +209,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 
 // split a fact into two felts
 func SplitFactStr(fact string) (fact_low, fact_high string) {
-	factBN := HexToBN(fact)
+	factBN := strToBig(fact)
 	factBytes := factBN.Bytes()
 	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
 	factBytes = append(lpadfactBytes, factBytes...)
@@ -245,10 +234,19 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 }
 
 // used in string conversions when interfacing with the APIs
-func SNValToBN(str string) *big.Int {
-	if strings.Contains(str, "0x") {
-		return HexToBN(str)
-	} else {
-		return StrToBig(str)
+func TextToFelt(str string) (*Felt, error) {
+	b, ok := big.NewInt(0).SetString(str, 0)
+	if !ok {
+		return nil, errWrongFormat
 	}
+	return &Felt{Int: b}, nil
+}
+
+// used in string conversions when interfacing with the APIs
+func strToBig(str string) *big.Int {
+	b, ok := big.NewInt(0).SetString(str, 0)
+	if !ok {
+		panic(errWrongFormat)
+	}
+	return b
 }

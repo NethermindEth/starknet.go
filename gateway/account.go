@@ -3,18 +3,16 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*types.Felt, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
-		EntryPointSelector: types.StrToFelt("get_nonce"),
+		EntryPointSelector: "get_nonce",
 	}, "")
 	if err != nil {
 		return nil, err
@@ -23,7 +21,7 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*big.
 		return nil, fmt.Errorf("no resp in contract call 'get_nonce' %v", address)
 	}
 
-	return caigo.HexToBN(resp[0]), nil
+	return types.StrToFelt(resp[0]), nil
 }
 
 func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {

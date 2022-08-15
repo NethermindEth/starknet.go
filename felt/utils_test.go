@@ -1,4 +1,4 @@
-package caigo
+package felt
 
 import (
 	"testing"

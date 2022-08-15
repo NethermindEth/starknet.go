@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+
+	"github.com/dontpanicdao/caigo/felt"
 )
 
 type TypedData struct {
@@ -34,9 +36,9 @@ type TypedMessage interface {
 }
 
 /*
-	encoding definition for standard StarkNet Domain messages
+encoding definition for standard StarkNet Domain messages
 */
-func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
+func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []felt.Felt) {
 	switch field {
 	case "name":
 		fmtEnc = append(fmtEnc, UTF8StrToBig(dm.Name))
@@ -49,7 +51,7 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 }
 
 /*
-	'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
+'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
 */
 func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{

@@ -3,15 +3,15 @@ package types
 type Bytecode []string
 
 type Block struct {
-	BlockHash       *Felt          `json:"block_hash"`
-	ParentBlockHash string         `json:"parent_hash"`
-	BlockNumber     int            `json:"block_number"`
-	NewRoot         string         `json:"new_root"`
-	OldRoot         string         `json:"old_root"`
-	Status          string         `json:"status"`
-	AcceptedTime    uint64         `json:"accepted_time"`
-	GasPrice        string         `json:"gas_price"`
-	Transactions    []*Transaction `json:"transactions"`
+	BlockHash       Felt          `json:"block_hash"`
+	ParentBlockHash *Felt         `json:"parent_hash"`
+	BlockNumber     uint64        `json:"block_number"`
+	NewRoot         string        `json:"new_root"`
+	OldRoot         string        `json:"old_root"`
+	Status          string        `json:"status"`
+	AcceptedTime    uint64        `json:"accepted_time"`
+	GasPrice        *Felt         `json:"gas_price"`
+	Transactions    []Transaction `json:"transactions"`
 }
 
 type Code struct {
@@ -66,13 +66,13 @@ type ABI struct {
 
 type AddTxResponse struct {
 	Code            string `json:"code"`
-	TransactionHash string `json:"transaction_hash"`
+	TransactionHash Felt   `json:"transaction_hash"`
 }
 
 type DeployRequest struct {
 	Type                string        `json:"type"`
-	ContractAddressSalt string        `json:"contract_address_salt"`
-	ConstructorCalldata []string      `json:"constructor_calldata"`
+	ContractAddressSalt *Felt         `json:"contract_address_salt"`
+	ConstructorCalldata []Felt        `json:"constructor_calldata"`
 	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
@@ -84,7 +84,7 @@ type ContractClass struct {
 
 type DeclareRequest struct {
 	Type          string        `json:"type"`
-	SenderAddress string        `json:"sender_address"`
+	SenderAddress Felt          `json:"sender_address"`
 	MaxFee        string        `json:"max_fee"`
 	Nonce         string        `json:"nonce"`
 	Signature     []string      `json:"signature"`
@@ -103,27 +103,25 @@ type EntryPointList struct {
 }
 
 type FunctionCall struct {
-	ContractAddress    *Felt   `json:"contract_address"`
-	EntryPointSelector string  `json:"entry_point_selector"`
-	Calldata           []*Felt `json:"calldata"`
+	ContractAddress    Felt   `json:"contract_address"`
+	EntryPointSelector *Felt  `json:"entry_point_selector"`
+	Calldata           []Felt `json:"calldata"`
 }
-
-type Signature []*Felt
 
 type FunctionInvoke struct {
 	FunctionCall
 	MaxFee          *Felt     `json:"max_fee,omitempty"`
 	Nonce           *Felt     `json:"nonce,omitempty"`
-	Version         uint64    `json:"version,omitempty"`
+	Version         *Felt     `json:"version,omitempty"`
 	Signature       Signature `json:"signature,omitempty"`
-	TransactionHash *Felt     `json:"txn_hash,omitempty"`
+	TransactionHash Felt      `json:"txn_hash,omitempty"`
 }
 
 // FeeEstimate provides a set of properties to understand fee estimations.
 type FeeEstimate struct {
-	OverallFee uint64 `json:"overall_fee,omitempty"`
-	GasUsage   uint64 `json:"gas_usage,omitempty"`
-	GasPrice   uint64 `json:"gas_price,omitempty"`
+	OverallFee *Felt  `json:"overall_fee,omitempty"`
+	GasUsage   *Felt  `json:"gas_usage,omitempty"`
+	GasPrice   *Felt  `json:"gas_price,omitempty"`
 	Unit       string `json:"unit,omitempty"`
 }
 

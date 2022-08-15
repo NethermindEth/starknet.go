@@ -16,7 +16,7 @@ const (
 
 type Account struct {
 	Provider types.Provider
-	Address  *types.Felt
+	Address  types.Felt
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
@@ -25,7 +25,7 @@ type Account struct {
 type ExecuteDetails struct {
 	MaxFee  *types.Felt
 	Nonce   *types.Felt
-	Version *uint64 // not used currently
+	Version *types.Felt
 }
 
 /*
@@ -35,7 +35,7 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - full provider definition
 - public key pair for signature verifications
 */
-func NewAccount(private string, address *types.Felt, provider types.Provider) (*Account, error) {
+func NewAccount(private string, address types.Felt, provider types.Provider) (*Account, error) {
 	priv := SNValToBN(private)
 	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
@@ -144,7 +144,7 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.Transactio
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: EXECUTE_SELECTOR,
+			EntryPointSelector: GetSelectorFromName(EXECUTE_SELECTOR),
 			Calldata:           ExecuteCalldata(details.Nonce, calls),
 		},
 		MaxFee: details.MaxFee,

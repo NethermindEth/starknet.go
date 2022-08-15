@@ -58,8 +58,8 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 }
 
 // BlockNumber gets the most recent accepted block number.
-func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
-	var blockNumber big.Int
+func (sc *Client) BlockNumber(ctx context.Context) (uint64, error) {
+	var blockNumber uint64
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (sc *Client) BlockByHash(ctx context.Context, hash *types.Felt, scope strin
 }
 
 // BlockByNumber gets block information given the block number (its height).
-func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
+func (sc *Client) BlockByNumber(ctx context.Context, number uint64, scope string) (*types.Block, error) {
 	var block types.Block
 	if err := sc.do(ctx, "starknet_getBlockByNumber", &block, toBlockNumArg(number), scope); err != nil {
 		return nil, err

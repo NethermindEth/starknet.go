@@ -83,7 +83,7 @@ func TestBlock(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if block == nil || block.BlockHash == nil || block.BlockHash.Cmp(test.BlockHash.Int) != 0 {
+		if block == nil || block.BlockHash.Cmp(test.BlockHash.Int) != 0 {
 			t.Fatalf("expecting %v, instead: %v", test.BlockHash, block.BlockHash)
 		}
 	}

@@ -39,7 +39,7 @@ func TestBlockByNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockNumber       *big.Int
+		BlockNumber       uint64
 		BlockScope        string
 		ExpectedBlockHash *types.Felt
 		ExpectedStatus    string
@@ -48,7 +48,7 @@ func TestBlockByNumber(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockNumber:       big.NewInt(1000),
+				BlockNumber:       1000,
 				BlockScope:        "FULL_TXN_AND_RECEIPTS",
 				ExpectedBlockHash: types.StrToFelt("0xdeadbeef"),
 				ExpectedStatus:    "ACCEPTED_ON_L1",

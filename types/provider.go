@@ -2,13 +2,12 @@ package types
 
 import (
 	"context"
-	"math/big"
 )
 
 type Provider interface {
-	AccountNonce(context.Context, *Felt) (*Felt, error)
-	BlockByHash(context.Context, *Felt, string) (*Block, error)
-	BlockByNumber(context.Context, *big.Int, string) (*Block, error)
+	AccountNonce(context.Context, Felt) (*Felt, error)
+	BlockByHash(context.Context, Felt, string) (*Block, error)
+	BlockByNumber(context.Context, int64, string) (*Block, error)
 	Call(context.Context, FunctionCall, string) ([]string, error)
 	ChainID(context.Context) (string, error)
 	Invoke(context.Context, FunctionInvoke) (*AddTxResponse, error)

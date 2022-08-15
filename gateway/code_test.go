@@ -3,9 +3,8 @@ package gateway
 import (
 	"context"
 	"encoding/json"
-	"math/big"
-	"testing"
 	"fmt"
+	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-cmp/cmp"
@@ -21,12 +20,12 @@ func TestProvider_Code(t *testing.T) {
 
 	for _, tc := range []struct {
 		address     string
-		blockNumber *big.Int
+		blockNumber uint64
 	}{{
 		address: "0x06eeefce63bc81620e375c7501cb7b5aecdf9fb99aa5ec25886b8b854c4293cb",
 	}, {
 		address:     "0x06eeefce63bc81620e375c7501cb7b5aecdf9fb99aa5ec25886b8b854c4293cb",
-		blockNumber: big.NewInt(582),
+		blockNumber: 582,
 	}} {
 		ctx := context.Background()
 		sg := NewClient(WithChain("main"))
@@ -45,7 +44,7 @@ func TestProviderFullContract(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ABIName	string
+		ABIName              string
 		Starknet             string
 		GpsStatementVerifier string
 	}
@@ -54,14 +53,14 @@ func TestProviderFullContract(t *testing.T) {
 		"mock":   {},
 		"testnet": {
 			{
-				ABIName: 	"planet_genereted",
+				ABIName:              "planet_genereted",
 				Starknet:             "0x04358e376b5c68f17dc1cbdbde19914f1dd6e52a2eddb5b4b0d694716fe5d89b",
 				GpsStatementVerifier: "0xab43ba48c9edf4c2c4bb01237348d1d7b28ef168",
 			},
 		},
 		"mainnet": {
 			{
-				ABIName: 	"",
+				ABIName:              "",
 				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
 				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60",
 			},
