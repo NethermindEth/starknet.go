@@ -69,6 +69,7 @@ support the same signature as an other. To start with account, read:
 - [Starknet Account Abstraction Model - Part 1](https://community.starknet.io/t/starknet-account-abstraction-model-part-1/781)
 - [Starknet Account Abstraction Model - Part 2](https://community.starknet.io/t/starknet-account-abstraction-model-part-2/839)
 - [Learn how to build and deploy StarkNet Accounts](https://github.com/starknet-edu/starknet-accounts)
+  and the companion [Starknet workshop](https://www.youtube.com/watch?v=51Qb3TLpNro)
 - Openzeppelin Cairo contracts that includes an account
   [implementation](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account)
 - The argent-x contract
