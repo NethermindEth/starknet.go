@@ -2,6 +2,7 @@ package caigo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -9,12 +10,14 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-const (
-	EXECUTE_SELECTOR    string = "__execute__"
-	TRANSACTION_PREFIX  string = "invoke"
-	TRANSACTION_VERSION int64  = 0
-	FEE_MARGIN          uint64 = 115
+var (
+	EXECUTE_SELECTOR      = felt.GetSelectorFromName("__execute__")
+	TRANSACTION_PREFIX, _ = felt.UTF8StrToFelt("invoke")
+	FEE_MARGIN            = felt.BigToFelt(big.NewInt(115))
+	TRANSACTION_VERSION   = felt.BigToFelt(big.NewInt(0))
 )
+
+var errNonceEmpty = errors.New("emptynonce")
 
 type Account struct {
 	Provider types.Provider
@@ -37,12 +40,11 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - full provider definition
 - public key pair for signature verifications
 */
-func NewAccount(private string, address felt.Felt, provider types.Provider) (*Account, error) {
-	priv, ok := big.NewInt(0).SetString(private, 0)
-	if !ok {
+func NewAccount(private *big.Int, address felt.Felt, provider types.Provider) (*Account, error) {
+	if private == nil {
 		return nil, fmt.Errorf("wrongPrivate")
 	}
-	x, y, err := felt.GetCurve().PrivateToPoint(priv)
+	x, y, err := felt.GetCurve().PrivateToPoint(private)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +53,11 @@ func NewAccount(private string, address felt.Felt, provider types.Provider) (*Ac
 		Address:  address,
 		PublicX:  x,
 		PublicY:  y,
-		private:  priv,
+		private:  private,
 	}, nil
 }
 
-func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
+func (account *Account) Sign(msgHash felt.Felt) (*felt.Signature, error) {
 	return felt.GetCurve().Sign(msgHash, account.private)
 }
 
@@ -78,9 +80,14 @@ func (account *Account) Execute(ctx context.Context, calls []types.Transaction, 
 		if err != nil {
 			return nil, err
 		}
-		details.MaxFee = &types.Felt{
-			Int: new(big.Int).SetUint64((fee.OverallFee * FEE_MARGIN) / 100),
+		if fee.OverallFee == nil {
+			return nil, errors.New("overallFeeUnknown")
 		}
+		margin := felt.NewFelt().Mul(*fee.OverallFee, FEE_MARGIN)
+		if margin.IsNil() {
+			return nil, errors.New("marginIsNil")
+		}
+		details.MaxFee = margin.Div(*margin, felt.BigToFelt(big.NewInt(100)))
 	}
 
 	req, err := account.fmtExecute(ctx, calls, details)
@@ -91,36 +98,33 @@ func (account *Account) Execute(ctx context.Context, calls []types.Transaction, 
 	return account.Provider.Invoke(ctx, *req)
 }
 
-func (account *Account) HashMultiCall(fee *types.Felt, nonce *types.Felt, calls []types.Transaction) (*big.Int, error) {
+func (account *Account) HashMultiCall(fee *felt.Felt, nonce felt.Felt, calls []types.Transaction) (*felt.Felt, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
-
 	callArray := ExecuteCalldata(nonce, calls)
 
 	// convert callArray into a BigInt array
-	callArrayBigInt := make([]*big.Int, 0)
-	for _, call := range callArray {
-		callArrayBigInt = append(callArrayBigInt, call.Int)
-	}
+	callArrayFelt := make([]felt.Felt, 0)
+	callArrayFelt = append(callArrayFelt, callArray...)
 
-	cdHash, err := Curve.ComputeHashOnElements(callArrayBigInt)
+	cdHash, err := felt.GetCurve().ComputeHashOnElements(callArrayFelt)
 	if err != nil {
 		return nil, err
 	}
-
-	multiHashData := []big.Felt{
-		felt.UTF8StrToFelt(TRANSACTION_PREFIX),
-		big.NewInt(TRANSACTION_VERSION),
-		SNValToBN(account.Address.String()),
-		GetSelectorFromName(EXECUTE_SELECTOR),
-		cdHash,
-		fee.Int,
-		UTF8StrToBig(chainID),
+	chain, _ := felt.UTF8StrToFelt(chainID)
+	multiHashData := []felt.Felt{
+		*TRANSACTION_PREFIX,
+		TRANSACTION_VERSION,
+		account.Address,
+		EXECUTE_SELECTOR,
+		*cdHash,
+		felt.BigToFelt(fee.Int),
+		*chain,
 	}
 
-	return Curve.ComputeHashOnElements(multiHashData)
+	return felt.GetCurve().ComputeHashOnElements(multiHashData)
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FeeEstimate, error) {
@@ -133,7 +137,8 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 	}
 
 	if details.MaxFee == nil {
-		details.MaxFee = &types.Felt{Int: big.NewInt(0)}
+		maxFee := felt.BigToFelt(big.NewInt(0))
+		details.MaxFee = &maxFee
 	}
 
 	req, err := account.fmtExecute(ctx, calls, details)
@@ -145,51 +150,53 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.Transacti
 }
 
 func (account *Account) fmtExecute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FunctionInvoke, error) {
+	if details.Nonce == nil {
+		return nil, errNonceEmpty
+	}
 	req := types.FunctionInvoke{
 		FunctionCall: types.FunctionCall{
 			ContractAddress:    account.Address,
-			EntryPointSelector: GetSelectorFromName(EXECUTE_SELECTOR),
-			Calldata:           ExecuteCalldata(details.Nonce, calls),
+			EntryPointSelector: &EXECUTE_SELECTOR,
+			Calldata:           ExecuteCalldata(*details.Nonce, calls),
 		},
 		MaxFee: details.MaxFee,
 	}
 
-	hash, err := account.HashMultiCall(details.MaxFee, details.Nonce, calls)
+	hash, err := account.HashMultiCall(details.MaxFee, *details.Nonce, calls)
 	if err != nil {
 		return nil, err
 	}
 
-	r, s, err := account.Sign(hash)
+	signature, err := account.Sign(*hash)
 	if err != nil {
 		return nil, err
 	}
-	req.Signature = types.Signature{types.BigToFelt(r), types.BigToFelt(s)}
-
+	req.Signature = *signature
 	return &req, nil
 }
 
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func ExecuteCalldata(nonce *types.Felt, calls []types.Transaction) (calldataArray []*types.Felt) {
-	callArray := []*types.Felt{types.BigToFelt(big.NewInt(int64(len(calls))))}
+func ExecuteCalldata(nonce felt.Felt, calls []types.Transaction) (calldataArray []felt.Felt) {
+	callArray := []felt.Felt{felt.BigToFelt(big.NewInt(int64(len(calls))))}
 
 	for _, tx := range calls {
-		callArray = append(callArray, types.BigToFelt(SNValToBN(tx.ContractAddress.String())), types.BigToFelt(GetSelectorFromName(tx.EntryPointSelector)))
+		callArray = append(callArray, tx.ContractAddress)
+		if tx.EntryPointSelector != nil {
+			callArray = append(callArray, *tx.EntryPointSelector)
+		}
 
 		if len(tx.Calldata) == 0 {
-			callArray = append(callArray, types.BigToFelt(big.NewInt(0)), types.BigToFelt(big.NewInt(0)))
-
+			callArray = append(callArray, felt.BigToFelt(big.NewInt(0)), felt.BigToFelt(big.NewInt(0)))
 			continue
 		}
 
-		callArray = append(callArray, types.BigToFelt(big.NewInt(int64(len(calldataArray)))), types.BigToFelt(big.NewInt(int64(len(tx.Calldata)))))
-		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, types.BigToFelt(SNValToBN(cd.String())))
-		}
+		callArray = append(callArray, felt.BigToFelt(big.NewInt(int64(len(calldataArray)))), felt.BigToFelt(big.NewInt(int64(len(tx.Calldata)))))
+		calldataArray = append(calldataArray, tx.Calldata...)
 	}
 
-	callArray = append(callArray, types.BigToFelt(big.NewInt(int64(len(calldataArray)))))
+	callArray = append(callArray, felt.BigToFelt(big.NewInt(int64(len(calldataArray)))))
 	callArray = append(callArray, calldataArray...)
 	callArray = append(callArray, nonce)
 	return callArray

@@ -6,13 +6,15 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/dontpanicdao/caigo/felt"
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*types.Felt, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address felt.Felt) (*felt.Felt, error) {
+	selector := felt.GetSelectorFromName("get_nonce")
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
-		EntryPointSelector: "get_nonce",
+		EntryPointSelector: &selector,
 	}, "")
 	if err != nil {
 		return nil, err
@@ -20,8 +22,8 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address *types.Felt) (*type
 	if len(resp) == 0 {
 		return nil, fmt.Errorf("no resp in contract call 'get_nonce' %v", address)
 	}
-
-	return types.StrToFelt(resp[0]), nil
+	output, err := felt.TextToFelt(resp[0])
+	return output, err
 }
 
 func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {

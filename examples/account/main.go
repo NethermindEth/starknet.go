@@ -6,15 +6,16 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/felt"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
 )
 
 var (
 	name            string = "testnet"
-	counterContract string = "0x0331034cbde9af8aef62929b5886b096ae3d11e33e6ca23122669e928d406500"
-	address         string = "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
-	privakeKey      string = "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
+	counterContract        = felt.StrToFelt("0x0331034cbde9af8aef62929b5886b096ae3d11e33e6ca23122669e928d406500")
+	address                = felt.StrToFelt("0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246")
+	privakeKey, _          = big.NewInt(0).SetString("0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126", 0)
 	feeMargin       uint64 = 115
 	maxPoll         int    = 5
 	pollInterval    int    = 150
@@ -25,9 +26,10 @@ func main() {
 	gw := gateway.NewProvider(gateway.WithChain(name))
 
 	// get count before tx
+	entryPointSelector := felt.GetSelectorFromName("get_count")
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    counterContract,
-		EntryPointSelector: "get_count",
+		EntryPointSelector: &entryPointSelector,
 	}, "")
 	if err != nil {
 		panic(err.Error())

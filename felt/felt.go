@@ -67,7 +67,7 @@ func NewFelt() *Felt {
 	return &Felt{}
 }
 
-// Add a Felt to an existing Felt
+// Add adds a Felt to an existing Felt
 func (f *Felt) Add(x, y Felt) *Felt {
 	if f == nil {
 		return nil
@@ -80,6 +80,54 @@ func (f *Felt) Add(x, y Felt) *Felt {
 		f.Int = new(big.Int)
 	}
 	f.Int.Add(x.Int, y.Int)
+	return f
+}
+
+// Mul multiplies 2 Felts
+func (f *Felt) Mul(x, y Felt) *Felt {
+	if f == nil {
+		return nil
+	}
+	if x.IsNil() || y.IsNil() {
+		f.Int = nil
+		return f
+	}
+	if f.Int == nil {
+		f.Int = new(big.Int)
+	}
+	f.Int.Mul(x.Int, y.Int)
+	return f
+}
+
+// Sub substracts a Felt from an Felt
+func (f *Felt) Sub(x, y Felt) *Felt {
+	if f == nil {
+		return nil
+	}
+	if x.IsNil() || y.IsNil() {
+		f.Int = nil
+		return f
+	}
+	if f.Int == nil {
+		f.Int = new(big.Int)
+	}
+	f.Int.Sub(x.Int, y.Int)
+	return f
+}
+
+// Div divides a Felt by a Felt
+func (f *Felt) Div(x, y Felt) *Felt {
+	if f == nil {
+		return nil
+	}
+	if x.IsNil() || y.IsNil() {
+		f.Int = nil
+		return f
+	}
+	if f.Int == nil {
+		f.Int = new(big.Int)
+	}
+	f.Int.Div(x.Int, y.Int)
 	return f
 }
 
