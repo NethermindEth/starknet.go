@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"math/big"
 	"testing"
-	"fmt"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-cmp/cmp"
@@ -74,7 +73,6 @@ func TestProviderFullContract(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		fmt.Println("full contract contract.ABI: ", contract.ABI[1].Name)
 		if contract.ABI[1].Name != test.ABIName {
 			t.Fatalf("expecting %s, instead: %s", "", contract.ABI[1].Name)
 		}
