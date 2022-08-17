@@ -147,6 +147,16 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 /*
+	Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
+
+	(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
+*/
+func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
+	elems = append(elems, big.NewInt(int64(len(elems))))
+	return Curve.HashElements((elems))
+}
+
+/*
 	Provides the pedersen hash of given array of big integers.
 	NOTE: This function assumes the curve has been initialized with contant points
 
