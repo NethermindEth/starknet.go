@@ -89,8 +89,7 @@ func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkC
 	}
 
 	elements = append(elements, msgEnc)
-	elements = append(elements, big.NewInt(int64(len(elements))))
-	hash, err = sc.HashElements(elements)
+	hash, err = sc.ComputeHashOnElements(elements)
 	return hash, err
 }
 
@@ -119,8 +118,7 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc Star
 		elements = append(elements, innerHash)
 	}
 
-	elements = append(elements, big.NewInt(int64(len(elements))))
-	hash, err = sc.HashElements(elements)
+	hash, err = sc.ComputeHashOnElements(elements)
 	return hash, err
 }
 

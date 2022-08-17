@@ -27,6 +27,31 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	})
 }
 
+func TestComputeHashOnElements(t *testing.T) {
+	hashEmptyArray, err := Curve.ComputeHashOnElements([]*big.Int{})
+	expectedHashEmmptyArray := HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
+	if err != nil {
+		t.Errorf("Could no hash an empty array %v\n", err)
+	}
+	if hashEmptyArray.Cmp(expectedHashEmmptyArray) != 0 {
+		t.Errorf("Hash empty array wrong value. Expected %v got %v\n", expectedHashEmmptyArray, hashEmptyArray)
+	}
+
+	hashFilledArray, err := Curve.ComputeHashOnElements([]*big.Int{
+		big.NewInt(123782376),
+		big.NewInt(213984),
+		big.NewInt(128763521321),
+	})
+	expectedHashFilledArray := HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+
+	if err != nil {
+		t.Errorf("Could no hash an array with values %v\n", err)
+	}
+	if hashFilledArray.Cmp(expectedHashFilledArray) != 0 {
+		t.Errorf("Hash filled array wrong value. Expected %v got %v\n", expectedHashFilledArray, hashFilledArray)
+	}
+}
+
 func TestHashAndSign(t *testing.T) {
 	hashy, err := Curve.HashElements([]*big.Int{
 		big.NewInt(1953658213),
