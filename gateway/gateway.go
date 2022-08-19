@@ -99,7 +99,6 @@ func (sg *Gateway) newRequest(
 		return nil, err
 	}
 
-
 	if body != nil {
 		data, err := json.Marshal(body)
 		if err != nil {

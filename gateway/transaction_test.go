@@ -1,30 +1,30 @@
 package gateway
 
 import (
-	"testing"
 	"context"
 	"math/big"
+	"testing"
 )
 
-func TestGetTransaction(t *testing.T) {
+func TestTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TransactionIndex int         
-		BlockNumber      int         
-		Transaction      Transaction 
-		BlockHash        string      
-		Status           string      
-		opts    TransactionOptions
+		TransactionIndex int
+		BlockNumber      int
+		Transaction      Transaction
+		BlockHash        string
+		Status           string
+		opts             TransactionOptions
 	}
 
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{TransactionIndex: 3, 
-			Status: "ACCEPTED_ON_L1", 
+		"devnet": {},
+		"testnet": {{TransactionIndex: 3,
+			Status:      "ACCEPTED_ON_L1",
 			BlockNumber: 0,
-			BlockHash: "0x7d328a71faf48c5c3857e99f20a77b18522480956d1cd5bff1ff2df3c8b427b",
-			opts: TransactionOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
+			BlockHash:   "0x7d328a71faf48c5c3857e99f20a77b18522480956d1cd5bff1ff2df3c8b427b",
+			opts:        TransactionOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -39,23 +39,23 @@ func TestGetTransaction(t *testing.T) {
 	}
 }
 
-func TestGetTransactionStatus(t *testing.T) {
+func TestTransactionStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxStatus        string 
-		BlockHash       string 
+		TxStatus        string
+		BlockHash       string
 		TxFailureReason struct {
-			ErrorMessage string 
-		} 
+			ErrorMessage string
+		}
 		opts TransactionStatusOptions
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{ 
-			TxStatus: "ACCEPTED_ON_L1", 
+		"devnet": {},
+		"testnet": {{
+			TxStatus:  "ACCEPTED_ON_L1",
 			BlockHash: "0x7d328a71faf48c5c3857e99f20a77b18522480956d1cd5bff1ff2df3c8b427b",
-			opts: TransactionStatusOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
+			opts:      TransactionStatusOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -70,18 +70,18 @@ func TestGetTransactionStatus(t *testing.T) {
 	}
 }
 
-func TestGetTransactionID(t *testing.T) {
+func TestTransactionID(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash       string 
-		TxId	*big.Int
+		TxHash string
+		TxId   *big.Int
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{ 
+		"devnet": {},
+		"testnet": {{
 			TxHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5",
-			TxId: big.NewInt(3)}},
+			TxId:   big.NewInt(3)}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -96,18 +96,18 @@ func TestGetTransactionID(t *testing.T) {
 	}
 }
 
-func TestGetTransactionHash(t *testing.T) {
+func TestTransactionHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash       string 
-		TxId	*big.Int
+		TxHash string
+		TxId   *big.Int
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{ 
+		"devnet": {},
+		"testnet": {{
 			TxHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5",
-			TxId: big.NewInt(3)}},
+			TxId:   big.NewInt(3)}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -122,30 +122,30 @@ func TestGetTransactionHash(t *testing.T) {
 	}
 }
 
-func TestGetTransactionReceipt(t *testing.T) {
+func TestTransactionReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TransactionHash string       
-		Status          string       
-		BlockHash             string 
-		BlockNumber           int    
-		TransactionIndex      int    
+		TransactionHash       string
+		Status                string
+		BlockHash             string
+		BlockNumber           int
+		TransactionIndex      int
 		L1ToL2ConsumedMessage struct {
-			FromAddress string   
-			ToAddress   string   
-			Selector    string   
-			Payload     []string 
-		} 
-		L2ToL1Messages     []interface{}            
-		Events             []interface{}            
-		//ExecutionResources types.ExecutionResources 
+			FromAddress string
+			ToAddress   string
+			Selector    string
+			Payload     []string
 		}
+		L2ToL1Messages []interface{}
+		Events         []interface{}
+		//ExecutionResources types.ExecutionResources
+	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{ 
+		"devnet": {},
+		"testnet": {{
 			TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5",
-			Status: "ACCEPTED_ON_L1"}},
+			Status:          "ACCEPTED_ON_L1"}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -160,18 +160,18 @@ func TestGetTransactionReceipt(t *testing.T) {
 	}
 }
 
-func TestGetTransactionTrace(t *testing.T) {
+func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TransactionHash string       
-		ContractAddress             string 
-		//FunctionInvocation FunctionInvocation 
-		//Signature          []*Felt            
-		}
+		TransactionHash string
+		ContractAddress string
+		//FunctionInvocation FunctionInvocation
+		//Signature          []*Felt
+	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"testnet": {{ 
+		"devnet": {},
+		"testnet": {{
 			TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5",
 			ContractAddress: "0x2adb4393384c09f049c06bc0070b7a2f72c9cbdcbe841fa7e109a520466cd66"}},
 	}[testEnv]
