@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dontpanicdao/caigo/felt"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
@@ -17,23 +18,23 @@ type StarknetTransaction struct {
 	TransactionIndex int         `json:"transaction_index"`
 	BlockNumber      uint64      `json:"block_number"`
 	Transaction      Transaction `json:"transaction"`
-	BlockHash        *types.Felt `json:"block_hash"`
+	BlockHash        *felt.Felt  `json:"block_hash"`
 	Status           string      `json:"status"`
 }
 
 type Transaction struct {
-	TransactionHash    types.Felt   `json:"transaction_hash,omitempty"`
-	ClassHash          types.Felt   `json:"class_hash,omitempty"`
-	ContractAddress    types.Felt   `json:"contract_address,omitempty"`
-	SenderAddress      types.Felt   `json:"sender_address,omitempty"`
-	EntryPointSelector *types.Felt  `json:"entry_point_selector"`
-	Calldata           []types.Felt `json:"calldata"`
-	Signature          []types.Felt `json:"signature"`
-	EntryPointType     *types.Felt  `json:"entry_point_type,omitempty"`
-	MaxFee             *types.Felt  `json:"max_fee,omitempty"`
-	Nonce              *types.Felt  `json:"nonce,omitempty"`
-	Version            string       `json:"version,omitempty"`
-	Type               string       `json:"type,omitempty"`
+	TransactionHash    felt.Felt   `json:"transaction_hash,omitempty"`
+	ClassHash          felt.Felt   `json:"class_hash,omitempty"`
+	ContractAddress    felt.Felt   `json:"contract_address,omitempty"`
+	SenderAddress      felt.Felt   `json:"sender_address,omitempty"`
+	EntryPointSelector *felt.Felt  `json:"entry_point_selector"`
+	Calldata           []felt.Felt `json:"calldata"`
+	Signature          []felt.Felt `json:"signature"`
+	EntryPointType     *felt.Felt  `json:"entry_point_type,omitempty"`
+	MaxFee             *felt.Felt  `json:"max_fee,omitempty"`
+	Nonce              *felt.Felt  `json:"nonce,omitempty"`
+	Version            string      `json:"version,omitempty"`
+	Type               string      `json:"type,omitempty"`
 }
 
 func (t Transaction) Normalize() *types.Transaction {
@@ -53,16 +54,16 @@ func (t Transaction) Normalize() *types.Transaction {
 }
 
 type TransactionReceipt struct {
-	Status                string     `json:"status"`
-	BlockHash             types.Felt `json:"block_hash"`
-	BlockNumber           uint64     `json:"block_number"`
-	TransactionIndex      int        `json:"transaction_index"`
-	TransactionHash       types.Felt `json:"transaction_hash"`
+	Status                string    `json:"status"`
+	BlockHash             felt.Felt `json:"block_hash"`
+	BlockNumber           uint64    `json:"block_number"`
+	TransactionIndex      int       `json:"transaction_index"`
+	TransactionHash       felt.Felt `json:"transaction_hash"`
 	L1ToL2ConsumedMessage struct {
-		FromAddress types.Felt   `json:"from_address"`
-		ToAddress   types.Felt   `json:"to_address"`
-		Selector    types.Felt   `json:"selector"`
-		Payload     []types.Felt `json:"payload"`
+		FromAddress felt.Felt   `json:"from_address"`
+		ToAddress   felt.Felt   `json:"to_address"`
+		Selector    felt.Felt   `json:"selector"`
+		Payload     []felt.Felt `json:"payload"`
 	} `json:"l1_to_l2_consumed_message"`
 	L2ToL1Messages     []interface{}            `json:"l2_to_l1_messages"`
 	Events             []interface{}            `json:"events"`
@@ -102,8 +103,8 @@ func (gw *Gateway) Transaction(ctx context.Context, opts TransactionOptions) (*S
 }
 
 type TransactionStatusOptions struct {
-	TransactionId   uint64 `url:"transactionId,omitempty"`
-	TransactionHash string `url:"transactionHash,omitempty"`
+	TransactionId   uint64    `url:"transactionId,omitempty"`
+	TransactionHash felt.Felt `url:"transactionHash,omitempty"`
 }
 
 // Gets the transaction status from a txn.
