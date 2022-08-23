@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -56,20 +57,105 @@ func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	return &blockNumber, nil
 }
 
-// BlockByHash gets block information given the block id.
-func (sc *Client) BlockByHash(ctx context.Context, hash string, scope string) (*types.Block, error) {
-	var block types.Block
-	if err := sc.do(ctx, "starknet_getBlockByHash", &block, hash, scope); err != nil {
+// BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
+type BlockHashAndNumberOutput struct {
+	BlockNumber uint64 `json:"block_number,omitempty"`
+	BlockHash   string `json:"block_hash,omitempty"`
+}
+
+// BlockHashAndNumber gets block information given the block number or its hash.
+func (sc *Client) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
+	var block BlockHashAndNumberOutput
+	if err := sc.do(ctx, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, err
 	}
-
 	return &block, nil
 }
 
-// BlockByNumber gets block information given the block number (its height).
-func (sc *Client) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*types.Block, error) {
-	var block types.Block
-	if err := sc.do(ctx, "starknet_getBlockByNumber", &block, toBlockNumArg(number), scope); err != nil {
+// BlockID is a struct that is used in a OneOf for starknet_getBlockWithTxHashes.
+type BlockID struct {
+	BlockNumber *BlockNumber `json:"block_number,omitempty"`
+	BlockHash   *BlockHash   `json:"block_hash,omitempty"`
+	BlockTag    *string      `json:"block_tag,omitempty"`
+}
+
+type BlockHash string
+
+type BlockNumber uint64
+
+type PendingBlockWithTxsHashes struct {
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress string `json:"sequencer_address"`
+
+	// ParentHash The hash of this block's parent
+	ParentHash BlockHash `json:"parent_hash"`
+}
+
+type BlockStatus string
+
+// TxnHash a transaction's hash
+type TxnHash string
+
+// BlockBodyWithTxHashes the hashes of the transactions included in this block.
+type BlockBodyWithTxHashes struct {
+	// Transactions The hashes of the transactions included in this block
+	Transactions []TxnHash `json:"transactions"`
+}
+
+type BlockHeader struct {
+	// BlockHash The hash of this block
+	BlockHash BlockHash `json:"block_hash"`
+
+	// ParentHash The hash of this block's parent
+	ParentHash BlockHash `json:"parent_hash"`
+
+	// BlockNumber the block number (its height)
+	BlockNumber BlockNumber `json:"block_number"`
+
+	// NewRoot The new global state root
+	NewRoot string `json:"new_root"`
+
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress string `json:"sequencer_address"`
+}
+
+// BlockWithTxsHashes The block object
+type BlockWithTxsHashes struct {
+	Status BlockStatus `json:"status"`
+	BlockHeader
+	BlockBodyWithTxHashes
+}
+
+var errBadRequest = errors.New("badrequest")
+
+// BlockWithTxHashes gets block information given the block id.
+func (sc *Client) BlockWithTxHashes(ctx context.Context, blockId BlockID) (*BlockWithTxsHashes, error) {
+	var block BlockWithTxsHashes
+	if blockId.BlockTag != nil {
+		if *blockId.BlockTag != "latest" {
+			return nil, errBadRequest
+		}
+		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, blockId.BlockTag); err != nil {
+			return nil, err
+		}
+		return &block, nil
+	}
+	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, blockId); err != nil {
+		return nil, err
+	}
+	return &block, nil
+}
+
+// PendingBlockWithTxHashes gets the pending block information given the block id.
+func (sc *Client) PendingBlockWithTxHashes(ctx context.Context) (*PendingBlockWithTxsHashes, error) {
+	var block PendingBlockWithTxsHashes
+	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
 		return nil, err
 	}
 
@@ -327,20 +413,6 @@ func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*bi
 	var nonce big.Int
 	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
 	return &nonce, err
-}
-
-func toBlockNumArg(number *big.Int) interface{} {
-	var numOrTag interface{}
-
-	if number == nil {
-		numOrTag = "latest"
-	} else if number.Cmp(big.NewInt(-1)) == 0 {
-		numOrTag = "pending"
-	} else {
-		numOrTag = number.Uint64()
-	}
-
-	return numOrTag
 }
 
 func (sc *Client) Invoke(context.Context, types.FunctionInvoke) (*types.AddTxResponse, error) {

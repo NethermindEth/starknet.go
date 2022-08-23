@@ -179,7 +179,7 @@ func TestProtocolVersion(t *testing.T) {
 	}[testEnv]
 
 	if len(testSet) == 0 {
-		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+		t.Skipf("not implemented on %s", testEnv)
 	}
 	for _, test := range testSet {
 

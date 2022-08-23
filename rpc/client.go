@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -31,8 +30,6 @@ type callCloser interface {
 type Client struct {
 	c callCloser
 }
-
-var _ types.Provider = &Client{}
 
 // Dial connects a client to the given URL. It creates a `go-ethereum/rpc` *Client and relies on context.Background().
 func Dial(rawurl string) (*Client, error) {

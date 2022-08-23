@@ -2,8 +2,7 @@ package rpc
 
 import (
 	"context"
-	"fmt"
-	"math/big"
+	"strings"
 	"testing"
 )
 
@@ -32,154 +31,130 @@ func TestBlockNumber(t *testing.T) {
 	}
 }
 
-// TestBlockByNumber tests BlockByNumber
-func TestBlockByNumber(t *testing.T) {
+// TestBlockHashAndNumber tests BlockHashAndNumber and check the returned value is strictly positive
+func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	type testSetType struct {
-		BlockNumber       *big.Int
-		BlockScope        string
-		ExpectedBlockHash string
-		ExpectedStatus    string
-		ExpectedTx0Hash   string
-	}
+	type testSetType struct{}
+
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				BlockNumber:       big.NewInt(1000),
-				BlockScope:        "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockHash: "0xdeadbeef",
-				ExpectedStatus:    "ACCEPTED_ON_L1",
-				ExpectedTx0Hash:   "0xdeadbeef",
-			},
-			{
-				BlockNumber:       big.NewInt(1000),
-				BlockScope:        "FULL_TXNS",
-				ExpectedBlockHash: "0xdeadbeef",
-				ExpectedStatus:    "",
-				ExpectedTx0Hash:   "0xdeadbeef",
-			},
-		},
-		"testnet": {
-			{
-				BlockNumber:       big.NewInt(242060),
-				BlockScope:        "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockHash: "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				ExpectedStatus:    "ACCEPTED_ON_L1",
-				ExpectedTx0Hash:   "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-			},
-			{
-				BlockNumber:       big.NewInt(242060),
-				BlockScope:        "FULL_TXNS",
-				ExpectedBlockHash: "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				ExpectedStatus:    "",
-				ExpectedTx0Hash:   "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-			},
-		},
-		"mainnet": {{
-			BlockNumber:       big.NewInt(1500),
-			BlockScope:        "FULL_TXN_AND_RECEIPTS",
-			ExpectedBlockHash: "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
-			ExpectedStatus:    "ACCEPTED_ON_L1",
-			ExpectedTx0Hash:   "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
-		}},
+		"mock":    {},
+		"testnet": {{}},
+		"mainnet": {{}},
+		"devnet":  {},
 	}[testEnv]
 
-	for _, test := range testSet {
-		block, err := testConfig.client.BlockByNumber(context.Background(), test.BlockNumber, test.BlockScope)
+	for range testSet {
+		blockHashAndNumber, err := testConfig.client.BlockHashAndNumber(context.Background())
+
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.BlockHash != test.ExpectedBlockHash {
-			t.Fatalf("blockhash mismatch, expect %s, got %s :",
-				test.ExpectedBlockHash,
-				block.BlockHash)
+		if blockHashAndNumber.BlockNumber == 0 {
+			t.Fatal("current block number should be higher or equal to 1")
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
-			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
-				test.ExpectedTx0Hash,
-				block.Transactions[0].TransactionHash)
-		}
-		if block.Transactions[0].TransactionReceipt.Status != test.ExpectedStatus {
-			t.Fatalf("tx receipt mismatch, expect %s, got %s :",
-				test.ExpectedStatus,
-				block.Transactions[0].TransactionReceipt.Status)
+		if !strings.HasPrefix(blockHashAndNumber.BlockHash, "0x") {
+			t.Fatal("current block hash should return a string starting with 0x")
 		}
 	}
 }
 
-// TestBlockByHash tests BlockByHash
-func TestBlockByHash(t *testing.T) {
+// TestPendingBlockWithTxHashes tests TestPendingBlockWithTxHashes
+func TestPendingBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockHash           string
-		BlockScope          string
-		ExpectedBlockNumber int
-		ExpectedTx0Hash     string
-		ExpectedStatus      string
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				BlockHash:           "0xdeadbeef",
-				BlockScope:          "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockNumber: 1000,
-				ExpectedTx0Hash:     "0xdeadbeef",
-				ExpectedStatus:      "ACCEPTED_ON_L1",
-			},
-			{
-				BlockHash:           "0xdeadbeef",
-				BlockScope:          "FULL_TXNS",
-				ExpectedBlockNumber: 1000,
-				ExpectedTx0Hash:     "0xdeadbeef",
-				ExpectedStatus:      "",
-			},
+		"mock": {},
+		"testnet": {
+			{},
 		},
+		"mainnet": {{}},
+	}[testEnv]
+
+	for range testSet {
+		_, err := testConfig.client.PendingBlockWithTxHashes(context.Background())
+		if err == nil || !strings.Contains(err.Error(), "Pending data not supported in this configuration") {
+			t.Fatal("PendingBlockWithTxHashes should not yet be supported")
+		}
+	}
+}
+
+// TestPendingBlockWithTxHashes tests TestPendingBlockWithTxHashes
+func TestBlockWithTxHashes(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		RequestBlockHash         *BlockHash
+		RequestBlockNumber       *BlockNumber
+		RequestBlockTag          *string
+		ExpectedError            error
+		ExpectedFirstTransaction TxnHash
+	}
+	latestTag := "latest"
+	errorTag := "error"
+	testnetBlockHash := BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")
+	testnetBlockNumber := BlockNumber(307417)
+	testSet := map[string][]testSetType{
+		"mock": {},
 		"testnet": {
 			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				BlockScope:          "FULL_TXN_AND_RECEIPTS",
-				ExpectedBlockNumber: 242060,
-				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-				ExpectedStatus:      "ACCEPTED_ON_L1",
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          &latestTag,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash(""),
 			},
 			{
-				BlockHash:           "0x115aa451e374dbfdeb6f8d4c70133a39c6bb7b2948a4a3f0c9d5dda30f94044",
-				BlockScope:          "FULL_TXNS",
-				ExpectedBlockNumber: 242060,
-				ExpectedTx0Hash:     "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-				ExpectedStatus:      "",
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          &errorTag,
+				ExpectedError:            errBadRequest,
+				ExpectedFirstTransaction: TxnHash(""),
+			},
+			{
+				RequestBlockHash:         &testnetBlockHash,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          nil,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+			},
+			{
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       &testnetBlockNumber,
+				RequestBlockTag:          nil,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
 			},
 		},
-		"mainnet": {{
-			BlockHash:           "0x6f8e6413281c43bfcb9f96e315a08c57c619c9da4b10e2cb7d33369f3fb75a0",
-			BlockScope:          "FULL_TXN_AND_RECEIPTS",
-			ExpectedBlockNumber: 1500,
-			ExpectedTx0Hash:     "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
-			ExpectedStatus:      "ACCEPTED_ON_L1",
-		}},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.BlockByHash(context.Background(), test.BlockHash, test.BlockScope)
-		if err != nil {
-			t.Fatal(err)
+		blockId := BlockID{
+			BlockHash:   test.RequestBlockHash,
+			BlockNumber: test.RequestBlockNumber,
+			BlockTag:    test.RequestBlockTag,
 		}
-		if block.BlockNumber != test.ExpectedBlockNumber {
-			t.Fatalf("blockNumber mismatch, expect %d, got %d :",
-				test.ExpectedBlockNumber,
-				block.BlockNumber)
+		block, err := testConfig.client.BlockWithTxHashes(context.Background(), blockId)
+		if err != test.ExpectedError {
+			t.Fatal("PendingBlockWithTxHashes match the expected error", err)
 		}
-		if block.Transactions[0].TransactionHash != test.ExpectedTx0Hash {
-			t.Fatalf("tx[0] mismatch, expect %s, got %s :",
-				test.ExpectedTx0Hash,
-				block.Transactions[0].TransactionHash)
+		if test.ExpectedError != nil && block == nil {
+			continue
 		}
-		if block.Transactions[0].TransactionReceipt.Status != test.ExpectedStatus {
-			t.Fatalf("tx receipt mismatch, expect %s, got %s :",
-				test.ExpectedStatus,
-				block.Transactions[0].TransactionReceipt.Status)
+		if !strings.HasPrefix(string(block.BlockHash), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
+		}
+		if block.Status == "" {
+			t.Fatal("Status not be empty")
+		}
+		if len(block.Transactions) == 0 {
+			t.Fatal("the number of transaction should not be 0")
+		}
+		if test.ExpectedFirstTransaction != "" && block.Transactions[0] != test.ExpectedFirstTransaction {
+			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, block.Transactions[0])
 		}
 	}
 }
@@ -203,7 +178,7 @@ func TestStateUpdateByHash(t *testing.T) {
 	}[testEnv]
 
 	if len(testSet) == 0 {
-		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+		t.Skipf("not implemented on %s", testEnv)
 	}
 	for _, test := range testSet {
 		output, err := testConfig.client.StateUpdateByHash(context.Background(), test.BlockHashOrTag)

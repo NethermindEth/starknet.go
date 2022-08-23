@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 )
 
@@ -86,12 +85,8 @@ func TestClassAt(t *testing.T) {
 		if class == nil || class.Program == nil {
 			t.Fatal("code should exist")
 		}
-		ops, ok := class.Program.(interface{})
-		if !ok {
-			t.Fatalf("program should return interface{}, instead %T", class.Program)
-		}
-		if _, ok := ops.(string); !ok {
-			t.Fatalf("program should cast to a 'string', instead %T", ops)
+		if _, ok := class.Program.(string); !ok {
+			t.Fatalf("program should cast to a 'string', instead %T", class.Program)
 		}
 	}
 }
@@ -173,12 +168,8 @@ func TestClass(t *testing.T) {
 		if class == nil || class.Program == nil {
 			t.Fatal("code should exist")
 		}
-		ops, ok := class.Program.(interface{})
-		if !ok {
-			t.Fatalf("program should return interface{}, instead %T", class.Program)
-		}
-		if _, ok := ops.(string); !ok {
-			t.Fatalf("program should cast to a 'string', instead %T", ops)
+		if _, ok := class.Program.(string); !ok {
+			t.Fatalf("program should cast to a 'string', instead %T", class.Program)
 		}
 	}
 }
@@ -251,7 +242,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	if len(testSet) == 0 {
-		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
+		t.Skipf("not implemented on %s", testEnv)
 	}
 
 	for _, test := range testSet {
