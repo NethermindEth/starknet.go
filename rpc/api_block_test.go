@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -156,6 +157,40 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if test.ExpectedFirstTransaction != "" && block.Transactions[0] != test.ExpectedFirstTransaction {
 			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, block.Transactions[0])
 		}
+	}
+}
+
+func TestMultipleEmbed(t *testing.T) {
+	type V1 struct {
+		Label1 string
+	}
+
+	type V2 struct {
+		Label1 string
+		Label2 string
+	}
+
+	type V3 struct {
+		Label2 string
+	}
+
+	type V struct {
+		V1
+		V2
+		V3
+	}
+
+	var v V
+	jsonContent := `{"label2": "yes"}`
+	err := json.Unmarshal([]byte(jsonContent), &v)
+	if err != nil {
+		t.Fatal("should succeed, instead", err)
+	}
+	if v.V2.Label2 != "yes" {
+		t.Fatal("v2 label2 should be feed, instead", v.V2.Label2)
+	}
+	if v.V3.Label2 != "yes" {
+		t.Fatal("v3 label2 should be feed, instead", v.V3.Label2)
 	}
 }
 

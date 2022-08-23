@@ -92,6 +92,8 @@ type PendingBlockWithTxsHashes struct {
 
 	// ParentHash The hash of this block's parent
 	ParentHash BlockHash `json:"parent_hash"`
+
+	BlockBodyWithTxHashes
 }
 
 type BlockStatus string
@@ -156,6 +158,168 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockId BlockID) (*Bloc
 func (sc *Client) PendingBlockWithTxHashes(ctx context.Context) (*PendingBlockWithTxsHashes, error) {
 	var block PendingBlockWithTxsHashes
 	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
+		return nil, err
+	}
+
+	return &block, nil
+}
+
+type TxnType string
+
+type NumAsHex string
+
+type Signature []string
+
+// BroadcastedCommonTxnProperties common properties of a transaction that is sent to the sequencer (but is not yet in a block)
+type BroadcastedCommonTxnProperties struct {
+	Type TxnType `json:"type"`
+
+	// MaxFee maximal fee that can be charged for including the transaction
+	MaxFee string `json:"max_fee"`
+
+	// Version of the transaction scheme
+	Version NumAsHex `json:"version"`
+
+	// Signature
+	Signature Signature `json:"signature"`
+
+	// Nonce
+	Nonce string `json:"nonce"`
+}
+
+type CommonTxnProperties struct {
+	TransactionHash TxnHash
+	BroadcastedCommonTxnProperties
+}
+
+type Address string
+
+// FunctionCall function call information
+type FunctionCall struct {
+	ContractAddress    Address `json:"contract_address"`
+	EntryPointSelector string  `json:"entry_point_selector"`
+
+	// CallData The parameters passed to the function
+	CallData []string `json:"calldata"`
+}
+
+// InvokeTxnV0 version 0 invoke transaction
+type InvokeTxnV0 FunctionCall
+
+// InvokeTxnV1 version 1 invoke transaction
+type InvokeTxnV1 struct {
+	AccountAddress Address `json:"contract_address"`
+
+	// CallData The parameters passed to the function
+	CallData []string `json:"calldata"`
+}
+
+type InvokeTxn struct {
+	CommonTxnProperties
+	InvokeTxn interface{}
+}
+
+type L1HandlerTxn struct {
+	// TransactionHash The hash identifying the transaction
+	TransactionHash TxnHash
+
+	Type TxnType `json:"type"`
+
+	// MaxFee maximal fee that can be charged for including the transaction
+	MaxFee string `json:"max_fee"`
+
+	// Version of the transaction scheme
+	Version NumAsHex `json:"version"`
+
+	// Signature
+	Signature Signature `json:"signature"`
+
+	// Nonce
+	Nonce string `json:"nonce"`
+}
+
+type DeclareTxn struct {
+	CommonTxnProperties
+
+	// ClassHash the hash of the declared class
+	ClassHash string `json:"class_hash"`
+
+	// SenderAddress the address of the account contract sending the declaration transaction
+	SenderAddress string `json:"sender_address"`
+}
+
+// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+type DeployTxn struct {
+	// TransactionHash The hash identifying the transaction
+	TransactionHash TxnHash
+
+	// ClassHash The hash of the deployed contract's class
+	ClassHash string `json:"class_hash"`
+
+	// Version of the transaction scheme
+	Version NumAsHex `json:"version"`
+
+	Type TxnType `json:"type"`
+
+	// ContractAddress The address of the deployed contract
+	ContractAddress string `json:"contract_address"`
+
+	// ContractAddressSalt The salt for the address of the deployed contract
+	ContractAddressSalt string `json:"contract_address_salt"`
+
+	// ConstructorCalldata The parameters passed to the constructor
+	ConstructorCalldata []string `json:"constructor_calldata"`
+}
+
+type Txn interface{}
+
+// BlockBodyWithTxs the hashes of the transactions included in this block.
+type BlockBodyWithTxs struct {
+	// Transactions The hashes of the transactions included in this block
+	Transactions []Txn `json:"transactions"`
+}
+
+type BlockWithTxs struct {
+	Status BlockStatus `json:"status"`
+	BlockHeader
+	BlockBodyWithTxs
+}
+
+// BlockWithTxs get block information with full transactions given the block id.
+func (sc *Client) BlockWithTxs(ctx context.Context, blockId BlockID) (*BlockWithTxs, error) {
+	var block BlockWithTxs
+	if blockId.BlockTag != nil {
+		if *blockId.BlockTag != "latest" {
+			return nil, errBadRequest
+		}
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId.BlockTag); err != nil {
+			return nil, err
+		}
+		return &block, nil
+	}
+	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId); err != nil {
+		return nil, err
+	}
+	return &block, nil
+}
+
+type PendingBlockWithTxs struct {
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress string `json:"sequencer_address"`
+
+	// ParentHash The hash of this block's parent
+	ParentHash BlockHash `json:"parent_hash"`
+
+	BlockBodyWithTxs
+}
+
+// PendingBlockWithTxs get pending block information with full transactions.
+func (sc *Client) PendingBlockWithTxs(ctx context.Context) (*PendingBlockWithTxs, error) {
+	var block PendingBlockWithTxs
+	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "pending"); err != nil {
 		return nil, err
 	}
 
