@@ -72,18 +72,49 @@ func (sc *Client) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOu
 	return &block, nil
 }
 
-// BlockID is a struct that is used in a OneOf for starknet_getBlockWithTxHashes.
-type BlockID struct {
-	BlockNumber *BlockNumber `json:"block_number,omitempty"`
-	BlockHash   *BlockHash   `json:"block_hash,omitempty"`
-	BlockTag    *string      `json:"block_tag,omitempty"`
+// blockID is an unexposed struct that is used in a OneOf for
+// starknet_getBlockWithTxHashes.
+type blockID struct {
+	blockNumber *BlockNumber `json:"block_number,omitempty"`
+	blockHash   *BlockHash   `json:"block_hash,omitempty"`
+	blockTag    *string      `json:"block_tag,omitempty"`
+}
+
+var errInvalidBlockTag = errors.New("invalidblocktag")
+
+// BlockIDOption is an options that can be used as a parameter for
+// starknet_getBlockWithTxHashes.
+type BlockIDOption func(b *blockID) error
+
+func WithBlockIDNumber(blockNumber BlockNumber) BlockIDOption {
+	return BlockIDOption(func(b *blockID) error {
+		b.blockNumber = &blockNumber
+		return nil
+	})
+}
+
+func WithBlockIDHash(blockHash BlockHash) BlockIDOption {
+	return BlockIDOption(func(b *blockID) error {
+		b.blockHash = &blockHash
+		return nil
+	})
+}
+
+func WithBlockIDTag(blockTag string) BlockIDOption {
+	return BlockIDOption(func(b *blockID) error {
+		if blockTag != "latest" && blockTag != "pending" {
+			return errInvalidBlockTag
+		}
+		b.blockTag = &blockTag
+		return nil
+	})
 }
 
 type BlockHash string
 
 type BlockNumber uint64
 
-type PendingBlockWithTxsHashes struct {
+type PendingBlockWithTxHashes struct {
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
 
@@ -138,30 +169,29 @@ var errBadRequest = errors.New("badrequest")
 var errBadTxType = errors.New("badtxtype")
 
 // BlockWithTxHashes gets block information given the block id.
-func (sc *Client) BlockWithTxHashes(ctx context.Context, blockId BlockID) (*BlockWithTxsHashes, error) {
-	var block BlockWithTxsHashes
-	if blockId.BlockTag != nil {
-		if *blockId.BlockTag != "latest" {
-			return nil, errBadRequest
-		}
-		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, blockId.BlockTag); err != nil {
+func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
+		return nil, err
+	}
+	if opt.blockTag != nil && *opt.blockTag == "pending" {
+		var block PendingBlockWithTxHashes
+		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
 			return nil, err
 		}
 		return &block, nil
 	}
-	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, blockId); err != nil {
+	var block BlockWithTxsHashes
+	if opt.blockTag != nil && *opt.blockTag == "latest" {
+		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "latest"); err != nil {
+			return nil, err
+		}
+		return &block, nil
+	}
+	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, opt); err != nil {
 		return nil, err
 	}
-	return &block, nil
-}
-
-// PendingBlockWithTxHashes gets the pending block information given the block id.
-func (sc *Client) PendingBlockWithTxHashes(ctx context.Context) (*PendingBlockWithTxsHashes, error) {
-	var block PendingBlockWithTxsHashes
-	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
-		return nil, err
-	}
-
 	return &block, nil
 }
 
@@ -209,7 +239,7 @@ type InvokeTxnV0 FunctionCall
 
 // InvokeTxnV1 version 1 invoke transaction
 type InvokeTxnV1 struct {
-	AccountAddress Address `json:"contract_address"`
+	AccountAddress Address `json:"account_address"`
 
 	// CallData The parameters passed to the function
 	CallData []string `json:"calldata"`
@@ -286,6 +316,19 @@ type BlockWithTxs struct {
 	BlockBodyWithTxs
 }
 
+type PendingBlockWithTxs struct {
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress string `json:"sequencer_address"`
+
+	// ParentHash The hash of this block's parent
+	ParentHash BlockHash `json:"parent_hash"`
+
+	BlockBodyWithTxs
+}
+
 func guessTxWithType(i interface{}) (interface{}, error) {
 	switch local := i.(type) {
 	case map[string]interface{}:
@@ -337,58 +380,56 @@ func guessTxWithType(i interface{}) (interface{}, error) {
 	return nil, errBadTxType
 }
 
-// BlockWithTxs get block information with full transactions given the block id.
-func (sc *Client) BlockWithTxs(ctx context.Context, blockId BlockID) (*BlockWithTxs, error) {
-	var block BlockWithTxs
-	if blockId.BlockTag != nil {
-		if *blockId.BlockTag != "latest" {
-			return nil, errBadRequest
-		}
-		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId.BlockTag); err != nil {
-			return nil, err
-		}
-		for k, v := range block.Transactions {
-			tv, err := guessTxWithType(v)
-			if err != nil {
-				return nil, errBadTxType
-			}
-			block.Transactions[k] = tv
-		}
-		return &block, nil
-	}
-	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId); err != nil {
-		return nil, err
-	}
-	for k, v := range block.Transactions {
+func guessTxsWithType(txs []Txn) ([]Txn, error) {
+	for k, v := range txs {
 		tv, err := guessTxWithType(v)
 		if err != nil {
 			return nil, errBadTxType
 		}
-		block.Transactions[k] = tv
+		txs[k] = tv
 	}
-	return &block, nil
+	return txs, nil
 }
 
-type PendingBlockWithTxs struct {
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress string `json:"sequencer_address"`
-
-	// ParentHash The hash of this block's parent
-	ParentHash BlockHash `json:"parent_hash"`
-
-	BlockBodyWithTxs
-}
-
-// PendingBlockWithTxs get pending block information with full transactions.
-func (sc *Client) PendingBlockWithTxs(ctx context.Context) (*PendingBlockWithTxs, error) {
-	var block PendingBlockWithTxs
-	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "pending"); err != nil {
+// BlockWithTxs get block information with full transactions given the block id.
+func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
 		return nil, err
 	}
-
+	if opt.blockTag != nil && *opt.blockTag == "pending" {
+		var block PendingBlockWithTxs
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "pending"); err != nil {
+			return nil, err
+		}
+		txns, err := guessTxsWithType(block.Transactions)
+		if err != nil {
+			return nil, err
+		}
+		block.Transactions = txns
+		return &block, nil
+	}
+	var block BlockWithTxs
+	if opt.blockTag != nil && *opt.blockTag == "latest" {
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "latest"); err != nil {
+			return nil, err
+		}
+		txns, err := guessTxsWithType(block.Transactions)
+		if err != nil {
+			return nil, err
+		}
+		block.Transactions = txns
+		return &block, nil
+	}
+	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, opt); err != nil {
+		return nil, err
+	}
+	txns, err := guessTxsWithType(block.Transactions)
+	if err != nil {
+		return nil, err
+	}
+	block.Transactions = txns
 	return &block, nil
 }
 
