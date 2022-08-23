@@ -76,9 +76,12 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		_, err := testConfig.client.PendingBlockWithTxHashes(context.Background())
+		pending, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockIDTag("pending"))
 		if err == nil || !strings.Contains(err.Error(), "Pending data not supported in this configuration") {
 			t.Fatal("PendingBlockWithTxHashes should not yet be supported")
+		}
+		if _, ok := pending.(PendingBlockWithTxHashes); !ok {
+			t.Fatalf("expecting PendingBlockWithTxs, instead %T", pending)
 		}
 	}
 }
@@ -88,44 +91,30 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		RequestBlockHash         *BlockHash
-		RequestBlockNumber       *BlockNumber
-		RequestBlockTag          *string
+		BlockIDOption            BlockIDOption
 		ExpectedError            error
 		ExpectedFirstTransaction TxnHash
 	}
-	latestTag := "latest"
-	errorTag := "error"
-	testnetBlockHash := BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")
-	testnetBlockNumber := BlockNumber(307417)
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          &latestTag,
+				BlockIDOption:            WithBlockIDTag("latest"),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash(""),
 			},
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          &errorTag,
+				BlockIDOption:            WithBlockIDTag("error"),
 				ExpectedError:            errBadRequest,
 				ExpectedFirstTransaction: TxnHash(""),
 			},
 			{
-				RequestBlockHash:         &testnetBlockHash,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          nil,
+				BlockIDOption:            WithBlockIDHash(BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
 			},
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       &testnetBlockNumber,
-				RequestBlockTag:          nil,
+				BlockIDOption:            WithBlockIDNumber(BlockNumber(307417)),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
 			},
@@ -134,35 +123,36 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		blockId := BlockID{
-			BlockHash:   test.RequestBlockHash,
-			BlockNumber: test.RequestBlockNumber,
-			BlockTag:    test.RequestBlockTag,
-		}
-		block, err := testConfig.client.BlockWithTxHashes(context.Background(), blockId)
+		block := blockID{}
+		_ = test.BlockIDOption(&block)
+		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockIDOption)
 		if err != test.ExpectedError {
 			t.Fatal("PendingBlockWithTxHashes match the expected error", err)
 		}
-		if test.ExpectedError != nil && block == nil {
+		if test.ExpectedError != nil && blockWithTxHashesInterface == nil {
 			continue
 		}
-		if !strings.HasPrefix(string(block.BlockHash), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
+		blockWithTxHashes, ok := blockWithTxHashesInterface.(BlockWithTxHashes)
+		if !ok {
+			t.Fatalf("expecting BlockWithTxHashes, instead %T", blockWithTxHashesInterface)
 		}
-		if block.Status == "" {
+		if !strings.HasPrefix(string(blockWithTxHashes.BlockHash), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxHashes.BlockHash)
+		}
+		if blockWithTxHashes.Status == "" {
 			t.Fatal("Status not be empty")
 		}
-		if len(block.Transactions) == 0 {
+		if len(blockWithTxHashes.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedFirstTransaction != "" && block.Transactions[0] != test.ExpectedFirstTransaction {
-			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, block.Transactions[0])
+		if test.ExpectedFirstTransaction != "" && blockWithTxHashes.Transactions[0] != test.ExpectedFirstTransaction {
+			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, blockWithTxHashes.Transactions[0])
 		}
 	}
 }
 
-// TestDemonstrateMultipleEmbedding shows how you can guess what a type is and apply it
-func TestDemonstrateMultipleEmbedding(t *testing.T) {
+// TestDemonstrateMultipleEmbeddingCase1 shows how you can guess what a type is and apply it
+func TestDemonstrateMultipleEmbeddingCase1(t *testing.T) {
 	type V1 struct {
 		Label1 string
 	}
@@ -228,50 +218,66 @@ func TestDemonstrateMultipleEmbedding(t *testing.T) {
 	}
 }
 
+// TestDemonstrateMultipleEmbeddingCase2 shows how 2 embeded type are loaded
+func TestDemonstrateMultipleEmbeddingCase2(t *testing.T) {
+	type V1 struct {
+		Label1 string
+	}
+
+	type V2 struct {
+		Label2 string
+		Label3 string
+	}
+
+	type V4 interface{}
+
+	type MyType struct {
+		V1
+		V2
+		V4
+	}
+
+	var my MyType
+
+	jsonContent := `{"label2": "label2", "label1": "label1", "label3": "label3", "label4": "label4"}`
+
+	err := json.Unmarshal([]byte(jsonContent), &my)
+	if err != nil {
+		t.Fatal("should succeed, instead", err)
+	}
+	fmt.Printf("%+v\n", my)
+}
+
 // TestBlockWithTxs tests TestPendingBlockWithTxHashes
 func TestBlockWithTxs(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		RequestBlockHash         *BlockHash
-		RequestBlockNumber       *BlockNumber
-		RequestBlockTag          *string
+		BlockIDOption            BlockIDOption
 		ExpectedError            error
 		ExpectedTxNumber         int
 		ExpectedFirstTransaction TxnHash
 	}
-	latestTag := "latest"
-	errorTag := "error"
-	testnetBlockHash := BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")
-	testnetBlockNumber := BlockNumber(307417)
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          &latestTag,
+				BlockIDOption:            WithBlockIDTag("latest"),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash(""),
 			},
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          &errorTag,
+				BlockIDOption:            WithBlockIDTag("error"),
 				ExpectedError:            errBadRequest,
 				ExpectedFirstTransaction: TxnHash(""),
 			},
 			{
-				RequestBlockHash:         &testnetBlockHash,
-				RequestBlockNumber:       nil,
-				RequestBlockTag:          nil,
+				BlockIDOption:            WithBlockIDHash(BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
 			},
 			{
-				RequestBlockHash:         nil,
-				RequestBlockNumber:       &testnetBlockNumber,
-				RequestBlockTag:          nil,
+				BlockIDOption:            WithBlockIDNumber(BlockNumber(307417)),
 				ExpectedError:            nil,
 				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
 			},
@@ -280,29 +286,30 @@ func TestBlockWithTxs(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		blockId := BlockID{
-			BlockHash:   test.RequestBlockHash,
-			BlockNumber: test.RequestBlockNumber,
-			BlockTag:    test.RequestBlockTag,
-		}
-		block, err := testConfig.client.BlockWithTxHashes(context.Background(), blockId)
+		block := blockID{}
+		_ = test.BlockIDOption(&block)
+		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
 		if err != test.ExpectedError {
-			t.Fatal("PendingBlockWithTxHashes match the expected error", err)
+			t.Fatal("PendingBlockWithTxs match the expected error", err)
 		}
-		if test.ExpectedError != nil && block == nil {
+		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		if !strings.HasPrefix(string(block.BlockHash), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
+		blockWithTxs, ok := blockWithTxsInterface.(BlockWithTxs)
+		if !ok {
+			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 		}
-		if block.Status == "" {
+		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
+		}
+		if blockWithTxs.Status == "" {
 			t.Fatal("Status not be empty")
 		}
-		if len(block.Transactions) == 0 {
+		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedFirstTransaction != "" && block.Transactions[0] != test.ExpectedFirstTransaction {
-			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, block.Transactions[0])
+		if test.ExpectedFirstTransaction != "" && blockWithTxs.Transactions[0] != test.ExpectedFirstTransaction {
+			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, blockWithTxs.Transactions[0])
 		}
 	}
 }

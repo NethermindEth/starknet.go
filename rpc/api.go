@@ -158,8 +158,8 @@ type BlockHeader struct {
 	SequencerAddress string `json:"sequencer_address"`
 }
 
-// BlockWithTxsHashes The block object
-type BlockWithTxsHashes struct {
+// BlockWithTxHashes The block object
+type BlockWithTxHashes struct {
 	Status BlockStatus `json:"status"`
 	BlockHeader
 	BlockBodyWithTxHashes
@@ -182,7 +182,7 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOp
 		}
 		return &block, nil
 	}
-	var block BlockWithTxsHashes
+	var block BlockWithTxHashes
 	if opt.blockTag != nil && *opt.blockTag == "latest" {
 		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "latest"); err != nil {
 			return nil, err
