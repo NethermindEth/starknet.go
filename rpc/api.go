@@ -641,6 +641,39 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash TxnHash) (*Txn, er
 	return &txTxn, nil
 }
 
+// TransactionByBlockIdAndIndex Get the details of the transaction given by the identified block and index in that block. If no transaction is found, null is returned.
+func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOption BlockIDOption, index uint64) (*Txn, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
+		return nil, err
+	}
+	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
+		return nil, errInvalidBlockTag
+	}
+	var tx interface{}
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, *opt.BlockTag, index); err != nil {
+			return nil, err
+		}
+		txWithType, err := guessTxWithType(tx)
+		if err != nil {
+			return nil, err
+		}
+		txTxn := Txn(txWithType)
+		return &txTxn, nil
+	}
+	if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, opt, index); err != nil {
+		return nil, err
+	}
+	txWithType, err := guessTxWithType(tx)
+	if err != nil {
+		return nil, err
+	}
+	txTxn := Txn(txWithType)
+	return &txTxn, nil
+}
+
 // TransactionReceipt gets the transaction receipt by the transaction hash.
 func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
 	var receipt types.TransactionReceipt
