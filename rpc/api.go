@@ -628,16 +628,17 @@ func (sc *Client) StateUpdate(ctx context.Context, blockIDOption BlockIDOption) 
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
-func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Transaction, error) {
-	var tx types.Transaction
+func (sc *Client) TransactionByHash(ctx context.Context, hash TxnHash) (*Txn, error) {
+	var tx interface{}
 	if err := sc.do(ctx, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
 	}
-	if tx.TransactionHash == "" {
-		return nil, ErrNotFound
+	txWithType, err := guessTxWithType(tx)
+	if err != nil {
+		return nil, err
 	}
-
-	return &tx, nil
+	txTxn := Txn(txWithType)
+	return &txTxn, nil
 }
 
 // TransactionReceipt gets the transaction receipt by the transaction hash.
