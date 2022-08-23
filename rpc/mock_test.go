@@ -49,8 +49,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getNonce(result, method, args...)
 	case "starknet_getStorageAt":
 		return mock_starknet_getStorageAt(result, method, args...)
-	case "starknet_getStateUpdateByHash":
-		return mock_starknet_getStateUpdateByHash(result, method, args...)
+	case "starknet_getStateUpdate":
+		return mock_starknet_getStateUpdate(result, method, args...)
 	case "starknet_protocolVersion":
 		return mock_starknet_protocolVersion(result, method, args...)
 	case "starknet_call":
@@ -411,7 +411,7 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 	return nil
 }
 
-func mock_starknet_getStateUpdateByHash(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getStateUpdate(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -426,7 +426,7 @@ func mock_starknet_getStateUpdateByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 	output := &StateUpdateOutput{
-		BlockHash: blockHash,
+		BlockHash: BlockHash(blockHash),
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)

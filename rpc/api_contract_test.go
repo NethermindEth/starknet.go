@@ -96,7 +96,7 @@ func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash      string
+		ContractHash      Address
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
@@ -121,12 +121,16 @@ func TestClassHashAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		classhash, err := testConfig.client.ClassHashAt(context.Background(), test.ContractHash)
+
+		classhash, err := testConfig.client.ClassHashAt(context.Background(), WithBlockIDTag("latest"), test.ContractHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if classhash.String() != test.ExpectedClassHash {
-			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, classhash)
+		if classhash == nil {
+			t.Fatalf("should return a class, instead %v", classhash)
+		}
+		if *classhash != test.ExpectedClassHash {
+			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, *classhash)
 		}
 	}
 }

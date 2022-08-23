@@ -320,16 +320,16 @@ func TestBlockWithTxs(t *testing.T) {
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
-func TestStateUpdateByHash(t *testing.T) {
+func TestStateUpdate(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockHashOrTag string
+		BlockIDOption BlockIDOption
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockHashOrTag: "0xdeadbeef",
+				BlockIDOption: WithBlockIDHash("0xdeadbeef"),
 			},
 		},
 	}[testEnv]
@@ -338,12 +338,14 @@ func TestStateUpdateByHash(t *testing.T) {
 		t.Skipf("not implemented on %s", testEnv)
 	}
 	for _, test := range testSet {
-		output, err := testConfig.client.StateUpdateByHash(context.Background(), test.BlockHashOrTag)
+		output, err := testConfig.client.StateUpdate(context.Background(), test.BlockIDOption)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if output.BlockHash != test.BlockHashOrTag {
-			t.Fatalf("expecting block %s, got %s", test.BlockHashOrTag, output.BlockHash)
+		blockID := &blockID{}
+		test.BlockIDOption(blockID)
+		if output.BlockHash != *blockID.BlockHash {
+			t.Fatalf("expecting block %s, got %s", *blockID.BlockHash, output.BlockHash)
 		}
 	}
 }

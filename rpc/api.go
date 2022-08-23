@@ -495,13 +495,26 @@ func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractC
 }
 
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
-func (sc *Client) ClassHashAt(ctx context.Context, address string) (*types.Felt, error) {
-	result := new(string)
-	if err := sc.do(ctx, "starknet_getClassHashAt", &result, address); err != nil {
+func (sc *Client) ClassHashAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
 		return nil, err
 	}
-
-	return types.StrToFelt(*result), nil
+	if opt.BlockTag != nil && *opt.BlockTag != "pending" && *opt.BlockTag != "latest" {
+		return nil, errInvalidBlockTag
+	}
+	var result string
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getClassHashAt", &result, *opt.BlockTag, contractAddress); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+	if err := sc.do(ctx, "starknet_getStateUpdate", &result, opt, contractAddress); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // StorageAt gets the value of the storage at the given address and key.
@@ -525,28 +538,41 @@ func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key st
 	return value, nil
 }
 
-// StorageDiff is a change in a single storage item
-type StorageDiff struct {
-	// ContractAddress is the contract address for which the state changed
-	Address Address `json:"address"`
+// StorageEntry The changes in the storage of the contract
+type StorageEntry struct {
 	// Key returns the key of the changed value
 	Key string `json:"key"`
 	// Value is the new value applied to the given address
 	Value string `json:"value"`
 }
 
-// ContractItem is a new contract added as part of the new state
-type ContractItem struct {
+// ContractStorageDiffItem is a change in a single storage item
+type ContractStorageDiffItem struct {
+	// ContractAddress is the contract address for which the state changed
+	Address string `json:"address"`
+
+	// StorageEntries the changes in the storage of the contract
+	StorageEntries []StorageEntry `json:"storage_entries"`
+}
+
+// DeclaredContractItem A new contract declared as part of the new state
+type DeclaredContractItem struct {
+	// ClassHash the hash of the contract code
+	ClassHash string `json:"class_hash"`
+}
+
+// DeployedContractItem A new contract deployed as part of the new state
+type DeployedContractItem struct {
 	// ContractAddress is the address of the contract
 	Address string `json:"address"`
-	// ContractHash is the hash of the contract code
-	ContractHash string `json:"contract_hash"`
+	// ClassHash is the hash of the contract code
+	ClassHash string `json:"class_hash"`
 }
 
 // Nonce is a the updated nonce per contract address
 type Nonce struct {
 	// ContractAddress is the address of the contract
-	ContractAddress string `json:"contract_address"`
+	ContractAddress Address `json:"contract_address"`
 	// Nonce is the nonce for the given address at the end of the block"
 	Nonce string `json:"nonce"`
 }
@@ -555,16 +581,18 @@ type Nonce struct {
 // mapping of addresses to the new values and/or new contracts.
 type StateDiff struct {
 	// StorageDiffs list storage changes
-	StorageDiffs []StorageDiff `json:"storage_diffs"`
+	StorageDiffs []ContractStorageDiffItem `json:"storage_diffs"`
 	// Contracts list new contracts added as part of the new state
-	Contracts []ContractItem `json:"contracts"`
+	DeclaredContracts []DeclaredContractItem `json:"declared_contracts"`
+	// Nonces provides the updated nonces per contract addresses
+	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
 	// Nonces provides the updated nonces per contract addresses
 	Nonces []Nonce `json:"nonces"`
 }
 
 type StateUpdateOutput struct {
 	// BlockHash is the block identifier,
-	BlockHash string `json:"block_hash"`
+	BlockHash BlockHash `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot string `json:"new_root"`
 	// OldRoot is the previous global state root.
@@ -576,13 +604,27 @@ type StateUpdateOutput struct {
 	StateDiff StateDiff `json:"state_diff"`
 }
 
-// StateUpdateByHash gets the information about the result of executing the requested block.
-func (sc *Client) StateUpdateByHash(ctx context.Context, blockHashOrTag string) (*StateUpdateOutput, error) {
-	var result StateUpdateOutput
-	if err := sc.do(ctx, "starknet_getStateUpdateByHash", &result, blockHashOrTag); err != nil {
+// StateUpdate gets the information about the result of executing the requested block.
+func (sc *Client) StateUpdate(ctx context.Context, blockIDOption BlockIDOption) (*StateUpdateOutput, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
+		return nil, errInvalidBlockTag
+	}
+	var state StateUpdateOutput
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getStateUpdate", &state, "latest"); err != nil {
+			return nil, err
+		}
+		return &state, nil
+	}
+	if err := sc.do(ctx, "starknet_getStateUpdate", &state, opt); err != nil {
+		return nil, err
+	}
+	return &state, nil
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
