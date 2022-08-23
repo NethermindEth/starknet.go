@@ -13,6 +13,12 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
+var (
+	errBadRequest      = errors.New("bad request")
+	errBadTxType       = errors.New("bad transaction type")
+	errInvalidBlockTag = errors.New("invalid blocktag")
+)
+
 type Events struct {
 	Events []Event `json:"events"`
 }
@@ -162,13 +168,6 @@ type BlockWithTxHashes struct {
 	BlockHeader
 	BlockBodyWithTxHashes
 }
-
-var (
-	errBadRequest      = errors.New("bad request")
-	errBadTxType       = errors.New("bad transaction type")
-	errInvalidBlockTag = errors.New("invalid blocktag")
-	errNotImplemented  = errors.New("not implemented")
-)
 
 // BlockWithTxHashes gets block information given the block id.
 func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
