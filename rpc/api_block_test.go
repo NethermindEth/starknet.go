@@ -228,6 +228,85 @@ func TestDemonstrateMultipleEmbedding(t *testing.T) {
 	}
 }
 
+// TestBlockWithTxs tests TestPendingBlockWithTxHashes
+func TestBlockWithTxs(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		RequestBlockHash         *BlockHash
+		RequestBlockNumber       *BlockNumber
+		RequestBlockTag          *string
+		ExpectedError            error
+		ExpectedTxNumber         int
+		ExpectedFirstTransaction TxnHash
+	}
+	latestTag := "latest"
+	errorTag := "error"
+	testnetBlockHash := BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")
+	testnetBlockNumber := BlockNumber(307417)
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          &latestTag,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash(""),
+			},
+			{
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          &errorTag,
+				ExpectedError:            errBadRequest,
+				ExpectedFirstTransaction: TxnHash(""),
+			},
+			{
+				RequestBlockHash:         &testnetBlockHash,
+				RequestBlockNumber:       nil,
+				RequestBlockTag:          nil,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+			},
+			{
+				RequestBlockHash:         nil,
+				RequestBlockNumber:       &testnetBlockNumber,
+				RequestBlockTag:          nil,
+				ExpectedError:            nil,
+				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		blockId := BlockID{
+			BlockHash:   test.RequestBlockHash,
+			BlockNumber: test.RequestBlockNumber,
+			BlockTag:    test.RequestBlockTag,
+		}
+		block, err := testConfig.client.BlockWithTxHashes(context.Background(), blockId)
+		if err != test.ExpectedError {
+			t.Fatal("PendingBlockWithTxHashes match the expected error", err)
+		}
+		if test.ExpectedError != nil && block == nil {
+			continue
+		}
+		if !strings.HasPrefix(string(block.BlockHash), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
+		}
+		if block.Status == "" {
+			t.Fatal("Status not be empty")
+		}
+		if len(block.Transactions) == 0 {
+			t.Fatal("the number of transaction should not be 0")
+		}
+		if test.ExpectedFirstTransaction != "" && block.Transactions[0] != test.ExpectedFirstTransaction {
+			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, block.Transactions[0])
+		}
+	}
+}
+
 // TestStateUpdateByHash tests StateUpdateByHash
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)

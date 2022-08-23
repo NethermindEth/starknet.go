@@ -135,6 +135,7 @@ type BlockWithTxsHashes struct {
 }
 
 var errBadRequest = errors.New("badrequest")
+var errBadTxType = errors.New("badtxtype")
 
 // BlockWithTxHashes gets block information given the block id.
 func (sc *Client) BlockWithTxHashes(ctx context.Context, blockId BlockID) (*BlockWithTxsHashes, error) {
@@ -283,6 +284,57 @@ type BlockWithTxs struct {
 	Status BlockStatus `json:"status"`
 	BlockHeader
 	BlockBodyWithTxs
+}
+
+func guessTxWithType(i interface{}) (interface{}, error) {
+	switch local := i.(type) {
+	case map[string]interface{}:
+		typeValue, ok := local["type"]
+		if !ok {
+			return nil, errBadTxType
+		}
+		value, ok := typeValue.(string)
+		if !ok {
+			return nil, errBadTxType
+		}
+		switch value {
+		case "DECLARE":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			tx := DeclareTxn{}
+			err = json.Unmarshal(data, &tx)
+			return tx, err
+		case "DEPLOY":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			tx := DeployTxn{}
+			err = json.Unmarshal(data, &tx)
+			return tx, err
+		case "L1_HANDLER":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			tx := L1HandlerTxn{}
+			err = json.Unmarshal(data, &tx)
+			return tx, err
+		case "INVOKE":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			// TODO: Check whether it is a V0 or V1 transaction
+			tx := InvokeTxn{}
+			err = json.Unmarshal(data, &tx)
+			return tx, err
+		default:
+			return nil, errBadTxType
+		}
+	}
 }
 
 // BlockWithTxs get block information with full transactions given the block id.
