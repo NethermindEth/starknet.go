@@ -179,33 +179,33 @@ func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash   string
+		ContractHash   Address
 		StorageKey     string
-		BlockHashOrTag string
+		BlockHashOrTag BlockIDOption
 		ExpectedValue  string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:   "0xdeadbeef",
+				ContractHash:   Address("0xdeadbeef"),
 				StorageKey:     "_signer",
-				BlockHashOrTag: "latest",
+				BlockHashOrTag: WithBlockIDTag("latest"),
 				ExpectedValue:  "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				ContractHash:   "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39",
+				ContractHash:   Address("0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
 				StorageKey:     "balance",
-				BlockHashOrTag: "latest",
+				BlockHashOrTag: WithBlockIDTag("latest"),
 				ExpectedValue:  "0x1e240",
 			},
 		},
 		"mainnet": {
 			{
-				ContractHash:   "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101",
+				ContractHash:   Address("0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:     "_signer",
-				BlockHashOrTag: "latest",
+				BlockHashOrTag: WithBlockIDTag("latest"),
 				ExpectedValue:  "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
 			},
 		},

@@ -75,12 +75,10 @@ func (sc *Client) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOu
 // blockID is an unexposed struct that is used in a OneOf for
 // starknet_getBlockWithTxHashes.
 type blockID struct {
-	blockNumber *BlockNumber `json:"block_number,omitempty"`
-	blockHash   *BlockHash   `json:"block_hash,omitempty"`
-	blockTag    *string      `json:"block_tag,omitempty"`
+	BlockNumber *BlockNumber `json:"block_number,omitempty"`
+	BlockHash   *BlockHash   `json:"block_hash,omitempty"`
+	BlockTag    *string      `json:"block_tag,omitempty"`
 }
-
-var errInvalidBlockTag = errors.New("invalidblocktag")
 
 // BlockIDOption is an options that can be used as a parameter for
 // starknet_getBlockWithTxHashes.
@@ -88,14 +86,14 @@ type BlockIDOption func(b *blockID) error
 
 func WithBlockIDNumber(blockNumber BlockNumber) BlockIDOption {
 	return BlockIDOption(func(b *blockID) error {
-		b.blockNumber = &blockNumber
+		b.BlockNumber = &blockNumber
 		return nil
 	})
 }
 
 func WithBlockIDHash(blockHash BlockHash) BlockIDOption {
 	return BlockIDOption(func(b *blockID) error {
-		b.blockHash = &blockHash
+		b.BlockHash = &blockHash
 		return nil
 	})
 }
@@ -105,7 +103,7 @@ func WithBlockIDTag(blockTag string) BlockIDOption {
 		if blockTag != "latest" && blockTag != "pending" {
 			return errInvalidBlockTag
 		}
-		b.blockTag = &blockTag
+		b.BlockTag = &blockTag
 		return nil
 	})
 }
@@ -165,8 +163,12 @@ type BlockWithTxHashes struct {
 	BlockBodyWithTxHashes
 }
 
-var errBadRequest = errors.New("badrequest")
-var errBadTxType = errors.New("badtxtype")
+var (
+	errBadRequest      = errors.New("bad request")
+	errBadTxType       = errors.New("bad transaction type")
+	errInvalidBlockTag = errors.New("invalid blocktag")
+	errNotImplemented  = errors.New("not implemented")
+)
 
 // BlockWithTxHashes gets block information given the block id.
 func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
@@ -175,7 +177,7 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOp
 	if err != nil {
 		return nil, err
 	}
-	if opt.blockTag != nil && *opt.blockTag == "pending" {
+	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
 		var block PendingBlockWithTxHashes
 		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
 			return nil, err
@@ -183,7 +185,7 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOp
 		return &block, nil
 	}
 	var block BlockWithTxHashes
-	if opt.blockTag != nil && *opt.blockTag == "latest" {
+	if opt.BlockTag != nil && *opt.BlockTag == "latest" {
 		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "latest"); err != nil {
 			return nil, err
 		}
@@ -235,19 +237,24 @@ type FunctionCall struct {
 }
 
 // InvokeTxnV0 version 0 invoke transaction
-type InvokeTxnV0 FunctionCall
+type InvokeTxnV0 struct {
+	CommonTxnProperties
+	FunctionCall
+}
 
 // InvokeTxnV1 version 1 invoke transaction
 type InvokeTxnV1 struct {
+	CommonTxnProperties
 	AccountAddress Address `json:"account_address"`
-
 	// CallData The parameters passed to the function
 	CallData []string `json:"calldata"`
 }
 
-type InvokeTxn struct {
-	CommonTxnProperties
-	InvokeTxn interface{}
+// InvokeTxnDuck is a type used to understand the Invoke Version
+type InvokeTxnDuck struct {
+	AccountAddress     Address `json:"account_address"`
+	ContractAddress    Address `json:"contract_address"`
+	EntryPointSelector string  `json:"entry_point_selector"`
 }
 
 type L1HandlerTxn struct {
@@ -370,10 +377,22 @@ func guessTxWithType(i interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			// TODO: Check whether it is a V0 or V1 transaction
-			tx := InvokeTxn{}
+			tx := InvokeTxnDuck{}
 			err = json.Unmarshal(data, &tx)
-			return tx, err
+			if err != nil {
+				return nil, err
+			}
+			if tx.AccountAddress != "" {
+				txv1 := InvokeTxnV1{}
+				err = json.Unmarshal(data, &txv1)
+				return txv1, err
+			}
+			if tx.ContractAddress != "" && tx.EntryPointSelector != "" {
+				txv0 := InvokeTxnV0{}
+				err = json.Unmarshal(data, &txv0)
+				return txv0, err
+			}
+			return nil, errBadTxType
 		}
 		return nil, errBadTxType
 	}
@@ -398,7 +417,7 @@ func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption)
 	if err != nil {
 		return nil, err
 	}
-	if opt.blockTag != nil && *opt.blockTag == "pending" {
+	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
 		var block PendingBlockWithTxs
 		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "pending"); err != nil {
 			return nil, err
@@ -411,7 +430,7 @@ func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption)
 		return &block, nil
 	}
 	var block BlockWithTxs
-	if opt.blockTag != nil && *opt.blockTag == "latest" {
+	if opt.BlockTag != nil && *opt.BlockTag == "latest" {
 		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "latest"); err != nil {
 			return nil, err
 		}
@@ -487,20 +506,30 @@ func (sc *Client) ClassHashAt(ctx context.Context, address string) (*types.Felt,
 }
 
 // StorageAt gets the value of the storage at the given address and key.
-func (sc *Client) StorageAt(ctx context.Context, contractAddress, key, blockHashOrTag string) (string, error) {
-	var value string
-	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
-	if err := sc.do(ctx, "starknet_getStorageAt", &value, contractAddress, hashKey, blockHashOrTag); err != nil {
+func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key string, blockIDOption BlockIDOption) (string, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
 		return "", err
 	}
-
+	var value string
+	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, *opt.BlockTag); err != nil {
+			return "", err
+		}
+		return value, nil
+	}
+	if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, opt); err != nil {
+		return "", err
+	}
 	return value, nil
 }
 
 // StorageDiff is a change in a single storage item
 type StorageDiff struct {
 	// ContractAddress is the contract address for which the state changed
-	Address string `json:"address"`
+	Address Address `json:"address"`
 	// Key returns the key of the changed value
 	Key string `json:"key"`
 	// Value is the new value applied to the given address
@@ -568,56 +597,6 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash string) (*types.Tr
 	}
 
 	return &tx, nil
-}
-
-// TransactionByBlockNumberAndIndex get the details of a transaction by a given block number and index.
-func (sc *Client) TransactionByBlockNumberAndIndex(ctx context.Context, blockNumberOrTag interface{}, txIndex int) (*types.Transaction, error) {
-	var tx types.Transaction
-	if err := sc.do(ctx, "starknet_getTransactionByBlockNumberAndIndex", &tx, blockNumberOrTag, txIndex); err != nil {
-		return nil, err
-	} else if tx.TransactionHash == "" {
-		return nil, ErrNotFound
-	}
-
-	return &tx, nil
-}
-
-// TransactionByBlockHashAndIndex get the details of a transaction by a given block hash and index.
-func (sc *Client) TransactionByBlockHashAndIndex(ctx context.Context, blockHash string, txIndex int) (*types.Transaction, error) {
-	var tx types.Transaction
-	if err := sc.do(ctx, "starknet_getTransactionByBlockHashAndIndex", &tx, blockHash, txIndex); err != nil {
-		return nil, err
-	} else if tx.TransactionHash == "" {
-		return nil, ErrNotFound
-	}
-
-	return &tx, nil
-}
-
-// BlockTransactionCountByNumber gets the number of transactions in a block given a block number (height).
-func (sc *Client) BlockTransactionCountByNumber(ctx context.Context, blockNumberOrTag interface{}) (int, error) {
-	var count int
-	if err := sc.do(ctx, "starknet_getBlockTransactionCountByNumber", &count, blockNumberOrTag); err != nil {
-		return 0, err
-	}
-	if count == 0 {
-		return 0, ErrNotFound
-	}
-
-	return count, nil
-}
-
-// BlockTransactionCountByHash gets the number of transactions in a block given a block hash.
-func (sc *Client) BlockTransactionCountByHash(ctx context.Context, blockHashOrTag string) (int, error) {
-	var count int
-	if err := sc.do(ctx, "starknet_getBlockTransactionCountByHash", &count, blockHashOrTag); err != nil {
-		return 0, err
-	}
-	if count == 0 {
-		return 0, ErrNotFound
-	}
-
-	return count, nil
 }
 
 // TransactionReceipt gets the transaction receipt by the transaction hash.
