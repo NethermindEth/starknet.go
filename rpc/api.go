@@ -331,10 +331,10 @@ func guessTxWithType(i interface{}) (interface{}, error) {
 			tx := InvokeTxn{}
 			err = json.Unmarshal(data, &tx)
 			return tx, err
-		default:
-			return nil, errBadTxType
 		}
+		return nil, errBadTxType
 	}
+	return nil, errBadTxType
 }
 
 // BlockWithTxs get block information with full transactions given the block id.
@@ -347,10 +347,24 @@ func (sc *Client) BlockWithTxs(ctx context.Context, blockId BlockID) (*BlockWith
 		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId.BlockTag); err != nil {
 			return nil, err
 		}
+		for k, v := range block.Transactions {
+			tv, err := guessTxWithType(v)
+			if err != nil {
+				return nil, errBadTxType
+			}
+			block.Transactions[k] = tv
+		}
 		return &block, nil
 	}
 	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, blockId); err != nil {
 		return nil, err
+	}
+	for k, v := range block.Transactions {
+		tv, err := guessTxWithType(v)
+		if err != nil {
+			return nil, errBadTxType
+		}
+		block.Transactions[k] = tv
 	}
 	return &block, nil
 }
