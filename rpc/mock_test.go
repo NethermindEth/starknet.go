@@ -352,10 +352,10 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
-	output := rpcFeeEstimate{
-		GasUsage:   "0x01a4",
-		GasPrice:   "0x45",
-		OverallFee: "0x7134",
+	output := FeeEstimate{
+		GasConsumed: "0x01a4",
+		GasPrice:    "0x45",
+		OverallFee:  "0x7134",
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)

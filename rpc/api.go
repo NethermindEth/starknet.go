@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -377,6 +375,31 @@ type PendingBlockWithTxs struct {
 	ParentHash BlockHash `json:"parent_hash"`
 
 	BlockBodyWithTxs
+}
+
+type BroadcastedTxn interface{}
+
+type BroadcastedInvokeTxnDuck struct {
+	BroadcastedCommonTxnProperties
+	InvokeTxnDuck
+}
+
+type BroadcastedInvokeTxnV0 struct {
+	BroadcastedCommonTxnProperties
+	InvokeTxnV0
+}
+
+type BroadcastedInvokeTxnV1 struct {
+	BroadcastedCommonTxnProperties
+	InvokeTxnV1
+}
+
+type BroadcastedDeclareTxn struct {
+	BroadcastedCommonTxnProperties
+}
+
+type BroadcastedDeployTxn struct {
+	BroadcastedCommonTxnProperties
 }
 
 func guessTxWithType(i interface{}) (interface{}, error) {
@@ -859,37 +882,30 @@ func (sc *Client) Events(ctx context.Context, filter EventFilterParams) (*Events
 	return &result, nil
 }
 
-type rpcFeeEstimate struct {
-	GasUsage   string `json:"gas_usage"`
-	GasPrice   string `json:"gas_price"`
-	OverallFee string `json:"overall_fee"`
+type FeeEstimate struct {
+	GasConsumed NumAsHex `json:"gas_consumed"`
+	GasPrice    NumAsHex `json:"gas_price"`
+	OverallFee  NumAsHex `json:"overall_fee"`
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, blockHashOrTag string) (*types.FeeEstimate, error) {
-	var raw rpcFeeEstimate
-	if err := sc.do(ctx, "starknet_estimateFee", &raw, call, blockHashOrTag); err != nil {
-		return nil, err
-	}
-
-	usage, err := strconv.ParseUint(strings.TrimPrefix(raw.GasUsage, "0x"), 16, 64)
+func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, blockIDOption BlockIDOption) (*FeeEstimate, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
 	if err != nil {
 		return nil, err
 	}
-	price, err := strconv.ParseUint(strings.TrimPrefix(raw.GasPrice, "0x"), 16, 64)
-	if err != nil {
+	var raw FeeEstimate
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_estimateFee", &raw, request, *opt.BlockTag); err != nil {
+			return nil, err
+		}
+		return &raw, nil
+	}
+	if err := sc.do(ctx, "starknet_estimateFee", &raw, request, opt); err != nil {
 		return nil, err
 	}
-	fee, err := strconv.ParseUint(strings.TrimPrefix(raw.OverallFee, "0x"), 16, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.FeeEstimate{
-		GasUsage:   usage,
-		GasPrice:   price,
-		OverallFee: fee,
-	}, nil
+	return &raw, nil
 }
 
 func (sc *Client) Invoke(context.Context, types.FunctionInvoke) (*types.AddTxResponse, error) {
