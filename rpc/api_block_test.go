@@ -27,7 +27,7 @@ func TestBlockNumber(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if blockNumber == nil || blockNumber.Int64() <= 0 {
+		if blockNumber == 0 {
 			t.Fatal("current block number should be higher or equal to 1")
 		}
 	}

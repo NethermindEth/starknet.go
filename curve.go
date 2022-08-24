@@ -19,8 +19,8 @@ import (
 var Curve StarkCurve
 
 /*
-	Returned stark curve includes several values above and beyond
-	what the 'elliptic' interface calls for to facilitate common starkware functions
+Returned stark curve includes several values above and beyond
+what the 'elliptic' interface calls for to facilitate common starkware functions
 */
 type StarkCurve struct {
 	*elliptic.CurveParams
@@ -280,7 +280,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 	q := new(big.Int)
 	gx := new(big.Int)
 	gy := new(big.Int)
-	q = q.GCD(gx, gy, m, p)
+	q.GCD(gx, gy, m, p)
 
 	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)

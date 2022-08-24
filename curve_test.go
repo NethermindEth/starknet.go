@@ -8,13 +8,13 @@ import (
 
 func BenchmarkPedersenHash(b *testing.B) {
 	suite := [][]*big.Int{
-		[]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")},
-		[]*big.Int{HexToBN("0x1277312773"), HexToBN("0x872362872362")},
-		[]*big.Int{HexToBN("0x1277312773"), HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")},
-		[]*big.Int{HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), HexToBN("0x872362872362")},
-		[]*big.Int{HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")},
-		[]*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")},
-		[]*big.Int{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")},
+		{HexToBN("0x12773"), HexToBN("0x872362")},
+		{HexToBN("0x1277312773"), HexToBN("0x872362872362")},
+		{HexToBN("0x1277312773"), HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")},
+		{HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), HexToBN("0x872362872362")},
+		{HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")},
+		{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")},
+		{HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")},
 	}
 
 	for _, test := range suite {

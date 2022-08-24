@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 
@@ -35,13 +34,13 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 }
 
 // BlockNumber gets the most recent accepted block number.
-func (sc *Client) BlockNumber(ctx context.Context) (*big.Int, error) {
-	var blockNumber big.Int
+func (sc *Client) BlockNumber(ctx context.Context) (uint64, error) {
+	var blockNumber uint64
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &blockNumber, nil
+	return blockNumber, nil
 }
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
@@ -148,6 +147,19 @@ type BlockWithTxHashes struct {
 	Status BlockStatus `json:"status"`
 	BlockHeader
 	BlockBodyWithTxHashes
+}
+
+// PendingTransactions returns the list of pending transactions.
+func (sc *Client) PendingTransactions(ctx context.Context) ([]Txn, error) {
+	var pendingTransactions []Txn
+	if err := sc.do(ctx, "starknet_pendingTransactions", &pendingTransactions); err != nil {
+		return nil, err
+	}
+	pendingTransactionWithTypes, err := guessTxsWithType(pendingTransactions)
+	if err != nil {
+		return nil, err
+	}
+	return pendingTransactionWithTypes, nil
 }
 
 // BlockWithTxHashes gets block information given the block id.
