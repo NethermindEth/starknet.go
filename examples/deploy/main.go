@@ -226,7 +226,7 @@ func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress stri
 		},
 	}, "")
 	if err != nil {
-		return 0, fmt.Errorf("can't call erc20 : %s. Error : %w", account.Address, err)
+		return 0, fmt.Errorf("can't call erc20 : %s. Error : %w", accountAddress, err)
 	}
 	return res[0], nil
 }
