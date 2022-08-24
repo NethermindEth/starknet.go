@@ -225,38 +225,3 @@ func TestStorageAt(t *testing.T) {
 		}
 	}
 }
-
-// TestAccountNonce test AccountNonce
-func TestAccountNonce(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ContractAddress string
-		ExpectedNonce   string
-	}
-	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				ContractAddress: "0xdeadbeef",
-				ExpectedNonce:   "10",
-			},
-		},
-		"testnet": {},
-		"mainnet": {},
-	}[testEnv]
-
-	if len(testSet) == 0 {
-		t.Skipf("not implemented on %s", testEnv)
-	}
-
-	for _, test := range testSet {
-		nonce, err := testConfig.client.AccountNonce(context.Background(), test.ContractAddress)
-
-		if err != nil || nonce == nil {
-			t.Fatal(err)
-		}
-		if nonce.Text(10) != test.ExpectedNonce {
-			t.Fatalf("nonce %s expected, got %s", test.ExpectedNonce, nonce.Text(10))
-		}
-	}
-}

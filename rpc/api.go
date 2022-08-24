@@ -186,7 +186,7 @@ func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption Block
 	}
 	var result uint64
 	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, "pending"); err != nil {
+		if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, *opt.BlockTag); err != nil {
 			return 0, err
 		}
 		return result, nil
@@ -196,6 +196,27 @@ func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption Block
 		return 0, err
 	}
 	return result, nil
+}
+
+// Nonce returns the Nnce of a contract
+func (sc *Client) Nonce(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
+		return nil, err
+	}
+	var result string
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getNonce", &result, *opt.BlockTag, contractAddress); err != nil {
+			return nil, err
+		}
+		return &result, nil
+	}
+
+	if err := sc.do(ctx, "starknet_getNonce", &result, opt, contractAddress); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 type TxnType string
@@ -571,8 +592,8 @@ type DeployedContractItem struct {
 	ClassHash string `json:"class_hash"`
 }
 
-// Nonce is a the updated nonce per contract address
-type Nonce struct {
+// ContractNonce is a the updated nonce per contract address
+type ContractNonce struct {
 	// ContractAddress is the address of the contract
 	ContractAddress Address `json:"contract_address"`
 	// Nonce is the nonce for the given address at the end of the block"
@@ -589,7 +610,7 @@ type StateDiff struct {
 	// Nonces provides the updated nonces per contract addresses
 	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
 	// Nonces provides the updated nonces per contract addresses
-	Nonces []Nonce `json:"nonces"`
+	Nonces []ContractNonce `json:"nonces"`
 }
 
 type StateUpdateOutput struct {
@@ -838,13 +859,6 @@ func (sc *Client) EstimateFee(ctx context.Context, call types.FunctionInvoke, bl
 		GasPrice:   price,
 		OverallFee: fee,
 	}, nil
-}
-
-// AccountNonce gets the latest nonce associated with the given address
-func (sc *Client) AccountNonce(ctx context.Context, contractAddress string) (*big.Int, error) {
-	var nonce big.Int
-	err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress)
-	return &nonce, err
 }
 
 func (sc *Client) Invoke(context.Context, types.FunctionInvoke) (*types.AddTxResponse, error) {
