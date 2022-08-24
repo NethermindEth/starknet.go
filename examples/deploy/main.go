@@ -217,7 +217,7 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 	return nil
 }
 
-func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (int, error) {
+func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    erc20address,
 		EntryPointSelector: "balanceOf",
@@ -226,7 +226,7 @@ func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress stri
 		},
 	}, "")
 	if err != nil {
-		return 0, fmt.Errorf("can't call erc20 : %s. Error : %w", accountAddress, err)
+		return "", fmt.Errorf("can't call erc20 : %s. Error : %w", accountAddress, err)
 	}
 	return res[0], nil
 }
