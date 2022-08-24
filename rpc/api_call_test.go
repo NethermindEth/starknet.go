@@ -14,6 +14,7 @@ func TestCall(t *testing.T) {
 
 	type testSetType struct {
 		ContractAddress    string
+		BlockIDOption      BlockIDOption
 		EntrypointSelector string
 		ExpectedResult     string
 	}
@@ -21,6 +22,7 @@ func TestCall(t *testing.T) {
 		"mock": {
 			{
 				ContractAddress:    "0xdeadbeef",
+				BlockIDOption:      WithBlockIDTag("latest"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
@@ -28,6 +30,7 @@ func TestCall(t *testing.T) {
 		"testnet": {
 			{
 				ContractAddress:    "0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136",
+				BlockIDOption:      WithBlockIDTag("latest"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
@@ -35,6 +38,7 @@ func TestCall(t *testing.T) {
 		"mainnet": {
 			{
 				ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
+				BlockIDOption:      WithBlockIDTag("latest"),
 				EntrypointSelector: "decimals",
 				ExpectedResult:     "0x12",
 			},
@@ -46,7 +50,7 @@ func TestCall(t *testing.T) {
 			ContractAddress:    test.ContractAddress,
 			EntryPointSelector: test.EntrypointSelector,
 		}
-		output, err := testConfig.client.Call(context.Background(), function, "latest")
+		output, err := testConfig.client.Call(context.Background(), function, test.BlockIDOption)
 		if err != nil {
 			t.Fatal(err)
 		}

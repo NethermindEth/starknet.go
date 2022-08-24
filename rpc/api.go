@@ -19,17 +19,26 @@ var (
 )
 
 // Call a starknet function without creating a StarkNet transaction.
-func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
+func (sc *Client) Call(ctx context.Context, call types.FunctionCall, blockIDOption BlockIDOption) ([]string, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
+		return nil, err
+	}
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.Calldata) == 0 {
 		call.Calldata = make([]string, 0)
 	}
-
 	var result []string
-	if err := sc.do(ctx, "starknet_call", &result, call, hash); err != nil {
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_call", &result, call, *opt.BlockTag); err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+	if err := sc.do(ctx, "starknet_call", &result, call, opt); err != nil {
 		return nil, err
 	}
-
 	return result, nil
 }
 
