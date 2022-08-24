@@ -5,9 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
-	"encoding/json"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
@@ -28,33 +25,22 @@ type AddInvokeTransactionOutput struct {
 }
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (sc *Client) AddInvokeTransaction(ctx context.Context, functionCall types.FunctionCall, signature []string, maxFee, version string) (*AddInvokeTransactionOutput, error) {
+func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
+	// TODO: We might have to gzip/base64 the program and provide helpers to call
+	// this API
 	var output AddInvokeTransactionOutput
-	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, functionCall, signature, maxFee, version); err != nil {
+	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, broadcastedInvokeTxn); err != nil {
 		return nil, err
 	}
 	return &output, nil
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (sc *Client) AddDeclareTransaction(ctx context.Context, contractDefinition types.ContractClass, version string) (*AddDeclareTransactionOutput, error) {
-	program, ok := contractDefinition.Program.(string)
-	if !ok {
-		data, err := json.Marshal(contractDefinition.Program)
-		if err != nil {
-			return nil, err
-		}
-		// TODO: change Program from contractDefinition to have a type that can handle
-		// compressed and uncompressed data.
-		program, err = encodeProgram(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-	contractDefinition.Program = program
-
+func (sc *Client) AddDeclareTransaction(ctx context.Context, broadcastedDeclareTxn BroadcastedDeclareTxn) (*AddDeclareTransactionOutput, error) {
+	// TODO: We might have to gzip/base64 the program and provide helpers to call
+	// this API
 	var result AddDeclareTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, contractDefinition, version); err != nil {
+	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, broadcastedDeclareTxn); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -65,29 +51,18 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, contractDefinition 
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (sc *Client) AddDeployTransaction(ctx context.Context, contractAddressSalt string, constructorCallData []string, contractDefinition types.ContractClass) (*AddDeployTransactionOutput, error) {
-	program, ok := contractDefinition.Program.(string)
-	if !ok {
-		data, err := json.Marshal(contractDefinition.Program)
-		if err != nil {
-			return nil, err
-		}
-		// TODO: change Program from contractDefinition to have a type that can handle
-		// compressed and uncompressed data.
-		program, err = encodeProgram(data)
-		if err != nil {
-			return nil, err
-		}
-	}
-	contractDefinition.Program = program
+func (sc *Client) AddDeployTransaction(ctx context.Context, broadcastedDeployTxn BroadcastedDeployTxn) (*AddDeployTransactionOutput, error) {
+	// TODO: We might have to gzip/base64 the program and provide helpers to call
+	// this API
 
 	var result AddDeployTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, contractAddressSalt, constructorCallData, contractDefinition); err != nil {
+	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, broadcastedDeployTxn); err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
+// Keep that function to build helper with broadcastedDeployTxn and broadcastedDeclareTxn
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

@@ -51,11 +51,11 @@ func TestTransactionByHash(t *testing.T) {
 			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
 
 		}
-		if txTyped.FunctionCall.ContractAddress != Address(test.ExpectedContractAddress) {
-			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, txTyped.FunctionCall.ContractAddress)
+		if txTyped.ContractAddress != Address(test.ExpectedContractAddress) {
+			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, txTyped.ContractAddress)
 		}
-		if txTyped.FunctionCall.EntryPointSelector != test.ExpectedEntrypointSelector {
-			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, txTyped.FunctionCall.EntryPointSelector)
+		if txTyped.EntryPointSelector != test.ExpectedEntrypointSelector {
+			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, txTyped.EntryPointSelector)
 		}
 	}
 }

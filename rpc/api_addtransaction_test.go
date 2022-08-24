@@ -17,9 +17,7 @@ func TestAddDeployTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Salt                    string
-		Contract                types.ContractClass
-		ConstructorCallData     []string
+		BroadcastedDeployTxn    BroadcastedDeployTxn
 		ExpectedTransactionHash string
 		ExpectedContractAddress string
 	}
@@ -31,18 +29,34 @@ func TestAddDeployTransaction(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				Salt:                    "0xffffff",
-				Contract:                contract,
-				ConstructorCallData:     []string{},
+				BroadcastedDeployTxn: BroadcastedDeployTxn{
+					ContractClass: ContractClass{
+						Program: "",
+						EntryPointsByType: struct {
+							CONSTRUCTOR ContractEntryPointList "json:\"CONSTRUCTOR\""
+							EXTERNAL    ContractEntryPointList "json:\"EXTERNAL\""
+							L1_HANDLER  ContractEntryPointList "json:\"L1_HANDLER\""
+						}{},
+						Abi: &ContractABI{},
+					},
+				},
 				ExpectedTransactionHash: "0xdeadbeef",
 				ExpectedContractAddress: "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				Salt:                    "0xffffff",
-				Contract:                contract,
-				ConstructorCallData:     []string{},
+				BroadcastedDeployTxn: BroadcastedDeployTxn{
+					ContractClass: ContractClass{
+						Program: "",
+						EntryPointsByType: struct {
+							CONSTRUCTOR ContractEntryPointList "json:\"CONSTRUCTOR\""
+							EXTERNAL    ContractEntryPointList "json:\"EXTERNAL\""
+							L1_HANDLER  ContractEntryPointList "json:\"L1_HANDLER\""
+						}{},
+						Abi: &ContractABI{},
+					},
+				},
 				ExpectedTransactionHash: "0x2149bf99d96ed687a488091ea0d2b1e0b24f73fd7ab96809c2640ae2fc0c791",
 				ExpectedContractAddress: "0x30b0fc513edb49b5602f985f5515540a63c8884f3c23a9a9b70f3c14eab7255",
 			},
@@ -58,7 +72,7 @@ func TestAddDeployTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		output, err := testConfig.client.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCallData, test.Contract)
+		output, err := testConfig.client.AddDeployTransaction(context.Background(), test.BroadcastedDeployTxn)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -76,8 +90,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Contract                types.ContractClass
-		Version                 string
+		BroadcastedDeclareTxn   BroadcastedDeclareTxn
 		ExpectedTransactionHash string
 		ExpectedClassHash       string
 	}
@@ -89,16 +102,48 @@ func TestAddDeclareTransaction(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				Contract:                contract,
-				Version:                 "0x0",
+				BroadcastedDeclareTxn: BroadcastedDeclareTxn{
+					BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+						Type:      TxnType(""),
+						MaxFee:    "",
+						Version:   NumAsHex(""),
+						Signature: Signature{},
+						Nonce:     "",
+					},
+					ContractClass: ContractClass{
+						Program: "",
+						EntryPointsByType: struct {
+							CONSTRUCTOR ContractEntryPointList "json:\"CONSTRUCTOR\""
+							EXTERNAL    ContractEntryPointList "json:\"EXTERNAL\""
+							L1_HANDLER  ContractEntryPointList "json:\"L1_HANDLER\""
+						}{},
+						Abi: &ContractABI{},
+					},
+				},
 				ExpectedTransactionHash: "0xdeadbeef",
 				ExpectedClassHash:       "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				Contract:                contract,
-				Version:                 "0x0",
+				BroadcastedDeclareTxn: BroadcastedDeclareTxn{
+					BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+						Type:      TxnType(""),
+						MaxFee:    "",
+						Version:   NumAsHex(""),
+						Signature: Signature{},
+						Nonce:     "",
+					},
+					ContractClass: ContractClass{
+						Program: "",
+						EntryPointsByType: struct {
+							CONSTRUCTOR ContractEntryPointList "json:\"CONSTRUCTOR\""
+							EXTERNAL    ContractEntryPointList "json:\"EXTERNAL\""
+							L1_HANDLER  ContractEntryPointList "json:\"L1_HANDLER\""
+						}{},
+						Abi: &ContractABI{},
+					},
+				},
 				ExpectedTransactionHash: "0x3d570dbde5ed56ddcb5f69578fb5f83b362c4af8b2a60e2be33ed229148e10a",
 				ExpectedClassHash:       "0x646552d8029a8fe940dbbe2847bce558d3d1b3e78a5519e970395df6a2b2cc9",
 			},
@@ -109,7 +154,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		output, err := testConfig.client.AddDeclareTransaction(context.Background(), test.Contract, test.Version)
+		output, err := testConfig.client.AddDeclareTransaction(context.Background(), test.BroadcastedDeclareTxn)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -127,69 +172,79 @@ func TestAddInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall            types.FunctionCall
-		Signature               []string
-		Version                 string
-		MaxFee                  string
+		BroadcastedInvokeTxn    BroadcastedInvokeTxn
 		ExpectedTransactionHash string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				FunctionCall: types.FunctionCall{
-					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
-					Calldata: []string{
-						"0x1",
-						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
-						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x2b",
-						"0x0",
+				BroadcastedInvokeTxn: BroadcastedInvokeTxnV0{
+					BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+						Type: TxnType("0xdeadbeef"),
+						Signature: []string{
+							"3557065757165699682249469970267166698995647077461960906176449260016084767701",
+							"3202126414680946801789588986259466145787792017299869598314522555275920413944",
+						},
+						MaxFee:  "0x4f388496839",
+						Version: "0x0",
 					},
-					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+					InvokeTxnV0: InvokeTxnV0(
+						FunctionCall{
+							ContractAddress:    Address("0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd"),
+							EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+							CallData: []string{
+								"0x1",
+								"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
+								"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
+								"0x0",
+								"0x1",
+								"0x1",
+								"0x2b",
+								"0x0",
+							},
+						},
+					),
 				},
-				Signature: []string{
-					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
-					"3202126414680946801789588986259466145787792017299869598314522555275920413944",
-				},
-				MaxFee:                  "0x4f388496839",
-				Version:                 "0x0",
 				ExpectedTransactionHash: "0xdeadbeef",
 			},
 		},
 		"testnet": {},
 		"mainnet": {
 			{
-				FunctionCall: types.FunctionCall{
-					ContractAddress: "0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd",
-					Calldata: []string{
-						"0x1",
-						"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
-						"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x2b",
-						"0x0",
+				BroadcastedInvokeTxn: BroadcastedInvokeTxnV0{
+					BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+						Type: TxnType("0xdeadbeef"),
+						Signature: []string{
+							"3557065757165699682249469970267166698995647077461960906176449260016084767701",
+							"3202126414680946801789588986259466145787792017299869598314522555275920413944",
+						},
+						MaxFee:  "0x4f388496839",
+						Version: "0x0",
 					},
-					EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+					InvokeTxnV0: InvokeTxnV0(
+						FunctionCall{
+							ContractAddress:    Address("0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd"),
+							EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+							CallData: []string{
+								"0x1",
+								"0x677bb1cdc050e8d63855e8743ab6e09179138def390676cc03c484daf112ba1",
+								"0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
+								"0x0",
+								"0x1",
+								"0x1",
+								"0x2b",
+								"0x0",
+							},
+						},
+					),
 				},
-				Signature: []string{
-					"3557065757165699682249469970267166698995647077461960906176449260016084767701",
-					"3202126414680946801789588986259466145787792017299869598314522555275920413944",
-				},
-				MaxFee:                  "0x4f388496839",
-				Version:                 "0x0",
-				ExpectedTransactionHash: "0x1ce0d76c0c085306fd32679b75f9541fab71851da8d3e3898a691b49ed8175c",
+				ExpectedTransactionHash: "0xdeadbeef",
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		functionCall := test.FunctionCall
-		output, err := testConfig.client.AddInvokeTransaction(context.Background(), functionCall, test.Signature, test.MaxFee, test.Version)
+		output, err := testConfig.client.AddInvokeTransaction(context.Background(), test.BroadcastedInvokeTxn)
 		if err != nil || output == nil {
 			t.Fatalf("output is nil, go err %v", err)
 		}
