@@ -177,6 +177,27 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOp
 	return &block, nil
 }
 
+// BlockTransactionCount gets the number of transactions in a block
+func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption BlockIDOption) (uint64, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
+		return 0, err
+	}
+	var result uint64
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, "pending"); err != nil {
+			return 0, err
+		}
+		return result, nil
+	}
+
+	if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, opt); err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
 type TxnType string
 
 type NumAsHex string
