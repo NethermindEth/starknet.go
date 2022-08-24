@@ -5,6 +5,32 @@ import (
 	"testing"
 )
 
+func Test_Block(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockHash string
+		opts      *BlockOptions
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"testnet": {{
+			BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
+			opts:      &BlockOptions{BlockNumber: 159179}}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		block, err := testConfig.client.Block(context.Background(), test.opts)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		if block.BlockHash != test.BlockHash {
+			t.Fatalf("expecting %s, instead: %s", block.BlockHash, test.BlockHash)
+		}
+	}
+}
+
 func Test_BlockIDByHash(t *testing.T) {
 	gw := NewClient()
 
