@@ -1,0 +1,44 @@
+# Deploy example
+
+This directory provides a full example on how to use the gateway API to :
+- Deploy an OpenZeppelin account
+- Deploy an ERC20 contract
+- Mint the ERC20 contract
+- Transfer tokens from the deployed account to a tierce account
+
+## Run the program
+In a terminal in this directory enter : `go run main.go`
+
+You can choose to run the program with an instance of the devnet (local starknet instance) or with the testnet by setting the `env` variable to *dev* for devnet or *testnet* for testnet
+
+## Contracts
+
+All used contracts can be found in `./contracts`
+
+- The account is in `./contracts/account/`
+- The erc20 is in `./contracts/erc20/`
+
+You will find for each contract :  the cairo version, the compiled version and the abi.
+
+For the transfer operation, an account is already deployed on testnet at this address : `0x0024e9f35c5d6a14dcbb3f08be5fb7703e76611767266068c521fe8cba27983c`
+
+Note:  you have to deploy one manually and setting the `predeployedContract` variables to the account contract address if you want to run the program with devnet.
+
+## Providing ethereum to the deployed account
+
+When running the program, you will be prompted to add ethereum to the account.
+
+This step has to be done with the testnet [faucet](https://faucet.goerli.starknet.io/)
+
+Copy to clipboard the address of the contract printed in the terminal and past it in the faucet. The transaction can take several minutes.
+
+Once the transacation is accepted, go to [voyager](https://goerli.voyager.online/) to search for your contract. You should see that it has a little amount of ethereum.
+
+These ETH are used to paid transaction fees.
+
+NOTE: this operation has to be done too for devnet. See the devnet documentation to see the process.
+
+## Usefull links
+- [voyager](https://goerli.voyager.online/): to explore deployed contracts and transactions
+- [starknet faucet](https://faucet.goerli.starknet.io/): to provide ETH to accounts
+- [devnet](https://github.com/Shard-Labs/starknet-devnet) : local starknet instance
