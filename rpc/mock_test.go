@@ -141,13 +141,20 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	txHash, ok := args[0].(string)
-	if !ok || !strings.HasPrefix(txHash, "0x") {
+	txHash, ok := args[0].(TxnHash)
+	if !ok || !strings.HasPrefix(string(txHash), "0x") {
 		return errWrongArgs
 	}
-	transaction := types.TransactionReceipt{
-		TransactionHash: txHash,
-		Status:          "ACCEPTED_ON_L1",
+	transaction := InvokeTxnReceipt{
+		CommonReceiptProperties{
+			TransactionHash: txHash,
+			Status:          TxnStatus("ACCEPTED_ON_L1"),
+		},
+		InvokeTxnReceiptProperties{
+			Events: []Event{{
+				FromAddress: Address("0xdeadbeef"),
+			}},
+		},
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
@@ -223,14 +230,18 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	query, ok := args[0].(EventParams)
+	query, ok := args[0].(EventFilterParams)
 	if !ok {
 		return errWrongArgs
 	}
-	events := Events{
-		Events: []Event{
-			{
-				BlockNumber: int(query.FromBlock),
+	events := &EventsOutput{
+		Events: []EmittedEvent{
+			{BlockHash: BlockHash("0xdeadbeef"),
+				Event: Event{
+					FromAddress: query.EventFilter.Address,
+				},
+				BlockNumber:     BlockNumber(1),
+				TransactionHash: TxnHash("deadbeef"),
 			},
 		},
 	}

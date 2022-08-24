@@ -670,8 +670,8 @@ type CommonReceiptProperties struct {
 type MsgToL1 struct {
 	// ToAddress The target L1 address the message is sent to
 	ToAddress string `json:"to_address"`
-	//payload  The payload of the message
-	payload []string `json:"payload"`
+	//Payload  The payload of the message
+	Payload []string `json:"payload"`
 }
 
 type EventContent struct {
@@ -687,7 +687,7 @@ type Event struct {
 
 type InvokeTxnReceiptProperties struct {
 	MessageSent MsgToL1 `json:"messages_sent"`
-	// ActualFee The fee that was charged by the sequencer
+	// A list of events assocuated with the Invoke Transaction
 	Events []Event `json:"events"`
 }
 
@@ -761,7 +761,7 @@ type EventFilter struct {
 
 type ResultPageRequest struct {
 	// ContinuationToken a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
-	ContinuationToken string `json:"continuation_token"`
+	ContinuationToken *string `json:"continuation_token"`
 
 	ChunkSize uint64 `json:"chunk_size"`
 }

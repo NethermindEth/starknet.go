@@ -65,40 +65,45 @@ func TestTransactionReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash         string
-		ExpectedStatus string
+		TxnHash        TxnHash
+		ExpectedStatus TxnStatus
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				TxHash:         "0xdeadbeef",
-				ExpectedStatus: "ACCEPTED_ON_L1",
+				TxnHash:        TxnHash("0xdeadbeef"),
+				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
 			},
 		},
 		"testnet": {
 			{
-				TxHash:         "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
-				ExpectedStatus: "ACCEPTED_ON_L1",
+				TxnHash:        TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
 			},
 		},
 		"mainnet": {
 			{
-				TxHash:         "0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6",
-				ExpectedStatus: "ACCEPTED_ON_L1",
+				TxnHash:        TxnHash("0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6"),
+				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		txReceipt, err := testConfig.client.TransactionReceipt(context.Background(), test.TxHash)
+		txReceiptInterface, err := testConfig.client.TransactionReceipt(context.Background(), test.TxnHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if txReceipt == nil || txReceipt.TransactionHash != test.TxHash {
-			t.Fatal("transaction should exist and match the tx hash")
+		if txReceiptInterface == nil {
+			t.Fatal("transaction receipt should exist")
 		}
-		if txReceipt.Status != test.ExpectedStatus {
-			t.Fatalf("expecting status %s, got %s", test.ExpectedStatus, txReceipt.Status)
+		txnReceipt, ok := txReceiptInterface.(InvokeTxnReceipt)
+		if !ok {
+			t.Fatalf("transaction receipt should be InvokeTxnReceipt, instead %T", txReceiptInterface)
+
+		}
+		if txnReceipt.Status != test.ExpectedStatus {
+			t.Fatalf("expecting status %s, got %s", test.ExpectedStatus, txnReceipt.Status)
 		}
 	}
 }
