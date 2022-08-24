@@ -19,25 +19,6 @@ var (
 	errInvalidBlockTag = errors.New("invalid blocktag")
 )
 
-type Events struct {
-	Events []Event `json:"events"`
-}
-
-type Event struct {
-	*types.Event
-	FromAddress     string `json:"from_address"`
-	BlockHash       string `json:"block_hash"`
-	BlockNumber     int    `json:"block_number"`
-	TransactionHash string `json:"transaction_hash"`
-}
-
-type EventParams struct {
-	FromBlock  uint64 `json:"fromBlock"`
-	ToBlock    uint64 `json:"toBlock"`
-	PageSize   uint64 `json:"page_size"`
-	PageNumber uint64 `json:"page_number"`
-}
-
 // Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string) ([]string, error) {
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
@@ -674,10 +655,86 @@ func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOptio
 	return &txTxn, nil
 }
 
+type TxnStatus string
+
+type CommonReceiptProperties struct {
+	TransactionHash TxnHash `json:"transaction_hash"`
+	// ActualFee The fee that was charged by the sequencer
+	ActualFee   string      `json:"actual_fee"`
+	Status      TxnStatus   `json:"status"`
+	BlockHash   BlockHash   `json:"block_hash"`
+	BlockNumber BlockNumber `json:"block_number"`
+	Type        TxnType     `json:"type"`
+}
+
+type MsgToL1 struct {
+	// ToAddress The target L1 address the message is sent to
+	ToAddress string `json:"to_address"`
+	//payload  The payload of the message
+	payload []string `json:"payload"`
+}
+
+type EventContent struct {
+	Keys []string `json:"keys"`
+	Data []string `json:"data"`
+}
+
+type Event struct {
+	FromAddress Address `json:"from_address"`
+	//payload  The payload of the message
+	EventContent
+}
+
+type InvokeTxnReceiptProperties struct {
+	MessageSent MsgToL1 `json:"messages_sent"`
+	// ActualFee The fee that was charged by the sequencer
+	Events []Event `json:"events"`
+}
+
+// InvokeTxnReceipt Invoke Transaction Receipt
+type InvokeTxnReceipt struct {
+	CommonReceiptProperties
+	// ActualFee The fee that was charged by the sequencer
+	InvokeTxnReceiptProperties
+}
+
+// DeclareTxnReceipt Declare Transaction Receipt
+type DeclareTxnReceipt struct {
+	CommonReceiptProperties
+}
+
+// DeployTxnReceipt Deploy Transaction Receipt
+type DeployTxnReceipt struct {
+	CommonReceiptProperties
+	// ContractAddress The address of the deployed contract
+	ContractAddress string `json:"contract_address"`
+}
+
+// L1HandlerTxnReceipt L1 Handler Transaction Receipt
+type L1HandlerTxnReceipt struct {
+	CommonReceiptProperties
+}
+
+type TxnReceipt interface{}
+
+type PendingCommonReceiptProperties struct {
+	TransactionHash TxnHash `json:"transaction_hash"`
+	// ActualFee The fee that was charged by the sequencer
+	ActualFee string  `json:"actual_fee"`
+	Type      TxnType `json:"type"`
+}
+
+type PendingInvokeTxnReceipt struct {
+	PendingCommonReceiptProperties
+	InvokeTxnReceiptProperties
+}
+
+type PendingTxnReceipt interface{}
+
 // TransactionReceipt gets the transaction receipt by the transaction hash.
-func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.TransactionReceipt, error) {
+func (sc *Client) TransactionReceipt(ctx context.Context, transactionHash TxnHash) (TxnReceipt, error) {
 	var receipt types.TransactionReceipt
-	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt, hash)
+	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt)
 	if err != nil {
 		return nil, err
 	} else if receipt.TransactionHash == "" {
@@ -687,13 +744,42 @@ func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.T
 	return &receipt, nil
 }
 
+type EmittedEvent struct {
+	Event
+	BlockHash       BlockHash
+	BlockNumber     BlockNumber
+	TransactionHash TxnHash
+}
+
+type EventFilter struct {
+	FromBlock BlockIDOption
+	ToBlock   BlockIDOption
+	Address   Address
+	// Keys the values used to filter the events
+	Keys []string
+}
+
+type ResultPageRequest struct {
+	// ContinuationToken a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+	ContinuationToken string `json:"continuation_token"`
+
+	ChunkSize uint64 `json:"chunk_size"`
+}
+
+type EventFilterParams struct {
+	EventFilter
+	ResultPageRequest
+}
+
+type EventsOutput struct {
+	Events            []EmittedEvent `json:"events"`
+	ContinuationToken string         `json:"continuation_token"`
+}
+
 // Events returns all events matching the given filter
-// TODO: check the query parameters as they include filter directives that have
-// not been implemented. For more details, check the
-// [specification](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json)
-func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, error) {
-	var result Events
-	if err := sc.do(ctx, "starknet_getEvents", &result, evParams); err != nil {
+func (sc *Client) Events(ctx context.Context, filter EventFilterParams) (*EventsOutput, error) {
+	var result EventsOutput
+	if err := sc.do(ctx, "starknet_getEvents", &result, filter); err != nil {
 		return nil, err
 	}
 
