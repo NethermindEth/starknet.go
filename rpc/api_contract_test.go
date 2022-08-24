@@ -53,32 +53,32 @@ func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash      string
+		ContractAddress   Address
 		ExpectedOperation string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:      "0xdeadbeef",
+				ContractAddress:   Address("0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				ContractHash:      "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39",
+				ContractAddress:   Address("0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
 				ExpectedOperation: "0x480680017fff8000",
 			},
 		},
 		"mainnet": {
 			{
-				ContractHash:      "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f",
+				ContractAddress:   Address("0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
 				ExpectedOperation: "0x20780017fff7ffd",
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		class, err := testConfig.client.ClassAt(context.Background(), test.ContractHash)
+		class, err := testConfig.client.ClassAt(context.Background(), WithBlockIDTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}

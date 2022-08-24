@@ -520,12 +520,22 @@ func (sc *Client) Class(ctx context.Context, hash string) (*types.ContractClass,
 }
 
 // ClassAt get the contract class definition at the given address.
-func (sc *Client) ClassAt(ctx context.Context, address string) (*types.ContractClass, error) {
-	var rawClass types.ContractClass
-	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, address); err != nil {
+func (sc *Client) ClassAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*types.ContractClass, error) {
+	opt := &blockID{}
+	err := blockIDOption(opt)
+	if err != nil {
 		return nil, err
 	}
-
+	var rawClass types.ContractClass
+	if opt.BlockTag != nil {
+		if err := sc.do(ctx, "starknet_getClassAt", &rawClass, *opt.BlockTag, contractAddress); err != nil {
+			return nil, err
+		}
+		return &rawClass, nil
+	}
+	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, opt, contractAddress); err != nil {
+		return nil, err
+	}
 	return &rawClass, nil
 }
 
