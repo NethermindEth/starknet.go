@@ -118,7 +118,7 @@ func main() {
 
 	balance, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of %s :", account.Address, err)
+		fmt.Println("can't get balance of :", account.Address, err)
 		os.Exit(1)
 	}
 	fmt.Println("Your account has ", balance, " tokens.")
@@ -132,12 +132,12 @@ func main() {
 
 	balanceAccount, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of %s :", account.Address, err)
+		fmt.Println("can't get balance of :", account.Address, err)
 		os.Exit(1)
 	}
 	balancePredeployed, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of %s :", predeployedContract, err)
+		fmt.Println("can't get balance of :", predeployedContract, err)
 		os.Exit(1)
 	}
 
