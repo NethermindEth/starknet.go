@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	env                       = "testnet"
-	compiledOZAccount         = "./contracts/account/OZAccount_compiled.json"
-	compiledERC20Contract     = "./contracts/erc20/erc20_custom_compiled.json"
-	predeployedContract       = "0x0024e9f35c5d6a14dcbb3f08be5fb7703e76611767266068c521fe8cba27983c"
-	maxPoll               int = 15
-	pollInterval          int = 5
+	env                   = "testnet"
+	compiledOZAccount     = "./contracts/account/OZAccount_compiled.json"
+	compiledERC20Contract = "./contracts/erc20/erc20_custom_compiled.json"
+	predeployedContract   = "0x0024e9f35c5d6a14dcbb3f08be5fb7703e76611767266068c521fe8cba27983c"
+	maxPoll               = 15
+	pollInterval          = 5
 )
 
 func main() {
@@ -61,6 +61,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Instantiate account object
 	account, err := caigo.NewAccount(privateKey.String(), tx.Transaction.ContractAddress, gw)
 	if err != nil {
 		fmt.Println("can't create account:", err)
@@ -142,7 +143,7 @@ func main() {
 	}
 
 	fmt.Println("Transfer done.")
-	fmt.Println("Account balance : ", balanceAccount, "PredeployedAccountBalance : ", balancePredeployed)
+	fmt.Println("Account balance : ", balanceAccount, ". Predeployed account balance : ", balancePredeployed)
 }
 
 // Utils function to wait for transaction to be accepted on L2 and print tx status
@@ -175,7 +176,7 @@ func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address stri
 			Calldata: []string{
 				caigo.HexToBN(account.Address).String(), // owner
 				"10",                                    // amount to mint
-				"0",
+				"0",                                     // UInt256 additional parameter
 			},
 		},
 	}
@@ -191,6 +192,8 @@ func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address stri
 	return nil
 }
 
+// transferFrom will transfer 5 tokens from account balance to the otherAccount by
+// calling the transferFrom function of the erc20 contract.
 func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20address, otherAccount string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.Transaction{
@@ -201,7 +204,7 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 				caigo.HexToBN(account.Address).String(), // sender
 				caigo.HexToBN(otherAccount).String(),    // recipient
 				"5",                                     // amount to transfer
-				"0",
+				"0",                                     // UInt256 additional parameter
 			},
 		},
 	}
@@ -217,12 +220,13 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 	return nil
 }
 
+// getBalanceOf returns the balance of the account at the accountAddress address.
 func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    erc20address,
 		EntryPointSelector: "balanceOf",
 		Calldata: []string{
-			caigo.HexToBN(accountAddress).String(), // owner
+			caigo.HexToBN(accountAddress).String(),
 		},
 	}, "")
 	if err != nil {

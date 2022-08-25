@@ -4,12 +4,12 @@ This directory provides a full example on how to use the gateway API to :
 - Deploy an OpenZeppelin account
 - Deploy an ERC20 contract
 - Mint the ERC20 contract
-- Transfer tokens from the deployed account to a tierce account
+- Transfer tokens from the deployed account to a third-party account
 
 ## Run the program
 In a terminal in this directory enter : `go run main.go`
 
-You can choose to run the program with an instance of the devnet (local starknet instance) or with the testnet by setting the `env` variable to *dev* for devnet or *testnet* for testnet
+You can choose to run the program with an instance of the devnet (local starknet instance) or with the testnet by setting the `env` variable to `dev` for devnet or `testnet` for testnet
 
 ## Contracts
 
@@ -22,7 +22,9 @@ You will find for each contract :  the cairo version, the compiled version and t
 
 For the transfer operation, an account is already deployed on testnet at this address : `0x0024e9f35c5d6a14dcbb3f08be5fb7703e76611767266068c521fe8cba27983c`
 
-Note:  you have to deploy one manually and setting the `predeployedContract` variables to the account contract address if you want to run the program with devnet.
+Note:  
+
+If you run the program with a devnet instance, you have to deploy an account manualy and set the `predeployedContract` value with the deployed account address.
 
 ## Providing ethereum to the deployed account
 
