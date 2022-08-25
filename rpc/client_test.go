@@ -48,7 +48,8 @@ var (
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	//flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	flag.StringVar(&testEnv, "env", "testnet", "set the test environment")
 	flag.Parse()
 
 	os.Exit(m.Run())
@@ -152,44 +153,6 @@ func TestSyncing(t *testing.T) {
 		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
-		}
-	}
-}
-
-// TestProtocolVersion test ProtocolVersion
-func TestProtocolVersion(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ProtocolVersion string
-	}
-	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				ProtocolVersion: "0x312e30",
-			},
-		},
-		"devnet": {
-			{
-				ProtocolVersion: "0x302e31352e30",
-			},
-		},
-		"testnet": {},
-		"mainnet": {},
-	}[testEnv]
-
-	if len(testSet) == 0 {
-		t.Skipf("not implemented on %s", testEnv)
-	}
-	for _, test := range testSet {
-
-		protocol, err := testConfig.client.ProtocolVersion(context.Background())
-
-		if err != nil || protocol == "" {
-			t.Fatal(err)
-		}
-		if protocol != test.ProtocolVersion {
-			t.Fatalf("protocol %s expected, got %s", test.ProtocolVersion, protocol)
 		}
 	}
 }

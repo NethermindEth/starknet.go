@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/ethereum/go-ethereum v1.10.17
 	github.com/joho/godotenv v1.4.0
+	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064
 )
 

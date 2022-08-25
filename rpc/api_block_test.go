@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
@@ -84,37 +86,36 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}
 }
 
-// TestPendingBlockWithTxHashes tests TestPendingBlockWithTxHashes
+// TestBlockWithTxHashes tests TestBlockWithTxHashes
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption            BlockIDOption
-		ExpectedError            error
-		ExpectedFirstTransaction TxnHash
+		BlockIDOption             BlockIDOption
+		ExpectedError             error
+		ExpectedBlockWithTxHashes BlockWithTxHashes
 	}
+
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption:            WithBlockIDTag("latest"),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash(""),
+				BlockIDOption: WithBlockIDTag("latest"),
+				ExpectedError: nil,
 			},
 			{
-				BlockIDOption:            WithBlockIDTag("error"),
-				ExpectedError:            errBadRequest,
-				ExpectedFirstTransaction: TxnHash(""),
+				BlockIDOption: WithBlockIDTag("error"),
+				ExpectedError: errInvalidBlockTag,
 			},
 			{
-				BlockIDOption:            WithBlockIDHash(BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+				BlockIDOption:             WithBlockIDHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				ExpectedError:             nil,
+				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
 			{
-				BlockIDOption:            WithBlockIDNumber(BlockNumber(307417)),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+				BlockIDOption:             WithBlockIDNumber(BlockNumber(310370)),
+				ExpectedError:             nil,
+				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
 		},
 		"mainnet": {},
@@ -123,33 +124,39 @@ func TestBlockWithTxHashes(t *testing.T) {
 	for _, test := range testSet {
 		block := blockID{}
 		_ = test.BlockIDOption(&block)
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockIDOption)
 		if err != test.ExpectedError {
-			t.Fatal("PendingBlockWithTxHashes match the expected error", err)
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
 		if test.ExpectedError != nil && blockWithTxHashesInterface == nil {
 			continue
 		}
-		blockWithTxHashes, ok := blockWithTxHashesInterface.(BlockWithTxHashes)
+		blockWithTxHashes, ok := blockWithTxHashesInterface.(*BlockWithTxHashes)
 		if !ok {
 			t.Fatalf("expecting BlockWithTxHashes, instead %T", blockWithTxHashesInterface)
+		}
+		if diff, err := spy.Compare(blockWithTxHashes); err != nil || diff != "FullMatch" {
+			t.Fatal("expecting to match", err)
 		}
 		if !strings.HasPrefix(string(blockWithTxHashes.BlockHash), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxHashes.BlockHash)
 		}
-		if blockWithTxHashes.Status == "" {
-			t.Fatal("Status not be empty")
-		}
+
 		if len(blockWithTxHashes.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedFirstTransaction != "" && blockWithTxHashes.Transactions[0] != test.ExpectedFirstTransaction {
-			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, blockWithTxHashes.Transactions[0])
+		if test.ExpectedBlockWithTxHashes.BlockHash == "" {
+			continue
+		}
+		if !cmp.Equal(test.ExpectedBlockWithTxHashes, *blockWithTxHashes) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, blockWithTxHashes))
 		}
 	}
 }
 
-// TestBlockWithTxs tests TestPendingBlockWithTxHashes
+// TestBlockWithTxs tests BlockWithTxs
 func TestBlockWithTxs(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -191,7 +198,7 @@ func TestBlockWithTxs(t *testing.T) {
 		_ = test.BlockIDOption(&block)
 		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
 		if err != test.ExpectedError {
-			t.Fatal("PendingBlockWithTxs match the expected error", err)
+			t.Fatal("BlockWithTxs match the expected error", err)
 		}
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
