@@ -2,8 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -148,105 +146,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if test.ExpectedFirstTransaction != "" && blockWithTxHashes.Transactions[0] != test.ExpectedFirstTransaction {
 			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, blockWithTxHashes.Transactions[0])
 		}
-	}
-}
-
-// TestDemonstrateMultipleEmbeddingCase1 shows how you can guess what a type is and apply it
-func TestDemonstrateMultipleEmbeddingCase1(t *testing.T) {
-	type V1 struct {
-		Label1 string
-	}
-
-	type V2 struct {
-		Label2 string
-	}
-
-	type V interface{}
-
-	type MyType struct {
-		Data string
-		Tx   []V
-	}
-
-	var my MyType
-
-	jsonContent := `{"data": "data", "tx": [{"label2": "yes"}, {"label1": "no"}]}`
-
-	err := json.Unmarshal([]byte(jsonContent), &my)
-	if err != nil {
-		t.Fatal("should succeed, instead", err)
-	}
-	for key, value := range my.Tx {
-		switch local := value.(type) {
-		case map[string]interface{}:
-			if _, ok := local["label1"]; ok {
-				labelOutput, err := json.Marshal(local)
-				if err != nil {
-					t.Fatal("label1Output should succeed, instead", err)
-				}
-				v := V1{}
-				err = json.Unmarshal(labelOutput, &v)
-				if err != nil {
-					t.Fatal("V1 should succeed, instead", err)
-				}
-				my.Tx[key] = v
-				continue
-			}
-			if _, ok := local["label2"]; ok {
-				labelOutput, err := json.Marshal(local)
-				if err != nil {
-					t.Fatal("label1Output should succeed, instead", err)
-				}
-				v := V2{}
-				err = json.Unmarshal(labelOutput, &v)
-				if err != nil {
-					t.Fatal("V1 should succeed, instead", err)
-				}
-				my.Tx[key] = v
-				continue
-			}
-			fmt.Printf("we should not get here \n")
-		default:
-			fmt.Printf("%T", value)
-		}
-	}
-	if _, ok := my.Tx[0].(V2); !ok {
-		t.Fatalf("Tx[0] should be a V2, instead, %T", my.Tx[0])
-	}
-	if _, ok := my.Tx[1].(V1); !ok {
-		t.Fatalf("Tx[0] should be a V1, instead, %T", my.Tx[1])
-	}
-}
-
-// TestDemonstrateMultipleEmbeddingCase2 shows how 2 embeded type are loaded
-func TestDemonstrateMultipleEmbeddingCase2(t *testing.T) {
-	type V1 struct {
-		Label1 string
-	}
-
-	type V2 struct {
-		Label2 string
-		Label3 string
-	}
-
-	type V4 interface{}
-
-	type MyType struct {
-		V1
-		V2
-		V4
-	}
-
-	var my MyType
-
-	jsonContent := `{"label2": "label2", "label1": "label1", "label3": "label3", "label4": "label4"}`
-
-	err := json.Unmarshal([]byte(jsonContent), &my)
-	if err != nil {
-		t.Fatal("should succeed, instead", err)
-	}
-	if fmt.Sprintf("%T", my.V4) != "map[string]interface{}" {
-		t.Fatalf("should return a map[string]interface{}, instead %s", fmt.Sprintf("%T", my.V4))
 	}
 }
 
