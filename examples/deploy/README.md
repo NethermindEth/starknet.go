@@ -34,7 +34,7 @@ This step has to be done with the testnet [faucet](https://faucet.goerli.starkne
 
 Copy to clipboard the address of the contract printed in the terminal and past it in the faucet. The transaction can take several minutes.
 
-Once the transacation is accepted, go to [voyager](https://goerli.voyager.online/) to search for your contract. You should see that it has a little amount of ethereum.
+Once the transaction is accepted, go to [voyager](https://goerli.voyager.online/) to search for your contract. You should see that it has a little amount of ethereum.
 
 These ETH are used to paid transaction fees.
 
