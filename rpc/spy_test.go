@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/nsf/jsondiff"
 )
@@ -40,5 +41,12 @@ func (s *spy) Compare(o interface{}) (string, error) {
 		return "", err
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
+	if false {
+		fmt.Println("**************************")
+		fmt.Println(string(s.s))
+		fmt.Println("**************************")
+		fmt.Println(string(b))
+		fmt.Println("**************************")
+	}
 	return diff.String(), nil
 }

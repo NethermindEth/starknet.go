@@ -161,33 +161,31 @@ func TestBlockWithTxs(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption            BlockIDOption
-		ExpectedError            error
-		ExpectedTxNumber         int
-		ExpectedFirstTransaction TxnHash
+		BlockIDOption        BlockIDOption
+		ExpectedError        error
+		ExpectedTxNumber     int
+		ExpectedBlockWithTxs BlockWithTxs
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
+			// {
+			// 	BlockIDOption: WithBlockIDTag("latest"),
+			// 	ExpectedError: nil,
+			// },
+			// {
+			// 	BlockIDOption: WithBlockIDTag("error"),
+			// 	ExpectedError: errInvalidBlockTag,
+			// },
 			{
-				BlockIDOption:            WithBlockIDTag("latest"),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash(""),
+				BlockIDOption:        WithBlockIDHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				ExpectedError:        nil,
+				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
 			{
-				BlockIDOption:            WithBlockIDTag("error"),
-				ExpectedError:            errBadRequest,
-				ExpectedFirstTransaction: TxnHash(""),
-			},
-			{
-				BlockIDOption:            WithBlockIDHash(BlockHash("0x631127f10ab881f17c2cb1a3375e1c71352777b9ab0c1a2a7fe8fa9e201456e")),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
-			},
-			{
-				BlockIDOption:            WithBlockIDNumber(BlockNumber(307417)),
-				ExpectedError:            nil,
-				ExpectedFirstTransaction: TxnHash("0x32be2ddc447a19466760ef64a1c92e0683a7e1bcc68a677138020a65a81763d"),
+				BlockIDOption:        WithBlockIDNumber(BlockNumber(310370)),
+				ExpectedError:        nil,
+				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
 		},
 		"mainnet": {},
@@ -196,28 +194,38 @@ func TestBlockWithTxs(t *testing.T) {
 	for _, test := range testSet {
 		block := blockID{}
 		_ = test.BlockIDOption(&block)
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
 		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxs match the expected error", err)
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		blockWithTxs, ok := blockWithTxsInterface.(BlockWithTxs)
+		blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
 		if !ok {
 			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+		}
+		diff, err := spy.Compare(blockWithTxs)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
 		}
-		if blockWithTxs.Status == "" {
-			t.Fatal("Status not be empty")
-		}
+
 		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedFirstTransaction != "" && blockWithTxs.Transactions[0] != test.ExpectedFirstTransaction {
-			t.Fatalf("the expected transaction 0 is %s, instead %s", test.ExpectedFirstTransaction, blockWithTxs.Transactions[0])
+		if test.ExpectedBlockWithTxs.BlockHash == "" {
+			continue
+		}
+		if !cmp.Equal(test.ExpectedBlockWithTxs, *blockWithTxs) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs, blockWithTxs))
 		}
 	}
 }
