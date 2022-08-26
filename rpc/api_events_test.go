@@ -14,24 +14,9 @@ func TestEvents(t *testing.T) {
 		ExpectedEventCount int
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				FromBlock:          WithBlockIDNumber(1),
-				ExpectedEventCount: 1,
-			},
-		},
-		"testnet": {
-			{
-				FromBlock:          WithBlockIDNumber(1),
-				ExpectedEventCount: 142,
-			},
-		},
-		"mainnet": {
-			{
-				FromBlock:          WithBlockIDNumber(1),
-				ExpectedEventCount: 1,
-			},
-		},
+		"mock":    {},
+		"testnet": {},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {

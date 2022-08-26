@@ -69,11 +69,10 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	type testSetType struct {
 	}
 	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
-			{},
-		},
-		"mainnet": {{}},
+		"mock":    {},
+		"testnet": {},
+		"mainnet": {},
+		"devnet":  {},
 	}[testEnv]
 
 	for range testSet {
@@ -331,8 +330,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 309000,
-				EndBlock:   310000,
+				StartBlock: 310000,
+				EndBlock:   310100,
 			},
 		},
 		"mainnet": {},

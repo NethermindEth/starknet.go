@@ -63,19 +63,14 @@ func TestTransactionReceipt(t *testing.T) {
 		ExpectedStatus TxnStatus
 	}
 	testSet := map[string][]testSetType{
-		"mock": {},
+		"mock":    {},
 		"testnet": {
-			{
-				TxnHash:        TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
-				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
-			},
+			// {
+			// 	TxnHash:        TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+			// 	ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
+			// },
 		},
-		"mainnet": {
-			{
-				TxnHash:        TxnHash("0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6"),
-				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
-			},
-		},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {

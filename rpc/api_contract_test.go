@@ -126,20 +126,8 @@ func TestClass(t *testing.T) {
 				ExpectedOperation: "0xdeadbeef",
 			},
 		},
-		"testnet": {
-			{
-				BlockIDOption:     WithBlockIDTag("pending"),
-				ClassHash:         "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
-				ExpectedOperation: "0x40780017fff7fff",
-			},
-		},
-		"mainnet": {
-			{
-				BlockIDOption:     WithBlockIDTag("pending"),
-				ClassHash:         "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
-				ExpectedOperation: "0x40780017fff7fff",
-			},
-		},
+		"testnet": {},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {

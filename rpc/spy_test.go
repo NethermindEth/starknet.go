@@ -21,12 +21,15 @@ func NewSpy(client callCloser) *spy {
 }
 
 func (s *spy) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+	if _, ok := s.callCloser.(*rpcMock); ok {
+		s.callCloser.CallContext(ctx, result, method, args...)
+	}
 	raw := json.RawMessage{}
 	err := s.callCloser.CallContext(ctx, &raw, method, args...)
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(raw, &result)
+	err = json.Unmarshal(raw, result)
 	s.s = []byte(raw)
 	return err
 }
