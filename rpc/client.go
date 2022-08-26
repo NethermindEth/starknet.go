@@ -19,7 +19,10 @@ type SyncResponse struct {
 }
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
-var ErrNotFound = errors.New("not found")
+var (
+	errNotFound       = errors.New("not found")
+	errNotImplemented = errors.New("not implemented")
+)
 
 type callCloser interface {
 	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
@@ -81,7 +84,7 @@ func (sc *Client) do(ctx context.Context, method string, data interface{}, args 
 		return err
 	}
 	if len(raw) == 0 {
-		return ErrNotFound
+		return errNotFound
 	}
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err

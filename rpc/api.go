@@ -455,7 +455,7 @@ func (sc *Client) TransactionReceipt(ctx context.Context, transactionHash TxnHas
 	if err != nil {
 		return nil, err
 	} else if receipt.TransactionHash == "" {
-		return nil, ErrNotFound
+		return nil, errNotFound
 	}
 
 	return &receipt, nil

@@ -35,13 +35,13 @@ func (s *spy) Close() {
 	s.callCloser.Close()
 }
 
-func (s *spy) Compare(o interface{}) (string, error) {
+func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return "", err
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
-	if false {
+	if debug {
 		fmt.Println("**************************")
 		fmt.Println(string(s.s))
 		fmt.Println("**************************")

@@ -107,7 +107,7 @@ type BroadcastedCommonTxnProperties struct {
 }
 
 type CommonTxnProperties struct {
-	TransactionHash TxnHash
+	TransactionHash TxnHash `json:"transaction_hash"`
 	BroadcastedCommonTxnProperties
 }
 
@@ -122,11 +122,11 @@ type FunctionCall struct {
 	CallData []string `json:"calldata"`
 }
 
-// InvokeTxnV0 version 0 invoke transaction
-type InvokeTxnV0 FunctionCall
+// InvokeV0 version 0 invoke transaction
+type InvokeV0 FunctionCall
 
-// InvokeTxnV1 version 1 invoke transaction
-type InvokeTxnV1 struct {
+// InvokeV1 version 1 invoke transaction
+type InvokeV1 struct {
 	SenderAddress Address `json:"sender_address"`
 	// CallData The parameters passed to the function
 	CallData []string `json:"calldata"`
@@ -138,6 +138,18 @@ type InvokeTxnDuck struct {
 	ContractAddress    Address `json:"contract_address"`
 	EntryPointSelector string  `json:"entry_point_selector"`
 }
+
+type InvokeTxnV0 struct {
+	CommonTxnProperties
+	InvokeV0
+}
+
+type InvokeTxnV1 struct {
+	CommonTxnProperties
+	InvokeV1
+}
+
+type InvokeTxn interface{}
 
 type L1HandlerTxn struct {
 	// TransactionHash The hash identifying the transaction
@@ -171,7 +183,7 @@ type DeclareTxn struct {
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
 	// TransactionHash The hash identifying the transaction
-	TransactionHash TxnHash
+	TransactionHash TxnHash `json:"transaction_hash"`
 
 	// ClassHash The hash of the deployed contract's class
 	ClassHash string `json:"class_hash"`
@@ -231,12 +243,12 @@ type BroadcastedInvokeTxn interface {
 
 type BroadcastedInvokeTxnV0 struct {
 	BroadcastedCommonTxnProperties
-	InvokeTxnV0
+	InvokeV0
 }
 
 type BroadcastedInvokeTxnV1 struct {
 	BroadcastedCommonTxnProperties
-	InvokeTxnV1
+	InvokeV1
 }
 
 type ContractEntryPoint struct {
@@ -503,17 +515,17 @@ type PendingTxnReceipt interface{}
 
 type EmittedEvent struct {
 	Event
-	BlockHash       BlockHash
-	BlockNumber     BlockNumber
-	TransactionHash TxnHash
+	BlockHash       BlockHash   `json:"block_hash"`
+	BlockNumber     BlockNumber `json:"block_number"`
+	TransactionHash TxnHash     `json:"transaction_hash"`
 }
 
 type EventFilter struct {
-	FromBlock BlockIDOption
-	ToBlock   BlockIDOption
-	Address   Address
+	FromBlock BlockIDOption `json:"from_block"`
+	ToBlock   BlockIDOption `json:"to_block"`
+	Address   Address       `json:"address"`
 	// Keys the values used to filter the events
-	Keys []string
+	Keys []string `json:"keys"`
 }
 
 type ResultPageRequest struct {

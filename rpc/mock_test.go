@@ -64,7 +64,7 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
 	default:
-		return ErrNotFound
+		return errNotFound
 	}
 }
 

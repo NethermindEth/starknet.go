@@ -137,7 +137,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if !ok {
 			t.Fatalf("expecting BlockWithTxHashes, instead %T", blockWithTxHashesInterface)
 		}
-		if diff, err := spy.Compare(blockWithTxHashes); err != nil || diff != "FullMatch" {
+		if diff, err := spy.Compare(blockWithTxHashes, false); err != nil || diff != "FullMatch" {
 			t.Fatal("expecting to match", err)
 		}
 		if !strings.HasPrefix(string(blockWithTxHashes.BlockHash), "0x") {
@@ -156,27 +156,28 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxs tests BlockWithTxs
-func TestBlockWithTxs(t *testing.T) {
+// TestBlockWithTxsAndInvokeTXNV0 tests block with Invoke TXN V0
+func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption        BlockIDOption
-		ExpectedError        error
-		ExpectedTxNumber     int
-		ExpectedBlockWithTxs BlockWithTxs
+		BlockIDOption               BlockIDOption
+		ExpectedError               error
+		LookupTxnPositionInOriginal int
+		LookupTxnPositionInExpected int
+		ExpectedBlockWithTxs        BlockWithTxs
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
-			// {
-			// 	BlockIDOption: WithBlockIDTag("latest"),
-			// 	ExpectedError: nil,
-			// },
-			// {
-			// 	BlockIDOption: WithBlockIDTag("error"),
-			// 	ExpectedError: errInvalidBlockTag,
-			// },
+			{
+				BlockIDOption: WithBlockIDTag("latest"),
+				ExpectedError: nil,
+			},
+			{
+				BlockIDOption: WithBlockIDTag("error"),
+				ExpectedError: errInvalidBlockTag,
+			},
 			{
 				BlockIDOption:        WithBlockIDHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:        nil,
@@ -207,11 +208,12 @@ func TestBlockWithTxs(t *testing.T) {
 		if !ok {
 			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 		}
-		diff, err := spy.Compare(blockWithTxs)
+		diff, err := spy.Compare(blockWithTxs, false)
 		if err != nil {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
+			spy.Compare(blockWithTxs, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
@@ -224,10 +226,108 @@ func TestBlockWithTxs(t *testing.T) {
 		if test.ExpectedBlockWithTxs.BlockHash == "" {
 			continue
 		}
-		if !cmp.Equal(test.ExpectedBlockWithTxs, *blockWithTxs) {
-			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs, blockWithTxs))
+		if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
 		}
 	}
+}
+
+// TODO: Capture data from block 310843 that has deployed transactions
+// TestBlockWithTxsAndDeploy tests BlockWithTxs with Deploy TXN
+func TestBlockWithTxsAndDeploy(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockIDOption               BlockIDOption
+		ExpectedError               error
+		LookupTxnPositionInOriginal int
+		LookupTxnPositionInExpected int
+		ExpectedBlockWithTxs        BlockWithTxs
+	}
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				BlockIDOption: WithBlockIDTag("latest"),
+				ExpectedError: nil,
+			},
+			{
+				BlockIDOption: WithBlockIDTag("error"),
+				ExpectedError: errInvalidBlockTag,
+			},
+			{
+				BlockIDOption:               WithBlockIDHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 14,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        fullBlockGoerli310843,
+			},
+			{
+				BlockIDOption:               WithBlockIDNumber(BlockNumber(310843)),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 14,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        fullBlockGoerli310843,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		block := blockID{}
+		_ = test.BlockIDOption(&block)
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
+		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
+		if err != test.ExpectedError {
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
+		}
+		if test.ExpectedError != nil && blockWithTxsInterface == nil {
+			continue
+		}
+		blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
+		if !ok {
+			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+		}
+		diff, err := spy.Compare(blockWithTxs, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(blockWithTxs, false)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
+		}
+
+		if len(blockWithTxs.Transactions) == 0 {
+			t.Fatal("the number of transaction should not be 0")
+		}
+		if test.ExpectedBlockWithTxs.BlockHash == "" {
+			continue
+		}
+		if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
+		}
+	}
+}
+
+// TODO: Find a block with such a Txn
+// TestBlockWithTxsAndDeclare tests BlockWithTxs with Deploy TXN
+func TestBlockWithTxsAndDeclare(t *testing.T) {
+	if errNotImplemented != nil {
+		t.Fatalf("error running test: %v", errNotImplemented)
+	}
+}
+
+// TODO: Find a block with such a Txn
+// TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
+func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
+	if errNotImplemented != nil {
+		t.Fatalf("error running test: %v", errNotImplemented)
+	}
+
 }
 
 // TestStateUpdateByHash tests StateUpdateByHash

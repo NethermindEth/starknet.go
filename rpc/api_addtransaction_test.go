@@ -188,7 +188,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						MaxFee:  "0x4f388496839",
 						Version: "0x0",
 					},
-					InvokeTxnV0: InvokeTxnV0(
+					InvokeV0: InvokeV0(
 						FunctionCall{
 							ContractAddress:    Address("0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd"),
 							EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
@@ -221,7 +221,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						MaxFee:  "0x4f388496839",
 						Version: "0x0",
 					},
-					InvokeTxnV0: InvokeTxnV0(
+					InvokeV0: InvokeV0(
 						FunctionCall{
 							ContractAddress:    Address("0x23371b227eaecd8e8920cd429d2cd0f3fee6abaacca08d3ab82a7cdd"),
 							EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
