@@ -48,8 +48,7 @@ var (
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	//flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.StringVar(&testEnv, "env", "testnet", "set the test environment")
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 
 	os.Exit(m.Run())
