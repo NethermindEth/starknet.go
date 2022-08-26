@@ -15,13 +15,7 @@ func TestTransactionByHash(t *testing.T) {
 		ExpectedEntrypointSelector string
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				TxHash:                     TxnHash("0xdeadbeef"),
-				ExpectedContractAddress:    "0xdeadbeef",
-				ExpectedEntrypointSelector: "0xdeadbeef",
-			},
-		},
+		"mock": {},
 		"testnet": {
 			{
 				TxHash:                     TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
@@ -69,12 +63,7 @@ func TestTransactionReceipt(t *testing.T) {
 		ExpectedStatus TxnStatus
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				TxnHash:        TxnHash("0xdeadbeef"),
-				ExpectedStatus: TxnStatus("ACCEPTED_ON_L1"),
-			},
-		},
+		"mock": {},
 		"testnet": {
 			{
 				TxnHash:        TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),

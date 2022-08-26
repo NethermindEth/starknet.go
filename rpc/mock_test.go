@@ -116,11 +116,12 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if !ok || r == nil {
 		return errWrongType
 	}
+	fmt.Printf("%T, %d", result, len(args))
 	if len(args) != 1 {
 		return errWrongArgs
 	}
 	txHash, ok := args[0].(string)
-	if !ok || !strings.HasPrefix(txHash, "0x") {
+	if !ok || !strings.HasPrefix(string(txHash), "0x") {
 		return errWrongArgs
 	}
 	transaction := types.Transaction{
@@ -138,6 +139,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if !ok || r == nil {
 		return errWrongType
 	}
+	fmt.Printf("%T, %d", result, len(args))
 	if len(args) != 1 {
 		return errWrongArgs
 	}
@@ -167,14 +169,14 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return errWrongArgs
 	}
-	contractHash, ok := args[0].(string)
-	if !ok || !strings.HasPrefix(contractHash, "0x") {
+	contractHash, ok := args[1].(Address)
+	if !ok || !strings.HasPrefix(string(contractHash), "0x") {
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
+	var class = ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -188,11 +190,11 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return errWrongArgs
 	}
-	contractHash, ok := args[0].(string)
-	if !ok || !strings.HasPrefix(contractHash, "0x") {
+	contractHash, ok := args[1].(Address)
+	if !ok || !strings.HasPrefix(string(contractHash), "0x") {
 		return errWrongArgs
 	}
 	classHash := "0xdeadbeef"
@@ -207,11 +209,12 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return errWrongArgs
 	}
-	classHash, ok := args[0].(string)
+	classHash, ok := args[1].(string)
 	if !ok || !strings.HasPrefix(classHash, "0x") {
+		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
 	var class = types.ContractClass{
@@ -259,7 +262,7 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	function, ok := args[0].(types.FunctionCall)
+	function, ok := args[0].(FunctionCall)
 	if !ok || function.ContractAddress != "0xdeadbeef" {
 		return errWrongArgs
 	}
@@ -346,9 +349,9 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		fmt.Printf("args[0] should be types.FunctionInvoke, got %T\n", args[0])
 		return errWrongArgs
 	}
-	_, ok = args[1].(string)
+	_, ok = args[1].(*blockID)
 	if !ok {
-		fmt.Printf("args[1] should be string, got %T\n", args[1])
+		fmt.Printf("args[1] should be *blockID, got %T\n", args[1])
 		return errWrongArgs
 	}
 

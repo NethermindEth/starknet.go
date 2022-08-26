@@ -483,11 +483,13 @@ func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, block
 		if err := sc.do(ctx, "starknet_estimateFee", &raw, request, *opt.BlockTag); err != nil {
 			return nil, err
 		}
+		fmt.Printf("%+v\n", raw)
 		return &raw, nil
 	}
 	if err := sc.do(ctx, "starknet_estimateFee", &raw, request, opt); err != nil {
 		return nil, err
 	}
+	fmt.Printf("%+v\n", raw)
 	return &raw, nil
 }
 

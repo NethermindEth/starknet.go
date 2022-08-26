@@ -95,71 +95,9 @@ func TestEstimateFee(t *testing.T) {
 		ExpectedGasConsumed string
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				call: types.FunctionInvoke{
-					FunctionCall: types.FunctionCall{
-						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
-						Calldata: []string{
-							"0x0000000000000000000000000000000000000000000000000000000000000001",
-							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-							"0x0083afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
-							"0x0000000000000000000000000000000000000000000000000000000000000000",
-							"0x0000000000000000000000000000000000000000000000000000000000000003",
-							"0x0000000000000000000000000000000000000000000000000000000000000003",
-							"0x04681402a7ab16c41f7e5d091f32fe9b78de096e0bd5962ce5bd7aaa4a441f64",
-							"0x000000000000000000000000000000000000000000000000001d41f6331e6800",
-							"0x0000000000000000000000000000000000000000000000000000000000000000",
-							"0x0000000000000000000000000000000000000000000000000000000000000001",
-						},
-						EntryPointSelector: "0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
-					},
-					Signature: []*types.Felt{
-						types.StrToFelt("0x010e400d046147777c2ac5645024e1ee81c86d90b52d76ab8a8125e5f49612f9"),
-						types.StrToFelt("0xadb92739205b4626fefb533b38d0071eb018e6ff096c98c17a6826b536817b"),
-					},
-					MaxFee:  types.StrToFelt("0x012c72866efa9b"),
-					Version: 0,
-				},
-				BlockIDOption:       WithBlockIDHash("0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c"),
-				ExpectedOverallFee:  "0x7134",
-				ExpectedGasPrice:    "0x45",
-				ExpectedGasConsumed: "0x1a4",
-			},
-		},
+		"mock":    {},
 		"testnet": {},
-		"mainnet": {
-			{
-				call: types.FunctionInvoke{
-					FunctionCall: types.FunctionCall{
-						ContractAddress: "0x0019fcae2482de8fb3afaf8d4b219449bec93a5928f02f58eef645cc071767f4",
-						Calldata: []string{
-							"0x0000000000000000000000000000000000000000000000000000000000000001",
-							"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-							"0x0083afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
-							"0x0000000000000000000000000000000000000000000000000000000000000000",
-							"0x0000000000000000000000000000000000000000000000000000000000000003",
-							"0x0000000000000000000000000000000000000000000000000000000000000003",
-							"0x04681402a7ab16c41f7e5d091f32fe9b78de096e0bd5962ce5bd7aaa4a441f64",
-							"0x000000000000000000000000000000000000000000000000001d41f6331e6800",
-							"0x0000000000000000000000000000000000000000000000000000000000000000",
-							"0x0000000000000000000000000000000000000000000000000000000000000001",
-						},
-						EntryPointSelector: "0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
-					},
-					Signature: []*types.Felt{
-						types.StrToFelt("0x010e400d046147777c2ac5645024e1ee81c86d90b52d76ab8a8125e5f49612f9"),
-						types.StrToFelt("0xadb92739205b4626fefb533b38d0071eb018e6ff096c98c17a6826b536817b"),
-					},
-					MaxFee:  types.StrToFelt("0x012c72866efa9b"),
-					Version: 0,
-				},
-				BlockIDOption:       WithBlockIDHash("0x0147c4b0f702079384e26d9d34a15e7758881e32b219fc68c076b09d0be13f8c"),
-				ExpectedOverallFee:  "0xc84c599f51bd",
-				ExpectedGasPrice:    "0x5df32828e",
-				ExpectedGasConsumed: "0x221c",
-			},
-		},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -168,8 +106,8 @@ func TestEstimateFee(t *testing.T) {
 		if err != nil || output == nil {
 			t.Fatalf("output is nil, go err %v", err)
 		}
-		if fmt.Sprintf("0x%x", output.OverallFee) != test.ExpectedOverallFee {
-			t.Fatalf("expected %s, got %s", test.ExpectedOverallFee, fmt.Sprintf("0x%x", output.OverallFee))
+		if string(output.OverallFee) != test.ExpectedOverallFee {
+			t.Fatalf("expected %s, got %s", test.ExpectedOverallFee, output.OverallFee)
 		}
 		if fmt.Sprintf("0x%x", output.GasConsumed) != test.ExpectedGasConsumed {
 			t.Fatalf("expected %s, got %s", test.ExpectedGasConsumed, fmt.Sprintf("0x%x", output.GasConsumed))
