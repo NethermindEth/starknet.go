@@ -10,15 +10,15 @@ import (
 )
 
 // Call a starknet function without creating a StarkNet transaction.
-func (sc *Client) Call(ctx context.Context, call types.FunctionCall, blockIDOption BlockIDOption) ([]string, error) {
+func (sc *Client) Call(ctx context.Context, call FunctionCall, blockIDOption BlockIDOption) ([]string, error) {
 	opt := &blockID{}
 	err := blockIDOption(opt)
 	if err != nil {
 		return nil, err
 	}
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
-	if len(call.Calldata) == 0 {
-		call.Calldata = make([]string, 0)
+	if len(call.CallData) == 0 {
+		call.CallData = make([]string, 0)
 	}
 	var result []string
 	if opt.BlockTag != nil {
