@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -232,9 +233,8 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	}
 }
 
-// TODO: Capture data from block 310843 that has deployed transactions
-// TestBlockWithTxsAndDeploy tests BlockWithTxs with Deploy TXN
-func TestBlockWithTxsAndDeploy(t *testing.T) {
+// TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
+func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -269,6 +269,13 @@ func TestBlockWithTxsAndDeploy(t *testing.T) {
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
+			{
+				BlockIDOption:               WithBlockIDNumber(BlockNumber(300114)),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 3,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        fullBlockGoerli300114,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
@@ -294,7 +301,7 @@ func TestBlockWithTxsAndDeploy(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(blockWithTxs, false)
+			spy.Compare(blockWithTxs, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
@@ -313,21 +320,49 @@ func TestBlockWithTxsAndDeploy(t *testing.T) {
 	}
 }
 
-// TODO: Find a block with such a Txn
-// TestBlockWithTxsAndDeclare tests BlockWithTxs with Deploy TXN
-func TestBlockWithTxsAndDeclare(t *testing.T) {
-	if errNotImplemented != nil {
-		t.Fatalf("error running test: %v", errNotImplemented)
+func TestCaptureUnsupportedBlockTxn(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		StartBlock uint64
+		EndBlock   uint64
+	}
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				StartBlock: 309000,
+				EndBlock:   310000,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+	for _, test := range testSet {
+		for i := test.StartBlock; i < test.EndBlock; i++ {
+			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockIDNumber(BlockNumber(i)))
+			if err != nil {
+				t.Fatal("BlockWithTxHashes match the expected error:", err)
+			}
+			blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
+			if !ok {
+				t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+			}
+			for k, v := range blockWithTxs.Transactions {
+				if fmt.Sprintf("%T", v) != "rpc.InvokeTxnV0" &&
+					fmt.Sprintf("%T", v) != "rpc.DeployTxn" &&
+					fmt.Sprintf("%T", v) != "rpc.DeclareTxn" {
+					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
+				}
+			}
+
+		}
 	}
 }
 
 // TODO: Find a block with such a Txn
 // TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
-	if errNotImplemented != nil {
-		t.Fatalf("error running test: %v", errNotImplemented)
-	}
-
+	t.Fatalf("error running test: %v", errNotImplemented)
 }
 
 // TestStateUpdateByHash tests StateUpdateByHash

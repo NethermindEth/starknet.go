@@ -111,4 +111,32 @@ var fullBlockGoerli310843 = BlockWithTxs{
 	},
 }
 
-//
+var fullBlockGoerli300114 = BlockWithTxs{
+	BlockHeader: BlockHeader{
+		BlockHash:        "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf",
+		ParentHash:       "0x7307cb0d7fa65c111e71cdfb6209bdc90d2454d4c0f34d8bf5a3fe477826c3c",
+		SequencerAddress: "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b",
+		BlockNumber:      300114,
+		NewRoot:          "0x239a44410e78665f41f7a65ef3b5ed244ce411965498a83f80f904e22df1045",
+		Timestamp:        1660701246,
+	},
+	Status: "ACCEPTED_ON_L1",
+	BlockBodyWithTxs: BlockBodyWithTxs{
+		Transactions: []Txn{
+			DeclareTxn{
+				CommonTxnProperties: CommonTxnProperties{
+					TransactionHash: "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3",
+					BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+						Type:      "DECLARE",
+						MaxFee:    "0x0",
+						Version:   "0x0",
+						Signature: Signature{},
+						Nonce:     "0x0",
+					},
+				},
+				ClassHash:     "0x6feb117d1c3032b0ae7bd3b50cd8ec4a78c621dca0d63ddc17890b78a6c3b49",
+				SenderAddress: "0x1",
+			},
+		},
+	},
+}

@@ -272,7 +272,7 @@ type ContractClass struct {
 		L1_HANDLER  ContractEntryPointList `json:"L1_HANDLER"`
 	} `json:"entry_points_by_type"`
 
-	Abi *ContractABI `json:"abi"`
+	Abi *ContractABI `json:"abi,omitempty"`
 }
 
 type ContractABIEntry interface {

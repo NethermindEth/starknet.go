@@ -35,9 +35,19 @@ func TestClassAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		class, err := testConfig.client.ClassAt(context.Background(), WithBlockIDTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
+		}
+		diff, err := spy.Compare(class, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(class, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if class == nil || class.Program == "" {
 			t.Fatal("code should exist")
@@ -76,9 +86,19 @@ func TestClassHashAt(t *testing.T) {
 
 	for _, test := range testSet {
 
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		classhash, err := testConfig.client.ClassHashAt(context.Background(), WithBlockIDTag("latest"), test.ContractHash)
 		if err != nil {
 			t.Fatal(err)
+		}
+		diff, err := spy.Compare(classhash, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(classhash, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if classhash == nil {
 			t.Fatalf("should return a class, instead %v", classhash)
