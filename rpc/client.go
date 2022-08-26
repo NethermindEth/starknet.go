@@ -20,8 +20,7 @@ type SyncResponse struct {
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
-	errNotFound       = errors.New("not found")
-	errNotImplemented = errors.New("not implemented")
+	errNotFound = errors.New("not found")
 )
 
 type callCloser interface {

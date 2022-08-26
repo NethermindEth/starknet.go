@@ -2,11 +2,16 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+)
+
+var (
+	errNotImplemented = errors.New("not implemented")
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
@@ -319,7 +324,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}
 }
 
-func TestCaptureUnsupportedBlockTxn(t *testing.T) {
+func _TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {

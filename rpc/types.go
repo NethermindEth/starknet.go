@@ -446,7 +446,7 @@ type CommonReceiptProperties struct {
 	Status      TxnStatus   `json:"status"`
 	BlockHash   BlockHash   `json:"block_hash"`
 	BlockNumber BlockNumber `json:"block_number"`
-	Type        TxnType     `json:"type"`
+	Type        *TxnType    `json:"type,omitempty"`
 }
 
 type MsgToL1 struct {
@@ -468,7 +468,7 @@ type Event struct {
 }
 
 type InvokeTxnReceiptProperties struct {
-	MessageSent MsgToL1 `json:"messages_sent"`
+	MessageSent []MsgToL1 `json:"messages_sent"`
 	// A list of events assocuated with the Invoke Transaction
 	Events []Event `json:"events"`
 }
@@ -477,7 +477,7 @@ type InvokeTxnReceiptProperties struct {
 type InvokeTxnReceipt struct {
 	CommonReceiptProperties
 	// ActualFee The fee that was charged by the sequencer
-	InvokeTxnReceiptProperties
+	*InvokeTxnReceiptProperties `json:",omitempty"`
 }
 
 // DeclareTxnReceipt Declare Transaction Receipt

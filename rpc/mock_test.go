@@ -152,7 +152,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 			TransactionHash: txHash,
 			Status:          TxnStatus("ACCEPTED_ON_L1"),
 		},
-		InvokeTxnReceiptProperties{
+		&InvokeTxnReceiptProperties{
 			Events: []Event{{
 				FromAddress: Address("0xdeadbeef"),
 			}},

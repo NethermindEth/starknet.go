@@ -241,6 +241,57 @@ func guessTxWithType(i interface{}) (interface{}, error) {
 	return nil, errBadTxType
 }
 
+func guessTxnReceiptWithType(i interface{}) (TxnReceipt, error) {
+	switch local := i.(type) {
+	case map[string]interface{}:
+		txnType := "INVOKE"
+		typeValue, ok := local["type"]
+		if ok {
+			txnType, ok = typeValue.(string)
+			if !ok {
+				return nil, errBadTxType
+			}
+		}
+		switch txnType {
+		case "DECLARE":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			fmt.Printf("%s\n", string(data))
+			receipt := DeclareTxnReceipt{}
+			err = json.Unmarshal(data, &receipt)
+			return receipt, err
+		case "DEPLOY":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			receipt := DeployTxnReceipt{}
+			err = json.Unmarshal(data, &receipt)
+			return receipt, err
+		case "L1_HANDLER":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			receipt := L1HandlerTxnReceipt{}
+			err = json.Unmarshal(data, &receipt)
+			return receipt, err
+		case "INVOKE":
+			data, err := json.Marshal(i)
+			if err != nil {
+				return nil, err
+			}
+			receipt := InvokeTxnReceipt{}
+			err = json.Unmarshal(data, &receipt)
+			return receipt, err
+		}
+		return nil, errBadTxType
+	}
+	return nil, errBadTxType
+}
+
 func guessTxsWithType(txs []Txn) ([]Txn, error) {
 	for k, v := range txs {
 		tv, err := guessTxWithType(v)
@@ -450,15 +501,12 @@ func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOptio
 
 // TransactionReceipt gets the transaction receipt by the transaction hash.
 func (sc *Client) TransactionReceipt(ctx context.Context, transactionHash TxnHash) (TxnReceipt, error) {
-	var receipt types.TransactionReceipt
-	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt)
+	var receipt interface{}
+	err := sc.do(ctx, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
 		return nil, err
-	} else if receipt.TransactionHash == "" {
-		return nil, errNotFound
 	}
-
-	return &receipt, nil
+	return guessTxnReceiptWithType(receipt)
 }
 
 // Events returns all events matching the given filter
