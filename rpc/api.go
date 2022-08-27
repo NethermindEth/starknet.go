@@ -6,14 +6,12 @@ import (
 	"fmt"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/types"
 )
 
 // Call a starknet function without creating a StarkNet transaction.
 func (sc *Client) Call(ctx context.Context, call FunctionCall, blockIDOption BlockIDOption) ([]string, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
@@ -52,21 +50,21 @@ func (sc *Client) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOu
 	return &block, nil
 }
 
-func WithBlockIDNumber(blockNumber BlockNumber) BlockIDOption {
+func WithBlockNumber(blockNumber BlockNumber) BlockIDOption {
 	return BlockIDOption(func(b *blockID) error {
 		b.BlockNumber = &blockNumber
 		return nil
 	})
 }
 
-func WithBlockIDHash(blockHash BlockHash) BlockIDOption {
+func WithBlockHash(blockHash BlockHash) BlockIDOption {
 	return BlockIDOption(func(b *blockID) error {
 		b.BlockHash = &blockHash
 		return nil
 	})
 }
 
-func WithBlockIDTag(blockTag string) BlockIDOption {
+func WithBlockTag(blockTag string) BlockIDOption {
 	return BlockIDOption(func(b *blockID) error {
 		if blockTag != "latest" && blockTag != "pending" {
 			return errInvalidBlockTag
@@ -92,8 +90,7 @@ func (sc *Client) PendingTransactions(ctx context.Context) ([]Txn, error) {
 // BlockWithTxHashes gets block information given the block id.
 func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
@@ -119,8 +116,7 @@ func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOp
 // BlockTransactionCount gets the number of transactions in a block
 func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption BlockIDOption) (uint64, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return 0, err
 	}
 	var result uint64
@@ -140,8 +136,7 @@ func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption Block
 // Nonce returns the Nnce of a contract
 func (sc *Client) Nonce(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	var result string
@@ -306,8 +301,7 @@ func guessTxsWithType(txs []Txn) ([]Txn, error) {
 // BlockWithTxs get block information with full transactions given the block id.
 func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
@@ -348,8 +342,7 @@ func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption)
 // Class gets the contract class definition associated with the given hash.
 func (sc *Client) Class(ctx context.Context, blockIDOption BlockIDOption, classHash string) (*ContractClass, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	var rawClass ContractClass
@@ -368,8 +361,7 @@ func (sc *Client) Class(ctx context.Context, blockIDOption BlockIDOption, classH
 // ClassAt get the contract class definition at the given address.
 func (sc *Client) ClassAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*ContractClass, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	var rawClass ContractClass
@@ -388,8 +380,7 @@ func (sc *Client) ClassAt(ctx context.Context, blockIDOption BlockIDOption, cont
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
 func (sc *Client) ClassHashAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	if opt.BlockTag != nil && *opt.BlockTag != "pending" && *opt.BlockTag != "latest" {
@@ -411,8 +402,7 @@ func (sc *Client) ClassHashAt(ctx context.Context, blockIDOption BlockIDOption, 
 // StorageAt gets the value of the storage at the given address and key.
 func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key string, blockIDOption BlockIDOption) (string, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return "", err
 	}
 	var value string
@@ -432,8 +422,7 @@ func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key st
 // StateUpdate gets the information about the result of executing the requested block.
 func (sc *Client) StateUpdate(ctx context.Context, blockIDOption BlockIDOption) (*StateUpdateOutput, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
@@ -469,8 +458,7 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash TxnHash) (*Txn, er
 // TransactionByBlockIdAndIndex Get the details of the transaction given by the identified block and index in that block. If no transaction is found, null is returned.
 func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOption BlockIDOption, index uint64) (*Txn, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
@@ -522,8 +510,7 @@ func (sc *Client) Events(ctx context.Context, filter EventFilterParams) (*Events
 // EstimateFee estimates the fee for a given StarkNet transaction.
 func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, blockIDOption BlockIDOption) (*FeeEstimate, error) {
 	opt := &blockID{}
-	err := blockIDOption(opt)
-	if err != nil {
+	if err := blockIDOption(opt); err != nil {
 		return nil, err
 	}
 	var raw FeeEstimate
@@ -539,8 +526,4 @@ func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, block
 	}
 	fmt.Printf("%+v\n", raw)
 	return &raw, nil
-}
-
-func (sc *Client) Invoke(context.Context, types.FunctionInvoke) (*types.AddTxResponse, error) {
-	panic("not implemented")
 }

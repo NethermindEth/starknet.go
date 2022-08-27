@@ -2,16 +2,11 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-)
-
-var (
-	errNotImplemented = errors.New("not implemented")
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
@@ -81,7 +76,7 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		pending, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockIDTag("pending"))
+		pending, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockTag("pending"))
 		if err == nil || !strings.Contains(err.Error(), "Pending data not supported in this configuration") {
 			t.Fatal("PendingBlockWithTxHashes should not yet be supported")
 		}
@@ -105,20 +100,20 @@ func TestBlockWithTxHashes(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockIDTag("latest"),
+				BlockIDOption: WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockIDTag("error"),
+				BlockIDOption: WithBlockTag("error"),
 				ExpectedError: errInvalidBlockTag,
 			},
 			{
-				BlockIDOption:             WithBlockIDHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockIDOption:             WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
 			{
-				BlockIDOption:             WithBlockIDNumber(BlockNumber(310370)),
+				BlockIDOption:             WithBlockNumber(BlockNumber(310370)),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
@@ -176,20 +171,20 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockIDTag("latest"),
+				BlockIDOption: WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockIDTag("error"),
+				BlockIDOption: WithBlockTag("error"),
 				ExpectedError: errInvalidBlockTag,
 			},
 			{
-				BlockIDOption:        WithBlockIDHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockIDOption:        WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:        nil,
 				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
 			{
-				BlockIDOption:        WithBlockIDNumber(BlockNumber(310370)),
+				BlockIDOption:        WithBlockNumber(BlockNumber(310370)),
 				ExpectedError:        nil,
 				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
@@ -252,29 +247,29 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockIDTag("latest"),
+				BlockIDOption: WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockIDTag("error"),
+				BlockIDOption: WithBlockTag("error"),
 				ExpectedError: errInvalidBlockTag,
 			},
 			{
-				BlockIDOption:               WithBlockIDHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				BlockIDOption:               WithBlockHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockIDOption:               WithBlockIDNumber(BlockNumber(310843)),
+				BlockIDOption:               WithBlockNumber(BlockNumber(310843)),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockIDOption:               WithBlockIDNumber(BlockNumber(300114)),
+				BlockIDOption:               WithBlockNumber(BlockNumber(300114)),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 3,
 				LookupTxnPositionInExpected: 0,
@@ -343,7 +338,7 @@ func _TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[testEnv]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockIDNumber(BlockNumber(i)))
+			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockNumber(BlockNumber(i)))
 			if err != nil {
 				t.Fatal("BlockWithTxHashes match the expected error:", err)
 			}
@@ -382,7 +377,7 @@ func TestStateUpdate(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockIDOption: WithBlockIDHash("0xdeadbeef"),
+				BlockIDOption: WithBlockHash("0xdeadbeef"),
 			},
 		},
 	}[testEnv]

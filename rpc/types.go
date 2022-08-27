@@ -8,6 +8,7 @@ var (
 	errBadRequest      = errors.New("bad request")
 	errBadTxType       = errors.New("bad transaction type")
 	errInvalidBlockTag = errors.New("invalid blocktag")
+	errNotImplemented  = errors.New("not implemented")
 )
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 var (
@@ -120,14 +118,18 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	txHash, ok := args[0].(string)
+	txHash, ok := args[0].(TxnHash)
 	if !ok || !strings.HasPrefix(string(txHash), "0x") {
 		return errWrongArgs
 	}
-	transaction := types.Transaction{
-		TransactionHash:    txHash,
-		ContractAddress:    "0xdeadbeef",
-		EntryPointSelector: "0xdeadbeef",
+	transaction := InvokeTxnV0{
+		CommonTxnProperties: CommonTxnProperties{
+			TransactionHash: txHash,
+		},
+		InvokeV0: InvokeV0{
+			ContractAddress:    "0xdeadbeef",
+			EntryPointSelector: "0xdeadbeef",
+		},
 	}
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
@@ -217,7 +219,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
+	var class = ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -281,7 +283,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.ContractClass)
+	_, ok = args[0].(ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
@@ -320,7 +322,7 @@ func mock_starknet_addDeployTransaction(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	_, ok = args[2].(types.ContractClass)
+	_, ok = args[2].(ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[2])
 		return errWrongArgs
@@ -344,9 +346,9 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.FunctionInvoke)
+	_, ok = args[0].(FunctionCall)
 	if !ok {
-		fmt.Printf("args[0] should be types.FunctionInvoke, got %T\n", args[0])
+		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
 	}
 	_, ok = args[1].(*blockID)
@@ -374,9 +376,9 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.FunctionCall)
+	_, ok = args[0].(FunctionCall)
 	if !ok {
-		fmt.Printf("args[0] should be types.FunctionCall, got %T\n", args[0])
+		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
 	}
 	_, ok = args[1].([]string)

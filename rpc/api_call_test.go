@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestCall tests Call
@@ -25,7 +23,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockIDTag("latest"),
+				BlockIDOption:  WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 		},
@@ -36,7 +34,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockIDTag("latest"),
+				BlockIDOption:  WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 			{
@@ -45,7 +43,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
-				BlockIDOption:  WithBlockIDNumber(310000),
+				BlockIDOption:  WithBlockNumber(310000),
 				ExpectedResult: "0x2f0e64b37383fa",
 			},
 		},
@@ -56,7 +54,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockIDTag("latest"),
+				BlockIDOption:  WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 		},
@@ -88,7 +86,7 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		call                types.FunctionInvoke
+		call                FunctionCall
 		BlockIDOption       BlockIDOption
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string

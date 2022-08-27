@@ -37,7 +37,7 @@ func TestClassAt(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		class, err := testConfig.client.ClassAt(context.Background(), WithBlockIDTag("latest"), test.ContractAddress)
+		class, err := testConfig.client.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func TestClassHashAt(t *testing.T) {
 
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		classhash, err := testConfig.client.ClassHashAt(context.Background(), WithBlockIDTag("latest"), test.ContractHash)
+		classhash, err := testConfig.client.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -121,7 +121,7 @@ func TestClass(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockIDOption:     WithBlockIDTag("pending"),
+				BlockIDOption:     WithBlockTag("pending"),
 				ClassHash:         "0xdeadbeef",
 				ExpectedOperation: "0xdeadbeef",
 			},
@@ -156,7 +156,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:   Address("0xdeadbeef"),
 				StorageKey:     "_signer",
-				BlockHashOrTag: WithBlockIDTag("latest"),
+				BlockHashOrTag: WithBlockTag("latest"),
 				ExpectedValue:  "0xdeadbeef",
 			},
 		},
@@ -164,7 +164,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:   Address("0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
 				StorageKey:     "balance",
-				BlockHashOrTag: WithBlockIDTag("latest"),
+				BlockHashOrTag: WithBlockTag("latest"),
 				ExpectedValue:  "0x1e240",
 			},
 		},
@@ -172,7 +172,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:   Address("0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:     "_signer",
-				BlockHashOrTag: WithBlockIDTag("latest"),
+				BlockHashOrTag: WithBlockTag("latest"),
 				ExpectedValue:  "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
 			},
 		},
