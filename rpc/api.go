@@ -145,22 +145,25 @@ func (sc *Client) BlockTransactionCount(ctx context.Context, block BlockID) (uin
 
 // Nonce returns the Nnce of a contract
 func (sc *Client) Nonce(ctx context.Context, block BlockID, contractAddress Address) (*string, error) {
+	nonce := ""
 	if !block.isValid() {
-		return nil, errInvalidBlockID
+		return &nonce, errInvalidBlockID
 	}
-	opt := &blockID{}
-	var result string
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getNonce", &result, *opt.BlockTag, contractAddress); err != nil {
+	if tag, ok := block.tag(); ok {
+
+		if err := sc.do(ctx, "starknet_getNonce", &nonce, tag, contractAddress); err != nil {
 			return nil, err
 		}
-		return &result, nil
+		return &nonce, nil
 	}
-
-	if err := sc.do(ctx, "starknet_getNonce", &result, opt, contractAddress); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return &nonce, err
+	}
+	if err := sc.do(ctx, "starknet_getNonce", &nonce, opt, contractAddress); err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return &nonce, nil
 }
 
 func (i BroadcastedInvokeTxnV0) Version() uint64 {
