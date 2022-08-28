@@ -365,7 +365,7 @@ func TestBlockTransactionCount(t *testing.T) {
 	}
 }
 
-func _TestCaptureUnsupportedBlockTxn(t *testing.T) {
+func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -406,8 +406,21 @@ func _TestCaptureUnsupportedBlockTxn(t *testing.T) {
 
 // TODO: Find a block with such a Txn
 // TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
-func _TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
-	t.Fatalf("error running test: %v", errNotImplemented)
+func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
+	_ = beforeEach(t)
+
+	type testSetType struct {
+	}
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{},
+		},
+		"mainnet": {},
+	}[testEnv]
+	for range testSet {
+		t.Fatalf("error running test: %v", errNotImplemented)
+	}
 }
 
 // TestStateUpdate tests StateUpdateByHash
