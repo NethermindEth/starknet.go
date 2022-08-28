@@ -82,9 +82,11 @@ func mock_starknet_blockNumber(result interface{}, method string, args ...interf
 func mock_starknet_chainId(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*string)
 	if !ok {
+		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
 	if len(args) != 0 {
+		fmt.Println(args...)
 		return errWrongArgs
 	}
 	value := "0x4d4f434b"
@@ -100,10 +102,14 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 	if len(args) != 0 {
 		return errWrongArgs
 	}
+
 	value := SyncResponse{
-		StartingBlockNum: "0x1",
-		CurrentBlockNum:  "0x1",
-		HighestBlockNum:  "0x1",
+		StartingBlockHash: "0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
+		StartingBlockNum:  "0x4c602",
+		CurrentBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
+		CurrentBlockNum:   "0x4c727",
+		HighestBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
+		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
 	return nil

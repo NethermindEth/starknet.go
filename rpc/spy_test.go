@@ -10,10 +10,18 @@ import (
 
 type spy struct {
 	callCloser
-	s []byte
+	s    []byte
+	mock bool
 }
 
 func NewSpy(client callCloser) *spy {
+	if _, ok := client.(*rpcMock); ok {
+		return &spy{
+			callCloser: client,
+			s:          []byte{},
+			mock:       true,
+		}
+	}
 	return &spy{
 		callCloser: client,
 		s:          []byte{},
@@ -21,8 +29,8 @@ func NewSpy(client callCloser) *spy {
 }
 
 func (s *spy) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
-	if _, ok := s.callCloser.(*rpcMock); ok {
-		s.callCloser.CallContext(ctx, result, method, args...)
+	if s.mock {
+		return s.callCloser.CallContext(ctx, result, method, args...)
 	}
 	raw := json.RawMessage{}
 	err := s.callCloser.CallContext(ctx, &raw, method, args...)
@@ -39,6 +47,14 @@ func (s *spy) Close() {
 }
 
 func (s *spy) Compare(o interface{}, debug bool) (string, error) {
+	if s.mock {
+		if debug {
+			fmt.Println("**************************")
+			fmt.Println("This is a mock")
+			fmt.Println("**************************")
+		}
+		return "FullMatch", nil
+	}
 	b, err := json.Marshal(o)
 	if err != nil {
 		return "", err

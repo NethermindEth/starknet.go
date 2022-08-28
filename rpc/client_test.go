@@ -103,10 +103,15 @@ func TestChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		chain, err := testConfig.client.ChainID(context.Background())
-
 		if err != nil {
 			t.Fatal(err)
+		}
+		if diff, err := spy.Compare(chain, false); err != nil || diff != "FullMatch" {
+			spy.Compare(chain, true)
+			t.Fatal("expecting to match", err)
 		}
 		chainInt, ok := big.NewInt(0).SetString(chain, 0)
 		if !ok {
@@ -138,20 +143,22 @@ func TestSyncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		sync, err := testConfig.client.Syncing(context.Background())
-
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		if sync == nil || sync.CurrentBlockNum == "" {
-			t.Fatal("should succeed")
-		}
-		if !strings.HasPrefix(sync.CurrentBlockNum, "0x") {
-			t.Fatal("CurrentBlockNum should start with 0x, instead:", sync.CurrentBlockHash)
+		if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
+			spy.Compare(sync, true)
+			t.Fatal("expecting to match", err)
 		}
 		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+		}
+		if !strings.HasPrefix(sync.CurrentBlockHash, "0x") {
+			t.Fatal("current block hash should return a string starting with 0x")
 		}
 	}
 }

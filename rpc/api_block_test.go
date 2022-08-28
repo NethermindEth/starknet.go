@@ -23,13 +23,17 @@ func TestBlockNumber(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		blockNumber, err := testConfig.client.BlockNumber(context.Background())
-
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		if blockNumber == 0 {
-			t.Fatal("current block number should be higher or equal to 1")
+		if diff, err := spy.Compare(blockNumber, false); err != nil || diff != "FullMatch" {
+			t.Fatal("expecting to match", err)
+		}
+		if blockNumber <= 300000 {
+			t.Fatal("Block number should be > 3000, instead: ", blockNumber)
 		}
 	}
 }
@@ -48,13 +52,17 @@ func TestBlockHashAndNumber(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		blockHashAndNumber, err := testConfig.client.BlockHashAndNumber(context.Background())
-
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal("BlockHashAndNumber match the expected error:", err)
 		}
-		if blockHashAndNumber.BlockNumber == 0 {
-			t.Fatal("current block number should be higher or equal to 1")
+		if diff, err := spy.Compare(blockHashAndNumber, false); err != nil || diff != "FullMatch" {
+			t.Fatal("expecting to match", err)
+		}
+		if blockHashAndNumber.BlockNumber < 3000 {
+			t.Fatal("Block number should be > 3000, instead: ", blockHashAndNumber.BlockNumber)
 		}
 		if !strings.HasPrefix(blockHashAndNumber.BlockHash, "0x") {
 			t.Fatal("current block hash should return a string starting with 0x")
