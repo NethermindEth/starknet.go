@@ -60,7 +60,8 @@ func (sc *Client) Close() {
 // ChainID retrieves the current chain ID for transaction replay protection.
 func (sc *Client) ChainID(ctx context.Context) (string, error) {
 	var result string
-	err := sc.c.CallContext(ctx, &result, "starknet_chainId")
+	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
+	err := sc.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...)
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +71,8 @@ func (sc *Client) ChainID(ctx context.Context) (string, error) {
 // Syncing checks the syncing status of the node.
 func (sc *Client) Syncing(ctx context.Context) (*SyncResponse, error) {
 	var result SyncResponse
-	if err := sc.c.CallContext(ctx, &result, "starknet_syncing"); err != nil {
+	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
+	if err := sc.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
 		return nil, err
 	}
 	return &result, nil
