@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -114,28 +115,44 @@ func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID           BlockID
-		ClassHash         string
-		ExpectedOperation string
+		BlockID         BlockID
+		ClassHash       string
+		ExpectedProgram string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:           WithBlockTag("pending"),
-				ClassHash:         "0xdeadbeef",
-				ExpectedOperation: "0xdeadbeef",
+				BlockID:         WithBlockTag("pending"),
+				ClassHash:       "0xdeadbeef",
+				ExpectedProgram: "H4sIAAAAAAAE",
 			},
 		},
-		"testnet": {},
+		"testnet": {
+			{
+				BlockID:         WithBlockTag("pending"),
+				ClassHash:       "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ExpectedProgram: "H4sIAAAAAAAE",
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		class, err := testConfig.client.Class(context.Background(), test.BlockID, test.ClassHash)
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
+		class, err := testConfig.client.Class(context.Background(), test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if class == nil || class.Program == "" {
+		diff, err := spy.Compare(class, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(class, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if class == nil || !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 			t.Fatal("code should exist")
 		}
 	}

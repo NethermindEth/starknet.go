@@ -142,7 +142,7 @@ type Signature []string
 
 // BroadcastedCommonTxnProperties common properties of a transaction that is sent to the sequencer (but is not yet in a block)
 type BroadcastedCommonTxnProperties struct {
-	Type TxnType `json:"type"`
+	Type TxnType `json:"type,omitempty"`
 
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee"`
@@ -154,7 +154,7 @@ type BroadcastedCommonTxnProperties struct {
 	Signature Signature `json:"signature"`
 
 	// Nonce
-	Nonce string `json:"nonce"`
+	Nonce string `json:"nonce,omitempty"`
 }
 
 type CommonTxnProperties struct {

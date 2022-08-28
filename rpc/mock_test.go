@@ -239,10 +239,10 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
-	if len(args) != 2 {
+	if len(args) != 1 {
 		return errWrongArgs
 	}
-	classHash, ok := args[1].(string)
+	classHash, ok := args[0].(string)
 	if !ok || !strings.HasPrefix(classHash, "0x") {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs

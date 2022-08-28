@@ -343,22 +343,9 @@ func (sc *Client) BlockWithTxs(ctx context.Context, block BlockID) (interface{},
 }
 
 // Class gets the contract class definition associated with the given hash.
-func (sc *Client) Class(ctx context.Context, block BlockID, classHash string) (*ContractClass, error) {
-	if !block.isValid() {
-		return nil, errInvalidBlockID
-	}
+func (sc *Client) Class(ctx context.Context, classHash string) (*ContractClass, error) {
 	var rawClass ContractClass
-	if tag, ok := block.tag(); ok {
-		if err := sc.do(ctx, "starknet_getClass", &rawClass, tag, classHash); err != nil {
-			return nil, err
-		}
-		return &rawClass, nil
-	}
-	opt, err := block.getWithoutTag()
-	if err != nil {
-		return nil, err
-	}
-	if err := sc.do(ctx, "starknet_getClass", &rawClass, *opt, classHash); err != nil {
+	if err := sc.do(ctx, "starknet_getClass", &rawClass, classHash); err != nil {
 		return nil, err
 	}
 	return &rawClass, nil
