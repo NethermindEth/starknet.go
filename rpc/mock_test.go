@@ -120,7 +120,6 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if !ok || r == nil {
 		return errWrongType
 	}
-	fmt.Printf("%T, %d", result, len(args))
 	if len(args) != 1 {
 		return errWrongArgs
 	}
@@ -128,16 +127,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if !ok || !strings.HasPrefix(string(txHash), "0x") {
 		return errWrongArgs
 	}
-	transaction := InvokeTxnV0{
-		CommonTxnProperties: CommonTxnProperties{
-			TransactionHash: txHash,
-		},
-		InvokeV0: InvokeV0{
-			ContractAddress:    "0xdeadbeef",
-			EntryPointSelector: "0xdeadbeef",
-		},
-	}
-	outputContent, _ := json.Marshal(transaction)
+	outputContent, _ := json.Marshal(InvokeTxnV00x705547f8f2f8f)
 	json.Unmarshal(outputContent, r)
 	return nil
 }

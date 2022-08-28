@@ -12,29 +12,27 @@ func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash                     TxnHash
-		ExpectedContractAddress    string
-		ExpectedEntrypointSelector string
+		TxHash      TxnHash
+		ExpectedTxn Txn
 	}
 	testSet := map[string][]testSetType{
-		"mock": {},
+		"mock": {
+			{
+				TxHash:      TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
+			},
+		},
 		"testnet": {
 			{
-				TxHash:                     TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
-				ExpectedContractAddress:    "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
-				ExpectedEntrypointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+				TxHash:      TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
 			},
 		},
-		"mainnet": {
-			{
-				TxHash:                     TxnHash("0x5f904b9185d4ed442846ac7e26bc4c60249a2a7f0bb85376c0bc7459665bae6"),
-				ExpectedContractAddress:    "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa",
-				ExpectedEntrypointSelector: "0x2913ee03e5e3308c41e308bd391ea4faac9b9cb5062c76a6b3ab4f65397e106",
-			},
-		},
+		"mainnet": {},
 	}[testEnv]
-
 	for _, test := range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
 		tx, err := testConfig.client.TransactionByHash(context.Background(), test.TxHash)
 		if err != nil {
 			t.Fatal(err)
@@ -45,13 +43,17 @@ func TestTransactionByHash(t *testing.T) {
 		txTyped, ok := (*tx).(InvokeTxnV0)
 		if !ok {
 			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
-
 		}
-		if txTyped.ContractAddress != Address(test.ExpectedContractAddress) {
-			t.Fatalf("expecting contract %s, got %s", test.ExpectedContractAddress, txTyped.ContractAddress)
+		diff, err := spy.Compare(txTyped, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
 		}
-		if txTyped.EntryPointSelector != test.ExpectedEntrypointSelector {
-			t.Fatalf("expecting entrypoint %s, got %s", test.ExpectedEntrypointSelector, txTyped.EntryPointSelector)
+		if diff != "FullMatch" {
+			spy.Compare(txTyped, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if !cmp.Equal(test.ExpectedTxn, txTyped) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxn, txTyped))
 		}
 	}
 }

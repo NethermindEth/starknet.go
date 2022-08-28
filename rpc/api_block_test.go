@@ -130,8 +130,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block := blockID{}
-		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
 		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockID)
@@ -201,8 +199,6 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block := blockID{}
-		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
 		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
@@ -288,8 +284,6 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block := blockID{}
-		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
 		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
