@@ -33,6 +33,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_syncing(result, method, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, method, args...)
+	case "starknet_getTransactionByBlockIdAndIndex":
+		return mock_starknet_getTransactionByBlockIdAndIndex(result, method, args...)
 	case "starknet_getTransactionReceipt":
 		return mock_starknet_getTransactionReceipt(result, method, args...)
 	case "starknet_getClassAt":
@@ -112,6 +114,23 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
+	return nil
+}
+
+func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		return errWrongArgs
+	}
+	_, ok = args[1].(uint64)
+	if !ok {
+		return errWrongArgs
+	}
+	outputContent, _ := json.Marshal(InvokeTxnV0_300000_0)
+	json.Unmarshal(outputContent, r)
 	return nil
 }
 

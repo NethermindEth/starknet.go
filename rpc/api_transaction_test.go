@@ -58,6 +58,60 @@ func TestTransactionByHash(t *testing.T) {
 	}
 }
 
+// TestTransactionByHash tests transaction by hash
+func TestTransactionByBlockIdAndIndex(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockID     BlockID
+		Index       uint64
+		ExpectedTxn Txn
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockID:     WithBlockNumber(300000),
+				Index:       0,
+				ExpectedTxn: InvokeTxnV0_300000_0,
+			},
+		},
+		"testnet": {
+			{
+				BlockID:     WithBlockNumber(300000),
+				Index:       0,
+				ExpectedTxn: InvokeTxnV0_300000_0,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+	for _, test := range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
+		tx, err := testConfig.client.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tx == nil {
+			t.Fatal("transaction should exist")
+		}
+		txTyped, ok := (*tx).(InvokeTxnV0)
+		if !ok {
+			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
+		}
+		diff, err := spy.Compare(txTyped, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(txTyped, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if !cmp.Equal(test.ExpectedTxn, txTyped) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxn, txTyped))
+		}
+	}
+}
+
 // TestTransactionReceipt tests transaction receipt
 func TestTransactionReceipt(t *testing.T) {
 	testConfig := beforeEach(t)

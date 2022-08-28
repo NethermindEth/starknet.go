@@ -254,3 +254,48 @@ var InvokeTxnV00x705547f8f2f8f = InvokeTxnV0{
 		},
 	},
 }
+
+var InvokeTxnV0_300000_0 = InvokeTxnV0{
+	CommonTxnProperties: CommonTxnProperties{
+		TransactionHash: "0x680b0616e65633dfaf06d5a5ee5f1d1d4b641396009f00a67c0d18dc0f9638",
+		BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
+			Type:    "INVOKE",
+			MaxFee:  "0x17e817dc96bf",
+			Version: "0x0",
+			Signature: Signature{
+				"0x28fd7fdff06bb65438e10bb9af23d7daf354ec7c75173056c0bb5a55690bf42",
+				"0x6eb86c1d6b8efcfd9cefe2d068e9f34874a71e0583abdb38513f92addfb36ca",
+			},
+			Nonce: "0x0",
+		},
+	},
+	InvokeV0: InvokeV0{
+		ContractAddress:    "0x661638e27a00f65819559a0612874d1e3865b2372c539a85b5f0fb47c8ec683",
+		EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+		CallData: []string{
+			"0x1",
+			"0x12fadd18ec1a23a160cc46981400160fbf4a7a5eed156c4669e39807265bcd4",
+			"0x1a3af362287b0d09060bb79b7eeb6da636a9cd720a9b805c081181c8bcc58f",
+			"0x0",
+			"0x10",
+			"0x10",
+			"0x3",
+			"0x6274632f757364",
+			"0x50de402c68b9dc00000",
+			"0x62fc247c",
+			"0x636f696e62617365",
+			"0x656d7069726963",
+			"0x6574682f757364",
+			"0x65a2e8c490e4e00000",
+			"0x62fc247c",
+			"0x636f696e62617365",
+			"0x656d7069726963",
+			"0x6461692f757364",
+			"0xde000cd866f8000",
+			"0x62fc247c",
+			"0x636f696e62617365",
+			"0x656d7069726963",
+			"0x62fc2512",
+		},
+	},
+}
