@@ -191,30 +191,29 @@ func TestStorageAt(t *testing.T) {
 
 // TestNonce tests Nonce
 func TestNonce(t *testing.T) {
-	// Pathfinder 0.3.1 is failing.
-	// TODO: get feedback to add the test
-	// curl -s -X POST -H 'Content-Type: application/json' \
-	// -d '{"jsonrpc":"2.0","id":"0","method":"starknet_getNonce","params":["latest", "0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"]}' \
-	// https://localhost:9545/
-
-	testEnv = "testnet"
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash  Address
-		Block         BlockID
-		ExpectedNonce string
+		ContractAddress Address
 	}
 	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {},
+		"mock": {
+			{
+				ContractAddress: Address("0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+			},
+		},
+		"testnet": {
+			{
+				ContractAddress: Address("0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		value, err := testConfig.client.Nonce(context.Background(), test.Block, test.ContractHash)
+		value, err := testConfig.client.Nonce(context.Background(), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -226,8 +225,8 @@ func TestNonce(t *testing.T) {
 			spy.Compare(value, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
-		if *value != test.ExpectedNonce {
-			t.Fatalf("expecting value %s, got %s", test.ExpectedNonce, *value)
+		if *value != "0x0" {
+			t.Fatalf("expecting value %s, got %s", "0x0", *value)
 		}
 	}
 }

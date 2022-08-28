@@ -143,24 +143,10 @@ func (sc *Client) BlockTransactionCount(ctx context.Context, block BlockID) (uin
 	return result, nil
 }
 
-// Nonce returns the Nnce of a contract
-func (sc *Client) Nonce(ctx context.Context, block BlockID, contractAddress Address) (*string, error) {
+// Nonce returns the Nonce of a contract
+func (sc *Client) Nonce(ctx context.Context, contractAddress Address) (*string, error) {
 	nonce := ""
-	if !block.isValid() {
-		return &nonce, errInvalidBlockID
-	}
-	if tag, ok := block.tag(); ok {
-
-		if err := sc.do(ctx, "starknet_getNonce", &nonce, tag, contractAddress); err != nil {
-			return nil, err
-		}
-		return &nonce, nil
-	}
-	opt, err := block.getWithoutTag()
-	if err != nil {
-		return &nonce, err
-	}
-	if err := sc.do(ctx, "starknet_getNonce", &nonce, opt, contractAddress); err != nil {
+	if err := sc.do(ctx, "starknet_getNonce", &nonce, contractAddress); err != nil {
 		return nil, err
 	}
 	return &nonce, nil
