@@ -114,14 +114,14 @@ func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption     BlockIDOption
+		BlockID           BlockID
 		ClassHash         string
 		ExpectedOperation string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockIDOption:     WithBlockTag("pending"),
+				BlockID:           WithBlockTag("pending"),
 				ClassHash:         "0xdeadbeef",
 				ExpectedOperation: "0xdeadbeef",
 			},
@@ -131,7 +131,7 @@ func TestClass(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		class, err := testConfig.client.Class(context.Background(), test.BlockIDOption, test.ClassHash)
+		class, err := testConfig.client.Class(context.Background(), test.BlockID, test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -148,7 +148,7 @@ func TestStorageAt(t *testing.T) {
 	type testSetType struct {
 		ContractHash   Address
 		StorageKey     string
-		BlockHashOrTag BlockIDOption
+		BlockHashOrTag BlockID
 		ExpectedValue  string
 	}
 	testSet := map[string][]testSetType{

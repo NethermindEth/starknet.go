@@ -99,7 +99,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption             BlockIDOption
+		BlockID                   BlockID
 		ExpectedError             error
 		ExpectedBlockWithTxHashes BlockWithTxHashes
 	}
@@ -108,20 +108,20 @@ func TestBlockWithTxHashes(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockTag("latest"),
+				BlockID:       WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockTag("error"),
-				ExpectedError: errInvalidBlockTag,
+				BlockID:       WithBlockTag("error"),
+				ExpectedError: errInvalidBlockID,
 			},
 			{
-				BlockIDOption:             WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:                   WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
 			{
-				BlockIDOption:             WithBlockNumber(BlockNumber(310370)),
+				BlockID:                   WithBlockNumber(BlockNumber(310370)),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
@@ -131,10 +131,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 
 	for _, test := range testSet {
 		block := blockID{}
-		_ = test.BlockIDOption(&block)
+		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockIDOption)
+		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -169,7 +169,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption               BlockIDOption
+		BlockID                     BlockID
 		ExpectedError               error
 		LookupTxnPositionInOriginal int
 		LookupTxnPositionInExpected int
@@ -179,20 +179,20 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockTag("latest"),
+				BlockID:       WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockTag("error"),
-				ExpectedError: errInvalidBlockTag,
+				BlockID:       WithBlockTag("error"),
+				ExpectedError: errInvalidBlockID,
 			},
 			{
-				BlockIDOption:        WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:              WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:        nil,
 				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
 			{
-				BlockIDOption:        WithBlockNumber(BlockNumber(310370)),
+				BlockID:              WithBlockNumber(BlockNumber(310370)),
 				ExpectedError:        nil,
 				ExpectedBlockWithTxs: fullBlockGoerli310370,
 			},
@@ -202,10 +202,10 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 
 	for _, test := range testSet {
 		block := blockID{}
-		_ = test.BlockIDOption(&block)
+		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
+		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -245,7 +245,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption               BlockIDOption
+		BlockID                     BlockID
 		ExpectedError               error
 		LookupTxnPositionInOriginal int
 		LookupTxnPositionInExpected int
@@ -255,29 +255,29 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockIDOption: WithBlockTag("latest"),
+				BlockID:       WithBlockTag("latest"),
 				ExpectedError: nil,
 			},
 			{
-				BlockIDOption: WithBlockTag("error"),
-				ExpectedError: errInvalidBlockTag,
+				BlockID:       WithBlockTag("error"),
+				ExpectedError: errInvalidBlockID,
 			},
 			{
-				BlockIDOption:               WithBlockHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				BlockID:                     WithBlockHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockIDOption:               WithBlockNumber(BlockNumber(310843)),
+				BlockID:                     WithBlockNumber(BlockNumber(310843)),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockIDOption:               WithBlockNumber(BlockNumber(300114)),
+				BlockID:                     WithBlockNumber(BlockNumber(300114)),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 3,
 				LookupTxnPositionInExpected: 0,
@@ -289,10 +289,10 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 
 	for _, test := range testSet {
 		block := blockID{}
-		_ = test.BlockIDOption(&block)
+		_ = test.BlockID(&block)
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockIDOption)
+		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -380,12 +380,12 @@ func TestStateUpdate(t *testing.T) {
 	_ = beforeEach(t)
 
 	type testSetType struct {
-		BlockIDOption BlockIDOption
+		BlockID BlockID
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockIDOption: WithBlockHash("0xdeadbeef"),
+				BlockID: WithBlockHash("0xdeadbeef"),
 			},
 		},
 	}[testEnv]

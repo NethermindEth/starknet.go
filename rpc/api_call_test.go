@@ -12,7 +12,7 @@ func TestCall(t *testing.T) {
 
 	type testSetType struct {
 		FunctionCall   FunctionCall
-		BlockIDOption  BlockIDOption
+		BlockID        BlockID
 		ExpectedResult string
 	}
 	testSet := map[string][]testSetType{
@@ -23,7 +23,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockTag("latest"),
+				BlockID:        WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 		},
@@ -34,7 +34,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockTag("latest"),
+				BlockID:        WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 			{
@@ -43,7 +43,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
-				BlockIDOption:  WithBlockNumber(310000),
+				BlockID:        WithBlockNumber(310000),
 				ExpectedResult: "0x2f0e64b37383fa",
 			},
 		},
@@ -54,7 +54,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockIDOption:  WithBlockTag("latest"),
+				BlockID:        WithBlockTag("latest"),
 				ExpectedResult: "0x12",
 			},
 		},
@@ -64,7 +64,7 @@ func TestCall(t *testing.T) {
 		function := test.FunctionCall
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		output, err := testConfig.client.Call(context.Background(), function, test.BlockIDOption)
+		output, err := testConfig.client.Call(context.Background(), function, test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +87,7 @@ func TestEstimateFee(t *testing.T) {
 
 	type testSetType struct {
 		call                FunctionCall
-		BlockIDOption       BlockIDOption
+		BlockID             BlockID
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string
 		ExpectedGasConsumed string
@@ -100,7 +100,7 @@ func TestEstimateFee(t *testing.T) {
 
 	for _, test := range testSet {
 		call := test.call
-		output, err := testConfig.client.EstimateFee(context.Background(), call, test.BlockIDOption)
+		output, err := testConfig.client.EstimateFee(context.Background(), call, test.BlockID)
 		if err != nil || output == nil {
 			t.Fatalf("output is nil, go err %v", err)
 		}

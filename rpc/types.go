@@ -25,9 +25,59 @@ type blockID struct {
 	BlockTag    *string      `json:"block_tag,omitempty"`
 }
 
-// BlockIDOption is an options that can be used as a parameter for
+// BlockID is an options that can be used as a parameter for
 // starknet_getBlockWithTxHashes.
-type BlockIDOption func(b *blockID) error
+type BlockID func(b *blockID) error
+
+func (bid BlockID) isValid() bool {
+	b := &blockID{}
+	err := bid(b)
+	if err != nil {
+		return false
+	}
+	if b.BlockTag != nil &&
+		(*b.BlockTag != "pending" && *b.BlockTag != "latest") {
+		return false
+	}
+	return true
+}
+
+func (bid BlockID) tag() (string, bool) {
+	b := &blockID{}
+	bid(b)
+	if b.BlockTag != nil &&
+		(*b.BlockTag == "pending" || *b.BlockTag == "latest") {
+		return *b.BlockTag, true
+	}
+	return "", false
+}
+
+func (bid BlockID) isPending() bool {
+	if v, ok := bid.tag(); ok {
+		if v == "pending" {
+			return true
+		}
+	}
+	return false
+}
+
+func (bid BlockID) isLatest() bool {
+	if v, ok := bid.tag(); ok {
+		if v == "latest" {
+			return true
+		}
+	}
+	return false
+}
+
+func (bid BlockID) getWithoutTag() (*blockID, error) {
+	b := &blockID{}
+	bid(b)
+	if b.BlockTag != nil {
+		return nil, errors.New("blockid is a tag")
+	}
+	return b, nil
+}
 
 type BlockHash string
 
@@ -522,9 +572,9 @@ type EmittedEvent struct {
 }
 
 type EventFilter struct {
-	FromBlock BlockIDOption `json:"from_block"`
-	ToBlock   BlockIDOption `json:"to_block"`
-	Address   Address       `json:"address"`
+	FromBlock BlockID `json:"from_block"`
+	ToBlock   BlockID `json:"to_block"`
+	Address   Address `json:"address"`
 	// Keys the values used to filter the events
 	Keys []string `json:"keys"`
 }

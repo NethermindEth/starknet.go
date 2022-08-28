@@ -3,27 +3,33 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/dontpanicdao/caigo"
 )
 
+var errInvalidBlockID = errors.New("invalid blockid")
+
 // Call a starknet function without creating a StarkNet transaction.
-func (sc *Client) Call(ctx context.Context, call FunctionCall, blockIDOption BlockIDOption) ([]string, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) Call(ctx context.Context, call FunctionCall, block BlockID) ([]string, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
 	if len(call.CallData) == 0 {
 		call.CallData = make([]string, 0)
 	}
 	var result []string
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_call", &result, call, *opt.BlockTag); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_call", &result, call, tag); err != nil {
 			return nil, err
 		}
 		return result, nil
+	}
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
 	}
 	if err := sc.do(ctx, "starknet_call", &result, call, opt); err != nil {
 		return nil, err
@@ -37,7 +43,6 @@ func (sc *Client) BlockNumber(ctx context.Context) (uint64, error) {
 	if err := sc.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
 		return 0, err
 	}
-
 	return blockNumber, nil
 }
 
@@ -50,22 +55,22 @@ func (sc *Client) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOu
 	return &block, nil
 }
 
-func WithBlockNumber(blockNumber BlockNumber) BlockIDOption {
-	return BlockIDOption(func(b *blockID) error {
+func WithBlockNumber(blockNumber BlockNumber) BlockID {
+	return BlockID(func(b *blockID) error {
 		b.BlockNumber = &blockNumber
 		return nil
 	})
 }
 
-func WithBlockHash(blockHash BlockHash) BlockIDOption {
-	return BlockIDOption(func(b *blockID) error {
+func WithBlockHash(blockHash BlockHash) BlockID {
+	return BlockID(func(b *blockID) error {
 		b.BlockHash = &blockHash
 		return nil
 	})
 }
 
-func WithBlockTag(blockTag string) BlockIDOption {
-	return BlockIDOption(func(b *blockID) error {
+func WithBlockTag(blockTag string) BlockID {
+	return BlockID(func(b *blockID) error {
 		if blockTag != "latest" && blockTag != "pending" {
 			return errInvalidBlockTag
 		}
@@ -88,57 +93,62 @@ func (sc *Client) PendingTransactions(ctx context.Context) ([]Txn, error) {
 }
 
 // BlockWithTxHashes gets block information given the block id.
-func (sc *Client) BlockWithTxHashes(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) BlockWithTxHashes(ctx context.Context, block BlockID) (interface{}, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
-	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
-		var block PendingBlockWithTxHashes
-		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "pending"); err != nil {
+	if block.isPending() {
+		var result PendingBlockWithTxHashes
+		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &result, "pending"); err != nil {
 			return nil, err
 		}
-		return &block, nil
+		return &result, nil
 	}
-	var block BlockWithTxHashes
-	if opt.BlockTag != nil && *opt.BlockTag == "latest" {
-		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, "latest"); err != nil {
+	var result BlockWithTxHashes
+	if block.isLatest() {
+		if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &result, "latest"); err != nil {
 			return nil, err
 		}
-		return &block, nil
+		return &result, nil
 	}
-	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &block, opt); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
 		return nil, err
 	}
-	return &block, nil
+	if err := sc.do(ctx, "starknet_getBlockWithTxHashes", &result, *opt); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // BlockTransactionCount gets the number of transactions in a block
-func (sc *Client) BlockTransactionCount(ctx context.Context, blockIDOption BlockIDOption) (uint64, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return 0, err
+func (sc *Client) BlockTransactionCount(ctx context.Context, block BlockID) (uint64, error) {
+	if !block.isValid() {
+		return 0, errInvalidBlockID
 	}
 	var result uint64
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, *opt.BlockTag); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, tag); err != nil {
 			return 0, err
 		}
 		return result, nil
 	}
-
-	if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, opt); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return 0, err
+	}
+	if err := sc.do(ctx, "starknet_getBlockTransactionCount", &result, *opt); err != nil {
 		return 0, err
 	}
 	return result, nil
 }
 
 // Nonce returns the Nnce of a contract
-func (sc *Client) Nonce(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) Nonce(ctx context.Context, block BlockID, contractAddress Address) (*string, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
+	opt := &blockID{}
 	var result string
 	if opt.BlockTag != nil {
 		if err := sc.do(ctx, "starknet_getNonce", &result, *opt.BlockTag, contractAddress); err != nil {
@@ -299,143 +309,156 @@ func guessTxsWithType(txs []Txn) ([]Txn, error) {
 }
 
 // BlockWithTxs get block information with full transactions given the block id.
-func (sc *Client) BlockWithTxs(ctx context.Context, blockIDOption BlockIDOption) (interface{}, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) BlockWithTxs(ctx context.Context, block BlockID) (interface{}, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
-	if opt.BlockTag != nil && *opt.BlockTag == "pending" {
-		var block PendingBlockWithTxs
-		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "pending"); err != nil {
+	if block.isPending() {
+		var result PendingBlockWithTxs
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, "pending"); err != nil {
 			return nil, err
 		}
-		txns, err := guessTxsWithType(block.Transactions)
+		txns, err := guessTxsWithType(result.Transactions)
 		if err != nil {
 			return nil, err
 		}
-		block.Transactions = txns
-		return &block, nil
+		result.Transactions = txns
+		return &result, nil
 	}
-	var block BlockWithTxs
-	if opt.BlockTag != nil && *opt.BlockTag == "latest" {
-		if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, "latest"); err != nil {
+
+	var result BlockWithTxs
+	if block.isLatest() {
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, "latest"); err != nil {
 			return nil, err
 		}
-		txns, err := guessTxsWithType(block.Transactions)
+		txns, err := guessTxsWithType(result.Transactions)
 		if err != nil {
 			return nil, err
 		}
-		block.Transactions = txns
-		return &block, nil
+		result.Transactions = txns
+		return &result, nil
 	}
-	if err := sc.do(ctx, "starknet_getBlockWithTxs", &block, opt); err != nil {
-		return nil, err
-	}
-	txns, err := guessTxsWithType(block.Transactions)
+	opt, err := block.getWithoutTag()
 	if err != nil {
 		return nil, err
 	}
-	block.Transactions = txns
-	return &block, nil
+	if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, *opt); err != nil {
+		return nil, err
+	}
+	txns, err := guessTxsWithType(result.Transactions)
+	if err != nil {
+		return nil, err
+	}
+	result.Transactions = txns
+	return &result, nil
 }
 
 // Class gets the contract class definition associated with the given hash.
-func (sc *Client) Class(ctx context.Context, blockIDOption BlockIDOption, classHash string) (*ContractClass, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) Class(ctx context.Context, block BlockID, classHash string) (*ContractClass, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var rawClass ContractClass
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getClass", &rawClass, *opt.BlockTag, classHash); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getClass", &rawClass, tag, classHash); err != nil {
 			return nil, err
 		}
 		return &rawClass, nil
 	}
-	if err := sc.do(ctx, "starknet_getClass", &rawClass, opt, classHash); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_getClass", &rawClass, *opt, classHash); err != nil {
 		return nil, err
 	}
 	return &rawClass, nil
 }
 
 // ClassAt get the contract class definition at the given address.
-func (sc *Client) ClassAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*ContractClass, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) ClassAt(ctx context.Context, block BlockID, contractAddress Address) (*ContractClass, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var rawClass ContractClass
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getClassAt", &rawClass, *opt.BlockTag, contractAddress); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getClassAt", &rawClass, tag, contractAddress); err != nil {
 			return nil, err
 		}
 		return &rawClass, nil
 	}
-	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, opt, contractAddress); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_getClassAt", &rawClass, *opt, contractAddress); err != nil {
 		return nil, err
 	}
 	return &rawClass, nil
 }
 
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
-func (sc *Client) ClassHashAt(ctx context.Context, blockIDOption BlockIDOption, contractAddress Address) (*string, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
-	}
-	if opt.BlockTag != nil && *opt.BlockTag != "pending" && *opt.BlockTag != "latest" {
-		return nil, errInvalidBlockTag
+func (sc *Client) ClassHashAt(ctx context.Context, block BlockID, contractAddress Address) (*string, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var result string
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getClassHashAt", &result, *opt.BlockTag, contractAddress); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getClassHashAt", &result, tag, contractAddress); err != nil {
 			return nil, err
 		}
 		return &result, nil
 	}
-	if err := sc.do(ctx, "starknet_getStateUpdate", &result, opt, contractAddress); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_getStateUpdate", &result, *opt, contractAddress); err != nil {
 		return nil, err
 	}
 	return &result, nil
 }
 
 // StorageAt gets the value of the storage at the given address and key.
-func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key string, blockIDOption BlockIDOption) (string, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return "", err
+func (sc *Client) StorageAt(ctx context.Context, contractAddress Address, key string, block BlockID) (string, error) {
+	if !block.isValid() {
+		return "", errInvalidBlockID
 	}
 	var value string
 	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, *opt.BlockTag); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, tag); err != nil {
 			return "", err
 		}
 		return value, nil
 	}
-	if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, opt); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return "", err
+	}
+	if err := sc.do(ctx, "starknet_getStorageAt", &value, string(contractAddress), hashKey, *opt); err != nil {
 		return "", err
 	}
 	return value, nil
 }
 
 // StateUpdate gets the information about the result of executing the requested block.
-func (sc *Client) StateUpdate(ctx context.Context, blockIDOption BlockIDOption) (*StateUpdateOutput, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
-	}
-	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
-		return nil, errInvalidBlockTag
+func (sc *Client) StateUpdate(ctx context.Context, block BlockID) (*StateUpdateOutput, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var state StateUpdateOutput
-	if opt.BlockTag != nil {
+	if block.isLatest() {
 		if err := sc.do(ctx, "starknet_getStateUpdate", &state, "latest"); err != nil {
 			return nil, err
 		}
 		return &state, nil
 	}
-	if err := sc.do(ctx, "starknet_getStateUpdate", &state, opt); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_getStateUpdate", &state, *opt); err != nil {
 		return nil, err
 	}
 	return &state, nil
@@ -456,17 +479,13 @@ func (sc *Client) TransactionByHash(ctx context.Context, hash TxnHash) (*Txn, er
 }
 
 // TransactionByBlockIdAndIndex Get the details of the transaction given by the identified block and index in that block. If no transaction is found, null is returned.
-func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOption BlockIDOption, index uint64) (*Txn, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
-	}
-	if opt.BlockTag != nil && *opt.BlockTag != "latest" {
-		return nil, errInvalidBlockTag
+func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, block BlockID, index uint64) (*Txn, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var tx interface{}
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, *opt.BlockTag, index); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, tag, index); err != nil {
 			return nil, err
 		}
 		txWithType, err := guessTxWithType(tx)
@@ -476,7 +495,11 @@ func (sc *Client) TransactionByBlockIdAndIndex(ctx context.Context, blockIDOptio
 		txTxn := Txn(txWithType)
 		return &txTxn, nil
 	}
-	if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, opt, index); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_getTransactionByBlockIdAndIndex", &tx, *opt, index); err != nil {
 		return nil, err
 	}
 	txWithType, err := guessTxWithType(tx)
@@ -508,20 +531,23 @@ func (sc *Client) Events(ctx context.Context, filter EventFilterParams) (*Events
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, blockIDOption BlockIDOption) (*FeeEstimate, error) {
-	opt := &blockID{}
-	if err := blockIDOption(opt); err != nil {
-		return nil, err
+func (sc *Client) EstimateFee(ctx context.Context, request BroadcastedTxn, block BlockID) (*FeeEstimate, error) {
+	if !block.isValid() {
+		return nil, errInvalidBlockID
 	}
 	var raw FeeEstimate
-	if opt.BlockTag != nil {
-		if err := sc.do(ctx, "starknet_estimateFee", &raw, request, *opt.BlockTag); err != nil {
+	if tag, ok := block.tag(); ok {
+		if err := sc.do(ctx, "starknet_estimateFee", &raw, request, tag); err != nil {
 			return nil, err
 		}
 		fmt.Printf("%+v\n", raw)
 		return &raw, nil
 	}
-	if err := sc.do(ctx, "starknet_estimateFee", &raw, request, opt); err != nil {
+	opt, err := block.getWithoutTag()
+	if err != nil {
+		return nil, err
+	}
+	if err := sc.do(ctx, "starknet_estimateFee", &raw, request, *opt); err != nil {
 		return nil, err
 	}
 	fmt.Printf("%+v\n", raw)

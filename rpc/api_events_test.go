@@ -10,7 +10,7 @@ func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FromBlock          BlockIDOption
+		FromBlock          BlockID
 		ExpectedEventCount int
 	}
 	testSet := map[string][]testSetType{
