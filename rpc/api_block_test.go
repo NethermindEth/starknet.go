@@ -410,28 +410,62 @@ func _TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	t.Fatalf("error running test: %v", errNotImplemented)
 }
 
-// TestStateUpdateByHash tests StateUpdateByHash
+// TestStateUpdate tests StateUpdateByHash
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
 func TestStateUpdate(t *testing.T) {
-	_ = beforeEach(t)
+	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID BlockID
+		BlockID                   BlockID
+		ExpectedStateUpdateOutput StateUpdateOutput
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID: WithBlockHash("0xdeadbeef"),
+				BlockID: WithBlockNumber(300000),
+				ExpectedStateUpdateOutput: StateUpdateOutput{
+					BlockHash:    "0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4",
+					NewRoot:      "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
+					OldRoot:      "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
+					AcceptedTime: 0,
+					StateDiff: StateDiff{
+						StorageDiffs: []ContractStorageDiffItem{{
+							Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
+							StorageEntry: StorageEntry{
+								Key:   "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
+								Value: "0x630b4197",
+							},
+						}},
+					},
+				},
 			},
 		},
+		"testnet": {
+			{
+				BlockID: WithBlockTag("latest"),
+			},
+		},
+		"mainnet": {},
 	}[testEnv]
-
-	if len(testSet) == 0 {
-		t.Skipf("not implemented on %s", testEnv)
-	}
 	for _, test := range testSet {
-		_ = test
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
+		stateUpdate, err := testConfig.client.StateUpdate(context.Background(), test.BlockID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		diff, err := spy.Compare(stateUpdate, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(stateUpdate, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if uint64(stateUpdate.AcceptedTime) != 0 {
+			t.Fatalf("structure expecting %d, instead: %d", 0, stateUpdate.AcceptedTime)
+		}
 	}
 }

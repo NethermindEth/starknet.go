@@ -435,8 +435,8 @@ type ContractStorageDiffItem struct {
 	// ContractAddress is the contract address for which the state changed
 	Address string `json:"address"`
 
-	// StorageEntries the changes in the storage of the contract
-	StorageEntries []StorageEntry `json:"storage_entries"`
+	// StorageEntry the changes in the storage of the contract
+	StorageEntry
 }
 
 // DeclaredContractItem A new contract declared as part of the new state
@@ -482,7 +482,7 @@ type StateUpdateOutput struct {
 	// OldRoot is the previous global state root.
 	OldRoot string `json:"old_root"`
 	// AcceptedTime is when the block was accepted on L1.
-	AcceptedTime int `json:"accepted_time"`
+	AcceptedTime int `json:"accepted_time,omitempty"`
 	// StateDiff is the change in state applied in this block, given as a
 	// mapping of addresses to the new values and/or new contracts.
 	StateDiff StateDiff `json:"state_diff"`
