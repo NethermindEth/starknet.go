@@ -321,6 +321,50 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}
 }
 
+// TestBlockTransactionCount tests BlockTransactionCount
+func TestBlockTransactionCount(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockID       BlockID
+		ExpectedCount uint64
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				BlockID:       WithBlockNumber(300000),
+				ExpectedCount: 10,
+			},
+		},
+		"testnet": {
+			{
+				BlockID:       WithBlockNumber(300000),
+				ExpectedCount: 23,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+	for _, test := range testSet {
+		spy := NewSpy(testConfig.client.c)
+		testConfig.client.c = spy
+		count, err := testConfig.client.BlockTransactionCount(context.Background(), test.BlockID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		diff, err := spy.Compare(count, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if diff != "FullMatch" {
+			spy.Compare(count, true)
+			t.Fatal("structure expecting to be FullMatch, instead", diff)
+		}
+		if count != test.ExpectedCount {
+			t.Fatalf("structure expecting %d, instead: %d", test.ExpectedCount, count)
+		}
+	}
+}
+
 func _TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
