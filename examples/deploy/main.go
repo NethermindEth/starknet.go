@@ -108,7 +108,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	balance, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
+	balance, err := balanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
 		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
@@ -121,12 +121,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	balanceAccount, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
+	balanceAccount, err := balanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
 		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
 	}
-	balancePredeployed, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
+	balancePredeployed, err := balanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
 		fmt.Println("can't get balance of:", predeployedContract, err)
 		os.Exit(1)
@@ -210,8 +210,8 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 	return nil
 }
 
-// getBalanceOf returns the balance of the account at the accountAddress address.
-func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (string, error) {
+// balanceOf returns the balance of the account at the accountAddress address.
+func balanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    erc20address,
 		EntryPointSelector: "balanceOf",
