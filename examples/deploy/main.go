@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"os"
-	"time"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/gateway"
@@ -38,8 +36,8 @@ func main() {
 	fmt.Println("Deploying account to testnet. It may take a while.")
 	accountResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
 		Type:                gateway.DEPLOY,
-		ConstructorCalldata: []string{pubX.String()},                            // public key
-		ContractAddressSalt: caigo.BigToHex(big.NewInt(time.Now().UnixNano()))}) // salt to hex
+		ContractAddressSalt: caigo.BigToHex(pubX)})   // salt to hex
+		ConstructorCalldata: []string{pubX.String()}, // public key
 	if err != nil {
 		fmt.Println("can't deploy account:", err)
 		os.Exit(1)
@@ -73,7 +71,7 @@ func main() {
 	fmt.Println("Deploying erc20 contract. It may take a while")
 	erc20Response, err := gw.Deploy(context.Background(), compiledERC20Contract, types.DeployRequest{
 		Type:                gateway.DEPLOY,
-		ContractAddressSalt: caigo.BigToHex(big.NewInt(time.Now().UnixNano())), // salt to hex
+		ContractAddressSalt: caigo.BigToHex(pubX), // salt to hex
 		ConstructorCalldata: []string{
 			caigo.HexToBN(account.Address).String(), // owner
 			"2000",                                  // initial supply
