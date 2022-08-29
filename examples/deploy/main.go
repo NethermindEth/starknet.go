@@ -26,33 +26,33 @@ func main() {
 
 	privateKey, err := caigo.Curve.GetRandomPrivateKey()
 	if err != nil {
-		fmt.Println("can't get random private key :", err)
+		fmt.Println("can't get random private key:", err)
 		os.Exit(1)
 	}
 	pubX, _, err := caigo.Curve.PrivateToPoint(privateKey)
 	if err != nil {
-		fmt.Println("can't generate public key :", err)
+		fmt.Println("can't generate public key:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Deploying account to testnet. It may take a while.")
-	accoutResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
+	accountResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
 		Type:                gateway.DEPLOY,
 		ConstructorCalldata: []string{pubX.String()},                            // public key
 		ContractAddressSalt: caigo.BigToHex(big.NewInt(time.Now().UnixNano()))}) // salt to hex
 	if err != nil {
-		fmt.Println("can't deploy account :", err)
+		fmt.Println("can't deploy account:", err)
 		os.Exit(1)
 	}
 
-	if err := waitForTransaction(gw, accoutResponse.TransactionHash); err != nil {
-		fmt.Println("Account deployement transaction failure :", err)
+	if err := waitForTransaction(gw, accountResponse.TransactionHash); err != nil {
+		fmt.Println("Account deployement transaction failure:", err)
 		os.Exit(1)
 	}
 
-	tx, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: accoutResponse.TransactionHash})
+	tx, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: accountResponse.TransactionHash})
 	if err != nil {
-		fmt.Println("can't fetch transaction data :", err)
+		fmt.Println("can't fetch transaction data:", err)
 		os.Exit(1)
 	}
 
@@ -62,9 +62,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Account deployed. contract address : ", account.Address)
+	fmt.Println("Account deployed. Contract address: ", account.Address)
 
-	// At this point you need to add fund to the deployed account in order to use it.
+	// At this point you need to add funds to the deployed account in order to use it.
 	var input string
 	fmt.Println("The deployed account has to be feeded with ETH to perform transaction.")
 	fmt.Print("When your account has been funded with the faucet, press any key and enter to continue : ")
@@ -81,59 +81,59 @@ func main() {
 		},
 	})
 	if err != nil {
-		fmt.Println("can't deploy erc20 contract :", err)
+		fmt.Println("can't deploy erc20 contract:", err)
 		os.Exit(1)
 	}
 
 	if err := waitForTransaction(gw, erc20Response.TransactionHash); err != nil {
-		fmt.Println("ERC20 deployement transaction failure :", err)
+		fmt.Println("ERC20 deployement transaction failure:", err)
 		os.Exit(1)
 	}
 
 	txERC20, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: erc20Response.TransactionHash})
 	if err != nil {
-		fmt.Println("can't fetch transaction data :", err)
+		fmt.Println("can't fetch transaction data:", err)
 		os.Exit(1)
 	}
 	fmt.Println("ERC20 contract deployed.",
-		"Contract address : ", txERC20.Transaction.ContractAddress,
-		"Transaction hash : ", txERC20.Transaction.TransactionHash,
+		"Contract address: ", txERC20.Transaction.ContractAddress,
+		"Transaction hash: ", txERC20.Transaction.TransactionHash,
 	)
 
 	erc20ContractAddr := txERC20.Transaction.ContractAddress
 
 	fmt.Println("Minting 10 tokens to your account...")
 	if err := mint(gw, account, erc20ContractAddr); err != nil {
-		fmt.Println("can't mint erc20 contract :", err)
+		fmt.Println("can't mint erc20 contract:", err)
 		os.Exit(1)
 	}
 
 	balance, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of :", account.Address, err)
+		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
 	}
 	fmt.Println("Your account has ", balance, " tokens.")
 
 	fmt.Println("Transfering 5 tokens from", account.Address, "to", predeployedContract)
 	if err := transferFrom(gw, account, erc20ContractAddr, predeployedContract); err != nil {
-		fmt.Println("can't transfer tokens  :", account.Address, err)
+		fmt.Println("can't transfer tokens:", account.Address, err)
 		os.Exit(1)
 	}
 
 	balanceAccount, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of :", account.Address, err)
+		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
 	}
 	balancePredeployed, err := getBalanceOf(gw, erc20ContractAddr, account.Address)
 	if err != nil {
-		fmt.Println("can't get balance of :", predeployedContract, err)
+		fmt.Println("can't get balance of:", predeployedContract, err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Transfer done.")
-	fmt.Println("Account balance : ", balanceAccount, ". Predeployed account balance : ", balancePredeployed)
+	fmt.Println("Account balance: ", balanceAccount, ". Predeployed account balance: ", balancePredeployed)
 }
 
 // Utils function to wait for transaction to be accepted on L2 and print tx status.
@@ -146,7 +146,7 @@ func waitForTransaction(gw *gateway.GatewayProvider, transactionHash string) err
 		_, receipt, err = gw.PollTx(context.Background(), transactionHash, types.ACCEPTED_ON_L2, pollInterval, maxPoll)
 		if err != nil {
 			fmt.Println(receipt.Status, receipt.StatusData)
-			return fmt.Errorf("Transaction Failure (%s) : can't poll to desired status : %s", transactionHash, err.Error())
+			return fmt.Errorf("Transaction Failure (%s): can't poll to desired status: %s", transactionHash, err.Error())
 		}
 		fmt.Println("Current status : ", receipt.Status)
 		if receipt.Status == types.ACCEPTED_ON_L2.String() {
@@ -156,7 +156,7 @@ func waitForTransaction(gw *gateway.GatewayProvider, transactionHash string) err
 	return nil
 }
 
-// mint will mint the erc20 contracts through the account.
+// mint mints the erc20 contract through the account.
 func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.Transaction{
@@ -173,11 +173,11 @@ func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address stri
 
 	execResp, err := account.Execute(context.Background(), tx, caigo.ExecuteDetails{})
 	if err != nil {
-		return fmt.Errorf("can't execute transacation : %w", err)
+		return fmt.Errorf("can't execute transaction: %w", err)
 	}
 
 	if err := waitForTransaction(gw, execResp.TransactionHash); err != nil {
-		return fmt.Errorf("a problem occured with transacation : %w", err)
+		return fmt.Errorf("a problem occured with the transaction: %w", err)
 	}
 	return nil
 }
@@ -201,11 +201,11 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 
 	execResp, err := account.Execute(context.Background(), tx, caigo.ExecuteDetails{})
 	if err != nil {
-		return fmt.Errorf("can't execute transacation : %w", err)
+		return fmt.Errorf("can't execute transaction: %w", err)
 	}
 
 	if err := waitForTransaction(gw, execResp.TransactionHash); err != nil {
-		return fmt.Errorf("a problem occured with transacation : %w", err)
+		return fmt.Errorf("a problem occured with transaction: %w", err)
 	}
 	return nil
 }
@@ -220,7 +220,7 @@ func getBalanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress stri
 		},
 	}, "")
 	if err != nil {
-		return "", fmt.Errorf("can't call erc20 : %s. Error : %w", accountAddress, err)
+		return "", fmt.Errorf("can't call erc20: %s. Error: %w", accountAddress, err)
 	}
 	return res[0], nil
 }
