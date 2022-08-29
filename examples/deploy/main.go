@@ -22,10 +22,8 @@ const (
 )
 
 func main() {
-	// init starknet gateway client
 	gw := gateway.NewProvider(gateway.WithChain(env))
 
-	// Generating priv / pub key pair
 	privateKey, err := caigo.Curve.GetRandomPrivateKey()
 	if err != nil {
 		fmt.Println("can't get random private key :", err)
@@ -37,7 +35,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Deploying OpenZeppelin account
 	fmt.Println("Deploying account to testnet. It may take a while.")
 	accoutResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
 		Type:                gateway.DEPLOY,
@@ -48,20 +45,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// poll until the transaction is accepted on L2
 	if err := waitForTransaction(gw, accoutResponse.TransactionHash); err != nil {
 		fmt.Println("Account deployement transaction failure :", err)
 		os.Exit(1)
 	}
 
-	// fetch transaction data
 	tx, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: accoutResponse.TransactionHash})
 	if err != nil {
 		fmt.Println("can't fetch transaction data :", err)
 		os.Exit(1)
 	}
 
-	// Instantiate account object
 	account, err := caigo.NewAccount(privateKey.String(), tx.Transaction.ContractAddress, gw)
 	if err != nil {
 		fmt.Println("can't create account:", err)
@@ -91,13 +85,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Poll until the transaction is accepted on L2
 	if err := waitForTransaction(gw, erc20Response.TransactionHash); err != nil {
 		fmt.Println("ERC20 deployement transaction failure :", err)
 		os.Exit(1)
 	}
 
-	// fetch transaction data
 	txERC20, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: erc20Response.TransactionHash})
 	if err != nil {
 		fmt.Println("can't fetch transaction data :", err)
@@ -110,7 +102,6 @@ func main() {
 
 	erc20ContractAddr := txERC20.Transaction.ContractAddress
 
-	// minting the erc20 contract
 	fmt.Println("Minting 10 tokens to your account...")
 	if err := mint(gw, account, erc20ContractAddr); err != nil {
 		fmt.Println("can't mint erc20 contract :", err)
@@ -124,7 +115,6 @@ func main() {
 	}
 	fmt.Println("Your account has ", balance, " tokens.")
 
-	// Make transfer from transacation
 	fmt.Println("Transfering 5 tokens from", account.Address, "to", predeployedContract)
 	if err := transferFrom(gw, account, erc20ContractAddr, predeployedContract); err != nil {
 		fmt.Println("can't transfer tokens  :", account.Address, err)
@@ -146,7 +136,7 @@ func main() {
 	fmt.Println("Account balance : ", balanceAccount, ". Predeployed account balance : ", balancePredeployed)
 }
 
-// Utils function to wait for transaction to be accepted on L2 and print tx status
+// Utils function to wait for transaction to be accepted on L2 and print tx status.
 func waitForTransaction(gw *gateway.GatewayProvider, transactionHash string) error {
 	acceptedOnL2 := false
 	var receipt *types.TransactionReceipt
@@ -174,7 +164,7 @@ func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address stri
 			ContractAddress:    erc20address,
 			EntryPointSelector: "mint",
 			Calldata: []string{
-				caigo.HexToBN(account.Address).String(), // owner
+				caigo.HexToBN(account.Address).String(), // to
 				"10",                                    // amount to mint
 				"0",                                     // UInt256 additional parameter
 			},
