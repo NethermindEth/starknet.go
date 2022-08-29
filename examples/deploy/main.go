@@ -36,8 +36,8 @@ func main() {
 	fmt.Println("Deploying account to testnet. It may take a while.")
 	accountResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
 		Type:                gateway.DEPLOY,
-		ContractAddressSalt: caigo.BigToHex(pubX)})   // salt to hex
-		ConstructorCalldata: []string{pubX.String()}, // public key
+		ContractAddressSalt: caigo.BigToHex(pubX),     // salt to hex
+		ConstructorCalldata: []string{pubX.String()}}) // public key
 	if err != nil {
 		fmt.Println("can't deploy account:", err)
 		os.Exit(1)
