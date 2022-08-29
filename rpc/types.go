@@ -313,15 +313,17 @@ type ContractEntryPointList []ContractEntryPoint
 
 type ContractABI []ContractABIEntry
 
+type EntryPointsByType struct {
+	CONSTRUCTOR ContractEntryPointList `json:"CONSTRUCTOR"`
+	EXTERNAL    ContractEntryPointList `json:"EXTERNAL"`
+	L1_HANDLER  ContractEntryPointList `json:"L1_HANDLER"`
+}
+
 type ContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
 
-	EntryPointsByType struct {
-		CONSTRUCTOR ContractEntryPointList `json:"CONSTRUCTOR"`
-		EXTERNAL    ContractEntryPointList `json:"EXTERNAL"`
-		L1_HANDLER  ContractEntryPointList `json:"L1_HANDLER"`
-	} `json:"entry_points_by_type"`
+	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
 	Abi *ContractABI `json:"abi,omitempty"`
 }
