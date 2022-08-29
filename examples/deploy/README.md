@@ -20,6 +20,9 @@ All used contracts can be found in `./contracts`
 
 You will find for each contract :  the Cairo version, the compiled version and the abi.
 
+If you want to compile contracts yourself, input this command in a terminal :
+`starknet-compile <my_contract.cairo> --output <my_contract_compiled.json> --abi <my_contract_abi.json>`
+
 For the transfer operation, an account is already deployed on testnet at this address : `0x0024e9f35c5d6a14dcbb3f08be5fb7703e76611767266068c521fe8cba27983c`
 
 Note:  
@@ -44,3 +47,4 @@ NOTE: this operation has to be done too for devnet. See the devnet documentation
 - [voyager](https://goerli.voyager.online/): to explore deployed contracts and transactions
 - [starknet faucet](https://faucet.goerli.starknet.io/): to provide ETH to accounts
 - [devnet](https://github.com/Shard-Labs/starknet-devnet) : local starknet instance
+- [cairo-lang](https://github.com/starkware-libs/cairo-lang) : Cairo and CLI installing
