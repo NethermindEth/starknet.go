@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 type TypedData struct {
@@ -16,7 +18,7 @@ type TypedData struct {
 type Domain struct {
 	Name    string
 	Version string
-	ChainId int
+	ChainId string
 }
 
 type TypeDef struct {
@@ -39,11 +41,11 @@ type TypedMessage interface {
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	switch field {
 	case "name":
-		fmtEnc = append(fmtEnc, UTF8StrToBig(dm.Name))
+		fmtEnc = append(fmtEnc, types.StrToFelt(dm.Name).Big())
 	case "version":
-		fmtEnc = append(fmtEnc, StrToBig(dm.Version))
+		fmtEnc = append(fmtEnc, types.StrToFelt(dm.Version).Big())
 	case "chainId":
-		fmtEnc = append(fmtEnc, big.NewInt(int64(dm.ChainId)))
+		fmtEnc = append(fmtEnc, types.StrToFelt(dm.ChainId).Big())
 	}
 	return fmtEnc
 }

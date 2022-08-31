@@ -42,7 +42,7 @@ func MockTypedData() (ttd TypedData) {
 	dm := Domain{
 		Name:    "StarkNet Mail",
 		Version: "1",
-		ChainId: 1,
+		ChainId: "1",
 	}
 
 	ttd, _ = NewTypedData(exampleTypes, "Mail", dm)
