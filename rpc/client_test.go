@@ -156,44 +156,6 @@ func TestSyncing(t *testing.T) {
 	}
 }
 
-// TestProtocolVersion test ProtocolVersion
-func TestProtocolVersion(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ProtocolVersion string
-	}
-	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				ProtocolVersion: "0x312e30",
-			},
-		},
-		"devnet": {
-			{
-				ProtocolVersion: "0x302e31352e30",
-			},
-		},
-		"testnet": {},
-		"mainnet": {},
-	}[testEnv]
-
-	if len(testSet) == 0 {
-		t.Skip(fmt.Sprintf("not implemented on %s", testEnv))
-	}
-	for _, test := range testSet {
-
-		protocol, err := testConfig.client.ProtocolVersion(context.Background())
-
-		if err != nil || protocol == "" {
-			t.Fatal(err)
-		}
-		if protocol != test.ProtocolVersion {
-			t.Fatalf("protocol %s expected, got %s", test.ProtocolVersion, protocol)
-		}
-	}
-}
-
 // TestClose checks the function is called
 func TestClose(t *testing.T) {
 	testConfig := beforeEach(t)
