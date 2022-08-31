@@ -1,7 +1,7 @@
 #!/bin/sh
 
 i=0
-chainId=""
+version=""
 
 while true; do
   i=$((i + 1))
@@ -9,14 +9,14 @@ while true; do
   -H 'Content-Type: application/json' \
   -d'{
     "jsonrpc": "2.0",
-    "method": "starknet_chainId",
+    "method": "starknet_protocolVersion",
     "params": [],
     "id": '${i}'
   }' \
   2>/dev/null)
   result=$?
   if [ $i -gt 10 -o $result -eq 0 ]; then
-    chainId=$(echo $out | jq -r '.result')
+    version=$(echo $out | jq -r '.result')
     break
   fi
   echo "we will continue in a while, loop ${i}..."
@@ -24,10 +24,10 @@ while true; do
   sleep 3
 done
 
-if [ "$chainId" = "0x534e5f474f45524c49" ]; then
-  echo "devnet is running with chainId $chainId..."
+if [ "$version" = "0x302e31352e30" ]; then
+  echo "devnet is running with protocol $version..."
   exit 0
 fi
 
-echo "could not check devnet, chainId=$chainId; fail!!!"
+echo "could not check devnet, version=$version; fail!!!"
 exit 1
