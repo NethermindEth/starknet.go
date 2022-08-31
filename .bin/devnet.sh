@@ -5,18 +5,12 @@ version=""
 
 while true; do
   i=$((i + 1))
-  out=$(curl -L localhost:5050/rpc \
-  -H 'Content-Type: application/json' \
-  -d'{
-    "jsonrpc": "2.0",
-    "method": "starknet_protocolVersion",
-    "params": [],
-    "id": '${i}'
-  }' \
-  2>/dev/null)
+  curl --fail localhost:5050/is_alive 2>/dev/null 2>&1
   result=$?
-  if [ $i -gt 10 -o $result -eq 0 ]; then
-    version=$(echo $out | jq -r '.result')
+  if [ $result -eq 0 ]; then
+    exit 0
+  fi
+  if [ $i -gt 10  ]; then
     break
   fi
   echo "we will continue in a while, loop ${i}..."
@@ -24,10 +18,6 @@ while true; do
   sleep 3
 done
 
-if [ "$version" = "0x302e31352e30" ]; then
-  echo "devnet is running with protocol $version..."
-  exit 0
-fi
-
-echo "could not check devnet, version=$version; fail!!!"
+echo "could not check devnet is_alive; fail!!!"
 exit 1
+

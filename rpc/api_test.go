@@ -17,19 +17,11 @@ func TestNotImplemented(t *testing.T) {
 		"mainnet": {
 			{MissingMethod: "starknet_traceTransaction"},
 			{MissingMethod: "starknet_traceBlockTransactions"},
-			{MissingMethod: "starknet_getNonce"},
-			{MissingMethod: "starknet_protocolVersion"},
-			{MissingMethod: "starknet_pendingTransactions"},
-			{MissingMethod: "starknet_getStateUpdateByHash"},
 		},
 		"mock": {},
 		"testnet": {
 			{MissingMethod: "starknet_traceTransaction"},
 			{MissingMethod: "starknet_traceBlockTransactions"},
-			{MissingMethod: "starknet_getNonce"},
-			{MissingMethod: "starknet_protocolVersion"},
-			{MissingMethod: "starknet_pendingTransactions"},
-			{MissingMethod: "starknet_getStateUpdateByHash"},
 		},
 	}[testEnv]
 
@@ -38,7 +30,7 @@ func TestNotImplemented(t *testing.T) {
 		err := testConfig.client.do(context.Background(), test.MissingMethod, &out)
 
 		if err == nil || err.Error() != "Method not found" {
-			t.Fatalf("Method is now available, got %v\n", err)
+			t.Fatalf("Method %s is now available, got %v\n", test.MissingMethod, err)
 		}
 	}
 }

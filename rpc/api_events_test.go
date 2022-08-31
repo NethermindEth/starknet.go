@@ -10,36 +10,24 @@ func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FromBlockNumber    uint64
+		FromBlock          BlockID
 		ExpectedEventCount int
 	}
 	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				FromBlockNumber:    1000,
-				ExpectedEventCount: 1,
-			},
-		},
-		"testnet": {
-			{
-				FromBlockNumber:    250000,
-				ExpectedEventCount: 142,
-			},
-		},
-		"mainnet": {
-			{
-				FromBlockNumber:    1000,
-				ExpectedEventCount: 1,
-			},
-		},
+		"mock":    {},
+		"testnet": {},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		p := EventParams{
-			FromBlock:  test.FromBlockNumber,
-			ToBlock:    test.FromBlockNumber,
-			PageSize:   1000,
-			PageNumber: 0,
+		p := EventFilterParams{
+			EventFilter{
+				FromBlock: test.FromBlock,
+				ToBlock:   test.FromBlock,
+			},
+			ResultPageRequest{
+				ChunkSize: 100,
+			},
 		}
 		events, err := testConfig.client.Events(context.Background(), p)
 		if err != nil {
