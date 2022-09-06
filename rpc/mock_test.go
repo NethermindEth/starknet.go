@@ -479,10 +479,10 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 		StateDiff: StateDiff{
 			StorageDiffs: []ContractStorageDiffItem{{
 				Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
-				StorageEntry: StorageEntry{
+				Entries: []StorageEntry{{
 					Key:   "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
 					Value: "0x630b4197",
-				},
+				}},
 			}},
 		},
 	}
