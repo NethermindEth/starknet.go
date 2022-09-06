@@ -2,10 +2,10 @@ package rpc
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
-	errBadRequest      = errors.New("bad request")
 	errBadTxType       = errors.New("bad transaction type")
 	errInvalidBlockTag = errors.New("invalid blocktag")
 	errNotImplemented  = errors.New("not implemented")
@@ -302,21 +302,19 @@ type BroadcastedInvokeTxnV1 struct {
 	InvokeV1
 }
 
-type ContractEntryPoint struct {
+type EntryPoint struct {
 	// The offset of the entry point in the program
 	Offset NumAsHex `json:"offset"`
 	// A unique identifier of the entry point (function) in the program
 	Selector string `json:"selector"`
 }
 
-type ContractEntryPointList []ContractEntryPoint
-
-type ContractABI []ContractABIEntry
+type ABI []ABIEntry
 
 type EntryPointsByType struct {
-	CONSTRUCTOR ContractEntryPointList `json:"CONSTRUCTOR"`
-	EXTERNAL    ContractEntryPointList `json:"EXTERNAL"`
-	L1_HANDLER  ContractEntryPointList `json:"L1_HANDLER"`
+	Constructor []EntryPoint `json:"CONSTRUCTOR"`
+	External    []EntryPoint `json:"EXTERNAL"`
+	L1Handler   []EntryPoint `json:"L1_HANDLER"`
 }
 
 type ContractClass struct {
@@ -325,10 +323,10 @@ type ContractClass struct {
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
-	Abi *ContractABI `json:"abi,omitempty"`
+	Abi *ABI `json:"abi,omitempty"`
 }
 
-type ContractABIEntry interface {
+type ABIEntry interface {
 	IsType() string
 }
 
@@ -438,7 +436,7 @@ type ContractStorageDiffItem struct {
 	Address string `json:"address"`
 
 	// StorageEntry the changes in the storage of the contract
-	StorageEntry
+	Entries []StorageEntry `json:"storage_entries"`
 }
 
 // DeclaredContractItem A new contract declared as part of the new state
@@ -492,6 +490,30 @@ type StateUpdateOutput struct {
 
 type TxnStatus string
 
+const (
+	TxnStatus_Pending      TxnStatus = "PENDING"
+	TxnStatus_AcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatus_AcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
+	TxnStatus_Rejected     TxnStatus = "REJECTED"
+)
+
+func (ts *TxnStatus) UnmarshalJSON(data []byte) error {
+	switch string(data) {
+	case "PENDING":
+		*ts = TxnStatus_Pending
+	case "ACCEPTED_ON_L2":
+		*ts = TxnStatus_AcceptedOnL2
+	case "ACCEPTED_ON_L1":
+		*ts = TxnStatus_AcceptedOnL1
+	case "REJECTED":
+		*ts = TxnStatus_Rejected
+	default:
+		return fmt.Errorf("unsupported status: %s", data)
+	}
+
+	return nil
+}
+
 type CommonReceiptProperties struct {
 	TransactionHash TxnHash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
@@ -533,9 +555,17 @@ type InvokeTxnReceipt struct {
 	*InvokeTxnReceiptProperties `json:",omitempty"`
 }
 
+func (tr InvokeTxnReceipt) TransactionHash() TxnHash {
+	return tr.CommonReceiptProperties.TransactionHash
+}
+
 // DeclareTxnReceipt Declare Transaction Receipt
 type DeclareTxnReceipt struct {
 	CommonReceiptProperties
+}
+
+func (tr DeclareTxnReceipt) TransactionHash() TxnHash {
+	return tr.CommonReceiptProperties.TransactionHash
 }
 
 // DeployTxnReceipt Deploy Transaction Receipt
@@ -545,12 +575,22 @@ type DeployTxnReceipt struct {
 	ContractAddress string `json:"contract_address"`
 }
 
+func (tr DeployTxnReceipt) TransactionHash() TxnHash {
+	return tr.CommonReceiptProperties.TransactionHash
+}
+
 // L1HandlerTxnReceipt L1 Handler Transaction Receipt
 type L1HandlerTxnReceipt struct {
 	CommonReceiptProperties
 }
 
-type TxnReceipt interface{}
+func (tr L1HandlerTxnReceipt) TransactionHash() TxnHash {
+	return tr.CommonReceiptProperties.TransactionHash
+}
+
+type TxnReceipt interface {
+	TransactionHash() TxnHash
+}
 
 type PendingCommonReceiptProperties struct {
 	TransactionHash TxnHash `json:"transaction_hash"`
