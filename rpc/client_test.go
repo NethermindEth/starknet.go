@@ -68,6 +68,8 @@ func beforeEach(t *testing.T) *testConfiguration {
 		}
 		return &testConfig
 	}
+
+	testConfig.base = "https://starknet-goerli.cartridge.gg"
 	base := os.Getenv("INTEGRATION_BASE")
 	if base != "" {
 		testConfig.base = base

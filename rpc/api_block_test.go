@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dontpanicdao/caigo/rpc/types"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -84,12 +85,9 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		pending, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockTag("pending"))
+		_, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockTag("pending"))
 		if err == nil || !strings.Contains(err.Error(), "Pending data not supported in this configuration") {
 			t.Fatal("PendingBlockWithTxHashes should not yet be supported")
-		}
-		if _, ok := pending.(PendingBlockWithTxHashes); !ok {
-			t.Fatalf("expecting PendingBlockWithTxs, instead %T", pending)
 		}
 	}
 }
@@ -99,9 +97,9 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                   BlockID
+		BlockID                   types.BlockID
 		ExpectedError             error
-		ExpectedBlockWithTxHashes BlockWithTxHashes
+		ExpectedBlockWithTxHashes types.Block
 	}
 
 	testSet := map[string][]testSetType{
@@ -112,16 +110,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:       WithBlockTag("error"),
-				ExpectedError: errInvalidBlockID,
-			},
-			{
-				BlockID:                   WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:                   WithBlockHash(types.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
 			{
-				BlockID:                   WithBlockNumber(BlockNumber(310370)),
+				BlockID:                   WithBlockNumber(310370),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
@@ -132,32 +126,29 @@ func TestBlockWithTxHashes(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		blockWithTxHashesInterface, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockID)
+		block, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		if test.ExpectedError != nil && blockWithTxHashesInterface == nil {
+		if test.ExpectedError != nil {
 			continue
 		}
-		blockWithTxHashes, ok := blockWithTxHashesInterface.(*BlockWithTxHashes)
-		if !ok {
-			t.Fatalf("expecting BlockWithTxHashes, instead %T", blockWithTxHashesInterface)
+		if diff, err := spy.Compare(block, true); err != nil || diff != "FullMatch" {
+			t.Fatalf("expecting to match diff: %s, err: %v", diff, err)
 		}
-		if diff, err := spy.Compare(blockWithTxHashes, false); err != nil || diff != "FullMatch" {
-			t.Fatal("expecting to match", err)
-		}
-		if !strings.HasPrefix(string(blockWithTxHashes.BlockHash), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxHashes.BlockHash)
+		if !strings.HasPrefix(block.BlockHash.String(), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
 		}
 
-		if len(blockWithTxHashes.Transactions) == 0 {
+		if len(block.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedBlockWithTxHashes.BlockHash == "" {
+		if test.ExpectedBlockWithTxHashes.BlockHash == types.HexToHash("0x0") {
 			continue
 		}
-		if !cmp.Equal(test.ExpectedBlockWithTxHashes, *blockWithTxHashes) {
-			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, blockWithTxHashes))
+
+		if !cmp.Equal(test.ExpectedBlockWithTxHashes, block) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
 		}
 	}
 }
@@ -167,11 +158,11 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                     BlockID
+		BlockID                     types.BlockID
 		ExpectedError               error
 		LookupTxnPositionInOriginal int
 		LookupTxnPositionInExpected int
-		ExpectedBlockWithTxs        BlockWithTxs
+		want                        types.Block
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
@@ -181,18 +172,14 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:       WithBlockTag("error"),
-				ExpectedError: errInvalidBlockID,
+				BlockID:       WithBlockHash(types.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				ExpectedError: nil,
+				want:          fullBlockGoerli310370,
 			},
 			{
-				BlockID:              WithBlockHash(BlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
-				ExpectedError:        nil,
-				ExpectedBlockWithTxs: fullBlockGoerli310370,
-			},
-			{
-				BlockID:              WithBlockNumber(BlockNumber(310370)),
-				ExpectedError:        nil,
-				ExpectedBlockWithTxs: fullBlockGoerli310370,
+				BlockID:       WithBlockNumber(310370),
+				ExpectedError: nil,
+				want:          fullBlockGoerli310370,
 			},
 		},
 		"mainnet": {},
@@ -208,7 +195,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
+		blockWithTxs, ok := blockWithTxsInterface.(*types.Block)
 		if !ok {
 			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 		}
@@ -220,18 +207,18 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			spy.Compare(blockWithTxs, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
-		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
+		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
 		}
 
 		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedBlockWithTxs.BlockHash == "" {
+		if test.want.BlockHash == types.HexToHash("0x0") {
 			continue
 		}
-		if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
-			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
+		if !cmp.Equal(test.want.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.want.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
 		}
 	}
 }
@@ -241,11 +228,11 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                     BlockID
+		BlockID                     types.BlockID
 		ExpectedError               error
 		LookupTxnPositionInOriginal int
 		LookupTxnPositionInExpected int
-		ExpectedBlockWithTxs        BlockWithTxs
+		ExpectedBlockWithTxs        types.Block
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
@@ -255,25 +242,21 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:       WithBlockTag("error"),
-				ExpectedError: errInvalidBlockID,
-			},
-			{
-				BlockID:                     WithBlockHash(BlockHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				BlockID:                     WithBlockHash(types.HexToHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockID:                     WithBlockNumber(BlockNumber(310843)),
+				BlockID:                     WithBlockNumber(310843),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        fullBlockGoerli310843,
 			},
 			{
-				BlockID:                     WithBlockNumber(BlockNumber(300114)),
+				BlockID:                     WithBlockNumber(300114),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 3,
 				LookupTxnPositionInExpected: 0,
@@ -293,7 +276,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
+		blockWithTxs, ok := blockWithTxsInterface.(*types.Block)
 		if !ok {
 			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 		}
@@ -305,14 +288,14 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			spy.Compare(blockWithTxs, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
-		if !strings.HasPrefix(string(blockWithTxs.BlockHash), "0x") {
+		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
 		}
 
 		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedBlockWithTxs.BlockHash == "" {
+		if test.ExpectedBlockWithTxs.BlockHash == types.HexToHash("0x0") {
 			continue
 		}
 		if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
@@ -326,7 +309,7 @@ func TestBlockTransactionCount(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID       BlockID
+		BlockID       types.BlockID
 		ExpectedCount uint64
 	}
 	testSet := map[string][]testSetType{
@@ -384,22 +367,21 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[testEnv]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockNumber(BlockNumber(i)))
+			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockNumber(i))
 			if err != nil {
 				t.Fatal("BlockWithTxHashes match the expected error:", err)
 			}
-			blockWithTxs, ok := blockWithTxsInterface.(*BlockWithTxs)
+			blockWithTxs, ok := blockWithTxsInterface.(*types.Block)
 			if !ok {
 				t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				if fmt.Sprintf("%T", v) != "rpc.InvokeTxnV0" &&
-					fmt.Sprintf("%T", v) != "rpc.DeployTxn" &&
-					fmt.Sprintf("%T", v) != "rpc.DeclareTxn" {
+				if fmt.Sprintf("%T", v) != "types.InvokeTxnV0" &&
+					fmt.Sprintf("%T", v) != "types.DeployTxn" &&
+					fmt.Sprintf("%T", v) != "types.DeclareTxn" {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
-
 		}
 	}
 }
@@ -408,6 +390,9 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
+
+	// Unimplemented
+	t.Skip()
 
 	type testSetType struct {
 	}
@@ -419,7 +404,7 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for range testSet {
-		t.Fatalf("error running test: %v", errNotImplemented)
+		t.Fatalf("error running test: %v", ErrNotImplemented)
 	}
 }
 
@@ -431,25 +416,23 @@ func TestStateUpdate(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                   BlockID
-		ExpectedStateUpdateOutput StateUpdateOutput
+		BlockID                   types.BlockID
+		ExpectedStateUpdateOutput types.StateUpdateOutput
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				BlockID: WithBlockNumber(300000),
-				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash:    "0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4",
+				ExpectedStateUpdateOutput: types.StateUpdateOutput{
+					BlockHash:    types.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 					NewRoot:      "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 					OldRoot:      "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 					AcceptedTime: 0,
-					StateDiff: StateDiff{
-						StorageDiffs: []ContractStorageDiffItem{{
+					StateDiff: types.StateDiff{
+						StorageDiffs: []types.ContractStorageDiffItem{{
 							Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
-							Entries: []StorageEntry{{
-								Key:   "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
-								Value: "0x630b4197",
-							}},
+							Key:     "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
+							Value:   "0x630b4197",
 						}},
 					},
 				},
