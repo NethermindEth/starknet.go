@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
 // TestEvents tests Events
@@ -10,7 +12,7 @@ func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FromBlock          BlockID
+		FromBlock          types.BlockID
 		ExpectedEventCount int
 	}
 	testSet := map[string][]testSetType{
@@ -20,14 +22,10 @@ func TestEvents(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		p := EventFilterParams{
-			EventFilter{
-				FromBlock: test.FromBlock,
-				ToBlock:   test.FromBlock,
-			},
-			ResultPageRequest{
-				ChunkSize: 100,
-			},
+		p := types.EventFilter{
+			FromBlock: test.FromBlock,
+			ToBlock:   test.FromBlock,
+			ChunkSize: 100,
 		}
 		events, err := testConfig.client.Events(context.Background(), p)
 		if err != nil {

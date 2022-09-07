@@ -3,6 +3,8 @@ package rpc
 import (
 	_ "embed"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
 // TestAddDeployTransaction tests AddDeployTransaction
@@ -10,7 +12,7 @@ func TestAddDeployTransaction(t *testing.T) {
 	_ = beforeEach(t)
 
 	type testSetType struct {
-		BroadcastedDeployTxn    BroadcastedDeployTxn
+		BroadcastedDeployTxn    types.BroadcastedDeployTxn
 		ExpectedTransactionHash string
 		ExpectedContractAddress string
 	}
@@ -31,7 +33,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 	_ = beforeEach(t)
 
 	type testSetType struct {
-		BroadcastedDeclareTxn   BroadcastedDeclareTxn
+		BroadcastedDeclareTxn   types.BroadcastedDeclareTxn
 		ExpectedTransactionHash string
 		ExpectedClassHash       string
 	}
@@ -53,7 +55,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	_ = beforeEach(t)
 
 	type testSetType struct {
-		BroadcastedInvokeTxn    BroadcastedInvokeTxn
+		BroadcastedInvokeTxn    types.BroadcastedInvokeTxn
 		ExpectedTransactionHash string
 	}
 	testSet := map[string][]testSetType{

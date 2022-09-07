@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
 // TestCall tests Call
@@ -11,15 +13,15 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall   FunctionCall
-		BlockID        BlockID
+		FunctionCall   types.FunctionCall
+		BlockID        types.BlockID
 		ExpectedResult string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    "0xdeadbeef",
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0xdeadbeef"),
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
@@ -29,8 +31,8 @@ func TestCall(t *testing.T) {
 		},
 		"testnet": {
 			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    "0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136",
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
@@ -38,8 +40,8 @@ func TestCall(t *testing.T) {
 				ExpectedResult: "0x12",
 			},
 			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
@@ -49,8 +51,8 @@ func TestCall(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75",
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
@@ -86,8 +88,8 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Call                BroadcastedInvokeTxn
-		BlockID             BlockID
+		Call                types.BroadcastedInvokeTxn
+		BlockID             types.BlockID
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string
 		ExpectedGasConsumed string

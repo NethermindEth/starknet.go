@@ -1,0 +1,176 @@
+package types
+
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+type CommonTransactionReceipt struct {
+	TransactionHash Hash `json:"transaction_hash"`
+	// ActualFee The fee that was charged by the sequencer
+	ActualFee   string            `json:"actual_fee"`
+	Status      TransactionStatus `json:"status"`
+	BlockHash   Hash              `json:"block_hash"`
+	BlockNumber uint64            `json:"block_number"`
+	Type        TransactionType   `json:"type,omitempty"`
+}
+
+func (tr CommonTransactionReceipt) Hash() Hash {
+	return tr.TransactionHash
+}
+
+type TransactionType string
+
+const (
+	TransactionType_Declare   TransactionType = "DECLARE"
+	TransactionType_Deploy    TransactionType = "DEPLOY"
+	TransactionType_Invoke    TransactionType = "INVOKE"
+	TransactionType_L1Handler TransactionType = "L1_HANDLER"
+)
+
+func (ts *TransactionType) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "DECLARE":
+		*ts = TransactionType_Declare
+	case "DEPLOY":
+		*ts = TransactionType_Deploy
+	case "INVOKE":
+		*ts = TransactionType_Invoke
+	case "L1_HANDLER":
+		*ts = TransactionType_L1Handler
+	default:
+		return fmt.Errorf("unsupported type: %s", data)
+	}
+
+	return nil
+}
+
+type TransactionStatus string
+
+const (
+	TransactionStatus_Pending      TransactionStatus = "PENDING"
+	TransactionStatus_AcceptedOnL2 TransactionStatus = "ACCEPTED_ON_L2"
+	TransactionStatus_AcceptedOnL1 TransactionStatus = "ACCEPTED_ON_L1"
+	TransactionStatus_Rejected     TransactionStatus = "REJECTED"
+)
+
+func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "PENDING":
+		*ts = TransactionStatus_Pending
+	case "ACCEPTED_ON_L2":
+		*ts = TransactionStatus_AcceptedOnL2
+	case "ACCEPTED_ON_L1":
+		*ts = TransactionStatus_AcceptedOnL1
+	case "REJECTED":
+		*ts = TransactionStatus_Rejected
+	default:
+		return fmt.Errorf("unsupported status: %s", data)
+	}
+
+	return nil
+}
+
+type PendingInvokeTransactionReceipt struct {
+	InvokeTransactionReceiptProperties
+	TransactionHash Hash `json:"transaction_hash"`
+	// ActualFee The fee that was charged by the sequencer
+	ActualFee string          `json:"actual_fee"`
+	Type      TransactionType `json:"type"`
+}
+
+type InvokeTransactionReceiptProperties struct {
+	MessageSent []MsgToL1 `json:"messages_sent"`
+	// A list of events assocuated with the Invoke Transaction
+	Events []Event `json:"events"`
+}
+
+// InvokeTransactionReceipt Invoke Transaction Receipt
+type InvokeTransactionReceipt struct {
+	CommonTransactionReceipt
+	// ActualFee The fee that was charged by the sequencer
+	InvokeTransactionReceiptProperties `json:",omitempty"`
+}
+
+// DeclareTransactionReceipt Declare Transaction Receipt
+type DeclareTransactionReceipt struct {
+	CommonTransactionReceipt
+}
+
+// DeployTransactionReceipt Deploy Transaction Receipt
+type DeployTransactionReceipt struct {
+	CommonTransactionReceipt
+	// ContractAddress The address of the deployed contract
+	ContractAddress string `json:"contract_address"`
+}
+
+// L1HandlerTransactionReceipt L1 Handler Transaction Receipt
+type L1HandlerTransactionReceipt struct {
+	CommonTransactionReceipt
+}
+
+type TransactionReceipt interface {
+	Hash() Hash
+}
+
+type MsgToL1 struct {
+	// ToAddress The target L1 address the message is sent to
+	ToAddress string `json:"to_address"`
+	//Payload  The payload of the message
+	Payload []string `json:"payload"`
+}
+
+type UnknownTransactionReceipt struct{ TransactionReceipt }
+
+func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
+	var dec []interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	t, err := unmarshalTransactionReceipt(dec)
+	if err != nil {
+		return err
+	}
+	*tr = UnknownTransactionReceipt{t}
+	return nil
+}
+
+func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
+	switch casted := t.(type) {
+	case string:
+		return TransactionHash{HexToHash(casted)}, nil
+	case map[string]interface{}:
+		switch TransactionType(casted["type"].(string)) {
+		case TransactionType_Declare:
+			var txn DeclareTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_Deploy:
+			var txn DeployTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_Invoke:
+			var txn InvokeTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_L1Handler:
+			var txn L1HandlerTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unknown transaction type: %v", t)
+}

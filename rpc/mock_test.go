@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
 var (
@@ -37,8 +39,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getTransactionByBlockIdAndIndex(result, method, args...)
 	case "starknet_getBlockTransactionCount":
 		return mock_starknet_getBlockTransactionCount(result, method, args...)
-	case "starknet_getTransactionReceipt":
-		return mock_starknet_getTransactionReceipt(result, method, args...)
+	case "starknet_getTxnReceipt":
+		return mock_starknet_getTxnReceipt(result, method, args...)
 	case "starknet_getClassAt":
 		return mock_starknet_getClassAt(result, method, args...)
 	case "starknet_getClassHashAt":
@@ -155,8 +157,9 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	txHash, ok := args[0].(TxnHash)
-	if !ok || !strings.HasPrefix(string(txHash), "0x") {
+
+	_, ok = args[0].(types.Hash)
+	if !ok {
 		return errWrongArgs
 	}
 	outputContent, _ := json.Marshal(InvokeTxnV00x705547f8f2f8f)
@@ -164,7 +167,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	return nil
 }
 
-func mock_starknet_getTransactionReceipt(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getTxnReceipt(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -173,18 +176,15 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	txHash, ok := args[0].(TxnHash)
-	if !ok || !strings.HasPrefix(string(txHash), "0x") {
-		return errWrongArgs
-	}
-	transaction := InvokeTxnReceipt{
-		CommonReceiptProperties{
-			TransactionHash: txHash,
-			Status:          TxnStatus("ACCEPTED_ON_L1"),
+
+	transaction := types.InvokeTransactionReceipt{
+		CommonTransactionReceipt: types.CommonTransactionReceipt{
+			TransactionHash: types.HexToHash(args[0].(string)),
+			Status:          types.TransactionStatus("ACCEPTED_ON_L1"),
 		},
-		&InvokeTxnReceiptProperties{
-			Events: []Event{{
-				FromAddress: Address("0xdeadbeef"),
+		InvokeTransactionReceiptProperties: types.InvokeTransactionReceiptProperties{
+			Events: []types.Event{{
+				FromAddress: types.HexToHash("0xdeadbeef"),
 			}},
 		},
 	}
@@ -202,11 +202,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	contractHash, ok := args[1].(Address)
-	if !ok || !strings.HasPrefix(string(contractHash), "0x") {
-		return errWrongArgs
-	}
-	var class = ContractClass{
+	var class = types.ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -221,10 +217,6 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 		return errWrongType
 	}
 	if len(args) != 2 {
-		return errWrongArgs
-	}
-	contractHash, ok := args[1].(Address)
-	if !ok || !strings.HasPrefix(string(contractHash), "0x") {
 		return errWrongArgs
 	}
 	classHash := "0xdeadbeef"
@@ -247,7 +239,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = ContractClass{
+	var class = types.ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -263,18 +255,18 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	query, ok := args[0].(EventFilterParams)
+	query, ok := args[0].(types.EventFilter)
 	if !ok {
 		return errWrongArgs
 	}
-	events := &EventsOutput{
-		Events: []EmittedEvent{
-			{BlockHash: BlockHash("0xdeadbeef"),
-				Event: Event{
-					FromAddress: query.EventFilter.Address,
+	events := &types.EventsOutput{
+		Events: []types.EmittedEvent{
+			{BlockHash: types.HexToHash("0xdeadbeef"),
+				Event: types.Event{
+					FromAddress: query.Address,
 				},
-				BlockNumber:     BlockNumber(1),
-				TransactionHash: TxnHash("deadbeef"),
+				BlockNumber:     1,
+				TransactionHash: types.HexToHash("0xdeadbeef"),
 			},
 		},
 	}
@@ -292,10 +284,6 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	function, ok := args[0].(FunctionCall)
-	if !ok || function.ContractAddress != "0xdeadbeef" {
-		return errWrongArgs
-	}
 	output := []string{"0x12"}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -311,7 +299,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(ContractClass)
+	_, ok = args[0].(types.ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
@@ -350,7 +338,7 @@ func mock_starknet_addDeployTransaction(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	_, ok = args[2].(ContractClass)
+	_, ok = args[2].(types.ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[2])
 		return errWrongArgs
@@ -374,18 +362,18 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(FunctionCall)
+	_, ok = args[0].(types.FunctionCall)
 	if !ok {
 		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
 	}
-	_, ok = args[1].(*blockID)
+	_, ok = args[1].(types.BlockID)
 	if !ok {
 		fmt.Printf("args[1] should be *blockID, got %T\n", args[1])
 		return errWrongArgs
 	}
 
-	output := FeeEstimate{
+	output := types.FeeEstimate{
 		GasConsumed: "0x01a4",
 		GasPrice:    "0x45",
 		OverallFee:  "0x7134",
@@ -404,7 +392,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(FunctionCall)
+	_, ok = args[0].(types.FunctionCall)
 	if !ok {
 		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
@@ -442,13 +430,19 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	for i := range []int{1, 2, 3} {
-		_, ok = args[i].(string)
-		if !ok {
-			fmt.Printf("args[%d] should be string, got %T\n", i, args[i])
-			return errWrongArgs
-		}
+
+	if _, ok := args[0].(types.Hash); !ok {
+		return errWrongArgs
 	}
+
+	if _, ok := args[1].(string); !ok {
+		return errWrongArgs
+	}
+
+	if _, ok := args[2].(types.BlockID); !ok {
+		return errWrongArgs
+	}
+
 	output := "0xdeadbeef"
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -465,21 +459,21 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(blockID)
+	_, ok = args[0].(types.BlockID)
 	if !ok {
 		fmt.Printf("args[1] should be *blockID, got %T\n", args[0])
 		return errWrongArgs
 	}
 
-	output := StateUpdateOutput{
-		BlockHash:    "0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4",
+	output := types.StateUpdateOutput{
+		BlockHash:    types.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 		NewRoot:      "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 		OldRoot:      "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 		AcceptedTime: 0,
-		StateDiff: StateDiff{
-			StorageDiffs: []ContractStorageDiffItem{{
+		StateDiff: types.StateDiff{
+			StorageDiffs: []types.ContractStorageDiffItem{{
 				Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
-				Entries: []StorageEntry{{
+				Entries: []types.StorageEntry{{
 					Key:   "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
 					Value: "0x630b4197",
 				}},
@@ -500,7 +494,7 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	if _, ok := args[0].(Address); !ok {
+	if _, ok := args[0].(types.Hash); !ok {
 		fmt.Printf("args[0] should be string, got %T\n", args[0])
 		return errWrongArgs
 	}

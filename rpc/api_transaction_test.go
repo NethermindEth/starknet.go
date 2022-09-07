@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/dontpanicdao/caigo/rpc/types"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -12,19 +13,19 @@ func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash      TxnHash
-		ExpectedTxn Txn
+		TxHash      types.Hash
+		ExpectedTxn types.Transaction
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				TxHash:      TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				TxHash:      types.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
 				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
 			},
 		},
 		"testnet": {
 			{
-				TxHash:      TxnHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				TxHash:      types.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
 				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
 			},
 		},
@@ -40,7 +41,8 @@ func TestTransactionByHash(t *testing.T) {
 		if tx == nil {
 			t.Fatal("transaction should exist")
 		}
-		txTyped, ok := (*tx).(InvokeTxnV0)
+
+		txTyped, ok := (tx).(types.InvokeTxnV0)
 		if !ok {
 			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
 		}
@@ -58,14 +60,13 @@ func TestTransactionByHash(t *testing.T) {
 	}
 }
 
-// TestTransactionByHash tests transaction by hash
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID     BlockID
+		BlockID     types.BlockID
 		Index       uint64
-		ExpectedTxn Txn
+		ExpectedTxn types.Transaction
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -94,7 +95,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		if tx == nil {
 			t.Fatal("transaction should exist")
 		}
-		txTyped, ok := (*tx).(InvokeTxnV0)
+		txTyped, ok := (tx).(types.InvokeTxnV0)
 		if !ok {
 			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
 		}
@@ -112,19 +113,19 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt tests transaction receipt
-func TestTransactionReceipt(t *testing.T) {
+// TestTxnReceipt tests transaction receipt
+func TestTxnReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash            TxnHash
-		ExpectedTxnReceipt TxnReceipt
+		TxnHash            types.Hash
+		ExpectedTxnReceipt types.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:            TxnHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+				TxnHash:            types.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
 				ExpectedTxnReceipt: receiptTxn310370_0,
 			},
 		},
@@ -141,9 +142,9 @@ func TestTransactionReceipt(t *testing.T) {
 		if txReceiptInterface == nil {
 			t.Fatal("transaction receipt should exist")
 		}
-		txnReceipt, ok := txReceiptInterface.(InvokeTxnReceipt)
+		txnReceipt, ok := txReceiptInterface.(types.InvokeTransactionReceipt)
 		if !ok {
-			t.Fatalf("transaction receipt should be InvokeTxnReceipt, instead %T", txReceiptInterface)
+			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
 		}
 		diff, err := spy.Compare(txnReceipt, false)
 		if err != nil {
@@ -164,18 +165,18 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash            TxnHash
-		ExpectedTxnReceipt TxnReceipt
+		TxnHash            types.Hash
+		ExpectedTxnReceipt types.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:            TxnHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
+				TxnHash:            types.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
 				ExpectedTxnReceipt: receiptTxn310843_14,
 			},
 			{
-				TxnHash:            TxnHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
+				TxnHash:            types.HexToHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 				ExpectedTxnReceipt: receiptTxn300114_3,
 			},
 		},
@@ -192,9 +193,9 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		if txReceiptInterface == nil {
 			t.Fatal("transaction receipt should exist")
 		}
-		txnReceipt, ok := txReceiptInterface.(InvokeTxnReceipt)
+		txnReceipt, ok := txReceiptInterface.(types.InvokeTransactionReceipt)
 		if !ok {
-			t.Fatalf("transaction receipt should be InvokeTxnReceipt, instead %T", txReceiptInterface)
+			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
 		}
 		diff, err := spy.Compare(txnReceipt, false)
 		if err != nil {
