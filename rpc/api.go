@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -22,11 +23,19 @@ type Event struct {
 	TransactionHash string `json:"transaction_hash"`
 }
 
+type BlockHash struct {
+	BlockHash string `json:"block_hash"`
+}
+
+type BlockNumber struct {
+	BlockNumber uint64 `json:"block_number"`
+}
+
 type EventParams struct {
-	FromBlock  uint64 `json:"fromBlock"`
-	ToBlock    uint64 `json:"toBlock"`
-	PageSize   uint64 `json:"page_size"`
-	PageNumber uint64 `json:"page_number"`
+	FromBlock  interface{} `json:"fromBlock"`
+	ToBlock    interface{} `json:"toBlock"`
+	PageSize   uint64      `json:"page_size"`
+	PageNumber uint64      `json:"page_number"`
 }
 
 // Call a starknet function without creating a StarkNet transaction.
@@ -274,11 +283,30 @@ func (sc *Client) TransactionReceipt(ctx context.Context, hash string) (*types.T
 	return &receipt, nil
 }
 
+func checkBlockIdType(blockId *interface{}) error {
+	switch (*blockId).(type) {
+	case BlockHash, BlockNumber:
+	case string:
+		if *blockId != "pending" && *blockId != "latest" {
+			return errors.New("bad payload; blockId must be latest or block ref")
+		}
+	default:
+		return ErrNotFound
+	}
+	return nil
+}
+
 // Events returns all events matching the given filter
-// TODO: check the query parameters as they include filter directives that have
 // not been implemented. For more details, check the
 // [specification](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json)
 func (sc *Client) Events(ctx context.Context, evParams EventParams) (*Events, error) {
+	errFromBlock := checkBlockIdType(&evParams.FromBlock)
+	errToBlock := checkBlockIdType(&evParams.ToBlock)
+
+	if errFromBlock != nil || errToBlock != nil {
+		return nil, ErrNotFound
+	}
+	checkBlockIdType(&evParams.ToBlock)
 	var result Events
 	if err := sc.do(ctx, "starknet_getEvents", &result, evParams); err != nil {
 		return nil, err
@@ -300,7 +328,7 @@ func (sc *Client) EstimateFee(ctx context.Context, tx types.Transaction, blockHa
 	if err := sc.do(ctx, "starknet_estimateFee", &estimate, tx, blockHashOrTag); err != nil {
 		return nil, err
 	}
-  
+
 	return &estimate, nil
 }
 
