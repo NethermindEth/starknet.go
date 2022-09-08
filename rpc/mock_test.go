@@ -392,10 +392,14 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if !ok {
 		return errWrongArgs
 	}
+	blockNum, ok := query.FromBlock.(int)
+	if !ok {
+		return errWrongType
+	}
 	events := Events{
 		Events: []Event{
 			{
-				BlockNumber: int(query.FromBlock),
+				BlockNumber: blockNum,
 			},
 		},
 	}
