@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
@@ -51,6 +52,31 @@ func (sc *Client) Call(ctx context.Context, call types.FunctionCall, hash string
 	}
 
 	return result, nil
+}
+
+// BlockWithTxs get block information with full transactions given the block id.
+func (sc *Client) BlockWithTxs(ctx context.Context, blockID interface{}) (types.Block, error) {
+	var result types.Block
+	switch bid := blockID.(type) {
+	case int:
+		if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, BlockNumber{uint64(bid)}); err != nil {
+			return types.Block{}, err
+		}
+		return result, nil
+	case string:
+		if strings.HasPrefix(bid, "0x") {
+			if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, BlockHash{bid}); err != nil {
+				return types.Block{}, err
+			}
+			return result, nil
+		} else {
+			if err := sc.do(ctx, "starknet_getBlockWithTxs", &result, bid); err != nil {
+				return types.Block{}, err
+			}
+			return result, nil
+		}
+	}
+	return types.Block{}, errors.New("invalid blockID type")
 }
 
 // BlockNumber gets the most recent accepted block number.
