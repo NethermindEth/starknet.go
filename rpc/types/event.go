@@ -20,12 +20,12 @@ type EventFilter struct {
 	// Keys the values used to filter the events
 	Keys []string `json:"keys"`
 
-	// ContinuationToken a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
-	ContinuationToken string `json:"continuation_token,omitempty"`
-	ChunkSize         uint64 `json:"chunk_size,omitempty"`
+	PageSize   uint64 `json:"page_size,omitempty"`
+	PageNumber uint64 `json:"page_number"`
 }
 
 type EventsOutput struct {
-	Events            []EmittedEvent `json:"events"`
-	ContinuationToken string         `json:"continuation_token,omitempty"`
+	Events     []EmittedEvent `json:"events"`
+	PageNumber uint64         `json:"page_number"`
+	IsLastPage bool           `json:"is_last_page"`
 }
