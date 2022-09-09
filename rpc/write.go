@@ -5,6 +5,8 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
+
+	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
@@ -25,7 +27,7 @@ type AddInvokeTransactionOutput struct {
 }
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
+func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn types.BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 	var output AddInvokeTransactionOutput
@@ -36,7 +38,7 @@ func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (sc *Client) AddDeclareTransaction(ctx context.Context, broadcastedDeclareTxn BroadcastedDeclareTxn) (*AddDeclareTransactionOutput, error) {
+func (sc *Client) AddDeclareTransaction(ctx context.Context, broadcastedDeclareTxn types.BroadcastedDeclareTxn) (*AddDeclareTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 	var result AddDeclareTransactionOutput
@@ -51,7 +53,7 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, broadcastedDeclareT
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (sc *Client) AddDeployTransaction(ctx context.Context, broadcastedDeployTxn BroadcastedDeployTxn) (*AddDeployTransactionOutput, error) {
+func (sc *Client) AddDeployTransaction(ctx context.Context, broadcastedDeployTxn types.BroadcastedDeployTxn) (*AddDeployTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 
