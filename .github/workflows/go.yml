@@ -15,6 +15,9 @@ jobs:
         ports:
         - 5050:5050
 
+    env:
+      INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
+
     steps:
     - uses: actions/checkout@v3
 
@@ -31,6 +34,9 @@ jobs:
 
     - name: Test RPC with devnet
       run: cd rpc && go test -v -env devnet .
+
+    - name: Test RPC with testnet
+      run: cd rpc && go test -v -env testnet .
 
     - name: Test Gateway with testnet
       run: cd gateway && go test -v -env testnet .
