@@ -61,6 +61,10 @@ func main() {
 	}
 
 	fmt.Println("Account deployed. Contract address: ", account.Address)
+	if err := savePrivateKey(caigo.BigToHex(privateKey)); err != nil {
+		fmt.Println("can't save private key:", err)
+		os.Exit(1)
+	}
 
 	// At this point you need to add funds to the deployed account in order to use it.
 	var input string
@@ -221,4 +225,16 @@ func balanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string)
 		return "", fmt.Errorf("can't call erc20: %s. Error: %w", accountAddress, err)
 	}
 	return res[0], nil
+}
+
+func savePrivateKey(privKey string) error {
+	file, err := os.Create("private_key.txt")
+	if err != nil {
+		return fmt.Errorf("can't create private_key.txt")
+	}
+	defer file.Close()
+	if _, err := file.WriteString(privKey); err != nil {
+		return fmt.Errorf("can't write private_key.txt")
+	}
+	return nil
 }
