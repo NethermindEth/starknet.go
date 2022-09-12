@@ -21,12 +21,27 @@ const (
 	FEE_MARGIN         uint64 = 115
 	SEED               int    = 100000000
 	ACCOUNT_CLASS_HASH string = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
+	CONTRACT_ADDRESS string = "0x02b795d8c5e38c45da3b89c91174c66a3c77845bbeb87a36038f19c521dbe87e"
 )
 
 var (
 	devnetAccounts  []TestAccountType
-	testnetAccounts []TestAccountType
-
+	testnetAccounts = []TestAccountType{
+		{
+            PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
+            PublicKey: "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
+            Address: "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
+			Transactions: []types.Transaction{
+				{
+					ContractAddress:    CONTRACT_ADDRESS,
+					EntryPointSelector: "increase_balance",
+					Calldata: []string{
+						"1", 
+						},
+				},
+			},
+		},
+	}
 	_, b, _, _             = runtime.Caller(0)
 	projectRoot            = strings.TrimRight(filepath.Dir(b), "gateway")
 	accountCompiled string = projectRoot + "gateway/contracts/account_class.json"
@@ -71,16 +86,19 @@ func TestDeclare(t *testing.T) {
 }
 
 func TestExecuteGoerli(t *testing.T) {
+
 	for _, testAccount := range testnetAccounts {
 		account, err := caigo.NewAccount(testAccount.PrivateKey, testAccount.Address, NewProvider())
 		if err != nil {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
 
+
 		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
 		if err != nil {
 			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 		}
+
 		fee := new(types.Felt)
 		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
 
@@ -122,7 +140,7 @@ func TestCallGoerli(t *testing.T) {
 	for _, testAccount := range testnetAccounts {
 		call := types.FunctionCall{
 			ContractAddress:    testAccount.Address,
-			EntryPointSelector: "get_signer",
+			EntryPointSelector: "get_public_key",
 		}
 
 		resp, err := gw.Call(context.Background(), call, "")
