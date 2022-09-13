@@ -15,10 +15,10 @@ type EmittedEvent struct {
 
 type EventFilter struct {
 	FromBlock BlockID `json:"from_block"`
-	ToBlock   BlockID `json:"to_block"`
-	Address   Hash    `json:"address"`
+	ToBlock   BlockID `json:"to_block,omitempty"`
+	Address   Hash    `json:"address,omitempty"`
 	// Keys the values used to filter the events
-	Keys []string `json:"keys"`
+	Keys []string `json:"keys,omitempty"`
 
 	PageSize   uint64 `json:"page_size,omitempty"`
 	PageNumber uint64 `json:"page_number"`
