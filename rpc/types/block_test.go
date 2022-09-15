@@ -8,6 +8,7 @@ import (
 )
 
 func TestBlockID_Marshal(t *testing.T) {
+	blockNumber := uint64(420)
 	for _, tc := range []struct {
 		id      BlockID
 		want    string
@@ -29,7 +30,7 @@ func TestBlockID_Marshal(t *testing.T) {
 		wantErr: ErrInvalidBlockID,
 	}, {
 		id: BlockID{
-			Number: 420,
+			Number: &blockNumber,
 		},
 		want: `{"block_number":420}`,
 	}, {

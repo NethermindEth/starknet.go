@@ -394,8 +394,7 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	// Unimplemented
 	t.Skip()
 
-	type testSetType struct {
-	}
+	type testSetType struct{}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
