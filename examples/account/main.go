@@ -48,7 +48,7 @@ func main() {
 	}
 
 	// estimate fee for executing transaction
-	feeEstimate, err := account.EstimateFee(context.Background(), increment)
+	feeEstimate, err := account.EstimateFee(context.Background(), increment, caigo.ExecuteDetails{})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -58,7 +58,7 @@ func main() {
 	fmt.Printf("Fee:\n\tEstimate\t\t%v wei\n\tEstimate+Margin\t\t%v wei\n\n", feeEstimate.OverallFee, fee)
 
 	// execute transaction
-	execResp, err := account.Execute(context.Background(), &fee, increment)
+	execResp, err := account.Execute(context.Background(), increment, caigo.ExecuteDetails{MaxFee: &fee})
 	if err != nil {
 		panic(err.Error())
 	}
