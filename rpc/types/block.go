@@ -18,9 +18,9 @@ type BlockHashAndNumberOutput struct {
 // blockID is an unexposed struct that is used in a OneOf for
 // starknet_getBlockWithTxHashes.
 type BlockID struct {
-	Number uint64 `json:"block_number,omitempty"`
-	Hash   *Hash  `json:"block_hash,omitempty"`
-	Tag    string `json:"block_tag,omitempty"`
+	Number *uint64 `json:"block_number,omitempty"`
+	Hash   *Hash   `json:"block_hash,omitempty"`
+	Tag    string  `json:"block_tag,omitempty"`
 }
 
 func (b BlockID) MarshalJSON() ([]byte, error) {

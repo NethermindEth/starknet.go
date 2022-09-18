@@ -41,7 +41,7 @@ func (sc *Client) BlockHashAndNumber(ctx context.Context) (*types.BlockHashAndNu
 
 func WithBlockNumber(n uint64) types.BlockID {
 	return types.BlockID{
-		Number: n,
+		Number: &n,
 	}
 }
 
