@@ -15,3 +15,5 @@ examples/**/*.json
 examples/**/*.sum
 
 */**/*abi.json
+
+.idea/

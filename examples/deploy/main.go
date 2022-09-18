@@ -79,7 +79,7 @@ func main() {
 		ConstructorCalldata: []string{
 			caigo.HexToBN(account.Address).String(), // owner
 			"2000",                                  // initial supply
-			"0",                                     // Uint256 additionnal parameter
+			"0",                                     // Uint256 additional parameter
 		},
 	})
 	if err != nil {
@@ -88,7 +88,7 @@ func main() {
 	}
 
 	if err := waitForTransaction(gw, erc20Response.TransactionHash); err != nil {
-		fmt.Println("ERC20 deployement transaction failure:", err)
+		fmt.Println("ERC20 deployment transaction failure:", err)
 		os.Exit(1)
 	}
 
@@ -117,7 +117,7 @@ func main() {
 	}
 	fmt.Println("Your account has ", balance, " tokens.")
 
-	fmt.Println("Transfering 5 tokens from", account.Address, "to", predeployedContract)
+	fmt.Println("Transferring 5 tokens from", account.Address, "to", predeployedContract)
 	if err := transferFrom(gw, account, erc20ContractAddr, predeployedContract); err != nil {
 		fmt.Println("can't transfer tokens:", account.Address, err)
 		os.Exit(1)
@@ -224,7 +224,11 @@ func balanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string)
 	if err != nil {
 		return "", fmt.Errorf("can't call erc20: %s. Error: %w", accountAddress, err)
 	}
-	return res[0], nil
+	low := types.StrToFelt(res[0])
+	hi := types.StrToFelt(res[1])
+
+	balance := types.NewUint256(low, hi)
+	return balance.String(), nil
 }
 
 func savePrivateKey(privKey string) error {
