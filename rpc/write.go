@@ -5,6 +5,8 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
@@ -38,11 +40,11 @@ func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (sc *Client) AddDeclareTransaction(ctx context.Context, broadcastedDeclareTxn types.BroadcastedDeclareTxn) (*AddDeclareTransactionOutput, error) {
+func (sc *Client) AddDeclareTransaction(ctx context.Context, contractClass types.ContractClass, version string) (*AddDeclareTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 	var result AddDeclareTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, broadcastedDeclareTxn); err != nil {
+	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -75,4 +77,33 @@ func encodeProgram(content []byte) (string, error) {
 	gzipContent.Close()
 	program := base64.StdEncoding.EncodeToString(buf.Bytes())
 	return program, nil
+}
+
+func guessABI(abis []interface{}) (*types.ABI, error) {
+	output := types.ABI{}
+	for _, abi := range abis {
+		if checkABI, ok := abi.(map[string]interface{}); ok {
+			var ab types.ABIEntry
+			switch checkABI["type"] {
+			case "constructor", "function", "l1_handler":
+				ab = &types.FunctionABIEntry{}
+			case "struct":
+				ab = &types.StructABIEntry{}
+			case "event":
+				ab = &types.EventABIEntry{}
+			default:
+				return nil, fmt.Errorf("unknown ABI type %v", checkABI["type"])
+			}
+			data, err := json.Marshal(checkABI)
+			if err != nil {
+				return nil, err
+			}
+			err = json.Unmarshal(data, ab)
+			if err != nil {
+				return nil, err
+			}
+			output = append(output, ab)
+		}
+	}
+	return &output, nil
 }
