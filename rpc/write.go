@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
@@ -29,11 +30,10 @@ type AddInvokeTransactionOutput struct {
 }
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn types.BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
-	// TODO: We might have to gzip/base64 the program and provide helpers to call
-	// this API
+func (sc *Client) AddInvokeTransaction(ctx context.Context, call types.FunctionCall, signature []string, maxFee string, version string) (*AddInvokeTransactionOutput, error) {
+	call.EntryPointSelector = fmt.Sprintf("0x%s", caigo.GetSelectorFromName(call.EntryPointSelector).Text(16))
 	var output AddInvokeTransactionOutput
-	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, broadcastedInvokeTxn); err != nil {
+	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
 		return nil, err
 	}
 	return &output, nil
