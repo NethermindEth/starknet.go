@@ -3,7 +3,7 @@ name: Go
 on:
   push:
   schedule:
-    - cron: '42 2 * * *'
+    - cron: "42 2 * * *"
 
 jobs:
   build:
@@ -13,35 +13,40 @@ jobs:
       devnet:
         image: shardlabs/starknet-devnet:latest
         ports:
-        - 5050:5050
+          - 5050:5050
 
     env:
       INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
 
-    - name: wait for devnet to be up...
-      run: ./.bin/devnet.sh
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
 
-    - name: Test RPC with mocks
-      run: cd rpc && go test -v .
+      - name: Test RPC with mocks
+        run: cd rpc && go test -v .
 
-    - name: Test RPC with devnet
-      run: cd rpc && go test -v -env devnet .
+      - name: Test RPC with devnet
+        run: cd rpc && go test -v -env devnet .
 
-    - name: Test RPC with testnet
-      run: cd rpc && go test -v -env testnet .
-      env:
-        TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+      - name: Test RPC with testnet
+        run: cd rpc && go test -v -env testnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
 
-    - name: Test Gateway with testnet
-      run: cd gateway && go test -v -env testnet .
+      - name: Test RPC with mainnet
+        run: cd rpc && go test -v -env mainnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
 
-    - name: Test Gateway with devnet
-      run: cd gateway && go test -v -env devnet .
+      - name: Test Gateway with testnet
+        run: cd gateway && go test -v -env testnet .
+
+      - name: Test Gateway with devnet
+        run: cd gateway && go test -v -env devnet .

@@ -33,7 +33,7 @@ func TestBlockNumber(t *testing.T) {
 		if diff, err := spy.Compare(blockNumber, false); err != nil || diff != "FullMatch" {
 			t.Fatal("expecting to match", err)
 		}
-		if blockNumber <= 300000 {
+		if blockNumber <= 3000 {
 			t.Fatal("Block number should be > 3000, instead: ", blockNumber)
 		}
 	}
