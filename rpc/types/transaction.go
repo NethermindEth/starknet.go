@@ -33,7 +33,7 @@ func (tx TransactionHash) MarshalJSON() ([]byte, error) {
 }
 
 type CommonTransaction struct {
-	TransactionHash Hash            `json:"transaction_hash"`
+	TransactionHash Hash            `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee,omitempty"`
@@ -77,7 +77,7 @@ func (tx InvokeTxnV1) Hash() Hash {
 type InvokeTxn interface{}
 
 type L1HandlerTxn struct {
-	TransactionHash Hash            `json:"transaction_hash"`
+	TransactionHash Hash            `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
 	Version NumAsHex `json:"version"`
@@ -283,3 +283,4 @@ func remarshal(v interface{}, dst interface{}) error {
 
 	return nil
 }
+
