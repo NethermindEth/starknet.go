@@ -76,6 +76,7 @@ func encodeProgram(content []byte) (string, error) {
 	return program, nil
 }
 
+// TODO: replace this function with an Unmarshal function.
 func guessABI(abis []interface{}) (*types.ABI, error) {
 	output := types.ABI{}
 	for _, abi := range abis {
