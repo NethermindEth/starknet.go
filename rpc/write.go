@@ -28,15 +28,15 @@ type AddInvokeTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
 }
 
-// AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn types.BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
+// AddInvokeTransaction allows to invoke a contract's external function.
+func (sc *Client) AddInvokeTransaction(ctx context.Context, call types.InvokeV0, signature []string, maxFee string, version string) (*AddInvokeTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
-	var output AddInvokeTransactionOutput
-	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, broadcastedInvokeTxn); err != nil {
+	var result AddInvokeTransactionOutput
+	if err := sc.do(ctx, "starknet_addInvokeTransaction", &result, call, signature, maxFee, version); err != nil {
 		return nil, err
 	}
-	return &output, nil
+	return &result, nil
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
