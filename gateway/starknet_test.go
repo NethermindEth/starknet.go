@@ -177,7 +177,7 @@ func TestE2EDevnet(t *testing.T) {
 
 	type testSetType struct{}
 	testSet := map[string][]testSetType{
-		"devnet":  {{}},
+		"devnet":  {},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {},
