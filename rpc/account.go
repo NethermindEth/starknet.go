@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -63,6 +64,29 @@ func (account *Account) HashMultiCall(calls []types.FunctionCall, details Execut
 	}
 
 	return caigo.Curve.ComputeHashOnElements(multiHashData)
+}
+
+func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
+	nonce, err := account.Provider.Call(
+		ctx,
+		types.FunctionCall{
+			ContractAddress:    types.HexToHash(account.Address),
+			EntryPointSelector: "get_nonce",
+			CallData:           []string{},
+		},
+		WithBlockTag("latest"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(nonce) == 0 {
+		return nil, errors.New("nonce error")
+	}
+	n, ok := big.NewInt(0).SetString(nonce[0], 0)
+	if !ok {
+		return nil, errors.New("nonce error")
+	}
+	return n, nil
 }
 
 func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {

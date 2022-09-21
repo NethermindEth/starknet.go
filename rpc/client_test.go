@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"math/big"
@@ -111,20 +110,11 @@ func TestChainID(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if diff, err := spy.Compare(chain, false); err != nil || diff != "FullMatch" {
-			spy.Compare(chain, true)
+		if _, err := spy.Compare(chain, false); err != nil {
 			t.Fatal("expecting to match", err)
 		}
-		chainInt, ok := big.NewInt(0).SetString(chain, 0)
-		if !ok {
-			t.Fatal("could not load str representation of an int")
-		}
-		chainID, err := hex.DecodeString(chainInt.Text(16))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(chainID) != test.ChainID {
-			t.Fatalf("expecting %s, instead: %s", test.ChainID, string(chainID))
+		if chain != test.ChainID {
+			t.Fatalf("expecting %s, instead: %s", test.ChainID, chain)
 		}
 	}
 }

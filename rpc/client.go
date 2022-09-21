@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -61,11 +62,10 @@ func (sc *Client) Close() {
 func (sc *Client) ChainID(ctx context.Context) (string, error) {
 	var result string
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
-	err := sc.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...)
-	if err != nil {
+	if err := sc.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...); err != nil {
 		return "", err
 	}
-	return result, err
+	return caigo.HexToShortStr(result), nil
 }
 
 // Syncing checks the syncing status of the node.

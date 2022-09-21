@@ -285,8 +285,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(blockWithTxs, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
+			spy.Compare(blockWithTxs, false)
 		}
 		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)

@@ -194,7 +194,7 @@ func TestInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			AccountPrivateKeyEnvVar: "ACCOUNT_PRIVATE_KEY",
+			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			AccountPublicKey:        "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6",
 			AccountAddress:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
 			Call: types.FunctionCall{
@@ -202,7 +202,7 @@ func TestInvokeTransaction(t *testing.T) {
 				EntryPointSelector: "increment",
 				CallData:           []string{},
 			},
-			MaxFee: "0x200000000",
+			MaxFee: "0x200000001",
 		}},
 	}[testEnv]
 
@@ -215,22 +215,10 @@ func TestInvokeTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		nonce, err := testConfig.client.Call(
-			context.Background(),
-			types.FunctionCall{
-				ContractAddress:    types.HexToHash(test.AccountAddress),
-				EntryPointSelector: "get_nonce",
-				CallData:           []string{},
-			},
-			WithBlockTag("latest"),
-		)
+		n, err := account.Nonce(context.Background())
 		if err != nil {
-			t.Fatal("should succeed, instead", err)
+			t.Fatal("should return nonce, instead", err)
 		}
-		if len(nonce) == 0 {
-			t.Fatal("should return a nonce")
-		}
-		n, _ := big.NewInt(0).SetString(nonce[0], 0)
 		maxFee, _ := big.NewInt(0).SetString(test.MaxFee, 0)
 		spy := NewSpy(testConfig.client.c, false)
 		testConfig.client.c = spy
@@ -274,5 +262,6 @@ func TestInvokeTransaction(t *testing.T) {
 			spy.Compare(output, true)
 			t.Fatal("expecting to match", err)
 		}
+		fmt.Println("transaction_hash:", output.TransactionHash)
 	}
 }
