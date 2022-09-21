@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"os"
 	"testing"
 
@@ -173,5 +175,93 @@ func TestDeployTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+	}
+}
+
+// TestInvokeTransaction tests starknet_addDeployTransaction
+func TestInvokeTransaction(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		AccountPrivateKeyEnvVar string
+		AccountPublicKey        string
+		AccountAddress          string
+		Call                    types.FunctionCall
+		MaxFee                  string
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {{
+			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			AccountPublicKey:        "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6",
+			AccountAddress:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+			Call: types.FunctionCall{
+				ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+				EntryPointSelector: "increment",
+				CallData:           []string{},
+			},
+			MaxFee: "0x200000001",
+		}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		privateKey := os.Getenv(test.AccountPrivateKeyEnvVar)
+		if privateKey == "" {
+			t.Fatal("should have a private key for the account")
+		}
+		account, err := testConfig.client.NewAccount(privateKey, test.AccountAddress)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		n, err := account.Nonce(context.Background())
+		if err != nil {
+			t.Fatal("should return nonce, instead", err)
+		}
+		maxFee, _ := big.NewInt(0).SetString(test.MaxFee, 0)
+		spy := NewSpy(testConfig.client.c, false)
+		testConfig.client.c = spy
+		txHash, err := account.HashMultiCall(
+			[]types.FunctionCall{test.Call},
+			ExecuteDetails{
+				Nonce:   n,
+				MaxFee:  maxFee,
+				Version: big.NewInt(0),
+			},
+		)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		s1, s2, err := account.Sign(txHash)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		calldata := fmtExecuteCalldataStrings(n, []types.FunctionCall{test.Call})
+		output, err := testConfig.client.AddInvokeTransaction(
+			context.Background(),
+			types.FunctionCall{
+				ContractAddress:    types.HexToHash(test.AccountAddress),
+				EntryPointSelector: "__execute__",
+				CallData:           calldata,
+			},
+			[]string{s1.Text(10), s2.Text(10)},
+			test.MaxFee,
+			"0x0",
+		)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if output.TransactionHash != fmt.Sprintf("0x%s", txHash.Text(16)) {
+			t.Log("transaction error...")
+			t.Logf("- computed:  %s", fmt.Sprintf("0x%s", txHash.Text(16)))
+			t.Logf("- collected: %s", output.TransactionHash)
+			t.FailNow()
+		}
+		if diff, err := spy.Compare(output, false); err != nil || diff != "FullMatch" {
+			spy.Compare(output, true)
+			t.Fatal("expecting to match", err)
+		}
+		fmt.Println("transaction_hash:", output.TransactionHash)
 	}
 }

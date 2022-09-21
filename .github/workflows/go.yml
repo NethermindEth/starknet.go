@@ -37,6 +37,8 @@ jobs:
 
     - name: Test RPC with testnet
       run: cd rpc && go test -v -env testnet .
+      env:
+        TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
 
     - name: Test Gateway with testnet
       run: cd gateway && go test -v -env testnet .

@@ -113,8 +113,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 }
 
-// TestTxnReceipt tests transaction receipt
-func TestTxnReceipt(t *testing.T) {
+// TestTransactionReceipt tests transaction receipt
+func TestTransactionReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -150,7 +150,7 @@ func TestTxnReceipt(t *testing.T) {
 		if err != nil {
 			t.Fatal("expecting to match", err)
 		}
-		if diff != "FullMatch" {
+		if diff != "SupersetMatch" && diff != "FullMatch" {
 			spy.Compare(txnReceipt, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}

@@ -10,21 +10,28 @@ import (
 
 type spy struct {
 	callCloser
-	s    []byte
-	mock bool
+	s     []byte
+	mock  bool
+	debug bool
 }
 
-func NewSpy(client callCloser) *spy {
+func NewSpy(client callCloser, debug ...bool) *spy {
+	d := false
+	if len(debug) > 0 {
+		d = debug[0]
+	}
 	if _, ok := client.(*rpcMock); ok {
 		return &spy{
 			callCloser: client,
 			s:          []byte{},
 			mock:       true,
+			debug:      d,
 		}
 	}
 	return &spy{
 		callCloser: client,
 		s:          []byte{},
+		debug:      d,
 	}
 }
 
@@ -33,10 +40,25 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 		return s.callCloser.CallContext(ctx, result, method, args...)
 	}
 	raw := json.RawMessage{}
+	if s.debug {
+		fmt.Printf("... in parameters\n")
+		for k, v := range args {
+			fmt.Printf("   arg[%d].(%T): %+v\n", k, v, v)
+		}
+	}
 	err := s.callCloser.CallContext(ctx, &raw, method, args...)
 	if err != nil {
 		return err
 	}
+	if s.debug {
+		fmt.Printf("... output\n")
+		data, err := raw.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		fmt.Println("output:", string(data))
+	}
+
 	err = json.Unmarshal(raw, result)
 	s.s = []byte(raw)
 	return err

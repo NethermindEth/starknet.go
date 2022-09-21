@@ -183,7 +183,7 @@ type NumAsHex string
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    Hash   `json:"contract_address"`
-	EntryPointSelector string `json:"entry_point_selector"`
+	EntryPointSelector string `json:"entry_point_selector,omitempty"`
 
 	// CallData The parameters passed to the function
 	CallData []string `json:"calldata"`
@@ -283,4 +283,3 @@ func remarshal(v interface{}, dst interface{}) error {
 
 	return nil
 }
-

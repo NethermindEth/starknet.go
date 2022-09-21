@@ -21,23 +21,23 @@ const (
 	FEE_MARGIN         uint64 = 115
 	SEED               int    = 100000000
 	ACCOUNT_CLASS_HASH string = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
-	CONTRACT_ADDRESS string = "0x02b795d8c5e38c45da3b89c91174c66a3c77845bbeb87a36038f19c521dbe87e"
+	CONTRACT_ADDRESS   string = "0x02b795d8c5e38c45da3b89c91174c66a3c77845bbeb87a36038f19c521dbe87e"
 )
 
 var (
 	devnetAccounts  []TestAccountType
 	testnetAccounts = []TestAccountType{
 		{
-            PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
-            PublicKey: "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
-            Address: "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
+			PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
+			PublicKey:  "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
+			Address:    "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
 			Transactions: []types.Transaction{
 				{
 					ContractAddress:    CONTRACT_ADDRESS,
 					EntryPointSelector: "increase_balance",
 					Calldata: []string{
-						"1", 
-						},
+						"1",
+					},
 				},
 			},
 		},
@@ -93,7 +93,6 @@ func TestExecuteGoerli(t *testing.T) {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
 
-
 		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
 		if err != nil {
 			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
@@ -136,23 +135,39 @@ func TestDeployGoerli(t *testing.T) {
 }
 
 func TestCallGoerli(t *testing.T) {
-	gw := NewClient()
-	for _, testAccount := range testnetAccounts {
-		call := types.FunctionCall{
-			ContractAddress:    testAccount.Address,
-			EntryPointSelector: "get_public_key",
-		}
+	testConfig := beforeEach(t)
 
-		resp, err := gw.Call(context.Background(), call, "")
-		if err != nil {
-			t.Errorf("testnet: could 'Call' deployed contract: %v\n", err)
-		}
-		if len(resp) == 0 {
-			t.Errorf("testnet: could get signing key for account: %v\n", err)
-		}
+	type testSetType struct {
+		testnetAccounts []TestAccountType
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {{}},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {{
+			testnetAccounts: testnetAccounts,
+		}},
+	}[testEnv]
 
-		if resp[0] != testAccount.PublicKey {
-			t.Errorf("testnet: signing key is incorrect: \n%s %v\n", resp[0], testAccount.PublicKey)
+	for _, env := range testSet {
+		gw := testConfig.client
+		for _, testAccount := range env.testnetAccounts {
+			call := types.FunctionCall{
+				ContractAddress:    testAccount.Address,
+				EntryPointSelector: "get_public_key",
+			}
+
+			resp, err := gw.Call(context.Background(), call, "")
+			if err != nil {
+				t.Errorf("testnet: could 'Call' deployed contract: %v\n", err)
+			}
+			if len(resp) == 0 {
+				t.Errorf("testnet: could get signing key for account: %v\n", err)
+			}
+
+			if resp[0] != testAccount.PublicKey {
+				t.Errorf("testnet: signing key is incorrect: \n%s %v\n", resp[0], testAccount.PublicKey)
+			}
 		}
 	}
 }
@@ -162,7 +177,7 @@ func TestE2EDevnet(t *testing.T) {
 
 	type testSetType struct{}
 	testSet := map[string][]testSetType{
-		"devnet":  {{}},
+		"devnet":  {},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {},

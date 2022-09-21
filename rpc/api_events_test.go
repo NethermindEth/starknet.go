@@ -10,6 +10,7 @@ import (
 // TestEvents tests Events
 func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
+	t.Skip("Skip to avoid Pathfinder returning with HTTP-504")
 
 	type testSetType struct {
 		eventFilter        types.EventFilter
