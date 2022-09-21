@@ -55,12 +55,9 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, contractClass types
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (sc *Client) AddDeployTransaction(ctx context.Context, broadcastedDeployTxn types.BroadcastedDeployTxn) (*AddDeployTransactionOutput, error) {
-	// TODO: We might have to gzip/base64 the program and provide helpers to call
-	// this API
-
+func (sc *Client) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass types.ContractClass) (*AddDeployTransactionOutput, error) {
 	var result AddDeployTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, broadcastedDeployTxn); err != nil {
+	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -79,6 +76,7 @@ func encodeProgram(content []byte) (string, error) {
 	return program, nil
 }
 
+// TODO: replace this function with an Unmarshal function.
 func guessABI(abis []interface{}) (*types.ABI, error) {
 	output := types.ABI{}
 	for _, abi := range abis {
