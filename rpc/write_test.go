@@ -77,7 +77,7 @@ func TestDeclareTransaction(t *testing.T) {
 
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		dec, err := testConfig.client.AddDeclareTransaction(context.Background(), contractClass, version)
+		dec, err := testConfig.apiv010.AddDeclareTransaction(context.Background(), contractClass, version)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
@@ -162,7 +162,7 @@ func TestDeployTransaction(t *testing.T) {
 
 		spy := NewSpy(testConfig.client.c)
 		testConfig.client.c = spy
-		dec, err := testConfig.client.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCall, contractClass)
+		dec, err := testConfig.apiv010.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCall, contractClass)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
@@ -173,5 +173,91 @@ func TestDeployTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+	}
+}
+
+// TestInvokeTransaction tests starknet_addDeployTransaction
+func TesInvokeTransaction(t *testing.T) {
+	// testConfig := beforeEach(t)
+
+	type testSetType struct {
+		AccountPrivateKeyEnvVar string
+		AccountPublicKey        string
+		AccountAddress          string
+		ContractAddress         string
+		ContractEntryPoint      string
+		ContractCallData        []string
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {{
+			AccountPrivateKeyEnvVar: "ACCOUNT_PRIVATE_KEY",
+			AccountPublicKey:        "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6",
+			AccountAddress:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+			ContractAddress:         "0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167",
+			ContractEntryPoint:      "incrementCounter",
+			ContractCallData:        []string{"0x1"},
+		}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		privateKey := os.Getenv(test.AccountPrivateKeyEnvVar)
+		if privateKey == "" {
+			t.Fatal("should have a private key for the account")
+		}
+		// 	caigo.GetSelectorFromName()
+		// 	program := ""
+		// 	if data, ok := v["program"]; ok {
+		// 		dataProgram, err := json.Marshal(data)
+		// 		if err != nil {
+		// 			t.Fatal("should read file, instead:", err)
+		// 		}
+		// 		if program, err = encodeProgram(dataProgram); err != nil {
+		// 			t.Fatal("should encode file, instead:", err)
+		// 		}
+		// 	}
+		// 	entryPointsByType := types.EntryPointsByType{}
+		// 	if data, ok := v["entry_points_by_type"]; ok {
+		// 		dataEntryPointsByType, err := json.Marshal(data)
+		// 		if err != nil {
+		// 			t.Fatal("should marshall entryPointsByType, instead:", err)
+		// 		}
+		// 		err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
+		// 		if err != nil {
+		// 			t.Fatal("should unmarshall entryPointsByType, instead:", err)
+		// 		}
+		// 	}
+		// 	var abiPointer *types.ABI
+		// 	if data, ok := v["abi"]; ok {
+		// 		if abis, ok := data.([]interface{}); ok {
+		// 			abiPointer, err = guessABI(abis)
+		// 			if err != nil {
+		// 				t.Fatal("should read ABI, instead:", err)
+		// 			}
+		// 		}
+		// 	}
+
+		// 	contractClass := types.ContractClass{
+		// 		EntryPointsByType: entryPointsByType,
+		// 		Program:           program,
+		// 		Abi:               abiPointer,
+		// 	}
+
+		// 	spy := NewSpy(testConfig.client.c)
+		// 	testConfig.client.c = spy
+		// 	dec, err := testConfig.client.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCall, contractClass)
+		// 	if err != nil {
+		// 		t.Fatal("declare should succeed, instead:", err)
+		// 	}
+		// 	if dec.ContractAddress != test.ExpectedContractAddress {
+		// 		t.Fatalf("contractAddress does not match expected, current: %s", dec.ContractAddress)
+		// 	}
+		// 	if diff, err := spy.Compare(dec, false); err != nil || diff != "FullMatch" {
+		// 		spy.Compare(dec, true)
+		// 		t.Fatal("expecting to match", err)
+		// 	}
+		// }
 	}
 }

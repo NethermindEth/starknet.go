@@ -16,8 +16,9 @@ import (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client *Client
-	base   string
+	apiv010 *APIv010
+	client  *Client
+	base    string
 }
 
 var (
@@ -66,6 +67,9 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.client = &Client{
 			c: &rpcMock{},
 		}
+		testConfig.apiv010 = &APIv010{
+			client: testConfig.client,
+		}
 		return &testConfig
 	}
 
@@ -79,6 +83,9 @@ func beforeEach(t *testing.T) *testConfiguration {
 		t.Fatal("connect should succeed, instead:", err)
 	}
 	testConfig.client = client
+	testConfig.apiv010 = &APIv010{
+		client: testConfig.client,
+	}
 	t.Cleanup(func() {
 		testConfig.client.Close()
 	})

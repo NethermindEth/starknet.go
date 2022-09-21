@@ -29,22 +29,22 @@ type AddInvokeTransactionOutput struct {
 }
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (sc *Client) AddInvokeTransaction(ctx context.Context, broadcastedInvokeTxn types.BroadcastedInvokeTxn) (*AddInvokeTransactionOutput, error) {
+func (api *APIv010) AddInvokeTransaction(ctx context.Context, call types.FunctionCall, signature []string, maxFee string, version string) (*AddInvokeTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 	var output AddInvokeTransactionOutput
-	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, broadcastedInvokeTxn); err != nil {
+	if err := api.client.do(ctx, "starknet_addInvokeTransaction", &output, call, signature, maxFee); err != nil {
 		return nil, err
 	}
 	return &output, nil
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (sc *Client) AddDeclareTransaction(ctx context.Context, contractClass types.ContractClass, version string) (*AddDeclareTransactionOutput, error) {
+func (api *APIv010) AddDeclareTransaction(ctx context.Context, contractClass types.ContractClass, version string) (*AddDeclareTransactionOutput, error) {
 	// TODO: We might have to gzip/base64 the program and provide helpers to call
 	// this API
 	var result AddDeclareTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
+	if err := api.client.do(ctx, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -55,9 +55,9 @@ func (sc *Client) AddDeclareTransaction(ctx context.Context, contractClass types
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (sc *Client) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass types.ContractClass) (*AddDeployTransactionOutput, error) {
+func (api *APIv010) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass types.ContractClass) (*AddDeployTransactionOutput, error) {
 	var result AddDeployTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
+	if err := api.client.do(ctx, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
 		return nil, err
 	}
 	return &result, nil

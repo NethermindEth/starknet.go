@@ -8,6 +8,14 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
+type APIv010 struct {
+	client *Client
+}
+
+type APIv020 struct {
+	client *Client
+}
+
 // SyncResponse is the Starknet RPC type returned by the Syncing method.
 type SyncResponse struct {
 	StartingBlockHash string `json:"starting_block_hash"`
@@ -45,6 +53,13 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 		return nil, err
 	}
 	return NewClient(c), nil
+}
+
+// NewAPIv010
+func NewAPIv010(c *rpc.Client) *APIv010 {
+	return &APIv010{
+		client: &Client{c: c},
+	}
 }
 
 // NewClient creates a *Client from an existing `go-ethereum/rpc` *Client.
