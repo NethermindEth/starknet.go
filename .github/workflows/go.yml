@@ -44,6 +44,7 @@ jobs:
         run: cd rpc && go test -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
 
       - name: Test Gateway with testnet
         run: cd gateway && go test -v -env testnet .
