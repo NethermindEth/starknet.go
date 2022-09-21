@@ -199,13 +199,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		if !ok {
 			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
 		}
-		diff, err := spy.Compare(blockWithTxs, false)
+		_, err = spy.Compare(blockWithTxs, false)
 		if err != nil {
 			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(blockWithTxs, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
