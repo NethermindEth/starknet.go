@@ -19,8 +19,8 @@ func rand() -> (val: felt) {
 // CONSTRUCTOR
 //###################
 @constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    counter.write(0);
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(val: felt) {
+    counter.write(val);
 
     return ();
 }
