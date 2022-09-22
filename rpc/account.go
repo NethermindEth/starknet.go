@@ -143,9 +143,17 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return nil, err
 		}
 	}
-	maxFee, _ := big.NewInt(0).SetString("0x200000000", 0)
-	if details.MaxFee != nil {
-		maxFee = details.MaxFee
+	maxFee := details.MaxFee
+	if details.MaxFee == nil {
+		estimate, err := account.EstimateFee(ctx, calls, details)
+		if err != nil {
+			return nil, err
+		}
+		v, ok := big.NewInt(0).SetString(string(estimate.OverallFee), 0)
+		if !ok {
+			return nil, errors.New("could not match OverallFee to big.Int")
+		}
+		maxFee = v.Mul(v, big.NewInt(2))
 	}
 	version := big.NewInt(0)
 	if details.Version != nil {

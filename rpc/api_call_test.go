@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
@@ -79,74 +78,6 @@ func TestCall(t *testing.T) {
 		}
 		if output[0] != test.ExpectedResult {
 			t.Fatalf("1st output expecting %s,git %s", test.ExpectedResult, output[0])
-		}
-	}
-}
-
-// TestEstimateFee tests EstimateFee
-func TestEstimateFee(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		Invoke              types.Call
-		BlockID             types.BlockID
-		ExpectedOverallFee  string
-		ExpectedGasPrice    string
-		ExpectedGasConsumed string
-	}
-	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {
-			// 	TxnHash: "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
-			// {
-			// 	Call: BroadcastedInvokeTxnV0{
-			// 		BroadcastedCommonTxnProperties: BroadcastedCommonTxnProperties{
-			// 			// Type:    "INVOKE",
-			// 			MaxFee:  "0xde0b6b3a7640000",
-			// 			Version: "0x0",
-			// 			Signature: []string{
-			// 				"0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd",
-			// 				"0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea",
-			// 			},
-			// 			// Nonce: "0x0",
-			// 		},
-			// 		InvokeV0: InvokeV0(FunctionCall{
-			// 			ContractAddress:    "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6",
-			// 			EntryPointSelector: "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
-			// 			CallData: []string{
-			// 				"0x1",
-			// 				"0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6",
-			// 				"0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866",
-			// 				"0x0",
-			// 				"0x2",
-			// 				"0x2",
-			// 				"0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3",
-			// 				"0x6307b990",
-			// 				"0x2b81",
-			// 				"0x0",
-			// 			},
-			// 		}),
-			// 	},
-			// 	BlockID: WithBlockTag("latest"),
-			// WithBlockHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
-			// },
-		},
-		"mainnet": {},
-	}[testEnv]
-
-	for _, test := range testSet {
-		output, err := testConfig.client.EstimateFee(context.Background(), test.Invoke, test.BlockID)
-		if err != nil || output == nil {
-			t.Fatalf("output is nil, go err %v", err)
-		}
-		if string(output.OverallFee) != test.ExpectedOverallFee {
-			t.Fatalf("expected %s, got %s", test.ExpectedOverallFee, output.OverallFee)
-		}
-		if fmt.Sprintf("0x%x", output.GasConsumed) != test.ExpectedGasConsumed {
-			t.Fatalf("expected %s, got %s", test.ExpectedGasConsumed, fmt.Sprintf("0x%x", output.GasConsumed))
-		}
-		if fmt.Sprintf("0x%x", output.GasPrice) != test.ExpectedGasPrice {
-			t.Fatalf("expected %s, got %s", test.ExpectedGasPrice, fmt.Sprintf("0x%x", output.GasPrice))
 		}
 	}
 }
