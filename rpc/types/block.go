@@ -15,7 +15,7 @@ type BlockHashAndNumberOutput struct {
 	BlockHash   string `json:"block_hash,omitempty"`
 }
 
-// blockID is an unexposed struct that is used in a OneOf for
+// BlockID is an unexposed struct that is used in a OneOf for
 // starknet_getBlockWithTxHashes.
 type BlockID struct {
 	Number *uint64 `json:"block_number,omitempty"`

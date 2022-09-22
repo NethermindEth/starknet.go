@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -34,47 +33,12 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		v := map[string]interface{}{}
-		if err := json.Unmarshal(content, &v); err != nil {
-			t.Fatal("should parse file with success, instead:", err)
+
+		contractClass := types.ContractClass{}
+		if err := contractClass.UnmarshalJSON(content); err != nil {
+			t.Fatal(err)
 		}
 
-		program := ""
-		if data, ok := v["program"]; ok {
-			dataProgram, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should read file, instead:", err)
-			}
-			if program, err = encodeProgram(dataProgram); err != nil {
-				t.Fatal("should encode file, instead:", err)
-			}
-		}
-		entryPointsByType := types.EntryPointsByType{}
-		if data, ok := v["entry_points_by_type"]; ok {
-			dataEntryPointsByType, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should marshall entryPointsByType, instead:", err)
-			}
-			err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
-			if err != nil {
-				t.Fatal("should unmarshall entryPointsByType, instead:", err)
-			}
-		}
-		var abiPointer *types.ABI
-		if data, ok := v["abi"]; ok {
-			if abis, ok := data.([]interface{}); ok {
-				abiPointer, err = guessABI(abis)
-				if err != nil {
-					t.Fatal("should read ABI, instead:", err)
-				}
-			}
-		}
-
-		contractClass := types.ContractClass{
-			EntryPointsByType: entryPointsByType,
-			Program:           program,
-			Abi:               abiPointer,
-		}
 		version := "0x0"
 
 		spy := NewSpy(testConfig.client.c)
@@ -120,46 +84,9 @@ func TestDeployTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		v := map[string]interface{}{}
-		if err := json.Unmarshal(content, &v); err != nil {
-			t.Fatal("should parse file with success, instead:", err)
-		}
-
-		program := ""
-		if data, ok := v["program"]; ok {
-			dataProgram, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should read file, instead:", err)
-			}
-			if program, err = encodeProgram(dataProgram); err != nil {
-				t.Fatal("should encode file, instead:", err)
-			}
-		}
-		entryPointsByType := types.EntryPointsByType{}
-		if data, ok := v["entry_points_by_type"]; ok {
-			dataEntryPointsByType, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should marshall entryPointsByType, instead:", err)
-			}
-			err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
-			if err != nil {
-				t.Fatal("should unmarshall entryPointsByType, instead:", err)
-			}
-		}
-		var abiPointer *types.ABI
-		if data, ok := v["abi"]; ok {
-			if abis, ok := data.([]interface{}); ok {
-				abiPointer, err = guessABI(abis)
-				if err != nil {
-					t.Fatal("should read ABI, instead:", err)
-				}
-			}
-		}
-
-		contractClass := types.ContractClass{
-			EntryPointsByType: entryPointsByType,
-			Program:           program,
-			Abi:               abiPointer,
+		contractClass := types.ContractClass{}
+		if err := contractClass.UnmarshalJSON(content); err != nil {
+			t.Fatal(err)
 		}
 
 		spy := NewSpy(testConfig.client.c)
