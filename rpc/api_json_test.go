@@ -3,6 +3,8 @@ package rpc
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -91,5 +93,52 @@ func TestJSONMixingStructWithMap(t *testing.T) {
 	}
 	if len(my.V3) != 0 {
 		t.Fatal("Unfortunately, nothing should be loaded in this map, yet", len(my.V3))
+	}
+}
+
+func TestJSONWithBigIntWithInterface(t *testing.T) {
+	// cat account_v0.10.json | grep -e "[0-9]\{20\}
+	schema := map[string]interface{}{}
+	data := `
+{
+	"program": { 
+		"content": "very complex json schema you won't map", 
+		"value": 6219495360805491471215297013070624192820083
+	}
+}`
+
+	err := json.Unmarshal([]byte(data), &schema)
+	if err != nil {
+		t.Fatal("error parsing json: ", err)
+	}
+	v, ok := schema["program"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("error parsing json: %T", schema["program"])
+	}
+	if fmt.Sprintf("%T", v["value"]) == "float64" {
+		t.Log("the value will be truncated by being turned into an float64")
+	}
+	if fmt.Sprintf("%v", v["value"]) != "6219495360805491471215297013070624192820083" {
+		t.Fatal("the value differs from the input, current: ", fmt.Sprintf("%v", v["value"]))
+	}
+}
+
+func TestJSONWithBigIntWithRawMessage(t *testing.T) {
+	// cat account_v0.10.json | grep -e "[0-9]\{20\}
+	schema := map[string]json.RawMessage{}
+	data := `
+{
+	"program": { 
+		"content": "very complex json schema you won't map", 
+		"value": 6219495360805491471215297013070624192820083
+	}
+}`
+
+	err := json.Unmarshal([]byte(data), &schema)
+	if err != nil {
+		t.Fatal("error parsing json: ", err)
+	}
+	if strings.Contains(string(schema["program"]), "6219495360805491471215297013070624192820083") {
+		t.Fatal("I have lost data: ", err)
 	}
 }

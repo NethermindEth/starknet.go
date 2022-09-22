@@ -20,7 +20,10 @@ func TestDeclareTransaction(t *testing.T) {
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
+		"devnet": {{
+			Filename:          "./tests/counter.json",
+			ExpectedClassHash: "0x010008717d108d9deb459fa1d99c09a7baaff99faa3eeac314d7f21152b844a4",
+		}},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
@@ -70,15 +73,36 @@ func TestDeployTransaction(t *testing.T) {
 		ExpectedContractAddress string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
+		"devnet": {
+			{
+				Filename:                "./tests/counter.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x1"},
+				ExpectedContractAddress: "0x041e86a77bbbcfc29078e90daa24e844daf38bb532ac2240ac4a3a576ffad56e",
+			},
+			{
+				Filename:                "./tests/account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"},
+				ExpectedContractAddress: "0x0182d6859773f0b595b323e6789b10a01a305738deb07c9e3b1963fe26706aee",
+			},
+		},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {{
-			Filename:                "./tests/counter.json",
-			Salt:                    "0xdeadbeef",
-			ConstructorCall:         []string{"0x1"},
-			ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
-		}},
+		"testnet": {
+			{
+				Filename:                "./tests/counter.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x1"},
+				ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
+			},
+			{
+				Filename:                "./tests/account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"},
+				ExpectedContractAddress: "0x4a4cc6b77efe032f570a2a4119e1a600bee3267f664cd42389a99e7e0e8d2c0",
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {

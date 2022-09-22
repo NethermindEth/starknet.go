@@ -17,6 +17,17 @@ func TestCall(t *testing.T) {
 		ExpectedResult string
 	}
 	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x041e86a77bbbcfc29078e90daa24e844daf38bb532ac2240ac4a3a576ffad56e"),
+					EntryPointSelector: "get_count",
+					CallData:           []string{},
+				},
+				BlockID:        WithBlockTag("latest"),
+				ExpectedResult: "0x01",
+			},
+		},
 		"mock": {
 			{
 				FunctionCall: types.FunctionCall{
@@ -77,7 +88,7 @@ func TestCall(t *testing.T) {
 			t.Fatal("should return an output")
 		}
 		if output[0] != test.ExpectedResult {
-			t.Fatalf("1st output expecting %s,git %s", test.ExpectedResult, output[0])
+			t.Fatalf("1st output expecting %s, got: %s", test.ExpectedResult, output[0])
 		}
 	}
 }
