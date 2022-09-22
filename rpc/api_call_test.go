@@ -88,7 +88,7 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Call                types.BroadcastedInvokeTxn
+		Invoke              types.Call
 		BlockID             types.BlockID
 		ExpectedOverallFee  string
 		ExpectedGasPrice    string
@@ -135,8 +135,7 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		call := test.Call
-		output, err := testConfig.client.EstimateFee(context.Background(), call, test.BlockID)
+		output, err := testConfig.client.EstimateFee(context.Background(), test.Invoke, test.BlockID)
 		if err != nil || output == nil {
 			t.Fatalf("output is nil, go err %v", err)
 		}
