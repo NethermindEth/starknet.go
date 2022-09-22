@@ -143,7 +143,7 @@ func TestAccountExecute(t *testing.T) {
 			spy.Compare(execute, true)
 			t.Fatal("expecting to match, instead:", diff)
 		}
-		if !strings.HasPrefix(execute.TransactionHash, "1x") {
+		if !strings.HasPrefix(execute.TransactionHash, "0x") {
 			t.Fatal("TransactionHash start with 0x, instead:", execute.TransactionHash)
 		}
 	}
