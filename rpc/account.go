@@ -122,20 +122,27 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		return nil, err
 	}
 	calldata := fmtExecuteCalldataStrings(nonce, calls)
+	accountDefaultV0Entrypoint := "__execute__"
 	call := types.Call{
 		MaxFee:             fmt.Sprintf("0x%s", maxFee.Text(16)),
 		Version:            types.NumAsHex(fmt.Sprintf("0x%s", version.Text(16))),
-		Signature:          []string{s1.Text(10), s2.Text(10)},
-		Nonce:              fmt.Sprintf("0x%s", nonce.Text(16)),
+		Signature:          []string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
 		ContractAddress:    types.HexToHash(account.Address),
-		EntryPointSelector: "__execute__",
+		EntryPointSelector: &accountDefaultV0Entrypoint,
 		CallData:           calldata,
 	}
 	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
 }
 
 func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*AddInvokeTransactionOutput, error) {
+	if details.Version != nil && details.Version.Cmp(big.NewInt(0)) != 0 {
+		return nil, errors.New("only invoke v0 is implemented")
+	}
 	var err error
+	version := big.NewInt(0)
+	if details.Version != nil {
+		version = details.Version
+	}
 	nonce := details.Nonce
 	if details.Nonce == nil {
 		nonce, err = account.Nonce(ctx)
@@ -154,10 +161,6 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return nil, errors.New("could not match OverallFee to big.Int")
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
-	}
-	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
 	}
 	txHash, err := account.HashMultiCall(
 		calls,
@@ -182,7 +185,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			EntryPointSelector: "__execute__",
 			CallData:           calldata,
 		},
-		[]string{s1.Text(10), s2.Text(10)},
+		[]string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
 		fmt.Sprintf("0x%s", maxFee.Text(16)),
 		fmt.Sprintf("0x%s", version.Text(16)),
 	)

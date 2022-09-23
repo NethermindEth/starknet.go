@@ -15,9 +15,6 @@ jobs:
         ports:
           - 5050:5050
 
-    env:
-      INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
-
     steps:
       - uses: actions/checkout@v3
 
@@ -32,13 +29,23 @@ jobs:
       - name: Test RPC with mocks
         run: cd rpc && go test -v .
 
-      - name: Test RPC with devnet
-        run: cd rpc && go test -v -env devnet .
+      - name: Preinstall RPC contracts on devnet
+        run: cd rpc && go test -v -env devnet -run TestDeployTransaction . && sleep 5
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050/rpc"
 
-      - name: Test RPC with testnet
+      - name: Test RPC on devnet
+        run: cd rpc && go test -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050/rpc"
+
+      - name: Test RPC on testnet
         run: cd rpc && go test -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
 
       - name: Test RPC with mainnet
         run: cd rpc && go test -v -env mainnet .

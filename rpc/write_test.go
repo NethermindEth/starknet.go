@@ -20,7 +20,10 @@ func TestDeclareTransaction(t *testing.T) {
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
+		"devnet": {{
+			Filename:          "./tests/counter.json",
+			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
+		}},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
@@ -70,15 +73,36 @@ func TestDeployTransaction(t *testing.T) {
 		ExpectedContractAddress string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
+		"devnet": {
+			{
+				Filename:                "./tests/counter.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x1"},
+				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
+			},
+			{
+				Filename:                "./tests/account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{TestPublicKey},
+				ExpectedContractAddress: DevNetAccountAddress,
+			},
+		},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {{
-			Filename:                "./tests/counter.json",
-			Salt:                    "0xdeadbeef",
-			ConstructorCall:         []string{"0x1"},
-			ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
-		}},
+		"testnet": {
+			{
+				Filename:                "./tests/counter.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{"0x1"},
+				ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
+			},
+			{
+				Filename:                "./tests/account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{TestPublicKey},
+				ExpectedContractAddress: "0x4916cb2ef37f886d7e35f6bdbb38d20917057efc4de7fad73143566f8db73a1",
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -125,8 +149,8 @@ func TestInvokeTransaction(t *testing.T) {
 		"mock":    {},
 		"testnet": {{
 			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-			AccountPublicKey:        "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6",
-			AccountAddress:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+			AccountPublicKey:        TestPublicKey,
+			AccountAddress:          TestNetAccountAddress,
 			Call: types.FunctionCall{
 				ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
 				EntryPointSelector: "increment",
