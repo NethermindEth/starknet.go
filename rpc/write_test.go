@@ -22,7 +22,7 @@ func TestDeclareTransaction(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {{
 			Filename:          "./tests/counter.json",
-			ExpectedClassHash: "0x010008717d108d9deb459fa1d99c09a7baaff99faa3eeac314d7f21152b844a4",
+			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
 		}},
 		"mainnet": {},
 		"mock":    {},
@@ -78,13 +78,13 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                "./tests/counter.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x041e86a77bbbcfc29078e90daa24e844daf38bb532ac2240ac4a3a576ffad56e",
+				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
 			},
 			{
 				Filename:                "./tests/account.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"},
-				ExpectedContractAddress: "0x0182d6859773f0b595b323e6789b10a01a305738deb07c9e3b1963fe26706aee",
+				ExpectedContractAddress: "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829",
 			},
 		},
 		"mainnet": {},

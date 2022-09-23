@@ -20,7 +20,7 @@ func TestCall(t *testing.T) {
 		"devnet": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x041e86a77bbbcfc29078e90daa24e844daf38bb532ac2240ac4a3a576ffad56e"),
+					ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
 					EntryPointSelector: "get_count",
 					CallData:           []string{},
 				},
