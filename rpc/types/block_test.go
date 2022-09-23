@@ -73,7 +73,7 @@ func TestBlockStatus(t *testing.T) {
 		want:   BlockStatus_Rejected,
 	}} {
 		tx := new(BlockStatus)
-		if err := tx.UnmarshalJSON([]byte(tc.status)); err != nil {
+		if err := json.Unmarshal([]byte(tc.status), tx); err != nil {
 			t.Errorf("unmarshalling status want: %s", err)
 		}
 	}

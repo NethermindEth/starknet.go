@@ -1,11 +1,7 @@
 package rpc
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 
 	"github.com/dontpanicdao/caigo"
@@ -61,47 +57,4 @@ func (sc *Client) AddDeployTransaction(ctx context.Context, salt string, inputs 
 		return nil, err
 	}
 	return &result, nil
-}
-
-// Keep that function to build helper with broadcastedDeployTxn and broadcastedDeclareTxn
-func encodeProgram(content []byte) (string, error) {
-	buf := bytes.NewBuffer(nil)
-	gzipContent := gzip.NewWriter(buf)
-	_, err := gzipContent.Write(content)
-	if err != nil {
-		return "", err
-	}
-	gzipContent.Close()
-	program := base64.StdEncoding.EncodeToString(buf.Bytes())
-	return program, nil
-}
-
-// TODO: replace this function with an Unmarshal function.
-func guessABI(abis []interface{}) (*types.ABI, error) {
-	output := types.ABI{}
-	for _, abi := range abis {
-		if checkABI, ok := abi.(map[string]interface{}); ok {
-			var ab types.ABIEntry
-			switch checkABI["type"] {
-			case "constructor", "function", "l1_handler":
-				ab = &types.FunctionABIEntry{}
-			case "struct":
-				ab = &types.StructABIEntry{}
-			case "event":
-				ab = &types.EventABIEntry{}
-			default:
-				return nil, fmt.Errorf("unknown ABI type %v", checkABI["type"])
-			}
-			data, err := json.Marshal(checkABI)
-			if err != nil {
-				return nil, err
-			}
-			err = json.Unmarshal(data, ab)
-			if err != nil {
-				return nil, err
-			}
-			output = append(output, ab)
-		}
-	}
-	return &output, nil
 }

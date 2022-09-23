@@ -1,5 +1,13 @@
 package types
 
+import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+)
+
 type EntryPoint struct {
 	// The offset of the entry point in the program
 	Offset NumAsHex `json:"offset"`
@@ -22,6 +30,79 @@ type ContractClass struct {
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
 	Abi *ABI `json:"abi,omitempty"`
+}
+
+func (c *ContractClass) UnmarshalJSON(content []byte) error {
+	v := map[string]json.RawMessage{}
+	if err := json.Unmarshal(content, &v); err != nil {
+		return err
+	}
+
+	// process 'program'. If it is a string, keep it, otherwise encode it.
+	data, ok := v["program"]
+	if !ok {
+		return fmt.Errorf("missing program in json object")
+	}
+	program := ""
+	if err := json.Unmarshal(data, &program); err != nil {
+		if program, err = encodeProgram(data); err != nil {
+			return err
+		}
+	}
+	c.Program = program
+
+	// process 'entry_points_by_type'
+	data, ok = v["entry_points_by_type"]
+	if !ok {
+		return fmt.Errorf("missing entry_points_by_type in json object")
+	}
+
+	entryPointsByType := EntryPointsByType{}
+	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
+		return err
+	}
+	c.EntryPointsByType = entryPointsByType
+
+	// process 'abi'
+	data, ok = v["abi"]
+	if !ok {
+		// contractClass can have an empty ABI for instance with ClassAt
+		return nil
+	}
+
+	abis := []interface{}{}
+	if err := json.Unmarshal(data, &abis); err != nil {
+		return err
+	}
+
+	abiPointer := ABI{}
+	for _, abi := range abis {
+		if checkABI, ok := abi.(map[string]interface{}); ok {
+			var ab ABIEntry
+			switch checkABI["type"] {
+			case "constructor", "function", "l1_handler":
+				ab = &FunctionABIEntry{}
+			case "struct":
+				ab = &StructABIEntry{}
+			case "event":
+				ab = &EventABIEntry{}
+			default:
+				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
+			}
+			data, err := json.Marshal(checkABI)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(data, ab)
+			if err != nil {
+				return err
+			}
+			abiPointer = append(abiPointer, ab)
+		}
+	}
+
+	c.Abi = &abiPointer
+	return nil
 }
 
 type ABIEntry interface {
@@ -94,4 +175,17 @@ type TypedParameter struct {
 
 	// The parameter's type
 	Type string `json:"type"`
+}
+
+// encodeProgram Keep that function to build helper with broadcastedDeployTxn and broadcastedDeclareTxn
+func encodeProgram(content []byte) (string, error) {
+	buf := bytes.NewBuffer(nil)
+	gzipContent := gzip.NewWriter(buf)
+	_, err := gzipContent.Write(content)
+	if err != nil {
+		return "", err
+	}
+	gzipContent.Close()
+	program := base64.StdEncoding.EncodeToString(buf.Bytes())
+	return program, nil
 }

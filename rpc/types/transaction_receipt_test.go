@@ -1,6 +1,9 @@
 package types
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestTransactionStatus(t *testing.T) {
 	for _, tc := range []struct {
@@ -20,7 +23,7 @@ func TestTransactionStatus(t *testing.T) {
 		want:   TransactionStatus_Rejected,
 	}} {
 		tx := new(TransactionStatus)
-		if err := tx.UnmarshalJSON([]byte(tc.status)); err != nil {
+		if err := json.Unmarshal([]byte(tc.status), tx); err != nil {
 			t.Errorf("unmarshalling status want: %s", err)
 		}
 	}

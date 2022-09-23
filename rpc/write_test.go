@@ -25,7 +25,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"mock":    {},
 		"testnet": {{
 			Filename:          "./tests/counter.json",
-			ExpectedClassHash: "0x7944a315da387dcfa0c3ca204b81d836e37415e994834334e2a2d0c632344f0",
+			ExpectedClassHash: "0x7cca67b54cd7edfcdd45ceef4e43636b926101a26a99af003722f7ef10b08b3",
 		}},
 	}[testEnv]
 
@@ -34,47 +34,12 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		v := map[string]interface{}{}
-		if err := json.Unmarshal(content, &v); err != nil {
-			t.Fatal("should parse file with success, instead:", err)
+
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(content, &contractClass); err != nil {
+			t.Fatal(err)
 		}
 
-		program := ""
-		if data, ok := v["program"]; ok {
-			dataProgram, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should read file, instead:", err)
-			}
-			if program, err = encodeProgram(dataProgram); err != nil {
-				t.Fatal("should encode file, instead:", err)
-			}
-		}
-		entryPointsByType := types.EntryPointsByType{}
-		if data, ok := v["entry_points_by_type"]; ok {
-			dataEntryPointsByType, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should marshall entryPointsByType, instead:", err)
-			}
-			err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
-			if err != nil {
-				t.Fatal("should unmarshall entryPointsByType, instead:", err)
-			}
-		}
-		var abiPointer *types.ABI
-		if data, ok := v["abi"]; ok {
-			if abis, ok := data.([]interface{}); ok {
-				abiPointer, err = guessABI(abis)
-				if err != nil {
-					t.Fatal("should read ABI, instead:", err)
-				}
-			}
-		}
-
-		contractClass := types.ContractClass{
-			EntryPointsByType: entryPointsByType,
-			Program:           program,
-			Abi:               abiPointer,
-		}
 		version := "0x0"
 
 		spy := NewSpy(testConfig.client.c)
@@ -90,6 +55,7 @@ func TestDeclareTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+		fmt.Println("transaction hash:", dec.TransactionHash)
 	}
 }
 
@@ -111,7 +77,7 @@ func TestDeployTransaction(t *testing.T) {
 			Filename:                "./tests/counter.json",
 			Salt:                    "0xdeadbeef",
 			ConstructorCall:         []string{"0x1"},
-			ExpectedContractAddress: "0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167",
+			ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
 		}},
 	}[testEnv]
 
@@ -120,46 +86,9 @@ func TestDeployTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		v := map[string]interface{}{}
-		if err := json.Unmarshal(content, &v); err != nil {
-			t.Fatal("should parse file with success, instead:", err)
-		}
-
-		program := ""
-		if data, ok := v["program"]; ok {
-			dataProgram, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should read file, instead:", err)
-			}
-			if program, err = encodeProgram(dataProgram); err != nil {
-				t.Fatal("should encode file, instead:", err)
-			}
-		}
-		entryPointsByType := types.EntryPointsByType{}
-		if data, ok := v["entry_points_by_type"]; ok {
-			dataEntryPointsByType, err := json.Marshal(data)
-			if err != nil {
-				t.Fatal("should marshall entryPointsByType, instead:", err)
-			}
-			err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
-			if err != nil {
-				t.Fatal("should unmarshall entryPointsByType, instead:", err)
-			}
-		}
-		var abiPointer *types.ABI
-		if data, ok := v["abi"]; ok {
-			if abis, ok := data.([]interface{}); ok {
-				abiPointer, err = guessABI(abis)
-				if err != nil {
-					t.Fatal("should read ABI, instead:", err)
-				}
-			}
-		}
-
-		contractClass := types.ContractClass{
-			EntryPointsByType: entryPointsByType,
-			Program:           program,
-			Abi:               abiPointer,
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(content, &contractClass); err != nil {
+			t.Fatal(err)
 		}
 
 		spy := NewSpy(testConfig.client.c)
@@ -175,6 +104,7 @@ func TestDeployTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+		fmt.Println("transaction hash:", dec.TransactionHash)
 	}
 }
 

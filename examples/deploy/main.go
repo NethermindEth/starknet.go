@@ -227,7 +227,10 @@ func balanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string)
 	low := types.StrToFelt(res[0])
 	hi := types.StrToFelt(res[1])
 
-	balance := types.NewUint256(low, hi)
+	balance, err := types.NewUint256(low, hi)
+	if err != nil {
+		return "", nil
+	}
 	return balance.String(), nil
 }
 
