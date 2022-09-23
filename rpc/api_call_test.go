@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
@@ -12,9 +13,9 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall   types.FunctionCall
-		BlockID        types.BlockID
-		ExpectedResult string
+		FunctionCall          types.FunctionCall
+		BlockID               types.BlockID
+		ExpectedPatternResult string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -24,8 +25,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "get_count",
 					CallData:           []string{},
 				},
-				BlockID:        WithBlockTag("latest"),
-				ExpectedResult: "0x01",
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x01$",
 			},
 			{
 				FunctionCall: types.FunctionCall{
@@ -34,8 +35,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{DevNetAccountAddress},
 				},
-				BlockID:        WithBlockTag("latest"),
-				ExpectedResult: "0x00",
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 		},
 		"mock": {
@@ -45,8 +46,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockID:        WithBlockTag("latest"),
-				ExpectedResult: "0x12",
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x12$",
 			},
 		},
 		"testnet": {
@@ -56,8 +57,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockID:        WithBlockTag("latest"),
-				ExpectedResult: "0x12",
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x12$",
 			},
 			{
 				FunctionCall: types.FunctionCall{
@@ -65,8 +66,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
-				BlockID:        WithBlockNumber(310000),
-				ExpectedResult: "0x2f0e64b37383fa",
+				BlockID:               WithBlockNumber(310000),
+				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 		},
 		"mainnet": {
@@ -76,8 +77,8 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: "decimals",
 					CallData:           []string{},
 				},
-				BlockID:        WithBlockTag("latest"),
-				ExpectedResult: "0x12",
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x12$",
 			},
 		},
 	}[testEnv]
@@ -97,8 +98,9 @@ func TestCall(t *testing.T) {
 		if len(output) == 0 {
 			t.Fatal("should return an output")
 		}
-		if output[0] != test.ExpectedResult {
-			t.Fatalf("1st output expecting %s, got: %s", test.ExpectedResult, output[0])
+		match, err := regexp.Match(test.ExpectedPatternResult, []byte(output[0]))
+		if err != nil || !match {
+			t.Fatalf("checking output(%v) expecting %s, got: %v", err, test.ExpectedPatternResult, output[0])
 		}
 	}
 }

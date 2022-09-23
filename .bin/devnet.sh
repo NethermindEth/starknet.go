@@ -2,6 +2,7 @@
 
 i=0
 version=""
+export ACCOUNT_ADDRESS=0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829
 
 while true; do
   i=$((i + 1))
@@ -10,7 +11,7 @@ while true; do
   if [ $result -eq 0 ]; then
     sleep 5
     curl --fail -H 'Content-Type: application/json' -XPOST http://localhost:5050/mint \
-      -d '{ "address": "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829", "amount": 1000000000000000}'
+      -d '{ "address": "'${ACCOUNT_ADDRESS}'", "amount": 1000000000000000}'
     exit 0
   fi
   if [ $i -gt 10  ]; then
