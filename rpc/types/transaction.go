@@ -32,6 +32,22 @@ func (tx TransactionHash) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(b))), nil
 }
 
+type Call struct {
+	MaxFee string `json:"max_fee"`
+	// Version of the transaction scheme
+	Version NumAsHex `json:"version"`
+	// Signature
+	Signature []string `json:"signature"`
+	// Nonce
+	Nonce string `json:"nonce"`
+
+	ContractAddress    Hash   `json:"contract_address"`
+	EntryPointSelector string `json:"entry_point_selector"`
+
+	// CallData The parameters passed to the function
+	CallData []string `json:"calldata"`
+}
+
 type CommonTransaction struct {
 	TransactionHash Hash            `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`

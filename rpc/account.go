@@ -89,6 +89,105 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return n, nil
 }
 
+func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*types.FeeEstimate, error) {
+	var err error
+	nonce := details.Nonce
+	if details.Nonce == nil {
+		nonce, err = account.Nonce(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	maxFee, _ := big.NewInt(0).SetString("0x200000000", 0)
+	if details.MaxFee != nil {
+		maxFee = details.MaxFee
+	}
+	version := big.NewInt(0)
+	if details.Version != nil {
+		version = details.Version
+	}
+	txHash, err := account.HashMultiCall(
+		calls,
+		ExecuteDetails{
+			Nonce:   nonce,
+			MaxFee:  maxFee,
+			Version: version,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	s1, s2, err := account.Sign(txHash)
+	if err != nil {
+		return nil, err
+	}
+	calldata := fmtExecuteCalldataStrings(nonce, calls)
+	call := types.Call{
+		MaxFee:             fmt.Sprintf("0x%s", maxFee.Text(16)),
+		Version:            types.NumAsHex(fmt.Sprintf("0x%s", version.Text(16))),
+		Signature:          []string{s1.Text(10), s2.Text(10)},
+		Nonce:              fmt.Sprintf("0x%s", nonce.Text(16)),
+		ContractAddress:    types.HexToHash(account.Address),
+		EntryPointSelector: "__execute__",
+		CallData:           calldata,
+	}
+	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
+}
+
+func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*AddInvokeTransactionOutput, error) {
+	var err error
+	nonce := details.Nonce
+	if details.Nonce == nil {
+		nonce, err = account.Nonce(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	maxFee := details.MaxFee
+	if details.MaxFee == nil {
+		estimate, err := account.EstimateFee(ctx, calls, details)
+		if err != nil {
+			return nil, err
+		}
+		v, ok := big.NewInt(0).SetString(string(estimate.OverallFee), 0)
+		if !ok {
+			return nil, errors.New("could not match OverallFee to big.Int")
+		}
+		maxFee = v.Mul(v, big.NewInt(2))
+	}
+	version := big.NewInt(0)
+	if details.Version != nil {
+		version = details.Version
+	}
+	txHash, err := account.HashMultiCall(
+		calls,
+		ExecuteDetails{
+			Nonce:   nonce,
+			MaxFee:  maxFee,
+			Version: version,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	s1, s2, err := account.Sign(txHash)
+	if err != nil {
+		return nil, err
+	}
+	calldata := fmtExecuteCalldataStrings(nonce, calls)
+	return account.Provider.AddInvokeTransaction(
+		context.Background(),
+		types.FunctionCall{
+			ContractAddress:    types.HexToHash(account.Address),
+			EntryPointSelector: "__execute__",
+			CallData:           calldata,
+		},
+		[]string{s1.Text(10), s2.Text(10)},
+		fmt.Sprintf("0x%s", maxFee.Text(16)),
+		fmt.Sprintf("0x%s", version.Text(16)),
+	)
+}
+
 func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
 	callArray := fmtExecuteCalldata(nonce, calls)
 	for _, data := range callArray {

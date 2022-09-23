@@ -187,7 +187,8 @@ func (sc *Client) Events(ctx context.Context, filter types.EventFilter) (*types.
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (sc *Client) EstimateFee(ctx context.Context, request types.BroadcastedTxn, blockID types.BlockID) (*types.FeeEstimate, error) {
+func (sc *Client) EstimateFee(ctx context.Context, request types.Call, blockID types.BlockID) (*types.FeeEstimate, error) {
+	request.EntryPointSelector = fmt.Sprintf("0x%s", caigo.GetSelectorFromName(request.EntryPointSelector).Text(16))
 	var raw types.FeeEstimate
 	if err := sc.do(ctx, "starknet_estimateFee", &raw, request, blockID); err != nil {
 		return nil, err
