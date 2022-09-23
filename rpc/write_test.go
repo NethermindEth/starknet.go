@@ -100,7 +100,7 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                "./tests/account.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"},
-				ExpectedContractAddress: "0x4a4cc6b77efe032f570a2a4119e1a600bee3267f664cd42389a99e7e0e8d2c0",
+				ExpectedContractAddress: "0x4916cb2ef37f886d7e35f6bdbb38d20917057efc4de7fad73143566f8db73a1",
 			},
 		},
 	}[testEnv]
