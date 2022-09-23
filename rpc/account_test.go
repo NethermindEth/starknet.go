@@ -22,10 +22,16 @@ func TestAccountNonce(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				Address:          DevNetAccountAddress,
+				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			},
+		},
 		"mock": {},
 		"testnet": {
 			{
-				Address:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+				Address:          TestNetAccountAddress,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			},
 		},
@@ -37,12 +43,9 @@ func TestAccountNonce(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		nonce, err := account.Nonce(context.Background())
+		_, err = account.Nonce(context.Background())
 		if err != nil {
 			t.Fatal(err)
-		}
-		if nonce.Uint64() <= 1 {
-			t.Fatal("nonce should be > 1", nonce.Uint64())
 		}
 	}
 }
@@ -58,10 +61,21 @@ func TestAccountEstimateFee(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				Address:          DevNetAccountAddress,
+				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+				Call: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
+					EntryPointSelector: "increment",
+					CallData:           []string{},
+				},
+			},
+		},
 		"mock": {},
 		"testnet": {
 			{
-				Address:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+				Address:          TestNetAccountAddress,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
@@ -112,7 +126,7 @@ func TestAccountExecute(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				Address:          "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0",
+				Address:          TestNetAccountAddress,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),

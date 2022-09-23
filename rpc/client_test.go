@@ -13,6 +13,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	TestPublicKey         = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
+	DevNetETHAddress      = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
+	DevNetAccountAddress  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
+	TestNetAccountAddress = "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0"
+)
+
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
 	client *Client
