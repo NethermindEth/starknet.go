@@ -135,7 +135,14 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 }
 
 func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*AddInvokeTransactionOutput, error) {
+	if details.Version != nil && details.Version.Cmp(big.NewInt(0)) != 0 {
+		return nil, errors.New("only invoke v0 is implemented")
+	}
 	var err error
+	version := big.NewInt(0)
+	if details.Version != nil {
+		version = details.Version
+	}
 	nonce := details.Nonce
 	if details.Nonce == nil {
 		nonce, err = account.Nonce(ctx)
@@ -154,10 +161,6 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return nil, errors.New("could not match OverallFee to big.Int")
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
-	}
-	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
 	}
 	txHash, err := account.HashMultiCall(
 		calls,

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"strings"
@@ -123,6 +124,21 @@ func TestAccountExecute(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
+		"devnet": {
+			// TODO: there is a problem with devnet 0.3.1 that does not implement
+			// positional argument properly for starknet_addInvokeTransaction. I
+			// have proposed a PR https://github.com/Shard-Labs/starknet-devnet/pull/283
+			// to address the issue. Meanwhile, we are stuck with that feature on devnet.
+			// {
+			// 	Address:          DevNetAccountAddress,
+			// 	PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// },
+		},
 		"mock": {},
 		"testnet": {
 			{
@@ -160,5 +176,6 @@ func TestAccountExecute(t *testing.T) {
 		if !strings.HasPrefix(execute.TransactionHash, "0x") {
 			t.Fatal("TransactionHash start with 0x, instead:", execute.TransactionHash)
 		}
+		fmt.Println("tx", execute.TransactionHash)
 	}
 }
