@@ -38,15 +38,16 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return err
 	}
 
-	// process 'program'
+	// process 'program'. If it is a string, keep it, otherwise encode it.
 	data, ok := v["program"]
 	if !ok {
 		return fmt.Errorf("missing program in json object")
 	}
-
-	program, err := encodeProgram(data)
-	if err != nil {
-		return err
+	program := ""
+	if err := json.Unmarshal(data, &program); err != nil {
+		if program, err = encodeProgram(data); err != nil {
+			return err
+		}
 	}
 	c.Program = program
 
@@ -57,8 +58,7 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 	}
 
 	entryPointsByType := EntryPointsByType{}
-	err = json.Unmarshal(data, &entryPointsByType)
-	if err != nil {
+	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
 		return err
 	}
 	c.EntryPointsByType = entryPointsByType
@@ -66,12 +66,12 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 	// process 'abi'
 	data, ok = v["abi"]
 	if !ok {
-		return fmt.Errorf("missing abi in json object")
+		// contractClass can have an empty ABI for instance with ClassAt
+		return nil
 	}
 
 	abis := []interface{}{}
-	err = json.Unmarshal(data, &entryPointsByType)
-	if err != nil {
+	if err := json.Unmarshal(data, &abis); err != nil {
 		return err
 	}
 

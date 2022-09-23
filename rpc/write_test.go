@@ -25,7 +25,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"mock":    {},
 		"testnet": {{
 			Filename:          "./tests/counter.json",
-			ExpectedClassHash: "0x7944a315da387dcfa0c3ca204b81d836e37415e994834334e2a2d0c632344f0",
+			ExpectedClassHash: "0x7cca67b54cd7edfcdd45ceef4e43636b926101a26a99af003722f7ef10b08b3",
 		}},
 	}[testEnv]
 
@@ -55,6 +55,7 @@ func TestDeclareTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+		fmt.Println("transaction hash:", dec.TransactionHash)
 	}
 }
 
@@ -76,7 +77,7 @@ func TestDeployTransaction(t *testing.T) {
 			Filename:                "./tests/counter.json",
 			Salt:                    "0xdeadbeef",
 			ConstructorCall:         []string{"0x1"},
-			ExpectedContractAddress: "0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167",
+			ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
 		}},
 	}[testEnv]
 
@@ -103,6 +104,7 @@ func TestDeployTransaction(t *testing.T) {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
+		fmt.Println("transaction hash:", dec.TransactionHash)
 	}
 }
 
