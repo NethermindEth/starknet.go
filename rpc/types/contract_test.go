@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/stretchr/testify/assert"
+	"encoding/json"
 	"os"
 	"testing"
 )
@@ -13,17 +13,24 @@ const (
 
 func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 	content, err := os.ReadFile(validContractCompiledPath)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal("should be able to read file", err)
+	}
 
 	contractClass := ContractClass{}
-	err = contractClass.UnmarshalJSON(content)
-	assert.NoError(t, err)
+	if err := json.Unmarshal(content, &contractClass); err != nil {
+		t.Fatal("should be able unmarshall Class", err)
+	}
 }
 
 func TestContractClass_UnmarshalInvalidJSON_Fails(t *testing.T) {
 	content, err := os.ReadFile(invalidContractCompiledPath)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal("should be able to read file", err)
+	}
+
 	contractClass := ContractClass{}
-	err = contractClass.UnmarshalJSON(content)
-	assert.ErrorContains(t, err, "abi is not iterable")
+	if err := json.Unmarshal(content, &contractClass); err != nil {
+		t.Fatal("should be able unmarshall Class", err)
+	}
 }

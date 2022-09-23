@@ -33,7 +33,7 @@ type ContractClass struct {
 }
 
 func (c *ContractClass) UnmarshalJSON(content []byte) error {
-	v := map[string]interface{}{}
+	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
 		return err
 	}
@@ -44,12 +44,7 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing program in json object")
 	}
 
-	dataProgram, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	program, err := encodeProgram(dataProgram)
+	program, err := encodeProgram(data)
 	if err != nil {
 		return err
 	}
@@ -61,12 +56,8 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing entry_points_by_type in json object")
 	}
 
-	dataEntryPointsByType, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
 	entryPointsByType := EntryPointsByType{}
-	err = json.Unmarshal(dataEntryPointsByType, &entryPointsByType)
+	err = json.Unmarshal(data, &entryPointsByType)
 	if err != nil {
 		return err
 	}
@@ -78,9 +69,10 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing abi in json object")
 	}
 
-	abis, ok := data.([]interface{})
-	if !ok {
-		return fmt.Errorf("abi is not iterable")
+	abis := []interface{}{}
+	err = json.Unmarshal(data, &entryPointsByType)
+	if err != nil {
+		return err
 	}
 
 	abiPointer := ABI{}

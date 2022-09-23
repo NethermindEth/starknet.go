@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
@@ -35,7 +36,7 @@ func TestDeclareTransaction(t *testing.T) {
 		}
 
 		contractClass := types.ContractClass{}
-		if err := contractClass.UnmarshalJSON(content); err != nil {
+		if err := json.Unmarshal(content, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 
@@ -85,7 +86,7 @@ func TestDeployTransaction(t *testing.T) {
 			t.Fatal("should read file with success, instead:", err)
 		}
 		contractClass := types.ContractClass{}
-		if err := contractClass.UnmarshalJSON(content); err != nil {
+		if err := json.Unmarshal(content, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 
