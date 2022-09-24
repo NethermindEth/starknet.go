@@ -179,7 +179,7 @@ func TestAccountExecute(t *testing.T) {
 			t.Fatal("TransactionHash start with 0x, instead:", execute.TransactionHash)
 		}
 		fmt.Println("transaction_hash:", execute.TransactionHash)
-		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 		defer cancel()
 		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
 		if err != nil {
