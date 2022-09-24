@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
@@ -161,7 +162,8 @@ func TestAccountExecute(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		execute, err := account.Execute(context.Background(), []types.FunctionCall{test.Call}, types.ExecuteDetails{})
+		ctx := context.Background()
+		execute, err := account.Execute(ctx, []types.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -176,6 +178,15 @@ func TestAccountExecute(t *testing.T) {
 		if !strings.HasPrefix(execute.TransactionHash, "0x") {
 			t.Fatal("TransactionHash start with 0x, instead:", execute.TransactionHash)
 		}
-		fmt.Println("tx", execute.TransactionHash)
+		fmt.Println("transaction_hash:", execute.TransactionHash)
+		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
+		defer cancel()
+		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if status != "PENDING" && status != "ACCEPTED_ON_L1" && status != "ACCEPTED_ON_L2" {
+			t.Fatalf("tx %s wrong status: %s", execute.TransactionHash, status)
+		}
 	}
 }
