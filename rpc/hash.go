@@ -8,18 +8,24 @@ import (
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
-func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
-	callArray := fmtExecuteCalldata(nonce, calls)
+func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
+	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", data.Text(16)))
 	}
 	return calldataStrings
 }
 
+func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
+	calldataStrings = fmtCalldataStrings(calls)
+	calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", nonce.Text(16)))
+	return calldataStrings
+}
+
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func fmtExecuteCalldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
+func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
@@ -40,6 +46,14 @@ func fmtExecuteCalldata(nonce *big.Int, calls []types.FunctionCall) (calldataArr
 
 	callArray = append(callArray, big.NewInt(int64(len(calldataArray))))
 	callArray = append(callArray, calldataArray...)
+	return callArray
+}
+
+/*
+Formats the multicall transactions with v0 of OpenZeppelin contract
+*/
+func fmtV0Calldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
+	callArray := fmtCalldata(calls)
 	callArray = append(callArray, nonce)
 	return callArray
 }

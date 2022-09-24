@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
@@ -149,10 +150,9 @@ func TestInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		NewAccount              func(private string, address string, options ...AccountOption) (*Account, error)
 		AccountPrivateKeyEnvVar string
-		AccountPublicKey        string
 		AccountAddress          string
+		Version                 AccountOption
 		Call                    types.FunctionCall
 		MaxFee                  string
 	}
@@ -160,18 +160,30 @@ func TestInvokeTransaction(t *testing.T) {
 		"devnet":  {},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {{
-			NewAccount:              testConfig.provider.NewAccount,
-			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-			AccountPublicKey:        TestPublicKey,
-			AccountAddress:          TestNetAccount032Address,
-			Call: types.FunctionCall{
-				ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-				EntryPointSelector: "increment",
-				CallData:           []string{},
+		"testnet": {
+			{
+				AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+				Version:                 AccountVersion0,
+				AccountAddress:          TestNetAccount032Address,
+				Call: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+					EntryPointSelector: "increment",
+					CallData:           []string{},
+				},
+				MaxFee: "0x200000002",
 			},
-			MaxFee: "0x200000001",
-		}},
+			// {
+			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	Version:                 AccountVersion1,
+			// 	AccountAddress:          TestNetAccount040Address,
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// 	MaxFee: "0x200000001",
+			// },
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -179,11 +191,12 @@ func TestInvokeTransaction(t *testing.T) {
 		if privateKey == "" {
 			t.Fatal("should have a private key for the account")
 		}
-		account, err := test.NewAccount(privateKey, test.AccountAddress)
+		account, err := testConfig.provider.NewAccount(privateKey, test.AccountAddress, test.Version)
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		n, err := account.Nonce(context.Background())
+		ctx := context.Background()
+		n, err := account.Nonce(ctx)
 		if err != nil {
 			t.Fatal("should return nonce, instead", err)
 		}
@@ -204,9 +217,17 @@ func TestInvokeTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		calldata := fmtExecuteCalldataStrings(n, []types.FunctionCall{test.Call})
+		var calldata []string
+		switch {
+		case account.version.Cmp(big.NewInt(0)) == 0:
+			calldata = fmtV0CalldataStrings(n, []types.FunctionCall{test.Call})
+		case account.version.Cmp(big.NewInt(1)) == 0:
+			calldata = fmtCalldataStrings([]types.FunctionCall{test.Call})
+		default:
+			t.Fatalf("version %s unsupported", account.version.Text(10))
+		}
 		output, err := testConfig.provider.AddInvokeTransaction(
-			context.Background(),
+			ctx,
 			types.FunctionCall{
 				ContractAddress:    types.HexToHash(test.AccountAddress),
 				EntryPointSelector: "__execute__",
@@ -230,5 +251,14 @@ func TestInvokeTransaction(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		fmt.Println("transaction_hash:", output.TransactionHash)
+		ctx, cancel := context.WithTimeout(ctx, 120*time.Second)
+		defer cancel()
+		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if status != "PENDING" && status != "ACCEPTED_ON_L1" && status != "ACCEPTED_ON_L2" {
+			t.Fatalf("tx %s wrong status: %s", output.TransactionHash, status)
+		}
 	}
 }

@@ -7,9 +7,9 @@ import (
 )
 
 // Events returns all events matching the given filter
-func (sc *Provider) Events(ctx context.Context, filter types.EventFilter) (*types.EventsOutput, error) {
+func (provider *Provider) Events(ctx context.Context, filter types.EventFilter) (*types.EventsOutput, error) {
 	var result types.EventsOutput
-	if err := do(ctx, sc.c, "starknet_getEvents", &result, filter); err != nil {
+	if err := do(ctx, provider.c, "starknet_getEvents", &result, filter); err != nil {
 		return nil, err
 	}
 
