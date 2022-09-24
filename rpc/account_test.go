@@ -12,8 +12,8 @@ import (
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
-// TestAccountV0Nonce tests the account Nonce
-func TestAccountV0Nonce(t *testing.T) {
+// TestAccountNonce tests the account Nonce
+func TestAccountNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -40,7 +40,7 @@ func TestAccountV0Nonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -91,7 +91,7 @@ func TestAccountEstimateFee(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -157,7 +157,7 @@ func TestAccountExecute(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}

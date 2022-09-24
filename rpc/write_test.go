@@ -149,7 +149,7 @@ func TestInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		NewAccount              func(private string, address string) (*AccountV0, error)
+		NewAccount              func(private string, address string, options ...AccountOption) (*Account, error)
 		AccountPrivateKeyEnvVar string
 		AccountPublicKey        string
 		AccountAddress          string
@@ -161,7 +161,7 @@ func TestInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			NewAccount:              testConfig.provider.NewAccountV0,
+			NewAccount:              testConfig.provider.NewAccount,
 			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			AccountPublicKey:        TestPublicKey,
 			AccountAddress:          TestNetAccount032Address,
