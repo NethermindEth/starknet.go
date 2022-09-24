@@ -164,20 +164,3 @@ func TestSyncing(t *testing.T) {
 		}
 	}
 }
-
-// TestClose checks the function is called
-func TestClose(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	switch client := testConfig.provider.c.(type) {
-	case *ethrpc.Client:
-		return
-	case *rpcMock:
-		if client.closed {
-			return
-		}
-		t.Fatalf("client should have been closed")
-	default:
-		t.Fatalf("client unsupported type %T", testConfig.provider.c)
-	}
-}
