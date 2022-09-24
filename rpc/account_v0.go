@@ -14,6 +14,7 @@ type AccountV0 struct {
 	Provider *Provider
 	Address  string
 	private  *big.Int
+	version  *big.Int
 }
 
 func (provider *Provider) NewAccountV0(private, address string) (*AccountV0, error) {
@@ -23,6 +24,7 @@ func (provider *Provider) NewAccountV0(private, address string) (*AccountV0, err
 		Provider: provider,
 		Address:  address,
 		private:  priv,
+		version:  big.NewInt(0),
 	}, nil
 }
 
@@ -44,7 +46,7 @@ func (account *AccountV0) HashMultiCall(calls []types.FunctionCall, details type
 
 	multiHashData := []*big.Int{
 		caigo.UTF8StrToBig(TRANSACTION_PREFIX),
-		details.Version,
+		account.version,
 		caigo.SNValToBN(account.Address),
 		caigo.GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
@@ -92,15 +94,14 @@ func (account *AccountV0) EstimateFee(ctx context.Context, calls []types.Functio
 		maxFee = details.MaxFee
 	}
 	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
+	if account.version != nil {
+		version = account.version
 	}
 	txHash, err := account.HashMultiCall(
 		calls,
 		types.ExecuteDetails{
-			Nonce:   nonce,
-			MaxFee:  maxFee,
-			Version: version,
+			Nonce:  nonce,
+			MaxFee: maxFee,
 		},
 	)
 	if err != nil {
@@ -124,13 +125,13 @@ func (account *AccountV0) EstimateFee(ctx context.Context, calls []types.Functio
 }
 
 func (account *AccountV0) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
-	if details.Version != nil && details.Version.Cmp(big.NewInt(0)) != 0 {
+	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
 	var err error
 	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
+	if account.version != nil {
+		version = account.version
 	}
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -154,9 +155,8 @@ func (account *AccountV0) Execute(ctx context.Context, calls []types.FunctionCal
 	txHash, err := account.HashMultiCall(
 		calls,
 		types.ExecuteDetails{
-			Nonce:   nonce,
-			MaxFee:  maxFee,
-			Version: version,
+			Nonce:  nonce,
+			MaxFee: maxFee,
 		},
 	)
 	if err != nil {

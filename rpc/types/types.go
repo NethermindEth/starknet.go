@@ -78,9 +78,8 @@ type SyncResponse struct {
 
 // ExecuteDetails provides some details about the execution.
 type ExecuteDetails struct {
-	MaxFee  *big.Int
-	Nonce   *big.Int
-	Version *big.Int
+	MaxFee *big.Int
+	Nonce  *big.Int
 }
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.

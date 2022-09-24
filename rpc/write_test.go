@@ -193,9 +193,8 @@ func TestInvokeTransaction(t *testing.T) {
 		txHash, err := account.HashMultiCall(
 			[]types.FunctionCall{test.Call},
 			types.ExecuteDetails{
-				Nonce:   n,
-				MaxFee:  maxFee,
-				Version: big.NewInt(0),
+				Nonce:  n,
+				MaxFee: maxFee,
 			},
 		)
 		if err != nil {
