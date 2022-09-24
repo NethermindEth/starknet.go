@@ -184,7 +184,7 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		txReceiptInterface, err := testConfig.provider.TransactionByHash(context.Background(), test.TxnHash)
+		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
 		if err != nil {
 			t.Fatal(err)
 		}
