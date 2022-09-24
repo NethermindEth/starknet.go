@@ -140,17 +140,19 @@ func TestAccountExecute(t *testing.T) {
 			// 	},
 			// },
 		},
-		"mock": {},
+		"mock":    {},
 		"testnet": {
-			{
-				Address:          TestNetAccount032Address,
-				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-					EntryPointSelector: "increment",
-					CallData:           []string{},
-				},
-			},
+			// Disabled tests due to the fact it is taking ages on the CI. It should
+			// work on demand though...
+			// {
+			// 	Address:          TestNetAccount032Address,
+			// 	PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// },
 		},
 		"mainnet": {},
 	}[testEnv]

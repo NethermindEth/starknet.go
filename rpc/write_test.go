@@ -161,17 +161,19 @@ func TestInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {
-			{
-				AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-				Version:                 AccountVersion0,
-				AccountAddress:          TestNetAccount032Address,
-				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-					EntryPointSelector: "increment",
-					CallData:           []string{},
-				},
-				MaxFee: "0x200000002",
-			},
+			// Disabled tests due to the fact it is taking ages on the CI. It should
+			// work on demand though...
+			// {
+			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	Version:                 AccountVersion0,
+			// 	AccountAddress:          TestNetAccount032Address,
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// 	MaxFee: "0x200000000",
+			// },
 			// {
 			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			// 	Version:                 AccountVersion1,
