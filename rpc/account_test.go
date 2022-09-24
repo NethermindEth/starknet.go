@@ -80,7 +80,7 @@ func TestAccountEstimateFee(t *testing.T) {
 				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+					ContractAddress:    types.HexToHash("0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef"),
 					EntryPointSelector: "increment",
 					CallData:           []string{},
 				},

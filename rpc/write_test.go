@@ -32,7 +32,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"testnet": {{
 			Filename:          "./tests/counter.json",
 			Version:           "0x0",
-			ExpectedClassHash: "0x7cca67b54cd7edfcdd45ceef4e43636b926101a26a99af003722f7ef10b08b3",
+			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
 		}},
 	}[testEnv]
 
@@ -101,7 +101,7 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                "./tests/counter.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
+				ExpectedContractAddress: "0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef",
 			},
 			{
 				Filename:                "./tests/oz_v0.3.2_account.json",
@@ -265,16 +265,16 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 		"testnet": {
 			// Disabled tests due to the fact it is taking ages on the CI. It should
 			// work on demand though...
-			{
-				AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-				AccountAddress:          TestNetAccount040Address,
-				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-					EntryPointSelector: "increment",
-					CallData:           []string{},
-				},
-				MaxFee: "0x200000001",
-			},
+			// {
+			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	AccountAddress:          TestNetAccount040Address,
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// 	MaxFee: "0x200000001",
+			// },
 		},
 	}[testEnv]
 
