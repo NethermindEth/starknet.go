@@ -59,6 +59,9 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 			version = opt.version
 		}
 	}
+	if version.Cmp(big.NewInt(0)) != 0 {
+		return nil, errors.New("account v1 not yet supported")
+	}
 	priv := caigo.SNValToBN(private)
 
 	return &Account{
@@ -271,6 +274,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	default:
 		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 	}
+	// TODO: change this payload to manage both V0 and V1
 	return account.Provider.AddInvokeTransaction(
 		context.Background(),
 		types.FunctionCall{
