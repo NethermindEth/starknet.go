@@ -54,35 +54,33 @@ go run main.go
 
 Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
-| Method                        | Implemented (*)       |
-| ----------------------------- | --------------------- |
-| `starknet_getBlockByHash` | :heavy_check_mark: |
-| `starknet_getBlockByNumber` | :heavy_check_mark: |
-| `starknet_getTransactionByHash` | :heavy_check_mark: |
-| `starknet_getTransactionReceipt` | :heavy_check_mark: |
-| `starknet_getClass` | :heavy_check_mark: |
-| `starknet_getClassHashAt` | :heavy_check_mark: |
-| `starknet_getClassAt` | :heavy_check_mark: |
-| `starknet_call` | :heavy_check_mark: |
-| `starknet_blockNumber` | :heavy_check_mark: |
-| `starknet_chainId` | :heavy_check_mark: |
-| `starknet_syncing` | :heavy_check_mark: |
-| `starknet_getEvents` | :heavy_check_mark: |
-| `starknet_addInvokeTransaction` | :heavy_check_mark: |
-| `starknet_addDeployTransaction` | :heavy_check_mark: |
-| `starknet_addDeclareTransaction` | :heavy_check_mark: |
-| `starknet_estimateFee` | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByHash` | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByNumber` | :heavy_check_mark: |
+| Method                                         | Implemented (*)    |
+| ---------------------------------------------- | ------------------ |
+| `starknet_getBlockByHash`                      | :heavy_check_mark: |
+| `starknet_getBlockByNumber`                    | :heavy_check_mark: |
+| `starknet_getTransactionByHash`                | :heavy_check_mark: |
+| `starknet_getTransactionReceipt`               | :heavy_check_mark: |
+| `starknet_getClass`                            | :heavy_check_mark: |
+| `starknet_getClassHashAt`                      | :heavy_check_mark: |
+| `starknet_getClassAt`                          | :heavy_check_mark: |
+| `starknet_call`                                | :heavy_check_mark: |
+| `starknet_blockNumber`                         | :heavy_check_mark: |
+| `starknet_chainId`                             | :heavy_check_mark: |
+| `starknet_syncing`                             | :heavy_check_mark: |
+| `starknet_getEvents`                           | :heavy_check_mark: |
+| `starknet_addInvokeTransaction`                | :heavy_check_mark: |
+| `starknet_addDeployTransaction`                | :heavy_check_mark: |
+| `starknet_addDeclareTransaction`               | :heavy_check_mark: |
+| `starknet_estimateFee`                         | :heavy_check_mark: |
+| `starknet_getBlockTransactionCountByHash`      | :heavy_check_mark: |
+| `starknet_getBlockTransactionCountByNumber`    | :heavy_check_mark: |
 | `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
-| `starknet_getTransactionByBlockHashAndIndex` | :heavy_check_mark: |
-| `starknet_getStorageAt` | :heavy_check_mark: |
-| *`starknet_traceBlockTransactions` | :x: |
-| *`starknet_getNonce` | :x: |
-| *`starknet_protocolVersion` | :x: |
-| *`starknet_pendingTransactions` | :x: |
-| *`starknet_traceTransaction` | :x: |
-| *`starknet_getStateUpdateByHash` | :x: |
+| `starknet_getTransactionByBlockHashAndIndex`   | :heavy_check_mark: |
+| `starknet_getStorageAt`                        | :heavy_check_mark: |
+| `starknet_getNonce`                            | :heavy_check_mark: |
+| `starknet_getStateUpdate`                      | :heavy_check_mark: |
+| *`starknet_traceBlockTransactions`             | :x:                |
+| *`starknet_traceTransaction`                   | :x:                |
 
 > (*) some methods are not implemented because they are not yet available
 > from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).

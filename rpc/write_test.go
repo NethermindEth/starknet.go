@@ -81,10 +81,16 @@ func TestDeployTransaction(t *testing.T) {
 				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
 			},
 			{
-				Filename:                "./tests/account.json",
+				Filename:                "./tests/oz_v0.3.2_account.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: DevNetAccountAddress,
+				ExpectedContractAddress: DevNetAccount032Address,
+			},
+			{
+				Filename:                "./tests/oz_v0.4.0b_account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{TestPublicKey},
+				ExpectedContractAddress: DevNetAccount040Address,
 			},
 		},
 		"mainnet": {},
@@ -97,10 +103,16 @@ func TestDeployTransaction(t *testing.T) {
 				ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
 			},
 			{
-				Filename:                "./tests/account.json",
+				Filename:                "./tests/oz_v0.3.2_account.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: "0x4916cb2ef37f886d7e35f6bdbb38d20917057efc4de7fad73143566f8db73a1",
+				ExpectedContractAddress: TestNetAccount032Address,
+			},
+			{
+				Filename:                "./tests/oz_v0.4.0b_account.json",
+				Salt:                    "0xdeadbeef",
+				ConstructorCall:         []string{TestPublicKey},
+				ExpectedContractAddress: TestNetAccount040Address,
 			},
 		},
 	}[testEnv]
@@ -150,7 +162,7 @@ func TestInvokeTransaction(t *testing.T) {
 		"testnet": {{
 			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			AccountPublicKey:        TestPublicKey,
-			AccountAddress:          TestNetAccountAddress,
+			AccountAddress:          TestNetAccount032Address,
 			Call: types.FunctionCall{
 				ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
 				EntryPointSelector: "increment",

@@ -33,7 +33,7 @@ func TestCall(t *testing.T) {
 					// ContractAddress of devnet ETH
 					ContractAddress:    types.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
 					EntryPointSelector: "balanceOf",
-					CallData:           []string{DevNetAccountAddress},
+					CallData:           []string{DevNetAccount032Address},
 				},
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: "^0x[0-9a-f]+$",

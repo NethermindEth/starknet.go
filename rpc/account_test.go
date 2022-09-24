@@ -25,14 +25,14 @@ func TestAccountNonce(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Address:          DevNetAccountAddress,
+				Address:          DevNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			},
 		},
 		"mock": {},
 		"testnet": {
 			{
-				Address:          TestNetAccountAddress,
+				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			},
 		},
@@ -64,7 +64,7 @@ func TestAccountEstimateFee(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Address:          DevNetAccountAddress,
+				Address:          DevNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
@@ -76,7 +76,7 @@ func TestAccountEstimateFee(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				Address:          TestNetAccountAddress,
+				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
@@ -142,7 +142,7 @@ func TestAccountExecute(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				Address:          TestNetAccountAddress,
+				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
