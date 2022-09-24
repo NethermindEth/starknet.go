@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -62,11 +63,20 @@ func TestCall(t *testing.T) {
 			},
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					ContractAddress:    types.HexToHash(TestNetETHAddress),
 					EntryPointSelector: "balanceOf",
 					CallData:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
-				BlockID:               WithBlockNumber(310000),
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: "^0x[0-9a-f]+$",
+			},
+			{
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash(TestNetAccount032Address),
+					EntryPointSelector: "get_nonce",
+					CallData:           []string{},
+				},
+				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 		},
@@ -102,5 +112,6 @@ func TestCall(t *testing.T) {
 		if err != nil || !match {
 			t.Fatalf("checking output(%v) expecting %s, got: %v", err, test.ExpectedPatternResult, output[0])
 		}
+		fmt.Println("output[0]", output[0])
 	}
 }

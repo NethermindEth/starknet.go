@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
@@ -31,7 +32,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"testnet": {{
 			Filename:          "./tests/counter.json",
 			Version:           "0x0",
-			ExpectedClassHash: "0x7cca67b54cd7edfcdd45ceef4e43636b926101a26a99af003722f7ef10b08b3",
+			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
 		}},
 	}[testEnv]
 
@@ -100,7 +101,7 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                "./tests/counter.json",
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x6a57b89a061930d1141bbfec7c4afecffa8dc8f75174420161991b994a9ad4f",
+				ExpectedContractAddress: "0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef",
 			},
 			{
 				Filename:                "./tests/oz_v0.3.2_account.json",
@@ -144,14 +145,12 @@ func TestDeployTransaction(t *testing.T) {
 	}
 }
 
-// TestInvokeTransaction tests starknet_addDeployTransaction
-func TestInvokeTransaction(t *testing.T) {
+// TestInvokeTransaction_InvokeTxvV0 tests starknet_addInvokeTransaction with a V0 account
+func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		NewAccount              func(private string, address string, options ...AccountOption) (*Account, error)
 		AccountPrivateKeyEnvVar string
-		AccountPublicKey        string
 		AccountAddress          string
 		Call                    types.FunctionCall
 		MaxFee                  string
@@ -160,18 +159,21 @@ func TestInvokeTransaction(t *testing.T) {
 		"devnet":  {},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {{
-			NewAccount:              testConfig.provider.NewAccount,
-			AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-			AccountPublicKey:        TestPublicKey,
-			AccountAddress:          TestNetAccount032Address,
-			Call: types.FunctionCall{
-				ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-				EntryPointSelector: "increment",
-				CallData:           []string{},
-			},
-			MaxFee: "0x200000001",
-		}},
+		"testnet": {
+			// Disabled tests due to the fact it is taking ages on the CI. It should
+			// work on demand though...
+			// {
+			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	Version:                 AccountVersion0,
+			// 	AccountAddress:          TestNetAccount032Address,
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// 	MaxFee: "0x200000000",
+			// },
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -179,11 +181,15 @@ func TestInvokeTransaction(t *testing.T) {
 		if privateKey == "" {
 			t.Fatal("should have a private key for the account")
 		}
-		account, err := test.NewAccount(privateKey, test.AccountAddress)
+		account, err := testConfig.provider.NewAccount(privateKey, test.AccountAddress, AccountVersion0)
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		n, err := account.Nonce(context.Background())
+		if account.version.Cmp(big.NewInt(0)) != 0 {
+			t.Fatalf("This test only supports version v0, current: %s", account.version.Text(10))
+		}
+		ctx := context.Background()
+		n, err := account.Nonce(ctx)
 		if err != nil {
 			t.Fatal("should return nonce, instead", err)
 		}
@@ -204,12 +210,12 @@ func TestInvokeTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		calldata := fmtExecuteCalldataStrings(n, []types.FunctionCall{test.Call})
+		calldata := fmtV0CalldataStrings(n, []types.FunctionCall{test.Call})
 		output, err := testConfig.provider.AddInvokeTransaction(
-			context.Background(),
+			ctx,
 			types.FunctionCall{
 				ContractAddress:    types.HexToHash(test.AccountAddress),
-				EntryPointSelector: "__execute__",
+				EntryPointSelector: EXECUTE_SELECTOR,
 				CallData:           calldata,
 			},
 			[]string{s1.Text(10), s2.Text(10)},
@@ -230,5 +236,115 @@ func TestInvokeTransaction(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		fmt.Println("transaction_hash:", output.TransactionHash)
+		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
+		defer cancel()
+		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if status != "PENDING" && status != "ACCEPTED_ON_L1" && status != "ACCEPTED_ON_L2" {
+			t.Fatalf("tx %s wrong status: %s", output.TransactionHash, status)
+		}
+	}
+}
+
+// TestInvokeTransaction_InvokeTxvV1 tests starknet_addInvokeTransaction with a V1 account
+func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		AccountPrivateKeyEnvVar string
+		AccountAddress          string
+		Call                    types.FunctionCall
+		MaxFee                  string
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {
+			// Disabled tests due to the fact it is taking ages on the CI. It should
+			// work on demand though...
+			// {
+			// 	AccountPrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
+			// 	AccountAddress:          TestNetAccount040Address,
+			// 	Call: types.FunctionCall{
+			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
+			// 		EntryPointSelector: "increment",
+			// 		CallData:           []string{},
+			// 	},
+			// 	MaxFee: "0x200000001",
+			// },
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		privateKey := os.Getenv(test.AccountPrivateKeyEnvVar)
+		if privateKey == "" {
+			t.Fatal("should have a private key for the account")
+		}
+		account, err := testConfig.provider.NewAccount(privateKey, test.AccountAddress, AccountVersion1)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		if account.version.Cmp(big.NewInt(1)) != 0 {
+			t.Fatalf("This test only supports version v1, current: %s", account.version.Text(10))
+		}
+		ctx := context.Background()
+		n, err := account.Nonce(ctx)
+		if err != nil {
+			t.Fatal("should return nonce, instead", err)
+		}
+		maxFee, _ := big.NewInt(0).SetString(test.MaxFee, 0)
+		spy := NewSpy(testConfig.provider.c, false)
+		testConfig.provider.c = spy
+		txHash, err := account.TransactionHash(
+			[]types.FunctionCall{test.Call},
+			types.ExecuteDetails{
+				Nonce:  n,
+				MaxFee: maxFee,
+			},
+		)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		s1, s2, err := account.Sign(txHash)
+		if err != nil {
+			t.Fatal("should succeed, instead", err)
+		}
+		calldata := fmtCalldataStrings([]types.FunctionCall{test.Call})
+		output, err := testConfig.provider.AddInvokeTransaction(
+			ctx,
+			types.FunctionCall{
+				ContractAddress: types.HexToHash(test.AccountAddress),
+				CallData:        calldata,
+			},
+			[]string{s1.Text(10), s2.Text(10)},
+			test.MaxFee,
+			"0x0",
+		)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if output.TransactionHash != fmt.Sprintf("0x%s", txHash.Text(16)) {
+			t.Log("transaction error...")
+			t.Logf("- computed:  %s", fmt.Sprintf("0x%s", txHash.Text(16)))
+			t.Logf("- collected: %s", output.TransactionHash)
+			t.FailNow()
+		}
+		if diff, err := spy.Compare(output, false); err != nil || diff != "FullMatch" {
+			spy.Compare(output, true)
+			t.Fatal("expecting to match", err)
+		}
+		fmt.Println("transaction_hash:", output.TransactionHash)
+		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
+		defer cancel()
+		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
+		if err != nil {
+			t.Fatal("declare should succeed, instead:", err)
+		}
+		if status != "PENDING" && status != "ACCEPTED_ON_L1" && status != "ACCEPTED_ON_L2" {
+			t.Fatalf("tx %s wrong status: %s", output.TransactionHash, status)
+		}
 	}
 }

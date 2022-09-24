@@ -79,12 +79,16 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 	for _, abi := range abis {
 		if checkABI, ok := abi.(map[string]interface{}); ok {
 			var ab ABIEntry
-			switch checkABI["type"] {
-			case "constructor", "function", "l1_handler":
+			abiType, ok := checkABI["type"].(string)
+			if !ok {
+				return fmt.Errorf("unknown abi type %v", checkABI["type"])
+			}
+			switch abiType {
+			case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
 				ab = &FunctionABIEntry{}
-			case "struct":
+			case string(ABITypeStruct):
 				ab = &StructABIEntry{}
-			case "event":
+			case string(ABITypeEvent):
 				ab = &EventABIEntry{}
 			default:
 				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
@@ -106,48 +110,39 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 }
 
 type ABIEntry interface {
-	IsType() string
+	IsType() ABIType
 }
 
-type StructABIType string
+type ABIType string
 
 const (
-	StructABITypeEvent StructABIType = "struct"
-)
-
-type EventABIType string
-
-const (
-	EventABITypeEvent EventABIType = "event"
-)
-
-type FunctionABIType string
-
-const (
-	FunctionABITypeFunction  FunctionABIType = "function"
-	FunctionABITypeL1Handler FunctionABIType = "l1_handler"
+	ABITypeConstructor ABIType = "constructor"
+	ABITypeFunction    ABIType = "function"
+	ABITypeL1Handler   ABIType = "l1_handler"
+	ABITypeEvent       ABIType = "event"
+	ABITypeStruct      ABIType = "struct"
 )
 
 type StructABIEntry struct {
 	// The event type
-	Type StructABIType `json:"type"`
+	Type ABIType `json:"type"`
 
 	// The event name
 	Name string `json:"name"`
 
 	Size uint64 `json:"size"`
 
-	Members []StructMember `json:"members"`
+	Members []Member `json:"members"`
 }
 
-type StructMember struct {
+type Member struct {
 	TypedParameter
 	Offset uint64 `json:"offset"`
 }
 
 type EventABIEntry struct {
 	// The event type
-	Type EventABIType `json:"type"`
+	Type ABIType `json:"type"`
 
 	// The event name
 	Name string `json:"name"`
@@ -159,10 +154,12 @@ type EventABIEntry struct {
 
 type FunctionABIEntry struct {
 	// The function type
-	Type FunctionABIType `json:"type"`
+	Type ABIType `json:"type"`
 
 	// The function name
 	Name string `json:"name"`
+
+	StateMutability *string `json:"stateMutability,omitempty"`
 
 	Inputs []TypedParameter `json:"inputs"`
 

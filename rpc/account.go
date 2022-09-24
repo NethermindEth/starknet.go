@@ -59,6 +59,9 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 			version = opt.version
 		}
 	}
+	if version.Cmp(big.NewInt(0)) != 0 {
+		return nil, errors.New("account v1 not yet supported")
+	}
 	priv := caigo.SNValToBN(private)
 
 	return &Account{
@@ -83,46 +86,89 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 		return nil, err
 	}
 
-	callArray := fmtExecuteCalldata(details.Nonce, calls)
+	var callArray []*big.Int
+	switch {
+	case account.version.Cmp(big.NewInt(0)) == 0:
+		callArray = fmtV0Calldata(details.Nonce, calls)
+	case account.version.Cmp(big.NewInt(1)) == 0:
+		callArray = fmtCalldata(calls)
+	default:
+		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+	}
 	cdHash, err := caigo.Curve.ComputeHashOnElements(callArray)
 	if err != nil {
 		return nil, err
 	}
 
-	multiHashData := []*big.Int{
-		caigo.UTF8StrToBig(TRANSACTION_PREFIX),
-		account.version,
-		caigo.SNValToBN(account.Address),
-		caigo.GetSelectorFromName(EXECUTE_SELECTOR),
-		cdHash,
-		details.MaxFee,
-		caigo.UTF8StrToBig(chainID),
+	var multiHashData []*big.Int
+	switch {
+	case account.version.Cmp(big.NewInt(0)) == 0:
+		multiHashData = []*big.Int{
+			caigo.UTF8StrToBig(TRANSACTION_PREFIX),
+			account.version,
+			caigo.SNValToBN(account.Address),
+			caigo.GetSelectorFromName(EXECUTE_SELECTOR),
+			cdHash,
+			details.MaxFee,
+			caigo.UTF8StrToBig(chainID),
+		}
+	case account.version.Cmp(big.NewInt(1)) == 0:
+		multiHashData = []*big.Int{
+			caigo.UTF8StrToBig(TRANSACTION_PREFIX),
+			account.version,
+			caigo.SNValToBN(account.Address),
+			cdHash,
+			details.MaxFee,
+			details.Nonce,
+			caigo.UTF8StrToBig(chainID),
+		}
+	default:
+		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 	}
-
 	return caigo.Curve.ComputeHashOnElements(multiHashData)
 }
 
 func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
-	nonce, err := account.Provider.Call(
-		ctx,
-		types.FunctionCall{
-			ContractAddress:    types.HexToHash(account.Address),
-			EntryPointSelector: "get_nonce",
-			CallData:           []string{},
-		},
-		WithBlockTag("latest"),
-	)
-	if err != nil {
-		return nil, err
+	switch {
+	case account.version.Cmp(big.NewInt(0)) == 0:
+		nonce, err := account.Provider.Call(
+			ctx,
+			types.FunctionCall{
+				ContractAddress:    types.HexToHash(account.Address),
+				EntryPointSelector: "get_nonce",
+				CallData:           []string{},
+			},
+			WithBlockTag("latest"),
+		)
+		if err != nil {
+			return nil, err
+		}
+		if len(nonce) == 0 {
+			return nil, errors.New("nonce error")
+		}
+		n, ok := big.NewInt(0).SetString(nonce[0], 0)
+		if !ok {
+			return nil, errors.New("nonce error")
+		}
+		return n, nil
+	case account.version.Cmp(big.NewInt(1)) == 0:
+		nonce, err := account.Provider.Nonce(
+			ctx,
+			types.HexToHash(account.Address),
+		)
+		if err != nil {
+			return nil, err
+		}
+		if nonce == nil {
+			return nil, errors.New("nonce is nil")
+		}
+		n, ok := big.NewInt(0).SetString(*nonce, 0)
+		if !ok {
+			return nil, errors.New("nonce error")
+		}
+		return n, nil
 	}
-	if len(nonce) == 0 {
-		return nil, errors.New("nonce error")
-	}
-	n, ok := big.NewInt(0).SetString(nonce[0], 0)
-	if !ok {
-		return nil, errors.New("nonce error")
-	}
-	return n, nil
+	return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
@@ -156,7 +202,15 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	if err != nil {
 		return nil, err
 	}
-	calldata := fmtExecuteCalldataStrings(nonce, calls)
+	var calldata []string
+	switch {
+	case account.version.Cmp(big.NewInt(0)) == 0:
+		calldata = fmtV0CalldataStrings(nonce, calls)
+	case account.version.Cmp(big.NewInt(1)) == 0:
+		calldata = fmtCalldataStrings(calls)
+	default:
+		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+	}
 	accountDefaultV0Entrypoint := "__execute__"
 	call := types.Call{
 		MaxFee:             fmt.Sprintf("0x%s", maxFee.Text(16)),
@@ -211,7 +265,16 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	if err != nil {
 		return nil, err
 	}
-	calldata := fmtExecuteCalldataStrings(nonce, calls)
+	var calldata []string
+	switch {
+	case account.version.Cmp(big.NewInt(0)) == 0:
+		calldata = fmtV0CalldataStrings(nonce, calls)
+	case account.version.Cmp(big.NewInt(1)) == 0:
+		calldata = fmtCalldataStrings(calls)
+	default:
+		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+	}
+	// TODO: change this payload to manage both V0 and V1
 	return account.Provider.AddInvokeTransaction(
 		context.Background(),
 		types.FunctionCall{

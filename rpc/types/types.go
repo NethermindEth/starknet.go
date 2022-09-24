@@ -115,14 +115,14 @@ func (i BroadcastedInvokeTxnV1) Version() uint64 {
 	return 1
 }
 
-func (s *StructABIEntry) IsType() string {
-	return string(s.Type)
+func (s *StructABIEntry) IsType() ABIType {
+	return s.Type
 }
 
-func (e *EventABIEntry) IsType() string {
-	return string(e.Type)
+func (e *EventABIEntry) IsType() ABIType {
+	return e.Type
 }
 
-func (f *FunctionABIEntry) IsType() string {
-	return string(f.Type)
+func (f *FunctionABIEntry) IsType() ABIType {
+	return f.Type
 }
