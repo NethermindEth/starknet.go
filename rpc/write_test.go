@@ -251,7 +251,7 @@ func TestInvokeTransaction(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		fmt.Println("transaction_hash:", output.TransactionHash)
-		ctx, cancel := context.WithTimeout(ctx, 120*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 		defer cancel()
 		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
 		if err != nil {
