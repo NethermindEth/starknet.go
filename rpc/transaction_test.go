@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
@@ -114,7 +116,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 // TestTransactionReceipt tests transaction receipt
-func TestTransactionReceipt(t *testing.T) {
+func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -157,6 +159,46 @@ func TestTransactionReceipt(t *testing.T) {
 		if !cmp.Equal(test.ExpectedTxnReceipt, txnReceipt) {
 			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnReceipt))
 		}
+	}
+}
+
+// TestTransactionReceipt tests transaction receipt
+func TestTransactionReceipt_MatchesStatus(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		TxnHash     types.Hash
+		StatusMatch string
+	}
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				TxnHash:     types.HexToHash("0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
+				StatusMatch: "(ACCEPTED_ON_L1|ACCEPTED_ON_L2|PENDING)",
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		spy := NewSpy(testConfig.provider.c, false)
+		testConfig.provider.c = spy
+		txReceiptInterface, err := testConfig.provider.TransactionByHash(context.Background(), test.TxnHash)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if txReceiptInterface == nil {
+			t.Fatal("transaction receipt should exist")
+		}
+		txnReceipt, ok := txReceiptInterface.(types.InvokeTransactionReceipt)
+		if !ok {
+			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
+		}
+		if ok, err := regexp.MatchString(test.StatusMatch, string(txnReceipt.Status)); err != nil || !ok {
+			t.Fatal("error checking transaction status", ok, err, txnReceipt.Status)
+		}
+		fmt.Println("transaction status", txnReceipt.Status)
 	}
 }
 

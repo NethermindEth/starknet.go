@@ -53,29 +53,33 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 		case <-ctx.Done():
 			return "", ctx.Err()
 		case <-t.C:
-			r, err := provider.TransactionReceipt(ctx, transactionHash)
+			_, err := provider.TransactionByHash(ctx, transactionHash)
 			if err != nil {
-				return "", err
+				break
 			}
-			switch status := r.(type) {
-			case *types.DeployTransactionReceipt:
+			receipt, err := provider.TransactionReceipt(ctx, transactionHash)
+			if err != nil {
+				continue
+			}
+			switch status := receipt.(type) {
+			case types.DeclareTransactionReceipt:
 				if isTransactionFinal(status.Status) {
 					return status.Status, nil
 				}
-			case *types.DeclareTransactionReceipt:
+			case types.DeployTransactionReceipt:
 				if isTransactionFinal(status.Status) {
 					return status.Status, nil
 				}
-			case *types.InvokeTransactionReceipt:
+			case types.InvokeTransactionReceipt:
 				if isTransactionFinal(status.Status) {
 					return status.Status, nil
 				}
-			case *types.L1HandlerTransactionReceipt:
+			case types.L1HandlerTransactionReceipt:
 				if isTransactionFinal(status.Status) {
 					return status.Status, nil
 				}
 			default:
-				return "", fmt.Errorf("unknown receipt %T", r)
+				return "", fmt.Errorf("unknown receipt %T", receipt)
 			}
 		}
 	}
