@@ -99,7 +99,7 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 }
 
 func mock_starknet_syncing(result interface{}, method string, args ...interface{}) error {
-	r, ok := result.(*SyncResponse)
+	r, ok := result.(*types.SyncResponse)
 	if !ok {
 		return errWrongType
 	}
@@ -107,7 +107,7 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 		return errWrongArgs
 	}
 
-	value := SyncResponse{
+	value := types.SyncResponse{
 		StartingBlockHash: "0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
 		StartingBlockNum:  "0x4c602",
 		CurrentBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
@@ -309,7 +309,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args[1] should be string, got %T\n", args[1])
 		return errWrongArgs
 	}
-	output := AddDeclareTransactionOutput{
+	output := types.AddDeclareTransactionOutput{
 		TransactionHash: "0xdeadbeef",
 		ClassHash:       "0xdeadbeef",
 	}
@@ -344,7 +344,7 @@ func mock_starknet_addDeployTransaction(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	output := AddDeployTransactionOutput{
+	output := types.AddDeployTransactionOutput{
 		TransactionHash: "0xdeadbeef",
 		ContractAddress: "0xdeadbeef",
 	}
@@ -413,7 +413,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	output := AddInvokeTransactionOutput{
+	output := types.AddInvokeTransactionOutput{
 		TransactionHash: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(output)

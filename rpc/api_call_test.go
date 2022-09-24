@@ -85,9 +85,9 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		function := test.FunctionCall
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		output, err := testConfig.client.Call(context.Background(), function, test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		output, err := testConfig.provider.Call(context.Background(), function, test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}

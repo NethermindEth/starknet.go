@@ -24,8 +24,8 @@ const (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client *Client
-	base   string
+	provider *Provider
+	base     string
 }
 
 var (
@@ -71,7 +71,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 		t.Fatal("env supports mock, testnet, mainnet or devnet")
 	}
 	if testEnv == "mock" {
-		testConfig.client = &Client{
+		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
 		return &testConfig
@@ -86,9 +86,9 @@ func beforeEach(t *testing.T) *testConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	testConfig.client = client
+	testConfig.provider = client
 	t.Cleanup(func() {
-		testConfig.client.Close()
+		testConfig.provider.Close()
 	})
 	return &testConfig
 }
@@ -113,9 +113,9 @@ func TestChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		chain, err := testConfig.client.ChainID(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		chain, err := testConfig.provider.ChainID(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -144,9 +144,9 @@ func TestSyncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		sync, err := testConfig.client.Syncing(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		sync, err := testConfig.provider.Syncing(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -168,9 +168,9 @@ func TestSyncing(t *testing.T) {
 func TestClose(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	testConfig.client.Close()
+	testConfig.provider.Close()
 
-	switch client := testConfig.client.c.(type) {
+	switch client := testConfig.provider.c.(type) {
 	case *rpc.Client:
 		return
 	case *rpcMock:
@@ -179,6 +179,6 @@ func TestClose(t *testing.T) {
 		}
 		t.Fatalf("client should have been closed")
 	default:
-		t.Fatalf("client unsupported type %T", testConfig.client.c)
+		t.Fatalf("client unsupported type %T", testConfig.provider.c)
 	}
 }

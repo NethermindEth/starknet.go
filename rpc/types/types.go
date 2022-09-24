@@ -1,5 +1,7 @@
 package types
 
+import "math/big"
+
 // StorageEntry The changes in the storage of the contract
 type StorageEntry struct {
 }
@@ -62,6 +64,40 @@ type StateUpdateOutput struct {
 	// StateDiff is the change in state applied in this block, given as a
 	// mapping of addresses to the new values and/or new contracts.
 	StateDiff StateDiff `json:"state_diff"`
+}
+
+// SyncResponse is the Starknet RPC type returned by the Syncing method.
+type SyncResponse struct {
+	StartingBlockHash string `json:"starting_block_hash"`
+	StartingBlockNum  string `json:"starting_block_num"`
+	CurrentBlockHash  string `json:"current_block_hash"`
+	CurrentBlockNum   string `json:"current_block_num"`
+	HighestBlockHash  string `json:"highest_block_hash"`
+	HighestBlockNum   string `json:"highest_block_num"`
+}
+
+// ExecuteDetails provides some details about the execution.
+type ExecuteDetails struct {
+	MaxFee  *big.Int
+	Nonce   *big.Int
+	Version *big.Int
+}
+
+// AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
+type AddDeclareTransactionOutput struct {
+	TransactionHash string `json:"transaction_hash"`
+	ClassHash       string `json:"class_hash"`
+}
+
+// AddDeployTransactionOutput provides the output for AddDeployTransaction.
+type AddDeployTransactionOutput struct {
+	TransactionHash string `json:"transaction_hash"`
+	ContractAddress string `json:"contract_address"`
+}
+
+// AddInvokeTransactionOutput provides the output for AddInvokeTransaction.
+type AddInvokeTransactionOutput struct {
+	TransactionHash string `json:"transaction_hash"`
 }
 
 type PendingTxnReceipt interface{}

@@ -24,9 +24,9 @@ func TestBlockNumber(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		blockNumber, err := testConfig.client.BlockNumber(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockNumber, err := testConfig.provider.BlockNumber(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -53,9 +53,9 @@ func TestBlockHashAndNumber(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		blockHashAndNumber, err := testConfig.client.BlockHashAndNumber(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 		if err != nil {
 			t.Fatal("BlockHashAndNumber match the expected error:", err)
 		}
@@ -85,7 +85,7 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		_, err := testConfig.client.BlockWithTxHashes(context.Background(), WithBlockTag("pending"))
+		_, err := testConfig.provider.BlockWithTxHashes(context.Background(), WithBlockTag("pending"))
 		if err == nil || !strings.Contains(err.Error(), "Pending data not supported in this configuration") {
 			t.Fatal("PendingBlockWithTxHashes should not yet be supported")
 		}
@@ -124,9 +124,9 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		block, err := testConfig.client.BlockWithTxHashes(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		block, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -186,9 +186,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -263,9 +263,9 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -323,9 +323,9 @@ func TestBlockTransactionCount(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		count, err := testConfig.client.BlockTransactionCount(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -362,7 +362,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[testEnv]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.client.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
 			if err != nil {
 				t.Fatal("BlockWithTxHashes match the expected error:", err)
 			}
@@ -386,19 +386,22 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
 
-	// Unimplemented
-	t.Skip()
-
-	type testSetType struct{}
+	type testSetType struct {
+		check bool
+	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
-			{},
+			{
+				check: false,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
-	for range testSet {
-		t.Fatalf("error running test: %v", ErrNotImplemented)
+	for _, test := range testSet {
+		if test.check {
+			t.Fatalf("error running test: %v", ErrNotImplemented)
+		}
 	}
 }
 
@@ -440,9 +443,9 @@ func TestStateUpdate(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		stateUpdate, err := testConfig.client.StateUpdate(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}

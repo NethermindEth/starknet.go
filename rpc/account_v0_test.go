@@ -12,12 +12,12 @@ import (
 	"github.com/dontpanicdao/caigo/rpc/types"
 )
 
-// TestAccountNonce tests the account Nonce
-func TestAccountNonce(t *testing.T) {
+// TestAccountV0Nonce tests the account Nonce
+func TestAccountV0Nonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Provider         *Client
+		Provider         *Provider
 		Address          string
 		PrivateKeyEnvVar string
 	}
@@ -40,7 +40,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := testConfig.client.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,13 +89,13 @@ func TestAccountEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c, false)
-		testConfig.client.c = spy
-		account, err := testConfig.client.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		spy := NewSpy(testConfig.provider.c, false)
+		testConfig.provider.c = spy
+		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}
-		estimate, err := account.EstimateFee(context.Background(), []types.FunctionCall{test.Call}, ExecuteDetails{})
+		estimate, err := account.EstimateFee(context.Background(), []types.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -155,13 +155,13 @@ func TestAccountExecute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c, false)
-		testConfig.client.c = spy
-		account, err := testConfig.client.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		spy := NewSpy(testConfig.provider.c, false)
+		testConfig.provider.c = spy
+		account, err := testConfig.provider.NewAccountV0(os.Getenv(test.PrivateKeyEnvVar), test.Address)
 		if err != nil {
 			t.Fatal(err)
 		}
-		execute, err := account.Execute(context.Background(), []types.FunctionCall{test.Call}, ExecuteDetails{})
+		execute, err := account.Execute(context.Background(), []types.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
