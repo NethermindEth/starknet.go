@@ -27,7 +27,7 @@ func TestNotImplemented(t *testing.T) {
 
 	for _, test := range testSet {
 		var out string
-		err := testConfig.client.do(context.Background(), test.MissingMethod, &out)
+		err := do(context.Background(), testConfig.provider.c, test.MissingMethod, &out)
 
 		if err == nil || err.Error() != "Method not found" {
 			t.Fatalf("Method %s is now available, got %v\n", test.MissingMethod, err)

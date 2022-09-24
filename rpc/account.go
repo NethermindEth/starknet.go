@@ -15,33 +15,69 @@ const (
 	TRANSACTION_PREFIX string = "invoke"
 )
 
+type account interface {
+	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
+	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
+	Nonce(ctx context.Context) (*big.Int, error)
+	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
+	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+}
+
+var _ account = &Account{}
+
 type Account struct {
-	Provider *Client
+	Provider *Provider
 	Address  string
 	private  *big.Int
+	version  *big.Int
 }
 
-type ExecuteDetails struct {
-	MaxFee  *big.Int
-	Nonce   *big.Int
-	Version *big.Int
+type accountOption struct {
+	version *big.Int
 }
 
-func (provider *Client) NewAccount(private, address string) (*Account, error) {
+type AccountOption func() accountOption
+
+func AccountVersion0() accountOption {
+	return accountOption{
+		version: big.NewInt(0),
+	}
+}
+
+func AccountVersion1() accountOption {
+	return accountOption{
+		version: big.NewInt(1),
+	}
+}
+
+func (provider *Provider) NewAccount(private, address string, options ...AccountOption) (*Account, error) {
+	version := big.NewInt(0)
+	for _, o := range options {
+		opt := o()
+		if opt.version != nil {
+			version = opt.version
+		}
+	}
 	priv := caigo.SNValToBN(private)
 
 	return &Account{
 		Provider: provider,
 		Address:  address,
 		private:  priv,
+		version:  version,
 	}, nil
+}
+
+func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
+	return account.Provider.Call(ctx, call, WithBlockTag("latest"))
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return caigo.Curve.Sign(msgHash, account.private)
 }
 
-func (account *Account) HashMultiCall(calls []types.FunctionCall, details ExecuteDetails) (*big.Int, error) {
+func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -55,7 +91,7 @@ func (account *Account) HashMultiCall(calls []types.FunctionCall, details Execut
 
 	multiHashData := []*big.Int{
 		caigo.UTF8StrToBig(TRANSACTION_PREFIX),
-		details.Version,
+		account.version,
 		caigo.SNValToBN(account.Address),
 		caigo.GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
@@ -89,7 +125,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return n, nil
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*types.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
 	var err error
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -103,15 +139,14 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		maxFee = details.MaxFee
 	}
 	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
+	if account.version != nil {
+		version = account.version
 	}
-	txHash, err := account.HashMultiCall(
+	txHash, err := account.TransactionHash(
 		calls,
-		ExecuteDetails{
-			Nonce:   nonce,
-			MaxFee:  maxFee,
-			Version: version,
+		types.ExecuteDetails{
+			Nonce:  nonce,
+			MaxFee: maxFee,
 		},
 	)
 	if err != nil {
@@ -134,14 +169,14 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
 }
 
-func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details ExecuteDetails) (*AddInvokeTransactionOutput, error) {
-	if details.Version != nil && details.Version.Cmp(big.NewInt(0)) != 0 {
+func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
+	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
 	var err error
 	version := big.NewInt(0)
-	if details.Version != nil {
-		version = details.Version
+	if account.version != nil {
+		version = account.version
 	}
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -162,12 +197,11 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
 	}
-	txHash, err := account.HashMultiCall(
+	txHash, err := account.TransactionHash(
 		calls,
-		ExecuteDetails{
-			Nonce:   nonce,
-			MaxFee:  maxFee,
-			Version: version,
+		types.ExecuteDetails{
+			Nonce:  nonce,
+			MaxFee: maxFee,
 		},
 	)
 	if err != nil {
@@ -189,40 +223,4 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		fmt.Sprintf("0x%s", maxFee.Text(16)),
 		fmt.Sprintf("0x%s", version.Text(16)),
 	)
-}
-
-func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
-	callArray := fmtExecuteCalldata(nonce, calls)
-	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", data.Text(16)))
-	}
-	return calldataStrings
-}
-
-/*
-Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
-*/
-func fmtExecuteCalldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
-	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
-
-	for _, tx := range calls {
-		address, _ := big.NewInt(0).SetString(tx.ContractAddress.Hex(), 0)
-		callArray = append(callArray, address, caigo.GetSelectorFromName(tx.EntryPointSelector))
-
-		if len(tx.CallData) == 0 {
-			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
-
-			continue
-		}
-
-		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.CallData))))
-		for _, cd := range tx.CallData {
-			calldataArray = append(calldataArray, caigo.SNValToBN(cd))
-		}
-	}
-
-	callArray = append(callArray, big.NewInt(int64(len(calldataArray))))
-	callArray = append(callArray, calldataArray...)
-	callArray = append(callArray, nonce)
-	return callArray
 }

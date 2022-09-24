@@ -32,9 +32,9 @@ func TestTransactionByHash(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		tx, err := testConfig.client.TransactionByHash(context.Background(), test.TxHash)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		tx, err := testConfig.provider.TransactionByHash(context.Background(), test.TxHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -86,9 +86,9 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		tx, err := testConfig.client.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -133,9 +133,9 @@ func TestTransactionReceipt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		txReceiptInterface, err := testConfig.client.TransactionReceipt(context.Background(), test.TxnHash)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -184,9 +184,9 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		txReceiptInterface, err := testConfig.client.TransactionReceipt(context.Background(), test.TxnHash)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
 		if err != nil {
 			t.Fatal(err)
 		}

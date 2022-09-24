@@ -9,21 +9,23 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
 const (
-	TestPublicKey         = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
-	DevNetETHAddress      = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
-	DevNetAccountAddress  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
-	TestNetAccountAddress = "0x19e63006d7df131737f5222283da28de2d9e2f0ee92fdc4c4c712d1659826b0"
+	TestPublicKey            = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
+	DevNetETHAddress         = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
+	DevNetAccount032Address  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
+	TestNetAccount032Address = "0x4916cb2ef37f886d7e35f6bdbb38d20917057efc4de7fad73143566f8db73a1"
+	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
+	TestNetAccount040Address = "0x130a5e263f41dcce365224fb30202daa27b1c2d970963243e1ad1d3e170654e"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client *Client
-	base   string
+	provider *Provider
+	base     string
 }
 
 var (
@@ -69,7 +71,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 		t.Fatal("env supports mock, testnet, mainnet or devnet")
 	}
 	if testEnv == "mock" {
-		testConfig.client = &Client{
+		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
 		return &testConfig
@@ -80,13 +82,14 @@ func beforeEach(t *testing.T) *testConfiguration {
 	if base != "" {
 		testConfig.base = base
 	}
-	client, err := DialContext(context.Background(), testConfig.base)
+	c, err := ethrpc.DialContext(context.Background(), testConfig.base)
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	testConfig.client = client
+	client := NewProvider(c)
+	testConfig.provider = client
 	t.Cleanup(func() {
-		testConfig.client.Close()
+		testConfig.provider.c.Close()
 	})
 	return &testConfig
 }
@@ -111,9 +114,9 @@ func TestChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		chain, err := testConfig.client.ChainID(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		chain, err := testConfig.provider.ChainID(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -142,9 +145,9 @@ func TestSyncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		sync, err := testConfig.client.Syncing(context.Background())
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		sync, err := testConfig.provider.Syncing(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
@@ -159,24 +162,5 @@ func TestSyncing(t *testing.T) {
 		if !strings.HasPrefix(sync.CurrentBlockHash, "0x") {
 			t.Fatal("current block hash should return a string starting with 0x")
 		}
-	}
-}
-
-// TestClose checks the function is called
-func TestClose(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	testConfig.client.Close()
-
-	switch client := testConfig.client.c.(type) {
-	case *rpc.Client:
-		return
-	case *rpcMock:
-		if client.closed {
-			return
-		}
-		t.Fatalf("client should have been closed")
-	default:
-		t.Fatalf("client unsupported type %T", testConfig.client.c)
 	}
 }

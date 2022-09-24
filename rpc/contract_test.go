@@ -38,9 +38,9 @@ func TestClassAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		class, err := testConfig.client.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		class, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,9 +89,9 @@ func TestClassHashAt(t *testing.T) {
 
 	for _, test := range testSet {
 
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		classhash, err := testConfig.client.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -140,9 +140,9 @@ func TestClass(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		class, err := testConfig.client.Class(context.Background(), test.ClassHash)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		class, err := testConfig.provider.Class(context.Background(), test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -198,9 +198,9 @@ func TestStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		value, err := testConfig.client.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -240,9 +240,9 @@ func TestNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		value, err := testConfig.client.Nonce(context.Background(), test.ContractAddress)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		value, err := testConfig.provider.Nonce(context.Background(), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}

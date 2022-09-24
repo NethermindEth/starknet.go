@@ -33,7 +33,7 @@ func TestCall(t *testing.T) {
 					// ContractAddress of devnet ETH
 					ContractAddress:    types.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
 					EntryPointSelector: "balanceOf",
-					CallData:           []string{DevNetAccountAddress},
+					CallData:           []string{DevNetAccount032Address},
 				},
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: "^0x[0-9a-f]+$",
@@ -85,9 +85,9 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		function := test.FunctionCall
-		spy := NewSpy(testConfig.client.c)
-		testConfig.client.c = spy
-		output, err := testConfig.client.Call(context.Background(), function, test.BlockID)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		output, err := testConfig.provider.Call(context.Background(), function, test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}
