@@ -64,10 +64,6 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	return err
 }
 
-func (s *spy) Close() {
-	s.callCloser.Close()
-}
-
 func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	if s.mock {
 		if debug {

@@ -2,10 +2,8 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -15,28 +13,9 @@ var (
 	errNotFound = errors.New("not found")
 )
 
-type callCloser interface {
-	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
-	Close()
-}
-
 // Provider provides the provider for caigo/rpc implementation.
 type Provider struct {
 	c callCloser
-}
-
-// Dial connects a client to the given URL. It creates a `go-ethereum/rpc` *Client and relies on context.Background().
-func Dial(rawurl string) (*Provider, error) {
-	return DialContext(context.Background(), rawurl)
-}
-
-// DialContext connects a Provider to the given URL with an existing context. It creates a `go-ethereum/rpc` *Client.
-func DialContext(ctx context.Context, rawurl string) (*Provider, error) {
-	c, err := rpc.DialContext(ctx, rawurl)
-	if err != nil {
-		return nil, err
-	}
-	return NewProvider(c), nil
 }
 
 // NewProvider creates a *Provider from an existing `go-ethereum/rpc` *Client.
@@ -44,42 +23,27 @@ func NewProvider(c *rpc.Client) *Provider {
 	return &Provider{c: c}
 }
 
-// Close closes the underlying client.
-func (sc *Provider) Close() {
-	sc.c.Close()
+type api interface {
+	BlockHashAndNumber(ctx context.Context) (*types.BlockHashAndNumberOutput, error)
+	BlockNumber(ctx context.Context) (uint64, error)
+	BlockTransactionCount(ctx context.Context, blockID types.BlockID) (uint64, error)
+	BlockWithTxHashes(ctx context.Context, blockID types.BlockID) (types.Block, error)
+	BlockWithTxs(ctx context.Context, blockID types.BlockID) (interface{}, error)
+	Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]string, error)
+	ChainID(ctx context.Context) (string, error)
+	Class(ctx context.Context, classHash string) (*types.ContractClass, error)
+	ClassAt(ctx context.Context, blockID types.BlockID, contractAddress types.Hash) (*types.ContractClass, error)
+	ClassHashAt(ctx context.Context, blockID types.BlockID, contractAddress types.Hash) (*string, error)
+	EstimateFee(ctx context.Context, request types.Call, blockID types.BlockID) (*types.FeeEstimate, error)
+	Events(ctx context.Context, filter types.EventFilter) (*types.EventsOutput, error)
+	Nonce(ctx context.Context, contractAddress types.Hash) (*string, error)
+	PendingTransactions(ctx context.Context) (types.Transactions, error)
+	StateUpdate(ctx context.Context, blockID types.BlockID) (*types.StateUpdateOutput, error)
+	StorageAt(ctx context.Context, contractAddress types.Hash, key string, blockID types.BlockID) (string, error)
+	Syncing(ctx context.Context) (*types.SyncResponse, error)
+	TransactionByBlockIdAndIndex(ctx context.Context, blockID types.BlockID, index uint64) (types.Transaction, error)
+	TransactionByHash(ctx context.Context, hash types.Hash) (types.Transaction, error)
+	TransactionReceipt(ctx context.Context, transactionHash types.Hash) (types.TransactionReceipt, error)
 }
 
-// ChainID retrieves the current chain ID for transaction replay protection.
-func (sc *Provider) ChainID(ctx context.Context) (string, error) {
-	var result string
-	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
-	if err := sc.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...); err != nil {
-		return "", err
-	}
-	return caigo.HexToShortStr(result), nil
-}
-
-// Syncing checks the syncing status of the node.
-func (sc *Provider) Syncing(ctx context.Context) (*types.SyncResponse, error) {
-	var result types.SyncResponse
-	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
-	if err := sc.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-func (sc *Provider) do(ctx context.Context, method string, data interface{}, args ...interface{}) error {
-	var raw json.RawMessage
-	err := sc.c.CallContext(ctx, &raw, method, args...)
-	if err != nil {
-		return err
-	}
-	if len(raw) == 0 {
-		return errNotFound
-	}
-	if err := json.Unmarshal(raw, &data); err != nil {
-		return err
-	}
-	return nil
-}
+var _ api = &Provider{}

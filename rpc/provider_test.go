@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -82,13 +82,14 @@ func beforeEach(t *testing.T) *testConfiguration {
 	if base != "" {
 		testConfig.base = base
 	}
-	client, err := DialContext(context.Background(), testConfig.base)
+	c, err := ethrpc.DialContext(context.Background(), testConfig.base)
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
+	client := NewProvider(c)
 	testConfig.provider = client
 	t.Cleanup(func() {
-		testConfig.provider.Close()
+		testConfig.provider.c.Close()
 	})
 	return &testConfig
 }
@@ -168,10 +169,8 @@ func TestSyncing(t *testing.T) {
 func TestClose(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	testConfig.provider.Close()
-
 	switch client := testConfig.provider.c.(type) {
-	case *rpc.Client:
+	case *ethrpc.Client:
 		return
 	case *rpcMock:
 		if client.closed {

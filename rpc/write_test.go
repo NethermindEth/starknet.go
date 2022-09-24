@@ -190,7 +190,7 @@ func TestInvokeTransaction(t *testing.T) {
 		maxFee, _ := big.NewInt(0).SetString(test.MaxFee, 0)
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		txHash, err := account.HashMultiCall(
+		txHash, err := account.TransactionHash(
 			[]types.FunctionCall{test.Call},
 			types.ExecuteDetails{
 				Nonce:  n,

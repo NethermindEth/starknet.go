@@ -16,7 +16,8 @@ const (
 
 type account interface {
 	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
-	HashMultiCall(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)

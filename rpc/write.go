@@ -12,7 +12,7 @@ import (
 func (sc *Provider) AddInvokeTransaction(ctx context.Context, call types.FunctionCall, signature []string, maxFee string, version string) (*types.AddInvokeTransactionOutput, error) {
 	call.EntryPointSelector = fmt.Sprintf("0x%s", caigo.GetSelectorFromName(call.EntryPointSelector).Text(16))
 	var output types.AddInvokeTransactionOutput
-	if err := sc.do(ctx, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
+	if err := do(ctx, sc.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -21,7 +21,7 @@ func (sc *Provider) AddInvokeTransaction(ctx context.Context, call types.Functio
 // AddDeclareTransaction submits a new class declaration transaction.
 func (sc *Provider) AddDeclareTransaction(ctx context.Context, contractClass types.ContractClass, version string) (*types.AddDeclareTransactionOutput, error) {
 	var result types.AddDeclareTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
+	if err := do(ctx, sc.c, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -34,7 +34,7 @@ func (sc *Provider) AddDeclareTransaction(ctx context.Context, contractClass typ
 // way to deploy an account without being charged for it.
 func (sc *Provider) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass types.ContractClass) (*types.AddDeployTransactionOutput, error) {
 	var result types.AddDeployTransactionOutput
-	if err := sc.do(ctx, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
+	if err := do(ctx, sc.c, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
 		return nil, err
 	}
 	return &result, nil

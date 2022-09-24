@@ -28,11 +28,15 @@ func (provider *Provider) NewAccountV0(private, address string) (*AccountV0, err
 	}, nil
 }
 
+func (account *AccountV0) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
+	return account.Provider.Call(ctx, call, WithBlockTag("latest"))
+}
+
 func (account *AccountV0) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return caigo.Curve.Sign(msgHash, account.private)
 }
 
-func (account *AccountV0) HashMultiCall(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
+func (account *AccountV0) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -97,7 +101,7 @@ func (account *AccountV0) EstimateFee(ctx context.Context, calls []types.Functio
 	if account.version != nil {
 		version = account.version
 	}
-	txHash, err := account.HashMultiCall(
+	txHash, err := account.TransactionHash(
 		calls,
 		types.ExecuteDetails{
 			Nonce:  nonce,
@@ -152,7 +156,7 @@ func (account *AccountV0) Execute(ctx context.Context, calls []types.FunctionCal
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
 	}
-	txHash, err := account.HashMultiCall(
+	txHash, err := account.TransactionHash(
 		calls,
 		types.ExecuteDetails{
 			Nonce:  nonce,
