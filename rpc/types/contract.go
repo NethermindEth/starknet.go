@@ -149,7 +149,7 @@ type EventABIEntry struct {
 
 	Keys []TypedParameter `json:"keys"`
 
-	Data TypedParameter `json:"data"`
+	Data []TypedParameter `json:"data"`
 }
 
 type FunctionABIEntry struct {
