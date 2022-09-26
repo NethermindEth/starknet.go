@@ -21,6 +21,8 @@ func TestXSessions_EstimateFee(t *testing.T) {
 		Address          string
 		PrivateKeyEnvVar string
 		Call             types.FunctionCall
+		PluginClassHash  string
+		XSession         XSession
 	}
 
 	testSet := map[string][]testSetType{
@@ -33,7 +35,10 @@ func TestXSessions_EstimateFee(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccount(
+			os.Getenv(test.PrivateKeyEnvVar),
+			test.Address,
+			WithXSessionsPlugin(test.PluginClassHash, test.XSession))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -63,6 +68,8 @@ func TestXSessions_Execute(t *testing.T) {
 		Address          string
 		PrivateKeyEnvVar string
 		Call             types.FunctionCall
+		PluginClassHash  string
+		XSession         XSession
 	}
 
 	testSet := map[string][]testSetType{
@@ -75,7 +82,11 @@ func TestXSessions_Execute(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := testConfig.provider.NewAccount(
+			os.Getenv(test.PrivateKeyEnvVar),
+			test.Address,
+			WithXSessionsPlugin(test.PluginClassHash, test.XSession),
+		)
 		if err != nil {
 			t.Fatal(err)
 		}

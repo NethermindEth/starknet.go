@@ -26,37 +26,53 @@ type account interface {
 
 var _ account = &Account{}
 
+type AccountPlugin interface {
+	PluginCall(calls []types.FunctionCall) (types.FunctionCall, error)
+}
+
 type Account struct {
 	Provider *Provider
 	Address  string
 	private  *big.Int
 	version  *big.Int
+	plugin   AccountPlugin
 }
 
 type accountOption struct {
-	version *big.Int
+	AccountPlugin AccountPlugin
+	version       *big.Int
 }
 
-type AccountOption func() accountOption
+type AccountOption func() (accountOption, error)
 
-func AccountVersion0() accountOption {
+func AccountVersion0() (accountOption, error) {
 	return accountOption{
 		version: big.NewInt(0),
-	}
+	}, nil
 }
 
-func AccountVersion1() accountOption {
+func AccountVersion1() (accountOption, error) {
 	return accountOption{
 		version: big.NewInt(1),
-	}
+	}, nil
 }
 
 func (provider *Provider) NewAccount(private, address string, options ...AccountOption) (*Account, error) {
+	var accountPlugin AccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
-		opt := o()
+		opt, err := o()
+		if err != nil {
+			return nil, err
+		}
 		if opt.version != nil {
 			version = opt.version
+		}
+		if opt.AccountPlugin != nil {
+			if accountPlugin != nil {
+				return nil, errors.New("multiple plugins not supported")
+			}
+			accountPlugin = opt.AccountPlugin
 		}
 	}
 	if version.Cmp(big.NewInt(0)) != 0 {
@@ -69,6 +85,7 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 		Address:  address,
 		private:  priv,
 		version:  version,
+		plugin:   accountPlugin,
 	}, nil
 }
 
@@ -188,6 +205,13 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	if account.version != nil {
 		version = account.version
 	}
+	if account.plugin != nil {
+		call, err := account.plugin.PluginCall(calls)
+		if err != nil {
+			return nil, err
+		}
+		calls = append([]types.FunctionCall{call}, calls...)
+	}
 	txHash, err := account.TransactionHash(
 		calls,
 		types.ExecuteDetails{
@@ -250,6 +274,13 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return nil, errors.New("could not match OverallFee to big.Int")
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
+	}
+	if account.plugin != nil {
+		call, err := account.plugin.PluginCall(calls)
+		if err != nil {
+			return nil, err
+		}
+		calls = append([]types.FunctionCall{call}, calls...)
 	}
 	txHash, err := account.TransactionHash(
 		calls,
