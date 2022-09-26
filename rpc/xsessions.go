@@ -65,36 +65,6 @@ func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (acco
 	}
 }
 
-func NewXSessionsPlugin(pluginClassHash string, xsession XSession) (AccountPlugin, error) {
-	plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
-	if !ok {
-		return nil, errors.New("could not convert plugin class hash")
-	}
-	leaves := []*big.Int{}
-	for _, policy := range xsession.Policies {
-		contract, ok := big.NewInt(0).SetString(policy.ContractAddress, 0)
-		if !ok {
-			return nil, errors.New("could not convert contract address")
-		}
-		leaf, _ := caigo.Curve.HashElements(append(
-			[]*big.Int{},
-			POLICY_TYPE_HASH,
-			contract,
-			caigo.GetSelectorFromName(policy.Selector),
-		))
-		leaves = append(leaves, leaf)
-	}
-	mt, err := caigo.NewFixedSizeMerkleTree(leaves...)
-	if err != nil {
-		return nil, fmt.Errorf("could not create merkle tree, error: %v", err)
-	}
-	return &XSessionsPlugin{
-		classHash: plugin,
-		xsession:  xsession,
-		mt:        *mt,
-	}, nil
-}
-
 func (xsessions *XSessionsPlugin) PluginCall(calls []types.FunctionCall) (types.FunctionCall, error) {
 	data := []string{
 		fmt.Sprintf("0x%s", xsessions.classHash.Text(16)),
