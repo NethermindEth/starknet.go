@@ -43,15 +43,15 @@ type AccountOption struct {
 	version       *big.Int
 }
 
-type AccountOptionFunc func() (AccountOption, error)
+type AccountOptionFunc func(string, string) (AccountOption, error)
 
-func AccountVersion0() (AccountOption, error) {
+func AccountVersion0(string, string) (AccountOption, error) {
 	return AccountOption{
 		version: big.NewInt(0),
 	}, nil
 }
 
-func AccountVersion1() (AccountOption, error) {
+func AccountVersion1(string, string) (AccountOption, error) {
 	return AccountOption{
 		version: big.NewInt(1),
 	}, nil
@@ -61,7 +61,7 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 	var accountPlugin AccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
-		opt, err := o()
+		opt, err := o(private, address)
 		if err != nil {
 			return nil, err
 		}

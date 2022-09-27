@@ -26,13 +26,15 @@ var _ AccountPlugin = &XSessionsPlugin{}
 var POLICY_TYPE_HASH, _ = big.NewInt(0).SetString("0x2f0026e78543f036f33e26a8f5891b88c58dc1e20cbbfaf0bb53274da6fa568", 0)
 
 type XSessionsPlugin struct {
-	classHash *big.Int
-	xsession  XSession
-	mt        caigo.FixedSizeMerkleTree
+	accountAddress types.Hash
+	classHash      *big.Int
+	mt             caigo.FixedSizeMerkleTree
+	private        *big.Int
+	xsession       XSession
 }
 
-func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (AccountOption, error) {
-	return func() (AccountOption, error) {
+func WithXSessionsPlugin(pluginClassHash string, xsession XSession) AccountOptionFunc {
+	return func(private, address string) (AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
 			return AccountOption{}, errors.New("could not convert plugin class hash")
@@ -55,11 +57,17 @@ func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (Acco
 		if err != nil {
 			return AccountOption{}, fmt.Errorf("could not create merkle tree, error: %v", err)
 		}
+		pk, ok := big.NewInt(0).SetString(private, 0)
+		if !ok {
+			return AccountOption{}, fmt.Errorf("could not get private key")
+		}
 		return AccountOption{
 			AccountPlugin: &XSessionsPlugin{
-				classHash: plugin,
-				xsession:  xsession,
-				mt:        *mt,
+				accountAddress: types.HexToHash(address),
+				classHash:      plugin,
+				mt:             *mt,
+				private:        pk,
+				xsession:       xsession,
 			},
 		}, nil
 	}
@@ -97,7 +105,7 @@ func (xsessions *XSessionsPlugin) PluginCall(calls []types.FunctionCall) (types.
 		data = append(data, fmt.Sprintf("0x%s", proof.Text(16)))
 	}
 	return types.FunctionCall{
-		ContractAddress:    types.BigToHash(xsessions.classHash),
+		ContractAddress:    xsessions.accountAddress,
 		EntryPointSelector: "use_plugin",
 		CallData:           data,
 	}, nil
