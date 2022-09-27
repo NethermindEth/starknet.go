@@ -31,17 +31,17 @@ type XSessionsPlugin struct {
 	mt        caigo.FixedSizeMerkleTree
 }
 
-func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (accountOption, error) {
-	return func() (accountOption, error) {
+func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (AccountOption, error) {
+	return func() (AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
-			return accountOption{}, errors.New("could not convert plugin class hash")
+			return AccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		leaves := []*big.Int{}
 		for _, policy := range xsession.Policies {
 			contract, ok := big.NewInt(0).SetString(policy.ContractAddress, 0)
 			if !ok {
-				return accountOption{}, errors.New("could not convert contract address")
+				return AccountOption{}, errors.New("could not convert contract address")
 			}
 			leaf, _ := caigo.Curve.HashElements(append(
 				[]*big.Int{},
@@ -53,9 +53,9 @@ func WithXSessionsPlugin(pluginClassHash string, xsession XSession) func() (acco
 		}
 		mt, err := caigo.NewFixedSizeMerkleTree(leaves...)
 		if err != nil {
-			return accountOption{}, fmt.Errorf("could not create merkle tree, error: %v", err)
+			return AccountOption{}, fmt.Errorf("could not create merkle tree, error: %v", err)
 		}
-		return accountOption{
+		return AccountOption{
 			AccountPlugin: &XSessionsPlugin{
 				classHash: plugin,
 				xsession:  xsession,

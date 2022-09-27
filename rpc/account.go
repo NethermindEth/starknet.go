@@ -38,26 +38,26 @@ type Account struct {
 	plugin   AccountPlugin
 }
 
-type accountOption struct {
+type AccountOption struct {
 	AccountPlugin AccountPlugin
 	version       *big.Int
 }
 
-type AccountOption func() (accountOption, error)
+type AccountOptionFunc func() (AccountOption, error)
 
-func AccountVersion0() (accountOption, error) {
-	return accountOption{
+func AccountVersion0() (AccountOption, error) {
+	return AccountOption{
 		version: big.NewInt(0),
 	}, nil
 }
 
-func AccountVersion1() (accountOption, error) {
-	return accountOption{
+func AccountVersion1() (AccountOption, error) {
+	return AccountOption{
 		version: big.NewInt(1),
 	}, nil
 }
 
-func (provider *Provider) NewAccount(private, address string, options ...AccountOption) (*Account, error) {
+func (provider *Provider) NewAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
