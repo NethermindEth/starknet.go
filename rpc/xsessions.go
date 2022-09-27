@@ -105,7 +105,7 @@ func (xsessions *XSessionsPlugin) PluginCall(calls []types.FunctionCall) (types.
 		data = append(data, fmt.Sprintf("0x%s", proof.Text(16)))
 	}
 	return types.FunctionCall{
-		ContractAddress:    types.BigToHash(xsessions.classHash),
+		ContractAddress:    xsessions.accountAddress,
 		EntryPointSelector: "use_plugin",
 		CallData:           data,
 	}, nil
