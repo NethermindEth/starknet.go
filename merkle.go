@@ -55,7 +55,11 @@ func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) (*big.Int, error) {
 	return mt.build(newLeaves)
 }
 
-func (mt *FixedSizeMerkleTree) GetProof(leaf *big.Int, branchIndex int, hashPath []*big.Int) ([]*big.Int, error) {
+func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error) {
+	return mt.recursiveProof(leaf, 0, []*big.Int{})
+}
+
+func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, hashPath []*big.Int) ([]*big.Int, error) {
 	if branchIndex >= len(mt.Branches) {
 		return hashPath, nil
 	}
@@ -82,7 +86,7 @@ func (mt *FixedSizeMerkleTree) GetProof(leaf *big.Int, branchIndex int, hashPath
 		return nil, fmt.Errorf("nextproof error: %v", err)
 	}
 	newHashPath := append(hashPath, nextProof)
-	return mt.GetProof(newLeaf, branchIndex+1, newHashPath)
+	return mt.recursiveProof(newLeaf, branchIndex+1, newHashPath)
 }
 
 func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {
