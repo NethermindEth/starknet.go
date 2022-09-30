@@ -41,6 +41,9 @@ jobs:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
+      - name: Test sessionkey on devnet
+        run: cd rpc/xsessions && ./sessionkey.sh
+
       - name: Test RPC on testnet
         run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:

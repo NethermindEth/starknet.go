@@ -28,7 +28,7 @@ func TestFixedSizeMerkleTree_Check1(t *testing.T) {
 	if err != nil {
 		t.Fatal("should generate merkle tree, error", err)
 	}
-	proof, err := merkleTree.GetProof(leaf, 0, []*big.Int{})
+	proof, err := merkleTree.Proof(leaf)
 	if err != nil {
 		t.Fatal("should generate merkle proof, error", err)
 	}
