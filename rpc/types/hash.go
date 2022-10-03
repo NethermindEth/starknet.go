@@ -18,10 +18,6 @@ const HashLength = 32
 
 type Hash [HashLength]byte
 
-func (* Hash) MarshalJSON() {
-	
-}
-
 // BytesToHash sets b to hash.
 // If b is larger than len(h), b will be cropped from the left.
 func BytesToHash(b []byte) Hash {
