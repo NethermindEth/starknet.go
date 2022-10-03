@@ -17,12 +17,12 @@ func TestBlockID_Marshal(t *testing.T) {
 		id: BlockID{
 			Tag: "latest",
 		},
-		want: `{"block_tag":"latest"}`,
+		want: `"latest"`,
 	}, {
 		id: BlockID{
 			Tag: "pending",
 		},
-		want: `{"block_tag":"pending"}`,
+		want: `"pending"`,
 	}, {
 		id: BlockID{
 			Tag: "bad tag",
