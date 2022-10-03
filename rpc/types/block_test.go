@@ -60,16 +60,16 @@ func TestBlockStatus(t *testing.T) {
 		status string
 		want   BlockStatus
 	}{{
-		status: "PENDING",
+		status: `"PENDING"`,
 		want:   BlockStatus_Pending,
 	}, {
-		status: "ACCEPTED_ON_L2",
+		status: `"ACCEPTED_ON_L2"`,
 		want:   BlockStatus_AcceptedOnL2,
 	}, {
-		status: "ACCEPTED_ON_L1",
+		status: `"ACCEPTED_ON_L1"`,
 		want:   BlockStatus_AcceptedOnL1,
 	}, {
-		status: "REJECTED",
+		status: `"REJECTED"`,
 		want:   BlockStatus_Rejected,
 	}} {
 		tx := new(BlockStatus)
