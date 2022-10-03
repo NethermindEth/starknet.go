@@ -10,16 +10,16 @@ func TestTransactionStatus(t *testing.T) {
 		status string
 		want   TransactionStatus
 	}{{
-		status: "PENDING",
+		status: `"PENDING"`,
 		want:   TransactionStatus_Pending,
 	}, {
-		status: "ACCEPTED_ON_L2",
+		status: `"ACCEPTED_ON_L2"`,
 		want:   TransactionStatus_AcceptedOnL2,
 	}, {
-		status: "ACCEPTED_ON_L1",
+		status: `"ACCEPTED_ON_L1"`,
 		want:   TransactionStatus_AcceptedOnL1,
 	}, {
-		status: "REJECTED",
+		status: `"REJECTED"`,
 		want:   TransactionStatus_Rejected,
 	}} {
 		tx := new(TransactionStatus)

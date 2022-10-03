@@ -30,7 +30,7 @@ func TestContractClass_UnmarshalInvalidJSON_Fails(t *testing.T) {
 	}
 
 	contractClass := ContractClass{}
-	if err := json.Unmarshal(content, &contractClass); err != nil {
-		t.Fatal("should be able unmarshall Class", err)
+	if err := json.Unmarshal(content, &contractClass); err == nil {
+		t.Fatal("should not be able to unmarshall Class")
 	}
 }
