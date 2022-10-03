@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -28,12 +27,20 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 		return []byte(strconv.Quote(b.Tag)), nil
 	}
 
-	type Alias BlockID
 	if b.Tag != "" && (b.Tag != "pending" && b.Tag != "latest") {
 		return nil, ErrInvalidBlockID
 	}
 
-	return json.Marshal((Alias)(b))
+	if b.Number != nil {
+		return []byte(fmt.Sprintf(`{"block_number":%d}`,*b.Number)), nil
+	} 
+
+	if b.Hash != nil {
+		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`,(*b.Hash).Hex())), nil
+	}
+
+	return nil, ErrInvalidBlockID
+	
 }
 
 type BlockStatus string
