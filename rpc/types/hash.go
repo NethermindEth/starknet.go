@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"math/rand"
 	"reflect"
-	"strings"
+	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -17,6 +17,10 @@ import (
 const HashLength = 32
 
 type Hash [HashLength]byte
+
+func (h Hash) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(hexutil.Encode(h[:]))), nil
+}
 
 // BytesToHash sets b to hash.
 // If b is larger than len(h), b will be cropped from the left.
@@ -112,7 +116,7 @@ func (h Hash) MarshalText() ([]byte, error) {
 		return nil, err
 	}
 
-	return []byte("0x" + strings.TrimLeft(string(marshalled)[2:], "0")), nil
+	return marshalled, nil
 }
 
 // SetBytes sets the hash to the value of b.

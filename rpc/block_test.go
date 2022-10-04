@@ -92,7 +92,7 @@ func TestPendingBlockWithTxHashes(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxHashes tests TestBlockWithTxHashes
+// TestBlockWithTxHashes tests BlockWithTxHashes
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -132,9 +132,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 		}
 		if test.ExpectedError != nil {
 			continue
-		}
-		if diff, err := spy.Compare(block, true); err != nil || diff != "FullMatch" {
-			t.Fatalf("expecting to match diff: %s, err: %v", diff, err)
 		}
 		if !strings.HasPrefix(block.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
@@ -448,14 +445,6 @@ func TestStateUpdate(t *testing.T) {
 		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
 		if err != nil {
 			t.Fatal(err)
-		}
-		diff, err := spy.Compare(stateUpdate, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(stateUpdate, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if uint64(stateUpdate.AcceptedTime) != 0 {
 			t.Fatalf("structure expecting %d, instead: %d", 0, stateUpdate.AcceptedTime)
