@@ -48,14 +48,6 @@ func TestTransactionByHash(t *testing.T) {
 		if !ok {
 			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
 		}
-		diff, err := spy.Compare(txTyped, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(txTyped, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
 		if !cmp.Equal(test.ExpectedTxn, txTyped) {
 			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxn, txTyped))
 		}
@@ -148,14 +140,6 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		if !ok {
 			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
 		}
-		diff, err := spy.Compare(txnReceipt, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "SupersetMatch" && diff != "FullMatch" {
-			spy.Compare(txnReceipt, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
 		if !cmp.Equal(test.ExpectedTxnReceipt, txnReceipt) {
 			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnReceipt))
 		}
@@ -238,14 +222,6 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		txnReceipt, ok := txReceiptInterface.(types.InvokeTransactionReceipt)
 		if !ok {
 			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
-		}
-		diff, err := spy.Compare(txnReceipt, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(txnReceipt, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if !cmp.Equal(test.ExpectedTxnReceipt, txnReceipt) {
 			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnReceipt))
