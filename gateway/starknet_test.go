@@ -111,27 +111,31 @@ func TestExecuteGoerli(t *testing.T) {
 	}
 }
 
-func TestDeployGoerli(t *testing.T) {
-	accountCalldata := []string{
-		"622947212727630016888676747031248582302218969620261661169319263633873449798",
-		"215307247182100370520050591091822763712463273430149262739280891880522753123",
-		"2",
-	}
+func TestDeployCounterContract(t *testing.T) {
+	testConfig := beforeEach(t)
 
-	gw := NewClient()
+	type testSetType struct{}
+	testSet := map[string][]testSetType{
+		"devnet":  {{}},
+		"mainnet": {},
+		"mock":    {},
+		"testnet": {{}},
+	}[testEnv]
 
-	for _, testAccount := range testnetAccounts {
-		salt := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED)
-		calldata := append(accountCalldata, caigo.HexToBN(testAccount.PublicKey).String(), "0")
+	for range testSet {
 
-		_, err := gw.Deploy(context.Background(), proxyCompiled, types.DeployRequest{
-			ContractAddressSalt: fmt.Sprintf("0x%x", salt),
-			ConstructorCalldata: calldata,
+		gw := testConfig.client
+
+		tx, err := gw.Deploy(context.Background(), "contracts/counter.json", types.DeployRequest{
+			ContractAddressSalt: "0x1",
+			ConstructorCalldata: []string{},
 		})
 		if err != nil {
 			t.Errorf("testnet: could not deploy contract: %v\n", err)
 		}
+		fmt.Println("txHash: ", tx.TransactionHash)
 	}
+
 }
 
 func TestCallGoerli(t *testing.T) {
