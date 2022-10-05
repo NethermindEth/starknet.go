@@ -126,14 +126,14 @@ func TestDeployCounterContract(t *testing.T) {
 
 		gw := testConfig.client
 
-			tx, err := gw.Deploy(context.Background(), "contracts/counter.json", types.DeployRequest{
-				ContractAddressSalt: "0x1",
-				ConstructorCalldata: []string {},
-			})
-			if err != nil {
-				t.Errorf("testnet: could not deploy contract: %v\n", err)
-			}
-			fmt.Println("txHash: ", tx.TransactionHash)
+		tx, err := gw.Deploy(context.Background(), "contracts/counter.json", types.DeployRequest{
+			ContractAddressSalt: "0x1",
+			ConstructorCalldata: []string{},
+		})
+		if err != nil {
+			t.Errorf("testnet: could not deploy contract: %v\n", err)
+		}
+		fmt.Println("txHash: ", tx.TransactionHash)
 	}
 
 }
