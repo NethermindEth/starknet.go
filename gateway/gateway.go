@@ -62,21 +62,23 @@ func NewClient(opts ...Option) *Gateway {
 	case strings.Contains(id, "local"):
 		fallthrough
 	case strings.Contains(id, "dev"):
+		gopts.chainID = GOERLI_ID
 		if gopts.baseUrl == "" {
 			gopts.baseUrl = LOCAL_BASE
 		}
 	default:
+		gopts.chainID = GOERLI_ID
 		if gopts.baseUrl == "" {
 			gopts.baseUrl = GOERLI_BASE
 		}
 	}
 
 	return &Gateway{
-		Base:    gopts.baseUrl,
-		Feeder:  gopts.baseUrl + "/feeder_gateway",
-		Gateway: gopts.baseUrl + "/gateway",
-		ChainId: gopts.chainID,
-		client: gopts.client,
+		Base:         gopts.baseUrl,
+		Feeder:       gopts.baseUrl + "/feeder_gateway",
+		Gateway:      gopts.baseUrl + "/gateway",
+		ChainId:      gopts.chainID,
+		client:       gopts.client,
 		errorHandler: gopts.errorHandler,
 	}
 }
