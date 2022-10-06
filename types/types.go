@@ -20,7 +20,7 @@ type Code struct {
 }
 
 /*
-	StarkNet transaction states
+StarkNet transaction states
 */
 const (
 	NOT_RECIEVED = TxStatus(iota)
@@ -67,6 +67,12 @@ type ABI struct {
 type AddTxResponse struct {
 	Code            string `json:"code"`
 	TransactionHash string `json:"transaction_hash"`
+}
+
+type AddDeclareResponse struct {
+	Code            string `json:"code"`
+	TransactionHash string `json:"transaction_hash"`
+	ClassHash       string `json:"class_hash"`
 }
 
 type DeployRequest struct {

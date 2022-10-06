@@ -151,7 +151,7 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 /*
 	'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddTxResponse, err error) {
+func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return resp, err

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -40,8 +40,8 @@ type Gateway struct {
 var _ types.Provider = &Gateway{}
 
 /*
-	Instantiate a new StarkNet Gateway client
-	- defaults to the GOERLI endpoints
+Instantiate a new StarkNet Gateway client
+- defaults to the GOERLI endpoints
 */
 func NewClient(opts ...Option) *Gateway {
 	gopts := options{
@@ -104,7 +104,7 @@ func (sg *Gateway) newRequest(
 		if err != nil {
 			return nil, fmt.Errorf("marshal body: %w", err)
 		}
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		req.Body = io.NopCloser(bytes.NewBuffer(data))
 		req.Header.Add("Content-Type", "application/json; charset=utf")
 	}
 	return req, nil
@@ -126,7 +126,7 @@ func (e Error) Error() string {
 // NewError creates a new Error from an API response.
 func NewError(resp *http.Response) error {
 	apiErr := Error{StatusCode: resp.StatusCode}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err == nil && data != nil {
 		apiErr.Body = data
 		if err := json.Unmarshal(data, &apiErr); err != nil {
@@ -151,12 +151,11 @@ func (sg *Gateway) do(req *http.Request, v interface{}) error {
 		}
 		return e
 	}
-
-	if v != nil {
-		return json.NewDecoder(resp.Body).Decode(v)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
 	}
-
-	return nil
+	return json.Unmarshal(body, v)
 }
 
 func appendQueryValues(req *http.Request, values url.Values) {

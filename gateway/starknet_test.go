@@ -7,9 +7,6 @@ import (
 	"math/big"
 	"math/rand"
 	"net/http"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -42,11 +39,7 @@ var (
 			},
 		},
 	}
-	_, b, _, _             = runtime.Caller(0)
-	projectRoot            = strings.TrimRight(filepath.Dir(b), "gateway")
-	accountCompiled string = projectRoot + "gateway/contracts/account_class.json"
-	proxyTest       string = projectRoot + "gateway/contracts/Proxy.cairo"
-	proxyCompiled   string = projectRoot + "gateway/contracts/proxy.json"
+	accountCompiled string = "contracts/account_class.json"
 )
 
 type TestAccountType struct {
