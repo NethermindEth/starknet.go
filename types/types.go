@@ -75,6 +75,12 @@ type AddDeclareResponse struct {
 	ClassHash       string `json:"class_hash"`
 }
 
+type AddDeployResponse struct {
+	Code            string `json:"code"`
+	TransactionHash string `json:"transaction_hash"`
+	ContractAddress string `json:"address"`
+}
+
 type DeployRequest struct {
 	Type                string        `json:"type"`
 	ContractAddressSalt string        `json:"contract_address_salt"`
