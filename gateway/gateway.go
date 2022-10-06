@@ -53,37 +53,32 @@ func NewClient(opts ...Option) *Gateway {
 		opt.apply(&gopts)
 	}
 
-	var sg *Gateway
 	switch id := strings.ToLower(gopts.chainID); {
 	case strings.Contains(id, "main"):
-		sg = &Gateway{
-			Base:    MAINNET_BASE,
-			Feeder:  MAINNET_BASE + "/feeder_gateway",
-			Gateway: MAINNET_BASE + "/gateway",
-			ChainId: MAINNET_ID,
+		gopts.chainID = MAINNET_ID
+		if gopts.baseUrl == "" {
+			gopts.baseUrl = MAINNET_BASE
 		}
 	case strings.Contains(id, "local"):
 		fallthrough
 	case strings.Contains(id, "dev"):
-		sg = &Gateway{
-			Base:    LOCAL_BASE,
-			Feeder:  LOCAL_BASE + "/feeder_gateway",
-			Gateway: LOCAL_BASE + "/gateway",
-			ChainId: GOERLI_ID,
+		if gopts.baseUrl == "" {
+			gopts.baseUrl = LOCAL_BASE
 		}
 	default:
-		sg = &Gateway{
-			Base:    GOERLI_BASE,
-			Feeder:  GOERLI_BASE + "/feeder_gateway",
-			Gateway: GOERLI_BASE + "/gateway",
-			ChainId: GOERLI_ID,
+		if gopts.baseUrl == "" {
+			gopts.baseUrl = GOERLI_BASE
 		}
 	}
 
-	sg.client = gopts.client
-	sg.errorHandler = gopts.errorHandler
-
-	return sg
+	return &Gateway{
+		Base:    gopts.baseUrl,
+		Feeder:  gopts.baseUrl + "/feeder_gateway",
+		Gateway: gopts.baseUrl + "/gateway",
+		ChainId: gopts.chainID,
+		client: gopts.client,
+		errorHandler: gopts.errorHandler,
+	}
 }
 
 func (sg *Gateway) newRequest(

@@ -116,7 +116,7 @@ type EntryPointList struct {
 
 type FunctionCall struct {
 	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector"`
+	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
 	Calldata           []string `json:"calldata"`
 }
 
