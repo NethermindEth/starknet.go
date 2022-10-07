@@ -28,9 +28,9 @@ var (
 			PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
 			PublicKey:  "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
 			Address:    "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
-			Transactions: []types.Transaction{
+			Transactions: []types.FunctionCall{
 				{
-					ContractAddress:    CONTRACT_ADDRESS,
+					ContractAddress:    types.HexToHash(CONTRACT_ADDRESS),
 					EntryPointSelector: "increase_balance",
 					Calldata: []string{
 						"1",
@@ -43,10 +43,10 @@ var (
 )
 
 type TestAccountType struct {
-	PrivateKey   string              `json:"private_key"`
-	PublicKey    string              `json:"public_key"`
-	Address      string              `json:"address"`
-	Transactions []types.Transaction `json:"transactions,omitempty"`
+	PrivateKey   string               `json:"private_key"`
+	PublicKey    string               `json:"public_key"`
+	Address      string               `json:"address"`
+	Transactions []types.FunctionCall `json:"transactions,omitempty"`
 }
 
 func TestDeclare(t *testing.T) {
@@ -86,17 +86,18 @@ func TestExecuteGoerli(t *testing.T) {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
 
-		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, caigo.ExecuteDetails{})
+		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, types.ExecuteDetails{})
 		if err != nil {
 			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 		}
 
-		fee := new(types.Felt)
-		fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
+		fee, _ := big.NewInt(0).SetString(string(feeEstimate.OverallFee), 0)
+		expandedFee := big.NewInt(0).Mul(fee, big.NewInt(int64(FEE_MARGIN)))
+		max := big.NewInt(0).Div(expandedFee, big.NewInt(100))
 
 		_, err = account.Execute(context.Background(), testAccount.Transactions,
-			caigo.ExecuteDetails{
-				MaxFee: fee,
+			types.ExecuteDetails{
+				MaxFee: max,
 			})
 		if err != nil {
 			t.Errorf("Could not execute test transaction: %v\n", err)
@@ -201,9 +202,9 @@ func TestE2EDevnet(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			rand := fmt.Sprintf("0x%x", rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED))
 
-			tx := []types.Transaction{
+			tx := []types.FunctionCall{
 				{
-					ContractAddress:    txDetails.Transaction.ContractAddress,
+					ContractAddress:    types.HexToHash(txDetails.Transaction.ContractAddress),
 					EntryPointSelector: "set_rand",
 					Calldata:           []string{rand},
 				},
@@ -214,12 +215,13 @@ func TestE2EDevnet(t *testing.T) {
 				t.Errorf("testnet: could not create account: %v\n", err)
 			}
 
-			feeEstimate, err := account.EstimateFee(context.Background(), tx, caigo.ExecuteDetails{})
+			feeEstimate, err := account.EstimateFee(context.Background(), tx, types.ExecuteDetails{})
 			if err != nil {
 				t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
 			}
-			fee := new(types.Felt)
-			fee.Int = new(big.Int).SetUint64(feeEstimate.OverallFee * FEE_MARGIN / 100)
+			fee, _ := big.NewInt(0).SetString(string(feeEstimate.OverallFee), 0)
+			expandedFee := big.NewInt(0).Mul(fee, big.NewInt(int64(FEE_MARGIN)))
+			max := big.NewInt(0).Div(expandedFee, big.NewInt(100))
 
 			nonce, err := gw.AccountNonce(context.Background(), account.Address)
 			if err != nil {
@@ -227,8 +229,8 @@ func TestE2EDevnet(t *testing.T) {
 			}
 
 			execResp, err := account.Execute(context.Background(), tx,
-				caigo.ExecuteDetails{
-					MaxFee: fee,
+				types.ExecuteDetails{
+					MaxFee: max,
 					Nonce:  nonce,
 				})
 			if err != nil {

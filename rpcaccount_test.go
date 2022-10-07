@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpc"
-	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -94,7 +93,7 @@ func TestAccountEstimateFee(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		estimate, err := account.EstimateFee(context.Background(), []ctypes.FunctionCall{test.Call}, types.ExecuteDetails{})
+		estimate, err := account.EstimateFee(context.Background(), []ctypes.FunctionCall{test.Call}, ctypes.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -152,7 +151,7 @@ func TestAccountExecute(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		execute, err := account.Execute(ctx, []ctypes.FunctionCall{test.Call}, types.ExecuteDetails{})
+		execute, err := account.Execute(ctx, []ctypes.FunctionCall{test.Call}, ctypes.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}

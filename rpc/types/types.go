@@ -1,8 +1,6 @@
 package types
 
 import (
-	"math/big"
-
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -80,12 +78,6 @@ type SyncResponse struct {
 	HighestBlockNum   string `json:"highest_block_num"`
 }
 
-// ExecuteDetails provides some details about the execution.
-type ExecuteDetails struct {
-	MaxFee *big.Int
-	Nonce  *big.Int
-}
-
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
 type AddDeclareTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
@@ -96,15 +88,4 @@ type AddDeclareTransactionOutput struct {
 type AddDeployTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
 	ContractAddress string `json:"contract_address"`
-}
-
-// AddInvokeTransactionOutput provides the output for AddInvokeTransaction.
-type AddInvokeTransactionOutput struct {
-	TransactionHash string `json:"transaction_hash"`
-}
-
-type FeeEstimate struct {
-	GasConsumed ctypes.NumAsHex `json:"gas_consumed"`
-	GasPrice    ctypes.NumAsHex `json:"gas_price"`
-	OverallFee  ctypes.NumAsHex `json:"overall_fee"`
 }

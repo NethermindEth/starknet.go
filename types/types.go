@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 )
 
 type NumAsHex string
@@ -117,8 +118,7 @@ type TransactionStatus struct {
 	} `json:"tx_failure_reason,omitempty"`
 }
 
-type AddTxResponse struct {
-	Code            string `json:"code"`
+type AddInvokeTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
 }
 
@@ -175,15 +175,19 @@ type FunctionInvoke struct {
 	TransactionHash *Felt     `json:"txn_hash,omitempty"`
 }
 
-// FeeEstimate provides a set of properties to understand fee estimations.
 type FeeEstimate struct {
-	OverallFee uint64 `json:"overall_fee,omitempty"`
-	GasUsage   uint64 `json:"gas_usage,omitempty"`
-	GasPrice   uint64 `json:"gas_price,omitempty"`
-	Unit       string `json:"unit,omitempty"`
+	GasConsumed NumAsHex `json:"gas_consumed"`
+	GasPrice    NumAsHex `json:"gas_price"`
+	OverallFee  NumAsHex `json:"overall_fee"`
 }
 
 type ContractAddresses struct {
 	Starknet             string `json:"Starknet"`
 	GpsStatementVerifier string `json:"GpsStatementVerifier"`
+}
+
+// ExecuteDetails provides some details about the execution.
+type ExecuteDetails struct {
+	MaxFee *big.Int
+	Nonce  *big.Int
 }

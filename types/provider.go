@@ -11,7 +11,7 @@ type Provider interface {
 	BlockByNumber(context.Context, *big.Int, string) (*Block, error)
 	Call(context.Context, FunctionCall, string) ([]string, error)
 	ChainID(context.Context) (string, error)
-	Invoke(context.Context, FunctionInvoke) (*AddTxResponse, error)
+	Invoke(context.Context, FunctionInvoke) (*AddInvokeTransactionOutput, error)
 	TransactionByHash(context.Context, string) (*Transaction, error)
 	TransactionReceipt(context.Context, string) (*TransactionReceipt, error)
 	EstimateFee(context.Context, FunctionInvoke, string) (*FeeEstimate, error)

@@ -9,9 +9,9 @@ import (
 )
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, call ctypes.FunctionCall, signature []string, maxFee string, version string) (*types.AddInvokeTransactionOutput, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, call ctypes.FunctionCall, signature []string, maxFee string, version string) (*ctypes.AddInvokeTransactionOutput, error) {
 	call.EntryPointSelector = fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(call.EntryPointSelector).Text(16))
-	var output types.AddInvokeTransactionOutput
+	var output ctypes.AddInvokeTransactionOutput
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
 		return nil, err
 	}

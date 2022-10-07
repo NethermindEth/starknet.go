@@ -12,14 +12,13 @@ import (
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
-
 type account interface {
 	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
-	TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	TransactionHash(calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*big.Int, error)
 	Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
-	EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
-	Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+	EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.FeeEstimate, error)
+	Execute(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.AddInvokeTransactionOutput, error)
 }
 
 var _ account = &RPCAccount{}
@@ -38,7 +37,7 @@ type RPCAccount struct {
 
 type RPCAccountOption struct {
 	RPCAccountPlugin RPCAccountPlugin
-	version       *big.Int
+	version          *big.Int
 }
 
 type AccountOptionFunc func(string, string) (RPCAccountOption, error)
@@ -95,7 +94,7 @@ func (account *RPCAccount) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return Curve.Sign(msgHash, account.private)
 }
 
-func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
+func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -187,7 +186,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 }
 
-func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
+func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.FeeEstimate, error) {
 	var err error
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -213,7 +212,7 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 	}
 	txHash, err := account.TransactionHash(
 		calls,
-		types.ExecuteDetails{
+		ctypes.ExecuteDetails{
 			Nonce:  nonce,
 			MaxFee: maxFee,
 		},
@@ -246,7 +245,7 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
 }
 
-func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
+func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.AddInvokeTransactionOutput, error) {
 	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
@@ -283,7 +282,7 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionC
 	}
 	txHash, err := account.TransactionHash(
 		calls,
-		types.ExecuteDetails{
+		ctypes.ExecuteDetails{
 			Nonce:  nonce,
 			MaxFee: maxFee,
 		},

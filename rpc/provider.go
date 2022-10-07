@@ -35,7 +35,7 @@ type api interface {
 	Class(ctx context.Context, classHash string) (*ctypes.ContractClass, error)
 	ClassAt(ctx context.Context, blockID types.BlockID, contractAddress ctypes.Hash) (*ctypes.ContractClass, error)
 	ClassHashAt(ctx context.Context, blockID types.BlockID, contractAddress ctypes.Hash) (*string, error)
-	EstimateFee(ctx context.Context, request types.Call, blockID types.BlockID) (*types.FeeEstimate, error)
+	EstimateFee(ctx context.Context, request types.Call, blockID types.BlockID) (*ctypes.FeeEstimate, error)
 	Events(ctx context.Context, filter types.EventFilter) (*types.EventsOutput, error)
 	Nonce(ctx context.Context, contractAddress ctypes.Hash) (*string, error)
 	StateUpdate(ctx context.Context, blockID types.BlockID) (*types.StateUpdateOutput, error)

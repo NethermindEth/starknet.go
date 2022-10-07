@@ -374,10 +374,10 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
-	output := types.FeeEstimate{
-		GasConsumed: "0x01a4",
-		GasPrice:    "0x45",
-		OverallFee:  "0x7134",
+	output := ctypes.FeeEstimate{
+		GasConsumed: ctypes.NumAsHex("0x01a4"),
+		GasPrice:    ctypes.NumAsHex("0x45"),
+		OverallFee:  ctypes.NumAsHex("0x7134"),
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -414,7 +414,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	output := types.AddInvokeTransactionOutput{
+	output := ctypes.AddInvokeTransactionOutput{
 		TransactionHash: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(output)

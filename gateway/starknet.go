@@ -76,7 +76,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 /*
 'add_transaction' wrapper for invokation requests
 */
-func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
+func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddInvokeTransactionOutput, error) {
 	tx := types.Transaction{
 		Type:            INVOKE,
 		ContractAddress: invoke.ContractAddress.Hex(),
@@ -108,7 +108,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		return nil, err
 	}
 
-	var resp types.AddTxResponse
+	var resp types.AddInvokeTransactionOutput
 	return &resp, sg.do(req, &resp)
 }
 
