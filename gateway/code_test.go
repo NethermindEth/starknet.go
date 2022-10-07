@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -44,7 +45,7 @@ func TestProviderFullContract(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ABIName              string
+		ABIType              string
 		Starknet             string
 		GpsStatementVerifier string
 	}
@@ -53,18 +54,12 @@ func TestProviderFullContract(t *testing.T) {
 		"mock":   {},
 		"testnet": {
 			{
-				ABIName:              "planet_genereted",
+				ABIType:              "*types.EventABIEntry",
 				Starknet:             "0x04358e376b5c68f17dc1cbdbde19914f1dd6e52a2eddb5b4b0d694716fe5d89b",
 				GpsStatementVerifier: "0xab43ba48c9edf4c2c4bb01237348d1d7b28ef168",
 			},
 		},
-		"mainnet": {
-			{
-				ABIName:              "",
-				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
-				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60",
-			},
-		},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -73,8 +68,8 @@ func TestProviderFullContract(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if contract.ABI[1].Name != test.ABIName {
-			t.Fatalf("expecting %s, instead: %s", "", contract.ABI[1].Name)
+		if fmt.Sprintf("%T", (*contract.ABI)[1]) != test.ABIType {
+			t.Fatalf("expecting %s, instead: %T", "function", (*contract.ABI)[1])
 		}
 	}
 }

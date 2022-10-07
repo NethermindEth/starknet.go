@@ -8,7 +8,7 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDefinition, error) {
+func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*types.ContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_by_hash", nil)
 	if err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*RawContractDe
 		"classHash": []string{hash},
 	})
 
-	var resp RawContractDefinition
+	var resp types.ContractClass
 	return &resp, sg.do(req, &resp)
 }
 

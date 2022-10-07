@@ -113,12 +113,6 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	return &resp, sg.do(req, &resp)
 }
 
-type RawContractDefinition struct {
-	ABI               []types.ABI             `json:"abi"`
-	EntryPointsByType types.EntryPointsByType `json:"entry_points_by_type"`
-	Program           map[string]interface{}  `json:"program"`
-}
-
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
@@ -136,14 +130,12 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 		deployRequest.ContractAddressSalt = "0x0"
 	}
 
-	var rawDef RawContractDefinition
+	var rawDef types.ContractClass
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}
 
-	deployRequest.ContractDefinition.ABI = rawDef.ABI
-	deployRequest.ContractDefinition.EntryPointsByType = rawDef.EntryPointsByType
-	deployRequest.ContractDefinition.Program, err = CompressCompiledContract(rawDef.Program)
+	deployRequest.ContractDefinition = rawDef
 	if err != nil {
 		return resp, err
 	}
@@ -171,14 +163,12 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	declareRequest.Nonce = "0x0"
 	declareRequest.Signature = []string{}
 
-	var rawDef RawContractDefinition
+	var rawDef types.ContractClass
 	if err = json.Unmarshal(dat, &rawDef); err != nil {
 		return resp, err
 	}
 
-	declareRequest.ContractClass.ABI = rawDef.ABI
-	declareRequest.ContractClass.EntryPointsByType = rawDef.EntryPointsByType
-	declareRequest.ContractClass.Program, err = CompressCompiledContract(rawDef.Program)
+	declareRequest.ContractClass = rawDef
 	if err != nil {
 		return resp, err
 	}
