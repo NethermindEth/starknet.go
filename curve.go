@@ -7,6 +7,7 @@ package caigo
 */
 import (
 	"crypto/elliptic"
+	"crypto/subtle"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -229,45 +230,47 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
-	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
-
-	_add := func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-		yDelta := new(big.Int).Sub(y1, y2)
-		xDelta := new(big.Int).Sub(x1, x2)
-
-		m := DivMod(yDelta, xDelta, sc.P)
-
-		xm := new(big.Int).Mul(m, m)
-
-		x = new(big.Int).Sub(xm, x1)
-		x = x.Sub(x, x2)
-		x = x.Mod(x, sc.P)
-
-		y = new(big.Int).Sub(x1, x)
-		y = y.Mul(m, y)
-		y = y.Sub(y, y1)
-		y = y.Mod(y, sc.P)
-
-		return x, y
-	}
+	// https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder
+	// R0 ← 0
+	// R1 ← P
+	// for i from m downto 0 do
+	// 	if di = 0 then
+	// 		R1 ← point_add(R0, R1)
+	// 		R0 ← point_double(R0)
+	// 	else
+	// 		R0 ← point_add(R0, R1)
+	// 		R1 ← point_double(R1)
+	// return R0
+	var _ecMultMontgomery func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int)
 
 	// alpha is our Y
-	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
-		if m.BitLen() == 1 {
-			return x1, y1
+	_ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Fill a fixed 32 byte buffer (2 ** 251)
+		buf := m.FillBytes(make([]byte, 32))
+
+		for i, byte := range buf {
+			for bitNum := 0; bitNum < 8; bitNum++ {
+				// Skip first 4 bits, do constant 252 operations
+				if (i == 0 && bitNum < 4) {
+					byte <<= 1
+					continue;
+				}
+
+				// Check if next bit set
+				if subtle.ConstantTimeByteEq(byte&0x80, 0x80) == 0 {
+					x1, y1 = sc.Add(x0, y0, x1, y1)
+					x0, y0 = sc.Double(x0, y0)
+				} else {
+					x0, y0 = sc.Add(x0, y0, x1, y1)
+					x1, y1 = sc.Double(x1, y1)
+				}
+				byte <<= 1
+			}
 		}
-		mk := new(big.Int).Mod(m, big.NewInt(2))
-		if mk.Cmp(big.NewInt(0)) == 0 {
-			h := new(big.Int).Div(m, big.NewInt(2))
-			c, d := sc.Double(x1, y1)
-			return _ecMult(h, c, d)
-		}
-		n := new(big.Int).Sub(m, big.NewInt(1))
-		e, f := _ecMult(n, x1, y1)
-		return _add(e, f, x1, y1)
+		return x0, y0
 	}
 
-	x, y = _ecMult(m, x1, y1)
+	x, y = _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
 	return x, y
 }
 
