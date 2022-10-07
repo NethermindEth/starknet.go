@@ -1,4 +1,4 @@
-package account
+package caigo
 
 import (
 	"context"
@@ -42,7 +42,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -90,7 +90,7 @@ func TestAccountEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -147,7 +147,7 @@ func TestAccountExecute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -6,13 +6,12 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/rpc/account"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 var (
-	_ account.RPCAccountPlugin = &SessionKeyPlugin{}
+	_ caigo.RPCAccountPlugin = &SessionKeyPlugin{}
 )
 
 type SessionKeyPlugin struct {
@@ -22,17 +21,17 @@ type SessionKeyPlugin struct {
 	token          *SessionKeyToken
 }
 
-func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) account.AccountOptionFunc {
-	return func(private, address string) (account.RPCAccountOption, error) {
+func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
+	return func(private, address string) (caigo.RPCAccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
-			return account.RPCAccountOption{}, errors.New("could not convert plugin class hash")
+			return caigo.RPCAccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		pk, ok := big.NewInt(0).SetString(private, 0)
 		if !ok {
-			return account.RPCAccountOption{}, errors.New("could not convert plugin class hash")
+			return caigo.RPCAccountOption{}, errors.New("could not convert plugin class hash")
 		}
-		return account.RPCAccountOption{
+		return caigo.RPCAccountOption{
 			RPCAccountPlugin: &SessionKeyPlugin{
 				accountAddress: ctypes.HexToHash(address),
 				classHash:      plugin,

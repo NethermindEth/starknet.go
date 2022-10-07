@@ -1,4 +1,4 @@
-package account
+package caigo
 
 import (
 	"context"
@@ -6,17 +6,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
-const (
-	EXECUTE_SELECTOR   string = "__execute__"
-	TRANSACTION_PREFIX string = "invoke"
-)
 
 type account interface {
 	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
@@ -60,7 +55,7 @@ func AccountVersion1(string, string) (RPCAccountOption, error) {
 	}, nil
 }
 
-func NewAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
+func NewRPCAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
 	var accountPlugin RPCAccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
@@ -97,7 +92,7 @@ func (account *RPCAccount) Call(ctx context.Context, call ctypes.FunctionCall) (
 }
 
 func (account *RPCAccount) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return caigo.Curve.Sign(msgHash, account.private)
+	return Curve.Sign(msgHash, account.private)
 }
 
 func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
@@ -115,7 +110,7 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 	default:
 		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 	}
-	cdHash, err := caigo.Curve.ComputeHashOnElements(callArray)
+	cdHash, err := Curve.ComputeHashOnElements(callArray)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +141,7 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 	default:
 		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 	}
-	return caigo.Curve.ComputeHashOnElements(multiHashData)
+	return Curve.ComputeHashOnElements(multiHashData)
 }
 
 func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
