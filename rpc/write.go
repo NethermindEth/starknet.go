@@ -6,6 +6,7 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
@@ -19,7 +20,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, call types.F
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, contractClass types.ContractClass, version string) (*types.AddDeclareTransactionOutput, error) {
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, contractClass ctypes.ContractClass, version string) (*types.AddDeclareTransactionOutput, error) {
 	var result types.AddDeclareTransactionOutput
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, contractClass, version); err != nil {
 		return nil, err
@@ -32,7 +33,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, contractCla
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (provider *Provider) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass types.ContractClass) (*types.AddDeployTransactionOutput, error) {
+func (provider *Provider) AddDeployTransaction(ctx context.Context, salt string, inputs []string, contractClass ctypes.ContractClass) (*types.AddDeployTransactionOutput, error) {
 	var result types.AddDeployTransactionOutput
 	if err := do(ctx, provider.c, "starknet_addDeployTransaction", &result, salt, inputs, contractClass); err != nil {
 		return nil, err

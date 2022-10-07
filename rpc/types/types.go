@@ -1,6 +1,10 @@
 package types
 
-import "math/big"
+import (
+	"math/big"
+
+	ctypes "github.com/dontpanicdao/caigo/types"
+)
 
 // StorageEntry The changes in the storage of the contract
 type StorageEntry struct {
@@ -34,7 +38,7 @@ type DeployedContractItem struct {
 // ContractNonce is a the updated nonce per contract address
 type ContractNonce struct {
 	// ContractAddress is the address of the contract
-	ContractAddress Hash `json:"contract_address"`
+	ContractAddress ctypes.Hash `json:"contract_address"`
 	// Nonce is the nonce for the given address at the end of the block"
 	Nonce string `json:"nonce"`
 }
@@ -54,7 +58,7 @@ type StateDiff struct {
 
 type StateUpdateOutput struct {
 	// BlockHash is the block identifier,
-	BlockHash Hash `json:"block_hash"`
+	BlockHash ctypes.Hash `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot string `json:"new_root"`
 	// OldRoot is the previous global state root.
@@ -99,18 +103,8 @@ type AddInvokeTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
 }
 
-type PendingTxnReceipt interface{}
-
 type FeeEstimate struct {
-	GasConsumed NumAsHex `json:"gas_consumed"`
-	GasPrice    NumAsHex `json:"gas_price"`
-	OverallFee  NumAsHex `json:"overall_fee"`
-}
-
-func (i BroadcastedInvokeTxnV0) Version() uint64 {
-	return 0
-}
-
-func (i BroadcastedInvokeTxnV1) Version() uint64 {
-	return 1
+	GasConsumed ctypes.NumAsHex `json:"gas_consumed"`
+	GasPrice    ctypes.NumAsHex `json:"gas_price"`
+	OverallFee  ctypes.NumAsHex `json:"overall_fee"`
 }

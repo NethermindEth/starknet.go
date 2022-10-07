@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // BlockNumber gets the most recent accepted block number.
@@ -30,7 +31,7 @@ func WithBlockNumber(n uint64) types.BlockID {
 	}
 }
 
-func WithBlockHash(h types.Hash) types.BlockID {
+func WithBlockHash(h ctypes.Hash) types.BlockID {
 	return types.BlockID{
 		Hash: &h,
 	}

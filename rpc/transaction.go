@@ -6,19 +6,11 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
-// PendingTransactions returns the list of pending transactions.
-func (provider *Provider) PendingTransactions(ctx context.Context) (types.Transactions, error) {
-	var txns types.Transactions
-	if err := do(ctx, provider.c, "starknet_pendingTransactions", &txns); err != nil {
-		return nil, err
-	}
-	return txns, nil
-}
-
 // TransactionByHash gets the details and status of a submitted transaction.
-func (provider *Provider) TransactionByHash(ctx context.Context, hash types.Hash) (types.Transaction, error) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash ctypes.Hash) (types.Transaction, error) {
 	var tx types.UnknownTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
@@ -36,7 +28,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 }
 
 // TxnReceipt gets the transaction receipt by the transaction hash.
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash types.Hash) (types.TransactionReceipt, error) {
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash ctypes.Hash) (types.TransactionReceipt, error) {
 	var receipt types.UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
@@ -46,7 +38,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 }
 
 // WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash types.Hash, pollInterval time.Duration) (types.TransactionStatus, error) {
+func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash ctypes.Hash, pollInterval time.Duration) (types.TransactionStatus, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {

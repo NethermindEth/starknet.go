@@ -12,6 +12,7 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 //go:embed artifacts/sessionkey_3fc70024.json
@@ -104,9 +105,9 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterAddress),
+			ContractAddress:    ctypes.HexToHash(counterAddress),
 			EntryPointSelector: "increment",
-			CallData:           []string{},
+			Calldata:           []string{},
 		},
 	}
 	ctx := context.Background()
@@ -117,7 +118,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if !strings.HasPrefix(tx.TransactionHash, "0x") {
 		t.Fatal("execute should return transaction hash, instead:", tx.TransactionHash)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

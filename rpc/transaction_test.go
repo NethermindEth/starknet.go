@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -15,19 +16,19 @@ func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxHash      types.Hash
+		TxHash      ctypes.Hash
 		ExpectedTxn types.Transaction
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				TxHash:      types.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				TxHash:      ctypes.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
 				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
 			},
 		},
 		"testnet": {
 			{
-				TxHash:      types.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
+				TxHash:      ctypes.HexToHash("0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
 				ExpectedTxn: InvokeTxnV00x705547f8f2f8f,
 			},
 		},
@@ -112,14 +113,14 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash            types.Hash
+		TxnHash            ctypes.Hash
 		ExpectedTxnReceipt types.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:            types.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+				TxnHash:            ctypes.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
 				ExpectedTxnReceipt: receiptTxn310370_0,
 			},
 		},
@@ -151,14 +152,14 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash     types.Hash
+		TxnHash     ctypes.Hash
 		StatusMatch string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:     types.HexToHash("0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
+				TxnHash:     ctypes.HexToHash("0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
 				StatusMatch: "(ACCEPTED_ON_L1|ACCEPTED_ON_L2|PENDING)",
 			},
 		},
@@ -191,18 +192,18 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash            types.Hash
+		TxnHash            ctypes.Hash
 		ExpectedTxnReceipt types.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:            types.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
+				TxnHash:            ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
 				ExpectedTxnReceipt: receiptTxn310843_14,
 			},
 			{
-				TxnHash:            types.HexToHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
+				TxnHash:            ctypes.HexToHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 				ExpectedTxnReceipt: receiptTxn300114_3,
 			},
 		},

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 var (
@@ -158,7 +159,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	_, ok = args[0].(types.Hash)
+	_, ok = args[0].(ctypes.Hash)
 	if !ok {
 		return errWrongArgs
 	}
@@ -179,12 +180,12 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 
 	transaction := types.InvokeTransactionReceipt{
 		CommonTransactionReceipt: types.CommonTransactionReceipt{
-			TransactionHash: types.HexToHash(args[0].(string)),
+			TransactionHash: ctypes.HexToHash(args[0].(string)),
 			Status:          types.TransactionStatus("ACCEPTED_ON_L1"),
 		},
 		InvokeTransactionReceiptProperties: types.InvokeTransactionReceiptProperties{
 			Events: []types.Event{{
-				FromAddress: types.HexToHash("0xdeadbeef"),
+				FromAddress: ctypes.HexToHash("0xdeadbeef"),
 			}},
 		},
 	}
@@ -202,7 +203,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
+	var class = ctypes.ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -239,7 +240,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
+	var class = ctypes.ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -261,12 +262,12 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	}
 	events := &types.EventsOutput{
 		Events: []types.EmittedEvent{
-			{BlockHash: types.HexToHash("0xdeadbeef"),
+			{BlockHash: ctypes.HexToHash("0xdeadbeef"),
 				Event: types.Event{
 					FromAddress: query.Address,
 				},
 				BlockNumber:     1,
-				TransactionHash: types.HexToHash("0xdeadbeef"),
+				TransactionHash: ctypes.HexToHash("0xdeadbeef"),
 			},
 		},
 	}
@@ -299,7 +300,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.ContractClass)
+	_, ok = args[0].(ctypes.ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
@@ -334,11 +335,11 @@ func mock_starknet_addDeployTransaction(result interface{}, method string, args 
 	}
 	_, ok = args[1].([]string)
 	if !ok {
-		fmt.Printf("args[1] should be ConstructorCallData, got %T\n", args[1])
+		fmt.Printf("args[1] should be ConstructorCalldata, got %T\n", args[1])
 		return errWrongArgs
 	}
 
-	_, ok = args[2].(types.ContractClass)
+	_, ok = args[2].(ctypes.ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[2])
 		return errWrongArgs
@@ -431,7 +432,7 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 		return errWrongArgs
 	}
 
-	if _, ok := args[0].(types.Hash); !ok {
+	if _, ok := args[0].(ctypes.Hash); !ok {
 		return errWrongArgs
 	}
 
@@ -466,7 +467,7 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 	}
 
 	output := types.StateUpdateOutput{
-		BlockHash:    types.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
+		BlockHash:    ctypes.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 		NewRoot:      "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 		OldRoot:      "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 		AcceptedTime: 0,
@@ -492,7 +493,7 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	if _, ok := args[0].(types.Hash); !ok {
+	if _, ok := args[0].(ctypes.Hash); !ok {
 		fmt.Printf("args[0] should be string, got %T\n", args[0])
 		return errWrongArgs
 	}

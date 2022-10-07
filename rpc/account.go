@@ -8,6 +8,8 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
+
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 const (
@@ -152,9 +154,9 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 		nonce, err := account.Provider.Call(
 			ctx,
 			types.FunctionCall{
-				ContractAddress:    types.HexToHash(account.Address),
+				ContractAddress:    ctypes.HexToHash(account.Address),
 				EntryPointSelector: "get_nonce",
-				CallData:           []string{},
+				Calldata:           []string{},
 			},
 			WithBlockTag("latest"),
 		)
@@ -172,7 +174,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	case account.version.Cmp(big.NewInt(1)) == 0:
 		nonce, err := account.Provider.Nonce(
 			ctx,
-			types.HexToHash(account.Address),
+			ctypes.HexToHash(account.Address),
 		)
 		if err != nil {
 			return nil, err
@@ -239,11 +241,11 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	accountDefaultV0Entrypoint := "__execute__"
 	call := types.Call{
 		MaxFee:             fmt.Sprintf("0x%s", maxFee.Text(16)),
-		Version:            types.NumAsHex(fmt.Sprintf("0x%s", version.Text(16))),
+		Version:            ctypes.NumAsHex(fmt.Sprintf("0x%s", version.Text(16))),
 		Signature:          []string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
-		ContractAddress:    types.HexToHash(account.Address),
+		ContractAddress:    ctypes.HexToHash(account.Address),
 		EntryPointSelector: &accountDefaultV0Entrypoint,
-		CallData:           calldata,
+		Calldata:           calldata,
 	}
 	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
 }
@@ -310,9 +312,9 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	return account.Provider.AddInvokeTransaction(
 		context.Background(),
 		types.FunctionCall{
-			ContractAddress:    types.HexToHash(account.Address),
+			ContractAddress:    ctypes.HexToHash(account.Address),
 			EntryPointSelector: "__execute__",
-			CallData:           calldata,
+			Calldata:           calldata,
 		},
 		[]string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
 		fmt.Sprintf("0x%s", maxFee.Text(16)),

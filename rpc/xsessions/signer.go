@@ -8,6 +8,8 @@ import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/rpc/types"
+
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 var (
@@ -15,7 +17,7 @@ var (
 )
 
 type SessionKeyPlugin struct {
-	accountAddress types.Hash
+	accountAddress ctypes.Hash
 	classHash      *big.Int
 	private        *big.Int
 	token          *SessionKeyToken
@@ -33,7 +35,7 @@ func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) rpc.Ac
 		}
 		return rpc.AccountOption{
 			AccountPlugin: &SessionKeyPlugin{
-				accountAddress: types.HexToHash(address),
+				accountAddress: ctypes.HexToHash(address),
 				classHash:      plugin,
 				private:        pk,
 				token:          token,
@@ -107,6 +109,6 @@ func (plugin *SessionKeyPlugin) PluginCall(calls []types.FunctionCall) (types.Fu
 	return types.FunctionCall{
 		ContractAddress:    plugin.accountAddress,
 		EntryPointSelector: "use_plugin",
-		CallData:           data,
+		Calldata:           data,
 	}, nil
 }

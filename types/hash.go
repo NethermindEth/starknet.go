@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strconv"
 
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -36,7 +37,7 @@ func BigToHash(b *big.Int) Hash { return BytesToHash(b.Bytes()) }
 
 // HexToHash sets byte representation of s to hash.
 // If b is larger than len(h), b will be cropped from the left.
-func HexToHash(s string) Hash { return BytesToHash(FromHex(s)) }
+func HexToHash(s string) Hash { return BytesToHash(ethcommon.FromHex(s)) }
 
 // Bytes gets the byte representation of the underlying hash.
 func (h Hash) Bytes() []byte { return h[:] }

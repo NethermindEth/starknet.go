@@ -17,18 +17,18 @@ func TestHash(t *testing.T) {
 	}, {
 		Hash: "0x00680b0616e65633dfaf06d5a5ee5f1d1d4b641396009f00a67c0d18dc0f9638",
 	}} {
-		var th TransactionHash
-		if err := json.Unmarshal([]byte(strconv.Quote(tc.Hash)), &th); err != nil {
+		var hash Hash
+		if err := json.Unmarshal([]byte(strconv.Quote(tc.Hash)), &hash); err != nil {
 			t.Fatalf("Unmarshalling text: %v", err)
 		}
-		h := th
+		h := hash
 		h2 := HexToHash(tc.Hash)
 
-		if h.TransactionHash != h2 {
+		if h != h2 {
 			t.Fatalf("Hashes not equal: %s %s", h, h2)
 		}
 
-		m, err := h.TransactionHash.MarshalText()
+		m, err := h.MarshalText()
 		if err != nil {
 			t.Fatalf("Marshalling text: %v", err)
 		}

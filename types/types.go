@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type NumAsHex string
+
 type Bytecode []string
 
 type Block struct {

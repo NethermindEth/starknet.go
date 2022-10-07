@@ -4,19 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 type CommonTransactionReceipt struct {
-	TransactionHash Hash `json:"transaction_hash"`
+	TransactionHash ctypes.Hash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee   string            `json:"actual_fee"`
 	Status      TransactionStatus `json:"status"`
-	BlockHash   Hash              `json:"block_hash"`
+	BlockHash   ctypes.Hash       `json:"block_hash"`
 	BlockNumber uint64            `json:"block_number"`
 	Type        TransactionType   `json:"type,omitempty"`
 }
 
-func (tr CommonTransactionReceipt) Hash() Hash {
+func (tr CommonTransactionReceipt) Hash() ctypes.Hash {
 	return tr.TransactionHash
 }
 
@@ -90,14 +92,6 @@ func (ts TransactionStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
 
-type PendingInvokeTransactionReceipt struct {
-	InvokeTransactionReceiptProperties
-	TransactionHash Hash `json:"transaction_hash"`
-	// ActualFee The fee that was charged by the sequencer
-	ActualFee string          `json:"actual_fee"`
-	Type      TransactionType `json:"type"`
-}
-
 type InvokeTransactionReceiptProperties struct {
 	MessageSent []MsgToL1 `json:"messages_sent,omitempty"`
 	// A list of events assocuated with the Invoke Transaction
@@ -129,7 +123,7 @@ type L1HandlerTransactionReceipt struct {
 }
 
 type TransactionReceipt interface {
-	Hash() Hash
+	Hash() ctypes.Hash
 }
 
 type MsgToL1 struct {
@@ -158,7 +152,7 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{HexToHash(casted)}, nil
+		return TransactionHash{ctypes.HexToHash(casted)}, nil
 	case map[string]interface{}:
 		// NOTE(tvanas): Pathfinder 0.3.3 does not return
 		// transaction receipt types. We handle this by

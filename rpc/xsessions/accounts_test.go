@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 const (
@@ -51,7 +52,7 @@ var counterCompiled []byte
 func TestCounter_DeployContract(t *testing.T) {
 	provider := beforeEach(t)
 
-	counterClass := types.ContractClass{}
+	counterClass := ctypes.ContractClass{}
 	inputs := []string{}
 
 	if err := json.Unmarshal(counterCompiled, &counterClass); err != nil {
@@ -65,7 +66,7 @@ func TestCounter_DeployContract(t *testing.T) {
 	if tx.ContractAddress != counterAddress {
 		t.Fatal("deploy should return counter address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

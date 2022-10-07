@@ -16,6 +16,7 @@ import (
 
 	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
 
@@ -23,7 +24,7 @@ import (
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	provider := beforeEach(t)
 
-	yeasayerClass := types.ContractClass{}
+	yeasayerClass := ctypes.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +38,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	}
 	fmt.Printf("plugin Class: %s\n", tx.ClassHash)
 	fmt.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -59,7 +60,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
 	provider := beforeEach(t)
-	contractClass := types.ContractClass{}
+	contractClass := ctypes.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
 		t.Fatal(err)
@@ -74,7 +75,7 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	if !strings.HasPrefix(tx.ContractAddress, "0x") {
 		t.Fatal("deploy should return account address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -127,9 +128,9 @@ func CheckEth(t *testing.T, accountAddress string) string {
 	provider := beforeEach(t)
 	ctx := context.Background()
 	output, err := provider.Call(ctx, types.FunctionCall{
-		ContractAddress:    types.HexToHash(devnetEth),
+		ContractAddress:    ctypes.HexToHash(devnetEth),
 		EntryPointSelector: "balanceOf",
-		CallData:           []string{accountAddress},
+		Calldata:           []string{accountAddress},
 	},
 		rpc.WithBlockTag("latest"),
 	)

@@ -32,14 +32,14 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 		address, _ := big.NewInt(0).SetString(tx.ContractAddress.Hex(), 0)
 		callArray = append(callArray, address, caigo.GetSelectorFromName(tx.EntryPointSelector))
 
-		if len(tx.CallData) == 0 {
+		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
 
 			continue
 		}
 
-		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.CallData))))
-		for _, cd := range tx.CallData {
+		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
+		for _, cd := range tx.Calldata {
 			calldataArray = append(calldataArray, caigo.SNValToBN(cd))
 		}
 	}

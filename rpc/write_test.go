@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpc/types"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction
@@ -41,7 +42,7 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		contractClass := types.ContractClass{}
+		contractClass := ctypes.ContractClass{}
 		if err := json.Unmarshal(content, &contractClass); err != nil {
 			t.Fatal(err)
 		}
@@ -123,7 +124,7 @@ func TestDeployTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("should read file with success, instead:", err)
 		}
-		contractClass := types.ContractClass{}
+		contractClass := ctypes.ContractClass{}
 		if err := json.Unmarshal(content, &contractClass); err != nil {
 			t.Fatal(err)
 		}
@@ -169,7 +170,7 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 			// 	Call: types.FunctionCall{
 			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
 			// 		EntryPointSelector: "increment",
-			// 		CallData:           []string{},
+			// 		Calldata:           []string{},
 			// 	},
 			// 	MaxFee: "0x200000000",
 			// },
@@ -214,9 +215,9 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 		output, err := testConfig.provider.AddInvokeTransaction(
 			ctx,
 			types.FunctionCall{
-				ContractAddress:    types.HexToHash(test.AccountAddress),
+				ContractAddress:    ctypes.HexToHash(test.AccountAddress),
 				EntryPointSelector: EXECUTE_SELECTOR,
-				CallData:           calldata,
+				Calldata:           calldata,
 			},
 			[]string{s1.Text(10), s2.Text(10)},
 			test.MaxFee,
@@ -238,7 +239,7 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 		fmt.Println("transaction_hash:", output.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 		defer cancel()
-		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
+		status, err := account.Provider.WaitForTransaction(ctx, ctypes.HexToHash(output.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
@@ -271,7 +272,7 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 			// 	Call: types.FunctionCall{
 			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
 			// 		EntryPointSelector: "increment",
-			// 		CallData:           []string{},
+			// 		Calldata:           []string{},
 			// 	},
 			// 	MaxFee: "0x200000001",
 			// },
@@ -316,8 +317,8 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 		output, err := testConfig.provider.AddInvokeTransaction(
 			ctx,
 			types.FunctionCall{
-				ContractAddress: types.HexToHash(test.AccountAddress),
-				CallData:        calldata,
+				ContractAddress: ctypes.HexToHash(test.AccountAddress),
+				Calldata:        calldata,
 			},
 			[]string{s1.Text(10), s2.Text(10)},
 			test.MaxFee,
@@ -339,7 +340,7 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 		fmt.Println("transaction_hash:", output.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 		defer cancel()
-		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(output.TransactionHash), 8*time.Second)
+		status, err := account.Provider.WaitForTransaction(ctx, ctypes.HexToHash(output.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
