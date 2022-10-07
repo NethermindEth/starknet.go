@@ -28,7 +28,7 @@ func (sg *Gateway) CodeAt(ctx context.Context, contract string, blockNumber *big
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) FullContract(ctx context.Context, contract string) (*RawContractDefinition, error) {
+func (sg *Gateway) FullContract(ctx context.Context, contract string) (*types.ContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_full_contract", nil)
 	if err != nil {
 		return nil, err
@@ -36,6 +36,6 @@ func (sg *Gateway) FullContract(ctx context.Context, contract string) (*RawContr
 
 	appendQueryValues(req, url.Values{"contractAddress": []string{contract}})
 
-	var resp RawContractDefinition
+	var resp types.ContractClass
 	return &resp, sg.do(req, &resp)
 }

@@ -1,5 +1,10 @@
 package types
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type Bytecode []string
 
 type Block struct {
@@ -16,7 +21,70 @@ type Block struct {
 
 type Code struct {
 	Bytecode Bytecode `json:"bytecode"`
-	Abi      []ABI    `json:"abi"`
+	Abi      *ABI     `json:"abi"`
+}
+
+func (c *Code) UnmarshalJSON(content []byte) error {
+	v := map[string]json.RawMessage{}
+	if err := json.Unmarshal(content, &v); err != nil {
+		return err
+	}
+
+	// process 'bytecode'.
+	data, ok := v["bytecode"]
+	if !ok {
+		return fmt.Errorf("missing bytecode in json object")
+	}
+	bytecode := []string{}
+	if err := json.Unmarshal(data, &bytecode); err != nil {
+		return err
+	}
+	c.Bytecode = bytecode
+
+	// process 'abi'
+	data, ok = v["abi"]
+	if !ok {
+		// contractClass can have an empty ABI for instance with ClassAt
+		return nil
+	}
+
+	abis := []interface{}{}
+	if err := json.Unmarshal(data, &abis); err != nil {
+		return err
+	}
+
+	abiPointer := ABI{}
+	for _, abi := range abis {
+		if checkABI, ok := abi.(map[string]interface{}); ok {
+			var ab ABIEntry
+			abiType, ok := checkABI["type"].(string)
+			if !ok {
+				return fmt.Errorf("unknown abi type %v", checkABI["type"])
+			}
+			switch abiType {
+			case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
+				ab = &FunctionABIEntry{}
+			case string(ABITypeStruct):
+				ab = &StructABIEntry{}
+			case string(ABITypeEvent):
+				ab = &EventABIEntry{}
+			default:
+				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
+			}
+			data, err := json.Marshal(checkABI)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(data, ab)
+			if err != nil {
+				return err
+			}
+			abiPointer = append(abiPointer, ab)
+		}
+	}
+
+	c.Abi = &abiPointer
+	return nil
 }
 
 /*
@@ -47,23 +115,6 @@ type TransactionStatus struct {
 	} `json:"tx_failure_reason,omitempty"`
 }
 
-type ABI struct {
-	Members []struct {
-		Name   string `json:"name"`
-		Offset int    `json:"offset"`
-		Type   string `json:"type"`
-	} `json:"members,omitempty"`
-	Name   string `json:"name"`
-	Size   int    `json:"size,omitempty"`
-	Type   string `json:"type"`
-	Inputs []struct {
-		Name string `json:"name"`
-		Type string `json:"type"`
-	} `json:"inputs,omitempty"`
-	Outputs         []interface{} `json:"outputs,omitempty"`
-	StateMutability string        `json:"stateMutability,omitempty"`
-}
-
 type AddTxResponse struct {
 	Code            string `json:"code"`
 	TransactionHash string `json:"transaction_hash"`
@@ -88,12 +139,6 @@ type DeployRequest struct {
 	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
-type ContractClass struct {
-	ABI               []ABI             `json:"abi"`
-	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-	Program           interface{}       `json:"program"`
-}
-
 type DeclareRequest struct {
 	Type          string        `json:"type"`
 	SenderAddress string        `json:"sender_address"`
@@ -101,12 +146,6 @@ type DeclareRequest struct {
 	Nonce         string        `json:"nonce"`
 	Signature     []string      `json:"signature"`
 	ContractClass ContractClass `json:"contract_class"`
-}
-
-type EntryPointsByType struct {
-	Constructor []EntryPointList `json:"CONSTRUCTOR"`
-	External    []EntryPointList `json:"EXTERNAL"`
-	L1Handler   []EntryPointList `json:"L1_HANDLER"`
 }
 
 type EntryPointList struct {

@@ -10,7 +10,7 @@ import (
 
 type EntryPoint struct {
 	// The offset of the entry point in the program
-	Offset NumAsHex `json:"offset"`
+	Offset string `json:"offset"`
 	// A unique identifier of the entry point (function) in the program
 	Selector string `json:"selector"`
 }
@@ -29,7 +29,7 @@ type ContractClass struct {
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
-	Abi *ABI `json:"abi,omitempty"`
+	ABI *ABI `json:"abi,omitempty"`
 }
 
 func (c *ContractClass) UnmarshalJSON(content []byte) error {
@@ -105,7 +105,7 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		}
 	}
 
-	c.Abi = &abiPointer
+	c.ABI = &abiPointer
 	return nil
 }
 
