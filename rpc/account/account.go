@@ -27,41 +27,41 @@ type account interface {
 	Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
 }
 
-var _ account = &Account{}
+var _ account = &RPCAccount{}
 
-type AccountPlugin interface {
+type RPCAccountPlugin interface {
 	PluginCall(calls []ctypes.FunctionCall) (ctypes.FunctionCall, error)
 }
 
-type Account struct {
+type RPCAccount struct {
 	Provider *rpc.Provider
 	Address  string
 	private  *big.Int
 	version  *big.Int
-	plugin   AccountPlugin
+	plugin   RPCAccountPlugin
 }
 
-type AccountOption struct {
-	AccountPlugin AccountPlugin
+type RPCAccountOption struct {
+	RPCAccountPlugin RPCAccountPlugin
 	version       *big.Int
 }
 
-type AccountOptionFunc func(string, string) (AccountOption, error)
+type AccountOptionFunc func(string, string) (RPCAccountOption, error)
 
-func AccountVersion0(string, string) (AccountOption, error) {
-	return AccountOption{
+func AccountVersion0(string, string) (RPCAccountOption, error) {
+	return RPCAccountOption{
 		version: big.NewInt(0),
 	}, nil
 }
 
-func AccountVersion1(string, string) (AccountOption, error) {
-	return AccountOption{
+func AccountVersion1(string, string) (RPCAccountOption, error) {
+	return RPCAccountOption{
 		version: big.NewInt(1),
 	}, nil
 }
 
-func NewAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*Account, error) {
-	var accountPlugin AccountPlugin
+func NewAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
+	var accountPlugin RPCAccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
 		opt, err := o(private, address)
@@ -71,11 +71,11 @@ func NewAccount(private, address string, provider *rpc.Provider, options ...Acco
 		if opt.version != nil {
 			version = opt.version
 		}
-		if opt.AccountPlugin != nil {
+		if opt.RPCAccountPlugin != nil {
 			if accountPlugin != nil {
 				return nil, errors.New("multiple plugins not supported")
 			}
-			accountPlugin = opt.AccountPlugin
+			accountPlugin = opt.RPCAccountPlugin
 		}
 	}
 	if version.Cmp(big.NewInt(0)) != 0 {
@@ -83,7 +83,7 @@ func NewAccount(private, address string, provider *rpc.Provider, options ...Acco
 	}
 	priv := ctypes.SNValToBN(private)
 
-	return &Account{
+	return &RPCAccount{
 		Provider: provider,
 		Address:  address,
 		private:  priv,
@@ -92,15 +92,15 @@ func NewAccount(private, address string, provider *rpc.Provider, options ...Acco
 	}, nil
 }
 
-func (account *Account) Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error) {
+func (account *RPCAccount) Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error) {
 	return account.Provider.Call(ctx, call, rpc.WithBlockTag("latest"))
 }
 
-func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
+func (account *RPCAccount) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return caigo.Curve.Sign(msgHash, account.private)
 }
 
-func (account *Account) TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
+func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (account *Account) TransactionHash(calls []ctypes.FunctionCall, details typ
 	return caigo.Curve.ComputeHashOnElements(multiHashData)
 }
 
-func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
+func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	switch {
 	case account.version.Cmp(big.NewInt(0)) == 0:
 		nonce, err := account.Provider.Call(
@@ -192,7 +192,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
+func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
 	var err error
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -251,7 +251,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []ctypes.Function
 	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
 }
 
-func (account *Account) Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
+func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
 	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}

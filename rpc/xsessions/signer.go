@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	_ account.AccountPlugin = &SessionKeyPlugin{}
+	_ account.RPCAccountPlugin = &SessionKeyPlugin{}
 )
 
 type SessionKeyPlugin struct {
@@ -23,17 +23,17 @@ type SessionKeyPlugin struct {
 }
 
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) account.AccountOptionFunc {
-	return func(private, address string) (account.AccountOption, error) {
+	return func(private, address string) (account.RPCAccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
-			return account.AccountOption{}, errors.New("could not convert plugin class hash")
+			return account.RPCAccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		pk, ok := big.NewInt(0).SetString(private, 0)
 		if !ok {
-			return account.AccountOption{}, errors.New("could not convert plugin class hash")
+			return account.RPCAccountOption{}, errors.New("could not convert plugin class hash")
 		}
-		return account.AccountOption{
-			AccountPlugin: &SessionKeyPlugin{
+		return account.RPCAccountOption{
+			RPCAccountPlugin: &SessionKeyPlugin{
 				accountAddress: ctypes.HexToHash(address),
 				classHash:      plugin,
 				private:        pk,
