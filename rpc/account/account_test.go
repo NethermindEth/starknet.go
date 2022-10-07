@@ -1,4 +1,4 @@
-package rpc
+package account
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
@@ -19,7 +20,7 @@ func TestAccountNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Provider         *Provider
+		Provider         *rpc.Provider
 		Address          string
 		PrivateKeyEnvVar string
 	}
@@ -31,7 +32,6 @@ func TestAccountNonce(t *testing.T) {
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 			},
 		},
-		"mock": {},
 		"testnet": {
 			{
 				Address:          TestNetAccount032Address,
@@ -42,7 +42,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -75,7 +75,6 @@ func TestAccountEstimateFee(t *testing.T) {
 				},
 			},
 		},
-		"mock": {},
 		"testnet": {
 			{
 				Address:          TestNetAccount032Address,
@@ -91,23 +90,13 @@ func TestAccountEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c, false)
-		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}
 		estimate, err := account.EstimateFee(context.Background(), []ctypes.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
-		}
-		diff, err := spy.Compare(estimate, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(estimate, true)
-			t.Fatal("expecting to match, instead:", diff)
 		}
 		if ctypes.HexToBN(string(estimate.OverallFee)).Cmp(big.NewInt(1000000)) < 0 {
 			t.Fatal("OverallFee should be > 1000000, instead:", estimate.OverallFee)
@@ -141,7 +130,6 @@ func TestAccountExecute(t *testing.T) {
 			// 	},
 			// },
 		},
-		"mock":    {},
 		"testnet": {
 			// Disabled tests due to the fact it is taking ages on the CI. It should
 			// work on demand though...
@@ -159,9 +147,7 @@ func TestAccountExecute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c, false)
-		testConfig.provider.c = spy
-		account, err := testConfig.provider.NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address)
+		account, err := NewAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -169,14 +155,6 @@ func TestAccountExecute(t *testing.T) {
 		execute, err := account.Execute(ctx, []ctypes.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
-		}
-		diff, err := spy.Compare(execute, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(execute, true)
-			t.Fatal("expecting to match, instead:", diff)
 		}
 		if !strings.HasPrefix(execute.TransactionHash, "0x") {
 			t.Fatal("TransactionHash start with 0x, instead:", execute.TransactionHash)

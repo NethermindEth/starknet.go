@@ -1,4 +1,4 @@
-package rpc
+package account
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/rpc"
 	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
@@ -33,7 +34,7 @@ type AccountPlugin interface {
 }
 
 type Account struct {
-	Provider *Provider
+	Provider *rpc.Provider
 	Address  string
 	private  *big.Int
 	version  *big.Int
@@ -59,7 +60,7 @@ func AccountVersion1(string, string) (AccountOption, error) {
 	}, nil
 }
 
-func (provider *Provider) NewAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
+func NewAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := big.NewInt(0)
 	for _, o := range options {
@@ -92,7 +93,7 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 }
 
 func (account *Account) Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error) {
-	return account.Provider.Call(ctx, call, WithBlockTag("latest"))
+	return account.Provider.Call(ctx, call, rpc.WithBlockTag("latest"))
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
@@ -158,7 +159,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 				EntryPointSelector: "get_nonce",
 				Calldata:           []string{},
 			},
-			WithBlockTag("latest"),
+			rpc.WithBlockTag("latest"),
 		)
 		if err != nil {
 			return nil, err
@@ -247,7 +248,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []ctypes.Function
 		EntryPointSelector: &accountDefaultV0Entrypoint,
 		Calldata:           calldata,
 	}
-	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
+	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
 }
 
 func (account *Account) Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {

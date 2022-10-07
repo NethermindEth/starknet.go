@@ -11,6 +11,7 @@ import (
 	_ "embed"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/rpc/account"
 	"github.com/dontpanicdao/caigo/rpc/types"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -93,9 +94,10 @@ func TestSessionKey_CheckEth(t *testing.T) {
 // IncrementWithSessionKeyPlugin
 func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginClass string, token *SessionKeyToken, counterAddress string) {
 	provider := beforeEach(t)
-	account, err := provider.NewAccount(
+	account, err := account.NewAccount(
 		sessionPrivateKey,
 		accountAddress,
+		provider,
 		WithSessionKeyPlugin(
 			pluginClass,
 			token,
