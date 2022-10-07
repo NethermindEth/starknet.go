@@ -134,10 +134,11 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 			caigo.UTF8StrToBig(TRANSACTION_PREFIX),
 			account.version,
 			caigo.SNValToBN(account.Address),
+			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
-			details.Nonce,
 			caigo.UTF8StrToBig(chainID),
+			details.Nonce,
 		}
 	default:
 		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
