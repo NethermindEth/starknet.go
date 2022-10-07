@@ -7,7 +7,6 @@ import (
 
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc"
-	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -45,7 +44,7 @@ func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) rpc.Ac
 }
 
 // TODO: write get merkle proof
-func getMerkleProof(policies []Policy, call types.FunctionCall) ([]string, error) {
+func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, error) {
 	leaves := []*big.Int{}
 	for _, policy := range policies {
 		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
@@ -81,7 +80,7 @@ func getMerkleProof(policies []Policy, call types.FunctionCall) ([]string, error
 	return output, nil
 }
 
-func (plugin *SessionKeyPlugin) PluginCall(calls []types.FunctionCall) (types.FunctionCall, error) {
+func (plugin *SessionKeyPlugin) PluginCall(calls []ctypes.FunctionCall) (ctypes.FunctionCall, error) {
 	data := []string{
 		fmt.Sprintf("0x%s", plugin.classHash.Text(16)),
 		plugin.token.session.Key,
@@ -93,7 +92,7 @@ func (plugin *SessionKeyPlugin) PluginCall(calls []types.FunctionCall) (types.Fu
 	for _, call := range calls {
 		proof, err := getMerkleProof(plugin.token.session.Policies, call)
 		if err != nil {
-			return types.FunctionCall{}, err
+			return ctypes.FunctionCall{}, err
 		}
 		if firstIteration {
 			length := len(proof)
@@ -106,7 +105,7 @@ func (plugin *SessionKeyPlugin) PluginCall(calls []types.FunctionCall) (types.Fu
 	for _, signature := range plugin.token.signedSession.Signature {
 		data = append(data, fmt.Sprintf("0x%s", signature.Text(16)))
 	}
-	return types.FunctionCall{
+	return ctypes.FunctionCall{
 		ContractAddress:    plugin.accountAddress,
 		EntryPointSelector: "use_plugin",
 		Calldata:           data,

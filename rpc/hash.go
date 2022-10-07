@@ -5,10 +5,11 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/rpc/types"
+
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
-func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
+func fmtCalldataStrings(calls []ctypes.FunctionCall) (calldataStrings []string) {
 	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
 		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", data.Text(16)))
@@ -16,7 +17,7 @@ func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	return calldataStrings
 }
 
-func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
+func fmtV0CalldataStrings(nonce *big.Int, calls []ctypes.FunctionCall) (calldataStrings []string) {
 	calldataStrings = fmtCalldataStrings(calls)
 	calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", nonce.Text(16)))
 	return calldataStrings
@@ -25,7 +26,7 @@ func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataS
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
+func fmtCalldata(calls []ctypes.FunctionCall) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
@@ -52,7 +53,7 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 /*
 Formats the multicall transactions with v0 of OpenZeppelin contract
 */
-func fmtV0Calldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
+func fmtV0Calldata(nonce *big.Int, calls []ctypes.FunctionCall) (calldataArray []*big.Int) {
 	callArray := fmtCalldata(calls)
 	callArray = append(callArray, nonce)
 	return callArray

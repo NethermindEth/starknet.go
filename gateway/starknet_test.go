@@ -81,7 +81,7 @@ func TestDeclare(t *testing.T) {
 func TestExecuteGoerli(t *testing.T) {
 
 	for _, testAccount := range testnetAccounts {
-		account, err := caigo.NewAccount(testAccount.PrivateKey, testAccount.Address, NewProvider())
+		account, err := caigo.NewAccount(testAccount.PrivateKey, types.HexToHash(testAccount.Address), NewProvider())
 		if err != nil {
 			t.Errorf("testnet: could not create account: %v\n", err)
 		}
@@ -150,7 +150,7 @@ func TestCallGoerli(t *testing.T) {
 		gw := testConfig.client
 		for _, testAccount := range env.testnetAccounts {
 			call := types.FunctionCall{
-				ContractAddress:    testAccount.Address,
+				ContractAddress:    types.HexToHash(testAccount.Address),
 				EntryPointSelector: "get_public_key",
 			}
 
@@ -209,7 +209,7 @@ func TestE2EDevnet(t *testing.T) {
 				},
 			}
 
-			account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, devnetAccounts[i].Address, gw)
+			account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, types.HexToHash(devnetAccounts[i].Address), gw)
 			if err != nil {
 				t.Errorf("testnet: could not create account: %v\n", err)
 			}
@@ -241,7 +241,7 @@ func TestE2EDevnet(t *testing.T) {
 			}
 
 			call := types.FunctionCall{
-				ContractAddress:    txDetails.Transaction.ContractAddress,
+				ContractAddress:    types.HexToHash(txDetails.Transaction.ContractAddress),
 				EntryPointSelector: "get_rand",
 			}
 			callResp, err := gw.Call(context.Background(), call, "")

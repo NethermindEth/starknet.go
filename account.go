@@ -16,7 +16,7 @@ const (
 
 type Account struct {
 	Provider types.Provider
-	Address  string
+	Address  types.Hash
 	PublicX  *big.Int
 	PublicY  *big.Int
 	private  *big.Int
@@ -29,13 +29,13 @@ type ExecuteDetails struct {
 }
 
 /*
-	Instantiate a new StarkNet Account which includes structures for calling the network and signing transactions:
-	- private signing key
-	- stark curve definition
-	- full provider definition
-	- public key pair for signature verifications
+Instantiate a new StarkNet Account which includes structures for calling the network and signing transactions:
+- private signing key
+- stark curve definition
+- full provider definition
+- public key pair for signature verifications
 */
-func NewAccount(private, address string, provider types.Provider) (*Account, error) {
+func NewAccount(private string, address types.Hash, provider types.Provider) (*Account, error) {
 	priv := SNValToBN(private)
 	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
@@ -56,9 +56,9 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 }
 
 /*
-	invocation wrapper for StarkNet account calls to '__execute__' contact calls through an account abstraction
-	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
-	- accepts a multicall
+invocation wrapper for StarkNet account calls to '__execute__' contact calls through an account abstraction
+- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
+- accepts a multicall
 */
 func (account *Account) Execute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.AddTxResponse, error) {
 	if details.Nonce == nil {
@@ -102,7 +102,7 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	multiHashData := []*big.Int{
 		UTF8StrToBig(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
-		SNValToBN(account.Address),
+		account.Address.Big(),
 		GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
 		fee.Int,
@@ -166,7 +166,7 @@ func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calld
 }
 
 /*
-	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
+Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
 func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}

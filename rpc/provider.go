@@ -30,7 +30,7 @@ type api interface {
 	BlockTransactionCount(ctx context.Context, blockID types.BlockID) (uint64, error)
 	BlockWithTxHashes(ctx context.Context, blockID types.BlockID) (types.Block, error)
 	BlockWithTxs(ctx context.Context, blockID types.BlockID) (interface{}, error)
-	Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]string, error)
+	Call(ctx context.Context, call ctypes.FunctionCall, block types.BlockID) ([]string, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, classHash string) (*ctypes.ContractClass, error)
 	ClassAt(ctx context.Context, blockID types.BlockID, contractAddress ctypes.Hash) (*ctypes.ContractClass, error)

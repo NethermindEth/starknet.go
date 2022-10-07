@@ -127,7 +127,7 @@ func MintEth(t *testing.T, accountAddress string) {
 func CheckEth(t *testing.T, accountAddress string) string {
 	provider := beforeEach(t)
 	ctx := context.Background()
-	output, err := provider.Call(ctx, types.FunctionCall{
+	output, err := provider.Call(ctx, ctypes.FunctionCall{
 		ContractAddress:    ctypes.HexToHash(devnetEth),
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},

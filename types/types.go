@@ -155,10 +155,13 @@ type EntryPointList struct {
 	Selector string `json:"selector"`
 }
 
+// FunctionCall function call information
 type FunctionCall struct {
-	ContractAddress    string   `json:"contract_address"`
-	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
-	Calldata           []string `json:"calldata"`
+	ContractAddress    Hash   `json:"contract_address"`
+	EntryPointSelector string `json:"entry_point_selector,omitempty"`
+
+	// Calldata The parameters passed to the function
+	Calldata []string `json:"calldata"`
 }
 
 type Signature []*Felt

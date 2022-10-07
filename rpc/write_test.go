@@ -153,7 +153,7 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 	type testSetType struct {
 		AccountPrivateKeyEnvVar string
 		AccountAddress          string
-		Call                    types.FunctionCall
+		Call                    ctypes.FunctionCall
 		MaxFee                  string
 	}
 	testSet := map[string][]testSetType{
@@ -198,7 +198,7 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
 		txHash, err := account.TransactionHash(
-			[]types.FunctionCall{test.Call},
+			[]ctypes.FunctionCall{test.Call},
 			types.ExecuteDetails{
 				Nonce:  n,
 				MaxFee: maxFee,
@@ -211,10 +211,10 @@ func TestInvokeTransaction_InvokeTxvV0(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		calldata := fmtV0CalldataStrings(n, []types.FunctionCall{test.Call})
+		calldata := fmtV0CalldataStrings(n, []ctypes.FunctionCall{test.Call})
 		output, err := testConfig.provider.AddInvokeTransaction(
 			ctx,
-			types.FunctionCall{
+			ctypes.FunctionCall{
 				ContractAddress:    ctypes.HexToHash(test.AccountAddress),
 				EntryPointSelector: EXECUTE_SELECTOR,
 				Calldata:           calldata,
@@ -256,7 +256,7 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 	type testSetType struct {
 		AccountPrivateKeyEnvVar string
 		AccountAddress          string
-		Call                    types.FunctionCall
+		Call                    ctypes.FunctionCall
 		MaxFee                  string
 	}
 	testSet := map[string][]testSetType{
@@ -300,7 +300,7 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c, false)
 		testConfig.provider.c = spy
 		txHash, err := account.TransactionHash(
-			[]types.FunctionCall{test.Call},
+			[]ctypes.FunctionCall{test.Call},
 			types.ExecuteDetails{
 				Nonce:  n,
 				MaxFee: maxFee,
@@ -313,10 +313,10 @@ func TestInvokeTransaction_InvokeTxvV1(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
-		calldata := fmtCalldataStrings([]types.FunctionCall{test.Call})
+		calldata := fmtCalldataStrings([]ctypes.FunctionCall{test.Call})
 		output, err := testConfig.provider.AddInvokeTransaction(
 			ctx,
-			types.FunctionCall{
+			ctypes.FunctionCall{
 				ContractAddress: ctypes.HexToHash(test.AccountAddress),
 				Calldata:        calldata,
 			},

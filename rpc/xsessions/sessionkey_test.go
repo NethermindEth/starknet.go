@@ -103,7 +103,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if err != nil {
 		t.Fatal("deploy should succeed, instead:", err)
 	}
-	calls := []types.FunctionCall{
+	calls := []ctypes.FunctionCall{
 		{
 			ContractAddress:    ctypes.HexToHash(counterAddress),
 			EntryPointSelector: "increment",

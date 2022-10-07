@@ -166,17 +166,8 @@ type Transaction interface {
 	Hash() ctypes.Hash
 }
 
-// FunctionCall function call information
-type FunctionCall struct {
-	ContractAddress    ctypes.Hash `json:"contract_address"`
-	EntryPointSelector string      `json:"entry_point_selector,omitempty"`
-
-	// Calldata The parameters passed to the function
-	Calldata []string `json:"calldata"`
-}
-
 // InvokeV0 version 0 invoke transaction
-type InvokeV0 FunctionCall
+type InvokeV0 ctypes.FunctionCall
 
 // InvokeV1 version 1 invoke transaction
 type InvokeV1 struct {

@@ -6,7 +6,7 @@ import (
 )
 
 type Provider interface {
-	AccountNonce(context.Context, string) (*big.Int, error)
+	AccountNonce(context.Context, Hash) (*big.Int, error)
 	BlockByHash(context.Context, string, string) (*Block, error)
 	BlockByNumber(context.Context, *big.Int, string) (*Block, error)
 	Call(context.Context, FunctionCall, string) ([]string, error)

@@ -15,14 +15,14 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall          types.FunctionCall
+		FunctionCall          ctypes.FunctionCall
 		BlockID               types.BlockID
 		ExpectedPatternResult string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
 					EntryPointSelector: "get_count",
 					Calldata:           []string{},
@@ -31,7 +31,7 @@ func TestCall(t *testing.T) {
 				ExpectedPatternResult: "^0x01$",
 			},
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					// ContractAddress of devnet ETH
 					ContractAddress:    ctypes.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
 					EntryPointSelector: "balanceOf",
@@ -43,7 +43,7 @@ func TestCall(t *testing.T) {
 		},
 		"mock": {
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash("0xdeadbeef"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
@@ -54,7 +54,7 @@ func TestCall(t *testing.T) {
 		},
 		"testnet": {
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
@@ -63,7 +63,7 @@ func TestCall(t *testing.T) {
 				ExpectedPatternResult: "^0x12$",
 			},
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash(TestNetETHAddress),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
@@ -72,7 +72,7 @@ func TestCall(t *testing.T) {
 				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash(TestNetAccount032Address),
 					EntryPointSelector: "get_nonce",
 					Calldata:           []string{},
@@ -83,7 +83,7 @@ func TestCall(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				FunctionCall: types.FunctionCall{
+				FunctionCall: ctypes.FunctionCall{
 					ContractAddress:    ctypes.HexToHash("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},

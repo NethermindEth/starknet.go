@@ -19,17 +19,17 @@ const (
 
 type account interface {
 	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
-	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
-	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
+	TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
-	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
-	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+	EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
+	Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
 }
 
 var _ account = &Account{}
 
 type AccountPlugin interface {
-	PluginCall(calls []types.FunctionCall) (types.FunctionCall, error)
+	PluginCall(calls []ctypes.FunctionCall) (ctypes.FunctionCall, error)
 }
 
 type Account struct {
@@ -91,7 +91,7 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 	}, nil
 }
 
-func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
+func (account *Account) Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error) {
 	return account.Provider.Call(ctx, call, WithBlockTag("latest"))
 }
 
@@ -99,7 +99,7 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return caigo.Curve.Sign(msgHash, account.private)
 }
 
-func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
+func (account *Account) TransactionHash(calls []ctypes.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	case account.version.Cmp(big.NewInt(0)) == 0:
 		nonce, err := account.Provider.Call(
 			ctx,
-			types.FunctionCall{
+			ctypes.FunctionCall{
 				ContractAddress:    ctypes.HexToHash(account.Address),
 				EntryPointSelector: "get_nonce",
 				Calldata:           []string{},
@@ -191,7 +191,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
 	var err error
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -213,7 +213,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		if err != nil {
 			return nil, err
 		}
-		calls = append([]types.FunctionCall{call}, calls...)
+		calls = append([]ctypes.FunctionCall{call}, calls...)
 	}
 	txHash, err := account.TransactionHash(
 		calls,
@@ -250,7 +250,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	return account.Provider.EstimateFee(ctx, call, WithBlockTag("latest"))
 }
 
-func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
+func (account *Account) Execute(ctx context.Context, calls []ctypes.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
 	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
@@ -283,7 +283,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		if err != nil {
 			return nil, err
 		}
-		calls = append([]types.FunctionCall{call}, calls...)
+		calls = append([]ctypes.FunctionCall{call}, calls...)
 	}
 	txHash, err := account.TransactionHash(
 		calls,
@@ -311,7 +311,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	// TODO: change this payload to manage both V0 and V1
 	return account.Provider.AddInvokeTransaction(
 		context.Background(),
-		types.FunctionCall{
+		ctypes.FunctionCall{
 			ContractAddress:    ctypes.HexToHash(account.Address),
 			EntryPointSelector: "__execute__",
 			Calldata:           calldata,

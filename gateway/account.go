@@ -13,7 +13,7 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address types.Hash) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
