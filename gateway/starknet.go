@@ -6,6 +6,8 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -77,10 +79,16 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
 	tx := types.Transaction{
-		Type:               INVOKE,
-		ContractAddress:    invoke.ContractAddress,
-		EntryPointSelector: caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector)),
-		MaxFee:             invoke.MaxFee.String(),
+		Type:            INVOKE,
+		ContractAddress: invoke.ContractAddress,
+		Version:         fmt.Sprintf("0x%s", big.NewInt(int64(invoke.Version)).Text(16)),
+		MaxFee:          invoke.MaxFee.String(),
+	}
+	if invoke.EntryPointSelector != "" {
+		tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector))
+	}
+	if invoke.Nonce != nil {
+		tx.Nonce = invoke.Nonce.String()
 	}
 
 	if len(invoke.Calldata) == 0 {
