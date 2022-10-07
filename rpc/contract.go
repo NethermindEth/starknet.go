@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -39,7 +38,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID types.BlockID
 // StorageAt gets the value of the storage at the given address and key.
 func (provider *Provider) StorageAt(ctx context.Context, contractAddress ctypes.Hash, key string, blockID types.BlockID) (string, error) {
 	var value string
-	hashKey := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(key).Text(16))
+	hashKey := fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(key).Text(16))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
 		return "", err
 	}
@@ -58,7 +57,7 @@ func (provider *Provider) Nonce(ctx context.Context, contractAddress ctypes.Hash
 // EstimateFee estimates the fee for a given StarkNet transaction.
 func (provider *Provider) EstimateFee(ctx context.Context, request types.Call, blockID types.BlockID) (*types.FeeEstimate, error) {
 	if request.EntryPointSelector != nil {
-		entrypointSelector := fmt.Sprintf("0x%s", caigo.GetSelectorFromName(*request.EntryPointSelector).Text(16))
+		entrypointSelector := fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(*request.EntryPointSelector).Text(16))
 		request.EntryPointSelector = &entrypointSelector
 	}
 	var raw types.FeeEstimate

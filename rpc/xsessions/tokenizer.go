@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo"
+	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 type Session struct {
@@ -30,16 +31,16 @@ type SessionKeyToken struct {
 func computeSessionHash(sessionKey, expires, root, chainId, accountAddress string) (*big.Int, error) {
 	hashDomain, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 		STARKNET_DOMAIN_TYPE_HASH,
-		caigo.HexToBN(chainId),
+		ctypes.HexToBN(chainId),
 	})
 	if err != nil {
 		return nil, err
 	}
 	hashMessage, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 		SESSION_TYPE_HASH,
-		caigo.HexToBN(sessionKey),
-		caigo.HexToBN(expires),
-		caigo.HexToBN(root),
+		ctypes.HexToBN(sessionKey),
+		ctypes.HexToBN(expires),
+		ctypes.HexToBN(root),
 	})
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func computeSessionHash(sessionKey, expires, root, chainId, accountAddress strin
 	return caigo.Curve.ComputeHashOnElements([]*big.Int{
 		STARKNET_MESSAGE,
 		hashDomain,
-		caigo.HexToBN(accountAddress),
+		ctypes.HexToBN(accountAddress),
 		hashMessage,
 	})
 }
@@ -57,8 +58,8 @@ func getMerkleRoot(policies []Policy) (string, error) {
 	for _, policy := range policies {
 		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 			POLICY_TYPE_HASH,
-			caigo.HexToBN(policy.ContractAddress),
-			caigo.GetSelectorFromName(policy.Selector),
+			ctypes.HexToBN(policy.ContractAddress),
+			ctypes.GetSelectorFromName(policy.Selector),
 		})
 		if err != nil {
 			return "", err
@@ -88,7 +89,7 @@ func SignToken(privateKey, chainId, sessionPublicKey, accountAddress string, dur
 	if err != nil {
 		return nil, err
 	}
-	x, y, err := caigo.Curve.Sign(res, caigo.HexToBN(privateKey))
+	x, y, err := caigo.Curve.Sign(res, ctypes.HexToBN(privateKey))
 	if err != nil {
 		return nil, err
 	}

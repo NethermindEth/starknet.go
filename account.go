@@ -36,7 +36,7 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - public key pair for signature verifications
 */
 func NewAccount(private string, address types.Hash, provider types.Provider) (*Account, error) {
-	priv := SNValToBN(private)
+	priv := types.SNValToBN(private)
 	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
 		return nil, err
@@ -100,13 +100,13 @@ func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []t
 	}
 
 	multiHashData := []*big.Int{
-		UTF8StrToBig(TRANSACTION_PREFIX),
+		types.UTF8StrToBig(TRANSACTION_PREFIX),
 		big.NewInt(TRANSACTION_VERSION),
 		account.Address.Big(),
-		GetSelectorFromName(EXECUTE_SELECTOR),
+		types.GetSelectorFromName(EXECUTE_SELECTOR),
 		cdHash,
 		fee.Int,
-		UTF8StrToBig(chainID),
+		types.UTF8StrToBig(chainID),
 	}
 
 	return Curve.ComputeHashOnElements(multiHashData)
@@ -172,7 +172,7 @@ func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArra
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
-		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
+		callArray = append(callArray, types.SNValToBN(tx.ContractAddress), types.GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
@@ -182,7 +182,7 @@ func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArra
 
 		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
 		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, SNValToBN(cd))
+			calldataArray = append(calldataArray, types.SNValToBN(cd))
 		}
 	}
 

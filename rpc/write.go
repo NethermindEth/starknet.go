@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, call ctypes.FunctionCall, signature []string, maxFee string, version string) (*types.AddInvokeTransactionOutput, error) {
-	call.EntryPointSelector = fmt.Sprintf("0x%s", caigo.GetSelectorFromName(call.EntryPointSelector).Text(16))
+	call.EntryPointSelector = fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(call.EntryPointSelector).Text(16))
 	var output types.AddInvokeTransactionOutput
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
 		return nil, err

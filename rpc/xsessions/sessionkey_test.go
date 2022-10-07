@@ -21,7 +21,7 @@ var sessionPluginCompiled []byte
 func sessionToken(privateKey, accountAddress, sessionPublicKey string) *SessionKeyToken {
 	token, _ := SignToken(
 		privateKey,
-		caigo.UTF8StrToBig("SN_GOERLI").Text(16),
+		ctypes.UTF8StrToBig("SN_GOERLI").Text(16),
 		sessionPublicKey,
 		accountAddress,
 		2*time.Hour,

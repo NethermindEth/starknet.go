@@ -49,8 +49,8 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 	for _, policy := range policies {
 		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 			POLICY_TYPE_HASH,
-			caigo.HexToBN(policy.ContractAddress),
-			caigo.GetSelectorFromName(policy.Selector),
+			ctypes.HexToBN(policy.ContractAddress),
+			ctypes.GetSelectorFromName(policy.Selector),
 		})
 		if err != nil {
 			return nil, err
@@ -64,7 +64,7 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 	callkey, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 		POLICY_TYPE_HASH,
 		call.ContractAddress.Big(),
-		caigo.GetSelectorFromName(call.EntryPointSelector),
+		ctypes.GetSelectorFromName(call.EntryPointSelector),
 	})
 	if err != nil {
 		return nil, err

@@ -1,9 +1,7 @@
-package caigo
+package types
 
 import (
 	"testing"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 func TestSplitFactStr(t *testing.T) {
@@ -12,7 +10,7 @@ func TestSplitFactStr(t *testing.T) {
 		{"input": "0x300000000000000000000000000000000", "h": "0x3", "l": "0x0"},
 	}
 	for _, d := range data {
-		l, h := types.SplitFactStr(d["input"]) // 0x3
+		l, h := SplitFactStr(d["input"]) // 0x3
 		if l != d["l"] {
 			t.Errorf("expected %s, got %s", d["l"], l)
 		}

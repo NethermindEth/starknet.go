@@ -80,7 +80,7 @@ func (provider *Provider) NewAccount(private, address string, options ...Account
 	if version.Cmp(big.NewInt(0)) != 0 {
 		return nil, errors.New("account v1 not yet supported")
 	}
-	priv := caigo.SNValToBN(private)
+	priv := ctypes.SNValToBN(private)
 
 	return &Account{
 		Provider: provider,
@@ -123,23 +123,23 @@ func (account *Account) TransactionHash(calls []ctypes.FunctionCall, details typ
 	switch {
 	case account.version.Cmp(big.NewInt(0)) == 0:
 		multiHashData = []*big.Int{
-			caigo.UTF8StrToBig(TRANSACTION_PREFIX),
+			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
 			account.version,
-			caigo.SNValToBN(account.Address),
-			caigo.GetSelectorFromName(EXECUTE_SELECTOR),
+			ctypes.SNValToBN(account.Address),
+			ctypes.GetSelectorFromName(EXECUTE_SELECTOR),
 			cdHash,
 			details.MaxFee,
-			caigo.UTF8StrToBig(chainID),
+			ctypes.UTF8StrToBig(chainID),
 		}
 	case account.version.Cmp(big.NewInt(1)) == 0:
 		multiHashData = []*big.Int{
-			caigo.UTF8StrToBig(TRANSACTION_PREFIX),
+			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
 			account.version,
-			caigo.SNValToBN(account.Address),
+			ctypes.SNValToBN(account.Address),
 			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
-			caigo.UTF8StrToBig(chainID),
+			ctypes.UTF8StrToBig(chainID),
 			details.Nonce,
 		}
 	default:

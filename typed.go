@@ -76,7 +76,7 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 
 // (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
 func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkCurve) (hash *big.Int, err error) {
-	elements := []*big.Int{UTF8StrToBig("StarkNet Message")}
+	elements := []*big.Int{types.UTF8StrToBig("StarkNet Message")}
 
 	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
 	if err != nil {
@@ -129,7 +129,7 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 	if err != nil {
 		return ret, err
 	}
-	sel := GetSelectorFromName(enc)
+	sel := types.GetSelectorFromName(enc)
 	return sel, nil
 }
 

@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
@@ -110,7 +109,7 @@ func TestAccountEstimateFee(t *testing.T) {
 			spy.Compare(estimate, true)
 			t.Fatal("expecting to match, instead:", diff)
 		}
-		if caigo.HexToBN(string(estimate.OverallFee)).Cmp(big.NewInt(1000000)) < 0 {
+		if ctypes.HexToBN(string(estimate.OverallFee)).Cmp(big.NewInt(1000000)) < 0 {
 			t.Fatal("OverallFee should be > 1000000, instead:", estimate.OverallFee)
 		}
 	}

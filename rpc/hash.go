@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo"
-
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -31,7 +29,7 @@ func fmtCalldata(calls []ctypes.FunctionCall) (calldataArray []*big.Int) {
 
 	for _, tx := range calls {
 		address, _ := big.NewInt(0).SetString(tx.ContractAddress.Hex(), 0)
-		callArray = append(callArray, address, caigo.GetSelectorFromName(tx.EntryPointSelector))
+		callArray = append(callArray, address, ctypes.GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {
 			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
@@ -41,7 +39,7 @@ func fmtCalldata(calls []ctypes.FunctionCall) (calldataArray []*big.Int) {
 
 		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
 		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, caigo.SNValToBN(cd))
+			calldataArray = append(calldataArray, ctypes.SNValToBN(cd))
 		}
 	}
 
