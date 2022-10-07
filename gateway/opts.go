@@ -8,6 +8,7 @@ type options struct {
 	client       *http.Client
 	chainID      string
 	errorHandler func(e error) error
+	baseUrl      string
 }
 
 // funcOption wraps a function that modifies options into an
@@ -40,6 +41,12 @@ func WithHttpClient(client http.Client) Option {
 func WithChain(chainID string) Option {
 	return newFuncOption(func(o *options) {
 		o.chainID = chainID
+	})
+}
+
+func WithBaseURL(baseURL string) Option {
+	return newFuncOption(func(o *options) {
+		o.baseUrl = baseURL
 	})
 }
 
