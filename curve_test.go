@@ -2,10 +2,13 @@ package caigo
 
 import (
 	"fmt"
+	"time"
+	"math"
 	"math/big"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
+	"gonum.org/v1/gonum/stat"
 )
 
 func BenchmarkPedersenHash(b *testing.B) {
@@ -171,4 +174,76 @@ func TestMultAir(t *testing.T) {
 			t.Errorf("ResY %v does not == expected %v\n", y, tt.expectedY)
 		}
 	}
+}
+
+
+func TestEcMult(t *testing.T) {
+	testMult := []struct {
+		k         *big.Int
+		expectedX *big.Int
+		expectedY *big.Int
+	}{
+		{
+			k:         StrToBig("1"),
+			expectedX: StrToBig("874739451078007766457464989774322083649278607533249481151382481072868806602"),
+			expectedY: StrToBig("152666792071518830868575557812948353041420400780739481342941381225525861407"),
+		},
+		{
+			k:         StrToBig("2"),
+			expectedX: StrToBig("3324833730090626974525872402899302150520188025637965566623476530814354734325"),
+			expectedY: StrToBig("3147007486456030910661996439995670279305852583596209647900952752170983517249"),
+		},
+		{
+			k:         StrToBig("3"),
+			expectedX: StrToBig("1839793652349538280924927302501143912227271479439798783640887258675143576352"),
+			expectedY: StrToBig("3564972295958783757568195431080951091358810058262272733141798511604612925062"),
+		},
+	}
+
+	for _, tt := range testMult {
+		x, y, err := Curve.PrivateToPoint(tt.k)
+
+		if err != nil {
+			t.Errorf("EcMult %v\n", err)
+		}
+
+		if x.Cmp(tt.expectedX) != 0 {
+			t.Errorf("ResX %v does not == expected %v\n", x, tt.expectedX)
+
+		}
+		if y.Cmp(tt.expectedY) != 0 {
+			t.Errorf("ResY %v does not == expected %v\n", y, tt.expectedY)
+		}
+	}
+}
+
+func BenchmarkPrivateToPoint(b *testing.B) {
+	var _genNBits = func(n int) (k *big.Int) {
+		k = big.NewInt(1)
+		for i := 0; i < n; i++ {
+			k = k.Lsh(k, 1).Add(k, big.NewInt(1))
+		}
+		return
+	}
+
+	xs := []float64{}
+	for i := 1; i < Curve.N.BitLen() - 1; i++ {
+		k := _genNBits(i)
+		b.Run(fmt.Sprintf("input_size_%d", k.BitLen()), func(b *testing.B) {
+			start := time.Now()
+			Curve.PrivateToPoint(k)
+			elapsed := time.Since(start).Nanoseconds()
+			xs = append(xs, float64(elapsed))
+		})
+	}
+
+	// computes the weighted mean of the dataset.
+	// we don't have any weights (ie: all weights are 1)
+	// so we just pass a nil slice.
+	mean := stat.Mean(xs, nil)
+	variance := stat.Variance(xs, nil)
+	stddev := math.Sqrt(variance)
+	fmt.Printf("mean=     %v\n", mean)
+	fmt.Printf("variance= %v\n", variance)
+	fmt.Printf("std-dev=  %v\n", stddev)
 }

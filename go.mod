@@ -23,6 +23,7 @@ require (
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
 	github.com/tklauser/numcpus v0.2.2 // indirect
+	gonum.org/v1/gonum v0.12.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 )
 

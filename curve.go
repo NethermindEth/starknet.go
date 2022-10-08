@@ -114,6 +114,15 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	y = y.Sub(y, y1)
 	y = y.Mod(y, sc.P)
 
+	// As elliptic curves form a group, there is an additive identity that is the equivalent of 0
+	// If 𝑃=0 or 𝑄=0, then 𝑃+𝑄=𝑄 or 𝑃+𝑄=𝑃, respectively
+	if len(x1.Bits()) == 0 && len(y1.Bits()) == 0 {
+		return x2, y2
+	}
+	if len(x2.Bits()) == 0 && len(y2.Bits()) == 0 {
+		return x1, y1
+	}
+
 	return x, y
 }
 
@@ -229,22 +238,56 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
-func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
-	// https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder
-	// R0 ← 0
-	// R1 ← P
-	// for i from m downto 0 do
-	// 	if di = 0 then
-	// 		R1 ← point_add(R0, R1)
-	// 		R0 ← point_double(R0)
-	// 	else
-	// 		R0 ← point_add(R0, R1)
-	// 		R1 ← point_double(R1)
-	// return R0
-	var _ecMultMontgomery func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int)
+func (sc StarkCurve) EcMult_AddDouble(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
+	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		if m.BitLen() == 1 {
+			return x1, y1
+		}
+		mk := new(big.Int).Mod(m, big.NewInt(2))
+		if mk.Cmp(big.NewInt(0)) == 0 {
+			h := new(big.Int).Div(m, big.NewInt(2))
+			c, d := sc.Double(x1, y1)
+			return _ecMult(h, c, d)
+		}
+		n := new(big.Int).Sub(m, big.NewInt(1))
+		e, f := _ecMult(n, x1, y1)
 
-	// alpha is our Y
-	_ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		return sc.Add(e, f, x1, y1)
+	}
+
+	return _ecMult(m, x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) EcMult_Montgomery(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Do constant number of operations
+		for i := sc.N.BitLen() - 1; i >= 0; i-- {
+			// Check if next bit set
+			if m.Bit(i) == 0 {
+				x1, y1 = sc.Add(x0, y0, x1, y1)
+				x0, y0 = sc.Double(x0, y0)
+			} else {
+				x0, y0 = sc.Add(x0, y0, x1, y1)
+				x1, y1 = sc.Double(x1, y1)
+			}
+		}
+		return x0, y0
+	}
+
+	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) EcMult_MontgomeryShift(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
 		// Fill a fixed 32 byte buffer (2 ** 251)
 		buf := m.FillBytes(make([]byte, 32))
 
@@ -270,8 +313,35 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 		return x0, y0
 	}
 
-	x, y = _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
-	return x, y
+	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://www.researchgate.net/figure/Double-and-add-always-algorithm-resistant-against-SPA_fig1_48412708)
+func (sc StarkCurve) EcMult_AddAlwaysDouble(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult = func(m, x0, y0 *big.Int) (x, y *big.Int) {
+		x1, y1 := big.NewInt(0), big.NewInt(0)
+		var x2, y2 *big.Int
+		for i := 0; i <= sc.N.BitLen() - 1; i++ {
+			x2, y2 = sc.Add(x0, y0, x1, y1)
+			x0, y0 = sc.Double(x0, y0)
+			if (m.Bit(i) == 1) {
+				x1, y1 = x2, y2
+			}
+		}
+
+		return x1, y1
+	}
+
+	return _ecMult(m, x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
+	return sc.EcMult_AddAlwaysDouble(m, x1, y1)
 }
 
 // Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
