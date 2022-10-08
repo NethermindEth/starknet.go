@@ -102,8 +102,8 @@ func TestAccountEstimateFee(t *testing.T) {
 	}
 }
 
-// TestAccountExecute tests the account Execute method
-func TestAccountExecute(t *testing.T) {
+// TestRPCAccount_Execute tests the account Execute method
+func TestRPCAccount_Execute(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -113,34 +113,8 @@ func TestAccountExecute(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
-		"devnet": {
-			// TODO: there is a problem with devnet 0.3.1 that does not implement
-			// positional argument properly for starknet_addInvokeTransaction. I
-			// have proposed a PR https://github.com/Shard-Labs/starknet-devnet/pull/283
-			// to address the issue. Meanwhile, we are stuck with that feature on devnet.
-			// {
-			// 	Address:          DevNetAccountAddress,
-			// 	PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-			// 	Call: types.FunctionCall{
-			// 		ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
-			// 		EntryPointSelector: "increment",
-			// 		Calldata:           []string{},
-			// 	},
-			// },
-		},
-		"testnet": {
-			// Disabled tests due to the fact it is taking ages on the CI. It should
-			// work on demand though...
-			// {
-			// 	Address:          TestNetAccount032Address,
-			// 	PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-			// 	Call: types.FunctionCall{
-			// 		ContractAddress:    types.HexToHash("0x37a2490365294ef4bc896238642b9bcb0203f86e663f11688bb86c5e803c167"),
-			// 		EntryPointSelector: "increment",
-			// 		Calldata:           []string{},
-			// 	},
-			// },
-		},
+		"devnet":  {},
+		"testnet": {},
 		"mainnet": {},
 	}[testEnv]
 

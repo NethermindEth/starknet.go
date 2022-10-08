@@ -24,29 +24,38 @@ type TestAccountType struct {
 	Transactions []types.FunctionCall `json:"transactions,omitempty"`
 }
 
-var (
-	devnetAccounts  []TestAccountType
-	testnetAccounts = []TestAccountType{
-		{
-			PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
-			PublicKey:  "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
-			Address:    "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
-			Transactions: []types.FunctionCall{
-				{
-					ContractAddress:    types.HexToHash(CONTRACT_ADDRESS),
-					EntryPointSelector: "increase_balance",
-					Calldata: []string{
-						"1",
+func TestGatewayAccount_Execute(t *testing.T) {
+	testConfig := beforeGatewayEach(t)
+
+	type testSetType struct {
+		PrivateKey   string               `json:"private_key"`
+		PublicKey    string               `json:"public_key"`
+		Address      string               `json:"address"`
+		Transactions []types.FunctionCall `json:"transactions,omitempty"`
+		}
+
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"testnet": {
+			{
+				PrivateKey: "0x2294a8695b61f3a7ae8ddcb2cdfa72f1973dbeb22955aa43286a57685aa0e91",
+				PublicKey:  "0x4672cbb8f57ff12043861effdb7abc21eb81b8a1473868d91bb0681c7e4f269",
+				Address:    "0x1343858d3b9315df9155106c29103102e893252ded58884098be03060da347f",
+				Transactions: []types.FunctionCall{
+					{
+						ContractAddress:    types.HexToHash(CONTRACT_ADDRESS),
+						EntryPointSelector: "increase_balance",
+						Calldata: []string{
+							"1",
+						},
 					},
 				},
-			},
+			},	
 		},
-	}
-)
+		"mainnet": {},
+	}[testEnv]
 
-func TestExecuteGoerli(t *testing.T) {
-	testConfig := beforeGatewayEach(t)
-	for _, testAccount := range testnetAccounts {
+	for _, test := range testSet {
 		account, err := NewGatewayAccount(testAccount.PrivateKey, types.HexToHash(testAccount.Address), testConfig.client)
 		if err != nil {
 			t.Errorf("testnet: could not create account: %v\n", err)
