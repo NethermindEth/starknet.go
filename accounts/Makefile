@@ -3,7 +3,7 @@
 CAIRO_PATH = ./cairo-contracts/src:./src
 
 .PHONY: build
-build: syncoz0 artifacts/account_plugin.json artifacts/counter.json artifacts/yeasayer.json artifacts/proxy.json artifacts/plugin.json
+build: syncoz0 artifacts/account_plugin.json artifacts/counter.json artifacts/proxy.json artifacts/plugin.json
 
 artifacts/account_plugin.json: src/account_plugin.cairo artifacts
 	starknet-compile src/account_plugin.cairo \
@@ -17,14 +17,8 @@ artifacts/counter.json: src/counter.cairo artifacts
 		--abi artifacts/counter_abi.json || \
 		rm -f artifacts/counter.json
 
-artifacts/yeasayer.json: src/yeasayer.cairo artifacts
+artifacts/plugin.json: src/yeasayer.cairo artifacts
 	starknet-compile src/yeasayer.cairo \
-		--output artifacts/yeasayer.json \
-		--abi artifacts/yeasayer_abi.json || \
-		rm -f artifacts/yeasayer.json
-
-artifacts/plugin.json: src/plugin.cairo artifacts
-	starknet-compile src/plugin.cairo \
 		--output artifacts/plugin.json \
 		--abi artifacts/plugin_abi.json || \
 		rm -f artifacts/plugin.json

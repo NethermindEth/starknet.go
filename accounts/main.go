@@ -44,6 +44,7 @@ func main() {
 				log.Fatalf("error loading ETH, %v\n", err)
 			}
 		}
+		log.Println("account installed with success", accountWithPlugin.ProxyAccountAddress)
 	case "sessionkey":
 		accountWithPlugin := &accountPlugin{}
 		accountWithPlugin.Read(SECRET_FILE_NAME)
