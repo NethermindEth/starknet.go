@@ -29,6 +29,9 @@ jobs:
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 
+      - name: Test account deployment and execute
+        run: cd accounts && ./test.sh
+
       - name: Test RPC v0.1 with mocks
         run: cd rpcv01 && go test -v .
 

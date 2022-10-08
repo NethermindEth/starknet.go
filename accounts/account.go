@@ -21,16 +21,13 @@ var proxyCompiled []byte
 //go:embed artifacts/plugin.json
 var pluginCompiled []byte
 
-//go:embed artifacts/account_plugin.json
-var accountCompiled []byte
-
-func newAccount() accountPlugin {
+func newAccount() *accountPlugin {
 	if _, err := os.Stat(SECRET_FILE_NAME); err == nil {
 		log.Fatalf("file .starknet-account.json exists! exit...")
 	}
 	privateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	publicKey, _, _ := caigo.Curve.PrivateToPoint(privateKey)
-	return accountPlugin{
+	return &accountPlugin{
 		PrivateKey: fmt.Sprintf("0x%s", privateKey.Text(16)),
 		PublicKey:  fmt.Sprintf("0x%s", publicKey.Text(16)),
 	}
@@ -82,29 +79,34 @@ func deployContract(ctx context.Context, provider rpcv01.Provider, compiledClass
 	return tx.ContractAddress, nil
 }
 
-func (ap *accountPlugin) installAccount(ctx context.Context, provider rpcv01.Provider) error {
-	pluginClassHash, err := declareClass(ctx, provider, pluginCompiled)
-	if err != nil {
-		return err
+func (ap *accountPlugin) installAccount(ctx context.Context, provider rpcv01.Provider, plugin, account, proxy []byte) error {
+	inputs := []string{}
+	if len(proxy) != 0 {
+		accountClassHash, err := declareClass(ctx, provider, account)
+		if err != nil {
+			return err
+		}
+		ap.AccountClassHash = accountClassHash
+		inputs = append(inputs, accountClassHash)
 	}
-	ap.PluginClassHash = pluginClassHash
+	inputs = append(inputs, ap.PublicKey)
 
-	accountClassHash, err := declareClass(ctx, provider, accountCompiled)
+	if len(plugin) != 0 {
+		pluginClassHash, err := declareClass(ctx, provider, plugin)
+		if err != nil {
+			return err
+		}
+		ap.PluginClassHash = pluginClassHash
+		inputs = append(inputs, pluginClassHash)
+	}
+	if len(proxy) == 0 {
+		proxy = account
+	}
+	accountAddress, err := deployContract(ctx, provider, proxy, ap.PublicKey, inputs)
 	if err != nil {
 		return err
 	}
-	ap.AccountClassHash = accountClassHash
-
-	input := []string{
-		ap.AccountClassHash,
-		ap.PublicKey,
-		ap.PluginClassHash,
-	}
-	accountAddress, err := deployContract(ctx, provider, proxyCompiled, ap.PublicKey, input)
-	if err != nil {
-		return err
-	}
-	ap.ProxyAccountAddress = accountAddress
+	ap.AccountAddress = accountAddress
 	err = ap.Write(SECRET_FILE_NAME)
 	return err
 }

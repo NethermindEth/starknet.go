@@ -255,15 +255,12 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []types.FunctionCa
 			return nil, err
 		}
 	}
-	fmt.Println("Got Nonce", details.Nonce.Text(10))
 	maxFee := details.MaxFee
 	if details.MaxFee == nil {
-		fmt.Println("Will run estimateFee")
 		estimate, err := account.EstimateFee(ctx, calls, details)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("EstimateFee executed")
 		v, ok := big.NewInt(0).SetString(string(estimate.OverallFee), 0)
 		if !ok {
 			return nil, errors.New("could not match OverallFee to big.Int")
