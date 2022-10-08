@@ -1,15 +1,11 @@
 package gateway
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
@@ -114,31 +110,22 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
-	dat, err := os.ReadFile(filePath)
+func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
+	d := DeployRequest(deployRequest)
+	d.Type = DEPLOY
+	if len(d.ConstructorCalldata) == 0 {
+		d.ConstructorCalldata = []string{}
+	}
+	if d.ContractAddressSalt == "" {
+		d.ContractAddressSalt = "0x0"
+	}
+
+	d.ContractDefinition = contract
 	if err != nil {
 		return resp, err
 	}
 
-	deployRequest.Type = DEPLOY
-	if len(deployRequest.ConstructorCalldata) == 0 {
-		deployRequest.ConstructorCalldata = []string{}
-	}
-	if deployRequest.ContractAddressSalt == "" {
-		deployRequest.ContractAddressSalt = "0x0"
-	}
-
-	var rawDef types.ContractClass
-	if err = json.Unmarshal(dat, &rawDef); err != nil {
-		return resp, err
-	}
-
-	deployRequest.ContractDefinition = rawDef
-	if err != nil {
-		return resp, err
-	}
-
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", deployRequest)
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
 	if err != nil {
 		return resp, err
 	}
@@ -149,24 +136,13 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
-	dat, err := os.ReadFile(filePath)
-	if err != nil {
-		return resp, err
-	}
-
+func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 	declareRequest.SenderAddress = "0x1"
 	declareRequest.MaxFee = "0x0"
 	declareRequest.Nonce = "0x0"
 	declareRequest.Signature = []string{}
-
-	var rawDef types.ContractClass
-	if err = json.Unmarshal(dat, &rawDef); err != nil {
-		return resp, err
-	}
-
-	declareRequest.ContractClass = rawDef
+	declareRequest.ContractClass = contract
 	if err != nil {
 		return resp, err
 	}
@@ -177,6 +153,17 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	}
 
 	return resp, sg.do(req, &resp)
+}
+
+type DeployRequest types.DeployRequest
+
+func (d DeployRequest) MarshalJSON() ([]byte, error) {
+	calldata := []string{}
+	for _, value := range d.ConstructorCalldata {
+		calldata = append(calldata, types.SNValToBN(value).Text(10))
+	}
+	d.ConstructorCalldata = calldata
+	return json.Marshal(types.DeployRequest(d))
 }
 
 type DeclareRequest struct {
@@ -219,22 +206,4 @@ func (sg *Gateway) ContractAddresses(ctx context.Context) (*ContractAddresses, e
 type ContractAddresses struct {
 	Starknet             string `json:"Starknet"`
 	GpsStatementVerifier string `json:"GpsStatementVerifier"`
-}
-
-func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
-	pay, err := json.Marshal(program)
-	if err != nil {
-		return cc, err
-	}
-
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
-	if _, err = zw.Write(pay); err != nil {
-		return cc, err
-	}
-	if err := zw.Close(); err != nil {
-		return cc, err
-	}
-
-	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }

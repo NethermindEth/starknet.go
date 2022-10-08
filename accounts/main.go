@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
@@ -23,7 +24,7 @@ type config struct {
 	baseURL        string
 }
 
-func (c *config) installAccount() {
+func (c *config) installAccountWithRPCv01() {
 	account := newAccount()
 	ctx := context.Background()
 	baseURL := "http://localhost:5050/rpc"
@@ -35,7 +36,7 @@ func (c *config) installAccount() {
 		log.Fatalf("error connecting to devnet, %v\n", err)
 	}
 	if c.accountVersion == "v1" && c.withPlugin {
-		log.Fatalf("acount v1 with plugin is not supported yet")
+		log.Fatalf("account v1 with plugin is not supported yet")
 	}
 	compiledAccount := accountContent[c.accountVersion][c.withPlugin]
 	plugin := []byte{}
@@ -49,9 +50,45 @@ func (c *config) installAccount() {
 	provider := rpcv01.NewProvider(client)
 	account.Version = c.accountVersion
 	account.Plugin = c.withPlugin
-	err = account.installAccount(ctx, *provider, plugin, compiledAccount, proxy)
+	err = account.installAccountWithRPCv01(ctx, *provider, plugin, compiledAccount, proxy)
 	if err != nil {
-		log.Fatalf("error installing account to devnet, %v\n", err)
+		log.Fatalf("error installing account to devnet/rpcv01, %v\n", err)
+	}
+	if !c.skipCharge {
+		d := test.NewDevNet()
+		_, err := d.Mint(types.HexToHash(account.AccountAddress), 1000000000000000000)
+		if err != nil {
+			log.Fatalf("error loading ETH, %v\n", err)
+		}
+	}
+	log.Println("account installed with success", account.AccountAddress)
+}
+
+func (c *config) installAccountWithGateway() {
+	account := newAccount()
+	ctx := context.Background()
+	baseURL := "http://localhost:5050"
+	if c.baseURL != "" {
+		baseURL = c.baseURL
+	}
+	if c.accountVersion == "v1" && c.withPlugin {
+		log.Fatalf("account v1 with plugin is not supported yet")
+	}
+	compiledAccount := accountContent[c.accountVersion][c.withPlugin]
+	plugin := []byte{}
+	if c.withPlugin {
+		plugin = pluginCompiled
+	}
+	proxy := []byte{}
+	if c.withProxy {
+		proxy = proxyCompiled
+	}
+	provider := gateway.NewClient(gateway.WithBaseURL(baseURL))
+	account.Version = c.accountVersion
+	account.Plugin = c.withPlugin
+	err := account.installAccountWithGateway(ctx, *provider, plugin, compiledAccount, proxy)
+	if err != nil {
+		log.Fatalf("error installing account to devnet/gateway, %v\n", err)
 	}
 	if !c.skipCharge {
 		d := test.NewDevNet()
@@ -79,7 +116,7 @@ func (c *config) incrementWithSessionKey() {
 		log.Fatalf("error connecting to devnet, %v\n", err)
 	}
 	provider := rpcv01.NewProvider(client)
-	counterAddress, err := accountWithPlugin.installCounter(ctx, *provider)
+	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, *provider)
 	if err != nil {
 		log.Fatalf("could not deploy the counter contract, %v\n", err)
 	}
@@ -99,7 +136,7 @@ func (c *config) increment() {
 		log.Fatalf("error connecting to devnet, %v\n", err)
 	}
 	provider := rpcv01.NewProvider(client)
-	counterAddress, err := accountWithPlugin.installCounter(ctx, *provider)
+	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, *provider)
 	if err != nil {
 		log.Fatalf("could not deploy the counter contract, %v\n", err)
 	}
@@ -147,8 +184,11 @@ func parse(args []string) (*config, error) {
 	flagset.StringVar(&baseURL, "base-url", "http://localhost:5050/rpc", "change the default baseURL")
 	err := flagset.Parse(args)
 
-	if provider != "rpcv01" {
-		log.Fatal("provider provider only supports rpcv01")
+	if provider != "rpcv01" && provider != "gateway" {
+		log.Fatal("provider provider only supports rpcv01 and gateway")
+	}
+	if provider == "gateway" && baseURL == "http://localhost:5050/rpc" {
+		baseURL = "http://localhost:5050"
 	}
 	if accountVersion != "v0" && accountVersion != "v1" {
 		log.Fatal("account-version only supports v0 and v1")
@@ -174,7 +214,11 @@ func main() {
 	}
 	switch c.command {
 	case "install":
-		c.installAccount()
+		if c.provider == "rpcv01" {
+			c.installAccountWithRPCv01()
+			return
+		}
+		c.installAccountWithGateway()
 	case "execute":
 		if c.withPlugin {
 			c.incrementWithSessionKey()

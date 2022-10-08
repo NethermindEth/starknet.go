@@ -10,6 +10,7 @@ import (
 //go:embed artifacts/counter.json
 var counterCompiled []byte
 
-func (ap *accountPlugin) installCounter(ctx context.Context, provider rpcv01.Provider) (string, error) {
-	return deployContract(ctx, provider, counterCompiled, ap.PublicKey, []string{})
+func (ap *accountPlugin) installCounterWithRPCv01(ctx context.Context, provider rpcv01.Provider) (string, error) {
+	p := RPCProvider(provider)
+	return (&p).deployContract(ctx, counterCompiled, ap.PublicKey, []string{})
 }

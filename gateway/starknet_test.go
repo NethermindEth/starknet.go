@@ -2,6 +2,8 @@ package gateway
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -16,7 +18,10 @@ const (
 )
 
 var (
-	accountCompiled string = "contracts/account_class.json"
+	//go:embed contracts/counter.json
+	counterCompiled []byte
+	//go:embed contracts/account_class.json
+	accountCompiled []byte
 )
 
 func TestDeclare(t *testing.T) {
@@ -32,7 +37,12 @@ func TestDeclare(t *testing.T) {
 
 	for _, env := range testSet {
 		gw := testConfig.client
-		declareTx, err := gw.Declare(context.Background(), accountCompiled, DeclareRequest{})
+		accountClass := types.ContractClass{}
+		err := json.Unmarshal(accountCompiled, &accountClass)
+		if err != nil {
+			t.Fatalf("could not parse contract: %v\n", err)
+		}
+		declareTx, err := gw.Declare(context.Background(), accountClass, DeclareRequest{})
 		if err != nil {
 			t.Errorf("%s: could not 'DECLARE' contract: %v\n", env, err)
 			return
@@ -63,12 +73,17 @@ func TestDeployCounterContract(t *testing.T) {
 
 		gw := testConfig.client
 
-		tx, err := gw.Deploy(context.Background(), "contracts/counter.json", types.DeployRequest{
+		counterClass := types.ContractClass{}
+		err := json.Unmarshal(counterCompiled, &counterClass)
+		if err != nil {
+			t.Fatalf("could not parse contract: %v\n", err)
+		}
+		tx, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
 			ContractAddressSalt: "0x1",
 			ConstructorCalldata: []string{},
 		})
 		if err != nil {
-			t.Errorf("testnet: could not deploy contract: %v\n", err)
+			t.Fatalf("testnet: could not deploy contract: %v\n", err)
 		}
 		fmt.Println("txHash: ", tx.TransactionHash)
 	}
