@@ -76,7 +76,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 'add_transaction' wrapper for invokation requests
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddInvokeTransactionOutput, error) {
-	tx := types.Transaction{
+	tx := Transaction{
 		Type:            INVOKE,
 		ContractAddress: invoke.ContractAddress.Hex(),
 		Version:         fmt.Sprintf("0x%d", invoke.Version),

@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"strconv"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 type CommonTransactionReceipt struct {
-	TransactionHash ctypes.Hash `json:"transaction_hash"`
+	TransactionHash types.Hash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee   string            `json:"actual_fee"`
 	Status      TransactionStatus `json:"status"`
-	BlockHash   ctypes.Hash       `json:"block_hash"`
+	BlockHash   types.Hash        `json:"block_hash"`
 	BlockNumber uint64            `json:"block_number"`
 	Type        TransactionType   `json:"type,omitempty"`
 }
 
-func (tr CommonTransactionReceipt) Hash() ctypes.Hash {
+func (tr CommonTransactionReceipt) Hash() types.Hash {
 	return tr.TransactionHash
 }
 
@@ -123,7 +123,7 @@ type L1HandlerTransactionReceipt struct {
 }
 
 type TransactionReceipt interface {
-	Hash() ctypes.Hash
+	Hash() types.Hash
 }
 
 type MsgToL1 struct {
@@ -152,7 +152,7 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{ctypes.HexToHash(casted)}, nil
+		return TransactionHash{types.HexToHash(casted)}, nil
 	case map[string]interface{}:
 		// NOTE(tvanas): Pathfinder 0.3.3 does not return
 		// transaction receipt types. We handle this by

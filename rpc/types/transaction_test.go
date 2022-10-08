@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func TestTransactionHash(t *testing.T) {
@@ -23,7 +23,7 @@ func TestTransactionHash(t *testing.T) {
 			t.Fatalf("Unmarshalling text: %v", err)
 		}
 		h := th
-		h2 := ctypes.HexToHash(tc.Hash)
+		h2 := types.HexToHash(tc.Hash)
 
 		if h.TransactionHash != h2 {
 			t.Fatalf("Hashes not equal: %s %s", h, h2)
@@ -50,7 +50,7 @@ func TestTransactionHash(t *testing.T) {
 }
 
 func TestTransaction(t *testing.T) {
-	hash := ctypes.HexToHash("0xdead")
+	hash := types.HexToHash("0xdead")
 	th := TransactionHash{hash}
 	b, err := json.Marshal(th)
 	if err != nil {

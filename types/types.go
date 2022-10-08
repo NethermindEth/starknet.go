@@ -1,94 +1,10 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
 	"math/big"
 )
 
 type NumAsHex string
-
-type Bytecode []string
-
-type Block struct {
-	BlockHash       string         `json:"block_hash"`
-	ParentBlockHash string         `json:"parent_hash"`
-	BlockNumber     int            `json:"block_number"`
-	NewRoot         string         `json:"new_root"`
-	OldRoot         string         `json:"old_root"`
-	Status          string         `json:"status"`
-	AcceptedTime    uint64         `json:"accepted_time"`
-	GasPrice        string         `json:"gas_price"`
-	Transactions    []*Transaction `json:"transactions"`
-}
-
-type Code struct {
-	Bytecode Bytecode `json:"bytecode"`
-	Abi      *ABI     `json:"abi"`
-}
-
-func (c *Code) UnmarshalJSON(content []byte) error {
-	v := map[string]json.RawMessage{}
-	if err := json.Unmarshal(content, &v); err != nil {
-		return err
-	}
-
-	// process 'bytecode'.
-	data, ok := v["bytecode"]
-	if !ok {
-		return fmt.Errorf("missing bytecode in json object")
-	}
-	bytecode := []string{}
-	if err := json.Unmarshal(data, &bytecode); err != nil {
-		return err
-	}
-	c.Bytecode = bytecode
-
-	// process 'abi'
-	data, ok = v["abi"]
-	if !ok {
-		// contractClass can have an empty ABI for instance with ClassAt
-		return nil
-	}
-
-	abis := []interface{}{}
-	if err := json.Unmarshal(data, &abis); err != nil {
-		return err
-	}
-
-	abiPointer := ABI{}
-	for _, abi := range abis {
-		if checkABI, ok := abi.(map[string]interface{}); ok {
-			var ab ABIEntry
-			abiType, ok := checkABI["type"].(string)
-			if !ok {
-				return fmt.Errorf("unknown abi type %v", checkABI["type"])
-			}
-			switch abiType {
-			case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
-				ab = &FunctionABIEntry{}
-			case string(ABITypeStruct):
-				ab = &StructABIEntry{}
-			case string(ABITypeEvent):
-				ab = &EventABIEntry{}
-			default:
-				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
-			}
-			data, err := json.Marshal(checkABI)
-			if err != nil {
-				return err
-			}
-			err = json.Unmarshal(data, ab)
-			if err != nil {
-				return err
-			}
-			abiPointer = append(abiPointer, ab)
-		}
-	}
-
-	c.Abi = &abiPointer
-	return nil
-}
 
 /*
 StarkNet transaction states

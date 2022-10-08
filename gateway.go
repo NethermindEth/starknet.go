@@ -16,7 +16,7 @@ const (
 )
 
 type Account struct {
-	Provider types.Provider
+	Provider *gateway.Gateway
 	Address  types.Hash
 	PublicX  *big.Int
 	PublicY  *big.Int

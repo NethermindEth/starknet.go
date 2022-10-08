@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-
-	"github.com/dontpanicdao/caigo/types"
 )
 
 var Curve StarkCurve
@@ -285,50 +283,4 @@ func DivMod(n, m, p *big.Int) *big.Int {
 	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)
 	return r
-}
-
-// Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashTx(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, types.SNValToBN(cd))
-	}
-
-	cdHash, err := sc.HashElements(calldataArray)
-	if err != nil {
-		return hash, err
-	}
-
-	txHashData := []*big.Int{
-		types.SNValToBN(tx.ContractAddress),
-		types.GetSelectorFromName(tx.EntryPointSelector),
-		cdHash,
-	}
-
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
-}
-
-// Adheres to 'starknet.js' hash non typedData
-func (sc StarkCurve) HashMsg(addr *big.Int, tx types.Transaction) (hash *big.Int, err error) {
-	calldataArray := []*big.Int{big.NewInt(int64(len(tx.Calldata)))}
-	for _, cd := range tx.Calldata {
-		calldataArray = append(calldataArray, types.HexToBN(cd))
-	}
-
-	cdHash, err := sc.HashElements(calldataArray)
-	if err != nil {
-		return hash, err
-	}
-
-	txHashData := []*big.Int{
-		addr,
-		types.SNValToBN(tx.ContractAddress),
-		types.GetSelectorFromName(tx.EntryPointSelector),
-		cdHash,
-		types.SNValToBN(tx.Nonce),
-	}
-
-	hash, err = sc.ComputeHashOnElements(txHashData)
-	return hash, err
 }

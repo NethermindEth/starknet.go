@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 var ErrInvalidBlockID = errors.New("invalid blockid")
@@ -19,9 +19,9 @@ type BlockHashAndNumberOutput struct {
 // BlockID is an unexposed struct that is used in a OneOf for
 // starknet_getBlockWithTxHashes.
 type BlockID struct {
-	Number *uint64      `json:"block_number,omitempty"`
-	Hash   *ctypes.Hash `json:"block_hash,omitempty"`
-	Tag    string       `json:"block_tag,omitempty"`
+	Number *uint64     `json:"block_number,omitempty"`
+	Hash   *types.Hash `json:"block_hash,omitempty"`
+	Tag    string      `json:"block_tag,omitempty"`
 }
 
 func (b BlockID) MarshalJSON() ([]byte, error) {
@@ -89,9 +89,9 @@ type Block struct {
 
 type BlockHeader struct {
 	// BlockHash The hash of this block
-	BlockHash ctypes.Hash `json:"block_hash"`
+	BlockHash types.Hash `json:"block_hash"`
 	// ParentHash The hash of this block's parent
-	ParentHash ctypes.Hash `json:"parent_hash"`
+	ParentHash types.Hash `json:"parent_hash"`
 	// BlockNumber the block number (its height)
 	BlockNumber uint64 `json:"block_number"`
 	// NewRoot The new global state root

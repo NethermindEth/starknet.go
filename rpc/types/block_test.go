@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func TestBlockID_Marshal(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBlockID_Marshal(t *testing.T) {
 		want: `{"block_number":420}`,
 	}, {
 		id: func() BlockID {
-			h := ctypes.HexToHash("0xdead")
+			h := types.HexToHash("0xdead")
 			return BlockID{
 				Hash: &h,
 			}

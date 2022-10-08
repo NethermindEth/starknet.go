@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -20,23 +19,6 @@ type Block struct {
 	Transactions        []Transaction        `json:"transactions"`
 	Timestamp           int                  `json:"timestamp"`
 	TransactionReceipts []TransactionReceipt `json:"transaction_receipts"`
-}
-
-func (b Block) Normalize() *types.Block {
-	normalized := types.Block{
-		BlockHash:       b.BlockHash,
-		ParentBlockHash: b.ParentBlockHash,
-		BlockNumber:     b.BlockNumber,
-		NewRoot:         b.StateRoot,
-		Status:          b.Status,
-		AcceptedTime:    uint64(b.Timestamp),
-	}
-
-	for _, txn := range b.Transactions {
-		normalized.Transactions = append(normalized.Transactions, txn.Normalize())
-	}
-
-	return &normalized
 }
 
 type BlockOptions struct {
@@ -92,10 +74,10 @@ func (sg *Gateway) BlockIDByHash(ctx context.Context, hash string) (block uint64
 	return resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) BlockByHash(context.Context, string, string) (*types.Block, error) {
+func (sg *Gateway) BlockByHash(context.Context, string, string) (*Block, error) {
 	panic("not implemented")
 }
 
-func (sg *Gateway) BlockByNumber(context.Context, *big.Int, string) (*types.Block, error) {
+func (sg *Gateway) BlockByNumber(context.Context, *big.Int, string) (*Block, error) {
 	panic("not implemented")
 }

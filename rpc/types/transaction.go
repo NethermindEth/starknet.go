@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strconv"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	types "github.com/dontpanicdao/caigo/types"
 )
 
 type TransactionHash struct {
-	TransactionHash ctypes.Hash `json:"transaction_hash"`
+	TransactionHash types.Hash `json:"transaction_hash"`
 }
 
-func (tx TransactionHash) Hash() ctypes.Hash {
+func (tx TransactionHash) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
@@ -21,7 +21,7 @@ func (tx *TransactionHash) UnmarshalJSON(input []byte) error {
 	if err != nil {
 		return err
 	}
-	tx.TransactionHash = ctypes.HexToHash(unquoted)
+	tx.TransactionHash = types.HexToHash(unquoted)
 	return nil
 }
 
@@ -35,12 +35,12 @@ func (tx TransactionHash) MarshalJSON() ([]byte, error) {
 }
 
 type CommonTransaction struct {
-	TransactionHash ctypes.Hash     `json:"transaction_hash,omitempty"`
+	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee,omitempty"`
 	// Version of the transaction scheme
-	Version ctypes.NumAsHex `json:"version"`
+	Version types.NumAsHex `json:"version"`
 	// Signature
 	Signature []string `json:"signature,omitempty"`
 	// Nonce
@@ -49,21 +49,21 @@ type CommonTransaction struct {
 
 // InvokeTxnDuck is a type used to understand the Invoke Version
 type InvokeTxnDuck struct {
-	AccountAddress     ctypes.Hash `json:"account_address"`
-	ContractAddress    ctypes.Hash `json:"contract_address"`
-	EntryPointSelector string      `json:"entry_point_selector"`
+	AccountAddress     types.Hash `json:"account_address"`
+	ContractAddress    types.Hash `json:"contract_address"`
+	EntryPointSelector string     `json:"entry_point_selector"`
 }
 
 type InvokeTxnV0 struct {
 	CommonTransaction
-	ContractAddress    ctypes.Hash `json:"contract_address"`
-	EntryPointSelector string      `json:"entry_point_selector"`
+	ContractAddress    types.Hash `json:"contract_address"`
+	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx InvokeTxnV0) Hash() ctypes.Hash {
+func (tx InvokeTxnV0) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
@@ -72,31 +72,31 @@ type InvokeTxnV1 struct {
 	InvokeV1
 }
 
-func (tx InvokeTxnV1) Hash() ctypes.Hash {
+func (tx InvokeTxnV1) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
 type InvokeTxn interface{}
 
 type L1HandlerTxn struct {
-	TransactionHash ctypes.Hash     `json:"transaction_hash,omitempty"`
+	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
-	Version ctypes.NumAsHex `json:"version"`
+	Version types.NumAsHex `json:"version"`
 	// Nonce
 	Nonce string `json:"nonce,omitempty"`
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee,omitempty"`
 	// Signature
-	Signature          []string    `json:"signature,omitempty"`
-	ContractAddress    ctypes.Hash `json:"contract_address"`
-	EntryPointSelector string      `json:"entry_point_selector"`
+	Signature          []string   `json:"signature,omitempty"`
+	ContractAddress    types.Hash `json:"contract_address"`
+	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx L1HandlerTxn) Hash() ctypes.Hash {
+func (tx L1HandlerTxn) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
@@ -110,7 +110,7 @@ type DeclareTxn struct {
 	SenderAddress string `json:"sender_address"`
 }
 
-func (tx DeclareTxn) Hash() ctypes.Hash {
+func (tx DeclareTxn) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
@@ -130,13 +130,13 @@ type DeployTxn struct {
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-func (tx DeployTxn) Hash() ctypes.Hash {
+func (tx DeployTxn) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
 type DeployTxnProperties struct {
 	// Version of the transaction scheme
-	Version ctypes.NumAsHex `json:"version"`
+	Version types.NumAsHex  `json:"version"`
 	Type    TransactionType `json:"type"`
 	// ContractAddressSalt The salt for the address of the deployed contract
 	ContractAddressSalt string `json:"contract_address_salt"`
@@ -145,15 +145,15 @@ type DeployTxnProperties struct {
 }
 
 type Transaction interface {
-	Hash() ctypes.Hash
+	Hash() types.Hash
 }
 
 // InvokeV0 version 0 invoke transaction
-type InvokeV0 ctypes.FunctionCall
+type InvokeV0 types.FunctionCall
 
 // InvokeV1 version 1 invoke transaction
 type InvokeV1 struct {
-	SenderAddress ctypes.Hash `json:"sender_address"`
+	SenderAddress types.Hash `json:"sender_address"`
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
@@ -199,7 +199,7 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{ctypes.HexToHash(casted)}, nil
+		return TransactionHash{types.HexToHash(casted)}, nil
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:

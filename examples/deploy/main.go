@@ -20,7 +20,7 @@ const (
 )
 
 func main() {
-	gw := gateway.NewProvider(gateway.WithChain(env))
+	gw := gateway.NewClient(gateway.WithChain(env))
 
 	privateKey, err := caigo.Curve.GetRandomPrivateKey()
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 	fmt.Println("Deploying account to testnet. It may take a while.")
 	accountResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
 		Type:                gateway.DEPLOY,
-		ContractAddressSalt: caigo.BigToHex(pubX),     // salt to hex
+		ContractAddressSalt: types.BigToHex(pubX),     // salt to hex
 		ConstructorCalldata: []string{pubX.String()}}) // public key
 	if err != nil {
 		fmt.Println("can't deploy account:", err)
@@ -54,14 +54,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	account, err := caigo.NewAccount(privateKey.String(), tx.Transaction.ContractAddress, gw)
+	account, err := caigo.NewGatewayAccount(privateKey.String(), types.HexToHash(tx.Transaction.ContractAddress), gw)
 	if err != nil {
 		fmt.Println("can't create account:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Account deployed. Contract address: ", account.Address)
-	if err := savePrivateKey(caigo.BigToHex(privateKey)); err != nil {
+	if err := savePrivateKey(types.BigToHex(privateKey)); err != nil {
 		fmt.Println("can't save private key:", err)
 		os.Exit(1)
 	}
@@ -75,11 +75,11 @@ func main() {
 	fmt.Println("Deploying erc20 contract. It may take a while")
 	erc20Response, err := gw.Deploy(context.Background(), compiledERC20Contract, types.DeployRequest{
 		Type:                gateway.DEPLOY,
-		ContractAddressSalt: caigo.BigToHex(pubX), // salt to hex
+		ContractAddressSalt: types.BigToHex(pubX), // salt to hex
 		ConstructorCalldata: []string{
-			caigo.HexToBN(account.Address).String(), // owner
-			"2000",                                  // initial supply
-			"0",                                     // Uint256 additional parameter
+			account.Address.String(), // owner
+			"2000",                   // initial supply
+			"0",                      // Uint256 additional parameter
 		},
 	})
 	if err != nil {
@@ -110,7 +110,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	balance, err := balanceOf(gw, erc20ContractAddr, account.Address)
+	balance, err := balanceOf(gw, erc20ContractAddr, account.Address.Hex())
 	if err != nil {
 		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
@@ -123,12 +123,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	balanceAccount, err := balanceOf(gw, erc20ContractAddr, account.Address)
+	balanceAccount, err := balanceOf(gw, erc20ContractAddr, account.Address.Hex())
 	if err != nil {
 		fmt.Println("can't get balance of:", account.Address, err)
 		os.Exit(1)
 	}
-	balancePredeployed, err := balanceOf(gw, erc20ContractAddr, account.Address)
+	balancePredeployed, err := balanceOf(gw, erc20ContractAddr, account.Address.Hex())
 	if err != nil {
 		fmt.Println("can't get balance of:", predeployedContract, err)
 		os.Exit(1)
@@ -139,15 +139,15 @@ func main() {
 }
 
 // Utils function to wait for transaction to be accepted on L2 and print tx status.
-func waitForTransaction(gw *gateway.GatewayProvider, transactionHash string) error {
+func waitForTransaction(gw *gateway.Gateway, transactionHash string) error {
 	acceptedOnL2 := false
-	var receipt *types.TransactionReceipt
+	var receipt *gateway.TransactionReceipt
 	var err error
 	fmt.Println("Polling until transaction is accepted on L2...")
 	for !acceptedOnL2 {
 		_, receipt, err = gw.PollTx(context.Background(), transactionHash, types.ACCEPTED_ON_L2, pollInterval, maxPoll)
 		if err != nil {
-			fmt.Println(receipt.Status, receipt.StatusData)
+			fmt.Println(receipt.Status)
 			return fmt.Errorf("Transaction Failure (%s): can't poll to desired status: %s", transactionHash, err.Error())
 		}
 		fmt.Println("Current status : ", receipt.Status)
@@ -159,21 +159,21 @@ func waitForTransaction(gw *gateway.GatewayProvider, transactionHash string) err
 }
 
 // mint mints the erc20 contract through the account.
-func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address string) error {
+func mint(gw *gateway.Gateway, account *caigo.Account, erc20address string) error {
 	// Transaction that will be executed by the account contract.
-	tx := []types.Transaction{
+	tx := []types.FunctionCall{
 		{
-			ContractAddress:    erc20address,
+			ContractAddress:    types.HexToHash(erc20address),
 			EntryPointSelector: "mint",
 			Calldata: []string{
-				caigo.HexToBN(account.Address).String(), // to
-				"10",                                    // amount to mint
-				"0",                                     // UInt256 additional parameter
+				account.Address.String(), // to
+				"10",                     // amount to mint
+				"0",                      // UInt256 additional parameter
 			},
 		},
 	}
 
-	execResp, err := account.Execute(context.Background(), tx, caigo.ExecuteDetails{})
+	execResp, err := account.Execute(context.Background(), tx, types.ExecuteDetails{})
 	if err != nil {
 		return fmt.Errorf("can't execute transaction: %w", err)
 	}
@@ -186,22 +186,22 @@ func mint(gw *gateway.GatewayProvider, account *caigo.Account, erc20address stri
 
 // transferFrom will transfer 5 tokens from account balance to the otherAccount by
 // calling the transferFrom function of the erc20 contract.
-func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20address, otherAccount string) error {
+func transferFrom(gw *gateway.Gateway, account *caigo.Account, erc20address, otherAccount string) error {
 	// Transaction that will be executed by the account contract.
-	tx := []types.Transaction{
+	tx := []types.FunctionCall{
 		{
-			ContractAddress:    erc20address,
+			ContractAddress:    types.HexToHash(erc20address),
 			EntryPointSelector: "transferFrom",
 			Calldata: []string{
-				caigo.HexToBN(account.Address).String(), // sender
-				caigo.HexToBN(otherAccount).String(),    // recipient
-				"5",                                     // amount to transfer
-				"0",                                     // UInt256 additional parameter
+				account.Address.String(),             // sender
+				types.HexToBN(otherAccount).String(), // recipient
+				"5",                                  // amount to transfer
+				"0",                                  // UInt256 additional parameter
 			},
 		},
 	}
 
-	execResp, err := account.Execute(context.Background(), tx, caigo.ExecuteDetails{})
+	execResp, err := account.Execute(context.Background(), tx, types.ExecuteDetails{})
 	if err != nil {
 		return fmt.Errorf("can't execute transaction: %w", err)
 	}
@@ -213,12 +213,12 @@ func transferFrom(gw *gateway.GatewayProvider, account *caigo.Account, erc20addr
 }
 
 // balanceOf returns the balance of the account at the accountAddress address.
-func balanceOf(gw *gateway.GatewayProvider, erc20address, accountAddress string) (string, error) {
+func balanceOf(gw *gateway.Gateway, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    erc20address,
+		ContractAddress:    types.HexToHash(erc20address),
 		EntryPointSelector: "balanceOf",
 		Calldata: []string{
-			caigo.HexToBN(accountAddress).String(),
+			types.HexToBN(accountAddress).String(),
 		},
 	}, "")
 	if err != nil {
