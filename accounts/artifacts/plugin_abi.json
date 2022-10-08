@@ -1,0 +1,17 @@
+[
+    {
+        "data": [
+            {
+                "name": "accountAddress",
+                "type": "felt"
+            },
+            {
+                "name": "classHash",
+                "type": "felt"
+            }
+        ],
+        "keys": [],
+        "name": "PluginRegistered",
+        "type": "event"
+    }
+]

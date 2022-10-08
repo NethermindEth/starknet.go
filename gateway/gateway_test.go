@@ -2,21 +2,23 @@ package gateway
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/test"
 	"github.com/joho/godotenv"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client *Gateway
-	base   string
+	client         *Gateway
+	base           string
+	privateKey     string
+	accountAddress string
+	publicKey      string
 }
 
 var (
@@ -38,32 +40,6 @@ var (
 	}
 )
 
-// requires starknet-devnet to be running and accessible and no seed:
-// ex: starknet-devnet
-// (ref: https://github.com/Shard-Labs/starknet-devnet)
-func setupDevnet() {
-	if _, err := os.Stat(accountCompiled); os.IsNotExist(err) {
-		accountClass, err := NewClient().ClassByHash(context.Background(), ACCOUNT_CLASS_HASH)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		file, err := json.Marshal(accountClass)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		if err = os.WriteFile(accountCompiled, file, 0644); err != nil {
-			panic(err.Error())
-		}
-	}
-
-	var err error
-	if devnetAccounts, err = DevnetAccounts(); err != nil {
-		panic(err.Error())
-	}
-}
-
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
@@ -84,6 +60,14 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.client = &Gateway{
 			client: &httpMock{},
 		}
+	case "devnet":
+		v, err := test.NewDevNet().Accounts()
+		if err != nil {
+			t.Fatal("could not connect to devnet", err)
+		}
+		testConfig.privateKey = v[0].PrivateKey
+		testConfig.publicKey = v[0].PublicKey
+		testConfig.accountAddress = v[0].Address
 	default:
 		testConfig.client = NewClient(WithChain(testEnv))
 	}
