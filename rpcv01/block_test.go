@@ -2,7 +2,6 @@ package rpcv01
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -171,9 +170,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		blockWithTxs, ok := blockWithTxsInterface.(Block)
+		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpv01.Block, instead %T", blockWithTxsInterface)
 		}
 		_, err = spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -248,9 +247,9 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
-		blockWithTxs, ok := blockWithTxsInterface.(Block)
+		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
 		}
 		diff, err := spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -342,14 +341,15 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 			if err != nil {
 				t.Fatal("BlockWithTxHashes match the expected error:", err)
 			}
-			blockWithTxs, ok := blockWithTxsInterface.(Block)
+			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			if !ok {
-				t.Fatalf("expecting BlockWithTxs, instead %T", blockWithTxsInterface)
+				t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				if fmt.Sprintf("%T", v) != "types.InvokeTxnV0" &&
-					fmt.Sprintf("%T", v) != "types.DeployTxn" &&
-					fmt.Sprintf("%T", v) != "types.DeclareTxn" {
+				_, okv0 := v.(InvokeTxnV0)
+				_, okdec := v.(DeclareTxn)
+				_, okdep := v.(DeployTxn)
+				if !okv0 && !okdec && !okdep {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
