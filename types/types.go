@@ -6,34 +6,6 @@ import (
 
 type NumAsHex string
 
-/*
-StarkNet transaction states
-*/
-const (
-	NOT_RECIEVED = TxStatus(iota)
-	REJECTED
-	RECEIVED
-	PENDING
-	ACCEPTED_ON_L2
-	ACCEPTED_ON_L1
-)
-
-var TxStatuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
-
-type TxStatus int
-
-func (s TxStatus) String() string {
-	return TxStatuses[s]
-}
-
-type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash,omitempty"`
-	TxFailureReason struct {
-		ErrorMessage string `json:"error_message,omitempty"`
-	} `json:"tx_failure_reason,omitempty"`
-}
-
 type AddInvokeTransactionOutput struct {
 	TransactionHash string `json:"transaction_hash"`
 }
@@ -55,11 +27,6 @@ type DeployRequest struct {
 	ContractAddressSalt string        `json:"contract_address_salt"`
 	ConstructorCalldata []string      `json:"constructor_calldata"`
 	ContractDefinition  ContractClass `json:"contract_definition"`
-}
-
-type EntryPointList struct {
-	Offset   string `json:"offset"`
-	Selector string `json:"selector"`
 }
 
 // FunctionCall function call information
@@ -89,11 +56,6 @@ type FeeEstimate struct {
 	GasConsumed NumAsHex `json:"gas_consumed"`
 	GasPrice    NumAsHex `json:"gas_price"`
 	OverallFee  NumAsHex `json:"overall_fee"`
-}
-
-type ContractAddresses struct {
-	Starknet             string `json:"Starknet"`
-	GpsStatementVerifier string `json:"GpsStatementVerifier"`
 }
 
 // ExecuteDetails provides some details about the execution.

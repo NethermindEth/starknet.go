@@ -114,7 +114,7 @@ type TransactionStatusOptions struct {
 // Gets the transaction status from a txn.
 //
 // [Reference](https://github.com/starkware-libs/cairo-lang/blob/fc97bdd8322a7df043c87c371634b26c15ed6cee/src/starkware/starknet/services/api/feeder_gateway/feeder_gateway_client.py#L87)
-func (gw *Gateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*types.TransactionStatus, error) {
+func (gw *Gateway) TransactionStatus(ctx context.Context, opts TransactionStatusOptions) (*TransactionStatus, error) {
 	req, err := gw.newRequest(ctx, http.MethodGet, "/get_transaction_status", nil)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (gw *Gateway) TransactionStatus(ctx context.Context, opts TransactionStatus
 	}
 	appendQueryValues(req, vs)
 
-	var resp types.TransactionStatus
+	var resp TransactionStatus
 	return &resp, gw.do(req, &resp)
 }
 
@@ -200,7 +200,7 @@ func (gw *Gateway) TransactionTrace(ctx context.Context, txHash string) (*Transa
 
 // Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
 // or the transaction reverts
-func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold types.TxStatus, interval, maxPoll int) (n int, receipt *TransactionReceipt, err error) {
+func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold TxStatus, interval, maxPoll int) (n int, receipt *TransactionReceipt, err error) {
 	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
@@ -226,7 +226,7 @@ func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold types.Tx
 }
 
 func FindTxStatus(stat string) int {
-	for i, val := range types.TxStatuses {
+	for i, val := range TxStatuses {
 		if val == strings.ToUpper(stat) {
 			return i
 		}
@@ -269,4 +269,32 @@ type FunctionInvocation struct {
 	InternalCalls      []FunctionInvocation `json:"internal_calls"`
 	Events             []Event              `json:"events"`
 	Messages           []interface{}        `json:"messages"`
+}
+
+/*
+StarkNet transaction states
+*/
+const (
+	NOT_RECEIVED = TxStatus(iota)
+	REJECTED
+	RECEIVED
+	PENDING
+	ACCEPTED_ON_L2
+	ACCEPTED_ON_L1
+)
+
+var TxStatuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
+
+type TxStatus int
+
+func (s TxStatus) String() string {
+	return TxStatuses[s]
+}
+
+type TransactionStatus struct {
+	TxStatus        string `json:"tx_status"`
+	BlockHash       string `json:"block_hash,omitempty"`
+	TxFailureReason struct {
+		ErrorMessage string `json:"error_message,omitempty"`
+	} `json:"tx_failure_reason,omitempty"`
 }

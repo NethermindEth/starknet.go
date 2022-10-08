@@ -206,14 +206,19 @@ func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateU
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) ContractAddresses(ctx context.Context) (*types.ContractAddresses, error) {
+func (sg *Gateway) ContractAddresses(ctx context.Context) (*ContractAddresses, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_contract_addresses", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp types.ContractAddresses
+	var resp ContractAddresses
 	return &resp, sg.do(req, &resp)
+}
+
+type ContractAddresses struct {
+	Starknet             string `json:"Starknet"`
+	GpsStatementVerifier string `json:"GpsStatementVerifier"`
 }
 
 func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
