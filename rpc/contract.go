@@ -61,7 +61,7 @@ func (provider *Provider) EstimateFee(ctx context.Context, request ctypes.Functi
 		request.EntryPointSelector = entrypointSelector
 	}
 	var raw ctypes.FeeEstimate
-	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, request, blockID); err != nil {
+	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, functionInvoke(request), blockID); err != nil {
 		return nil, err
 	}
 	return &raw, nil
