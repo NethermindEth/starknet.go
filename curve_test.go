@@ -1,11 +1,13 @@
 package caigo
 
 import (
+	"crypto/subtle"
 	"fmt"
-	"time"
 	"math"
 	"math/big"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/dontpanicdao/caigo/types"
 	"gonum.org/v1/gonum/stat"
@@ -176,7 +178,6 @@ func TestMultAir(t *testing.T) {
 	}
 }
 
-
 func TestEcMult(t *testing.T) {
 	testMult := []struct {
 		k         *big.Int
@@ -217,33 +218,175 @@ func TestEcMult(t *testing.T) {
 	}
 }
 
-func BenchmarkPrivateToPoint(b *testing.B) {
-	var _genNBits = func(n int) (k *big.Int) {
+func BenchmarkEcMultAll(b *testing.B) {
+	var _genBigIntBits = func(n int) (k *big.Int) {
 		k = big.NewInt(1)
-		for i := 0; i < n; i++ {
+		for i := 1; i < n; i++ {
 			k = k.Lsh(k, 1).Add(k, big.NewInt(1))
 		}
 		return
 	}
 
-	xs := []float64{}
-	for i := 1; i < Curve.N.BitLen() - 1; i++ {
-		k := _genNBits(i)
-		b.Run(fmt.Sprintf("input_size_%d", k.BitLen()), func(b *testing.B) {
-			start := time.Now()
-			Curve.PrivateToPoint(k)
-			elapsed := time.Since(start).Nanoseconds()
-			xs = append(xs, float64(elapsed))
-		})
+	testEcMult := []struct {
+		algo string
+		fn   EcMultiFn
+	}{
+		{
+			algo: "Add-Always-Double",
+			fn:   Curve.EcMult, // used algo
+		},
+		{
+			algo: "Double-And-Add",
+			fn:   Curve.ecMult_DoubleAndAdd, // original algo
+		},
+		{
+			algo: "Montgomery-Ladder",
+			fn:   Curve.ecMult_Montgomery,
+		},
+		{
+			algo: "Montgomery-Ladder-Lsh",
+			fn:   Curve.ecMult_MontgomeryLsh,
+		},
 	}
 
-	// computes the weighted mean of the dataset.
-	// we don't have any weights (ie: all weights are 1)
-	// so we just pass a nil slice.
-	mean := stat.Mean(xs, nil)
-	variance := stat.Variance(xs, nil)
-	stddev := math.Sqrt(variance)
-	fmt.Printf("mean=     %v\n", mean)
-	fmt.Printf("variance= %v\n", variance)
-	fmt.Printf("std-dev=  %v\n", stddev)
+	var out strings.Builder
+	for _, tt := range testEcMult {
+		// test (+ time) injected ec multi fn performance via Curve.privateToPoint
+		var _test = func(k *big.Int) int64 {
+			start := time.Now()
+			Curve.privateToPoint(k, tt.fn)
+			return time.Since(start).Nanoseconds()
+		}
+
+		xs := []float64{}
+		// generate numbers with 1 to 251 bits set
+		for i := 1; i < Curve.N.BitLen(); i++ {
+			k := _genBigIntBits(i)
+			b.Run(fmt.Sprintf("%s/input_bits_len/%d", tt.algo, k.BitLen()), func(b *testing.B) {
+				ns := _test(k)
+				xs = append(xs, float64(ns))
+			})
+		}
+
+		// generate numbers with 1 to 250 trailing zero bits set
+		k := _genBigIntBits(Curve.N.BitLen() - 1)
+		for i := 1; i < Curve.N.BitLen()-1; i++ {
+			k.Rsh(k, uint(i)).Lsh(k, uint(i))
+			b.Run(fmt.Sprintf("%s/input_bits_len/%d#%d", tt.algo, k.BitLen(), k.TrailingZeroBits()), func(b *testing.B) {
+				ns := _test(k)
+				xs = append(xs, float64(ns))
+			})
+		}
+
+		// computes the weighted mean of the dataset.
+		// we don't have any weights (ie: all weights are 1) so we pass a nil slice.
+		mean := stat.Mean(xs, nil)
+		variance := stat.Variance(xs, nil)
+		stddev := math.Sqrt(variance)
+
+		out.WriteString("-----------------------------\n")
+		out.WriteString(fmt.Sprintf("algo=       %v\n", tt.algo))
+		out.WriteString(fmt.Sprintf("stats(ns)\n"))
+		out.WriteString(fmt.Sprintf("  mean=     %v\n", mean))
+		out.WriteString(fmt.Sprintf("  variance= %v\n", variance))
+		out.WriteString(fmt.Sprintf("  std-dev=  %v\n", stddev))
+		out.WriteString("\n")
+	}
+
+	// final stats output
+	fmt.Println(out.String())
+}
+
+// swappable ec multiplication fn
+type EcMultiFn func(m, x1, y1 *big.Int) (x, y *big.Int)
+
+// obtain public key coordinates from stark curve given the private key (configurable ec multlipication fn)
+func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti EcMultiFn) (x, y *big.Int, err error) {
+	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
+		return x, y, fmt.Errorf("private key not in curve range")
+	}
+	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
+	return x, y, nil
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+func (sc StarkCurve) ecMult_DoubleAndAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
+	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		if m.BitLen() == 1 {
+			return x1, y1
+		}
+		mk := new(big.Int).Mod(m, big.NewInt(2))
+		if mk.Cmp(big.NewInt(0)) == 0 {
+			h := new(big.Int).Div(m, big.NewInt(2))
+			c, d := sc.Double(x1, y1)
+			return _ecMult(h, c, d)
+		}
+		n := new(big.Int).Sub(m, big.NewInt(1))
+		e, f := _ecMult(n, x1, y1)
+
+		return sc.Add(e, f, x1, y1)
+	}
+
+	return _ecMult(m, x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) ecMult_Montgomery(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Do constant number of operations
+		for i := sc.N.BitLen() - 1; i >= 0; i-- {
+			// Check if next bit set
+			if m.Bit(i) == 0 {
+				x1, y1 = sc.Add(x0, y0, x1, y1)
+				x0, y0 = sc.Double(x0, y0)
+			} else {
+				x0, y0 = sc.Add(x0, y0, x1, y1)
+				x1, y1 = sc.Double(x1, y1)
+			}
+		}
+		return x0, y0
+	}
+
+	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) ecMult_MontgomeryLsh(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Fill a fixed 32 byte buffer (2 ** 251)
+		buf := m.FillBytes(make([]byte, 32))
+
+		for i, byte := range buf {
+			for bitNum := 0; bitNum < 8; bitNum++ {
+				// Skip first 4 bits, do constant 252 operations
+				if i == 0 && bitNum < 4 {
+					byte <<= 1
+					continue
+				}
+
+				// Check if next bit set
+				if subtle.ConstantTimeByteEq(byte&0x80, 0x80) == 0 {
+					x1, y1 = sc.Add(x0, y0, x1, y1)
+					x0, y0 = sc.Double(x0, y0)
+				} else {
+					x0, y0 = sc.Add(x0, y0, x1, y1)
+					x1, y1 = sc.Double(x1, y1)
+				}
+				byte <<= 1
+			}
+		}
+		return x0, y0
+	}
+
+	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
 }
