@@ -8,22 +8,22 @@ import (
 
 	"github.com/dontpanicdao/caigo/rpc"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	 "github.com/dontpanicdao/caigo/types"
 )
 
 type account interface {
 	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
-	TransactionHash(calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*big.Int, error)
-	Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error)
+	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
-	EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.FeeEstimate, error)
-	Execute(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.AddInvokeTransactionOutput, error)
+	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
+	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
 }
 
 var _ account = &RPCAccount{}
 
 type RPCAccountPlugin interface {
-	PluginCall(calls []ctypes.FunctionCall) (ctypes.FunctionCall, error)
+	PluginCall(calls []types.FunctionCall) (types.FunctionCall, error)
 }
 
 type RPCAccount struct {
@@ -74,7 +74,7 @@ func NewRPCAccount(private, address string, provider *rpc.Provider, options ...A
 	if version != 0 {
 		return nil, errors.New("account v1 not yet supported")
 	}
-	priv := ctypes.SNValToBN(private)
+	priv := types.SNValToBN(private)
 
 	return &RPCAccount{
 		Provider: provider,
@@ -85,7 +85,7 @@ func NewRPCAccount(private, address string, provider *rpc.Provider, options ...A
 	}, nil
 }
 
-func (account *RPCAccount) Call(ctx context.Context, call ctypes.FunctionCall) ([]string, error) {
+func (account *RPCAccount) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
 	return account.Provider.Call(ctx, call, rpc.WithBlockTag("latest"))
 }
 
@@ -93,7 +93,7 @@ func (account *RPCAccount) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return Curve.Sign(msgHash, account.private)
 }
 
-func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*big.Int, error) {
+func (account *RPCAccount) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 	chainID, err := account.Provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -117,23 +117,23 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 	switch {
 	case account.version == 0:
 		multiHashData = []*big.Int{
-			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
-			ctypes.SNValToBN(account.Address),
-			ctypes.GetSelectorFromName(EXECUTE_SELECTOR),
+			types.SNValToBN(account.Address),
+			types.GetSelectorFromName(EXECUTE_SELECTOR),
 			cdHash,
 			details.MaxFee,
-			ctypes.UTF8StrToBig(chainID),
+			types.UTF8StrToBig(chainID),
 		}
 	case account.version == 1:
 		multiHashData = []*big.Int{
-			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
-			ctypes.SNValToBN(account.Address),
+			types.SNValToBN(account.Address),
 			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
-			ctypes.UTF8StrToBig(chainID),
+			types.UTF8StrToBig(chainID),
 			details.Nonce,
 		}
 	default:
@@ -147,8 +147,8 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	case account.version == 0:
 		nonce, err := account.Provider.Call(
 			ctx,
-			ctypes.FunctionCall{
-				ContractAddress:    ctypes.HexToHash(account.Address),
+			types.FunctionCall{
+				ContractAddress:    types.HexToHash(account.Address),
 				EntryPointSelector: "get_nonce",
 				Calldata:           []string{},
 			},
@@ -168,7 +168,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	case account.version == 1:
 		nonce, err := account.Provider.Nonce(
 			ctx,
-			ctypes.HexToHash(account.Address),
+			types.HexToHash(account.Address),
 		)
 		if err != nil {
 			return nil, err
@@ -185,7 +185,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
-func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.FeeEstimate, error) {
+func (account *RPCAccount) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
 	var err error
 	nonce := details.Nonce
 	if details.Nonce == nil {
@@ -204,11 +204,11 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 		if err != nil {
 			return nil, err
 		}
-		calls = append([]ctypes.FunctionCall{call}, calls...)
+		calls = append([]types.FunctionCall{call}, calls...)
 	}
 	txHash, err := account.TransactionHash(
 		calls,
-		ctypes.ExecuteDetails{
+		types.ExecuteDetails{
 			Nonce:  nonce,
 			MaxFee: maxFee,
 		},
@@ -230,12 +230,12 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
 	accountDefaultV0Entrypoint := "__execute__"
-	call := ctypes.FunctionInvoke{
+	call := types.FunctionInvoke{
 		MaxFee:    maxFee,
 		Version:   version,
-		Signature: ctypes.Signature{s1, s2},
-		FunctionCall: ctypes.FunctionCall{
-			ContractAddress:    ctypes.HexToHash(account.Address),
+		Signature: types.Signature{s1, s2},
+		FunctionCall: types.FunctionCall{
+			ContractAddress:    types.HexToHash(account.Address),
 			EntryPointSelector: accountDefaultV0Entrypoint,
 			Calldata:           calldata,
 		},
@@ -243,7 +243,7 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
 }
 
-func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.AddInvokeTransactionOutput, error) {
+func (account *RPCAccount) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
 	if account.version != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
@@ -276,11 +276,11 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionC
 		if err != nil {
 			return nil, err
 		}
-		calls = append([]ctypes.FunctionCall{call}, calls...)
+		calls = append([]types.FunctionCall{call}, calls...)
 	}
 	txHash, err := account.TransactionHash(
 		calls,
-		ctypes.ExecuteDetails{
+		types.ExecuteDetails{
 			Nonce:  nonce,
 			MaxFee: maxFee,
 		},
@@ -304,8 +304,8 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionC
 	// TODO: change this payload to manage both V0 and V1
 	return account.Provider.AddInvokeTransaction(
 		context.Background(),
-		ctypes.FunctionCall{
-			ContractAddress:    ctypes.HexToHash(account.Address),
+		types.FunctionCall{
+			ContractAddress:    types.HexToHash(account.Address),
 			EntryPointSelector: "__execute__",
 			Calldata:           calldata,
 		},

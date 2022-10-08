@@ -10,8 +10,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpc"
-
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestAccountNonce tests the account Nonce
@@ -59,7 +58,7 @@ func TestAccountEstimateFee(t *testing.T) {
 	type testSetType struct {
 		Address          string
 		PrivateKeyEnvVar string
-		Call             ctypes.FunctionCall
+		Call             types.FunctionCall
 	}
 
 	testSet := map[string][]testSetType{
@@ -67,8 +66,8 @@ func TestAccountEstimateFee(t *testing.T) {
 			{
 				Address:          DevNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-				Call: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
+				Call: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
 					EntryPointSelector: "increment",
 					Calldata:           []string{},
 				},
@@ -78,8 +77,8 @@ func TestAccountEstimateFee(t *testing.T) {
 			{
 				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
-				Call: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef"),
+				Call: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef"),
 					EntryPointSelector: "increment",
 					Calldata:           []string{},
 				},
@@ -93,11 +92,11 @@ func TestAccountEstimateFee(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		estimate, err := account.EstimateFee(context.Background(), []ctypes.FunctionCall{test.Call}, ctypes.ExecuteDetails{})
+		estimate, err := account.EstimateFee(context.Background(), []types.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if ctypes.HexToBN(string(estimate.OverallFee)).Cmp(big.NewInt(1000000)) < 0 {
+		if types.HexToBN(string(estimate.OverallFee)).Cmp(big.NewInt(1000000)) < 0 {
 			t.Fatal("OverallFee should be > 1000000, instead:", estimate.OverallFee)
 		}
 	}
@@ -110,7 +109,7 @@ func TestAccountExecute(t *testing.T) {
 	type testSetType struct {
 		Address          string
 		PrivateKeyEnvVar string
-		Call             ctypes.FunctionCall
+		Call             types.FunctionCall
 	}
 
 	testSet := map[string][]testSetType{
@@ -151,7 +150,7 @@ func TestAccountExecute(t *testing.T) {
 			t.Fatal(err)
 		}
 		ctx := context.Background()
-		execute, err := account.Execute(ctx, []ctypes.FunctionCall{test.Call}, ctypes.ExecuteDetails{})
+		execute, err := account.Execute(ctx, []types.FunctionCall{test.Call}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -161,7 +160,7 @@ func TestAccountExecute(t *testing.T) {
 		fmt.Println("transaction_hash:", execute.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 		defer cancel()
-		status, err := account.Provider.WaitForTransaction(ctx, ctypes.HexToHash(execute.TransactionHash), 8*time.Second)
+		status, err := account.Provider.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}

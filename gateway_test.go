@@ -10,7 +10,6 @@ import (
 
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/joho/godotenv"
 )
 
 const (
@@ -44,49 +43,6 @@ var (
 		},
 	}
 )
-
-// testGatewayConfiguration is a type that is used to configure tests
-type testGatewayConfiguration struct {
-	client *gateway.Gateway
-	base   string
-}
-
-var (
-	testGatewayConfigurations = map[string]testGatewayConfiguration{
-		"mainnet": {
-			base: "https://alpha4-mainnet.starknet.io",
-		},
-		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base: "https://alpha4.starknet.io",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
-		"devnet": {
-			base: "http://localhost:5050",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
-	}
-)
-
-// beforeEach checks the configuration and initializes it before running the script
-func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
-	t.Helper()
-	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testGatewayConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports testnet, mainnet or devnet")
-	}
-	switch testEnv {
-	default:
-		testConfig.client = gateway.NewClient()
-	}
-	t.Cleanup(func() {
-	})
-	return &testConfig
-}
 
 func TestExecuteGoerli(t *testing.T) {
 	testConfig := beforeGatewayEach(t)
