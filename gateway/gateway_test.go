@@ -68,6 +68,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.privateKey = v[0].PrivateKey
 		testConfig.publicKey = v[0].PublicKey
 		testConfig.accountAddress = v[0].Address
+		testConfig.client = NewClient(WithChain(testEnv))
 	default:
 		testConfig.client = NewClient(WithChain(testEnv))
 	}

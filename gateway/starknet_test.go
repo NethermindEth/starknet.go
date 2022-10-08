@@ -43,7 +43,7 @@ func TestDeclare(t *testing.T) {
 			t.Errorf("%s: could not get 'DECLARE' transaction: %v\n", env, err)
 		}
 		if tx.Transaction.Type != DECLARE {
-			t.Errorf("%s: incorrect delcare transaction: %v\n", env, tx)
+			t.Errorf("%s: incorrect declare transaction: %v\n", env, tx)
 		}
 	}
 }
