@@ -22,11 +22,11 @@ var (
 
 func main() {
 	// init starknet gateway client
-	gw := gateway.NewProvider(gateway.WithChain(name))
+	gw := gateway.NewClient(gateway.WithChain(name))
 
 	// get count before tx
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    counterContract,
+		ContractAddress:    types.HexToHash(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {
@@ -35,30 +35,30 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewAccount(privakeKey, address, gw)
+	account, err := caigo.NewGatewayAccount(privakeKey, types.HexToHash(address), gw)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	increment := []types.Transaction{
+	increment := []types.FunctionCall{
 		{
-			ContractAddress:    counterContract,
+			ContractAddress:    types.HexToHash(counterContract),
 			EntryPointSelector: "increment",
 		},
 	}
 
 	// estimate fee for executing transaction
-	feeEstimate, err := account.EstimateFee(context.Background(), increment, caigo.ExecuteDetails{})
+	feeEstimate, err := account.EstimateFee(context.Background(), increment, types.ExecuteDetails{})
 	if err != nil {
 		panic(err.Error())
 	}
-	fee := types.Felt{
-		Int: new(big.Int).SetUint64((feeEstimate.OverallFee * feeMargin) / 100),
-	}
-	fmt.Printf("Fee:\n\tEstimate\t\t%v wei\n\tEstimate+Margin\t\t%v wei\n\n", feeEstimate.OverallFee, fee)
+	fee, _ := big.NewInt(0).SetString(string(feeEstimate.OverallFee), 0)
+	expandedFee := big.NewInt(0).Mul(fee, big.NewInt(int64(feeMargin)))
+	max := big.NewInt(0).Div(expandedFee, big.NewInt(100))
+	fmt.Printf("Fee:\n\tEstimate\t\t%v wei\n\tEstimate+Margin\t\t%v wei\n\n", feeEstimate.OverallFee, max)
 
 	// execute transaction
-	execResp, err := account.Execute(context.Background(), increment, caigo.ExecuteDetails{MaxFee: &fee})
+	execResp, err := account.Execute(context.Background(), increment, types.ExecuteDetails{MaxFee: max})
 	if err != nil {
 		panic(err.Error())
 	}
@@ -71,7 +71,7 @@ func main() {
 
 	// get count after tx
 	callResp, err = gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    counterContract,
+		ContractAddress:    types.HexToHash(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {

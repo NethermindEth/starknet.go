@@ -25,7 +25,7 @@ const (
 )
 
 // testConfiguration is a type that is used to configure tests
-type testConfiguration struct {
+type testRPCConfiguration struct {
 	provider *rpc.Provider
 	base     string
 }
@@ -35,7 +35,7 @@ var (
 	testEnv = "mock"
 
 	// testConfigurations are predefined test configurations
-	testConfigurations = map[string]testConfiguration{
+	testRPCConfigurations = map[string]testRPCConfiguration{
 		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
@@ -65,10 +65,10 @@ func TestMain(m *testing.M) {
 }
 
 // beforeEach checks the configuration and initializes it before running the script
-func beforeEach(t *testing.T) *testConfiguration {
+func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testConfigurations[testEnv]
+	testConfig, ok := testRPCConfigurations[testEnv]
 	if !ok {
 		t.Fatal("env supports mock, testnet, mainnet or devnet")
 	}
@@ -88,7 +88,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 
 // TestChainID checks the chainId matches the one for the environment
 func TestChainID(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
 		ChainID string
@@ -118,7 +118,7 @@ func TestChainID(t *testing.T) {
 
 // TestSyncing checks the values returned are consistent
 func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
 		ChainID string

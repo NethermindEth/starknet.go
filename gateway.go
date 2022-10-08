@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -29,7 +30,7 @@ Instantiate a new StarkNet Account which includes structures for calling the net
 - full provider definition
 - public key pair for signature verifications
 */
-func NewAccount(private string, address types.Hash, provider types.Provider) (*Account, error) {
+func NewGatewayAccount(private string, address types.Hash, provider *gateway.Gateway) (*Account, error) {
 	priv := types.SNValToBN(private)
 	x, y, err := Curve.PrivateToPoint(priv)
 	if err != nil {
@@ -145,7 +146,7 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.FunctionCa
 			EntryPointSelector: EXECUTE_SELECTOR,
 			Calldata:           fmtV0CalldataStrings(details.Nonce, calls),
 		},
-		MaxFee: &types.Felt{Int: details.MaxFee},
+		MaxFee: details.MaxFee,
 	}
 
 	hash, err := account.TransactionHash(calls, types.ExecuteDetails{
@@ -159,7 +160,7 @@ func (account *Account) fmtExecute(ctx context.Context, calls []types.FunctionCa
 	if err != nil {
 		return nil, err
 	}
-	req.Signature = types.Signature{types.BigToFelt(r), types.BigToFelt(s)}
+	req.Signature = types.Signature{r, s}
 
 	return &req, nil
 }

@@ -34,24 +34,6 @@ func (tx TransactionHash) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(b))), nil
 }
 
-type Call struct {
-	MaxFee string `json:"max_fee"`
-	// Version of the transaction scheme, should be set to 0 or 1
-	Version ctypes.NumAsHex `json:"version"`
-	// Signature
-	Signature []string `json:"signature"`
-	// Nonce should only be set with Transaction V1
-	Nonce *string `json:"nonce,omitempty"`
-
-	ContractAddress ctypes.Hash `json:"contract_address"`
-
-	// EntryPointSelector should only be set with Transaction V0
-	EntryPointSelector *string `json:"entry_point_selector,omitempty"`
-
-	// Calldata The parameters passed to the function
-	Calldata []string `json:"calldata"`
-}
-
 type CommonTransaction struct {
 	TransactionHash ctypes.Hash     `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`

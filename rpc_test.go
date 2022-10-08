@@ -16,7 +16,7 @@ import (
 
 // TestAccountNonce tests the account Nonce
 func TestAccountNonce(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
 		Provider         *rpc.Provider
@@ -54,7 +54,7 @@ func TestAccountNonce(t *testing.T) {
 
 // TestAccountEstimateFee tests the account EstimateFee
 func TestAccountEstimateFee(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
 		Address          string
@@ -105,7 +105,7 @@ func TestAccountEstimateFee(t *testing.T) {
 
 // TestAccountExecute tests the account Execute method
 func TestAccountExecute(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
 		Address          string

@@ -164,15 +164,18 @@ type FunctionCall struct {
 	Calldata []string `json:"calldata"`
 }
 
-type Signature []*Felt
+type Signature []*big.Int
 
 type FunctionInvoke struct {
+	MaxFee *big.Int `json:"max_fee"`
+	// Version of the transaction scheme, should be set to 0 or 1
+	Version uint64 `json:"version"`
+	// Signature
+	Signature Signature `json:"signature"`
+	// Nonce should only be set with Transaction V1
+	Nonce *big.Int `json:"nonce,omitempty"`
+
 	FunctionCall
-	MaxFee          *Felt     `json:"max_fee,omitempty"`
-	Nonce           *Felt     `json:"nonce,omitempty"`
-	Version         uint64    `json:"version,omitempty"`
-	Signature       Signature `json:"signature,omitempty"`
-	TransactionHash *Felt     `json:"txn_hash,omitempty"`
 }
 
 type FeeEstimate struct {

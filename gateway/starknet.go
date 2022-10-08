@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -80,7 +79,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	tx := types.Transaction{
 		Type:            INVOKE,
 		ContractAddress: invoke.ContractAddress.Hex(),
-		Version:         fmt.Sprintf("0x%s", big.NewInt(int64(invoke.Version)).Text(16)),
+		Version:         fmt.Sprintf("0x%d", invoke.Version),
 		MaxFee:          invoke.MaxFee.String(),
 	}
 	if invoke.EntryPointSelector != "" {
@@ -100,7 +99,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		tx.Signature = []string{}
 	} else {
 		// stop-gap before full types.Felt cutover
-		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
+		tx.Signature = []string{invoke.Signature[0].String(), invoke.Signature[1].String()}
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)

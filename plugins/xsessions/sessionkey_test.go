@@ -112,7 +112,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 		},
 	}
 	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
+	tx, err := account.Execute(ctx, calls, ctypes.ExecuteDetails{})
 	if err != nil {
 		t.Fatal("execute should succeed, instead:", err)
 	}

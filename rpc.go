@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	"github.com/dontpanicdao/caigo/rpc"
-	"github.com/dontpanicdao/caigo/rpc/types"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -31,38 +30,38 @@ type RPCAccount struct {
 	Provider *rpc.Provider
 	Address  string
 	private  *big.Int
-	version  *big.Int
+	version  uint64
 	plugin   RPCAccountPlugin
 }
 
 type RPCAccountOption struct {
 	RPCAccountPlugin RPCAccountPlugin
-	version          *big.Int
+	version          uint64
 }
 
 type AccountOptionFunc func(string, string) (RPCAccountOption, error)
 
 func AccountVersion0(string, string) (RPCAccountOption, error) {
 	return RPCAccountOption{
-		version: big.NewInt(0),
+		version: uint64(0),
 	}, nil
 }
 
 func AccountVersion1(string, string) (RPCAccountOption, error) {
 	return RPCAccountOption{
-		version: big.NewInt(1),
+		version: uint64(1),
 	}, nil
 }
 
 func NewRPCAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
 	var accountPlugin RPCAccountPlugin
-	version := big.NewInt(0)
+	version := uint64(0)
 	for _, o := range options {
 		opt, err := o(private, address)
 		if err != nil {
 			return nil, err
 		}
-		if opt.version != nil {
+		if opt.version != 0 {
 			version = opt.version
 		}
 		if opt.RPCAccountPlugin != nil {
@@ -72,7 +71,7 @@ func NewRPCAccount(private, address string, provider *rpc.Provider, options ...A
 			accountPlugin = opt.RPCAccountPlugin
 		}
 	}
-	if version.Cmp(big.NewInt(0)) != 0 {
+	if version != 0 {
 		return nil, errors.New("account v1 not yet supported")
 	}
 	priv := ctypes.SNValToBN(private)
@@ -102,12 +101,12 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 
 	var callArray []*big.Int
 	switch {
-	case account.version.Cmp(big.NewInt(0)) == 0:
+	case account.version == 0:
 		callArray = fmtV0Calldata(details.Nonce, calls)
-	case account.version.Cmp(big.NewInt(1)) == 0:
+	case account.version == 1:
 		callArray = fmtCalldata(calls)
 	default:
-		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
 	cdHash, err := Curve.ComputeHashOnElements(callArray)
 	if err != nil {
@@ -116,20 +115,20 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 
 	var multiHashData []*big.Int
 	switch {
-	case account.version.Cmp(big.NewInt(0)) == 0:
+	case account.version == 0:
 		multiHashData = []*big.Int{
 			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
-			account.version,
+			big.NewInt(int64(account.version)),
 			ctypes.SNValToBN(account.Address),
 			ctypes.GetSelectorFromName(EXECUTE_SELECTOR),
 			cdHash,
 			details.MaxFee,
 			ctypes.UTF8StrToBig(chainID),
 		}
-	case account.version.Cmp(big.NewInt(1)) == 0:
+	case account.version == 1:
 		multiHashData = []*big.Int{
 			ctypes.UTF8StrToBig(TRANSACTION_PREFIX),
-			account.version,
+			big.NewInt(int64(account.version)),
 			ctypes.SNValToBN(account.Address),
 			big.NewInt(0),
 			cdHash,
@@ -138,14 +137,14 @@ func (account *RPCAccount) TransactionHash(calls []ctypes.FunctionCall, details 
 			details.Nonce,
 		}
 	default:
-		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
 	return Curve.ComputeHashOnElements(multiHashData)
 }
 
 func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 	switch {
-	case account.version.Cmp(big.NewInt(0)) == 0:
+	case account.version == 0:
 		nonce, err := account.Provider.Call(
 			ctx,
 			ctypes.FunctionCall{
@@ -166,7 +165,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 			return nil, errors.New("nonce error")
 		}
 		return n, nil
-	case account.version.Cmp(big.NewInt(1)) == 0:
+	case account.version == 1:
 		nonce, err := account.Provider.Nonce(
 			ctx,
 			ctypes.HexToHash(account.Address),
@@ -183,7 +182,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 		}
 		return n, nil
 	}
-	return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
 func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.FeeEstimate, error) {
@@ -199,8 +198,8 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 	if details.MaxFee != nil {
 		maxFee = details.MaxFee
 	}
-	version := big.NewInt(0)
-	if account.version != nil {
+	version := uint64(0)
+	if account.version != 0 {
 		version = account.version
 	}
 	if account.plugin != nil {
@@ -226,34 +225,33 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []ctypes.Funct
 	}
 	var calldata []string
 	switch {
-	case account.version.Cmp(big.NewInt(0)) == 0:
+	case account.version == 0:
 		calldata = fmtV0CalldataStrings(nonce, calls)
-	case account.version.Cmp(big.NewInt(1)) == 0:
+	case account.version == 1:
 		calldata = fmtCalldataStrings(calls)
 	default:
-		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
 	accountDefaultV0Entrypoint := "__execute__"
-	call := types.Call{
-		MaxFee:             fmt.Sprintf("0x%s", maxFee.Text(16)),
-		Version:            ctypes.NumAsHex(fmt.Sprintf("0x%s", version.Text(16))),
-		Signature:          []string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
-		ContractAddress:    ctypes.HexToHash(account.Address),
-		EntryPointSelector: &accountDefaultV0Entrypoint,
-		Calldata:           calldata,
+	call := ctypes.FunctionInvoke{
+		MaxFee:    maxFee,
+		Version:   version,
+		Signature: ctypes.Signature{s1, s2},
+		FunctionCall: ctypes.FunctionCall{
+			ContractAddress:    ctypes.HexToHash(account.Address),
+			EntryPointSelector: accountDefaultV0Entrypoint,
+			Calldata:           calldata,
+		},
 	}
 	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
 }
 
 func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionCall, details ctypes.ExecuteDetails) (*ctypes.AddInvokeTransactionOutput, error) {
-	if account.version != nil && account.version.Cmp(big.NewInt(0)) != 0 {
+	if account.version != 0 {
 		return nil, errors.New("only invoke v0 is implemented")
 	}
 	var err error
-	version := big.NewInt(0)
-	if account.version != nil {
-		version = account.version
-	}
+	version := account.version
 	nonce := details.Nonce
 	if details.Nonce == nil {
 		nonce, err = account.Nonce(ctx)
@@ -296,12 +294,12 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionC
 	}
 	var calldata []string
 	switch {
-	case account.version.Cmp(big.NewInt(0)) == 0:
+	case account.version == 0:
 		calldata = fmtV0CalldataStrings(nonce, calls)
-	case account.version.Cmp(big.NewInt(1)) == 0:
+	case account.version == 1:
 		calldata = fmtCalldataStrings(calls)
 	default:
-		return nil, fmt.Errorf("version %s unsupported", account.version.Text(10))
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
 	// TODO: change this payload to manage both V0 and V1
 	return account.Provider.AddInvokeTransaction(
@@ -313,6 +311,6 @@ func (account *RPCAccount) Execute(ctx context.Context, calls []ctypes.FunctionC
 		},
 		[]string{fmt.Sprintf("0x%s", s1.Text(16)), fmt.Sprintf("0x%s", s2.Text(16))},
 		fmt.Sprintf("0x%s", maxFee.Text(16)),
-		fmt.Sprintf("0x%s", version.Text(16)),
+		fmt.Sprintf("0x%d", version),
 	)
 }

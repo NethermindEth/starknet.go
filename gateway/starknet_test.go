@@ -4,13 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"math/rand"
 	"net/http"
 	"testing"
-	"time"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -78,33 +74,6 @@ func TestDeclare(t *testing.T) {
 	}
 }
 
-func TestExecuteGoerli(t *testing.T) {
-
-	for _, testAccount := range testnetAccounts {
-		account, err := caigo.NewAccount(testAccount.PrivateKey, types.HexToHash(testAccount.Address), NewProvider())
-		if err != nil {
-			t.Errorf("testnet: could not create account: %v\n", err)
-		}
-
-		feeEstimate, err := account.EstimateFee(context.Background(), testAccount.Transactions, types.ExecuteDetails{})
-		if err != nil {
-			t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
-		}
-
-		fee, _ := big.NewInt(0).SetString(string(feeEstimate.OverallFee), 0)
-		expandedFee := big.NewInt(0).Mul(fee, big.NewInt(int64(FEE_MARGIN)))
-		max := big.NewInt(0).Div(expandedFee, big.NewInt(100))
-
-		_, err = account.Execute(context.Background(), testAccount.Transactions,
-			types.ExecuteDetails{
-				MaxFee: max,
-			})
-		if err != nil {
-			t.Errorf("Could not execute test transaction: %v\n", err)
-		}
-	}
-}
-
 func TestDeployCounterContract(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -165,94 +134,6 @@ func TestCallGoerli(t *testing.T) {
 
 			if resp[0] != testAccount.PublicKey {
 				t.Errorf("testnet: signing key is incorrect: \n%s %v\n", resp[0], testAccount.PublicKey)
-			}
-		}
-	}
-}
-
-func TestE2EDevnet(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct{}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock":    {},
-		"testnet": {},
-	}[testEnv]
-
-	for _, env := range testSet {
-		gw := testConfig.client
-
-		deployTx, err := gw.Deploy(context.Background(), "../rpc/tests/counter.json", types.DeployRequest{})
-		if err != nil {
-			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
-		}
-
-		_, _, err = gw.PollTx(context.Background(), deployTx.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
-		if err != nil {
-			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
-		}
-
-		txDetails, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: deployTx.TransactionHash})
-		if err != nil {
-			t.Errorf("%s: fetching transaction: %v", env, err)
-		}
-
-		for i := 0; i < 3; i++ {
-			rand := fmt.Sprintf("0x%x", rand.New(rand.NewSource(time.Now().UnixNano())).Intn(SEED))
-
-			tx := []types.FunctionCall{
-				{
-					ContractAddress:    types.HexToHash(txDetails.Transaction.ContractAddress),
-					EntryPointSelector: "set_rand",
-					Calldata:           []string{rand},
-				},
-			}
-
-			account, err := caigo.NewAccount(devnetAccounts[i].PrivateKey, types.HexToHash(devnetAccounts[i].Address), gw)
-			if err != nil {
-				t.Errorf("testnet: could not create account: %v\n", err)
-			}
-
-			feeEstimate, err := account.EstimateFee(context.Background(), tx, types.ExecuteDetails{})
-			if err != nil {
-				t.Errorf("testnet: could not estimate fee for transaction: %v\n", err)
-			}
-			fee, _ := big.NewInt(0).SetString(string(feeEstimate.OverallFee), 0)
-			expandedFee := big.NewInt(0).Mul(fee, big.NewInt(int64(FEE_MARGIN)))
-			max := big.NewInt(0).Div(expandedFee, big.NewInt(100))
-
-			nonce, err := gw.AccountNonce(context.Background(), account.Address)
-			if err != nil {
-				t.Errorf("testnet: could not get account nonce: %v", err)
-			}
-
-			execResp, err := account.Execute(context.Background(), tx,
-				types.ExecuteDetails{
-					MaxFee: max,
-					Nonce:  nonce,
-				})
-			if err != nil {
-				t.Errorf("Could not execute test transaction: %v\n", err)
-			}
-
-			_, _, err = gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, 1, 10)
-			if err != nil {
-				t.Errorf("could not deploy devnet counter: %v\n", err)
-			}
-
-			call := types.FunctionCall{
-				ContractAddress:    types.HexToHash(txDetails.Transaction.ContractAddress),
-				EntryPointSelector: "get_rand",
-			}
-			callResp, err := gw.Call(context.Background(), call, "")
-			if err != nil {
-				t.Errorf("could not call counter contract: %v\n", err)
-			}
-
-			if rand != callResp[0] {
-				t.Errorf("could not set value on counter contract: %v\n", err)
 			}
 		}
 	}
