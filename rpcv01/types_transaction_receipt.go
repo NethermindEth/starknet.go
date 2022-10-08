@@ -11,11 +11,11 @@ import (
 type CommonTransactionReceipt struct {
 	TransactionHash types.Hash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee   string            `json:"actual_fee"`
-	Status      TransactionStatus `json:"status"`
-	BlockHash   types.Hash        `json:"block_hash"`
-	BlockNumber uint64            `json:"block_number"`
-	Type        TransactionType   `json:"type,omitempty"`
+	ActualFee   string                  `json:"actual_fee"`
+	Status      types.TransactionState `json:"status"`
+	BlockHash   types.Hash              `json:"block_hash"`
+	BlockNumber uint64                  `json:"block_number"`
+	Type        TransactionType         `json:"type,omitempty"`
 }
 
 func (tr CommonTransactionReceipt) Hash() types.Hash {
@@ -55,41 +55,6 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
-}
-
-type TransactionStatus string
-
-const (
-	TransactionStatus_Pending      TransactionStatus = "PENDING"
-	TransactionStatus_AcceptedOnL2 TransactionStatus = "ACCEPTED_ON_L2"
-	TransactionStatus_AcceptedOnL1 TransactionStatus = "ACCEPTED_ON_L1"
-	TransactionStatus_Rejected     TransactionStatus = "REJECTED"
-)
-
-func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-
-	switch unquoted {
-	case "PENDING":
-		*ts = TransactionStatus_Pending
-	case "ACCEPTED_ON_L2":
-		*ts = TransactionStatus_AcceptedOnL2
-	case "ACCEPTED_ON_L1":
-		*ts = TransactionStatus_AcceptedOnL1
-	case "REJECTED":
-		*ts = TransactionStatus_Rejected
-	default:
-		return fmt.Errorf("unsupported status: %s", data)
-	}
-
-	return nil
-}
-
-func (ts TransactionStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ts))), nil
 }
 
 type InvokeTransactionReceiptProperties struct {

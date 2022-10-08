@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func TestTransaction(t *testing.T) {
@@ -127,7 +129,7 @@ func TestTransactionReceipt(t *testing.T) {
 
 	type testSetType struct {
 		TransactionHash       string
-		Status                string
+		Status                types.TransactionState
 		BlockHash             string
 		BlockNumber           int
 		TransactionIndex      int

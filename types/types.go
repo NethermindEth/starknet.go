@@ -1,7 +1,9 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
+	"strconv"
 )
 
 type NumAsHex string
@@ -62,4 +64,57 @@ type FeeEstimate struct {
 type ExecuteDetails struct {
 	MaxFee *big.Int
 	Nonce  *big.Int
+}
+
+type TransactionState string
+
+const (
+	TransactionAcceptedOnL1 TransactionState = "ACCEPTED_ON_L1"
+	TransactionAcceptedOnL2 TransactionState = "ACCEPTED_ON_L2"
+	TransactionNotReceived  TransactionState = "NOT_RECEIVED"
+	TransactionPending      TransactionState = "PENDING"
+	TransactionReceived     TransactionState = "RECEIVED"
+	TransactionRejected     TransactionState = "REJECTED"
+)
+
+func (ts *TransactionState) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+	switch unquoted {
+	case "ACCEPTED_ON_L2":
+		*ts = TransactionAcceptedOnL2
+	case "ACCEPTED_ON_L1":
+		*ts = TransactionAcceptedOnL1
+	case "NOT_RECEIVED":
+		*ts = TransactionNotReceived
+	case "PENDING":
+		*ts = TransactionPending
+	case "RECEIVED":
+		*ts = TransactionReceived
+	case "REJECTED":
+		*ts = TransactionRejected
+	default:
+		return fmt.Errorf("unsupported status: %s", data)
+	}
+	return nil
+}
+
+func (ts TransactionState) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(ts))), nil
+}
+
+func (s TransactionState) String() string {
+	return string(s)
+}
+
+func (s TransactionState) IsTransactionFinal() bool {
+	if s == TransactionAcceptedOnL2 ||
+		s == TransactionAcceptedOnL1 ||
+		s == TransactionReceived ||
+		s == TransactionRejected {
+		return true
+	}
+	return false
 }

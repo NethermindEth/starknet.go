@@ -90,7 +90,7 @@ func TestE2EDevnet(t *testing.T) {
 			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
 		}
 
-		_, _, err = gw.PollTx(context.Background(), deployTx.TransactionHash, gateway.ACCEPTED_ON_L2, 1, 10)
+		_, _, err = gw.WaitForTransaction(context.Background(), deployTx.TransactionHash, 1, 10)
 		if err != nil {
 			t.Errorf("%s: could not deploy devnet counter: %v", env, err)
 		}
@@ -138,7 +138,7 @@ func TestE2EDevnet(t *testing.T) {
 				t.Errorf("Could not execute test transaction: %v\n", err)
 			}
 
-			_, _, err = gw.PollTx(context.Background(), execResp.TransactionHash, gateway.ACCEPTED_ON_L2, 1, 10)
+			_, _, err = gw.WaitForTransaction(context.Background(), execResp.TransactionHash, 1, 10)
 			if err != nil {
 				t.Errorf("could not deploy devnet counter: %v\n", err)
 			}

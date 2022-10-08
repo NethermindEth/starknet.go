@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo/rpcv01"
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
 
@@ -23,7 +23,7 @@ import (
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	provider := beforeEach(t)
 
-	yeasayerClass := ctypes.ContractClass{}
+	yeasayerClass := types.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
 		t.Fatal(err)
 	}
@@ -37,11 +37,11 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	}
 	fmt.Printf("plugin Class: %s\n", tx.ClassHash)
 	fmt.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
+	if status != types.TransactionAcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
@@ -59,7 +59,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
 	provider := beforeEach(t)
-	contractClass := ctypes.ContractClass{}
+	contractClass := types.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
 		t.Fatal(err)
@@ -74,11 +74,11 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	if !strings.HasPrefix(tx.ContractAddress, "0x") {
 		t.Fatal("deploy should return account address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
+	if status != types.TransactionAcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
@@ -126,8 +126,8 @@ func MintEth(t *testing.T, accountAddress string) {
 func CheckEth(t *testing.T, accountAddress string) string {
 	provider := beforeEach(t)
 	ctx := context.Background()
-	output, err := provider.Call(ctx, ctypes.FunctionCall{
-		ContractAddress:    ctypes.HexToHash(devnetEth),
+	output, err := provider.Call(ctx, types.FunctionCall{
+		ContractAddress:    types.HexToHash(devnetEth),
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},
 	},

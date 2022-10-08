@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	types "github.com/dontpanicdao/caigo/types"
 )
 
 // TransactionByHash gets the details and status of a submitted transaction.
-func (provider *Provider) TransactionByHash(ctx context.Context, hash ctypes.Hash) (Transaction, error) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash types.Hash) (Transaction, error) {
 	var tx UnknownTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 }
 
 // TxnReceipt gets the transaction receipt by the transaction hash.
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash ctypes.Hash) (TransactionReceipt, error) {
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash types.Hash) (TransactionReceipt, error) {
 	var receipt UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
@@ -37,7 +37,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 }
 
 // WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash ctypes.Hash, pollInterval time.Duration) (TransactionStatus, error) {
+func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash types.Hash, pollInterval time.Duration) (types.TransactionState, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
@@ -52,37 +52,26 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 			if err != nil {
 				continue
 			}
-			switch status := receipt.(type) {
+			switch r := receipt.(type) {
 			case DeclareTransactionReceipt:
-				if isTransactionFinal(status.Status) {
-					return status.Status, nil
+				if r.Status.IsTransactionFinal() {
+					return r.Status, nil
 				}
 			case DeployTransactionReceipt:
-				if isTransactionFinal(status.Status) {
-					return status.Status, nil
+				if r.Status.IsTransactionFinal() {
+					return r.Status, nil
 				}
 			case InvokeTransactionReceipt:
-				if isTransactionFinal(status.Status) {
-					return status.Status, nil
+				if r.Status.IsTransactionFinal() {
+					return r.Status, nil
 				}
 			case L1HandlerTransactionReceipt:
-				if isTransactionFinal(status.Status) {
-					return status.Status, nil
+				if r.Status.IsTransactionFinal() {
+					return r.Status, nil
 				}
 			default:
 				return "", fmt.Errorf("unknown receipt %T", receipt)
 			}
 		}
 	}
-}
-
-func isTransactionFinal(v TransactionStatus) bool {
-	if v == TransactionStatus("ACCEPTED_ON_L1") ||
-		v == TransactionStatus("ACCEPTED_ON_L2") ||
-		v == TransactionStatus("PENDING") ||
-		v == TransactionStatus("REJECTED") ||
-		v == TransactionStatus("NOT_RECEIVED") {
-		return true
-	}
-	return false
 }

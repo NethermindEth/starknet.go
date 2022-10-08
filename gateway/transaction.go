@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -37,11 +36,11 @@ type Transaction struct {
 }
 
 type TransactionReceipt struct {
-	Status                string `json:"status"`
-	BlockHash             string `json:"block_hash"`
-	BlockNumber           int    `json:"block_number"`
-	TransactionIndex      int    `json:"transaction_index"`
-	TransactionHash       string `json:"transaction_hash"`
+	Status                types.TransactionState `json:"status"`
+	BlockHash             string                 `json:"block_hash"`
+	BlockNumber           int                    `json:"block_number"`
+	TransactionIndex      int                    `json:"transaction_index"`
+	TransactionHash       string                 `json:"transaction_hash"`
 	L1ToL2ConsumedMessage struct {
 		FromAddress string   `json:"from_address"`
 		ToAddress   string   `json:"to_address"`
@@ -109,6 +108,14 @@ func (gw *Gateway) Transaction(ctx context.Context, opts TransactionOptions) (*S
 type TransactionStatusOptions struct {
 	TransactionId   uint64 `url:"transactionId,omitempty"`
 	TransactionHash string `url:"transactionHash,omitempty"`
+}
+
+type TransactionStatus struct {
+	TxStatus        string `json:"tx_status"`
+	BlockHash       string `json:"block_hash,omitempty"`
+	TxFailureReason struct {
+		ErrorMessage string `json:"error_message,omitempty"`
+	} `json:"tx_failure_reason,omitempty"`
 }
 
 // Gets the transaction status from a txn.
@@ -198,40 +205,27 @@ func (gw *Gateway) TransactionTrace(ctx context.Context, txHash string) (*Transa
 	return &resp, gw.do(req, &resp)
 }
 
-// Long poll a transaction for specificed interval and max polls until the desired TxStatus has been achieved
-// or the transaction reverts
-func (gw *Gateway) PollTx(ctx context.Context, txHash string, threshold TxStatus, interval, maxPoll int) (n int, receipt *TransactionReceipt, err error) {
-	err = fmt.Errorf("could not find tx status for tx:  %s", txHash)
-
+func (gw *Gateway) WaitForTransaction(ctx context.Context, txHash string, interval, maxPoll int) (n int, receipt *TransactionReceipt, err error) {
+	errNotFound := fmt.Errorf("tx not finalized: %s", txHash)
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
-	cow := 0
-	for range ticker.C {
-		if cow >= maxPoll {
-			return cow, receipt, err
-		}
-		cow++
-
-		receipt, err = gw.TransactionReceipt(ctx, txHash)
-		if err != nil {
-			return cow, receipt, err
-		}
-		sInt := FindTxStatus(receipt.Status)
-		if sInt == 1 {
-			return cow, receipt, fmt.Errorf("return %s", receipt.Status)
-		} else if sInt >= int(threshold) {
-			return cow, receipt, nil
-		}
-	}
-	return cow, receipt, err
-}
-
-func FindTxStatus(stat string) int {
-	for i, val := range TxStatuses {
-		if val == strings.ToUpper(stat) {
-			return i
+	count := 0
+	for {
+		select {
+		case <-ticker.C:
+			count++
+			receipt, err = gw.TransactionReceipt(ctx, txHash)
+			if err != nil || receipt.Status.IsTransactionFinal() {
+				return count, receipt, err
+			}
+			if count >= maxPoll {
+				return count, receipt, errNotFound
+			}
+		case <-ctx.Done():
+			if count >= maxPoll {
+				return count, nil, ctx.Err()
+			}
 		}
 	}
-	return 0
 }
 
 type L1Message struct {
@@ -269,32 +263,4 @@ type FunctionInvocation struct {
 	InternalCalls      []FunctionInvocation `json:"internal_calls"`
 	Events             []Event              `json:"events"`
 	Messages           []interface{}        `json:"messages"`
-}
-
-/*
-StarkNet transaction states
-*/
-const (
-	NOT_RECEIVED = TxStatus(iota)
-	REJECTED
-	RECEIVED
-	PENDING
-	ACCEPTED_ON_L2
-	ACCEPTED_ON_L1
-)
-
-var TxStatuses = []string{"NOT_RECEIVED", "REJECTED", "RECEIVED", "PENDING", "ACCEPTED_ON_L2", "ACCEPTED_ON_L1"}
-
-type TxStatus int
-
-func (s TxStatus) String() string {
-	return TxStatuses[s]
-}
-
-type TransactionStatus struct {
-	TxStatus        string `json:"tx_status"`
-	BlockHash       string `json:"block_hash,omitempty"`
-	TxFailureReason struct {
-		ErrorMessage string `json:"error_message,omitempty"`
-	} `json:"tx_failure_reason,omitempty"`
 }

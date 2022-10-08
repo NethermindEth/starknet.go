@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/dontpanicdao/caigo/types"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -180,7 +181,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	transaction := InvokeTransactionReceipt{
 		CommonTransactionReceipt: CommonTransactionReceipt{
 			TransactionHash: ctypes.HexToHash(args[0].(string)),
-			Status:          TransactionStatus("ACCEPTED_ON_L1"),
+			Status:          types.TransactionState("ACCEPTED_ON_L1"),
 		},
 		InvokeTransactionReceiptProperties: InvokeTransactionReceiptProperties{
 			Events: []Event{{

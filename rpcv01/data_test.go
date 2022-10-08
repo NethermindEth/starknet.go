@@ -1,6 +1,7 @@
 package rpcv01
 
 import (
+	"github.com/dontpanicdao/caigo/types"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -83,7 +84,7 @@ var receiptTxn310370_0 = InvokeTransactionReceipt{
 	CommonTransactionReceipt: CommonTransactionReceipt{
 		TransactionHash: ctypes.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
 		ActualFee:       "0x1709a2f3a2",
-		Status:          TransactionStatus_AcceptedOnL1,
+		Status:          types.TransactionAcceptedOnL1,
 		BlockHash:       ctypes.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 		BlockNumber:     310370,
 	},
@@ -144,7 +145,7 @@ var receiptTxn310843_14 = InvokeTransactionReceipt{
 	CommonTransactionReceipt: CommonTransactionReceipt{
 		TransactionHash: ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
 		ActualFee:       "0x0",
-		Status:          TransactionStatus_AcceptedOnL1,
+		Status:          types.TransactionAcceptedOnL1,
 		BlockHash:       ctypes.HexToHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
 		BlockNumber:     310843,
 	},
@@ -181,7 +182,7 @@ var receiptTxn300114_3 = InvokeTransactionReceipt{
 	CommonTransactionReceipt: CommonTransactionReceipt{
 		TransactionHash: ctypes.HexToHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 		ActualFee:       "0x0",
-		Status:          TransactionStatus_AcceptedOnL1,
+		Status:          types.TransactionAcceptedOnL1,
 		BlockHash:       ctypes.HexToHash("0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
 		BlockNumber:     300114,
 	},

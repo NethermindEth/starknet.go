@@ -11,8 +11,7 @@ import (
 	_ "embed"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/rpcv01"
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 //go:embed artifacts/sessionkey_3fc70024.json
@@ -21,7 +20,7 @@ var sessionPluginCompiled []byte
 func sessionToken(privateKey, accountAddress, sessionPublicKey string) *SessionKeyToken {
 	token, _ := SignToken(
 		privateKey,
-		ctypes.UTF8StrToBig("SN_GOERLI").Text(16),
+		types.UTF8StrToBig("SN_GOERLI").Text(16),
 		sessionPublicKey,
 		accountAddress,
 		2*time.Hour,
@@ -104,26 +103,26 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if err != nil {
 		t.Fatal("deploy should succeed, instead:", err)
 	}
-	calls := []ctypes.FunctionCall{
+	calls := []types.FunctionCall{
 		{
-			ContractAddress:    ctypes.HexToHash(counterAddress),
+			ContractAddress:    types.HexToHash(counterAddress),
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},
 	}
 	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, ctypes.ExecuteDetails{})
+	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
 	if err != nil {
 		t.Fatal("execute should succeed, instead:", err)
 	}
 	if !strings.HasPrefix(tx.TransactionHash, "0x") {
 		t.Fatal("execute should return transaction hash, instead:", tx.TransactionHash)
 	}
-	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
+	if status != types.TransactionAcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
