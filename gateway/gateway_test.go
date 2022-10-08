@@ -2,13 +2,17 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/test"
+	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
 
@@ -40,10 +44,43 @@ var (
 	}
 )
 
+func setupDevnet(ctx context.Context) error {
+	provider := NewClient(WithBaseURL(testConfigurations["devnet"].base))
+	contract := types.ContractClass{}
+	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
+		return err
+	}
+	tx, err := provider.Deploy(ctx, contract, types.DeployRequest{})
+	if err != nil {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
+	}
+	counterAddress = tx.ContractAddress
+	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
+	}
+	if receipt.Status == types.TransactionRejected {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return errors.New("deployed rejected")
+	}
+	return nil
+}
+
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
+	if testEnv == "devnet" {
+		err := setupDevnet(context.Background())
+		if err != nil {
+			log.Fatal("error starting test", err)
+		}
+	}
 	os.Exit(m.Run())
 }
 

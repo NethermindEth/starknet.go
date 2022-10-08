@@ -96,20 +96,15 @@ func (p *GatewayProvider) declareClass(ctx context.Context, compiledClass []byte
 	if err != nil {
 		return "", err
 	}
-	return tx.TransactionHash, nil
-	//TODO: wait for transaction to complete
-	// status, err :=  .WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
-	// if err != nil {
-	// 	log.Printf("class Hash: %s\n", tx.ClassHash)
-	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	// 	return "", err
-	// }
-	// if status == types.TransactionRejected {
-	// 	log.Printf("class Hash: %s\n", tx.ClassHash)
-	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	// 	return "", errors.New("declare rejected")
-	// }
-	// return tx.ClassHash, nil
+	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		return "", err
+	}
+	if !receipt.Status.IsTransactionFinal() ||
+		receipt.Status == types.TransactionRejected {
+		return "", fmt.Errorf("wrong status: %s", receipt.Status)
+	}
+	return tx.ClassHash, nil
 }
 
 func (p *GatewayProvider) deployContract(ctx context.Context, compiledClass []byte, salt string, inputs []string) (string, error) {
@@ -125,19 +120,15 @@ func (p *GatewayProvider) deployContract(ctx context.Context, compiledClass []by
 	if err != nil {
 		return "", err
 	}
-	return tx.TransactionHash, nil
-	// status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
-	// if err != nil {
-	// 	log.Printf("contract Address: %s\n", tx.ContractAddress)
-	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	// 	return "", err
-	// }
-	// if status == types.TransactionRejected {
-	// 	log.Printf("contract Address: %s\n", tx.ContractAddress)
-	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	// 	return "", errors.New("deploy rejected")
-	// }
-	// return tx.ContractAddress, nil
+	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		return "", err
+	}
+	if !receipt.Status.IsTransactionFinal() ||
+		receipt.Status == types.TransactionRejected {
+		return "", fmt.Errorf("wrong status: %s", receipt.Status)
+	}
+	return tx.ContractAddress, nil
 }
 
 func (ap *accountPlugin) installAccountWithRPCv01(ctx context.Context, provider rpcv01.Provider, plugin, account, proxy []byte) error {

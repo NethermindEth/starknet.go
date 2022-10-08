@@ -20,6 +20,9 @@ const (
 var (
 	//go:embed contracts/counter.json
 	counterCompiled []byte
+
+	counterAddress = "0x0"
+
 	//go:embed contracts/account_class.json
 	accountCompiled []byte
 )
@@ -90,21 +93,19 @@ func TestDeployCounterContract(t *testing.T) {
 
 }
 
-func TestCallGoerli(t *testing.T) {
+func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Calls []types.FunctionCall
+		Call types.FunctionCall
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Calls: []types.FunctionCall{
-					{
-						ContractAddress:    types.HexToHash("0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62"),
-						EntryPointSelector: "update_single_store",
-						Calldata:           []string{"3"},
-					},
+				Call: types.FunctionCall{
+					ContractAddress:    types.HexToHash(counterAddress),
+					EntryPointSelector: "get_count",
+					Calldata:           []string{},
 				},
 			},
 		},
@@ -114,7 +115,15 @@ func TestCallGoerli(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		_ = test.Calls
-		_ = testConfig.privateKey
+		provider := testConfig.client
+		ctx := context.Background()
+		tx, err := provider.Call(ctx, test.Call, "latest")
+		if err != nil {
+			t.Fatalf("could not call contract: %v\n", err)
+		}
+		fmt.Printf("tx: %+v\n", tx)
+		if len(tx) == 0 {
+			t.Fatalf("error in tx: %+v\n", tx)
+		}
 	}
 }
