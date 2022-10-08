@@ -38,6 +38,12 @@ jobs:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
+      - name: Test Accounts (Caigo) on devnet
+        run: go test -timeout 600s -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050/rpc"
+
       - name: Test RPC v0.1 on devnet
         run: cd rpcv01 && go test -timeout 600s -v -env devnet .
         env:
