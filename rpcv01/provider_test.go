@@ -1,4 +1,4 @@
-package caigo
+package rpcv01
 
 import (
 	"context"
@@ -9,8 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	rpc "github.com/dontpanicdao/caigo/rpcv01"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
@@ -25,52 +23,9 @@ const (
 	TestNetAccount040Address = "0x43eb0aebc7e9a628df79fc731cdc37b581338c913839a3f67aae2309d9e88c5"
 )
 
-// testGatewayConfiguration is a type that is used to configure tests
-type testGatewayConfiguration struct {
-	client *gateway.Gateway
-	base   string
-}
-
-var (
-	testGatewayConfigurations = map[string]testGatewayConfiguration{
-		"mainnet": {
-			base: "https://alpha4-mainnet.starknet.io",
-		},
-		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base: "https://alpha4.starknet.io",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
-		"devnet": {
-			base: "http://localhost:5050",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
-	}
-)
-
-// beforeEach checks the configuration and initializes it before running the script
-func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
-	t.Helper()
-	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testGatewayConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports testnet, mainnet or devnet")
-	}
-	switch testEnv {
-	default:
-		testConfig.client = gateway.NewClient()
-	}
-	t.Cleanup(func() {
-	})
-	return &testConfig
-}
-
 // testConfiguration is a type that is used to configure tests
-type testRPCConfiguration struct {
-	provider *rpc.Provider
+type testConfiguration struct {
+	provider *Provider
 	base     string
 }
 
@@ -79,7 +34,7 @@ var (
 	testEnv = "mock"
 
 	// testConfigurations are predefined test configurations
-	testRPCConfigurations = map[string]testRPCConfiguration{
+	testConfigurations = map[string]testConfiguration{
 		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
@@ -109,13 +64,20 @@ func TestMain(m *testing.M) {
 }
 
 // beforeEach checks the configuration and initializes it before running the script
-func beforeRPCEach(t *testing.T) *testRPCConfiguration {
+func beforeEach(t *testing.T) *testConfiguration {
 	t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testRPCConfigurations[testEnv]
+	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
 		t.Fatal("env supports mock, testnet, mainnet or devnet")
 	}
+	if testEnv == "mock" {
+		testConfig.provider = &Provider{
+			c: &rpcMock{},
+		}
+		return &testConfig
+	}
+
 	testConfig.base = "https://starknet-goerli.cartridge.gg"
 	base := os.Getenv("INTEGRATION_BASE")
 	if base != "" {
@@ -125,14 +87,17 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	client := rpc.NewProvider(c)
+	client := NewProvider(c)
 	testConfig.provider = client
+	t.Cleanup(func() {
+		testConfig.provider.c.Close()
+	})
 	return &testConfig
 }
 
 // TestChainID checks the chainId matches the one for the environment
 func TestChainID(t *testing.T) {
-	testConfig := beforeRPCEach(t)
+	testConfig := beforeEach(t)
 
 	type testSetType struct {
 		ChainID string
@@ -150,9 +115,14 @@ func TestChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
 		chain, err := testConfig.provider.ChainID(context.Background())
 		if err != nil {
 			t.Fatal(err)
+		}
+		if _, err := spy.Compare(chain, false); err != nil {
+			t.Fatal("expecting to match", err)
 		}
 		if chain != test.ChainID {
 			t.Fatalf("expecting %s, instead: %s", test.ChainID, chain)
@@ -162,7 +132,7 @@ func TestChainID(t *testing.T) {
 
 // TestSyncing checks the values returned are consistent
 func TestSyncing(t *testing.T) {
-	testConfig := beforeRPCEach(t)
+	testConfig := beforeEach(t)
 
 	type testSetType struct {
 		ChainID string
@@ -176,9 +146,15 @@ func TestSyncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
 		sync, err := testConfig.provider.Syncing(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
+		}
+		if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
+			spy.Compare(sync, true)
+			t.Fatal("expecting to match", err)
 		}
 		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {

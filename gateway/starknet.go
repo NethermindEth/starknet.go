@@ -149,7 +149,7 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddDeclareResponse, err error) {
+func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return resp, err
@@ -177,6 +177,15 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	}
 
 	return resp, sg.do(req, &resp)
+}
+
+type DeclareRequest struct {
+	Type          string              `json:"type"`
+	SenderAddress string              `json:"sender_address"`
+	MaxFee        string              `json:"max_fee"`
+	Nonce         string              `json:"nonce"`
+	Signature     []string            `json:"signature"`
+	ContractClass types.ContractClass `json:"contract_class"`
 }
 
 func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {

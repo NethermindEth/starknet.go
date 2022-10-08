@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo/rpc"
-
-	 "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 type account interface {
@@ -27,7 +26,7 @@ type RPCAccountPlugin interface {
 }
 
 type RPCAccount struct {
-	Provider *rpc.Provider
+	Provider *rpcv01.Provider
 	Address  string
 	private  *big.Int
 	version  uint64
@@ -53,7 +52,7 @@ func AccountVersion1(string, string) (RPCAccountOption, error) {
 	}, nil
 }
 
-func NewRPCAccount(private, address string, provider *rpc.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
+func NewRPCAccount(private, address string, provider *rpcv01.Provider, options ...AccountOptionFunc) (*RPCAccount, error) {
 	var accountPlugin RPCAccountPlugin
 	version := uint64(0)
 	for _, o := range options {
@@ -86,7 +85,7 @@ func NewRPCAccount(private, address string, provider *rpc.Provider, options ...A
 }
 
 func (account *RPCAccount) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
-	return account.Provider.Call(ctx, call, rpc.WithBlockTag("latest"))
+	return account.Provider.Call(ctx, call, rpcv01.WithBlockTag("latest"))
 }
 
 func (account *RPCAccount) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
@@ -152,7 +151,7 @@ func (account *RPCAccount) Nonce(ctx context.Context) (*big.Int, error) {
 				EntryPointSelector: "get_nonce",
 				Calldata:           []string{},
 			},
-			rpc.WithBlockTag("latest"),
+			rpcv01.WithBlockTag("latest"),
 		)
 		if err != nil {
 			return nil, err
@@ -240,7 +239,7 @@ func (account *RPCAccount) EstimateFee(ctx context.Context, calls []types.Functi
 			Calldata:           calldata,
 		},
 	}
-	return account.Provider.EstimateFee(ctx, call, rpc.WithBlockTag("latest"))
+	return account.Provider.EstimateFee(ctx, call, rpcv01.WithBlockTag("latest"))
 }
 
 func (account *RPCAccount) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {

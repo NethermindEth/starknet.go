@@ -57,15 +57,6 @@ type DeployRequest struct {
 	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
-type DeclareRequest struct {
-	Type          string        `json:"type"`
-	SenderAddress string        `json:"sender_address"`
-	MaxFee        string        `json:"max_fee"`
-	Nonce         string        `json:"nonce"`
-	Signature     []string      `json:"signature"`
-	ContractClass ContractClass `json:"contract_class"`
-}
-
 type EntryPointList struct {
 	Offset   string `json:"offset"`
 	Selector string `json:"selector"`

@@ -14,8 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpc"
-	"github.com/dontpanicdao/caigo/rpc/types"
+	"github.com/dontpanicdao/caigo/rpcv01"
 	ctypes "github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
@@ -42,7 +41,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != types.TransactionStatus_AcceptedOnL2 {
+	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
@@ -79,7 +78,7 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != types.TransactionStatus_AcceptedOnL2 {
+	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
@@ -132,7 +131,7 @@ func CheckEth(t *testing.T, accountAddress string) string {
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},
 	},
-		rpc.WithBlockTag("latest"),
+		rpcv01.WithBlockTag("latest"),
 	)
 	if err != nil {
 		log.Fatal("could not call Eth", err)

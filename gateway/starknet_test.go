@@ -58,7 +58,7 @@ func TestDeclare(t *testing.T) {
 
 	for _, env := range testSet {
 		gw := testConfig.client
-		declareTx, err := gw.Declare(context.Background(), accountCompiled, types.DeclareRequest{})
+		declareTx, err := gw.Declare(context.Background(), accountCompiled, DeclareRequest{})
 		if err != nil {
 			t.Errorf("%s: could not 'DECLARE' contract: %v\n", env, err)
 			return

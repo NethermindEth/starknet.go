@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpc"
+	rpc "github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/types"
 )
 

@@ -11,7 +11,7 @@ import (
 	_ "embed"
 
 	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/rpc/types"
+	"github.com/dontpanicdao/caigo/rpcv01"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -123,7 +123,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if status != types.TransactionStatus_AcceptedOnL2 {
+	if status != rpcv01.TransactionStatus_AcceptedOnL2 {
 		t.Log("unexpected status transaction status, check:", status)
 		t.Log("...")
 		t.Log("   verify transaction")
