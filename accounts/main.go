@@ -116,7 +116,7 @@ func (c *config) incrementWithSessionKey() {
 		log.Fatalf("error connecting to devnet, %v\n", err)
 	}
 	provider := rpcv01.NewProvider(client)
-	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, *provider)
+	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, provider)
 	if err != nil {
 		log.Fatalf("could not deploy the counter contract, %v\n", err)
 	}
@@ -127,7 +127,7 @@ func (c *config) incrementWithSessionKey() {
 	log.Println("transaction executed with success", tx)
 }
 
-func (c *config) increment() {
+func (c *config) incrementWithRPCv01() {
 	accountWithPlugin := &accountPlugin{}
 	accountWithPlugin.Read(SECRET_FILE_NAME)
 	ctx := context.Background()
@@ -136,24 +136,40 @@ func (c *config) increment() {
 		log.Fatalf("error connecting to devnet, %v\n", err)
 	}
 	provider := rpcv01.NewProvider(client)
-	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, *provider)
+	counterAddress, err := accountWithPlugin.installCounterWithRPCv01(ctx, provider)
 	if err != nil {
 		log.Fatalf("could not deploy the counter contract, %v\n", err)
 	}
-	tx, err := accountWithPlugin.execute(counterAddress, "increment", provider)
+	tx, err := accountWithPlugin.executeWithRPCv01(counterAddress, "increment", provider)
 	if err != nil {
 		log.Fatalf("count not execute transaction, %v\n", err)
 	}
 	log.Println("transaction executed with success", tx)
 }
 
-//go:embed artifacts/account_v0.3.2.json
+func (c *config) incrementWithGateway() {
+	accountWithPlugin := &accountPlugin{}
+	accountWithPlugin.Read(SECRET_FILE_NAME)
+	ctx := context.Background()
+	provider := gateway.NewClient(gateway.WithBaseURL(c.baseURL))
+	counterAddress, err := accountWithPlugin.installCounterWithGateway(ctx, provider)
+	if err != nil {
+		log.Fatalf("could not deploy the counter contract, %v\n", err)
+	}
+	tx, err := accountWithPlugin.executeWithGateway(counterAddress, "increment", provider)
+	if err != nil {
+		log.Fatalf("count not execute transaction, %v\n", err)
+	}
+	log.Println("transaction executed with success", tx)
+}
+
+//go:embed artifacts/accountv0.json
 var accountV0 []byte
 
-//go:embed artifacts/account_plugin.json
+//go:embed artifacts/accountv0_plugin.json
 var accountV0WithPlugin []byte
 
-//go:embed artifacts/account_v0.4.0b.json
+//go:embed artifacts/accountv1.json
 var accountV1 []byte
 
 var accountContent = map[string]map[bool][]byte{
@@ -224,7 +240,11 @@ func main() {
 			c.incrementWithSessionKey()
 			return
 		}
-		c.increment()
+		if c.provider == "rpcv01" {
+			c.incrementWithRPCv01()
+			return
+		}
+		c.incrementWithGateway()
 	default:
 		log.Fatalf("unknown command: %s\n", c.command)
 	}

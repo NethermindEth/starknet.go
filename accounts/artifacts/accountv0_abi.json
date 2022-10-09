@@ -29,7 +29,7 @@
     {
         "inputs": [
             {
-                "name": "publicKey",
+                "name": "public_key",
                 "type": "felt"
             }
         ],
@@ -39,10 +39,22 @@
     },
     {
         "inputs": [],
-        "name": "getPublicKey",
+        "name": "get_public_key",
         "outputs": [
             {
-                "name": "publicKey",
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_nonce",
+        "outputs": [
+            {
+                "name": "res",
                 "type": "felt"
             }
         ],
@@ -69,11 +81,11 @@
     {
         "inputs": [
             {
-                "name": "newPublicKey",
+                "name": "new_public_key",
                 "type": "felt"
             }
         ],
-        "name": "setPublicKey",
+        "name": "set_public_key",
         "outputs": [],
         "type": "function"
     },
@@ -92,10 +104,10 @@
                 "type": "felt*"
             }
         ],
-        "name": "isValidSignature",
+        "name": "is_valid_signature",
         "outputs": [
             {
-                "name": "isValid",
+                "name": "is_valid",
                 "type": "felt"
             }
         ],
@@ -105,34 +117,11 @@
     {
         "inputs": [
             {
-                "name": "call_array_len",
-                "type": "felt"
-            },
-            {
-                "name": "call_array",
-                "type": "AccountCallArray*"
-            },
-            {
-                "name": "calldata_len",
-                "type": "felt"
-            },
-            {
-                "name": "calldata",
-                "type": "felt*"
-            }
-        ],
-        "name": "__validate__",
-        "outputs": [],
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "class_hash",
+                "name": "public_key",
                 "type": "felt"
             }
         ],
-        "name": "__validate_declare__",
+        "name": "initialize",
         "outputs": [],
         "type": "function"
     },
@@ -153,6 +142,10 @@
             {
                 "name": "calldata",
                 "type": "felt*"
+            },
+            {
+                "name": "nonce",
+                "type": "felt"
             }
         ],
         "name": "__execute__",

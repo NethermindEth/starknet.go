@@ -9,6 +9,7 @@ import (
 	_ "embed"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/plugins/xsessions"
 	"github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/types"
@@ -80,7 +81,7 @@ func (ap *accountPlugin) executeWithSessionKey(counterAddress, selector string, 
 	return tx.TransactionHash, nil
 }
 
-func (ap *accountPlugin) execute(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
+func (ap *accountPlugin) executeWithRPCv01(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -116,6 +117,45 @@ func (ap *accountPlugin) execute(counterAddress, selector string, provider *rpcv
 	if status != types.TransactionAcceptedOnL2 {
 		log.Printf("transaction has failed with %s", status)
 		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
+	}
+	return tx.TransactionHash, nil
+}
+
+func (ap *accountPlugin) executeWithGateway(counterAddress, selector string, provider *gateway.Gateway) (string, error) {
+	// v := caigo.AccountVersion0
+	// if ap.Version == "v1" {
+	// 	v = caigo.AccountVersion1
+	// }
+	account, err := caigo.NewGatewayAccount(
+		ap.PrivateKey,
+		types.HexToHash(ap.AccountAddress),
+		provider,
+	)
+	if err != nil {
+		return "", err
+	}
+	calls := []types.FunctionCall{
+		{
+			ContractAddress:    types.HexToHash(counterAddress),
+			EntryPointSelector: "increment",
+			Calldata:           []string{},
+		},
+	}
+	ctx := context.Background()
+	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
+	if err != nil {
+		log.Printf("could not execute transaction %v\n", err)
+		return "", err
+	}
+	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
+	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		log.Printf("could not execute transaction %v\n", err)
+		return tx.TransactionHash, err
+	}
+	if receipt.Status != types.TransactionAcceptedOnL2 {
+		log.Printf("transaction has failed with %s", receipt.Status)
+		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", receipt.Status)
 	}
 	return tx.TransactionHash, nil
 }

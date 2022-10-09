@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 
@@ -76,7 +77,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		Type:            INVOKE,
 		ContractAddress: invoke.ContractAddress.Hex(),
 		Version:         fmt.Sprintf("0x%d", invoke.Version),
-		MaxFee:          invoke.MaxFee.String(),
+		MaxFee:          fmt.Sprintf("0x%s", invoke.MaxFee.Text(16)),
 	}
 	if invoke.EntryPointSelector != "" {
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
@@ -85,11 +86,12 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		tx.Nonce = invoke.Nonce.String()
 	}
 
-	if len(invoke.Calldata) == 0 {
-		tx.Calldata = []string{}
-	} else {
-		tx.Calldata = invoke.Calldata
+	calldata := []string{}
+	for _, v := range invoke.Calldata {
+		bv, _ := big.NewInt(0).SetString(v, 0)
+		calldata = append(calldata, bv.Text(10))
 	}
+	tx.Calldata = calldata
 
 	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
@@ -102,7 +104,6 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	if err != nil {
 		return nil, err
 	}
-
 	var resp types.AddInvokeTransactionOutput
 	return &resp, sg.do(req, &resp)
 }
