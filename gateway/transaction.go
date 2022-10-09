@@ -25,7 +25,7 @@ type Transaction struct {
 	ClassHash          string   `json:"class_hash,omitempty"`
 	ContractAddress    string   `json:"contract_address,omitempty"`
 	SenderAddress      string   `json:"sender_address,omitempty"`
-	EntryPointSelector string   `json:"entry_point_selector"`
+	EntryPointSelector string   `json:"entry_point_selector,omitempty"`
 	Calldata           []string `json:"calldata"`
 	Signature          []string `json:"signature"`
 	EntryPointType     string   `json:"entry_point_type,omitempty"`

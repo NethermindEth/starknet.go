@@ -122,14 +122,15 @@ func (ap *accountPlugin) executeWithRPCv01(counterAddress, selector string, prov
 }
 
 func (ap *accountPlugin) executeWithGateway(counterAddress, selector string, provider *gateway.Gateway) (string, error) {
-	// v := caigo.AccountVersion0
-	// if ap.Version == "v1" {
-	// 	v = caigo.AccountVersion1
-	// }
+	v := caigo.AccountVersion0
+	if ap.Version == "v1" {
+		v = caigo.AccountVersion1
+	}
 	account, err := caigo.NewGatewayAccount(
 		ap.PrivateKey,
 		ap.AccountAddress,
 		provider,
+		v,
 	)
 	if err != nil {
 		return "", err

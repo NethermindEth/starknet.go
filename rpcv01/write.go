@@ -3,15 +3,24 @@ package rpcv01
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, call ctypes.FunctionCall, signature []string, maxFee string, version string) (*ctypes.AddInvokeTransactionOutput, error) {
-	call.EntryPointSelector = fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(call.EntryPointSelector).Text(16))
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, call ctypes.FunctionCall, signature []string, maxFee string, version string, nonce *big.Int) (*ctypes.AddInvokeTransactionOutput, error) {
+	if call.EntryPointSelector != "" {
+		call.EntryPointSelector = fmt.Sprintf("0x%s", ctypes.GetSelectorFromName(call.EntryPointSelector).Text(16))
+	}
 	var output ctypes.AddInvokeTransactionOutput
-	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
+	if nonce == nil {
+		if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version); err != nil {
+			return nil, err
+		}
+		return &output, nil
+	}
+	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, call, signature, maxFee, version, fmt.Sprintf("0x%s", nonce.Text(16))); err != nil {
 		return nil, err
 	}
 	return &output, nil

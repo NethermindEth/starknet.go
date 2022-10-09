@@ -75,27 +75,12 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 		sigs = append(sigs, sig.Text(10))
 	}
 	output["signature"] = sigs
-	v, err := json.Marshal(f.FunctionCall)
-	if err != nil {
-		return nil, err
+	output["contract_address"] = f.ContractAddress.Hex()
+	if f.EntryPointSelector != "" {
+		output["entry_point_selector"] = f.EntryPointSelector
 	}
-	functionCall := map[string]json.RawMessage{}
-	err = json.Unmarshal(v, &functionCall)
-	if err != nil {
-		return nil, err
-	}
-	output["contract_address"] = functionCall["contract_address"]
-	if selector, ok := functionCall["entry_point_selector"]; ok {
-		output["entry_point_selector"] = selector
-	}
-	calldataSlice := []string{}
-	err = json.Unmarshal(functionCall["calldata"], &calldataSlice)
-	if err != nil {
-		return nil, err
-	}
-
 	calldata := []string{}
-	for _, v := range calldataSlice {
+	for _, v := range f.Calldata {
 		data, _ := big.NewInt(0).SetString(v, 0)
 		calldata = append(calldata, data.Text(10))
 	}
@@ -115,7 +100,9 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 }
 
 func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {
-	call.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(call.EntryPointSelector))
+	if call.EntryPointSelector != "" {
+		call.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(call.EntryPointSelector))
+	}
 	c := functionInvoke(call)
 	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", c)
 	if err != nil {

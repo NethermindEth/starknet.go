@@ -91,9 +91,6 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 			accountPlugin = opt.AccountPlugin
 		}
 	}
-	if version != 0 {
-		return nil, errors.New("account v1 not yet supported")
-	}
 	priv := types.SNValToBN(private)
 	return &Account{
 		address: address,
@@ -344,7 +341,6 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	if err != nil {
 		return nil, err
 	}
-	// TODO: change this payload to manage both V0 and V1
 	switch account.provider {
 	case ProviderRPCv01:
 		signature := []string{}
@@ -357,6 +353,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			signature,
 			fmt.Sprintf("0x%s", maxFee.Text(16)),
 			fmt.Sprintf("0x%d", account.version),
+			call.Nonce,
 		)
 	case ProviderGateway:
 		return account.sequencer.Invoke(

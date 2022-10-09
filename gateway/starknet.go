@@ -100,7 +100,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
 	}
 	if invoke.Nonce != nil {
-		tx.Nonce = invoke.Nonce.String()
+		tx.Nonce = fmt.Sprintf("0x%s", invoke.Nonce.Text(16))
 	}
 
 	calldata := []string{}
