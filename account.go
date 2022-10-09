@@ -339,6 +339,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		}
 		maxFee = v.Mul(v, big.NewInt(2))
 	}
+	details.MaxFee = maxFee
 	call, err := account.prepFunctionInvoke(ctx, calls, details)
 	if err != nil {
 		return nil, err
