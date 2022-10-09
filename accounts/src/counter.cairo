@@ -26,6 +26,12 @@ func get_count{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 end
 
 @view
+func sum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: felt, b: felt) -> (total: felt):
+    let total = a + b
+    return (total=total,)
+end
+
+@view
 func get_rand{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (val: felt):
     let (val) = rand.read()
 

@@ -159,3 +159,16 @@ func (ap *accountPlugin) executeWithGateway(counterAddress, selector string, pro
 	}
 	return tx.TransactionHash, nil
 }
+
+func (ap *accountPlugin) callWithGateway(call types.FunctionCall, provider *gateway.Gateway) ([]string, error) {
+	account, err := caigo.NewGatewayAccount(
+		ap.PrivateKey,
+		types.HexToHash(ap.AccountAddress),
+		provider,
+	)
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	return account.Call(ctx, call)
+}

@@ -18,6 +18,27 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "name": "a",
+                "type": "felt"
+            },
+            {
+                "name": "b",
+                "type": "felt"
+            }
+        ],
+        "name": "sum",
+        "outputs": [
+            {
+                "name": "total",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "get_rand",
         "outputs": [

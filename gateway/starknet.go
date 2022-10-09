@@ -34,8 +34,25 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 }
 
 type GatewayFunctionCall struct {
-	types.FunctionCall
+	FunctionCall
 	Signature []string `json:"signature"`
+}
+
+type FunctionCall types.FunctionCall
+
+func (f FunctionCall) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["contract_address"] = f.ContractAddress.Hex()
+	if f.EntryPointSelector != "" {
+		output["entry_point_selector"] = f.EntryPointSelector
+	}
+	calldata := []string{}
+	for _, v := range f.Calldata {
+		data, _ := big.NewInt(0).SetString(v, 0)
+		calldata = append(calldata, data.Text(10))
+	}
+	output["calldata"] = calldata
+	return json.Marshal(output)
 }
 
 /*
@@ -43,7 +60,7 @@ type GatewayFunctionCall struct {
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
 	gc := GatewayFunctionCall{
-		FunctionCall: call,
+		FunctionCall: FunctionCall(call),
 	}
 	gc.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(gc.EntryPointSelector))
 	if len(gc.Calldata) == 0 {
