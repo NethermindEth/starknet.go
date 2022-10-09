@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ caigo.RPCAccountPlugin = &SessionKeyPlugin{}
+	_ caigo.AccountPlugin = &SessionKeyPlugin{}
 )
 
 type SessionKeyPlugin struct {
@@ -22,17 +22,17 @@ type SessionKeyPlugin struct {
 }
 
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
-	return func(private, address string) (caigo.RPCAccountOption, error) {
+	return func(private, address string) (caigo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
-			return caigo.RPCAccountOption{}, errors.New("could not convert plugin class hash")
+			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		pk, ok := big.NewInt(0).SetString(private, 0)
 		if !ok {
-			return caigo.RPCAccountOption{}, errors.New("could not convert plugin class hash")
+			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
-		return caigo.RPCAccountOption{
-			RPCAccountPlugin: &SessionKeyPlugin{
+		return caigo.AccountOption{
+			AccountPlugin: &SessionKeyPlugin{
 				accountAddress: ctypes.HexToHash(address),
 				classHash:      plugin,
 				private:        pk,

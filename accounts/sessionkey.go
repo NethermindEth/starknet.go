@@ -128,7 +128,7 @@ func (ap *accountPlugin) executeWithGateway(counterAddress, selector string, pro
 	// }
 	account, err := caigo.NewGatewayAccount(
 		ap.PrivateKey,
-		types.HexToHash(ap.AccountAddress),
+		ap.AccountAddress,
 		provider,
 	)
 	if err != nil {
@@ -163,7 +163,7 @@ func (ap *accountPlugin) executeWithGateway(counterAddress, selector string, pro
 func (ap *accountPlugin) callWithGateway(call types.FunctionCall, provider *gateway.Gateway) ([]string, error) {
 	account, err := caigo.NewGatewayAccount(
 		ap.PrivateKey,
-		types.HexToHash(ap.AccountAddress),
+		ap.AccountAddress,
 		provider,
 	)
 	if err != nil {
