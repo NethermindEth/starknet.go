@@ -2,17 +2,19 @@ package caigo
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"hash"
 	"math/big"
 )
 
 /*
-	Verifies the validity of the stark curve signature
-	given the message hash, and public key (x, y) coordinates
-	used to sign the message.
+Verifies the validity of the stark curve signature
+given the message hash, and public key (x, y) coordinates
+used to sign the message.
 
-	(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
 */
 func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
@@ -78,11 +80,11 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 }
 
 /*
-	Signs the hash value of contents with the provided private key.
-	Secret is generated using a golang implementation of RFC 6979.
-	Implementation does not yet include "extra entropy" or "retry gen".
+Signs the hash value of contents with the provided private key.
+Secret is generated using a golang implementation of RFC 6979.
+Implementation does not yet include "extra entropy" or "retry gen".
 
-	(ref: https://datatracker.ietf.org/doc/html/rfc6979)
+(ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
 func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
@@ -127,9 +129,9 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 }
 
 /*
-	Hashes the contents of a given array using a golang Pedersen Hash implementation.
+Hashes the contents of a given array using a golang Pedersen Hash implementation.
 
-	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	if len(elems) == 0 {
@@ -147,9 +149,9 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 /*
-	Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
+Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
 
-	(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
+(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
 */
 func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
@@ -157,10 +159,10 @@ func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err
 }
 
 /*
-	Provides the pedersen hash of given array of big integers.
-	NOTE: This function assumes the curve has been initialized with contant points
+Provides the pedersen hash of given array of big integers.
+NOTE: This function assumes the curve has been initialized with contant points
 
-	(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
 */
 func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	if len(sc.ConstantPoints) == 0 {
@@ -237,4 +239,86 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 		k = mac(alg, k, append(v, 0x00), k)
 		v = mac(alg, k, v, v)
 	}
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.3
+func int2octets(v *big.Int, rolen int) []byte {
+	out := v.Bytes()
+
+	// pad with zeros if it's too short
+	if len(out) < rolen {
+		out2 := make([]byte, rolen)
+		copy(out2[rolen-len(out):], out)
+		return out2
+	}
+
+	// drop most significant bytes if it's too long
+	if len(out) > rolen {
+		out2 := make([]byte, rolen)
+		copy(out2, out[len(out)-rolen:])
+		return out2
+	}
+
+	return out
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.4
+func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
+	z1 := bits2int(in, qlen)
+	z2 := new(big.Int).Sub(z1, q)
+	if z2.Sign() < 0 {
+		return int2octets(z1, rolen)
+	}
+	return int2octets(z2, rolen)
+}
+
+// https://tools.ietf.org/html/rfc6979#section-2.3.2
+func bits2int(in *big.Int, qlen int) *big.Int {
+	blen := len(in.Bytes()) * 8
+
+	if blen > qlen {
+
+		return new(big.Int).Rsh(in, uint(blen-qlen))
+	}
+	return in
+}
+
+// mac returns an HMAC of the given key and message.
+func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
+	h := hmac.New(alg, k)
+	h.Write(m)
+	return h.Sum(buf[:0])
+}
+
+// mask excess bits
+func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
+	excess := len(slice)*wordSize - mask
+	for _, by := range slice {
+		if excess > 0 {
+			if excess > wordSize {
+				excess = excess - wordSize
+				continue
+			}
+			by <<= excess
+			by >>= excess
+			excess = 0
+		}
+		ret = append(ret, by)
+	}
+	return ret
+}
+
+// format the bytes in Keccak hash
+func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
+	buf = append(buf, in.Bytes()...)
+
+	// pad with zeros if too short
+	if len(buf) < rolen {
+		padded := make([]byte, rolen)
+		copy(padded[rolen-len(buf):], buf)
+
+		return padded
+	}
+
+	return buf
 }

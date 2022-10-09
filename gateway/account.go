@@ -2,18 +2,19 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address types.Hash) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
@@ -25,7 +26,7 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address string) (*big.Int, 
 		return nil, fmt.Errorf("no resp in contract call 'get_nonce' %v", address)
 	}
 
-	return caigo.HexToBN(resp[0]), nil
+	return types.HexToBN(resp[0]), nil
 }
 
 func (sg *Gateway) Nonce(ctx context.Context, contractAddress, blockHashOrTag string) (*big.Int, error) {
@@ -65,10 +66,45 @@ func (sg *Gateway) Nonce(ctx context.Context, contractAddress, blockHashOrTag st
 	return nonce, nil
 }
 
-func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {
-	call.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(call.EntryPointSelector))
+type functionInvoke types.FunctionInvoke
 
-	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", call)
+func (f functionInvoke) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	sigs := []string{}
+	for _, sig := range f.Signature {
+		sigs = append(sigs, sig.Text(10))
+	}
+	output["signature"] = sigs
+	output["contract_address"] = f.ContractAddress.Hex()
+	if f.EntryPointSelector != "" {
+		output["entry_point_selector"] = f.EntryPointSelector
+	}
+	calldata := []string{}
+	for _, v := range f.Calldata {
+		data, _ := big.NewInt(0).SetString(v, 0)
+		calldata = append(calldata, data.Text(10))
+	}
+	output["calldata"] = calldata
+	if f.Nonce != nil {
+		output["nonce"] = json.RawMessage(
+			strconv.Quote(fmt.Sprintf("0x%s", f.Nonce.Text(16))),
+		)
+	}
+	if f.MaxFee != nil {
+		output["max_fee"] = json.RawMessage(
+			strconv.Quote(fmt.Sprintf("0x%s", f.MaxFee.Text(16))),
+		)
+	}
+	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%d", f.Version)))
+	return json.Marshal(output)
+}
+
+func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {
+	if call.EntryPointSelector != "" {
+		call.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(call.EntryPointSelector))
+	}
+	c := functionInvoke(call)
+	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", c)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +114,18 @@ func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, h
 			"blockHash": []string{hash},
 		})
 	}
-
-	var resp types.FeeEstimate
-	return &resp, sg.do(req, &resp)
+	output := map[string]interface{}{}
+	err = sg.do(req, &output)
+	if err != nil {
+		return nil, err
+	}
+	gasPrice, _ := output["gas_price"].(int)
+	gasConsumed, _ := output["gas_usage"].(int)
+	overallFee, _ := output["overall_fee"].(int)
+	resp := types.FeeEstimate{
+		GasConsumed: types.NumAsHex("0x" + big.NewInt(int64(gasConsumed)).Text(16)),
+		GasPrice:    types.NumAsHex("0x" + big.NewInt(int64(gasPrice)).Text(16)),
+		OverallFee:  types.NumAsHex("0x" + big.NewInt(int64(overallFee)).Text(16)),
+	}
+	return &resp, nil
 }

@@ -1,8 +1,6 @@
-module github.com/dontpanicdao/caigo/examples/account
+module account
 
 go 1.18
-
-replace github.com/dontpanicdao/caigo => ../../
 
 require github.com/dontpanicdao/caigo v0.2.1-0.20220620163912-1db2ca279608
 

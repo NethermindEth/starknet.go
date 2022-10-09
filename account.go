@@ -2,192 +2,364 @@ package caigo
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"math/big"
 
+	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/types"
 )
 
+var (
+	ErrUnsupportedAccount = errors.New("unsupported account implementation")
+	MAX_FEE, _            = big.NewInt(0).SetString("0x2000000000", 0)
+)
+
 const (
-	EXECUTE_SELECTOR    string = "__execute__"
-	TRANSACTION_PREFIX  string = "invoke"
-	TRANSACTION_VERSION int64  = 0
-	FEE_MARGIN          uint64 = 115
+	TRANSACTION_PREFIX = "invoke"
+	EXECUTE_SELECTOR   = "__execute__"
+)
+
+type account interface {
+	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
+	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
+	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
+	Nonce(ctx context.Context) (*big.Int, error)
+	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
+	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+}
+
+var _ account = &Account{}
+
+type AccountPlugin interface {
+	PluginCall(calls []types.FunctionCall) (types.FunctionCall, error)
+}
+
+type ProviderType string
+
+const (
+	ProviderRPCv01  ProviderType = "rpcv01"
+	ProviderGateway ProviderType = "gateway"
 )
 
 type Account struct {
-	Provider types.Provider
-	Address  string
-	PublicX  *big.Int
-	PublicY  *big.Int
-	private  *big.Int
+	rpcv01    *rpcv01.Provider
+	sequencer *gateway.Gateway
+	provider  ProviderType
+	chainId   string
+	address   string
+	private   *big.Int
+	version   uint64
+	plugin    AccountPlugin
 }
 
-type ExecuteDetails struct {
-	MaxFee  *types.Felt
-	Nonce   *big.Int
-	Version *uint64 // not used currently
+type AccountOption struct {
+	AccountPlugin AccountPlugin
+	version       uint64
 }
 
-/*
-	Instantiate a new StarkNet Account which includes structures for calling the network and signing transactions:
-	- private signing key
-	- stark curve definition
-	- full provider definition
-	- public key pair for signature verifications
-*/
-func NewAccount(private, address string, provider types.Provider) (*Account, error) {
-	priv := SNValToBN(private)
-	x, y, err := Curve.PrivateToPoint(priv)
+type AccountOptionFunc func(string, string) (AccountOption, error)
+
+func AccountVersion0(string, string) (AccountOption, error) {
+	return AccountOption{
+		version: uint64(0),
+	}, nil
+}
+
+func AccountVersion1(string, string) (AccountOption, error) {
+	return AccountOption{
+		version: uint64(1),
+	}, nil
+}
+
+func newAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
+	var accountPlugin AccountPlugin
+	version := uint64(0)
+	for _, o := range options {
+		opt, err := o(private, address)
+		if err != nil {
+			return nil, err
+		}
+		if opt.version != 0 {
+			version = opt.version
+		}
+		if opt.AccountPlugin != nil {
+			if accountPlugin != nil {
+				return nil, errors.New("multiple plugins not supported")
+			}
+			accountPlugin = opt.AccountPlugin
+		}
+	}
+	priv := types.SNValToBN(private)
+	return &Account{
+		address: address,
+		private: priv,
+		version: version,
+		plugin:  accountPlugin,
+	}, nil
+}
+
+func NewRPCAccount(private, address string, provider *rpcv01.Provider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(private, address, options...)
 	if err != nil {
 		return nil, err
 	}
+	chainID, err := provider.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	account.chainId = chainID
+	account.provider = ProviderRPCv01
+	account.rpcv01 = provider
+	return account, nil
+}
 
-	return &Account{
-		Provider: provider,
-		Address:  address,
-		PublicX:  x,
-		PublicY:  y,
-		private:  priv,
-	}, nil
+func NewGatewayAccount(private, address string, provider *gateway.Gateway, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(private, address, options...)
+	if err != nil {
+		return nil, err
+	}
+	chainID, err := provider.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	account.chainId = chainID
+	account.provider = ProviderGateway
+	account.sequencer = provider
+	return account, nil
+}
+
+func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
+	switch account.provider {
+	case ProviderRPCv01:
+		if account.rpcv01 == nil {
+			return nil, ErrUnsupportedAccount
+		}
+		return account.rpcv01.Call(ctx, call, rpcv01.WithBlockTag("latest"))
+	case ProviderGateway:
+		if account.sequencer == nil {
+			return nil, ErrUnsupportedAccount
+		}
+		return account.sequencer.Call(ctx, call, "latest")
+	}
+	return nil, ErrUnsupportedAccount
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 	return Curve.Sign(msgHash, account.private)
 }
 
-/*
-	invocation wrapper for StarkNet account calls to '__execute__' contact calls through an account abstraction
-	- implementation has been tested against OpenZeppelin Account contract as of: https://github.com/OpenZeppelin/cairo-contracts/blob/4116c1ecbed9f821a2aa714c993a35c1682c946e/src/openzeppelin/account/Account.cairo
-	- accepts a multicall
-*/
-func (account *Account) Execute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.AddTxResponse, error) {
-	if details.Nonce == nil {
-		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
-		if err != nil {
-			return nil, err
-		}
-		details.Nonce = nonce
+func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
+
+	var callArray []*big.Int
+	switch {
+	case account.version == 0:
+		callArray = fmtV0Calldata(details.Nonce, calls)
+	case account.version == 1:
+		callArray = fmtCalldata(calls)
+	default:
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
-
-	if details.MaxFee == nil {
-		fee, err := account.EstimateFee(ctx, calls, details)
-		if err != nil {
-			return nil, err
-		}
-		details.MaxFee = &types.Felt{
-			Int: new(big.Int).SetUint64((fee.OverallFee * FEE_MARGIN) / 100),
-		}
-	}
-
-	req, err := account.fmtExecute(ctx, calls, details)
-	if err != nil {
-		return nil, err
-	}
-
-	return account.Provider.Invoke(ctx, *req)
-}
-
-func (account *Account) HashMultiCall(fee *types.Felt, nonce *big.Int, calls []types.Transaction) (*big.Int, error) {
-	chainID, err := account.Provider.ChainID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	callArray := fmtExecuteCalldata(nonce, calls)
 	cdHash, err := Curve.ComputeHashOnElements(callArray)
 	if err != nil {
 		return nil, err
 	}
 
-	multiHashData := []*big.Int{
-		UTF8StrToBig(TRANSACTION_PREFIX),
-		big.NewInt(TRANSACTION_VERSION),
-		SNValToBN(account.Address),
-		GetSelectorFromName(EXECUTE_SELECTOR),
-		cdHash,
-		fee.Int,
-		UTF8StrToBig(chainID),
+	var multiHashData []*big.Int
+	switch {
+	case account.version == 0:
+		multiHashData = []*big.Int{
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
+			big.NewInt(int64(account.version)),
+			types.SNValToBN(account.address),
+			types.GetSelectorFromName(EXECUTE_SELECTOR),
+			cdHash,
+			details.MaxFee,
+			types.UTF8StrToBig(account.chainId),
+		}
+	case account.version == 1:
+		multiHashData = []*big.Int{
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
+			big.NewInt(int64(account.version)),
+			types.SNValToBN(account.address),
+			big.NewInt(0),
+			cdHash,
+			details.MaxFee,
+			types.UTF8StrToBig(account.chainId),
+			details.Nonce,
+		}
+	default:
+		return nil, fmt.Errorf("version %d unsupported", account.version)
 	}
-
 	return Curve.ComputeHashOnElements(multiHashData)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FeeEstimate, error) {
+func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
+	switch account.version {
+	case 0:
+		switch account.provider {
+		case ProviderRPCv01:
+			nonce, err := account.rpcv01.Call(
+				ctx,
+				types.FunctionCall{
+					ContractAddress:    types.HexToHash(account.address),
+					EntryPointSelector: "get_nonce",
+					Calldata:           []string{},
+				},
+				rpcv01.WithBlockTag("latest"),
+			)
+			if err != nil {
+				return nil, err
+			}
+			if len(nonce) == 0 {
+				return nil, errors.New("nonce error")
+			}
+			n, ok := big.NewInt(0).SetString(nonce[0], 0)
+			if !ok {
+				return nil, errors.New("nonce error")
+			}
+			return n, nil
+		case ProviderGateway:
+			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.address))
+		}
+	case 1:
+		switch account.provider {
+		case ProviderRPCv01:
+			nonce, err := account.rpcv01.Nonce(
+				ctx,
+				types.HexToHash(account.address),
+			)
+			if err != nil {
+				return nil, err
+			}
+			n, ok := big.NewInt(0).SetString(*nonce, 0)
+			if !ok {
+				return nil, errors.New("nonce error")
+			}
+			return n, nil
+		case ProviderGateway:
+			return account.sequencer.Nonce(ctx, account.address, "latest")
+		}
+	}
+	return nil, fmt.Errorf("version %d unsupported", account.version)
+}
+
+func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FunctionInvoke, error) {
+	nonce := details.Nonce
+	var err error
 	if details.Nonce == nil {
-		nonce, err := account.Provider.AccountNonce(ctx, account.Address)
+		nonce, err = account.Nonce(ctx)
 		if err != nil {
 			return nil, err
 		}
-		details.Nonce = nonce
 	}
-
-	if details.MaxFee == nil {
-		details.MaxFee = &types.Felt{Int: big.NewInt(0)}
+	maxFee := MAX_FEE
+	if details.MaxFee != nil {
+		maxFee = details.MaxFee
 	}
-
-	req, err := account.fmtExecute(ctx, calls, details)
-	if err != nil {
-		return nil, err
+	version := account.version
+	if account.plugin != nil {
+		call, err := account.plugin.PluginCall(calls)
+		if err != nil {
+			return nil, err
+		}
+		calls = append([]types.FunctionCall{call}, calls...)
 	}
-
-	return account.Provider.EstimateFee(ctx, *req, "")
-}
-
-func (account *Account) fmtExecute(ctx context.Context, calls []types.Transaction, details ExecuteDetails) (*types.FunctionInvoke, error) {
-	req := types.FunctionInvoke{
-		FunctionCall: types.FunctionCall{
-			ContractAddress:    account.Address,
-			EntryPointSelector: EXECUTE_SELECTOR,
-			Calldata:           fmtExecuteCalldataStrings(details.Nonce, calls),
+	txHash, err := account.TransactionHash(
+		calls,
+		types.ExecuteDetails{
+			Nonce:  nonce,
+			MaxFee: maxFee,
 		},
-		MaxFee: details.MaxFee,
-	}
-
-	hash, err := account.HashMultiCall(details.MaxFee, details.Nonce, calls)
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	r, s, err := account.Sign(hash)
+	s1, s2, err := account.Sign(txHash)
 	if err != nil {
 		return nil, err
 	}
-	req.Signature = types.Signature{types.BigToFelt(r), types.BigToFelt(s)}
-
-	return &req, nil
+	switch account.version {
+	case 0:
+		calldata := fmtV0CalldataStrings(nonce, calls)
+		return &types.FunctionInvoke{
+			MaxFee:    maxFee,
+			Version:   version,
+			Signature: types.Signature{s1, s2},
+			FunctionCall: types.FunctionCall{
+				ContractAddress:    types.HexToHash(account.address),
+				EntryPointSelector: EXECUTE_SELECTOR,
+				Calldata:           calldata,
+			},
+		}, nil
+	case 1:
+		calldata := fmtCalldataStrings(calls)
+		return &types.FunctionInvoke{
+			MaxFee:    maxFee,
+			Version:   version,
+			Signature: types.Signature{s1, s2},
+			FunctionCall: types.FunctionCall{
+				ContractAddress: types.HexToHash(account.address),
+				Calldata:        calldata,
+			},
+			Nonce: nonce,
+		}, nil
+	}
+	return nil, ErrUnsupportedAccount
 }
 
-func fmtExecuteCalldataStrings(nonce *big.Int, calls []types.Transaction) (calldataStrings []string) {
-	callArray := fmtExecuteCalldata(nonce, calls)
-	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, data.String())
+func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
+	call, err := account.prepFunctionInvoke(ctx, calls, details)
+	if err != nil {
+		return nil, err
 	}
-	return calldataStrings
+	switch account.provider {
+	case ProviderRPCv01:
+		return account.rpcv01.EstimateFee(ctx, *call, rpcv01.WithBlockTag("latest"))
+	case ProviderGateway:
+		return account.sequencer.EstimateFee(ctx, *call, "latest")
+	}
+	return nil, ErrUnsupportedAccount
 }
 
-/*
-	Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
-*/
-func fmtExecuteCalldata(nonce *big.Int, calls []types.Transaction) (calldataArray []*big.Int) {
-	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
-
-	for _, tx := range calls {
-		callArray = append(callArray, SNValToBN(tx.ContractAddress), GetSelectorFromName(tx.EntryPointSelector))
-
-		if len(tx.Calldata) == 0 {
-			callArray = append(callArray, big.NewInt(0), big.NewInt(0))
-
-			continue
+func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error) {
+	maxFee := details.MaxFee
+	if maxFee == nil {
+		estimate, err := account.EstimateFee(ctx, calls, details)
+		if err != nil {
+			return nil, err
 		}
-
-		callArray = append(callArray, big.NewInt(int64(len(calldataArray))), big.NewInt(int64(len(tx.Calldata))))
-		for _, cd := range tx.Calldata {
-			calldataArray = append(calldataArray, SNValToBN(cd))
+		v, ok := big.NewInt(0).SetString(string(estimate.OverallFee), 0)
+		if !ok {
+			return nil, errors.New("could not match OverallFee to big.Int")
 		}
+		maxFee = v.Mul(v, big.NewInt(2))
 	}
-
-	callArray = append(callArray, big.NewInt(int64(len(calldataArray))))
-	callArray = append(callArray, calldataArray...)
-	callArray = append(callArray, nonce)
-	return callArray
+	details.MaxFee = maxFee
+	call, err := account.prepFunctionInvoke(ctx, calls, details)
+	if err != nil {
+		return nil, err
+	}
+	switch account.provider {
+	case ProviderRPCv01:
+		signature := []string{}
+		for _, k := range call.Signature {
+			signature = append(signature, fmt.Sprintf("0x%s", k.Text(16)))
+		}
+		return account.rpcv01.AddInvokeTransaction(
+			context.Background(),
+			call.FunctionCall,
+			signature,
+			fmt.Sprintf("0x%s", maxFee.Text(16)),
+			fmt.Sprintf("0x%d", account.version),
+			call.Nonce,
+		)
+	case ProviderGateway:
+		return account.sequencer.Invoke(
+			context.Background(),
+			*call,
+		)
+	}
+	return nil, ErrUnsupportedAccount
 }

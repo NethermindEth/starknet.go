@@ -1,18 +1,13 @@
 package gateway
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"net/http"
 	"net/url"
-	"os"
 
-	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
 )
@@ -39,8 +34,25 @@ func (sg *Gateway) ChainID(context.Context) (string, error) {
 }
 
 type GatewayFunctionCall struct {
-	types.FunctionCall
+	FunctionCall
 	Signature []string `json:"signature"`
+}
+
+type FunctionCall types.FunctionCall
+
+func (f FunctionCall) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["contract_address"] = f.ContractAddress.Hex()
+	if f.EntryPointSelector != "" {
+		output["entry_point_selector"] = f.EntryPointSelector
+	}
+	calldata := []string{}
+	for _, v := range f.Calldata {
+		data, _ := big.NewInt(0).SetString(v, 0)
+		calldata = append(calldata, data.Text(10))
+	}
+	output["calldata"] = calldata
+	return json.Marshal(output)
 }
 
 /*
@@ -48,9 +60,9 @@ type GatewayFunctionCall struct {
 */
 func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
 	gc := GatewayFunctionCall{
-		FunctionCall: call,
+		FunctionCall: FunctionCall(call),
 	}
-	gc.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(gc.EntryPointSelector))
+	gc.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(gc.EntryPointSelector))
 	if len(gc.Calldata) == 0 {
 		gc.Calldata = []string{}
 	}
@@ -77,70 +89,61 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 /*
 'add_transaction' wrapper for invokation requests
 */
-func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddTxResponse, error) {
-	tx := types.Transaction{
+func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddInvokeTransactionOutput, error) {
+	tx := Transaction{
 		Type:            INVOKE,
-		ContractAddress: invoke.ContractAddress,
-		Version:         fmt.Sprintf("0x%s", big.NewInt(int64(invoke.Version)).Text(16)),
-		MaxFee:          invoke.MaxFee.String(),
+		ContractAddress: invoke.ContractAddress.Hex(),
+		Version:         fmt.Sprintf("0x%d", invoke.Version),
+		MaxFee:          fmt.Sprintf("0x%s", invoke.MaxFee.Text(16)),
 	}
 	if invoke.EntryPointSelector != "" {
-		tx.EntryPointSelector = caigo.BigToHex(caigo.GetSelectorFromName(invoke.EntryPointSelector))
+		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
 	}
 	if invoke.Nonce != nil {
-		tx.Nonce = invoke.Nonce.String()
+		tx.Nonce = fmt.Sprintf("0x%s", invoke.Nonce.Text(16))
 	}
 
-	if len(invoke.Calldata) == 0 {
-		tx.Calldata = []string{}
-	} else {
-		tx.Calldata = invoke.Calldata
+	calldata := []string{}
+	for _, v := range invoke.Calldata {
+		bv, _ := big.NewInt(0).SetString(v, 0)
+		calldata = append(calldata, bv.Text(10))
 	}
+	tx.Calldata = calldata
 
 	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
 	} else {
 		// stop-gap before full types.Felt cutover
-		tx.Signature = []string{invoke.Signature[0].Int.String(), invoke.Signature[1].Int.String()}
+		tx.Signature = []string{invoke.Signature[0].String(), invoke.Signature[1].String()}
 	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", tx)
 	if err != nil {
 		return nil, err
 	}
-
-	var resp types.AddTxResponse
+	var resp types.AddInvokeTransactionOutput
 	return &resp, sg.do(req, &resp)
 }
 
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
-	dat, err := os.ReadFile(filePath)
+func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
+	d := DeployRequest(deployRequest)
+	d.Type = DEPLOY
+	if len(d.ConstructorCalldata) == 0 {
+		d.ConstructorCalldata = []string{}
+	}
+	if d.ContractAddressSalt == "" {
+		d.ContractAddressSalt = "0x0"
+	}
+
+	d.ContractDefinition = contract
 	if err != nil {
 		return resp, err
 	}
 
-	deployRequest.Type = DEPLOY
-	if len(deployRequest.ConstructorCalldata) == 0 {
-		deployRequest.ConstructorCalldata = []string{}
-	}
-	if deployRequest.ContractAddressSalt == "" {
-		deployRequest.ContractAddressSalt = "0x0"
-	}
-
-	var rawDef types.ContractClass
-	if err = json.Unmarshal(dat, &rawDef); err != nil {
-		return resp, err
-	}
-
-	deployRequest.ContractDefinition = rawDef
-	if err != nil {
-		return resp, err
-	}
-
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", deployRequest)
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
 	if err != nil {
 		return resp, err
 	}
@@ -151,24 +154,13 @@ func (sg *Gateway) Deploy(ctx context.Context, filePath string, deployRequest ty
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest types.DeclareRequest) (resp types.AddDeclareResponse, err error) {
-	dat, err := os.ReadFile(filePath)
-	if err != nil {
-		return resp, err
-	}
-
+func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 	declareRequest.SenderAddress = "0x1"
 	declareRequest.MaxFee = "0x0"
 	declareRequest.Nonce = "0x0"
 	declareRequest.Signature = []string{}
-
-	var rawDef types.ContractClass
-	if err = json.Unmarshal(dat, &rawDef); err != nil {
-		return resp, err
-	}
-
-	declareRequest.ContractClass = rawDef
+	declareRequest.ContractClass = contract
 	if err != nil {
 		return resp, err
 	}
@@ -179,6 +171,26 @@ func (sg *Gateway) Declare(ctx context.Context, filePath string, declareRequest 
 	}
 
 	return resp, sg.do(req, &resp)
+}
+
+type DeployRequest types.DeployRequest
+
+func (d DeployRequest) MarshalJSON() ([]byte, error) {
+	calldata := []string{}
+	for _, value := range d.ConstructorCalldata {
+		calldata = append(calldata, types.SNValToBN(value).Text(10))
+	}
+	d.ConstructorCalldata = calldata
+	return json.Marshal(types.DeployRequest(d))
+}
+
+type DeclareRequest struct {
+	Type          string              `json:"type"`
+	SenderAddress string              `json:"sender_address"`
+	MaxFee        string              `json:"max_fee"`
+	Nonce         string              `json:"nonce"`
+	Signature     []string            `json:"signature"`
+	ContractClass types.ContractClass `json:"contract_class"`
 }
 
 func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {
@@ -199,30 +211,17 @@ func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateU
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) ContractAddresses(ctx context.Context) (*types.ContractAddresses, error) {
+func (sg *Gateway) ContractAddresses(ctx context.Context) (*ContractAddresses, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_contract_addresses", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp types.ContractAddresses
+	var resp ContractAddresses
 	return &resp, sg.do(req, &resp)
 }
 
-func CompressCompiledContract(program map[string]interface{}) (cc string, err error) {
-	pay, err := json.Marshal(program)
-	if err != nil {
-		return cc, err
-	}
-
-	var buf bytes.Buffer
-	zw := gzip.NewWriter(&buf)
-	if _, err = zw.Write(pay); err != nil {
-		return cc, err
-	}
-	if err := zw.Close(); err != nil {
-		return cc, err
-	}
-
-	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+type ContractAddresses struct {
+	Starknet             string `json:"Starknet"`
+	GpsStatementVerifier string `json:"GpsStatementVerifier"`
 }

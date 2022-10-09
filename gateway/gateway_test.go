@@ -3,20 +3,26 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client *Gateway
-	base   string
+	client         *Gateway
+	base           string
+	privateKey     string
+	accountAddress string
+	publicKey      string
 }
 
 var (
@@ -38,62 +44,31 @@ var (
 	}
 )
 
-// requires starknet-devnet to be running and accessible and no seed:
-// ex: starknet-devnet
-// (ref: https://github.com/Shard-Labs/starknet-devnet)
-func setupDevnet() {
-	if _, err := os.Stat(accountCompiled); os.IsNotExist(err) {
-		accountClass, err := NewClient().ClassByHash(context.Background(), ACCOUNT_CLASS_HASH)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		file, err := json.Marshal(accountClass)
-		if err != nil {
-			panic(err.Error())
-		}
-
-		if err = os.WriteFile(accountCompiled, file, 0644); err != nil {
-			panic(err.Error())
-		}
+func setupDevnet(ctx context.Context) error {
+	provider := NewClient(WithBaseURL(testConfigurations["devnet"].base))
+	contract := types.ContractClass{}
+	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
+		return err
 	}
-
-	var err error
-	if devnetAccounts, err = DevnetAccounts(); err != nil {
-		panic(err.Error())
+	tx, err := provider.Deploy(ctx, contract, types.DeployRequest{})
+	if err != nil {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
 	}
-
-	testnetAccounts = []TestAccountType{
-		{
-			PrivateKey: "0x28a778906e0b5f4d240ad25c5993422e06769eb799483ae602cc3830e3f538",
-			PublicKey:  "0x63f0f116c78146e1e4e193923fe3cad5f236c0ed61c2dc04487a733031359b8",
-			Address:    "0x0254cfb85c43dee6f410867b9795b5309beb4a2640211c8f5b2c7681a47e5f3c",
-			Transactions: []types.Transaction{
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_single_store",
-					Calldata:           []string{"3"},
-				},
-			},
-		},
-		{
-			PrivateKey: "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126",
-			PublicKey:  "0xb95246e1caeaf34672906d7b74bd6968231a2130f41e85aebb62d43b88068",
-			Address:    "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246",
-			Transactions: []types.Transaction{
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_multi_store",
-					Calldata:           []string{"4", "7"},
-				},
-				{
-					ContractAddress:    "0x22b0f298db2f1776f24cda70f431566d9ef1d0e54a52ee6d930b80ec8c55a62",
-					EntryPointSelector: "update_struct_store",
-					Calldata:           []string{"435921360636", "15000000000000000000", "0"},
-				},
-			},
-		},
+	counterAddress = tx.ContractAddress
+	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
 	}
+	if receipt.Status == types.TransactionRejected {
+		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return errors.New("deployed rejected")
+	}
+	return nil
 }
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
@@ -101,9 +76,11 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 	if testEnv == "devnet" {
-		setupDevnet()
+		err := setupDevnet(context.Background())
+		if err != nil {
+			log.Fatal("error starting test", err)
+		}
 	}
-
 	os.Exit(m.Run())
 }
 
@@ -120,6 +97,15 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.client = &Gateway{
 			client: &httpMock{},
 		}
+	case "devnet":
+		v, err := test.NewDevNet().Accounts()
+		if err != nil {
+			t.Fatal("could not connect to devnet", err)
+		}
+		testConfig.privateKey = v[0].PrivateKey
+		testConfig.publicKey = v[0].PublicKey
+		testConfig.accountAddress = v[0].Address
+		testConfig.client = NewClient(WithChain(testEnv))
 	default:
 		testConfig.client = NewClient(WithChain(testEnv))
 	}

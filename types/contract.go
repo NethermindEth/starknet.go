@@ -10,7 +10,7 @@ import (
 
 type EntryPoint struct {
 	// The offset of the entry point in the program
-	Offset string `json:"offset"`
+	Offset NumAsHex `json:"offset"`
 	// A unique identifier of the entry point (function) in the program
 	Selector string `json:"selector"`
 }
@@ -186,7 +186,7 @@ type TypedParameter struct {
 	Type string `json:"type"`
 }
 
-// encodeProgram Keep that function to build helper with broadcastedDeployTxn and broadcastedDeclareTxn
+// encodeProgram compress a program to send it to the API
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

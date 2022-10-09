@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/types"
 )
 
 func BenchmarkSignatureVerify(b *testing.B) {
@@ -13,8 +15,8 @@ func BenchmarkSignatureVerify(b *testing.B) {
 
 	hash, _ := Curve.PedersenHash(
 		[]*big.Int{
-			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+			types.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			types.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
 		})
 
 	r, s, _ := Curve.Sign(hash, private)
@@ -29,7 +31,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 
 func TestComputeHashOnElements(t *testing.T) {
 	hashEmptyArray, err := Curve.ComputeHashOnElements([]*big.Int{})
-	expectedHashEmmptyArray := HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
+	expectedHashEmmptyArray := types.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
 	if err != nil {
 		t.Errorf("Could no hash an empty array %v\n", err)
 	}
@@ -42,7 +44,7 @@ func TestComputeHashOnElements(t *testing.T) {
 		big.NewInt(213984),
 		big.NewInt(128763521321),
 	})
-	expectedHashFilledArray := HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+	expectedHashFilledArray := types.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
 
 	if err != nil {
 		t.Errorf("Could no hash an array with values %v\n", err)
@@ -85,19 +87,19 @@ func TestComputeFact(t *testing.T) {
 		expected      *big.Int
 	}{
 		{
-			programHash:   HexToBN("0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"),
+			programHash:   types.HexToBN("0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"),
 			programOutput: []*big.Int{big.NewInt(289)},
-			expected:      HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4"),
+			expected:      types.HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4"),
 		},
 		{
-			programHash:   HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
-			programOutput: []*big.Int{StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441")},
-			expected:      HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
+			programHash:   types.HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
+			programOutput: []*big.Int{types.StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441")},
+			expected:      types.HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
 		},
 	}
 
 	for _, tt := range testFacts {
-		hash := ComputeFact(tt.programHash, tt.programOutput)
+		hash := types.ComputeFact(tt.programHash, tt.programOutput)
 		if hash.Cmp(tt.expected) != 0 {
 			t.Errorf("Fact does not equal ex %v %v\n", hash, tt.expected)
 		}
@@ -105,7 +107,7 @@ func TestComputeFact(t *testing.T) {
 }
 
 func TestBadSignature(t *testing.T) {
-	hash, err := Curve.PedersenHash([]*big.Int{HexToBN("0x12773"), HexToBN("0x872362")})
+	hash, err := Curve.PedersenHash([]*big.Int{types.HexToBN("0x12773"), types.HexToBN("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
 	}
@@ -148,31 +150,31 @@ func TestSignature(t *testing.T) {
 		raw     string
 	}{
 		{
-			private: StrToBig("104397037759416840641267745129360920341912682966983343798870479003077644689"),
-			publicX: StrToBig("1913222325711601599563860015182907040361852177892954047964358042507353067365"),
-			publicY: StrToBig("798905265292544287704154888908626830160713383708400542998012716235575472365"),
-			hash:    StrToBig("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
-			rIn:     StrToBig("607684330780324271206686790958794501662789535258258105407533051445036595885"),
-			sIn:     StrToBig("453590782387078613313238308551260565642934039343903827708036287031471258875"),
+			private: types.StrToBig("104397037759416840641267745129360920341912682966983343798870479003077644689"),
+			publicX: types.StrToBig("1913222325711601599563860015182907040361852177892954047964358042507353067365"),
+			publicY: types.StrToBig("798905265292544287704154888908626830160713383708400542998012716235575472365"),
+			hash:    types.StrToBig("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
+			rIn:     types.StrToBig("607684330780324271206686790958794501662789535258258105407533051445036595885"),
+			sIn:     types.StrToBig("453590782387078613313238308551260565642934039343903827708036287031471258875"),
 		},
 		{
-			hash: HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			rIn:  StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			sIn:  StrToBig("3439514492576562277095748549117516048613512930236865921315982886313695689433"),
+			hash: types.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			rIn:  types.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
+			sIn:  types.StrToBig("3439514492576562277095748549117516048613512930236865921315982886313695689433"),
 			raw:  "04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456",
 		},
 		{
-			hash:    HexToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
-			publicX: HexToBN("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10"),
-			rIn:     StrToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
-			sIn:     StrToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
+			hash:    types.HexToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
+			publicX: types.HexToBN("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10"),
+			rIn:     types.StrToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
+			sIn:     types.StrToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
 		},
 	}
 
 	var err error
 	for _, tt := range testSignature {
 		if tt.raw != "" {
-			h, _ := HexToBytes(tt.raw)
+			h, _ := types.HexToBytes(tt.raw)
 			tt.publicX, tt.publicY = elliptic.Unmarshal(Curve, h)
 		} else if tt.private != nil {
 			tt.publicX, tt.publicY, err = Curve.PrivateToPoint(tt.private)
