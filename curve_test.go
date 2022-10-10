@@ -249,6 +249,14 @@ func BenchmarkEcMultAll(b *testing.B) {
 		},
 	}
 
+	bestEcMult := struct {
+		algo   string
+		stddev float64
+	}{
+		algo:   "",
+		stddev: math.MaxFloat64,
+	}
+
 	var out strings.Builder
 	for _, tt := range testEcMult {
 		// test (+ time) injected ec multi fn performance via Curve.privateToPoint
@@ -283,6 +291,11 @@ func BenchmarkEcMultAll(b *testing.B) {
 		mean := stat.Mean(xs, nil)
 		variance := stat.Variance(xs, nil)
 		stddev := math.Sqrt(variance)
+		// Keep track of the best one (min stddev)
+		if stddev < bestEcMult.stddev {
+			bestEcMult.stddev = stddev
+			bestEcMult.algo = tt.algo
+		}
 
 		out.WriteString("-----------------------------\n")
 		out.WriteString(fmt.Sprintf("algo=       %v\n", tt.algo))
@@ -295,6 +308,11 @@ func BenchmarkEcMultAll(b *testing.B) {
 
 	// final stats output
 	fmt.Println(out.String())
+	// assert benchmark result is as expected
+	expectedBest := "Add-Always-Double"
+	if bestEcMult.algo != expectedBest {
+		b.Errorf("bestEcMult.algo %v does not == expected %v\n", bestEcMult.algo, expectedBest)
+	}
 }
 
 // swappable ec multiplication fn
