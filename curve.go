@@ -234,7 +234,7 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 //
 // (ref: https://www.researchgate.net/figure/Double-and-add-always-algorithm-resistant-against-SPA_fig1_48412708)
-func (sc StarkCurve) ecMult_AddAlwaysDouble(m, x1, y1 *big.Int) (x, y *big.Int) {
+func (sc StarkCurve) ecMult_DoubleAndAlwaysAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _ecMult = func(m, x0, y0 *big.Int) (x, y *big.Int) {
 		x1, y1 := big.NewInt(0), big.NewInt(0)
 		var x2, y2 *big.Int
@@ -255,7 +255,7 @@ func (sc StarkCurve) ecMult_AddAlwaysDouble(m, x1, y1 *big.Int) (x, y *big.Int) 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
-	return sc.ecMult_AddAlwaysDouble(m, x1, y1)
+	return sc.ecMult_DoubleAndAlwaysAdd(m, x1, y1)
 }
 
 // Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n

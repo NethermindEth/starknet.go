@@ -146,7 +146,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestMultAir(t *testing.T) {
-	testMult := []struct {
+	tests := []struct {
 		r         *big.Int
 		x         *big.Int
 		y         *big.Int
@@ -162,7 +162,7 @@ func TestMultAir(t *testing.T) {
 		},
 	}
 
-	for _, tt := range testMult {
+	for _, tt := range tests {
 		x, y, err := Curve.MimicEcMultAir(tt.r, tt.x, tt.y, Curve.Gx, Curve.Gy)
 		if err != nil {
 			t.Errorf("MultAirERR %v\n", err)
@@ -178,8 +178,47 @@ func TestMultAir(t *testing.T) {
 	}
 }
 
+// swappable ec multiplication fn
+type ecMultiFn func(m, x1, y1 *big.Int) (x, y *big.Int)
+type ecMultOption struct {
+	algo   string
+	fn     ecMultiFn
+	stddev float64
+}
+
+// Get multiple ec multiplication algo options to test and benchmark
+func (sc StarkCurve) ecMultOptions() []ecMultOption {
+	return []ecMultOption{
+		{
+			algo: "Double-And-Always-Add",
+			fn:   sc.EcMult, // used algo
+		},
+		{
+			algo: "Double-And-Add",
+			fn:   sc.ecMult_DoubleAndAdd, // original algo
+		},
+		{
+			algo: "Montgomery-Ladder",
+			fn:   sc.ecMult_Montgomery,
+		},
+		{
+			algo: "Montgomery-Ladder-Lsh",
+			fn:   sc.ecMult_MontgomeryLsh,
+		},
+	}
+}
+
+// obtain public key coordinates from stark curve given the private key (configurable ec multlipication fn)
+func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti ecMultiFn) (x, y *big.Int, err error) {
+	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
+		return x, y, fmt.Errorf("private key not in curve range")
+	}
+	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
+	return x, y, nil
+}
+
 func TestEcMult(t *testing.T) {
-	testMult := []struct {
+	tests := []struct {
 		k         *big.Int
 		expectedX *big.Int
 		expectedY *big.Int
@@ -199,21 +238,33 @@ func TestEcMult(t *testing.T) {
 			expectedX: StrToBig("1839793652349538280924927302501143912227271479439798783640887258675143576352"),
 			expectedY: StrToBig("3564972295958783757568195431080951091358810058262272733141798511604612925062"),
 		},
+		{
+			k:         StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
+			expectedX: StrToBig("3547379334427783199328848231018312737594618983118903125858401905055740589204"),
+			expectedY: StrToBig("1130045581446120977306267646220500675898605907506384721505308463662654640404"),
+		},
+		{
+			k:         StrToBig("2647705497324144349552978333078363662855245850286597649491021361795667050534"),
+			expectedX: StrToBig("1976290247577832044445658844239552133924048365220576311475124074782390231872"),
+			expectedY: StrToBig("375316965946589635161928898648099004919185843055494241447142141522927320685"),
+		},
 	}
 
-	for _, tt := range testMult {
-		x, y, err := Curve.PrivateToPoint(tt.k)
+	for _, ff := range Curve.ecMultOptions() {
+		for _, tt := range tests {
+			x, y, err := Curve.privateToPoint(tt.k, ff.fn)
 
-		if err != nil {
-			t.Errorf("EcMult %v\n", err)
-		}
+			if err != nil {
+				t.Errorf("EcMult %v, algo=%v\n", err, ff.algo)
+			}
 
-		if x.Cmp(tt.expectedX) != 0 {
-			t.Errorf("ResX %v does not == expected %v\n", x, tt.expectedX)
+			if x.Cmp(tt.expectedX) != 0 {
+				t.Errorf("ResX %v does not == expected %v, algo=%v\n", x, tt.expectedX, ff.algo)
+			}
 
-		}
-		if y.Cmp(tt.expectedY) != 0 {
-			t.Errorf("ResY %v does not == expected %v\n", y, tt.expectedY)
+			if y.Cmp(tt.expectedY) != 0 {
+				t.Errorf("ResY %v does not == expected %v, algo=%v\n", y, tt.expectedY, ff.algo)
+			}
 		}
 	}
 }
@@ -227,38 +278,13 @@ func BenchmarkEcMultAll(b *testing.B) {
 		return
 	}
 
-	testEcMult := []struct {
-		algo string
-		fn   EcMultiFn
-	}{
-		{
-			algo: "Add-Always-Double",
-			fn:   Curve.EcMult, // used algo
-		},
-		{
-			algo: "Double-And-Add",
-			fn:   Curve.ecMult_DoubleAndAdd, // original algo
-		},
-		{
-			algo: "Montgomery-Ladder",
-			fn:   Curve.ecMult_Montgomery,
-		},
-		{
-			algo: "Montgomery-Ladder-Lsh",
-			fn:   Curve.ecMult_MontgomeryLsh,
-		},
-	}
-
-	bestEcMult := struct {
-		algo   string
-		stddev float64
-	}{
+	ecMultiBest := ecMultOption{
 		algo:   "",
 		stddev: math.MaxFloat64,
 	}
 
 	var out strings.Builder
-	for _, tt := range testEcMult {
+	for _, tt := range Curve.ecMultOptions() {
 		// test (+ time) injected ec multi fn performance via Curve.privateToPoint
 		var _test = func(k *big.Int) int64 {
 			start := time.Now()
@@ -292,9 +318,9 @@ func BenchmarkEcMultAll(b *testing.B) {
 		variance := stat.Variance(xs, nil)
 		stddev := math.Sqrt(variance)
 		// Keep track of the best one (min stddev)
-		if stddev < bestEcMult.stddev {
-			bestEcMult.stddev = stddev
-			bestEcMult.algo = tt.algo
+		if stddev < ecMultiBest.stddev {
+			ecMultiBest.stddev = stddev
+			ecMultiBest.algo = tt.algo
 		}
 
 		out.WriteString("-----------------------------\n")
@@ -309,22 +335,10 @@ func BenchmarkEcMultAll(b *testing.B) {
 	// final stats output
 	fmt.Println(out.String())
 	// assert benchmark result is as expected
-	expectedBest := "Add-Always-Double"
-	if bestEcMult.algo != expectedBest {
-		b.Errorf("bestEcMult.algo %v does not == expected %v\n", bestEcMult.algo, expectedBest)
+	expectedBest := "Double-And-Always-Add"
+	if ecMultiBest.algo != expectedBest {
+		b.Errorf("ecMultiBest.algo %v does not == expected %v\n", ecMultiBest.algo, expectedBest)
 	}
-}
-
-// swappable ec multiplication fn
-type EcMultiFn func(m, x1, y1 *big.Int) (x, y *big.Int)
-
-// obtain public key coordinates from stark curve given the private key (configurable ec multlipication fn)
-func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti EcMultiFn) (x, y *big.Int, err error) {
-	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
-		return x, y, fmt.Errorf("private key not in curve range")
-	}
-	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
-	return x, y, nil
 }
 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
