@@ -92,12 +92,14 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 	}
 
 	invalidK := true
+	inSeed := big.NewInt(0)
+
 	for invalidK {
-		inSeed := big.NewInt(0)
 		if len(seed) == 1 {
 			inSeed = seed[0]
 		}
 		k := sc.GenerateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
+		inSeed = inSeed.Add(inSeed, big.NewInt(1))
 
 		r, _ := sc.EcMult(k, sc.EcGenX, sc.EcGenY)
 
@@ -195,7 +197,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	return ptx, nil
 }
 
-// implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
+// implementation based on https://tools.ietf.org/html/rfc6979#section-3.2
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
@@ -226,7 +228,7 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 	for {
 		var t []byte
 
-		for len(t) < sc.BitSize/8 {
+		for len(t) < rolen {
 			v = mac(alg, k, v, v)
 			t = append(t, v...)
 		}
