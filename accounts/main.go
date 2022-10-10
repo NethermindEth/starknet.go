@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -85,7 +84,6 @@ func parse(args []string) (*config, error) {
 	if baseURL == "" {
 		baseURL = providerDefaultURLS[provider][env]
 	}
-	fmt.Println(baseURL)
 	if accountVersion != ACCOUNT_VERSION0 && accountVersion != ACCOUNT_VERSION1 {
 		log.Fatal("account-version only supports v0 and v1")
 	}
