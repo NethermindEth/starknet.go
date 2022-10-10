@@ -3,9 +3,36 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 )
+
+const (
+	DEVNET_ENV       = "devnet"
+	TESTNET_ENV      = "testnet"
+	MAINNET_ENV      = "mainnet"
+	PROVIDER_GATEWAY = "gateway"
+	PROVIDER_RPCV01  = "rpcv01"
+	ACCOUNT_VERSION0 = "v0"
+	ACCOUNT_VERSION1 = "v1"
+)
+
+type defaultURLS map[string]string
+
+var providerDefaultURLS = map[string]defaultURLS{
+	PROVIDER_GATEWAY: {
+		DEVNET_ENV:  "http://localhost:5050",
+		TESTNET_ENV: "https://alpha4.starknet.io",
+		MAINNET_ENV: "https://alpha4-mainnet.starknet.io",
+	},
+	PROVIDER_RPCV01: {
+		DEVNET_ENV:  "http://localhost:5050/rpc",
+		TESTNET_ENV: "https://localhost:9545/v0.1/rpc",
+		MAINNET_ENV: "https://localhost:9545/v0.1/rpc",
+	},
+}
 
 type config struct {
 	command        string
@@ -15,6 +42,7 @@ type config struct {
 	withProxy      bool
 	provider       string
 	baseURL        string
+	env            string
 }
 
 func parse(args []string) (*config, error) {
@@ -22,26 +50,43 @@ func parse(args []string) (*config, error) {
 	skipCharge := false
 	withPlugin := false
 	withProxy := false
-	accountVersion := "v0"
-	provider := "rpcv01"
-	baseURL := "http://localhost:5050/rpc"
+	accountVersion := ACCOUNT_VERSION0
+	env := DEVNET_ENV
+	provider := PROVIDER_RPCV01
+	baseURL := ""
+
 	flagset := flag.NewFlagSet("", flag.ExitOnError)
 	flagset.StringVar(&command, "command", "install", "defines the operation to execute")
-	flagset.BoolVar(&skipCharge, "skip-charge", false, "do not charge the account")
+	flagset.BoolVar(&skipCharge, "skip-charge", false, "do not charge the account (on devnet only)")
 	flagset.BoolVar(&withPlugin, "with-plugin", false, "use a plugin/session-key account")
 	flagset.BoolVar(&withProxy, "with-proxy", false, "use a proxy account")
 	flagset.StringVar(&accountVersion, "account-version", "v0", "choose v0 or v1 account")
 	flagset.StringVar(&provider, "provider", "rpcv01", "choose rpc01 or gateway provider")
-	flagset.StringVar(&baseURL, "base-url", "http://localhost:5050/rpc", "change the default baseURL")
+	flagset.StringVar(&env, "env", "devnet", "change the environment between devnet/testnet/mainnet")
+	flagset.StringVar(&baseURL, "base-url", "", "baseURL depends on the app")
 	err := flagset.Parse(args)
 
-	if provider != "rpcv01" && provider != "gateway" {
+	if strings.Contains(strings.ToLower(env), "devnet") {
+		env = DEVNET_ENV
+	}
+	if strings.Contains(strings.ToLower(env), "goerli") || strings.Contains(strings.ToLower(env), "testnet") {
+		env = TESTNET_ENV
+	}
+	if strings.Contains(strings.ToLower(env), "mainnet") {
+		env = MAINNET_ENV
+	}
+	if env == TESTNET_ENV || env == MAINNET_ENV {
+		skipCharge = true
+	}
+
+	if provider != PROVIDER_GATEWAY && provider != PROVIDER_RPCV01 {
 		log.Fatal("provider provider only supports rpcv01 and gateway")
 	}
-	if provider == "gateway" && baseURL == "http://localhost:5050/rpc" {
-		baseURL = "http://localhost:5050"
+	if baseURL == "" {
+		baseURL = providerDefaultURLS[provider][env]
 	}
-	if accountVersion != "v0" && accountVersion != "v1" {
+	fmt.Println(baseURL)
+	if accountVersion != ACCOUNT_VERSION0 && accountVersion != ACCOUNT_VERSION1 {
 		log.Fatal("account-version only supports v0 and v1")
 	}
 	if err != nil {
@@ -54,6 +99,7 @@ func parse(args []string) (*config, error) {
 		withProxy:      withProxy,
 		skipCharge:     skipCharge,
 		provider:       provider,
+		env:            env,
 		baseURL:        baseURL,
 	}, nil
 }
