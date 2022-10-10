@@ -1,4 +1,4 @@
-package main
+package accounts
 
 import (
 	"context"
@@ -13,51 +13,50 @@ import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 //go:embed artifacts/proxy.json
-var proxyCompiled []byte
+var ProxyCompiled []byte
 
 //go:embed artifacts/plugin.json
-var pluginCompiled []byte
+var PluginCompiled []byte
 
 //go:embed artifacts/accountv0.json
-var accountV0 []byte
+var AccountV0 []byte
 
 //go:embed artifacts/accountv0_plugin.json
-var accountV0WithPlugin []byte
+var AccountV0WithPlugin []byte
 
 //go:embed artifacts/accountv1.json
-var accountV1 []byte
+var AccountV1 []byte
 
-var accountContent = map[string]map[bool][]byte{
+var AccountContent = map[string]map[bool][]byte{
 	"v0": {
-		true:  accountV0WithPlugin,
-		false: accountV0,
+		true:  AccountV0WithPlugin,
+		false: AccountV0,
 	},
 	"v1": {
-		false: accountV1,
+		false: AccountV1,
 	},
 }
 
-func newAccount() *accountPlugin {
+func NewAccount(SECRET_FILE_NAME string) *AccountPlugin {
 	if _, err := os.Stat(SECRET_FILE_NAME); err == nil {
 		log.Fatalf("file .starknet-account.json exists! exit...")
 	}
 	privateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	publicKey, _, _ := caigo.Curve.PrivateToPoint(privateKey)
-	return &accountPlugin{
+	return &AccountPlugin{
 		PrivateKey: fmt.Sprintf("0x%s", privateKey.Text(16)),
 		PublicKey:  fmt.Sprintf("0x%s", publicKey.Text(16)),
+		filename:   SECRET_FILE_NAME,
 	}
 }
 
 type RPCProvider rpcv01.Provider
 
-func (p *RPCProvider) declareClass(ctx context.Context, compiledClass []byte) (string, error) {
+func (p *RPCProvider) DeclareClass(ctx context.Context, compiledClass []byte) (string, error) {
 	provider := rpcv01.Provider(*p)
 	class := types.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
@@ -152,11 +151,11 @@ func (p *GatewayProvider) deployContract(ctx context.Context, compiledClass []by
 	return tx.ContractAddress, nil
 }
 
-func (ap *accountPlugin) installAccountWithRPCv01(ctx context.Context, provider rpcv01.Provider, plugin, account, proxy []byte) error {
+func (ap *AccountPlugin) InstallAccountWithRPCv01(ctx context.Context, provider rpcv01.Provider, plugin, account, proxy []byte) error {
 	p := RPCProvider(provider)
 	inputs := []string{}
 	if len(proxy) != 0 {
-		accountClassHash, err := (&p).declareClass(ctx, account)
+		accountClassHash, err := (&p).DeclareClass(ctx, account)
 		if err != nil {
 			return err
 		}
@@ -166,7 +165,7 @@ func (ap *accountPlugin) installAccountWithRPCv01(ctx context.Context, provider 
 	inputs = append(inputs, ap.PublicKey)
 
 	if len(plugin) != 0 {
-		pluginClassHash, err := (&p).declareClass(ctx, plugin)
+		pluginClassHash, err := (&p).DeclareClass(ctx, plugin)
 		if err != nil {
 			return err
 		}
@@ -181,11 +180,11 @@ func (ap *accountPlugin) installAccountWithRPCv01(ctx context.Context, provider 
 		return err
 	}
 	ap.AccountAddress = accountAddress
-	err = ap.Write(SECRET_FILE_NAME)
+	err = ap.Write(ap.filename)
 	return err
 }
 
-func (ap *accountPlugin) installAccountWithGateway(ctx context.Context, provider gateway.Gateway, plugin, account, proxy []byte) error {
+func (ap *AccountPlugin) InstallAccountWithGateway(ctx context.Context, provider gateway.Gateway, plugin, account, proxy []byte) error {
 	p := GatewayProvider(provider)
 	inputs := []string{}
 	if len(proxy) != 0 {
@@ -214,82 +213,6 @@ func (ap *accountPlugin) installAccountWithGateway(ctx context.Context, provider
 		return err
 	}
 	ap.AccountAddress = accountAddress
-	err = ap.Write(SECRET_FILE_NAME)
+	err = ap.Write(ap.filename)
 	return err
-}
-
-func (c *config) installAccountWithRPCv01() {
-	account := newAccount()
-	ctx := context.Background()
-	baseURL := "http://localhost:5050/rpc"
-	if c.baseURL != "" {
-		baseURL = c.baseURL
-	}
-	client, err := ethrpc.DialContext(ctx, baseURL)
-	if err != nil {
-		log.Fatalf("error connecting to devnet, %v\n", err)
-	}
-	if c.accountVersion == "v1" && c.withPlugin {
-		log.Fatalf("account v1 with plugin is not supported yet")
-	}
-	compiledAccount := accountContent[c.accountVersion][c.withPlugin]
-	plugin := []byte{}
-	if c.withPlugin {
-		plugin = pluginCompiled
-	}
-	proxy := []byte{}
-	if c.withProxy {
-		proxy = proxyCompiled
-	}
-	provider := rpcv01.NewProvider(client)
-	account.Version = c.accountVersion
-	account.Plugin = c.withPlugin
-	err = account.installAccountWithRPCv01(ctx, *provider, plugin, compiledAccount, proxy)
-	if err != nil {
-		log.Fatalf("error installing account to devnet/rpcv01, %v\n", err)
-	}
-	if !c.skipCharge {
-		d := test.NewDevNet()
-		_, err := d.Mint(types.HexToHash(account.AccountAddress), 1000000000000000000)
-		if err != nil {
-			log.Fatalf("error loading ETH, %v\n", err)
-		}
-	}
-	log.Println("account installed with success", account.AccountAddress)
-}
-
-func (c *config) installAccountWithGateway() {
-	account := newAccount()
-	ctx := context.Background()
-	baseURL := "http://localhost:5050"
-	if c.baseURL != "" {
-		baseURL = c.baseURL
-	}
-	if c.accountVersion == "v1" && c.withPlugin {
-		log.Fatalf("account v1 with plugin is not supported yet")
-	}
-	compiledAccount := accountContent[c.accountVersion][c.withPlugin]
-	plugin := []byte{}
-	if c.withPlugin {
-		plugin = pluginCompiled
-	}
-	proxy := []byte{}
-	if c.withProxy {
-		proxy = proxyCompiled
-	}
-	provider := gateway.NewClient(gateway.WithBaseURL(baseURL))
-	account.Version = c.accountVersion
-	account.Plugin = c.withPlugin
-	err := account.installAccountWithGateway(ctx, *provider, plugin, compiledAccount, proxy)
-	if err != nil {
-		log.Fatalf("error installing account to devnet/gateway, %v\n", err)
-	}
-	if !c.skipCharge {
-		d := test.NewDevNet()
-		_, err := d.Mint(types.HexToHash(account.AccountAddress), 1000000000000000000)
-		if err != nil {
-			log.Fatalf("error loading ETH, %v\n", err)
-		}
-	}
-	log.Println("account installed with success", account.AccountAddress)
 }
