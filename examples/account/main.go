@@ -12,9 +12,9 @@ import (
 
 var (
 	name            string = "testnet"
-	counterContract string = "0x0331034cbde9af8aef62929b5886b096ae3d11e33e6ca23122669e928d406500"
-	address         string = "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
-	privakeKey      string = "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
+	counterContract string = "0x002bb8640f7875a6c73469149b261c99897f33aea38f272b5d8644c6c67bd278"
+	address         string = "0x3ce251e4c470648a913346c218bd5f7925560d1811a2e49179958f13d03ffa6"
+	privakeKey      string = "0x2d363b753bdfe5dfc77f4818bad6e25b"
 	feeMargin       uint64 = 115
 	maxPoll         int    = 5
 	pollInterval    int    = 150
@@ -22,20 +22,20 @@ var (
 
 func main() {
 	// init starknet gateway client
-	gw := gateway.NewClient(gateway.WithChain(name))
+	gw := gateway.NewClient(gateway.WithChain(name), gateway.WithBaseURL("http://localhost:8080"))
 
 	// get count before tx
-	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(counterContract),
-		EntryPointSelector: "get_count",
-	}, "")
-	if err != nil {
-		panic(err.Error())
-	}
-	fmt.Println("Counter is currently at: ", callResp[0])
+	// callResp, err := gw.Call(context.Background(), types.FunctionCall{
+	// 	ContractAddress:    types.HexToHash(counterContract),
+	// 	EntryPointSelector: "get_count",
+	// }, "")
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewGatewayAccount(privakeKey, types.HexToHash(address), gw)
+	account, err := caigo.NewGatewayAccount(privakeKey, address, gw)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -63,14 +63,14 @@ func main() {
 		panic(err.Error())
 	}
 
-	n, receipt, err := gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, pollInterval, maxPoll)
+	n, receipt, err := gw.WaitForTransaction(context.Background(), execResp.TransactionHash, pollInterval, maxPoll)
 	if err != nil {
 		panic(err.Error())
 	}
 	fmt.Printf("Poll %dsec %dx \n\ttransaction(%s) receipt: %s\n\n", n*pollInterval, n, execResp.TransactionHash, receipt.Status)
 
 	// get count after tx
-	callResp, err = gw.Call(context.Background(), types.FunctionCall{
+	callResp, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    types.HexToHash(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
