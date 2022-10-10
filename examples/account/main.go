@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	name            string = "testnet"
+	name            string = "devnet"
 	counterContract string = "0x002bb8640f7875a6c73469149b261c99897f33aea38f272b5d8644c6c67bd278"
-	address         string = "0x3ce251e4c470648a913346c218bd5f7925560d1811a2e49179958f13d03ffa6"
-	privakeKey      string = "0x2d363b753bdfe5dfc77f4818bad6e25b"
+	address         string = "0x036f1f6a2c7f7b5180164a7f51a7e46d63bf5b898bd5144375858d4453725309"
+	privakeKey      string = "0x2623ddff7889c38d0504dbe90d655402376601a73f7fea9864d8d302e8ba34d"
 	feeMargin       uint64 = 115
 	maxPoll         int    = 5
-	pollInterval    int    = 150
+	pollInterval    int    = 3
 )
 
 func main() {
@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-
+	fmt.Printf("%+v\n", execResp)
 	n, receipt, err := gw.WaitForTransaction(context.Background(), execResp.TransactionHash, pollInterval, maxPoll)
 	if err != nil {
 		panic(err.Error())
