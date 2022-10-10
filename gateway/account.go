@@ -111,7 +111,7 @@ func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, h
 
 	if hash != "" {
 		appendQueryValues(req, url.Values{
-			"blockHash": []string{hash},
+			"blockNumber": []string{hash},
 		})
 	}
 	output := map[string]interface{}{}
