@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dontpanicdao/caigo/accounts"
+	"github.com/dontpanicdao/caigo/contracts"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/test"
@@ -13,11 +13,9 @@ import (
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
-const SECRET_FILE_NAME = ".starknet-account.json"
-
 func (c *config) incrementWithSessionKey() error {
-	accountWithPlugin := &accounts.AccountPlugin{}
-	accountWithPlugin.Read(SECRET_FILE_NAME)
+	accountWithPlugin := &contracts.AccountPlugin{}
+	accountWithPlugin.Read(c.filename)
 	if accountWithPlugin.PluginClassHash == "" {
 		log.Println("account not installed with plugin, stop!")
 		return fmt.Errorf("account not installed with plugin")
@@ -48,8 +46,8 @@ func (c *config) incrementWithSessionKey() error {
 }
 
 func (c *config) incrementWithRPCv01() error {
-	accountWithPlugin := &accounts.AccountPlugin{}
-	accountWithPlugin.Read(SECRET_FILE_NAME)
+	accountWithPlugin := &contracts.AccountPlugin{}
+	accountWithPlugin.Read(c.filename)
 	ctx := context.Background()
 	client, err := ethrpc.DialContext(ctx, c.baseURL)
 	if err != nil {
@@ -72,8 +70,8 @@ func (c *config) incrementWithRPCv01() error {
 }
 
 func (c *config) incrementWithGateway() error {
-	accountWithPlugin := &accounts.AccountPlugin{}
-	accountWithPlugin.Read(SECRET_FILE_NAME)
+	accountWithPlugin := &contracts.AccountPlugin{}
+	accountWithPlugin.Read(c.filename)
 	ctx := context.Background()
 	provider := gateway.NewClient(gateway.WithBaseURL(c.baseURL))
 	counterAddress, err := accountWithPlugin.InstallCounterWithGateway(ctx, provider)
@@ -91,8 +89,8 @@ func (c *config) incrementWithGateway() error {
 }
 
 func (c *config) sumWithGateway() error {
-	accountWithPlugin := &accounts.AccountPlugin{}
-	accountWithPlugin.Read(SECRET_FILE_NAME)
+	accountWithPlugin := &contracts.AccountPlugin{}
+	accountWithPlugin.Read(c.filename)
 	ctx := context.Background()
 	provider := gateway.NewClient(gateway.WithBaseURL(c.baseURL))
 	counterAddress, err := accountWithPlugin.InstallCounterWithGateway(ctx, provider)
@@ -118,7 +116,7 @@ func (c *config) sumWithGateway() error {
 }
 
 func (c *config) installAccountWithRPCv01() {
-	account := accounts.NewAccount(".starknet")
+	account := contracts.NewAccount(c.filename)
 	ctx := context.Background()
 	baseURL := "http://localhost:5050/rpc"
 	if c.baseURL != "" {
@@ -131,14 +129,14 @@ func (c *config) installAccountWithRPCv01() {
 	if c.accountVersion == "v1" && c.withPlugin {
 		log.Fatalf("account v1 with plugin is not supported yet")
 	}
-	compiledAccount := accounts.AccountContent[c.accountVersion][c.withPlugin]
+	compiledAccount := contracts.AccountContent[c.accountVersion][c.withPlugin]
 	plugin := []byte{}
 	if c.withPlugin {
-		plugin = accounts.PluginCompiled
+		plugin = contracts.PluginCompiled
 	}
 	proxy := []byte{}
 	if c.withProxy {
-		proxy = accounts.ProxyCompiled
+		proxy = contracts.ProxyCompiled
 	}
 	provider := rpcv01.NewProvider(client)
 	account.Version = c.accountVersion
@@ -158,7 +156,7 @@ func (c *config) installAccountWithRPCv01() {
 }
 
 func (c *config) installAccountWithGateway() {
-	account := accounts.NewAccount(SECRET_FILE_NAME)
+	account := contracts.NewAccount(c.filename)
 	ctx := context.Background()
 	baseURL := "http://localhost:5050"
 	if c.baseURL != "" {
@@ -167,14 +165,14 @@ func (c *config) installAccountWithGateway() {
 	if c.accountVersion == "v1" && c.withPlugin {
 		log.Fatalf("account v1 with plugin is not supported yet")
 	}
-	compiledAccount := accounts.AccountContent[c.accountVersion][c.withPlugin]
+	compiledAccount := contracts.AccountContent[c.accountVersion][c.withPlugin]
 	plugin := []byte{}
 	if c.withPlugin {
-		plugin = accounts.PluginCompiled
+		plugin = contracts.PluginCompiled
 	}
 	proxy := []byte{}
 	if c.withProxy {
-		proxy = accounts.ProxyCompiled
+		proxy = contracts.ProxyCompiled
 	}
 	provider := gateway.NewClient(gateway.WithBaseURL(baseURL))
 	account.Version = c.accountVersion

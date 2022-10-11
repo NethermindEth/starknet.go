@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dontpanicdao/caigo/accounts"
+	"github.com/dontpanicdao/caigo/contracts"
 	"github.com/dontpanicdao/caigo/gateway"
 
 	"github.com/dontpanicdao/caigo/types"
 )
 
 // Start Devnet:
-// 	- starknet-devnet
+//   - starknet-devnet
 var (
 	name         string = "local"
 	maxPoll      int    = 5
@@ -25,7 +25,7 @@ func main() {
 	gw := gateway.NewClient(gateway.WithChain(name))
 
 	counterClass := types.ContractClass{}
-	err := json.Unmarshal(accounts.CounterCompiled, &counterClass)
+	err := json.Unmarshal(contracts.CounterCompiled, &counterClass)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -40,7 +40,7 @@ func main() {
 	fmt.Printf("Deployment Response: \n\t%+v\n\n", deployResponse)
 
 	// poll until the desired transaction status
-	n, receipt, err := gw.WaitForTransaction (context.Background(), deployResponse.TransactionHash, pollInterval, maxPoll)
+	n, receipt, err := gw.WaitForTransaction(context.Background(), deployResponse.TransactionHash, pollInterval, maxPoll)
 	if err != nil {
 		fmt.Println("Transaction Failure: ", receipt.Status)
 		panic(err.Error())
@@ -55,8 +55,8 @@ func main() {
 
 	// call StarkNet contract
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash( tx.Transaction.ContractAddress),
-		EntryPointSelector: "get_rand",
+		ContractAddress:    types.HexToHash(tx.Transaction.ContractAddress),
+		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {
 		panic(err.Error())

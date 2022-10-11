@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const SECRET_FILE_NAME = ".starknet-account.json"
+
 const (
 	DEVNET_ENV       = "devnet"
 	TESTNET_ENV      = "testnet"
@@ -42,6 +44,7 @@ type config struct {
 	provider       string
 	baseURL        string
 	env            string
+	filename       string
 }
 
 func parse(args []string) (*config, error) {
@@ -99,6 +102,7 @@ func parse(args []string) (*config, error) {
 		provider:       provider,
 		env:            env,
 		baseURL:        baseURL,
+		filename:       SECRET_FILE_NAME,
 	}, nil
 }
 

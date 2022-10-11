@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-querystring/query"
@@ -76,9 +77,18 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 		return nil, err
 	}
 
-	if blockHashOrTag != "" {
+	switch {
+	case strings.HasPrefix(blockHashOrTag, "0x"):
 		appendQueryValues(req, url.Values{
 			"blockHash": []string{blockHashOrTag},
+		})
+	case blockHashOrTag == "":
+		appendQueryValues(req, url.Values{
+			"blockNumber": []string{"pending"},
+		})
+	default:
+		appendQueryValues(req, url.Values{
+			"blockNumber": []string{blockHashOrTag},
 		})
 	}
 

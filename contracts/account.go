@@ -1,4 +1,4 @@
-package accounts
+package contracts
 
 import (
 	"context"
@@ -41,8 +41,8 @@ var AccountContent = map[string]map[bool][]byte{
 	},
 }
 
-func NewAccount(SECRET_FILE_NAME string) *AccountPlugin {
-	if _, err := os.Stat(SECRET_FILE_NAME); err == nil {
+func NewAccount(filename string) *AccountPlugin {
+	if _, err := os.Stat(filename); err == nil {
 		log.Fatalf("file .starknet-account.json exists! exit...")
 	}
 	privateKey, _ := caigo.Curve.GetRandomPrivateKey()
@@ -50,7 +50,7 @@ func NewAccount(SECRET_FILE_NAME string) *AccountPlugin {
 	return &AccountPlugin{
 		PrivateKey: fmt.Sprintf("0x%s", privateKey.Text(16)),
 		PublicKey:  fmt.Sprintf("0x%s", publicKey.Text(16)),
-		filename:   SECRET_FILE_NAME,
+		filename:   filename,
 	}
 }
 
