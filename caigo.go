@@ -93,10 +93,10 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 
 	invalidK := true
 	inSeed := big.NewInt(0)
+	if len(seed) == 1 {
+		inSeed = seed[0]
+	}
 	for invalidK {
-		if len(seed) == 1 {
-			inSeed = seed[0]
-		}
 		k := sc.GenerateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
 		// In case r is rejected k shall be generated with new seed
 		inSeed = inSeed.Add(inSeed, big.NewInt(1))
