@@ -1,0 +1,3 @@
+[submodule "contracts/cairo-contracts"]
+	path = contracts/cairo-contracts
+	url = git@github.com:OpenZeppelin/cairo-contracts.git
