@@ -190,12 +190,12 @@ type ecMultOption struct {
 func (sc StarkCurve) ecMultOptions() []ecMultOption {
 	return []ecMultOption{
 		{
-			algo: "Double-And-Always-Add",
-			fn:   sc.EcMult, // used algo
-		},
-		{
 			algo: "Double-And-Add",
 			fn:   sc.ecMult_DoubleAndAdd, // original algo
+		},
+		{
+			algo: "Double-And-Always-Add",
+			fn:   sc.EcMult, // best algo (currently used)
 		},
 		{
 			algo: "Montgomery-Ladder",
@@ -208,69 +208,53 @@ func (sc StarkCurve) ecMultOptions() []ecMultOption {
 	}
 }
 
-// obtain public key coordinates from stark curve given the private key (configurable ec multlipication fn)
-func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti ecMultiFn) (x, y *big.Int, err error) {
-	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
-		return x, y, fmt.Errorf("private key not in curve range")
-	}
-	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
-	return x, y, nil
-}
-
-func TestEcMult(t *testing.T) {
-	tests := []struct {
-		k         *big.Int
-		expectedX *big.Int
-		expectedY *big.Int
-	}{
-		{
-			k:         StrToBig("1"),
-			expectedX: StrToBig("874739451078007766457464989774322083649278607533249481151382481072868806602"),
-			expectedY: StrToBig("152666792071518830868575557812948353041420400780739481342941381225525861407"),
-		},
-		{
-			k:         StrToBig("2"),
-			expectedX: StrToBig("3324833730090626974525872402899302150520188025637965566623476530814354734325"),
-			expectedY: StrToBig("3147007486456030910661996439995670279305852583596209647900952752170983517249"),
-		},
-		{
-			k:         StrToBig("3"),
-			expectedX: StrToBig("1839793652349538280924927302501143912227271479439798783640887258675143576352"),
-			expectedY: StrToBig("3564972295958783757568195431080951091358810058262272733141798511604612925062"),
-		},
-		{
-			k:         StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			expectedX: StrToBig("3547379334427783199328848231018312737594618983118903125858401905055740589204"),
-			expectedY: StrToBig("1130045581446120977306267646220500675898605907506384721505308463662654640404"),
-		},
-		{
-			k:         StrToBig("2647705497324144349552978333078363662855245850286597649491021361795667050534"),
-			expectedX: StrToBig("1976290247577832044445658844239552133924048365220576311475124074782390231872"),
-			expectedY: StrToBig("375316965946589635161928898648099004919185843055494241447142141522927320685"),
-		},
+func FuzzEcMult(f *testing.F) {
+	// Generate the scalar value k, where 0 < k < order(point)
+	var _genScalar = func(a int, b int) (k *big.Int) {
+		k = new(big.Int).Mul(big.NewInt(int64(a)), big.NewInt(int64(b)))
+		k = k.Mul(k, k) // generate moar big number
+		k = k.Abs(k)
+		k = k.Add(k, big.NewInt(1)) // edge case: avoid zero
+		k = k.Mod(k, Curve.N)
+		return
 	}
 
-	for _, ff := range Curve.ecMultOptions() {
-		for _, tt := range tests {
-			x, y, err := Curve.privateToPoint(tt.k, ff.fn)
+	// Seed the fuzzer (examples)
+	f.Add(-12121501143923232, 142312310232324552) // negative numbers used as seeds but the resulting
+	f.Add(41289371293219038, -179566705053432322) // scalar is normalized to 0 < k < order(point)
+	f.Add(927302501143912223, 220390912389202149)
+	f.Add(874739451078007766, 868575557812948233)
+	f.Add(302150520188025637, 670505342647705232)
+	f.Add(778320444456588442, 932884823101831273)
+	f.Add(658844239552133924, 933442778319932884)
+	f.Add(494910213617956623, 976290247577832044)
 
+	f.Fuzz(func(t *testing.T, a int, b int) {
+		k := _genScalar(a, b)
+
+		var x0, y0 *big.Int
+		for _, tt := range Curve.ecMultOptions() {
+			x, y, err := Curve.privateToPoint(k, tt.fn)
 			if err != nil {
-				t.Errorf("EcMult %v, algo=%v\n", err, ff.algo)
+				t.Errorf("EcMult err: %v, algo=%v\n", err, tt.algo)
 			}
 
-			if x.Cmp(tt.expectedX) != 0 {
-				t.Errorf("ResX %v does not == expected %v, algo=%v\n", x, tt.expectedX, ff.algo)
-			}
-
-			if y.Cmp(tt.expectedY) != 0 {
-				t.Errorf("ResY %v does not == expected %v, algo=%v\n", y, tt.expectedY, ff.algo)
+			// Store the initial result from the first algo and test against it
+			if x0 == nil {
+				x0 = x
+				y0 = y
+			} else if x0.Cmp(x) != 0 {
+				t.Errorf("EcMult x mismatch: %v != %v, algo=%v\n", x, x0, tt.algo)
+			} else if y0.Cmp(y) != 0 {
+				t.Errorf("EcMult y mismatch: %v != %v, algo=%v\n", y, y0, tt.algo)
 			}
 		}
-	}
+	})
 }
 
 func BenchmarkEcMultAll(b *testing.B) {
-	var _genBigIntBits = func(n int) (k *big.Int) {
+	// Generate the scalar value k, where n number of bits are set, no trailing zeros
+	var _genScalarBits = func(n int) (k *big.Int) {
 		k = big.NewInt(1)
 		for i := 1; i < n; i++ {
 			k = k.Lsh(k, 1).Add(k, big.NewInt(1))
@@ -295,7 +279,7 @@ func BenchmarkEcMultAll(b *testing.B) {
 		xs := []float64{}
 		// generate numbers with 1 to 251 bits set
 		for i := 1; i < Curve.N.BitLen(); i++ {
-			k := _genBigIntBits(i)
+			k := _genScalarBits(i)
 			b.Run(fmt.Sprintf("%s/input_bits_len/%d", tt.algo, k.BitLen()), func(b *testing.B) {
 				ns := _test(k)
 				xs = append(xs, float64(ns))
@@ -303,7 +287,7 @@ func BenchmarkEcMultAll(b *testing.B) {
 		}
 
 		// generate numbers with 1 to 250 trailing zero bits set
-		k := _genBigIntBits(Curve.N.BitLen() - 1)
+		k := _genScalarBits(Curve.N.BitLen() - 1)
 		for i := 1; i < Curve.N.BitLen()-1; i++ {
 			k.Rsh(k, uint(i)).Lsh(k, uint(i))
 			b.Run(fmt.Sprintf("%s/input_bits_len/%d#%d", tt.algo, k.BitLen(), k.TrailingZeroBits()), func(b *testing.B) {
@@ -396,6 +380,7 @@ func (sc StarkCurve) ecMult_Montgomery(m, x1, y1 *big.Int) (x, y *big.Int) {
 func (sc StarkCurve) ecMult_MontgomeryLsh(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
 		// Fill a fixed 32 byte buffer (2 ** 251)
+		// NOTICE: this will take an absolute value first
 		buf := m.FillBytes(make([]byte, 32))
 
 		for i, byte := range buf {

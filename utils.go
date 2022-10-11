@@ -30,9 +30,15 @@ func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 
 // obtain public key coordinates from stark curve given the private key
 func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
+	return sc.privateToPoint(privKey, sc.EcMult)
+}
+
+// obtain public key coordinates from stark curve given the private key
+// NOTICE: configurable ec multlipication fn, used for testing
+func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti ecMultiFn) (x, y *big.Int, err error) {
 	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
 		return x, y, fmt.Errorf("private key not in curve range")
 	}
-	x, y = sc.EcMult(privKey, sc.EcGenX, sc.EcGenY)
+	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
 	return x, y, nil
 }
