@@ -347,6 +347,9 @@ func (sc StarkCurve) ecMult_DoubleAndAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
 		return sc.Add(e, f, x1, y1)
 	}
 
+	// Notice: no need for scalar rewrite trick via `StarkCurve.rewriteScalar`
+	//   This algorithm is not affected, as it doesn't do a fixed number of operations,
+	//   nor directly depends on the binary representation of the scalar.
 	return _ecMult(m, x1, y1)
 }
 
@@ -370,7 +373,7 @@ func (sc StarkCurve) ecMult_Montgomery(m, x1, y1 *big.Int) (x, y *big.Int) {
 		return x0, y0
 	}
 
-	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
+	return _ecMultMontgomery(sc.rewriteScalar(m), big.NewInt(0), big.NewInt(0), x1, y1)
 }
 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
@@ -405,5 +408,5 @@ func (sc StarkCurve) ecMult_MontgomeryLsh(m, x1, y1 *big.Int) (x, y *big.Int) {
 		return x0, y0
 	}
 
-	return _ecMultMontgomery(m, big.NewInt(0), big.NewInt(0), x1, y1)
+	return _ecMultMontgomery(sc.rewriteScalar(m), big.NewInt(0), big.NewInt(0), x1, y1)
 }

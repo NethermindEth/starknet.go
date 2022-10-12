@@ -97,6 +97,17 @@ func init() {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
+	// As elliptic curves form a group, there is an additive identity that is the equivalent of 0
+	// If 𝑃=0 or 𝑄=0, then 𝑃+𝑄=𝑄 or 𝑃+𝑄=𝑃, respectively
+	// NOTICE: the EC multiplication algorithm is using using `StarkCurve.rewriteScalar` trick
+	//   to avoid this condition and provide constant-time execution.
+	if len(x1.Bits()) == 0 && len(y1.Bits()) == 0 {
+		return x2, y2
+	}
+	if len(x2.Bits()) == 0 && len(y2.Bits()) == 0 {
+		return x1, y1
+	}
+
 	yDelta := new(big.Int).Sub(y1, y2)
 	xDelta := new(big.Int).Sub(x1, x2)
 
@@ -112,16 +123,6 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	y = y.Mul(m, y)
 	y = y.Sub(y, y1)
 	y = y.Mod(y, sc.P)
-
-	// As elliptic curves form a group, there is an additive identity that is the equivalent of 0
-	// If 𝑃=0 or 𝑄=0, then 𝑃+𝑄=𝑄 or 𝑃+𝑄=𝑃, respectively
-	// NOTICE: to improve constant-time performance we avoid fast no-op calls by checking this at the end
-	if len(x1.Bits()) == 0 && len(y1.Bits()) == 0 {
-		return x2, y2
-	}
-	if len(x2.Bits()) == 0 && len(y2.Bits()) == 0 {
-		return x1, y1
-	}
 
 	return x, y
 }
@@ -249,7 +250,26 @@ func (sc StarkCurve) ecMult_DoubleAndAlwaysAdd(m, x1, y1 *big.Int) (x, y *big.In
 		return x1, y1
 	}
 
-	return _ecMult(m, x1, y1)
+	return _ecMult(sc.rewriteScalar(m), x1, y1)
+}
+
+// Rewrites k into an equivalent scalar (2ˆn + (k - 2ˆn mod q)), such that the first bit
+// (the most-significant bit for the Double-And-Always-Add or Montgomery algo) is 1.
+//
+// The k scalar rewriting obtains an equivalent scalar K = 2^n + (k - 2^n mod q),
+// such that k·G == K·G and K has the n-th bit set to 1. The scalars are equal modulo
+// the group order, k mod q == K mod q.
+//
+// Notice: The EC multiplication algorithms are typically presented as starting with the state (O, P0),
+//   where O is the identity element (or neutral point) of the curve. However, the neutral point is at infinity,
+//   which causes problems for some formulas (non constant-time execution for the naive implementation).
+//   The ladder then starts after the first step, when the state no longer contains the neutral point.
+// (ref: https://www.shiftleft.org/papers/ladder/ladder-tches.pdf)
+func (sc StarkCurve) rewriteScalar(k *big.Int) *big.Int {
+	size := new(big.Int).Lsh(big.NewInt(1), uint(sc.BitSize)) // 2ˆn
+	mod := new(big.Int).Mod(size, sc.N)                       // 2ˆn mod q
+	diff := new(big.Int).Sub(k, mod)                          // (k - 2ˆn mod q)
+	return new(big.Int).Add(size, diff)                       // 2ˆn + (k - 2ˆn mod q)
 }
 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.

@@ -39,6 +39,7 @@ func (sc StarkCurve) privateToPoint(privKey *big.Int, ecMulti ecMultiFn) (x, y *
 	if privKey.Cmp(big.NewInt(0)) != 1 || privKey.Cmp(sc.N) != -1 {
 		return x, y, fmt.Errorf("private key not in curve range")
 	}
+
 	x, y = ecMulti(privKey, sc.EcGenX, sc.EcGenY)
 	return x, y, nil
 }
