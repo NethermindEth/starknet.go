@@ -197,7 +197,8 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	return ptx, nil
 }
 
-// implementation based on https://tools.ietf.org/html/rfc6979#section-3.2
+// implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
+// for the specification, see https://tools.ietf.org/html/rfc6979#section-3.2
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
