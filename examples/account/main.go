@@ -17,7 +17,7 @@ var (
 	privakeKey      string = "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
 	feeMargin       uint64 = 115
 	maxPoll         int    = 5
-	pollInterval    int    = 150
+	pollInterval    int    = 3
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewGatewayAccount(privakeKey, types.HexToHash(address), gw)
+	account, err := caigo.NewGatewayAccount(privakeKey, address, gw)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -58,12 +58,12 @@ func main() {
 	fmt.Printf("Fee:\n\tEstimate\t\t%v wei\n\tEstimate+Margin\t\t%v wei\n\n", feeEstimate.OverallFee, max)
 
 	// execute transaction
-	execResp, err := account.Execute(context.Background(), increment, types.ExecuteDetails{MaxFee: max})
+	execResp, err := account.Execute(context.Background(), increment, types.ExecuteDetails{MaxFee: big.NewInt(1000000000000)})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	n, receipt, err := gw.PollTx(context.Background(), execResp.TransactionHash, types.ACCEPTED_ON_L2, pollInterval, maxPoll)
+	n, receipt, err := gw.WaitForTransaction(context.Background(), execResp.TransactionHash,  pollInterval, maxPoll)
 	if err != nil {
 		panic(err.Error())
 	}

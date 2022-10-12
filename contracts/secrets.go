@@ -1,13 +1,11 @@
-package main
+package contracts
 
 import (
 	"encoding/json"
 	"os"
 )
 
-const SECRET_FILE_NAME = ".starknet-account.json"
-
-type accountPlugin struct {
+type AccountPlugin struct {
 	PrivateKey       string `json:"privateKey"`
 	PublicKey        string `json:"publicKey"`
 	PluginClassHash  string `json:"pluginClassHash,omitempty"`
@@ -15,9 +13,10 @@ type accountPlugin struct {
 	AccountAddress   string `json:"accountAddress"`
 	Version          string `json:"accountVersion"`
 	Plugin           bool   `json:"accountPlugin"`
+	filename         string
 }
 
-func (ap *accountPlugin) Read(filename string) error {
+func (ap *AccountPlugin) Read(filename string) error {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		return err
@@ -26,7 +25,7 @@ func (ap *accountPlugin) Read(filename string) error {
 	return nil
 }
 
-func (ap *accountPlugin) Write(filename string) error {
+func (ap *AccountPlugin) Write(filename string) error {
 	content, err := json.Marshal(ap)
 	if err != nil {
 		return err
