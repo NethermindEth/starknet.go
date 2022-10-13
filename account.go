@@ -44,14 +44,14 @@ const (
 )
 
 type Account struct {
-	rpcv01    *rpcv01.Provider
-	sequencer *gateway.Gateway
-	provider  ProviderType
-	chainId   string
-	address   string
-	private   *big.Int
-	version   uint64
-	plugin    AccountPlugin
+	rpcv01         *rpcv01.Provider
+	sequencer      *gateway.Gateway
+	provider       ProviderType
+	chainId        string
+	AccountAddress string
+	private        *big.Int
+	version        uint64
+	plugin         AccountPlugin
 }
 
 type AccountOption struct {
@@ -93,10 +93,10 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 	}
 	priv := types.SNValToBN(private)
 	return &Account{
-		address: address,
-		private: priv,
-		version: version,
-		plugin:  accountPlugin,
+		AccountAddress: address,
+		private:        priv,
+		version:        version,
+		plugin:         accountPlugin,
 	}, nil
 }
 
@@ -172,7 +172,7 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
-			types.SNValToBN(account.address),
+			types.SNValToBN(account.AccountAddress),
 			types.GetSelectorFromName(EXECUTE_SELECTOR),
 			cdHash,
 			details.MaxFee,
@@ -182,7 +182,7 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
-			types.SNValToBN(account.address),
+			types.SNValToBN(account.AccountAddress),
 			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
@@ -203,7 +203,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 			nonce, err := account.rpcv01.Call(
 				ctx,
 				types.FunctionCall{
-					ContractAddress:    types.HexToHash(account.address),
+					ContractAddress:    types.HexToHash(account.AccountAddress),
 					EntryPointSelector: "get_nonce",
 					Calldata:           []string{},
 				},
@@ -221,14 +221,14 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 			}
 			return n, nil
 		case ProviderGateway:
-			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.address))
+			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.AccountAddress))
 		}
 	case 1:
 		switch account.provider {
 		case ProviderRPCv01:
 			nonce, err := account.rpcv01.Nonce(
 				ctx,
-				types.HexToHash(account.address),
+				types.HexToHash(account.AccountAddress),
 			)
 			if err != nil {
 				return nil, err
@@ -239,7 +239,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 			}
 			return n, nil
 		case ProviderGateway:
-			return account.sequencer.Nonce(ctx, account.address, "latest")
+			return account.sequencer.Nonce(ctx, account.AccountAddress, "latest")
 		}
 	}
 	return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -288,7 +288,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.Fu
 			Version:   version,
 			Signature: types.Signature{s1, s2},
 			FunctionCall: types.FunctionCall{
-				ContractAddress:    types.HexToHash(account.address),
+				ContractAddress:    types.HexToHash(account.AccountAddress),
 				EntryPointSelector: EXECUTE_SELECTOR,
 				Calldata:           calldata,
 			},
@@ -300,7 +300,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.Fu
 			Version:   version,
 			Signature: types.Signature{s1, s2},
 			FunctionCall: types.FunctionCall{
-				ContractAddress: types.HexToHash(account.address),
+				ContractAddress: types.HexToHash(account.AccountAddress),
 				Calldata:        calldata,
 			},
 			Nonce: nonce,
