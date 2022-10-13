@@ -26,6 +26,32 @@ func BenchmarkPedersenHash(b *testing.B) {
 	}
 }
 
+func BenchmarkCurveSign(b *testing.B) {
+	type data struct {
+		MessageHash *big.Int
+		PrivateKey  *big.Int
+		Seed        *big.Int
+	}
+
+	dataSet := []data{}
+	MessageHash := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
+	PrivateKey := big.NewInt(0).Add(MessageHash, big.NewInt(1))
+	Seed := big.NewInt(0)
+	for i := int64(0); i < 20; i++ {
+		dataSet = append(dataSet, data{
+			MessageHash: big.NewInt(0).Add(MessageHash, big.NewInt(i)),
+			PrivateKey:  big.NewInt(0).Add(PrivateKey, big.NewInt(i)),
+			Seed:        big.NewInt(0).Add(Seed, big.NewInt(i)),
+		})
+
+		for _, test := range dataSet {
+			// b.Run(fmt.Sprintf("dataset[%d]", k), func(b *testing.B) {
+			Curve.Sign(test.MessageHash, test.PrivateKey, test.Seed)
+			// })
+		}
+	}
+}
+
 func TestPedersenHash(t *testing.T) {
 	testPedersen := []struct {
 		elements []*big.Int
