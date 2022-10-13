@@ -6,29 +6,40 @@ import (
 )
 
 func Test_Block(t *testing.T) {
-	testConfig := beforeEach(t)
+    testConfig := beforeEach(t)
 
-	type testSetType struct {
-		BlockHash string
-		opts      *BlockOptions
-	}
-	testSet := map[string][]testSetType{
-		"devnet": {},
-		"testnet": {{
-			BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
-			opts:      &BlockOptions{BlockNumber: 159179}}},
-	}[testEnv]
+    type testSetType struct {
+        BlockHash string
+        opts      *BlockOptions
+    }
+    testSet := map[string][]testSetType{
+        "devnet": {
+            // TODO/2: check if devnet starts with 1 for instance and we can have a test
+            // If not, we would have to create a block
+        },
+        "testnet": {{
+            // TODO/3: instead of testing just the blockHash we should
+            // (1) Marshal the block back into a []byte and (2) compare it with the original message
+            // check "github.com/nsf/jsondiff" for ideas how to do that.
+            BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
+            opts:      &BlockOptions{BlockNumber: 159179}}},
+            // TODO/1: add a test for mainnet
+		"mainnet": {{
+			BlockHash: "0x3bb30a6d1a3b6dcbc935b18c976126ab8d1fea60ef055be3c78530624824d50",
+            opts: &BlockOptions{BlockNumber: 5879},
+		}},
+    }[testEnv]
 
-	for _, test := range testSet {
-		block, err := testConfig.client.Block(context.Background(), test.opts)
+    for _, test := range testSet {
+        block, err := testConfig.client.Block(context.Background(), test.opts)
 
-		if err != nil {
-			t.Fatal(err)
-		}
-		if block.BlockHash != test.BlockHash {
-			t.Fatalf("expecting %s, instead: %s", block.BlockHash, test.BlockHash)
-		}
-	}
+        if err != nil {
+            t.Fatal(err)
+        }
+        if block.BlockHash != test.BlockHash {
+            t.Fatalf("expecting %s, instead: %s", block.BlockHash, test.BlockHash)
+        }
+    }
 }
 
 func Test_BlockIDByHash(t *testing.T) {
