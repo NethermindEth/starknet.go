@@ -87,17 +87,23 @@ Implementation does not yet include "extra entropy" or "retry gen".
 (ref: https://datatracker.ietf.org/doc/html/rfc6979)
 */
 func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
+	if msgHash == nil {
+		return x, y, fmt.Errorf("nil msgHash")
+	}
+	if privKey == nil {
+		return x, y, fmt.Errorf("nil privKey")
+	}
 	if msgHash.Cmp(big.NewInt(0)) != 1 || msgHash.Cmp(sc.Max) != -1 {
 		return x, y, fmt.Errorf("invalid bit length")
 	}
 
 	invalidK := true
 	inSeed := big.NewInt(0)
-	if len(seed) == 1 {
+	if len(seed) == 1 && inSeed != nil {
 		inSeed = seed[0]
 	}
 	for invalidK {
-		k := sc.GenerateSecret(new(big.Int).Set(msgHash), new(big.Int).Set(privKey), inSeed)
+		k := sc.GenerateSecret(big.NewInt(0).Set(msgHash), big.NewInt(0).Set(privKey), big.NewInt(0).Set(inSeed))
 		// In case r is rejected k shall be generated with new seed
 		inSeed = inSeed.Add(inSeed, big.NewInt(1))
 
@@ -197,7 +203,8 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	return ptx, nil
 }
 
-// implementation based on https://tools.ietf.org/html/rfc6979#section-3.2
+// implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
+// for the specification, see https://tools.ietf.org/html/rfc6979#section-3.2
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
