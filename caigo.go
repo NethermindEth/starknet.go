@@ -97,12 +97,11 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 		return x, y, fmt.Errorf("invalid bit length")
 	}
 
-	invalidK := true
 	inSeed := big.NewInt(0)
 	if len(seed) == 1 && inSeed != nil {
 		inSeed = seed[0]
 	}
-	for invalidK {
+	for {
 		k := sc.GenerateSecret(big.NewInt(0).Set(msgHash), big.NewInt(0).Set(privKey), big.NewInt(0).Set(inSeed))
 		// In case r is rejected k shall be generated with new seed
 		inSeed = inSeed.Add(inSeed, big.NewInt(1))
