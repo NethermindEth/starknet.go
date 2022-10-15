@@ -18,17 +18,20 @@ func Test_Block_Devnet(t *testing.T) {
     
     // not sure if I should be using gw.Block to check for the current block number
 
-        block, err := gw.Block(context.Background())
-    if block.BlockNumber != 1 {
-        t.Fatal("block number should be 1")
-    }
+    //     block, err := gw.Block(context.Background())
+    // if block.BlockNumber != 1 {
+    //     t.Fatal("block number should be 1")
+    // }
+    // log.Println(block)
 
-    // or be making a newRequest for the block?
-    // Think I should make a request for the blocknumber and check if its equal to 1
-    req, err := gw.newRequest(context.Background(), http.MethodGet, "/get_block")
+    // // or be making a newRequest for the block?
+    // // Think I should make a request for the blocknumber and check if its equal to 1
+    r, err := gw.newRequest(context.Background(), http.MethodGet, "/get_block", nil)
     if err != nil {
         t.Fatal()
     }
+    log.Println(r)
+    
 
 }
 
