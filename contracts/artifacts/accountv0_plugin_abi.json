@@ -166,7 +166,7 @@
                 "type": "felt*"
             }
         ],
-        "name": "isValidSignature",
+        "name": "is_valid_signature",
         "outputs": [
             {
                 "name": "is_valid",
