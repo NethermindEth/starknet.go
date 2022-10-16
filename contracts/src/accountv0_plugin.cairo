@@ -92,7 +92,7 @@ end
 #
 
 @view
-func isValidSignature{
+func is_valid_signature{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr, ecdsa_ptr : SignatureBuiltin*
 }(hash : felt, signature_len : felt, signature : felt*) -> (is_valid : felt):
     let (is_valid) = Account.is_valid_signature(hash, signature_len, signature)
@@ -154,7 +154,7 @@ func execute{
 
     # validate transaction
     with_attr error_message("Account: invalid signature"):
-        let (is_valid) = isValidSignature(
+        let (is_valid) = is_valid_signature(
             tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
         )
         assert is_valid = TRUE
