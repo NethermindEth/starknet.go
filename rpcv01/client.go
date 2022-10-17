@@ -19,7 +19,7 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 	if len(raw) == 0 {
 		return errNotFound
 	}
-	if err := json.Unmarshal(raw, &data); err != nil {
+	if err := json.Unmarshal(raw, data); err != nil {
 		return err
 	}
 	return nil
