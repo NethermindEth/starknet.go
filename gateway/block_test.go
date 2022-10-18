@@ -69,17 +69,42 @@ func Test_Block(t *testing.T) {
 	}
 }
 
+// add mainnet and testnet tests with testenv variable
 func Test_BlockIDByHash(t *testing.T) {
-	gw := NewClient()
+	testConfig := beforeEach(t)
 
-	id, err := gw.BlockIDByHash(context.Background(), "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e")
-	if err != nil || id == 0 {
-		t.Errorf("Getting Block ID by Hash: %v", err)
+    //add testset type
+    type testSetType struct {
+		BlockHash string
+		opts      *BlockOptions
 	}
+    
+    testSet := map[string]testSetType{
+        "mainnet": {
+            BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e",
+			opts:
+            
+        },
+        "testnet": {
+            BlockHash:
+            opts:
+			
+        }
 
-	if id != 159179 {
-		t.Errorf("Wrong Block ID from Hash: %v", err)
-	}
+    }[testEnv]
+
+	id, err := gw.BlockIDByHash(context.Background(), test.BlockNumber)
+
+    for _, test := range testSet {
+
+        if err != nil || id == 0 {
+            t.Errorf("Getting Block ID by Hash: %v", err)
+        }
+
+        if id != 159179 {
+            t.Errorf("Wrong Block ID from Hash: %v", err)
+        }
+    }
 }
 
 func Test_BlockHashByID(t *testing.T) {
