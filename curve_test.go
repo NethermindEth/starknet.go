@@ -212,7 +212,7 @@ func FuzzEcMult(f *testing.F) {
 	// Generate the scalar value k, where 0 < k < order(point)
 	var _genScalar = func(a int, b int) (k *big.Int) {
 		k = new(big.Int).Mul(big.NewInt(int64(a)), big.NewInt(int64(b)))
-		k = k.Mul(k, k) // generate moar big number
+		k = k.Mul(k, k).Mul(k, k) // generate moar big number
 		k = k.Abs(k)
 		k = k.Add(k, big.NewInt(1)) // edge case: avoid zero
 		k = k.Mod(k, Curve.N)

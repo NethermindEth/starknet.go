@@ -234,27 +234,41 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 //
-// (ref: https://www.researchgate.net/figure/Double-and-add-always-algorithm-resistant-against-SPA_fig1_48412708)
+// (ref: https://www.semanticscholar.org/paper/Elliptic-Curves-and-Side-Channel-Analysis-Joye/7fc91d3684f1ab63b97d125161daf57af60f2ad9/figure/1)
+// (ref: https://cosade.telecom-paristech.fr/presentations/s2_p2.pdf)
 func (sc StarkCurve) ecMult_DoubleAndAlwaysAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
-	var _ecMult = func(m, x0, y0 *big.Int) (x, y *big.Int) {
-		x1, y1 := big.NewInt(0), big.NewInt(0)
-		var x2, y2 *big.Int
-		for i := 0; i <= sc.N.BitLen()-1; i++ {
-			x2, y2 = sc.Add(x0, y0, x1, y1)
-			x0, y0 = sc.Double(x0, y0)
-			if m.Bit(i) == 1 {
-				x1, y1 = x2, y2
-			}
+	var _ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		// Two-index table initialization, Q[0] <- P
+		q := [2]struct {
+			x *big.Int
+			y *big.Int
+		}{
+			{
+				x: x1,
+				y: y1,
+			},
+			{
+				x: nil,
+				y: nil,
+			},
 		}
 
-		return x1, y1
+		// Run the algorithm, expects the most-significant bit is 1
+		for i := sc.N.BitLen() - 2; i >= 0; i-- {
+			q[0].x, q[0].y = sc.Double(q[0].x, q[0].y)      // Q[0] <- 2Q[0]
+			q[1].x, q[1].y = sc.Add(q[0].x, q[0].y, x1, y1) // Q[1] <- Q[0] + P
+			b := m.Bit(i)                                   // b    <- bit at position i
+			q[0].x, q[0].y = q[b].x, q[b].y                 // Q[0] <- Q[b]
+		}
+
+		return q[0].x, q[0].y
 	}
 
 	return _ecMult(sc.rewriteScalar(m), x1, y1)
 }
 
-// Rewrites k into an equivalent scalar (2ˆn + (k - 2ˆn mod q)), such that the first bit
-// (the most-significant bit for the Double-And-Always-Add or Montgomery algo) is 1.
+// Rewrites k into an equivalent scalar, such that the first bit (the most-significant
+// bit for the Double-And-Always-Add or Montgomery algo) is 1.
 //
 // The k scalar rewriting obtains an equivalent scalar K = 2^n + (k - 2^n mod q),
 // such that k·G == K·G and K has the n-th bit set to 1. The scalars are equal modulo

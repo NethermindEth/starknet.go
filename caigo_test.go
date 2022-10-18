@@ -175,22 +175,22 @@ func TestSignature(t *testing.T) {
 		// NOTICE: s component of the {r, s} signature is not available at source, but was manually computed/confirmed as
 		//   `s := sc.InvModCurveSize(w)` for w: 0x1f2c44a7798f55192f153b4c48ea5c1241fbb69e6132cc8a0da9c5b62a4286e
 		{
-			private: HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
-			hash:    HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
-			rIn:     HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
-			sIn:     HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+			private: types.HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
+			hash:    types.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rIn:     types.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sIn:     types.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
 		},
 		{
-			publicX: HexToBN("0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"),
-			hash:    HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
-			rIn:     HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
-			sIn:     HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+			publicX: types.HexToBN("0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"),
+			hash:    types.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rIn:     types.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sIn:     types.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
 		},
 		{
-			private: HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
-			hash:    HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
-			rOut:    HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
-			sOut:    HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+			private: types.HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
+			hash:    types.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rOut:    types.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sOut:    types.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
 		},
 	}
 
