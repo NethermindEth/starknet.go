@@ -58,7 +58,7 @@ func Test_Block(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.Block(context.Background(), test.opts)
+		 block, err := testConfig.client.Block(context.Background(), test.opts)
 
 		if err != nil {
 			t.Fatal(err)
@@ -75,35 +75,37 @@ func Test_BlockIDByHash(t *testing.T) {
 
     //add testset type
     type testSetType struct {
-		BlockHash string
+		BlockHash string   
 		opts      *BlockOptions
 	}
     
     testSet := map[string]testSetType{
-        "mainnet": {
-            BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e",
-			opts:
-            
-        },
-        "testnet": {
-            BlockHash:
-            opts:
+        "mainnet": {{
 			
-        }
+            BlockNumber: 159179, 
+			opts: &BlockOptions{BlockHash: "0x059db44ce953a2c9caf9b8cfe38f1948365d53a1f9437367399fd81e5c08083e"}
+            
+		}},
+        "testnet": {{
+			
+            BlockNumber:157960,
+            opts: &BlockOptions{BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e"}
+
+		}}
 
     }[testEnv]
 
-	id, err := gw.BlockIDByHash(context.Background(), test.BlockNumber)
-
     for _, test := range testSet {
+		block, err := testConfig.client.Block(context.Background(), test.opts)
 
-        if err != nil || id == 0 {
-            t.Errorf("Getting Block ID by Hash: %v", err)
-        }
-
-        if id != 159179 {
-            t.Errorf("Wrong Block ID from Hash: %v", err)
-        }
+		if err != nil {
+			t.Fatal(err)
+		}
+		if block.ID != test.BlockNumber {
+			t.Fatalf("expecting %s, instead: %s", block.ID, test.BlockHash)
+		} else {
+			fmt.Println(block)
+		}
     }
 }
 
