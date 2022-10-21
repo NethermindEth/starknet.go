@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 )
@@ -58,7 +59,7 @@ func Test_Block(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		 block, err := testConfig.client.Block(context.Background(), test.opts)
+		block, err := testConfig.client.Block(context.Background(), test.opts)
 
 		if err != nil {
 			t.Fatal(err)
@@ -73,48 +74,43 @@ func Test_Block(t *testing.T) {
 func Test_BlockIDByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
-    //add testset type
-    type testSetType struct {
-		BlockHash string   
+	//add testset type
+	type testSetType struct {
+		BlockHash string
 		opts      *BlockOptions
 	}
-    
-    testSet := map[string]testSetType{
-        "mainnet": {{
-			
-            BlockNumber: 159179, 
-			opts: &BlockOptions{BlockHash: "0x059db44ce953a2c9caf9b8cfe38f1948365d53a1f9437367399fd81e5c08083e"}
-            
+
+	testSet := map[string]testSetType{
+		"mainnet": {{
+			BlockHash: "0x059db44ce953a2c9caf9b8cfe38f1948365d53a1f9437367399fd81e5c08083e",
+			opts:      &BlockOptions{BlockNumber: 159179},
 		}},
-        "testnet": {{
-			
-            BlockNumber:157960,
-            opts: &BlockOptions{BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e"}
+		"testnet": {{
+			BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e",
+			opts:      &BlockOptions{BlockNumber: 157960},
+		}},
+	}[testEnv]
 
-		}}
-
-    }[testEnv]
-
-    for _, test := range testSet {
-		block, err := testConfig.client.Block(context.Background(), test.opts)
+	for _, test := range testSet {
+		hash, err := testConfig.client.BlockHashByID(context.Background(), test.opts)
 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block.ID != test.BlockNumber {
-			t.Fatalf("expecting %s, instead: %s", block.ID, test.BlockHash)
+		if hash != test.BlockHash {
+			t.Fatalf("expecting %s, instead: %s", test.BlockHash, hash)
 		} else {
 			fmt.Println(block)
 		}
-    }
+	}
 }
 
 func Test_BlockHashByID(t *testing.T) {
 	gw := NewClient()
 
-	id, err := gw.BlockHashByID(context.Background(), 159179)
-	if err != nil || id == "" {
-		t.Errorf("Getting Block ID by Hash: %v", err)
+	hash, err := gw.BlockHashByID(context.Background(), 159179)
+	if err != nil || hash == "" {
+		t.Errorf("Getting Block Hash by ID: %v", err)
 	}
 
 	if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
