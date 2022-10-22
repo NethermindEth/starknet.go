@@ -32,17 +32,23 @@ artifacts/account.json: src/account.cairo artifacts
 		--abi artifacts/account_abi.json --account_contract || \
 		rm -f artifacts/account.json
 
-artifacts/erc20.json: cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo artifacts
-	starknet-compile cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo \
-		--output artifacts/erc20.json \
-		--abi artifacts/erc20_abi.json || \
-		rm -f artifacts/erc20.json
+artifacts/proxy_plugin.json: src/proxy_plugin.cairo artifacts
+	starknet-compile src/proxy_plugin.cairo \
+		--output artifacts/proxy_plugin.json \
+		--abi artifacts/proxy_plugin_abi.json || \
+		rm -f artifacts/proxy_plugin.json
 
 artifacts/proxy.json: cairo-contracts/src/openzeppelin/upgrades/presets/Proxy.cairo artifacts
 	starknet-compile cairo-contracts/src/openzeppelin/upgrades/presets/Proxy.cairo \
 		--output artifacts/proxy.json \
 		--abi artifacts/proxy_abi.json || \
 		rm -f artifacts/proxy.json
+
+artifacts/erc20.json: cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo artifacts
+	starknet-compile cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo \
+		--output artifacts/erc20.json \
+		--abi artifacts/erc20_abi.json || \
+		rm -f artifacts/erc20.json
 
 .PHONY: latest
 latest: 
