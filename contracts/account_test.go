@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/dontpanicdao/caigo/rpcv01"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -28,15 +27,37 @@ func TestInstallAccounts(t *testing.T) {
 	}
 
 	var TestCases = map[string][]TestCase{
-		"devnet": {{
-			privateKey:      "0x1",
-			AccountCompiled: AccountV0Compiled,
-		}},
+		"devnet": {
+			// {
+			// 	privateKey:      "0x1",
+			// 	AccountCompiled: AccountV0Compiled,
+			// },
+			// {
+			// 	privateKey:      "0x1",
+			// 	AccountCompiled: AccountV0WithPluginCompiled,
+			// 	PluginCompiled:  PluginV0Compiled,
+			// },
+			// {
+			// 	privateKey:      "0x1",
+			// 	AccountCompiled: AccountV0WithPluginCompiled,
+			// 	PluginCompiled:  PluginV0Compiled,
+			// 	ProxyCompiled:   ProxyV0Compiled,
+			// },
+			// {
+			// 	privateKey:      "0x1",
+			// 	AccountCompiled: AccountCompiled,
+			// },
+			{
+				privateKey:      "0x1",
+				AccountCompiled: AccountWithPluginCompiled,
+				PluginCompiled:  PluginCompiled,
+			},
+		},
 	}[testEnv]
 	for _, test := range TestCases {
 		privateKey, _ := big.NewInt(0).SetString(test.privateKey, 0)
 		ctx := context.Background()
-		ctx, _ = context.WithTimeout(ctx, time.Second*60)
+		// ctx, _ = context.WithTimeout(ctx, time.Second*60)
 		client, err := ethrpc.DialContext(ctx, "http://localhost:5050/rpc")
 		if err != nil {
 			t.Fatalf("error connecting to devnet, %v\n", err)

@@ -101,8 +101,8 @@ func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvi
 		if err != nil {
 			return nil, err
 		}
-		calldata = append(calldata, pluginClassHash)
 		pluginClassHash = output.classHash
+		calldata = append(calldata, pluginClassHash)
 	}
 	compiledDeployed := compiledAccount
 	if len(compiledProxy) != 0 {
