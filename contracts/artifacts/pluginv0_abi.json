@@ -22,30 +22,27 @@
                 "type": "felt"
             }
         ],
-        "name": "CallArray",
+        "name": "AccountCallArray",
         "size": 4,
         "type": "struct"
     },
     {
-        "data": [
-            {
-                "name": "session_key",
-                "type": "felt"
-            }
-        ],
-        "keys": [],
-        "name": "session_key_revoked",
-        "type": "event"
-    },
-    {
         "inputs": [
+            {
+                "name": "plugin_data_len",
+                "type": "felt"
+            },
+            {
+                "name": "plugin_data",
+                "type": "felt*"
+            },
             {
                 "name": "call_array_len",
                 "type": "felt"
             },
             {
                 "name": "call_array",
-                "type": "CallArray*"
+                "type": "AccountCallArray*"
             },
             {
                 "name": "calldata_len",
@@ -57,17 +54,6 @@
             }
         ],
         "name": "validate",
-        "outputs": [],
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "session_key",
-                "type": "felt"
-            }
-        ],
-        "name": "revokeSessionKey",
         "outputs": [],
         "type": "function"
     }

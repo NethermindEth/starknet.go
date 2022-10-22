@@ -13,7 +13,7 @@ from openzeppelin.upgrades.library import Proxy
 
 from openzeppelin.introspection.erc165.library import ERC165
 
-from plugin import PluginUtils, USE_PLUGIN
+from plugin_library import PluginUtils, USE_PLUGIN
 
 #
 # Constructor
