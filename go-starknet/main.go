@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/urfave/cli/v2"
 )
@@ -76,6 +77,25 @@ func main() {
 							fmt.Printf("guess:   %s\n", value)
 							fmt.Printf("decimal: %s\n", types.GetSelectorFromName(value).Text(10))
 							fmt.Printf("hex:     0x%s\n", types.GetSelectorFromName(value).Text(16))
+							fmt.Println()
+							return nil
+						},
+					},
+					{
+						Name:  "publickey",
+						Usage: "get a public key from the private key",
+						Action: func(cCtx *cli.Context) error {
+
+							privateKey := cCtx.Args().First()
+							privateKeyInt, ok := big.NewInt(0).SetString(privateKey, 0)
+							if !ok {
+								return errors.New("not a number")
+							}
+							publicKey, _, err := caigo.Curve.PrivateToPoint(privateKeyInt)
+							if err != nil {
+								return err
+							}
+							fmt.Printf("public key: 0x%s\n", publicKey.Text(16))
 							fmt.Println()
 							return nil
 						},

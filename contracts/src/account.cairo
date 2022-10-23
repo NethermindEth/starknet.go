@@ -9,15 +9,12 @@ from starkware.starknet.common.syscalls import get_tx_info
 
 from openzeppelin.account.library import Account, AccountCallArray
 
-
 //
 // Constructor
 //
 
 @constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    publicKey: felt
-) {
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(publicKey: felt) {
     Account.initializer(publicKey);
     return ();
 }
@@ -90,6 +87,23 @@ func __validate_declare__{
 }(class_hash: felt) {
     let (tx_info) = get_tx_info();
     Account.is_valid_signature(tx_info.transaction_hash, tx_info.signature_len, tx_info.signature);
+    return ();
+}
+
+@external
+func __validate_deploy__{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ecdsa_ptr: SignatureBuiltin*, range_check_ptr
+}(class_hash: felt, ctr_args_len: felt, ctr_args: felt*, salt: felt) {
+    // alloc_locals;
+    // // get the tx info
+    // let (tx_info) = get_tx_info();
+    // // validate the signer signature only
+    // let (is_valid) = isValidSignature(
+    //     tx_info.transaction_hash, tx_info.signature_len, tx_info.signature
+    // );
+    // with_attr error_message("OZAccount: invalid deploy") {
+    //     assert_not_zero(is_valid);
+    // }
     return ();
 }
 

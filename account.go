@@ -364,38 +364,3 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	}
 	return nil, ErrUnsupportedAccount
 }
-
-func ContractAddress(deployerAddress, salt, classHash string, calldata []string) (*big.Int, error) {
-	callArray := []*big.Int{}
-	for _, i := range calldata {
-		v, ok := big.NewInt(0).SetString(i, 0)
-		if !ok {
-			return nil, errors.New("wrong big.Int")
-		}
-		callArray = append(callArray, v)
-	}
-	cdHash, err := Curve.ComputeHashOnElements(callArray)
-	if err != nil {
-		return nil, err
-	}
-	deployerAddressInt, ok := big.NewInt(0).SetString(deployerAddress, 0)
-	if !ok {
-		return nil, errors.New("wrong big.Int")
-	}
-	saltAddressInt, ok := big.NewInt(0).SetString(salt, 0)
-	if !ok {
-		return nil, errors.New("wrong big.Int")
-	}
-	classHashAddressInt, ok := big.NewInt(0).SetString(classHash, 0)
-	if !ok {
-		return nil, errors.New("wrong big.Int")
-	}
-	contract := []*big.Int{
-		types.UTF8StrToBig(CONTRACT_ADDRESS_PREFIX),
-		deployerAddressInt,
-		saltAddressInt,
-		classHashAddressInt,
-		cdHash,
-	}
-	return Curve.ComputeHashOnElements(contract)
-}

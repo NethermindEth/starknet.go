@@ -13,6 +13,9 @@ var knownEntries = []string{
 	"get_nonce",
 	"__execute__",
 	"__validate__",
+	"__validate_deploy__",
+	"__validate_declare__",
+	"initialize",
 	"tokenID",
 	"balanceOf",
 }
