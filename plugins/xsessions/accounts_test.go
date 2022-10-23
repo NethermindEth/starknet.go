@@ -2,13 +2,13 @@ package xsessions
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/dontpanicdao/caigo/artifacts"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
@@ -41,11 +41,8 @@ func (ap *accountPlugin) Write(filename string) error {
 	return os.WriteFile(filename, content, 0664)
 }
 
-//go:embed artifacts/account.json
-var accountCompiled []byte
-
-//go:embed artifacts/counter.json
-var counterCompiled []byte
+var accountCompiled = artifacts.AccountV0WithPluginCompiled
+var counterCompiled = artifacts.CounterCompiled
 
 // TestCounter_DeployContract
 func TestCounter_DeployContract(t *testing.T) {

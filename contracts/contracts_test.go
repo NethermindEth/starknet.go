@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/artifacts"
 	devtest "github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
@@ -28,13 +29,13 @@ func TestInstallCounter(t *testing.T) {
 		"devnet": {
 			{
 				providerType:  PROVIDER_RPCV01,
-				CompiledClass: CounterCompiled,
+				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
 			},
 			{
 				providerType:  PROVIDER_GATEWAY,
-				CompiledClass: CounterCompiled,
+				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
 			},
@@ -70,7 +71,7 @@ func TestLoadAndExecuteCounter(t *testing.T) {
 	type TestCase struct {
 		privateKey      string
 		providerType    string
-		accountContract CompiledContract
+		accountContract artifacts.CompiledContract
 	}
 
 	TestCases := map[string][]TestCase{
@@ -78,12 +79,12 @@ func TestLoadAndExecuteCounter(t *testing.T) {
 			{
 				privateKey:      "0x1",
 				providerType:    PROVIDER_RPCV01,
-				accountContract: AccountContracts[ACCOUNT_VERSION1][false][false],
+				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 			{
 				privateKey:      "0x1",
 				providerType:    PROVIDER_GATEWAY,
-				accountContract: AccountContracts[ACCOUNT_VERSION1][false][false],
+				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
 	}[testEnv]
@@ -112,7 +113,7 @@ func TestLoadAndExecuteCounter(t *testing.T) {
 			}
 			fmt.Printf("current balance is %d\n", mint.NewBalance)
 			provider := RPCv01Provider(*testConfiguration.rpcv01)
-			counterTransaction, err = provider.deployAndWaitNoWallet(ctx, CounterCompiled, "0x0", []string{})
+			counterTransaction, err = provider.deployAndWaitNoWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
@@ -138,7 +139,7 @@ func TestLoadAndExecuteCounter(t *testing.T) {
 			}
 			fmt.Printf("current balance is %d\n", mint.NewBalance)
 			provider := GatewayProvider(*testConfiguration.gateway)
-			counterTransaction, err = provider.deployAndWaitNoWallet(ctx, CounterCompiled, "0x0", []string{})
+			counterTransaction, err = provider.deployAndWaitNoWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}

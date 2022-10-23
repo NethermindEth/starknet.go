@@ -2,12 +2,12 @@ package contracts
 
 import (
 	"context"
-	_ "embed"
 	"fmt"
 	"math/big"
 	"testing"
 	"time"
 
+	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/joho/godotenv"
 )
 
@@ -17,7 +17,7 @@ func TestInstallAccounts(t *testing.T) {
 
 	type TestCase struct {
 		privateKey       string
-		CompiledContract CompiledContract
+		CompiledContract artifacts.CompiledContract
 		providerType     string
 	}
 
@@ -28,7 +28,7 @@ func TestInstallAccounts(t *testing.T) {
 				for _, plugin := range []bool{false, true} {
 					devnet = append(devnet, TestCase{
 						privateKey:       "0x1",
-						CompiledContract: AccountContracts[version][proxy][plugin],
+						CompiledContract: artifacts.AccountContracts[version][proxy][plugin],
 						providerType:     provider,
 					})
 				}

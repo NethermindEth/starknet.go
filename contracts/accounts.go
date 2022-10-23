@@ -10,9 +10,9 @@ import (
 	"os"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/types"
 )
 
 type AccountManager struct {
@@ -69,75 +69,11 @@ func guessProviderType(p interface{}) (Provider, error) {
 	return nil, errors.New("unsupported type")
 }
 
-type calldataFormater func(accountHash, pluginHash, publicKey string) ([]string, error)
-
-func AccountV0Formater(accountHash, pluginHash, publicKey string) ([]string, error) {
-	calldata := []string{}
-	if accountHash == "" {
-		calldata = append(calldata, publicKey)
-		if pluginHash != "" {
-			calldata = append(calldata, pluginHash)
-		}
-		return calldata, nil
-	}
-	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
-	calldata = append(calldata, initialize)
-	paramLen := "0x1"
-	if pluginHash != "" {
-		paramLen = "0x2"
-	}
-	calldata = append(calldata, paramLen)
-	calldata = append(calldata, publicKey)
-	if pluginHash != "" {
-		calldata = append(calldata, pluginHash)
-	}
-	return calldata, nil
-}
-
-func AccountFormater(accountHash, pluginHash, publicKey string) ([]string, error) {
-	if pluginHash != "" {
-		return nil, errors.New("plugin not supported")
-	}
-	calldata := []string{}
-	if accountHash == "" {
-		calldata = append(calldata, publicKey)
-		if pluginHash != "" {
-			calldata = append(calldata, pluginHash)
-		}
-		return calldata, nil
-	}
-	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
-	calldata = append(calldata, initialize)
-	calldata = append(calldata, "0x1")
-	calldata = append(calldata, publicKey)
-	return calldata, nil
-}
-
-func AccountPluginFormater(accountHash, pluginHash, publicKey string) ([]string, error) {
-	if pluginHash == "" {
-		return nil, errors.New("plugin is mandatory")
-	}
-	calldata := []string{}
-	if accountHash != "" {
-		calldata = append(calldata, accountHash)
-		initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
-		calldata = append(calldata, initialize)
-		calldata = append(calldata, "0x4")
-	}
-	calldata = append(calldata, pluginHash)
-	calldata = append(calldata, "0x2")
-	calldata = append(calldata, "0x1")
-	calldata = append(calldata, publicKey)
-	return calldata, nil
-}
-
 // InstallAndWaitForAccount installs an account with a DEPLOY command.
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}

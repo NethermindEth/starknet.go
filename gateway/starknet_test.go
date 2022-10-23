@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/dontpanicdao/caigo/artifacts"
 	devtest "github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 )
@@ -20,13 +21,11 @@ const (
 )
 
 var (
-	//go:embed contracts/counter.json
-	counterCompiled []byte
+	counterCompiled = artifacts.CounterCompiled
 
 	counterAddress = "0x0"
 
-	//go:embed contracts/account.json
-	accountCompiled []byte
+	accountCompiled = artifacts.AccountCompiled
 )
 
 func TestDeclare(t *testing.T) {
