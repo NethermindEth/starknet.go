@@ -29,6 +29,7 @@ const (
 	TestNetAccount032Address = "0x32fb76dfaa8d647c1dfa28cf5123543285250e0fcee7dfd76e4b7fa1544cfad"
 	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
 	TestNetAccount040Address = "0x43eb0aebc7e9a628df79fc731cdc37b581338c913839a3f67aae2309d9e88c5"
+	TestnetCounterAddress    = "0x048fe6bfee78e6f0826eca774f0a2462bd5e4f0a5738c33eb3cf8c2195c04e67"
 )
 
 // testGatewayConfiguration is a type that is used to configure tests
@@ -48,7 +49,9 @@ var (
 		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base: "https://alpha4.starknet.io",
+			base:           "https://alpha4.starknet.io",
+			CounterAddress: TestnetCounterAddress,
+			AccountAddress: TestNetAccount040Address,
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/Shard-Labs/starknet-devnet)
@@ -142,6 +145,7 @@ var (
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
+	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	switch testEnv {
 	case "devnet":
 		provider := gateway.NewProvider(gateway.WithBaseURL(testRPCConfigurations["devnet"].base))
@@ -150,7 +154,7 @@ func TestMain(m *testing.M) {
 			fmt.Println("error installing counter contract", err)
 			os.Exit(1)
 		}
-		localConfig, _ := testGatewayConfigurations[testEnv]
+		localConfig := testGatewayConfigurations[testEnv]
 		accounts, err := devtest.NewDevNet().Accounts()
 		if err != nil {
 			fmt.Println("error getting devnet accounts", err)
@@ -159,6 +163,10 @@ func TestMain(m *testing.M) {
 		localConfig.AccountAddress = accounts[0].Address
 		localConfig.AccountPrivateKey = accounts[0].PrivateKey
 		localConfig.CounterAddress = counterAddress
+		testGatewayConfigurations[testEnv] = localConfig
+	case "testnet":
+		localConfig := testGatewayConfigurations[testEnv]
+		localConfig.AccountPrivateKey = os.Getenv("TESTNET_ACCOUNT_PRIVATE_KEY")
 		testGatewayConfigurations[testEnv] = localConfig
 	}
 

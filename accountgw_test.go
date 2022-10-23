@@ -24,9 +24,6 @@ type TestAccountType struct {
 func TestGatewayAccount_ExtimateAndExecute(t *testing.T) {
 	testConfig := beforeGatewayEach(t)
 
-	if testEnv != "devnet" {
-		t.Skip("this test is only available on devnet")
-	}
 	type testSetType struct {
 		ExecuteCalls []types.FunctionCall
 		QueryCall    types.FunctionCall
@@ -34,6 +31,16 @@ func TestGatewayAccount_ExtimateAndExecute(t *testing.T) {
 
 	testSet := map[string][]testSetType{
 		"devnet": {{
+			ExecuteCalls: []types.FunctionCall{{
+				EntryPointSelector: "increment",
+				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+			}},
+			QueryCall: types.FunctionCall{
+				EntryPointSelector: "get_count",
+				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+			},
+		}},
+		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
 				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
