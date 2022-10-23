@@ -27,7 +27,7 @@ const (
 
 // testGatewayConfiguration is a type that is used to configure tests
 type testGatewayConfiguration struct {
-	client *gateway.Gateway
+	client *gateway.GatewayProvider
 	base   string
 }
 
@@ -61,7 +61,7 @@ func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
 	}
 	switch testEnv {
 	default:
-		testConfig.client = gateway.NewClient()
+		testConfig.client = gateway.NewProvider(gateway.WithBaseURL(testConfig.base))
 	}
 	t.Cleanup(func() {
 	})
