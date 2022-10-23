@@ -71,7 +71,7 @@ func Test_Block(t *testing.T) {
 }
 
 // add mainnet and testnet tests with testenv variable
-func Test_BlockIDByHash(t *testing.T) {
+func Test_BlockHashByID(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -85,8 +85,8 @@ func Test_BlockIDByHash(t *testing.T) {
 			opts:      &BlockOptions{BlockNumber: 6319},
 		}},
 		"testnet": {{
-			BlockHash: "0x0358367947dfd73cf6a7609f58d2f4882d0d2539c6452b467cfc74cd17fa8e32",
-			opts:      &BlockOptions{BlockNumber: 380444},
+			BlockHash: "0x052af1130ada6c9d735e8cb4d513f00d2fc488dd27739550e384c712d73b8e06",
+			opts:      &BlockOptions{BlockNumber: 380445},
 		}},
 	}[testEnv]
 
@@ -104,15 +104,45 @@ func Test_BlockIDByHash(t *testing.T) {
 	}
 }
 
-// func Test_BlockHashByID(t *testing.T) {
-// 	gw := NewClient()
+func Test_BlockIDByHash(t *testing.T) {
+	testConfig := beforeEach(t)
 
-// 	hash, err := gw.BlockHashByID(context.Background(), 159179)
-// 	if err != nil || hash == "" {
-// 		t.Errorf("Getting Block Hash by ID: %v", err)
-// 	}
+	type testSetType struct {
+		BlockID uint64
+		opts    *BlockOptions
+	}
 
-// 	if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
-// 		t.Errorf("Wrong Block ID from Hash: %v", err)
-// 	}
-// }
+	testSet := map[string][]testSetType{
+		"mainnet": {{
+			BlockID: "0x032f952924a746346868fecd72066df6092b416836c89ae00082b8f54c8e3331",
+			opts:    &BlockOptions{BlockNumber: 6319},
+		}},
+		"testnet": {{
+			BlockHash: "0x052af1130ada6c9d735e8cb4d513f00d2fc488dd27739550e384c712d73b8e06",
+			opts:      &BlockOptions{BlockNumber: 380445},
+		}},
+	}[testEnv]
+
+	for _, test := range testSet {
+		block, err := testConfig.client.BlockHashByID(context.Background(), test.opts.BlockNumber)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		if block != test.BlockHash {
+			t.Fatalf("expecting %s, instead: %s", block, test.BlockHash)
+		} else {
+			fmt.Println(block)
+		}
+	}
+	// gw := NewClient()
+
+	// hash, err := gw.BlockHashByID(context.Background(), 159179)
+	// if err != nil || hash == "" {
+	// 	t.Errorf("Getting Block Hash by ID: %v", err)
+	// }
+
+	// if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
+	// 	t.Errorf("Wrong Block ID from Hash: %v", err)
+	// }
+}
