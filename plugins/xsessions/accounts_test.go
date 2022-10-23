@@ -2,20 +2,20 @@ package xsessions
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/dontpanicdao/caigo/artifacts"
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 const (
 	privateKey        = "0x1"
 	sessionPrivateKey = "0x2"
-	counterAddress    = "0x01bb5b121d95ddb29ea630a1fa6f03e1f998540ca821531c82d8c7e889398b6e"
+	counterAddress    = "0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b"
 	devnetEth         = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
 )
 
@@ -41,11 +41,8 @@ func (ap *accountPlugin) Write(filename string) error {
 	return os.WriteFile(filename, content, 0664)
 }
 
-//go:embed artifacts/account.json
-var accountCompiled []byte
-
-//go:embed artifacts/counter.json
-var counterCompiled []byte
+var accountCompiled = artifacts.AccountV0WithPluginCompiled
+var counterCompiled = artifacts.CounterCompiled
 
 // TestCounter_DeployContract
 func TestCounter_DeployContract(t *testing.T) {

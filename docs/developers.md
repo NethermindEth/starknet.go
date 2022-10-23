@@ -5,6 +5,7 @@ Caigo. For now, we have listed a number of questions that we would like you
 know before you contribute:
 
 - What is the difference between `rpc` and `gateway`?
+- What version of `rpc` should I use
 - Where are the resources about the protocol?
 - How to interact with accounts?
 - How to better understand the protocol?
@@ -29,6 +30,15 @@ If you wonder which one to use, the short answer is it depends. However, Caigo
 provide an access to both and tries to share a common interface between the 2.
 Be careful that when you are doing something on the project, you should pay
 attention to the 2 interfaces, even if the implementations are specific.
+
+## What version of `rpc` should I use?
+
+`rpc` is currently being upgrade from `v0.1` to `v0.2`. Right now `caigo` only
+supports `v0.1`. However to provide a smooth upgrade the plan is to support
+both in parallel. That is why the current package names are:
+
+- `github.com/dontpanicdao/caigo/rpcv01` for the v0.1 implementation
+- `github.com/dontpanicdao/caigo/rpcv02` for the v0.2 implementation
 
 ## Where do I find resources about the protocol specifications?
 
