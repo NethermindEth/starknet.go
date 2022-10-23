@@ -1,0 +1,38 @@
+
+.EXPORT_ALL_VARIABLES:
+CAIRO_PATH = ./cairo-contracts/src:./src
+
+.PHONY: build
+build: v0 artifacts/accountv0_plugin.json artifacts/proxyv0.json artifacts/pluginv0.json artifacts/accountv0.json
+
+artifacts/accountv0_plugin.json: src/accountv0_plugin.cairo
+	starknet-compile src/accountv0_plugin.cairo \
+		--output artifacts/accountv0_plugin.json \
+		--abi artifacts/accountv0_plugin_abi.json --account_contract || \
+		rm -f artifacts/accountv0_plugin.json
+
+artifacts/pluginv0.json: src/yeasayer.cairo
+	starknet-compile src/yeasayer.cairo \
+		--output artifacts/pluginv0.json \
+		--abi artifacts/pluginv0_abi.json || \
+		rm -f artifacts/pluginv0.json
+
+artifacts/accountv0.json: src/accountv0.cairo
+	starknet-compile src/accountv0.cairo \
+		--output artifacts/accountv0.json \
+		--abi artifacts/accountv0_abi.json --account_contract || \
+		rm -f artifacts/accountv0.json
+
+artifacts/proxyv0.json: src/proxyv0.cairo
+	starknet-compile src/proxyv0.cairo \
+		--output artifacts/proxyv0.json \
+		--abi artifacts/proxyv0_abi.json || \
+		rm -f artifacts/proxyv0.json
+
+.PHONY: v0
+v0: artifacts
+	cd cairo-contracts && git pull && \
+	git reset --hard 789ea11085a178960ce62a774157b6a4f0b85d7f
+
+artifacts:
+	mkdir -p artifacts

@@ -31,6 +31,21 @@ type DeployRequest struct {
 	ContractDefinition  ContractClass `json:"contract_definition"`
 }
 
+type DeployAccountRequest struct {
+	MaxFee *big.Int `json:"max_fee"`
+	// Version of the transaction scheme, should be set to 0 or 1
+	Version uint64 `json:"version"`
+	// Signature
+	Signature Signature `json:"signature"`
+	// Nonce should only be set with Transaction V1
+	Nonce *big.Int `json:"nonce,omitempty"`
+
+	Type                string   `json:"type"`
+	ContractAddressSalt string   `json:"contract_address_salt"`
+	ConstructorCalldata []string `json:"constructor_calldata"`
+	ClassHash           string   `json:"class_hash"`
+}
+
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    Hash   `json:"contract_address"`
@@ -112,7 +127,6 @@ func (s TransactionState) String() string {
 func (s TransactionState) IsTransactionFinal() bool {
 	if s == TransactionAcceptedOnL2 ||
 		s == TransactionAcceptedOnL1 ||
-		s == TransactionReceived ||
 		s == TransactionRejected {
 		return true
 	}

@@ -20,6 +20,8 @@ type StarknetTransaction struct {
 	Status           string      `json:"status"`
 }
 
+// TODO: test this TX structure matches the case for InvokeV1 and DeployAccount
+
 type Transaction struct {
 	TransactionHash    string   `json:"transaction_hash,omitempty"`
 	ClassHash          string   `json:"class_hash,omitempty"`

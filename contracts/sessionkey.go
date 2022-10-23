@@ -29,7 +29,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 	)
 }
 
-func (ap *AccountPlugin) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
+func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
 
@@ -81,7 +81,7 @@ func (ap *AccountPlugin) ExecuteWithSessionKey(counterAddress, selector string, 
 	return tx.TransactionHash, nil
 }
 
-func (ap *AccountPlugin) ExecuteWithRPCv01(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
+func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -121,7 +121,7 @@ func (ap *AccountPlugin) ExecuteWithRPCv01(counterAddress, selector string, prov
 	return tx.TransactionHash, nil
 }
 
-func (ap *AccountPlugin) ExecuteWithGateway(counterAddress, selector string, provider *gateway.Gateway) (string, error) {
+func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -161,7 +161,7 @@ func (ap *AccountPlugin) ExecuteWithGateway(counterAddress, selector string, pro
 	return tx.TransactionHash, nil
 }
 
-func (ap *AccountPlugin) CallWithGateway(call types.FunctionCall, provider *gateway.Gateway) ([]string, error) {
+func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
 	account, err := caigo.NewGatewayAccount(
 		ap.PrivateKey,
 		ap.AccountAddress,

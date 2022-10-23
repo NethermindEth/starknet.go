@@ -17,8 +17,9 @@ var (
 )
 
 const (
-	TRANSACTION_PREFIX = "invoke"
-	EXECUTE_SELECTOR   = "__execute__"
+	TRANSACTION_PREFIX      = "invoke"
+	EXECUTE_SELECTOR        = "__execute__"
+	CONTRACT_ADDRESS_PREFIX = "STARKNET_CONTRACT_ADDRESS"
 )
 
 type account interface {
@@ -45,7 +46,7 @@ const (
 
 type Account struct {
 	rpcv01         *rpcv01.Provider
-	sequencer      *gateway.Gateway
+	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
 	AccountAddress string
@@ -115,7 +116,7 @@ func NewRPCAccount(private, address string, provider *rpcv01.Provider, options .
 	return account, nil
 }
 
-func NewGatewayAccount(private, address string, provider *gateway.Gateway, options ...AccountOptionFunc) (*Account, error) {
+func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(private, address, options...)
 	if err != nil {
 		return nil, err

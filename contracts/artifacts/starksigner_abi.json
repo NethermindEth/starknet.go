@@ -22,55 +22,19 @@
                 "type": "felt"
             }
         ],
-        "name": "AccountCallArray",
+        "name": "CallArray",
         "size": 4,
         "type": "struct"
     },
     {
         "inputs": [
             {
-                "name": "publicKey",
+                "name": "plugin_data_len",
                 "type": "felt"
-            }
-        ],
-        "name": "constructor",
-        "outputs": [],
-        "type": "constructor"
-    },
-    {
-        "inputs": [],
-        "name": "getPublicKey",
-        "outputs": [
+            },
             {
-                "name": "publicKey",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "interfaceId",
-                "type": "felt"
-            }
-        ],
-        "name": "supportsInterface",
-        "outputs": [
-            {
-                "name": "success",
-                "type": "felt"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "public_key",
-                "type": "felt"
+                "name": "plugin_data",
+                "type": "felt*"
             }
         ],
         "name": "initialize",
@@ -80,12 +44,24 @@
     {
         "inputs": [
             {
-                "name": "newPublicKey",
+                "name": "public_key",
                 "type": "felt"
             }
         ],
         "name": "setPublicKey",
         "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getPublicKey",
+        "outputs": [
+            {
+                "name": "public_key",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -116,67 +92,42 @@
     {
         "inputs": [
             {
-                "name": "call_array_len",
-                "type": "felt"
-            },
-            {
-                "name": "call_array",
-                "type": "AccountCallArray*"
-            },
-            {
-                "name": "calldata_len",
-                "type": "felt"
-            },
-            {
-                "name": "calldata",
-                "type": "felt*"
-            }
-        ],
-        "name": "__validate__",
-        "outputs": [],
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "class_hash",
+                "name": "interfaceId",
                 "type": "felt"
             }
         ],
-        "name": "__validate_declare__",
-        "outputs": [],
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "name": "call_array_len",
-                "type": "felt"
-            },
-            {
-                "name": "call_array",
-                "type": "AccountCallArray*"
-            },
-            {
-                "name": "calldata_len",
-                "type": "felt"
-            },
-            {
-                "name": "calldata",
-                "type": "felt*"
-            }
-        ],
-        "name": "__execute__",
+        "name": "supportsInterface",
         "outputs": [
             {
-                "name": "response_len",
+                "name": "success",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "call_array_len",
                 "type": "felt"
             },
             {
-                "name": "response",
+                "name": "call_array",
+                "type": "CallArray*"
+            },
+            {
+                "name": "calldata_len",
+                "type": "felt"
+            },
+            {
+                "name": "calldata",
                 "type": "felt*"
             }
         ],
+        "name": "validate",
+        "outputs": [],
+        "stateMutability": "view",
         "type": "function"
     }
 ]

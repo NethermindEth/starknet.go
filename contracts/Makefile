@@ -1,15 +1,28 @@
 
 .EXPORT_ALL_VARIABLES:
-CAIRO_PATH = ./cairo-contracts/src:./src
+CAIRO_PATH = ./starknet-plugin-account:./cairo-contracts/src:./src:
 
 .PHONY: build
-build: syncoz0 artifacts/accountv0_plugin.json artifacts/counter.json artifacts/proxy.json artifacts/plugin.json artifacts/accountv0.json
+build: artifacts/account_plugin.json artifacts/sessionkey.json artifacts/starksigner.json artifacts/counter.json ozlatest
 
-artifacts/accountv0_plugin.json: src/accountv0_plugin.cairo artifacts
-	starknet-compile src/accountv0_plugin.cairo \
-		--output artifacts/accountv0_plugin.json \
-		--abi artifacts/accountv0_plugin_abi.json --account_contract || \
-		rm -f artifacts/accountv0_plugin.json
+# modified version of starknet-plugin-account/contracts/account/PluginAccount.cairo
+artifacts/account_plugin.json: src/account_plugin.cairo artifacts
+	starknet-compile src/account_plugin.cairo \
+		--output artifacts/account_plugin.json \
+		--abi artifacts/account_plugin_abi.json --account_contract || \
+		rm -f artifacts/account_plugin.json
+
+artifacts/sessionkey.json: starknet-plugin-account/contracts/plugins/SessionKey.cairo artifacts
+	starknet-compile starknet-plugin-account/contracts/plugins/SessionKey.cairo \
+		--output artifacts/sessionkey.json \
+		--abi artifacts/sessionkey_abi.json || \
+		rm -f artifacts/sessionkey.json
+
+artifacts/starksigner.json: starknet-plugin-account/contracts/plugins/signer/StarkSigner.cairo artifacts
+	starknet-compile starknet-plugin-account/contracts/plugins/signer/StarkSigner.cairo \
+		--output artifacts/starksigner.json \
+		--abi artifacts/starksigner_abi.json || \
+		rm -f artifacts/starksigner.json
 
 artifacts/counter.json: src/counter.cairo artifacts
 	starknet-compile src/counter.cairo \
@@ -17,49 +30,37 @@ artifacts/counter.json: src/counter.cairo artifacts
 		--abi artifacts/counter_abi.json || \
 		rm -f artifacts/counter.json
 
-artifacts/plugin.json: src/yeasayer.cairo artifacts
-	starknet-compile src/yeasayer.cairo \
-		--output artifacts/plugin.json \
-		--abi artifacts/plugin_abi.json || \
-		rm -f artifacts/plugin.json
+.PHONY: ozlatest
+ozlatest: artifacts/account.json artifacts/erc20.json artifacts/proxy.json
 
-artifacts/proxy.json: artifacts
-	starknet-compile src/proxy.cairo \
+artifacts/account.json: src/account.cairo artifacts
+	starknet-compile src/account.cairo \
+		--output artifacts/account.json \
+		--abi artifacts/account_abi.json --account_contract || \
+		rm -f artifacts/account.json
+
+artifacts/proxy_plugin.json: src/proxy_plugin.cairo artifacts
+	starknet-compile src/proxy_plugin.cairo \
+		--output artifacts/proxy_plugin.json \
+		--abi artifacts/proxy_plugin_abi.json || \
+		rm -f artifacts/proxy_plugin.json
+
+artifacts/proxy.json: cairo-contracts/src/openzeppelin/upgrades/presets/Proxy.cairo artifacts
+	starknet-compile cairo-contracts/src/openzeppelin/upgrades/presets/Proxy.cairo \
 		--output artifacts/proxy.json \
 		--abi artifacts/proxy_abi.json || \
 		rm -f artifacts/proxy.json
 
-artifacts/accountv0.json: artifacts syncoz0
-		starknet-compile src/accountv0.cairo \
-			--output artifacts/accountv0.json \
-			--abi artifacts/accountv0_abi.json --account_contract || \
-			rm -f artifacts/accountv0.json
+artifacts/erc20.json: cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo artifacts
+	starknet-compile cairo-contracts/src/openzeppelin/token/erc20/presets/ERC20.cairo \
+		--output artifacts/erc20.json \
+		--abi artifacts/erc20_abi.json || \
+		rm -f artifacts/erc20.json
 
-artifacts/erc20.json: artifacts syncozlatest
-	cd cairo-contracts/src && \
-		starknet-compile ./openzeppelin/token/erc20/presets/ERC20.cairo \
-			--output ../../artifacts/erc20.json \
-			--abi ../../artifacts/erc20_abi.json || \
-			rm -f ../../artifacts/erc20.json
-
-.PHONY: syncoz0
-syncoz0:
-	cd cairo-contracts && git pull && \
-		git reset --hard 789ea11085a178960ce62a774157b6a4f0b85d7f
-
-.PHONY: ozlatest
-ozlatest: syncozlatest artifacts/accountv1.json artifacts/erc20.json
-
-artifacts/accountv1.json: syncozlatest src/accountv1.cairo artifacts
-	starknet-compile src/accountv1.cairo \
-		--output artifacts/accountv1.json \
-		--abi artifacts/accountv1_abi.json --account_contract || \
-		rm -f artifacts/accountv1.json
-
-
-.PHONY: syncozlatest
-syncozlatest: 
+.PHONY: latest
+latest: 
 	cd cairo-contracts && git pull
+	cd starknet-plugin-account && git pull
 
 artifacts:
 	mkdir -p artifacts

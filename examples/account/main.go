@@ -16,13 +16,13 @@ var (
 	address         string = "0x126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246"
 	privakeKey      string = "0x879d7dad7f9df54e1474ccf572266bba36d40e3202c799d6c477506647c126"
 	feeMargin       uint64 = 115
-	maxPoll         int    = 5
-	pollInterval    int    = 3
+	maxPoll         int    = 100
+	pollInterval    int    = 6
 )
 
 func main() {
 	// init starknet gateway client
-	gw := gateway.NewClient(gateway.WithChain(name))
+	gw := gateway.NewProvider(gateway.WithChain(name))
 
 	// get count before tx
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
@@ -63,7 +63,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	n, receipt, err := gw.WaitForTransaction(context.Background(), execResp.TransactionHash,  pollInterval, maxPoll)
+	n, receipt, err := gw.WaitForTransaction(context.Background(), execResp.TransactionHash, pollInterval, maxPoll)
 	if err != nil {
 		panic(err.Error())
 	}
