@@ -50,21 +50,95 @@ type Provider interface {
 	deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
 }
 
+const (
+	PROVIDER_GATEWAY = "gateway"
+	PROVIDER_RPCV01  = "rpcv01"
+	ACCOUNT_VERSION0 = "v0"
+	ACCOUNT_VERSION1 = "v1"
+)
+
 func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
 	case *rpcv01.Provider:
 		provider := RPCv01Provider(*v)
 		return &provider, nil
+	case *gateway.GatewayProvider:
+		provider := GatewayProvider(*v)
+		return &provider, nil
 	}
 	return nil, errors.New("unsupported type")
+}
+
+type calldataFormater func(accountHash, pluginHash, publicKey string) ([]string, error)
+
+func AccountV0Formater(accountHash, pluginHash, publicKey string) ([]string, error) {
+	calldata := []string{}
+	if accountHash == "" {
+		calldata = append(calldata, publicKey)
+		if pluginHash != "" {
+			calldata = append(calldata, pluginHash)
+		}
+		return calldata, nil
+	}
+	calldata = append(calldata, accountHash)
+	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+	calldata = append(calldata, initialize)
+	paramLen := "0x1"
+	if pluginHash != "" {
+		paramLen = "0x2"
+	}
+	calldata = append(calldata, paramLen)
+	calldata = append(calldata, publicKey)
+	if pluginHash != "" {
+		calldata = append(calldata, pluginHash)
+	}
+	return calldata, nil
+}
+
+func AccountFormater(accountHash, pluginHash, publicKey string) ([]string, error) {
+	if pluginHash != "" {
+		return nil, errors.New("plugin not supported")
+	}
+	calldata := []string{}
+	if accountHash == "" {
+		calldata = append(calldata, publicKey)
+		if pluginHash != "" {
+			calldata = append(calldata, pluginHash)
+		}
+		return calldata, nil
+	}
+	calldata = append(calldata, accountHash)
+	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+	calldata = append(calldata, initialize)
+	calldata = append(calldata, "0x1")
+	calldata = append(calldata, publicKey)
+	return calldata, nil
+}
+
+func AccountPluginFormater(accountHash, pluginHash, publicKey string) ([]string, error) {
+	if pluginHash == "" {
+		return nil, errors.New("plugin is mandatory")
+	}
+	calldata := []string{}
+	if accountHash != "" {
+		calldata = append(calldata, accountHash)
+		initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+		calldata = append(calldata, initialize)
+		calldata = append(calldata, "0x4")
+	}
+	calldata = append(calldata, pluginHash)
+	calldata = append(calldata, "0x2")
+	calldata = append(calldata, "0x1")
+	calldata = append(calldata, publicKey)
+	return calldata, nil
 }
 
 // InstallAndWaitForAccount installs an account with a DEPLOY command.
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledPlugin, compiledAccount, compiledProxy []byte) (*AccountManager, error) {
-	if len(compiledAccount) == 0 {
+func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts CompiledContract) (*AccountManager, error) {
+	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
 	privateKeyString := fmt.Sprintf("0x%s", privateKey.Text(16))
@@ -78,55 +152,48 @@ func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvi
 		return nil, err
 	}
 	accountClassHash := ""
-	calldata := []string{}
-	if len(compiledProxy) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledAccount)
+	if len(compiledContracts.ProxyCompiled) != 0 {
+		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.AccountCompiled)
 		if err != nil {
 			return nil, err
 		}
-		initialize := types.GetSelectorFromName("initialize")
-		calldata = append(calldata, output.classHash)
-		calldata = append(calldata, fmt.Sprintf("0x%s", initialize.Text(16)))
-		paramLen := "0x1"
-		if len(compiledPlugin) != 0 {
-			paramLen = "0x2"
-		}
-		calldata = append(calldata, paramLen)
 		accountClassHash = output.classHash
 	}
-	calldata = append(calldata, publicKeyString)
 	pluginClassHash := ""
-	if len(compiledPlugin) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledPlugin)
+	if len(compiledContracts.PluginCompiled) != 0 {
+		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.PluginCompiled)
 		if err != nil {
 			return nil, err
 		}
 		pluginClassHash = output.classHash
-		calldata = append(calldata, pluginClassHash)
 	}
-	compiledDeployed := compiledAccount
-	if len(compiledProxy) != 0 {
-		compiledDeployed = compiledProxy
+	compiledDeployed := compiledContracts.AccountCompiled
+	if len(compiledContracts.ProxyCompiled) != 0 {
+		compiledDeployed = compiledContracts.ProxyCompiled
+	}
+	calldata, err := compiledContracts.Formatter(accountClassHash, pluginClassHash, publicKeyString)
+	if err != nil {
+		return nil, err
 	}
 	deployedOutput, err := p.deployAndWaitNoWallet(ctx, compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}
 	proxyClassHash := ""
-	switch len(compiledProxy) {
+	switch len(compiledContracts.ProxyCompiled) {
 	case 0:
-		accountClassHash = deployedOutput.classHash
+		accountClassHash = deployedOutput.ClassHash
 	default:
-		proxyClassHash = deployedOutput.classHash
+		proxyClassHash = deployedOutput.ClassHash
 	}
 	return &AccountManager{
-		AccountAddress:   deployedOutput.contractAddress,
+		AccountAddress:   deployedOutput.ContractAddress,
 		AccountClassHash: accountClassHash,
 		PluginClassHash:  pluginClassHash,
 		PrivateKey:       privateKeyString,
 		ProxyClassHash:   proxyClassHash,
 		PublicKey:        publicKeyString,
-		TransactionHash:  deployedOutput.transactionHash,
+		TransactionHash:  deployedOutput.TransactionHash,
 		Version:          "v0",
 	}, nil
 

@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/dontpanicdao/caigo/types"
@@ -90,7 +91,46 @@ func TestDeployCounterContract(t *testing.T) {
 		}
 		fmt.Println("txHash: ", tx.TransactionHash)
 	}
+}
 
+func TestDeployAccountContract(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		Salt       string
+		PrivateKey *big.Int
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {{
+			Salt:       "0x0",
+			PrivateKey: big.NewInt(1),
+		}},
+	}[testEnv]
+
+	for _, _ = range testSet {
+		gw := testConfig.client
+		// Step 1: deploy the a class
+		// Step 2: compute the public key
+		// Step 3: compute the account address
+		// Step 4: send some eth
+		// Step 5: deploy the account
+		// Step 6: make sure the account is deployed
+		// Step 7: Get the block from the TX
+
+		counterClass := types.ContractClass{}
+		err := json.Unmarshal(counterCompiled, &counterClass)
+		if err != nil {
+			t.Fatalf("could not parse contract: %v\n", err)
+		}
+		tx, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
+			ContractAddressSalt: "0x1",
+			ConstructorCalldata: []string{},
+		})
+		if err != nil {
+			t.Fatalf("testnet: could not deploy contract: %v\n", err)
+		}
+		fmt.Println("txHash: ", tx.TransactionHash)
+	}
 }
 
 func TestCall(t *testing.T) {

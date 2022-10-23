@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
@@ -25,13 +26,16 @@ func TestMain(m *testing.M) {
 }
 
 type testConfiguration struct {
-	baseURL string
-	client  *rpcv01.Provider
+	rpcv01     *rpcv01.Provider
+	gateway    *gateway.GatewayProvider
+	RPCBaseURL string
+	GWBaseURL  string
 }
 
 var testConfigurations = map[string]testConfiguration{
 	"devnet": {
-		baseURL: "http://localhost:5050/rpc",
+		RPCBaseURL: "http://localhost:5050/rpc",
+		GWBaseURL:  "http://localhost:5050",
 	},
 }
 
@@ -45,12 +49,14 @@ func beforeEach(t *testing.T) *testConfiguration {
 	}
 	switch testEnv {
 	case "devnet":
-		c, err := ethrpc.DialContext(context.Background(), testConfig.baseURL)
+		c, err := ethrpc.DialContext(context.Background(), testConfig.RPCBaseURL)
 		if err != nil {
 			t.Fatal("connect should succeed, instead:", err)
 		}
 		client := rpcv01.NewProvider(c)
-		testConfig.client = client
+		testConfig.rpcv01 = client
+		gw := gateway.NewProvider(gateway.WithBaseURL(testConfig.GWBaseURL))
+		testConfig.gateway = gw
 	}
 	t.Cleanup(func() {
 	})

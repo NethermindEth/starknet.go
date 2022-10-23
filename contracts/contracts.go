@@ -49,9 +49,9 @@ func (p *RPCv01Provider) declareAndWaitNoWallet(ctx context.Context, compiledCla
 }
 
 type DeployOutput struct {
-	contractAddress string
-	classHash       string
-	transactionHash string
+	ContractAddress string
+	ClassHash       string
+	TransactionHash string
 }
 
 // DeployAndWaitNoWallet run the DEPLOY transaction to deploy a contract and
@@ -81,54 +81,67 @@ func (p *RPCv01Provider) deployAndWaitNoWallet(ctx context.Context, compiledClas
 		return nil, errors.New("deploy rejected")
 	}
 	return &DeployOutput{
-		contractAddress: tx.ContractAddress,
+		ContractAddress: tx.ContractAddress,
+		TransactionHash: tx.TransactionHash,
+	}, nil
+}
+
+type GatewayProvider gateway.GatewayProvider
+
+func (p *GatewayProvider) declareAndWaitNoWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
+	provider := gateway.GatewayProvider(*p)
+	class := types.ContractClass{}
+	if err := json.Unmarshal(compiledClass, &class); err != nil {
+		return nil, err
+	}
+	tx, err := provider.Declare(ctx, class, gateway.DeclareRequest{})
+	if err != nil {
+		return nil, err
+	}
+	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		return nil, err
+	}
+	if !receipt.Status.IsTransactionFinal() ||
+		receipt.Status == types.TransactionRejected {
+		return nil, fmt.Errorf("wrong status: %s", receipt.Status)
+	}
+	return &DeclareOutput{
+		classHash:       tx.ClassHash,
 		transactionHash: tx.TransactionHash,
 	}, nil
 }
 
-type GatewayProvider gateway.Gateway
-
-func (p *GatewayProvider) declareAndWaitNoWallet(ctx context.Context, compiledClass []byte) (string, error) {
-	provider := gateway.Gateway(*p)
+// DeployAndWaitNoWallet run the DEPLOY transaction to deploy a contract and
+// wait for it to be final with the blockchain.
+//
+// Deprecated: this command should be replaced by an Invoke on a class or a
+// DEPLOY_ACCOUNT for an account.
+func (p *GatewayProvider) deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+	provider := gateway.GatewayProvider(*p)
 	class := types.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
-		return "", err
-	}
-	tx, err := provider.Declare(ctx, class, gateway.DeclareRequest{})
-	if err != nil {
-		return "", err
-	}
-	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
-	if err != nil {
-		return "", err
-	}
-	if !receipt.Status.IsTransactionFinal() ||
-		receipt.Status == types.TransactionRejected {
-		return "", fmt.Errorf("wrong status: %s", receipt.Status)
-	}
-	return tx.ClassHash, nil
-}
-
-func (p *GatewayProvider) deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (string, error) {
-	provider := gateway.Gateway(*p)
-	class := types.ContractClass{}
-	if err := json.Unmarshal(compiledClass, &class); err != nil {
-		return "", err
+		return nil, err
 	}
 	tx, err := provider.Deploy(ctx, class, types.DeployRequest{
 		ContractAddressSalt: salt,
 		ConstructorCalldata: inputs,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 8, 60)
 	if err != nil {
-		return "", err
+		log.Printf("contract Address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return nil, err
 	}
 	if !receipt.Status.IsTransactionFinal() ||
 		receipt.Status == types.TransactionRejected {
-		return "", fmt.Errorf("wrong status: %s", receipt.Status)
+		return nil, fmt.Errorf("wrong status: %s", receipt.Status)
 	}
-	return tx.ContractAddress, nil
+	return &DeployOutput{
+		ContractAddress: tx.ContractAddress,
+		TransactionHash: tx.TransactionHash,
+	}, nil
 }

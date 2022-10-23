@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -152,6 +153,56 @@ func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, dep
 	if err != nil {
 		return resp, err
 	}
+
+	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, sg.do(req, &resp)
+}
+
+type DeployAccountRequest types.DeployAccountRequest
+
+func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
+	if d.Type != "DEPLOY_ACCOUNT" {
+		return nil, errors.New("wrong type")
+	}
+	output := map[string]interface{}{}
+	constructorCalldata := []string{}
+	for _, value := range d.ConstructorCalldata {
+		constructorCalldata = append(constructorCalldata, types.SNValToBN(value).Text(10))
+	}
+	output["constructor_calldata"] = constructorCalldata
+	output["max_fee"] = fmt.Sprintf("0x%s", d.MaxFee.Text(16))
+	output["version"] = fmt.Sprintf("0x%s", big.NewInt(int64(d.Version)).Text(16))
+	signature := []string{}
+	for _, value := range d.Signature {
+		signature = append(signature, value.Text(10))
+	}
+	output["signature"] = signature
+	nonce := "0x0"
+	if d.Nonce != nil {
+		output["version"] = fmt.Sprintf("0x%s", d.Nonce.Text(16))
+	}
+	output["nonce"] = nonce
+	output["type"] = "DEPLOY_ACCOUNT"
+	if d.ContractAddressSalt == "" {
+		d.ContractAddressSalt = "0x0"
+	}
+	contractAddressSalt := fmt.Sprintf("0x%s", types.SNValToBN(d.ContractAddressSalt).Text(16))
+	output["contract_address_salt"] = contractAddressSalt
+	classHash := fmt.Sprintf("0x%s", types.SNValToBN(d.ClassHash).Text(16))
+	output["class_hash"] = classHash
+	return json.Marshal(output)
+}
+
+/*
+'add_transaction' wrapper for deploying a compiled StarkNet account
+*/
+func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types.DeployAccountRequest) (resp types.AddDeployResponse, err error) {
+	d := DeployAccountRequest(deployAccountRequest)
+	d.Type = DEPLOY_ACCOUNT
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
 	if err != nil {

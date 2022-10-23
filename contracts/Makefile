@@ -3,19 +3,26 @@
 CAIRO_PATH = ./starknet-plugin-account:./cairo-contracts/src:./src:
 
 .PHONY: build
-build: artifacts/account_plugin.json artifacts/plugin.json artifacts/counter.json ozlatest
+build: artifacts/account_plugin.json artifacts/sessionkey.json artifacts/starksigner.json artifacts/counter.json ozlatest
 
-artifacts/account_plugin.json: starknet-plugin-account/contracts/account/PluginAccount.cairo artifacts
-	starknet-compile starknet-plugin-account/contracts/account/PluginAccount.cairo \
+# modified version of starknet-plugin-account/contracts/account/PluginAccount.cairo
+artifacts/account_plugin.json: src/account_plugin.cairo artifacts
+	starknet-compile src/account_plugin.cairo \
 		--output artifacts/account_plugin.json \
 		--abi artifacts/account_plugin_abi.json --account_contract || \
 		rm -f artifacts/account_plugin.json
 
-artifacts/plugin.json: starknet-plugin-account/contracts/plugins/SessionKey.cairo artifacts
+artifacts/sessionkey.json: starknet-plugin-account/contracts/plugins/SessionKey.cairo artifacts
 	starknet-compile starknet-plugin-account/contracts/plugins/SessionKey.cairo \
-		--output artifacts/plugin.json \
-		--abi artifacts/plugin_abi.json || \
-		rm -f artifacts/plugin.json
+		--output artifacts/sessionkey.json \
+		--abi artifacts/sessionkey_abi.json || \
+		rm -f artifacts/sessionkey.json
+
+artifacts/starksigner.json: starknet-plugin-account/contracts/plugins/signer/StarkSigner.cairo artifacts
+	starknet-compile starknet-plugin-account/contracts/plugins/signer/StarkSigner.cairo \
+		--output artifacts/starksigner.json \
+		--abi artifacts/starksigner_abi.json || \
+		rm -f artifacts/starksigner.json
 
 artifacts/counter.json: src/counter.cairo artifacts
 	starknet-compile src/counter.cairo \

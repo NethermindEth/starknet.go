@@ -17,8 +17,9 @@ var (
 )
 
 const (
-	TRANSACTION_PREFIX = "invoke"
-	EXECUTE_SELECTOR   = "__execute__"
+	TRANSACTION_PREFIX      = "invoke"
+	EXECUTE_SELECTOR        = "__execute__"
+	CONTRACT_ADDRESS_PREFIX = "STARKNET_CONTRACT_ADDRESS"
 )
 
 type account interface {
@@ -45,7 +46,7 @@ const (
 
 type Account struct {
 	rpcv01         *rpcv01.Provider
-	sequencer      *gateway.Gateway
+	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
 	AccountAddress string
@@ -115,7 +116,7 @@ func NewRPCAccount(private, address string, provider *rpcv01.Provider, options .
 	return account, nil
 }
 
-func NewGatewayAccount(private, address string, provider *gateway.Gateway, options ...AccountOptionFunc) (*Account, error) {
+func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(private, address, options...)
 	if err != nil {
 		return nil, err
@@ -362,4 +363,39 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		)
 	}
 	return nil, ErrUnsupportedAccount
+}
+
+func ContractAddress(deployerAddress, salt, classHash string, calldata []string) (*big.Int, error) {
+	callArray := []*big.Int{}
+	for _, i := range calldata {
+		v, ok := big.NewInt(0).SetString(i, 0)
+		if !ok {
+			return nil, errors.New("wrong big.Int")
+		}
+		callArray = append(callArray, v)
+	}
+	cdHash, err := Curve.ComputeHashOnElements(callArray)
+	if err != nil {
+		return nil, err
+	}
+	deployerAddressInt, ok := big.NewInt(0).SetString(deployerAddress, 0)
+	if !ok {
+		return nil, errors.New("wrong big.Int")
+	}
+	saltAddressInt, ok := big.NewInt(0).SetString(salt, 0)
+	if !ok {
+		return nil, errors.New("wrong big.Int")
+	}
+	classHashAddressInt, ok := big.NewInt(0).SetString(classHash, 0)
+	if !ok {
+		return nil, errors.New("wrong big.Int")
+	}
+	contract := []*big.Int{
+		types.UTF8StrToBig(CONTRACT_ADDRESS_PREFIX),
+		deployerAddressInt,
+		saltAddressInt,
+		classHashAddressInt,
+		cdHash,
+	}
+	return Curve.ComputeHashOnElements(contract)
 }

@@ -12,14 +12,15 @@ import (
 )
 
 const (
-	INVOKE       string = "INVOKE_FUNCTION"
-	DEPLOY       string = "DEPLOY"
-	DECLARE      string = "DECLARE"
-	GOERLI_ID    string = "SN_GOERLI"
-	MAINNET_ID   string = "SN_MAIN"
-	LOCAL_BASE   string = "http://localhost:5050"
-	GOERLI_BASE  string = "https://alpha4.starknet.io"
-	MAINNET_BASE string = "https://alpha-mainnet.starknet.io"
+	INVOKE         string = "INVOKE_FUNCTION"
+	DEPLOY         string = "DEPLOY"
+	DEPLOY_ACCOUNT string = "DEPLOY_ACCOUNT"
+	DECLARE        string = "DECLARE"
+	GOERLI_ID      string = "SN_GOERLI"
+	MAINNET_ID     string = "SN_MAIN"
+	LOCAL_BASE     string = "http://localhost:5050"
+	GOERLI_BASE    string = "https://alpha4.starknet.io"
+	MAINNET_BASE   string = "https://alpha-mainnet.starknet.io"
 )
 
 type doer interface {

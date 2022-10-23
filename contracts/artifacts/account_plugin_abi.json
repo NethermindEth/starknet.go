@@ -70,6 +70,25 @@
     {
         "inputs": [
             {
+                "name": "plugin",
+                "type": "felt"
+            },
+            {
+                "name": "plugin_calldata_len",
+                "type": "felt"
+            },
+            {
+                "name": "plugin_calldata",
+                "type": "felt*"
+            }
+        ],
+        "name": "constructor",
+        "outputs": [],
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
                 "name": "call_array_len",
                 "type": "felt"
             },

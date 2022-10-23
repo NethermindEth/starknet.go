@@ -121,7 +121,7 @@ func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, pro
 	return tx.TransactionHash, nil
 }
 
-func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, provider *gateway.Gateway) (string, error) {
+func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -161,7 +161,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	return tx.TransactionHash, nil
 }
 
-func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.Gateway) ([]string, error) {
+func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
 	account, err := caigo.NewGatewayAccount(
 		ap.PrivateKey,
 		ap.AccountAddress,
