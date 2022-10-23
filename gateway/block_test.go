@@ -46,9 +46,6 @@ func Test_Block(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {},
 		"testnet": {{
-			// TODO/3: instead of testing just the blockHash we should
-			// (1) Marshal the block back into a []byte and (2) compare it with the original message
-			// check "github.com/nsf/jsondiff" for ideas how to do that.
 			BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
 			opts:      &BlockOptions{BlockNumber: 159179}}},
 
@@ -70,7 +67,6 @@ func Test_Block(t *testing.T) {
 	}
 }
 
-// add mainnet and testnet tests with testenv variable
 func Test_BlockHashByID(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -108,41 +104,31 @@ func Test_BlockIDByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID uint64
-		opts    *BlockOptions
+		BlockNumber uint64
+		opts        *BlockOptions
 	}
 
 	testSet := map[string][]testSetType{
 		"mainnet": {{
-			BlockID: "0x032f952924a746346868fecd72066df6092b416836c89ae00082b8f54c8e3331",
-			opts:    &BlockOptions{BlockNumber: 6319},
+			BlockNumber: 6319,
+			opts:        &BlockOptions{BlockHash: "0x032f952924a746346868fecd72066df6092b416836c89ae00082b8f54c8e3331"},
 		}},
 		"testnet": {{
-			BlockHash: "0x052af1130ada6c9d735e8cb4d513f00d2fc488dd27739550e384c712d73b8e06",
-			opts:      &BlockOptions{BlockNumber: 380445},
+			BlockNumber: 380445,
+			opts:        &BlockOptions{BlockHash: "0x052af1130ada6c9d735e8cb4d513f00d2fc488dd27739550e384c712d73b8e06"},
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.BlockHashByID(context.Background(), test.opts.BlockNumber)
+		block, err := testConfig.client.BlockIDByHash(context.Background(), test.opts.BlockHash)
 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if block != test.BlockHash {
-			t.Fatalf("expecting %s, instead: %s", block, test.BlockHash)
+		if block != test.BlockNumber {
+			t.Fatalf("expecting %v, instead: %v", block, test.BlockNumber)
 		} else {
 			fmt.Println(block)
 		}
 	}
-	// gw := NewClient()
-
-	// hash, err := gw.BlockHashByID(context.Background(), 159179)
-	// if err != nil || hash == "" {
-	// 	t.Errorf("Getting Block Hash by ID: %v", err)
-	// }
-
-	// if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
-	// 	t.Errorf("Wrong Block ID from Hash: %v", err)
-	// }
 }
