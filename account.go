@@ -13,7 +13,7 @@ import (
 
 var (
 	ErrUnsupportedAccount = errors.New("unsupported account implementation")
-	MAX_FEE, _            = big.NewInt(0).SetString("0x2000000000", 0)
+	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000", 0)
 )
 
 const (
@@ -196,6 +196,49 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 	return Curve.ComputeHashOnElements(multiHashData)
 }
 
+func (account *Account) estimateFeeHash(calls []types.FunctionCall, details types.ExecuteDetails, version *big.Int) (*big.Int, error) {
+	var callArray []*big.Int
+	switch {
+	case account.version == 0:
+		callArray = fmtV0Calldata(details.Nonce, calls)
+	case account.version == 1:
+		callArray = fmtCalldata(calls)
+	default:
+		return nil, fmt.Errorf("version %d unsupported", account.version)
+	}
+	cdHash, err := Curve.ComputeHashOnElements(callArray)
+	if err != nil {
+		return nil, err
+	}
+	var multiHashData []*big.Int
+	switch {
+	case account.version == 0:
+		multiHashData = []*big.Int{
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
+			version,
+			types.SNValToBN(account.AccountAddress),
+			types.GetSelectorFromName(EXECUTE_SELECTOR),
+			cdHash,
+			details.MaxFee,
+			types.UTF8StrToBig(account.chainId),
+		}
+	case account.version == 1:
+		multiHashData = []*big.Int{
+			types.UTF8StrToBig(TRANSACTION_PREFIX),
+			version,
+			types.SNValToBN(account.AccountAddress),
+			big.NewInt(0),
+			cdHash,
+			details.MaxFee,
+			types.UTF8StrToBig(account.chainId),
+			details.Nonce,
+		}
+	default:
+		return nil, fmt.Errorf("version %d unsupported", account.version)
+	}
+	return Curve.ComputeHashOnElements(multiHashData)
+}
+
 func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	switch account.version {
 	case 0:
@@ -246,7 +289,10 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
-func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FunctionInvoke, error) {
+func (account *Account) prepFunctionInvoke(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FunctionInvoke, error) {
+	if messageType != "invoke" && messageType != "estimate" {
+		return nil, errors.New("unsupported message type")
+	}
 	nonce := details.Nonce
 	var err error
 	if details.Nonce == nil {
@@ -259,7 +305,6 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.Fu
 	if details.MaxFee != nil {
 		maxFee = details.MaxFee
 	}
-	version := account.version
 	if account.plugin != nil {
 		call, err := account.plugin.PluginCall(calls)
 		if err != nil {
@@ -267,15 +312,38 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.Fu
 		}
 		calls = append([]types.FunctionCall{call}, calls...)
 	}
-	txHash, err := account.TransactionHash(
-		calls,
-		types.ExecuteDetails{
-			Nonce:  nonce,
-			MaxFee: maxFee,
-		},
-	)
-	if err != nil {
-		return nil, err
+	// version, _ := big.NewInt(0).SetString("0x100000000000000000000000000000000", 0)
+	version, _ := big.NewInt(0).SetString("0x0", 0)
+	var txHash *big.Int
+	switch messageType {
+	case "invoke":
+		version = big.NewInt(int64(account.version))
+		txHash, err = account.TransactionHash(
+			calls,
+			types.ExecuteDetails{
+				Nonce:  nonce,
+				MaxFee: maxFee,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+	case "estimate":
+		if account.version == 1 {
+			// version, _ = big.NewInt(0).SetString("0x100000000000000000000000000000001", 0)
+			version, _ = big.NewInt(0).SetString("0x1", 0)
+		}
+		txHash, err = account.estimateFeeHash(
+			calls,
+			types.ExecuteDetails{
+				Nonce:  nonce,
+				MaxFee: maxFee,
+			},
+			version,
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
 	s1, s2, err := account.Sign(txHash)
 	if err != nil {
@@ -311,7 +379,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, calls []types.Fu
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
-	call, err := account.prepFunctionInvoke(ctx, calls, details)
+	call, err := account.prepFunctionInvoke(ctx, "estimate", calls, details)
 	if err != nil {
 		return nil, err
 	}
@@ -331,6 +399,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		if err != nil {
 			return nil, err
 		}
+		fmt.Printf("fee %+v\n", estimate)
 		v, ok := big.NewInt(0).SetString(string(estimate.OverallFee), 0)
 		if !ok {
 			return nil, errors.New("could not match OverallFee to big.Int")
@@ -338,7 +407,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		maxFee = v.Mul(v, big.NewInt(2))
 	}
 	details.MaxFee = maxFee
-	call, err := account.prepFunctionInvoke(ctx, calls, details)
+	call, err := account.prepFunctionInvoke(ctx, "invoke", calls, details)
 	if err != nil {
 		return nil, err
 	}

@@ -13,18 +13,9 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-const (
-	FEE_MARGIN         uint64 = 115
-	SEED               int    = 100000000
-	ACCOUNT_CLASS_HASH string = "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328"
-	CONTRACT_ADDRESS   string = "0x02b795d8c5e38c45da3b89c91174c66a3c77845bbeb87a36038f19c521dbe87e"
-)
-
 var (
 	counterCompiled = artifacts.CounterCompiled
-
-	counterAddress = "0x0"
-
+	counterAddress  = "0x0"
 	accountCompiled = artifacts.AccountCompiled
 )
 
