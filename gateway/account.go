@@ -95,7 +95,8 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 			strconv.Quote(fmt.Sprintf("0x%s", f.MaxFee.Text(16))),
 		)
 	}
-	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%d", f.Version)))
+	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%s", f.Version.Text(16))))
+	output["type"] = "INVOKE_FUNCTION"
 	return json.Marshal(output)
 }
 
@@ -114,18 +115,21 @@ func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, h
 			"blockNumber": []string{hash},
 		})
 	}
-	output := map[string]interface{}{}
+	output := map[string]json.RawMessage{}
 	err = sg.do(req, &output)
 	if err != nil {
 		return nil, err
 	}
-	gasPrice, _ := output["gas_price"].(int)
-	gasConsumed, _ := output["gas_usage"].(int)
-	overallFee, _ := output["overall_fee"].(int)
+	gasPrice := output["gas_price"]
+	gasConsumed := output["gas_usage"]
+	overallFee := output["overall_fee"]
+	overallFeeInt, _ := big.NewInt(0).SetString(string(overallFee), 0)
+	gasPriceInt, _ := big.NewInt(0).SetString(string(gasPrice), 0)
+	gasConsumedInt, _ := big.NewInt(0).SetString(string(gasConsumed), 0)
 	resp := types.FeeEstimate{
-		GasConsumed: types.NumAsHex("0x" + big.NewInt(int64(gasConsumed)).Text(16)),
-		GasPrice:    types.NumAsHex("0x" + big.NewInt(int64(gasPrice)).Text(16)),
-		OverallFee:  types.NumAsHex("0x" + big.NewInt(int64(overallFee)).Text(16)),
+		GasConsumed: types.NumAsHex("0x" + gasConsumedInt.Text(16)),
+		GasPrice:    types.NumAsHex("0x" + gasPriceInt.Text(16)),
+		OverallFee:  types.NumAsHex("0x" + overallFeeInt.Text(16)),
 	}
 	return &resp, nil
 }

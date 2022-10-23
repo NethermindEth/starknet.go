@@ -30,14 +30,14 @@ func constructor{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-    implementation_hash: felt,
-    public_key: felt,
-    plugin: felt):
+    implementation_hash: felt,selector: felt,
+    calldata_len: felt, calldata: felt*):
     Proxy._set_implementation_hash(implementation_hash)
-    Implementation.library_call_initialize(
+    Implementation.library_call(
         class_hash=implementation_hash,
-        public_key=public_key,
-        plugin=plugin,
+        function_selector=selector,
+        calldata_size=calldata_len,
+        calldata=calldata,
     )
     return ()
 end

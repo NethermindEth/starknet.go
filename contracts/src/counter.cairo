@@ -5,76 +5,78 @@ from starkware.cairo.common.math import assert_not_zero
 from starkware.starknet.common.syscalls import get_tx_info, get_caller_address
 
 @storage_var
-func counter() -> (count: felt):
-end
+func counter() -> (count: felt) {
+}
 
 @storage_var
-func rand() -> (val: felt):
-end
+func rand() -> (val: felt) {
+}
 
 @constructor
-func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}():
-    counter.write(0)
-    return ()
-end
+func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    counter.write(0);
+    return ();
+}
 
 @view
-func get_count{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt):
-    let (count) = counter.read()
+func get_count{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt) {
+    let (count) = counter.read();
 
-    return (count,)
-end
-
-@view
-func sum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: felt, b: felt) -> (total: felt):
-    let total = a + b
-    return (total=total,)
-end
+    return (count,);
+}
 
 @view
-func get_rand{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (val: felt):
-    let (val) = rand.read()
+func sum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: felt, b: felt) -> (
+    total: felt
+) {
+    let total = a + b;
+    return (total=total,);
+}
 
-    return (val,)
-end
+@view
+func get_rand{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (val: felt) {
+    let (val) = rand.read();
 
-@external
-func set_rand{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(val: felt):
-    rand.write(val)
-
-    return ()
-end
-
-@external
-func set_rand_signed{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(val: felt):
-    let (caller) = get_caller_address()
-    let (tx_info) = get_tx_info()
-
-    assert_not_zero(tx_info.signature_len)
-
-    rand.write(val)
-
-    return ()
-end
+    return (val,);
+}
 
 @external
-func increment{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt):
-    let (count) = counter.read()
-    counter.write(count + 1)
+func set_rand{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(val: felt) {
+    rand.write(val);
 
-    let (new_count) = counter.read()
-
-    return (count=new_count)
-end
+    return ();
+}
 
 @external
-func decrement{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt):
-    let (count) = counter.read()
-    assert_not_zero(count)
+func set_rand_signed{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(val: felt) {
+    let (caller) = get_caller_address();
+    let (tx_info) = get_tx_info();
 
-    counter.write(count - 1)
+    assert_not_zero(tx_info.signature_len);
 
-    let (new_count) = counter.read()
+    rand.write(val);
 
-    return (count=new_count)
-end
+    return ();
+}
+
+@external
+func increment{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt) {
+    let (count) = counter.read();
+    counter.write(count + 1);
+
+    let (new_count) = counter.read();
+
+    return (count=new_count);
+}
+
+@external
+func decrement{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (count: felt) {
+    let (count) = counter.read();
+    assert_not_zero(count);
+
+    counter.write(count - 1);
+
+    let (new_count) = counter.read();
+
+    return (count=new_count);
+}

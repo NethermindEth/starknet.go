@@ -11,11 +11,11 @@ import (
 	_ "embed"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/types"
 )
 
-//go:embed artifacts/sessionkey_3fc70024.json
-var sessionPluginCompiled []byte
+var sessionPluginCompiled = artifacts.PluginV0Compiled
 
 func sessionToken(privateKey, accountAddress, sessionPublicKey string) *SessionKeyToken {
 	token, _ := SignToken(

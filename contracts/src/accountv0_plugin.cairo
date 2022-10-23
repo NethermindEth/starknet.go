@@ -13,14 +13,18 @@ from openzeppelin.upgrades.library import Proxy
 
 from openzeppelin.introspection.erc165.library import ERC165
 
-from plugin import PluginUtils, USE_PLUGIN
+from plugin_library import PluginUtils, USE_PLUGIN
 
 #
 # Constructor
 #
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    public_key : felt, plugin : felt
+):
+    Account.initializer(public_key)
+    PluginUtils.initializer(plugin)
     return ()
 end
 

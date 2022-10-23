@@ -3785,12 +3785,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 92,
-                        "end_line": 294,
+                        "end_line": 296,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 64,
-                        "start_line": 294
+                        "start_line": 296
                     }
                 },
                 "160": {
@@ -3802,12 +3802,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 93,
-                        "end_line": 294,
+                        "end_line": 296,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 294
+                        "start_line": 296
                     }
                 },
                 "161": {
@@ -3820,48 +3820,48 @@
                         {
                             "location": {
                                 "end_col": 94,
-                                "end_line": 295,
+                                "end_line": 297,
                                 "input_file": {
                                     "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "start_col": 5,
-                                "start_line": 295
+                                "start_line": 297
                             },
                             "n_prefix_newlines": 0
                         }
                     ],
                     "inst": {
                         "end_col": 59,
-                        "end_line": 296,
+                        "end_line": 298,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 45,
-                                "end_line": 292,
+                                "end_line": 294,
                                 "input_file": {
                                     "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 62,
-                                        "end_line": 297,
+                                        "end_line": 299,
                                         "input_file": {
                                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
                                         "start_col": 5,
-                                        "start_line": 297
+                                        "start_line": 299
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 26,
-                                "start_line": 292
+                                "start_line": 294
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
                         "start_col": 23,
-                        "start_line": 296
+                        "start_line": 298
                     }
                 },
                 "163": {
@@ -3873,12 +3873,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 61,
-                        "end_line": 297,
+                        "end_line": 299,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 29,
-                        "start_line": 297
+                        "start_line": 299
                     }
                 },
                 "164": {
@@ -3890,12 +3890,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 62,
-                        "end_line": 297,
+                        "end_line": 299,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 297
+                        "start_line": 299
                     }
                 },
                 "165": {
@@ -3907,12 +3907,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 76,
-                        "end_line": 435,
+                        "end_line": 437,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 56,
-                        "start_line": 435
+                        "start_line": 437
                     }
                 },
                 "167": {
@@ -3924,12 +3924,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 77,
-                        "end_line": 435,
+                        "end_line": 437,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 435
+                        "start_line": 437
                     }
                 },
                 "168": {
@@ -3942,48 +3942,48 @@
                         {
                             "location": {
                                 "end_col": 86,
-                                "end_line": 436,
+                                "end_line": 438,
                                 "input_file": {
                                     "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "start_col": 5,
-                                "start_line": 436
+                                "start_line": 438
                             },
                             "n_prefix_newlines": 0
                         }
                     ],
                     "inst": {
                         "end_col": 51,
-                        "end_line": 438,
+                        "end_line": 440,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 37,
-                                "end_line": 433,
+                                "end_line": 435,
                                 "input_file": {
                                     "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 38,
-                                        "end_line": 439,
+                                        "end_line": 441,
                                         "input_file": {
                                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
                                         "start_col": 5,
-                                        "start_line": 439
+                                        "start_line": 441
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 18,
-                                "start_line": 433
+                                "start_line": 435
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
                         "start_col": 23,
-                        "start_line": 438
+                        "start_line": 440
                     }
                 },
                 "170": {
@@ -3995,12 +3995,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 439,
+                        "end_line": 441,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 21,
-                        "start_line": 439
+                        "start_line": 441
                     }
                 },
                 "171": {
@@ -4012,12 +4012,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 38,
-                        "end_line": 439,
+                        "end_line": 441,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 439
+                        "start_line": 441
                     }
                 },
                 "172": {
@@ -6625,7 +6625,7 @@
                         "parent_location": [
                             {
                                 "end_col": 37,
-                                "end_line": 433,
+                                "end_line": 435,
                                 "input_file": {
                                     "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
@@ -6642,7 +6642,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 18,
-                                "start_line": 433
+                                "start_line": 435
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -7014,7 +7014,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 433,
+                        "end_line": 435,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
@@ -7028,7 +7028,7 @@
                                 "parent_location": [
                                     {
                                         "end_col": 45,
-                                        "end_line": 292,
+                                        "end_line": 294,
                                         "input_file": {
                                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
@@ -7045,7 +7045,7 @@
                                             "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                         ],
                                         "start_col": 26,
-                                        "start_line": 292
+                                        "start_line": 294
                                     },
                                     "While expanding the reference 'syscall_ptr' in:"
                                 ],
@@ -7055,7 +7055,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 18,
-                        "start_line": 433
+                        "start_line": 435
                     }
                 },
                 "318": {
@@ -7086,7 +7086,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 45,
-                        "end_line": 292,
+                        "end_line": 294,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
@@ -7100,7 +7100,7 @@
                                 "parent_location": [
                                     {
                                         "end_col": 45,
-                                        "end_line": 292,
+                                        "end_line": 294,
                                         "input_file": {
                                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
@@ -7117,7 +7117,7 @@
                                             "While trying to update the implicit return value 'syscall_ptr' in:"
                                         ],
                                         "start_col": 26,
-                                        "start_line": 292
+                                        "start_line": 294
                                     },
                                     "While auto generating local variable for 'syscall_ptr'."
                                 ],
@@ -7127,7 +7127,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 26,
-                        "start_line": 292
+                        "start_line": 294
                     }
                 },
                 "321": {
@@ -7806,7 +7806,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 45,
-                        "end_line": 292,
+                        "end_line": 294,
                         "input_file": {
                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
@@ -7820,7 +7820,7 @@
                                 "parent_location": [
                                     {
                                         "end_col": 45,
-                                        "end_line": 292,
+                                        "end_line": 294,
                                         "input_file": {
                                             "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.9/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
@@ -7873,7 +7873,7 @@
                                             "While trying to update the implicit return value 'syscall_ptr' in:"
                                         ],
                                         "start_col": 26,
-                                        "start_line": 292
+                                        "start_line": 294
                                     },
                                     "While auto generating local variable for 'syscall_ptr'."
                                 ],
@@ -7883,7 +7883,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 26,
-                        "start_line": 292
+                        "start_line": 294
                     }
                 },
                 "345": {
@@ -17390,7 +17390,7 @@
                         "cairo_type": "felt",
                         "offset": 2
                     },
-                    "reserved": {
+                    "deploy_from_zero": {
                         "cairo_type": "felt",
                         "offset": 5
                     },
