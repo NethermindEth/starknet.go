@@ -74,46 +74,45 @@ func Test_Block(t *testing.T) {
 func Test_BlockIDByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	//add testset type
 	type testSetType struct {
 		BlockHash string
 		opts      *BlockOptions
 	}
 
-	testSet := map[string]testSetType{
+	testSet := map[string][]testSetType{
 		"mainnet": {{
-			BlockHash: "0x059db44ce953a2c9caf9b8cfe38f1948365d53a1f9437367399fd81e5c08083e",
-			opts:      &BlockOptions{BlockNumber: 159179},
+			BlockHash: "0x032f952924a746346868fecd72066df6092b416836c89ae00082b8f54c8e3331",
+			opts:      &BlockOptions{BlockNumber: 6319},
 		}},
 		"testnet": {{
-			BlockHash: "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e",
-			opts:      &BlockOptions{BlockNumber: 157960},
+			BlockHash: "0x0358367947dfd73cf6a7609f58d2f4882d0d2539c6452b467cfc74cd17fa8e32",
+			opts:      &BlockOptions{BlockNumber: 380444},
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		hash, err := testConfig.client.BlockHashByID(context.Background(), test.opts)
+		block, err := testConfig.client.BlockHashByID(context.Background(), test.opts.BlockNumber)
 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if hash != test.BlockHash {
-			t.Fatalf("expecting %s, instead: %s", test.BlockHash, hash)
+		if block != test.BlockHash {
+			t.Fatalf("expecting %s, instead: %s", block, test.BlockHash)
 		} else {
 			fmt.Println(block)
 		}
 	}
 }
 
-func Test_BlockHashByID(t *testing.T) {
-	gw := NewClient()
+// func Test_BlockHashByID(t *testing.T) {
+// 	gw := NewClient()
 
-	hash, err := gw.BlockHashByID(context.Background(), 159179)
-	if err != nil || hash == "" {
-		t.Errorf("Getting Block Hash by ID: %v", err)
-	}
+// 	hash, err := gw.BlockHashByID(context.Background(), 159179)
+// 	if err != nil || hash == "" {
+// 		t.Errorf("Getting Block Hash by ID: %v", err)
+// 	}
 
-	if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
-		t.Errorf("Wrong Block ID from Hash: %v", err)
-	}
-}
+// 	if id != "0x5239614da0a08b53fa8cbdbdcb2d852e153027ae26a2ae3d43f7ceceb28551e" {
+// 		t.Errorf("Wrong Block ID from Hash: %v", err)
+// 	}
+// }
