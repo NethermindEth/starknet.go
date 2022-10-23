@@ -14,7 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-//go:embed dictionary.txt
+//go:embed dictionary.json
 var dictionary []byte
 
 func main() {

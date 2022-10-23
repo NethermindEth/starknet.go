@@ -29,7 +29,7 @@ func TestDictionaryGenerate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = os.WriteFile("dictionary.txt", content, 0755)
+	err = os.WriteFile("dictionary.json", content, 0755)
 	if err != nil {
 		t.Error(err)
 	}
