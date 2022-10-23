@@ -11,11 +11,11 @@ import (
 type CommonTransactionReceipt struct {
 	TransactionHash types.Hash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee   string                  `json:"actual_fee"`
+	ActualFee   string                 `json:"actual_fee"`
 	Status      types.TransactionState `json:"status"`
-	BlockHash   types.Hash              `json:"block_hash"`
-	BlockNumber uint64                  `json:"block_number"`
-	Type        TransactionType         `json:"type,omitempty"`
+	BlockHash   types.Hash             `json:"block_hash"`
+	BlockNumber uint64                 `json:"block_number"`
+	Type        TransactionType        `json:"type,omitempty"`
 }
 
 func (tr CommonTransactionReceipt) Hash() types.Hash {
@@ -25,10 +25,11 @@ func (tr CommonTransactionReceipt) Hash() types.Hash {
 type TransactionType string
 
 const (
-	TransactionType_Declare   TransactionType = "DECLARE"
-	TransactionType_Deploy    TransactionType = "DEPLOY"
-	TransactionType_Invoke    TransactionType = "INVOKE"
-	TransactionType_L1Handler TransactionType = "L1_HANDLER"
+	TransactionType_Declare       TransactionType = "DECLARE"
+	TransactionType_Deploy        TransactionType = "DEPLOY"
+	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionType_Invoke        TransactionType = "INVOKE"
+	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
 )
 
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
@@ -42,6 +43,8 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 		*tt = TransactionType_Declare
 	case "DEPLOY":
 		*tt = TransactionType_Deploy
+	case "DEPLOY_ACCOUNT":
+		*tt = TransactionType_DeployAccount
 	case "INVOKE":
 		*tt = TransactionType_Invoke
 	case "L1_HANDLER":
@@ -136,6 +139,10 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_Deploy:
+			var txn DeployTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_DeployAccount:
 			var txn DeployTransactionReceipt
 			remarshal(casted, &txn)
 			return txn, nil

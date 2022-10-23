@@ -329,8 +329,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 310000,
-				EndBlock:   310100,
+				StartBlock: 375919,
+				EndBlock:   376000,
 			},
 		},
 		"mainnet": {},
@@ -347,9 +347,12 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 			}
 			for k, v := range blockWithTxs.Transactions {
 				_, okv0 := v.(InvokeTxnV0)
+				_, okv1 := v.(InvokeTxnV1)
+				_, okl1 := v.(L1HandlerTxn)
 				_, okdec := v.(DeclareTxn)
 				_, okdep := v.(DeployTxn)
-				if !okv0 && !okdec && !okdep {
+				_, okdepac := v.(DeployAccountTxn)
+				if !okv0 && !okv1 && !okl1 && !okdec && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}

@@ -134,18 +134,25 @@ func (tx DeployTxn) Hash() types.Hash {
 	return tx.TransactionHash
 }
 
-type DeployTxnProperties struct {
-	// Version of the transaction scheme
-	Version types.NumAsHex  `json:"version"`
-	Type    TransactionType `json:"type"`
+type Transaction interface {
+	Hash() types.Hash
+}
+
+// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+type DeployAccountTxn struct {
+	CommonTransaction
+	// ClassHash The hash of the deployed contract's class
+	ClassHash string `json:"class_hash"`
+
 	// ContractAddressSalt The salt for the address of the deployed contract
 	ContractAddressSalt string `json:"contract_address_salt"`
+
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-type Transaction interface {
-	Hash() types.Hash
+func (tx DeployAccountTxn) Hash() types.Hash {
+	return tx.TransactionHash
 }
 
 // InvokeV0 version 0 invoke transaction
@@ -208,6 +215,10 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 			return txn, nil
 		case TransactionType_Deploy:
 			var txn DeployTxn
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_DeployAccount:
+			var txn DeployAccountTxn
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_Invoke:
