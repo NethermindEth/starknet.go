@@ -2,15 +2,21 @@ package caigo
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
 	rpc "github.com/dontpanicdao/caigo/rpcv01"
+	devtest "github.com/dontpanicdao/caigo/test"
+	"github.com/dontpanicdao/caigo/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
@@ -27,8 +33,11 @@ const (
 
 // testGatewayConfiguration is a type that is used to configure tests
 type testGatewayConfiguration struct {
-	client *gateway.GatewayProvider
-	base   string
+	client            *gateway.GatewayProvider
+	base              string
+	CounterAddress    string
+	AccountAddress    string
+	AccountPrivateKey string
 }
 
 var (
@@ -50,6 +59,35 @@ var (
 		"mock": {},
 	}
 )
+
+func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
+	class := types.ContractClass{}
+	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
+		return "", err
+	}
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
+	defer cancel()
+	tx, err := provider.Deploy(context.Background(), class, types.DeployRequest{
+		ContractAddressSalt: "0x0",
+		ConstructorCalldata: []string{},
+	})
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("deploy counter txHash", tx.TransactionHash)
+	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 20)
+	if err != nil {
+		log.Printf("contract Address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return "", err
+	}
+	if !receipt.Status.IsTransactionFinal() ||
+		receipt.Status == types.TransactionRejected {
+		return "", fmt.Errorf("installation status: %s", receipt.Status)
+	}
+	return tx.ContractAddress, nil
+}
 
 // beforeEach checks the configuration and initializes it before running the script
 func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
@@ -104,6 +142,25 @@ var (
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
+	switch testEnv {
+	case "devnet":
+		provider := gateway.NewProvider(gateway.WithBaseURL(testRPCConfigurations["devnet"].base))
+		counterAddress, err := InstallCounterContract(provider)
+		if err != nil {
+			fmt.Println("error installing counter contract", err)
+			os.Exit(1)
+		}
+		localConfig, _ := testGatewayConfigurations[testEnv]
+		accounts, err := devtest.NewDevNet().Accounts()
+		if err != nil {
+			fmt.Println("error getting devnet accounts", err)
+			os.Exit(1)
+		}
+		localConfig.AccountAddress = accounts[0].Address
+		localConfig.AccountPrivateKey = accounts[0].PrivateKey
+		localConfig.CounterAddress = counterAddress
+		testGatewayConfigurations[testEnv] = localConfig
+	}
 
 	os.Exit(m.Run())
 }
