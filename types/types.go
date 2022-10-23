@@ -127,7 +127,6 @@ func (s TransactionState) String() string {
 func (s TransactionState) IsTransactionFinal() bool {
 	if s == TransactionAcceptedOnL2 ||
 		s == TransactionAcceptedOnL1 ||
-		s == TransactionReceived ||
 		s == TransactionRejected {
 		return true
 	}
