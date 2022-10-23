@@ -29,7 +29,7 @@ const (
 	TestNetAccount032Address = "0x32fb76dfaa8d647c1dfa28cf5123543285250e0fcee7dfd76e4b7fa1544cfad"
 	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
 	TestNetAccount040Address = "0x43eb0aebc7e9a628df79fc731cdc37b581338c913839a3f67aae2309d9e88c5"
-	TestnetCounterAddress    = "0x048fe6bfee78e6f0826eca774f0a2462bd5e4f0a5738c33eb3cf8c2195c04e67"
+	TestnetCounterAddress    = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
 )
 
 // testGatewayConfiguration is a type that is used to configure tests
@@ -42,6 +42,30 @@ type testGatewayConfiguration struct {
 }
 
 var (
+	// set the environment for the test, default: mock
+	testEnv = "mock"
+
+	// testConfigurations are predefined test configurations
+	testRPCConfigurations = map[string]testRPCConfiguration{
+		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"mainnet": {
+			base: "http://localhost:9545",
+		},
+		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// (ref: https://github.com/eqlabs/pathfinder)
+		"testnet": {
+			base: "http://localhost:9545",
+		},
+		// Requires a Devnet configuration running locally
+		// (ref: https://github.com/Shard-Labs/starknet-devnet)
+		"devnet": {
+			base: "http://localhost:5050/rpc",
+		},
+		// Used with a mock as a standard configuration, see `mock_test.go``
+		"mock": {},
+	}
+
 	testGatewayConfigurations = map[string]testGatewayConfiguration{
 		"mainnet": {
 			base: "https://alpha4-mainnet.starknet.io",
@@ -115,40 +139,24 @@ type testRPCConfiguration struct {
 	base     string
 }
 
-var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
-
-	// testConfigurations are predefined test configurations
-	testRPCConfigurations = map[string]testRPCConfiguration{
-		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"mainnet": {
-			base: "http://localhost:9545",
-		},
-		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base: "http://localhost:9545",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
-		"devnet": {
-			base: "http://localhost:5050/rpc",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
-	}
-)
-
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
+	baseURL := ""
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	flag.StringVar(&baseURL, "base-url", "", "change the baseUrl")
 	flag.Parse()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
+	if baseURL != "" {
+		gwLocalConfig := testGatewayConfigurations[testEnv]
+		gwLocalConfig.base = baseURL
+		testGatewayConfigurations[testEnv] = gwLocalConfig
+		rpcLocalConfig := testRPCConfigurations[testEnv]
+		rpcLocalConfig.base = baseURL
+		testRPCConfigurations[testEnv] = rpcLocalConfig
+	}
 	switch testEnv {
 	case "devnet":
-		provider := gateway.NewProvider(gateway.WithBaseURL(testRPCConfigurations["devnet"].base))
+		provider := gateway.NewProvider(gateway.WithBaseURL(testGatewayConfigurations["devnet"].base))
 		counterAddress, err := InstallCounterContract(provider)
 		if err != nil {
 			fmt.Println("error installing counter contract", err)

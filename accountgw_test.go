@@ -9,11 +9,6 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-const (
-	SEED             int    = 100000000
-	CONTRACT_ADDRESS string = "0x02b795d8c5e38c45da3b89c91174c66a3c77845bbeb87a36038f19c521dbe87e"
-)
-
 type TestAccountType struct {
 	PrivateKey   string               `json:"private_key"`
 	PublicKey    string               `json:"public_key"`
@@ -21,9 +16,8 @@ type TestAccountType struct {
 	Transactions []types.FunctionCall `json:"transactions,omitempty"`
 }
 
-func TestGatewayAccount_ExtimateAndExecute(t *testing.T) {
+func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	testConfig := beforeGatewayEach(t)
-
 	type testSetType struct {
 		ExecuteCalls []types.FunctionCall
 		QueryCall    types.FunctionCall
@@ -71,7 +65,7 @@ func TestGatewayAccount_ExtimateAndExecute(t *testing.T) {
 		if err != nil {
 			t.Fatal("should succeed with EstimateFee, instead:", err)
 		}
-		fmt.Printf("estimate fee is %+v\n", estimateFee.OverallFee)
+		fmt.Printf("estimate fee is %+v\n", estimateFee)
 		tx, err := account.Execute(ctx, test.ExecuteCalls, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal("should succeed with Execute, instead:", err)

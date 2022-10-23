@@ -60,11 +60,13 @@ type Signature []*big.Int
 type FunctionInvoke struct {
 	MaxFee *big.Int `json:"max_fee"`
 	// Version of the transaction scheme, should be set to 0 or 1
-	Version uint64 `json:"version"`
+	Version *big.Int `json:"version"`
 	// Signature
 	Signature Signature `json:"signature"`
 	// Nonce should only be set with Transaction V1
 	Nonce *big.Int `json:"nonce,omitempty"`
+	// Defines the transaction type to invoke
+	Type string `json:"type,omitempty"`
 
 	FunctionCall
 }
