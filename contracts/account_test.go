@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"math/big"
-	"os"
 	"testing"
 	"time"
 
@@ -14,9 +13,6 @@ import (
 
 func TestInstallAccounts(t *testing.T) {
 	godotenv.Load()
-	if os.Getenv("INTEGRATION") != "true" {
-		t.Skip("only run the test with INTEGRATION=true")
-	}
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
@@ -73,4 +69,3 @@ func TestInstallAccounts(t *testing.T) {
 		fmt.Println("deployment transaction", accountManager.TransactionHash)
 	}
 }
-

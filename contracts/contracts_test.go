@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"os"
 	"testing"
 	"time"
 
@@ -16,9 +15,6 @@ import (
 
 func TestInstallCounter(t *testing.T) {
 	godotenv.Load()
-	if os.Getenv("INTEGRATION") != "true" {
-		t.Skip("only run the test with INTEGRATION=true")
-	}
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
@@ -69,9 +65,6 @@ func TestInstallCounter(t *testing.T) {
 
 func TestLoadAndExecuteCounter(t *testing.T) {
 	godotenv.Load()
-	if os.Getenv("INTEGRATION") != "true" {
-		t.Skip("only run the test with INTEGRATION=true")
-	}
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {

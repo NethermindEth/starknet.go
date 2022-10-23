@@ -15,7 +15,7 @@ import (
 
 var (
 	// set the environment for the test, default: mock
-	testEnv = "devnet"
+	testEnv = "mock"
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.

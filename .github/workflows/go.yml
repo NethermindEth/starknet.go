@@ -27,7 +27,7 @@ jobs:
         run: ./.bin/devnet.sh
 
       - name: Test contracts deployment and execute
-        run: cd contracts && go test -v .
+        run: cd contracts && go test -env devnet -v .
 
       - name: Test RPC v0.1 with mocks
         run: cd rpcv01 && go test -v .
