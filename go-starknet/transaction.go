@@ -10,6 +10,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var transactionCommand = cli.Command{
+	Name:    "get_transaction",
+	Aliases: []string{"t"},
+	Usage:   "get a transaction",
+	Flags:   transactionFlags,
+	Action:  transaction,
+}
+
 type friendlyTransaction gateway.StarknetTransaction
 
 func (f friendlyTransaction) MarshalJSON() ([]byte, error) {

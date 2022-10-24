@@ -13,6 +13,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var blockCommand = cli.Command{
+	Name:    "get_block",
+	Aliases: []string{"b"},
+	Usage:   "get a block",
+	Flags:   blockFlags,
+	Action:  block,
+}
+
 type friendlyBlock gateway.Block
 
 func (f friendlyBlock) MarshalJSON() ([]byte, error) {
