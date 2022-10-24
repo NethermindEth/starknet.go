@@ -10,8 +10,8 @@
     <a href="https://starkware.co/">
         <img src="https://img.shields.io/badge/powered_by-StarkWare-navy">
     </a>
-    <a href="https://github.com/dontpanicdao/caigo/actions/workflows/go.yml">
-        <img src="https://github.com/dontpanicdao/caigo/actions/workflows/go.yml/badge.svg?branch=main" alt="Go">
+    <a href="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml">
+        <img src="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
     </a>
 </p>
 
