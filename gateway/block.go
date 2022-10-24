@@ -2,10 +2,11 @@ package gateway
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
+	"strings"
 )
 
 type Block struct {
@@ -20,8 +21,49 @@ type Block struct {
 }
 
 type BlockOptions struct {
-	BlockNumber uint64 `url:"blockNumber,omitempty"`
-	BlockHash   string `url:"blockHash,omitempty"`
+	BlockNumber *uint64
+	BlockHash   string
+	Tag         string
+}
+
+var ErrInvalidBlock = errors.New("invalid block")
+
+func (b *BlockOptions) append
+
+Values(req *http.Request) error {
+	q := req.
+  .Query()
+	if b.Tag == "pending" || b.Tag == "latest" {
+		q.Add("blockNumber", b.Tag)
+		req.URL.RawQuery = q.Encode()
+		return nil
+	}
+
+	if b.Tag != "" {
+		return ErrInvalidBlock
+	}
+
+	if b.BlockNumber != nil {
+		q.Add("blockNumber", fmt.Sprintf("%d", *b.BlockNumber))
+		req.URL.RawQuery = q.Encode()
+		return nil
+	}
+
+	if b.BlockHash != "" {
+		if !strings.HasPrefix(b.BlockHash, "0x") {
+			return ErrInvalidBlock
+		}
+		_, ok := big.NewInt(0).SetString(b.BlockHash, 0)
+		if !ok {
+			return ErrInvalidBlock
+		}
+		q.Add("blockHash", b.BlockHash)
+		req.URL.RawQuery = q.Encode()
+		return nil
+	}
+	q.Add("blockNumber", "pending")
+	req.URL.RawQuery = q.Encode()
+	return nil
 }
 
 // Gets the block information from a block ID.
@@ -32,12 +74,9 @@ func (sg *Gateway) Block(ctx context.Context, opts *BlockOptions) (*Block, error
 	if err != nil {
 		return nil, err
 	}
-	if opts != nil {
-		vs, err := query.Values(opts)
-		if err != nil {
-			return nil, err
-		}
-		appendQueryValues(req, vs)
+
+	if err := opts.appendQueryValues(req); err != nil {
+		return nil, err
 	}
 
 	var resp Block

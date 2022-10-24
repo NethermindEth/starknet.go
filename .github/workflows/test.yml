@@ -1,7 +1,11 @@
-name: Go
+name: test
 
 on:
   push:
+    branches:
+      - '**'    
+    tags-ignore:
+      - '**'
   schedule:
     - cron: "42 2 * * *"
 
