@@ -2,6 +2,8 @@ name: Go
 
 on:
   push:
+    tags-ignore:
+      - '**'
   schedule:
     - cron: "42 2 * * *"
 
