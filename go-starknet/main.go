@@ -21,6 +21,20 @@ func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
+				Name:    "get_block",
+				Aliases: []string{"b"},
+				Usage:   "get a block",
+				Flags:   blockFlags,
+				Action:  block,
+			},
+			{
+				Name:    "get_transaction",
+				Aliases: []string{"t"},
+				Usage:   "get a transaction",
+				Flags:   transactionFlags,
+				Action:  transaction,
+			},
+			{
 				Name:    "utils",
 				Aliases: []string{"u"},
 				Usage:   "utilities to encode/decode felt and entrypoints",

@@ -27,7 +27,8 @@ func (p *GatewayProvider) BlockByHash(ctx context.Context, hash, scope string) (
 }
 
 func (p *GatewayProvider) BlockByNumber(ctx context.Context, number *big.Int, scope string) (*Block, error) {
-	b, err := p.Block(ctx, &BlockOptions{BlockNumber: number.Uint64()})
+	blockNumber := number.Uint64()
+	b, err := p.Block(ctx, &BlockOptions{BlockNumber: &blockNumber})
 	if err != nil {
 		return nil, err
 	}

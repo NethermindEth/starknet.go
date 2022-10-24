@@ -16,8 +16,8 @@ type BlockHashAndNumberOutput struct {
 	BlockHash   string `json:"block_hash,omitempty"`
 }
 
-// BlockID is an unexposed struct that is used in a OneOf for
-// starknet_getBlockWithTxHashes.
+// BlockID is a struct that is used to choose between different
+// search types.
 type BlockID struct {
 	Number *uint64     `json:"block_number,omitempty"`
 	Hash   *types.Hash `json:"block_hash,omitempty"`
@@ -29,7 +29,7 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 		return []byte(strconv.Quote(b.Tag)), nil
 	}
 
-	if b.Tag != "" && (b.Tag != "pending" && b.Tag != "latest") {
+	if b.Tag != "" {
 		return nil, ErrInvalidBlockID
 	}
 

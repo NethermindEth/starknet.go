@@ -10,7 +10,7 @@ func TestWithErrorHandler(t *testing.T) {
 	type testSetType struct{}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
-		"testnet": {{}},
+		"testnet": {},
 		"mainnet": {},
 		"mock":    {},
 	}[testEnv]

@@ -24,8 +24,8 @@ func Test_Block_Devnet(t *testing.T) {
 		if err != nil {
 			log.Fatal("error starting test", err)
 		}
-
-		block, _ := gw.Block(context.Background(), &BlockOptions{BlockNumber: test.BlockNumber})
+		blockNumber := test.BlockNumber
+		block, _ := gw.Block(context.Background(), &BlockOptions{BlockNumber: &blockNumber})
 		if block.BlockNumber != int(test.BlockNumber) {
 			t.Fatal("block number should be 1")
 		}
@@ -49,11 +49,11 @@ func Test_Block(t *testing.T) {
 			// (1) Marshal the block back into a []byte and (2) compare it with the original message
 			// check "github.com/nsf/jsondiff" for ideas how to do that.
 			BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
-			opts:      &BlockOptions{BlockNumber: 159179}}},
+			opts:      &BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 159179; return &v }()}}},
 
 		"mainnet": {{
 			BlockHash: "0x3bb30a6d1a3b6dcbc935b18c976126ab8d1fea60ef055be3c78530624824d50",
-			opts:      &BlockOptions{BlockNumber: 5879},
+			opts:      &BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 5879; return &v }()},
 		}},
 	}[testEnv]
 
