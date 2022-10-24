@@ -23,9 +23,16 @@ func main() {
 			{
 				Name:    "get_block",
 				Aliases: []string{"b"},
-				Usage:   "enables to get blocks",
+				Usage:   "get a block",
 				Flags:   blockFlags,
 				Action:  block,
+			},
+			{
+				Name:    "get_transaction",
+				Aliases: []string{"t"},
+				Usage:   "get a transaction",
+				Flags:   transactionFlags,
+				Action:  transaction,
 			},
 			{
 				Name:    "utils",

@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dontpanicdao/caigo/gateway"
@@ -60,20 +63,48 @@ func block(cCtx *cli.Context) error {
 	if providerName.(string) != "gateway" {
 		return fmt.Errorf("provider not supported")
 	}
-	num := cCtx.Value("block-id")
-	if num.(string) != "latest" {
-		return fmt.Errorf("not supported")
+	format := cCtx.Value("format").(string)
+	blockOptions := &gateway.BlockOptions{}
+	blockID := cCtx.Value("block-id").(string)
+	switch blockID {
+	case "":
+		blockOptions.Tag = "pending"
+	case "pending", "latest":
+		blockOptions.Tag = blockID
+	default:
+		match := false
+		if strings.HasPrefix(blockID, "0x") {
+			match = true
+			blockOptions.BlockHash = blockID
+		}
+		if ok, _ := regexp.MatchString("^[0-9]+$", blockID); ok {
+			match = true
+			block, err := strconv.ParseUint(blockID, 10, 64)
+			if err != nil {
+				return fmt.Errorf("invalid block %s", blockID)
+			}
+			blockOptions.BlockNumber = &block
+		}
+		if !match {
+			return fmt.Errorf("invalid block %s", blockID)
+		}
 	}
 	baseURL := cCtx.Value("base-url")
 	if baseURL.(string) == "" {
 		baseURL = "https://alpha4.starknet.io"
 	}
 	provider := gateway.NewProvider(gateway.WithBaseURL(baseURL.(string)))
-	block, err := provider.Block(context.Background(), &gateway.BlockOptions{})
+	block, err := provider.Block(context.Background(), blockOptions)
 	if err != nil {
 		return err
 	}
-	output, err := json.MarshalIndent(friendlyBlock(*block), " ", "    ")
+	var output []byte
+	switch format {
+	case "friendly":
+		output, err = json.MarshalIndent(friendlyBlock(*block), " ", "    ")
+	default:
+		output, err = json.MarshalIndent(*block, " ", "    ")
+	}
 	if err != nil {
 		return err
 	}
