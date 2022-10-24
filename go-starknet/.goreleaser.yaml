@@ -20,6 +20,17 @@ archives:
       windows: windows
       386: i386
       amd64: x86_64
+brews:
+  - name: go-starknet
+    homepage: "https://github.com/dontpanicdao/caigo"
+    tap:
+      owner: dontpanicdao
+      name: homebrew-dontpanicdao
+      token: "{{ .Env.HOMEBREW_TOKEN }}"
+    commit_author:
+      name: gregoryguillou
+      email: 10611760+gregoryguillou@users.noreply.github.com
+
 checksum:
   name_template: 'checksums.txt'
 snapshot:
