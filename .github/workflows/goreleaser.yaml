@@ -2,7 +2,8 @@ name: GoReleaser
 
 on:
   push:
-
+    tags:
+      - '*'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -24,7 +25,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --snapshot --rm-dist
+          args: release --rm-dist
           workdir: go-starknet
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
