@@ -28,11 +28,8 @@ type BlockOptions struct {
 
 var ErrInvalidBlock = errors.New("invalid block")
 
-func (b *BlockOptions) append
-
-Values(req *http.Request) error {
-	q := req.
-  .Query()
+func (b *BlockOptions) appendQueryValues(req *http.Request) error {
+	q := req.URL.Query()
 	if b.Tag == "pending" || b.Tag == "latest" {
 		q.Add("blockNumber", b.Tag)
 		req.URL.RawQuery = q.Encode()
