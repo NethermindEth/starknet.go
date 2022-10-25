@@ -18,6 +18,7 @@ func main() {
 			&transactionCommand,
 			&utilsCommand,
 			&profileCommand,
+			&versionCommand,
 		},
 	}
 

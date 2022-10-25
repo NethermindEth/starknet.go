@@ -27,6 +27,21 @@ jobs:
         with:
           go-version: 1.18
 
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+
+      - name: Get the datetime
+        id: get_datetime
+        run: echo ::set-output name=DATE_TIME::$(date +%Y-%m-%d)
+
+      - name: Display both
+        id: output
+        run: echo "$VERSION $DATETIME"
+        env:
+          DATE_TIME: ${{ steps.get_datetime.outputs.DATE_TIME }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 

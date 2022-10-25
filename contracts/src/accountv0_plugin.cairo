@@ -91,9 +91,44 @@ func upgrade{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return ()
 end
 
+@external
+func add_plugin{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    } (
+        plugin: felt
+    ):
+    PluginUtils.enable(plugin)
+    return()
+end
+
+
+@external
+func remove_plugin{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    } (
+        plugin: felt
+    ):
+    PluginUtils.disable(plugin)
+    return()
+end
+
 #
 # Business logic
 #
+
+@view
+func is_plugin{
+        syscall_ptr: felt*, 
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    } (plugin: felt) -> (success: felt):
+    let (res) = PluginUtils.is_enabled(plugin)
+    return (success=res)
+end
 
 @view
 func is_valid_signature{
@@ -102,6 +137,13 @@ func is_valid_signature{
     let (is_valid) = Account.is_valid_signature(hash, signature_len, signature)
     return (is_valid=is_valid)
 end
+
+@view
+func is_plugin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(plugin: felt) -> (success: felt):
+    let (res) = _plugins.read(plugin);
+    return (success=res);
+}
 
 @external
 func __execute__{
