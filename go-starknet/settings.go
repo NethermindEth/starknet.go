@@ -11,37 +11,45 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const profileDirectory = ".go-starknet"
-const profileFilename = "profile.json"
+const configDirectory = ".go-starknet"
+const configFilename = "configuration.json"
 
-type Profile struct {
-	DefaultFormat string `json:"defaultFormat,omitempty"`
+type Configuration struct {
+	DefaultFormat     string       `json:"defaultFormat,omitempty"`
+	SelectedWorkspace int          `json:"selectedWorkspace,omitempty"`
+	Workspaces        []*Workspace `json:"workspaces,omitempty"`
 }
 
-var profileCommand = cli.Command{
-	Name:    "profile",
-	Aliases: []string{"p"},
-	Usage:   "manage the user profile",
+var configuration *Configuration
+
+var settingsCommand = cli.Command{
+	Name:    "settings",
+	Aliases: []string{"s"},
+	Usage:   "go-starknet settings",
 	Subcommands: []*cli.Command{
 		{
 			Name:   "list",
-			Usage:  "go-starknet profile list",
-			Action: profileList,
+			Usage:  "go-starknet settings list",
+			Action: settingsList,
 		},
 		{
 			Name:   "set",
-			Usage:  "go-starknet profile set name=value",
-			Action: profileSet,
+			Usage:  "go-starknet settings set name=value",
+			Action: settingsSet,
 		},
 	},
 }
 
-func initOrLoadProfile() (*Profile, error) {
+func saveConfiguration(cCtx *cli.Context) error {
+	return configuration.save()
+}
+
+func initOrLoadConfig() (*Configuration, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
 	}
-	profileFullDirectory := filepath.Join(home, profileDirectory)
+	profileFullDirectory := filepath.Join(home, configDirectory)
 	v, err := os.Stat(profileFullDirectory)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		err = os.MkdirAll(profileFullDirectory, 0755)
@@ -56,9 +64,9 @@ func initOrLoadProfile() (*Profile, error) {
 	if !v.IsDir() {
 		return nil, fmt.Errorf("%s not directory", v.Name())
 	}
-	profileFullFilename := filepath.Join(profileFullDirectory, profileFilename)
+	profileFullFilename := filepath.Join(profileFullDirectory, configFilename)
 	content, err := os.ReadFile(profileFullFilename)
-	p := Profile{}
+	p := Configuration{}
 	if err != nil && errors.Is(err, os.ErrNotExist) {
 		content, err = json.MarshalIndent(p, " ", "  ")
 		if err != nil {
@@ -77,12 +85,12 @@ func initOrLoadProfile() (*Profile, error) {
 	return &p, err
 }
 
-func (p Profile) save() error {
+func (p Configuration) save() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
-	profileFullFilename := filepath.Join(home, profileDirectory, profileFilename)
+	profileFullFilename := filepath.Join(home, configDirectory, configFilename)
 	content, err := json.MarshalIndent(p, " ", "  ")
 	if err != nil {
 		return err
@@ -97,21 +105,13 @@ func or(a string, b string) string {
 	return b
 }
 
-func profileList(cCtx *cli.Context) error {
-	p, err := initOrLoadProfile()
-	if err != nil {
-		return err
-	}
-	fmt.Printf("profile\n")
-	fmt.Printf("  format:   %s\n", or(p.DefaultFormat, "friendly"))
+func settingsList(cCtx *cli.Context) error {
+	fmt.Printf("current settings\n")
+	fmt.Printf("  format:   %s\n", or(configuration.DefaultFormat, "friendly"))
 	return nil
 }
 
-func profileSet(cCtx *cli.Context) error {
-	p, err := initOrLoadProfile()
-	if err != nil {
-		return err
-	}
+func settingsSet(cCtx *cli.Context) error {
 	values := cCtx.Args()
 	if len(values.Slice()) != 1 {
 		fmt.Printf("define a value %+v\n", values)
@@ -120,11 +120,20 @@ func profileSet(cCtx *cli.Context) error {
 	changed := false
 	k, v, ok := strings.Cut(values.First(), "=")
 	if ok && strings.ToLower(k) == "format" {
-		p.DefaultFormat = v
-		changed = true
+		switch strings.ToLower(v) {
+		case "friendly":
+			configuration.DefaultFormat = "friendly"
+			changed = true
+		case "raw":
+			configuration.DefaultFormat = "raw"
+			changed = true
+		default:
+			fmt.Println("unsupported format, should be friendly or raw")
+			os.Exit(1)
+		}
 	}
 	if changed {
-		p.save()
+		configuration.save()
 	}
 	return nil
 }

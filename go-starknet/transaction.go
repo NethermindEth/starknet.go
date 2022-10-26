@@ -24,6 +24,7 @@ func (f friendlyTransaction) MarshalJSON() ([]byte, error) {
 	content := map[string]interface{}{}
 	content["treansaction_hash"] = f.Transaction.TransactionHash
 	content["contract_address"] = f.Transaction.ContractAddress
+	content["class_hash"] = f.Transaction.ClassHash
 	content["type"] = f.Transaction.Type
 	content["version"] = f.Transaction.Version
 	return json.Marshal(content)

@@ -12,13 +12,21 @@ import (
 var dictionary []byte
 
 func main() {
+	var err error
+	configuration, err = initOrLoadConfig()
+	if err != nil {
+		return
+	}
+
 	app := &cli.App{
+
 		Commands: []*cli.Command{
 			&blockCommand,
 			&transactionCommand,
 			&utilsCommand,
-			&profileCommand,
+			&settingsCommand,
 			&versionCommand,
+			&workspaceCommand,
 		},
 	}
 
