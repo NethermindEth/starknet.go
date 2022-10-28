@@ -178,11 +178,9 @@ func TestMultAir(t *testing.T) {
 	}
 }
 
-// swappable ec multiplication fn
-type ecMultiFn func(m, x1, y1 *big.Int) (x, y *big.Int)
 type ecMultOption struct {
 	algo   string
-	fn     ecMultiFn
+	fn     EcMultiFn
 	stddev float64
 }
 
