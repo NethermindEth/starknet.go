@@ -7,7 +7,8 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/urfave/cli/v2 v2.10.2
-	golang.org/x/crypto v0.2.0
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	gonum.org/v1/gonum v0.12.0
 )
 
 require (

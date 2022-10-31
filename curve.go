@@ -97,6 +97,17 @@ func init() {
 //
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
+	// As elliptic curves form a group, there is an additive identity that is the equivalent of 0
+	// If 𝑃=0 or 𝑄=0, then 𝑃+𝑄=𝑄 or 𝑃+𝑄=𝑃, respectively
+	// NOTICE: the EC multiplication algorithm is using using `StarkCurve.rewriteScalar` trick
+	//   to avoid this condition and provide constant-time execution.
+	if len(x1.Bits()) == 0 && len(y1.Bits()) == 0 {
+		return x2, y2
+	}
+	if len(x2.Bits()) == 0 && len(y2.Bits()) == 0 {
+		return x1, y1
+	}
+
 	yDelta := new(big.Int).Sub(y1, y2)
 	xDelta := new(big.Int).Sub(x1, x2)
 
@@ -166,11 +177,7 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 	right = right.Add(right, sc.B)
 	right = right.Mod(right, sc.P)
 
-	if left.Cmp(right) == 0 {
-		return true
-	} else {
-		return false
-	}
+	return left.Cmp(right) == 0
 }
 
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
@@ -227,48 +234,62 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://www.semanticscholar.org/paper/Elliptic-Curves-and-Side-Channel-Analysis-Joye/7fc91d3684f1ab63b97d125161daf57af60f2ad9/figure/1)
+// (ref: https://cosade.telecom-paristech.fr/presentations/s2_p2.pdf)
+func (sc StarkCurve) ecMult_DoubleAndAlwaysAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		// Two-index table initialization, Q[0] <- P
+		q := [2]struct {
+			x *big.Int
+			y *big.Int
+		}{
+			{
+				x: x1,
+				y: y1,
+			},
+			{
+				x: nil,
+				y: nil,
+			},
+		}
+
+		// Run the algorithm, expects the most-significant bit is 1
+		for i := sc.N.BitLen() - 2; i >= 0; i-- {
+			q[0].x, q[0].y = sc.Double(q[0].x, q[0].y)      // Q[0] <- 2Q[0]
+			q[1].x, q[1].y = sc.Add(q[0].x, q[0].y, x1, y1) // Q[1] <- Q[0] + P
+			b := m.Bit(i)                                   // b    <- bit at position i
+			q[0].x, q[0].y = q[b].x, q[b].y                 // Q[0] <- Q[b]
+		}
+
+		return q[0].x, q[0].y
+	}
+
+	return _ecMult(sc.rewriteScalar(m), x1, y1)
+}
+
+// Rewrites k into an equivalent scalar, such that the first bit (the most-significant
+// bit for the Double-And-Always-Add or Montgomery algo) is 1.
+//
+// The k scalar rewriting obtains an equivalent scalar K = 2^n + (k - 2^n mod q),
+// such that k·G == K·G and K has the n-th bit set to 1. The scalars are equal modulo
+// the group order, k mod q == K mod q.
+//
+// Notice: The EC multiplication algorithms are typically presented as starting with the state (O, P0),
+//   where O is the identity element (or neutral point) of the curve. However, the neutral point is at infinity,
+//   which causes problems for some formulas (non constant-time execution for the naive implementation).
+//   The ladder then starts after the first step, when the state no longer contains the neutral point.
+// (ref: https://www.shiftleft.org/papers/ladder/ladder-tches.pdf)
+func (sc StarkCurve) rewriteScalar(k *big.Int) *big.Int {
+	size := new(big.Int).Lsh(big.NewInt(1), uint(sc.BitSize)) // 2ˆn
+	mod := new(big.Int).Mod(size, sc.N)                       // 2ˆn mod q
+	diff := new(big.Int).Sub(k, mod)                          // (k - 2ˆn mod q)
+	return new(big.Int).Add(size, diff)                       // 2ˆn + (k - 2ˆn mod q)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
-	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
-
-	_add := func(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-		yDelta := new(big.Int).Sub(y1, y2)
-		xDelta := new(big.Int).Sub(x1, x2)
-
-		m := DivMod(yDelta, xDelta, sc.P)
-
-		xm := new(big.Int).Mul(m, m)
-
-		x = new(big.Int).Sub(xm, x1)
-		x = x.Sub(x, x2)
-		x = x.Mod(x, sc.P)
-
-		y = new(big.Int).Sub(x1, x)
-		y = y.Mul(m, y)
-		y = y.Sub(y, y1)
-		y = y.Mod(y, sc.P)
-
-		return x, y
-	}
-
-	// alpha is our Y
-	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
-		if m.BitLen() == 1 {
-			return x1, y1
-		}
-		mk := new(big.Int).Mod(m, big.NewInt(2))
-		if mk.Cmp(big.NewInt(0)) == 0 {
-			h := new(big.Int).Div(m, big.NewInt(2))
-			c, d := sc.Double(x1, y1)
-			return _ecMult(h, c, d)
-		}
-		n := new(big.Int).Sub(m, big.NewInt(1))
-		e, f := _ecMult(n, x1, y1)
-		return _add(e, f, x1, y1)
-	}
-
-	x, y = _ecMult(m, x1, y1)
-	return x, y
+	return sc.ecMult_DoubleAndAlwaysAdd(m, x1, y1)
 }
 
 // Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
