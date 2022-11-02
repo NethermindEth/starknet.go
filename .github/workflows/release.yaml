@@ -20,6 +20,14 @@ jobs:
           go-version: '>=1.19.2'
           cache: true
 
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3-)
+
+      - name: Get the datetime
+        id: get_datetime
+        run: echo ::set-output name=DATE_TIME::$(date +%Y-%m-%d)
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:
@@ -30,3 +38,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+          DATE_TIME: ${{ steps.get_datetime.outputs.DATE_TIME }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}

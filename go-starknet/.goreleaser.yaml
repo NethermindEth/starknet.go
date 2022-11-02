@@ -8,6 +8,8 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
+  - ldflags:
+    - -s -w -X "main.version={{.Env.VERSION}}" -X "main.buildTime={{.Env.DATE_TIME}}"
   - env:
       - CGO_ENABLED=0
     goos:
