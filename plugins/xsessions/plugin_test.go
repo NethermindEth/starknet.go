@@ -21,7 +21,7 @@ import (
 
 // RegisterClass
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
-	provider := beforeEach(t)
+	provider := beforeEachRPCv01(t)
 
 	yeasayerClass := types.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
@@ -58,7 +58,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
-	provider := beforeEach(t)
+	provider := beforeEachRPCv01(t)
 	contractClass := types.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
@@ -124,7 +124,7 @@ func MintEth(t *testing.T, accountAddress string) {
 
 // CheckEth
 func CheckEth(t *testing.T, accountAddress string) string {
-	provider := beforeEach(t)
+	provider := beforeEachRPCv01(t)
 	ctx := context.Background()
 	output, err := provider.Call(ctx, types.FunctionCall{
 		ContractAddress:    types.HexToHash(devnetEth),

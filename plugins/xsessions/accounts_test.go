@@ -46,7 +46,7 @@ var counterCompiled = artifacts.CounterCompiled
 
 // TestCounter_DeployContract
 func TestCounter_DeployContract(t *testing.T) {
-	provider := beforeEach(t)
+	provider := beforeEachRPCv01(t)
 
 	counterClass := ctypes.ContractClass{}
 	inputs := []string{}

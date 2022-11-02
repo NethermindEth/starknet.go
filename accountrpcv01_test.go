@@ -14,7 +14,7 @@ import (
 )
 
 // TestAccountNonce tests the account Nonce
-func TestAccountNonce(t *testing.T) {
+func TestRPCv01AccountNonce(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -40,7 +40,7 @@ func TestAccountNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +52,7 @@ func TestAccountNonce(t *testing.T) {
 }
 
 // TestAccountEstimateFee tests the account EstimateFee
-func TestAccountEstimateFee(t *testing.T) {
+func TestRPCv01AccountEstimateFee(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -88,7 +88,7 @@ func TestAccountEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -103,7 +103,7 @@ func TestAccountEstimateFee(t *testing.T) {
 }
 
 // TestRPCAccount_Execute tests the account Execute method
-func TestRPCAccount_Execute(t *testing.T) {
+func TestRPCv01Account_Execute(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -119,7 +119,7 @@ func TestRPCAccount_Execute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.provider)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
 		if err != nil {
 			t.Fatal(err)
 		}
