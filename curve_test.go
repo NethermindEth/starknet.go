@@ -50,6 +50,17 @@ func BenchmarkCurveSign(b *testing.B) {
 	}
 }
 
+func TestPrivateToPoint(t *testing.T) {
+	x, _, err := Curve.PrivateToPoint(big.NewInt(2))
+	if err != nil {
+		t.Errorf("PrivateToPoint err %v", err)
+	}
+	expectedX, _ := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
+	if x.Cmp(expectedX) != 0 {
+		t.Errorf("Actual public key %v different from expected %v", x, expectedX)
+	}
+}
+
 func TestPedersenHash(t *testing.T) {
 	testPedersen := []struct {
 		elements []*big.Int
