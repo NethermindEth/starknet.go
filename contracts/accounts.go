@@ -13,6 +13,7 @@ import (
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv02"
 )
 
 type AccountManager struct {
@@ -53,6 +54,7 @@ type Provider interface {
 const (
 	PROVIDER_GATEWAY = "gateway"
 	PROVIDER_RPCV01  = "rpcv01"
+	PROVIDER_RPCV02  = "rpcv02"
 	ACCOUNT_VERSION0 = "v0"
 	ACCOUNT_VERSION1 = "v1"
 )
@@ -61,6 +63,9 @@ func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
 	case *rpcv01.Provider:
 		provider := RPCv01Provider(*v)
+		return &provider, nil
+	case *rpcv02.Provider:
+		provider := RPCv02Provider(*v)
 		return &provider, nil
 	case *gateway.GatewayProvider:
 		provider := GatewayProvider(*v)
@@ -73,7 +78,7 @@ func guessProviderType(p interface{}) (Provider, error) {
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *rpcv02.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv02"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -41,11 +42,13 @@ type ProviderType string
 
 const (
 	ProviderRPCv01  ProviderType = "rpcv01"
+	ProviderRPCv02  ProviderType = "rpcv02"
 	ProviderGateway ProviderType = "gateway"
 )
 
 type Account struct {
 	rpcv01         *rpcv01.Provider
+	rpcv02         *rpcv02.Provider
 	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
@@ -101,19 +104,37 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 	}, nil
 }
 
-func NewRPCAccount(private, address string, provider *rpcv01.Provider, options ...AccountOptionFunc) (*Account, error) {
+func (a *Account) rpcProvider(provider interface{}) error {
+	switch p := provider.(type) {
+	case *rpcv01.Provider:
+		chainID, err := p.ChainID(context.Background())
+		if err != nil {
+			return err
+		}
+		a.chainId = chainID
+		a.rpcv01 = p
+		a.provider = ProviderRPCv01
+		return nil
+	case *rpcv02.Provider:
+		chainID, err := p.ChainID(context.Background())
+		if err != nil {
+			return err
+		}
+		a.chainId = chainID
+		a.rpcv02 = p
+		a.provider = ProviderRPCv02
+		return nil
+	}
+	return errors.New("no implementation")
+}
+
+func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](private, address string, provider Provider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(private, address, options...)
 	if err != nil {
 		return nil, err
 	}
-	chainID, err := provider.ChainID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	account.chainId = chainID
-	account.provider = ProviderRPCv01
-	account.rpcv01 = provider
-	return account, nil
+	err = account.rpcProvider(provider)
+	return account, err
 }
 
 func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
@@ -138,6 +159,11 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 			return nil, ErrUnsupportedAccount
 		}
 		return account.rpcv01.Call(ctx, call, rpcv01.WithBlockTag("latest"))
+	case ProviderRPCv02:
+		if account.rpcv02 == nil {
+			return nil, ErrUnsupportedAccount
+		}
+		return account.rpcv02.Call(ctx, call, rpcv02.WithBlockTag("latest"))
 	case ProviderGateway:
 		if account.sequencer == nil {
 			return nil, ErrUnsupportedAccount
@@ -264,6 +290,27 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 				return nil, errors.New("nonce error")
 			}
 			return n, nil
+		case ProviderRPCv02:
+			nonce, err := account.rpcv02.Call(
+				ctx,
+				types.FunctionCall{
+					ContractAddress:    types.HexToHash(account.AccountAddress),
+					EntryPointSelector: "get_nonce",
+					Calldata:           []string{},
+				},
+				rpcv02.WithBlockTag("latest"),
+			)
+			if err != nil {
+				return nil, err
+			}
+			if len(nonce) == 0 {
+				return nil, errors.New("nonce error")
+			}
+			n, ok := big.NewInt(0).SetString(nonce[0], 0)
+			if !ok {
+				return nil, errors.New("nonce error")
+			}
+			return n, nil
 		case ProviderGateway:
 			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.AccountAddress))
 		}
@@ -271,6 +318,19 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 		switch account.provider {
 		case ProviderRPCv01:
 			nonce, err := account.rpcv01.Nonce(
+				ctx,
+				types.HexToHash(account.AccountAddress),
+			)
+			if err != nil {
+				return nil, err
+			}
+			n, ok := big.NewInt(0).SetString(*nonce, 0)
+			if !ok {
+				return nil, errors.New("nonce error")
+			}
+			return n, nil
+		case ProviderRPCv02:
+			nonce, err := account.rpcv02.Nonce(
 				ctx,
 				types.HexToHash(account.AccountAddress),
 			)
@@ -386,6 +446,8 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	switch account.provider {
 	case ProviderRPCv01:
 		return account.rpcv01.EstimateFee(ctx, *call, rpcv01.WithBlockTag("latest"))
+	case ProviderRPCv02:
+		return account.rpcv02.EstimateFee(ctx, *call, rpcv02.WithBlockTag("latest"))
 	case ProviderGateway:
 		return account.sequencer.EstimateFee(ctx, *call, "latest")
 	}
@@ -418,6 +480,19 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			signature = append(signature, fmt.Sprintf("0x%s", k.Text(16)))
 		}
 		return account.rpcv01.AddInvokeTransaction(
+			context.Background(),
+			call.FunctionCall,
+			signature,
+			fmt.Sprintf("0x%s", maxFee.Text(16)),
+			fmt.Sprintf("0x%d", account.version),
+			call.Nonce,
+		)
+	case ProviderRPCv02:
+		signature := []string{}
+		for _, k := range call.Signature {
+			signature = append(signature, fmt.Sprintf("0x%s", k.Text(16)))
+		}
+		return account.rpcv02.AddInvokeTransaction(
 			context.Background(),
 			call.FunctionCall,
 			signature,
