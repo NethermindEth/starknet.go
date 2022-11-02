@@ -55,11 +55,8 @@ func TestPrivateToPoint(t *testing.T) {
 	if err != nil {
 		t.Errorf("PrivateToPoint err %v", err)
 	}
-	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
-	if !ok {
-		t.Errorf("Cannot set string")
-	}
-	if x != expectedX {
+	expectedX, _ := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
+	if x.Cmp(expectedX) != 0 {
 		t.Errorf("Actual public key %v different from expected %v", x, expectedX)
 	}
 }
