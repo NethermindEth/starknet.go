@@ -39,7 +39,7 @@ type api interface {
 	Nonce(ctx context.Context, contractAddress ctypes.Hash) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress ctypes.Hash, key string, blockID BlockID) (string, error)
-	Syncing(ctx context.Context) (*SyncResponse, error)
+	Syncing(ctx context.Context) (*SyncStatus, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
 	TransactionByHash(ctx context.Context, hash ctypes.Hash) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash ctypes.Hash) (TransactionReceipt, error)

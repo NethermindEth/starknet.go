@@ -17,8 +17,8 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 }
 
 // Syncing checks the syncing status of the node.
-func (provider *Provider) Syncing(ctx context.Context) (*SyncResponse, error) {
-	var result SyncResponse
+func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
+	var result SyncStatus
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
 	if err := provider.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
 		return nil, err

@@ -69,7 +69,9 @@ func (tx InvokeTxnV0) Hash() types.Hash {
 
 type InvokeTxnV1 struct {
 	CommonTransaction
-	InvokeV1
+	SenderAddress types.Hash `json:"sender_address"`
+	// Calldata The parameters passed to the function
+	Calldata []string `json:"calldata"`
 }
 
 func (tx InvokeTxnV1) Hash() types.Hash {
@@ -84,11 +86,7 @@ type L1HandlerTxn struct {
 	// Version of the transaction scheme
 	Version types.NumAsHex `json:"version"`
 	// Nonce
-	Nonce string `json:"nonce,omitempty"`
-	// MaxFee maximal fee that can be charged for including the transaction
-	MaxFee string `json:"max_fee,omitempty"`
-	// Signature
-	Signature          []string   `json:"signature,omitempty"`
+	Nonce              string     `json:"nonce,omitempty"`
 	ContractAddress    types.Hash `json:"contract_address"`
 	EntryPointSelector string     `json:"entry_point_selector"`
 
@@ -116,16 +114,14 @@ func (tx DeclareTxn) Hash() types.Hash {
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
-	CommonTransaction
+	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
 	// ClassHash The hash of the deployed contract's class
 	ClassHash string `json:"class_hash"`
-
-	// ContractAddress The address of the deployed contract
-	ContractAddress string `json:"contract_address"`
-
+	Type            TransactionType `json:"type,omitempty"`
+	// Version of the transaction scheme
+	Version types.NumAsHex `json:"version"`
 	// ContractAddressSalt The salt for the address of the deployed contract
 	ContractAddressSalt string `json:"contract_address_salt"`
-
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
@@ -153,16 +149,6 @@ type DeployAccountTxn struct {
 
 func (tx DeployAccountTxn) Hash() types.Hash {
 	return tx.TransactionHash
-}
-
-// InvokeV0 version 0 invoke transaction
-type InvokeV0 types.FunctionCall
-
-// InvokeV1 version 1 invoke transaction
-type InvokeV1 struct {
-	SenderAddress types.Hash `json:"sender_address"`
-	// Calldata The parameters passed to the function
-	Calldata []string `json:"calldata"`
 }
 
 type Transactions []Transaction

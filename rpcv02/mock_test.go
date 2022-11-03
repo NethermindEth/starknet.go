@@ -100,7 +100,7 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 }
 
 func mock_starknet_syncing(result interface{}, method string, args ...interface{}) error {
-	r, ok := result.(*SyncResponse)
+	r, ok := result.(*SyncStatus)
 	if !ok {
 		return errWrongType
 	}
@@ -108,7 +108,7 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 		return errWrongArgs
 	}
 
-	value := SyncResponse{
+	value := SyncStatus{
 		StartingBlockHash: "0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
 		StartingBlockNum:  "0x4c602",
 		CurrentBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",

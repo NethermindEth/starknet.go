@@ -8,20 +8,26 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
+// CommonTransactionReceipt Common properties for a transaction receipt
 type CommonTransactionReceipt struct {
+	// TransactionHash The hash identifying the transaction
 	TransactionHash types.Hash `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee   string                 `json:"actual_fee"`
-	Status      types.TransactionState `json:"status"`
-	BlockHash   types.Hash             `json:"block_hash"`
-	BlockNumber uint64                 `json:"block_number"`
-	Type        TransactionType        `json:"type,omitempty"`
+	ActualFee    string                 `json:"actual_fee"`
+	Status       types.TransactionState `json:"status"`
+	BlockHash    types.Hash             `json:"block_hash"`
+	BlockNumber  uint64                 `json:"block_number"`
+	Type         TransactionType        `json:"type,omitempty"`
+	MessagesSent []MsgToL1              `json:"messages_sent"`
+	// Events The events emitted as part of this transaction
+	Events []Event `json:"events"`
 }
 
 func (tr CommonTransactionReceipt) Hash() types.Hash {
 	return tr.TransactionHash
 }
 
+// TODO: check how we can move that type up in caigo/types
 type TransactionType string
 
 const (
@@ -60,23 +66,11 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }
 
-type InvokeTransactionReceiptProperties struct {
-	MessageSent []MsgToL1 `json:"messages_sent,omitempty"`
-	// A list of events assocuated with the Invoke Transaction
-	Events []Event `json:"events,omitempty"`
-}
-
 // InvokeTransactionReceipt Invoke Transaction Receipt
-type InvokeTransactionReceipt struct {
-	CommonTransactionReceipt
-	// ActualFee The fee that was charged by the sequencer
-	InvokeTransactionReceiptProperties `json:",omitempty"`
-}
+type InvokeTransactionReceipt CommonTransactionReceipt
 
 // DeclareTransactionReceipt Declare Transaction Receipt
-type DeclareTransactionReceipt struct {
-	CommonTransactionReceipt
-}
+type DeclareTransactionReceipt CommonTransactionReceipt
 
 // DeployTransactionReceipt Deploy Transaction Receipt
 type DeployTransactionReceipt struct {
