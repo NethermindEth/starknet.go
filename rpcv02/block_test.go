@@ -104,9 +104,13 @@ func TestBlockWithTxHashes(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		block, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
+		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
+		}
+		block, ok := result.(*Block)
+		if !ok {
+			t.Fatalf("should return *Block, instead: %T\n", result)
 		}
 		if test.ExpectedError != nil {
 			continue
@@ -400,10 +404,9 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithBlockNumber(300000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash:    ctypes.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
-					NewRoot:      "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
-					OldRoot:      "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
-					AcceptedTime: 0,
+					BlockHash: ctypes.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
+					NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
+					OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 					StateDiff: StateDiff{
 						StorageDiffs: []ContractStorageDiffItem{{
 							Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
@@ -428,8 +431,8 @@ func TestStateUpdate(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if uint64(stateUpdate.AcceptedTime) != 0 {
-			t.Fatalf("structure expecting %d, instead: %d", 0, stateUpdate.AcceptedTime)
+		if stateUpdate.BlockHash.Hex() != "01" {
+			t.Fatalf("structure expecting %d, instead: 0x%s", 0, stateUpdate.BlockHash.Hex())
 		}
 	}
 }

@@ -67,6 +67,7 @@ type StateUpdateOutput struct {
 
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
+	SyncStatus        bool
 	StartingBlockHash string         `json:"starting_block_hash"`
 	StartingBlockNum  types.NumAsHex `json:"starting_block_num"`
 	CurrentBlockHash  string         `json:"current_block_hash"`

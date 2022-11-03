@@ -156,7 +156,7 @@ func TestSyncing(t *testing.T) {
 			spy.Compare(sync, true)
 			t.Fatal("expecting to match", err)
 		}
-		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
+		i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
 		}

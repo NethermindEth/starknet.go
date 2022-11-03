@@ -142,7 +142,7 @@ func TestClass(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		class, err := testConfig.provider.Class(context.Background(), test.ClassHash)
+		class, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -242,7 +242,7 @@ func TestNonce(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		value, err := testConfig.provider.Nonce(context.Background(), test.ContractAddress)
+		value, err := testConfig.provider.Nonce(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -30,8 +30,12 @@ type EventFilter struct {
 	Keys []string `json:"keys,omitempty"`
 }
 
+type EventsInput struct {
+	EventFilter       EventFilter
+	ResultPageRequest ResultPageRequest
+}
+
 type EventsOutput struct {
-	Events     []EmittedEvent `json:"events"`
-	PageNumber uint64         `json:"page_number"`
-	IsLastPage bool           `json:"is_last_page"`
+	Events            []EmittedEvent `json:"events"`
+	ContinuationToken *string        `json:"continuation_token,omitempty"`
 }

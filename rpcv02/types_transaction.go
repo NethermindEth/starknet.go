@@ -3,6 +3,7 @@ package rpcv02
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	types "github.com/dontpanicdao/caigo/types"
@@ -114,10 +115,10 @@ func (tx DeclareTxn) Hash() types.Hash {
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
-	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
+	TransactionHash types.Hash `json:"transaction_hash,omitempty"`
 	// ClassHash The hash of the deployed contract's class
-	ClassHash string `json:"class_hash"`
-	Type            TransactionType `json:"type,omitempty"`
+	ClassHash string          `json:"class_hash"`
+	Type      TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
 	Version types.NumAsHex `json:"version"`
 	// ContractAddressSalt The salt for the address of the deployed contract
@@ -238,4 +239,50 @@ func remarshal(v interface{}, dst interface{}) error {
 	}
 
 	return nil
+}
+
+type BroadcastedTransaction interface{}
+
+type BroadcastedTxnCommonProperties struct {
+	MaxFee *big.Int `json:"max_fee"`
+	// Version of the transaction scheme, should be set to 0 or 1
+	Version *big.Int `json:"version"`
+	// Signature
+	Signature []string `json:"signature"`
+	// Nonce should only be set with Transaction V1
+	Nonce *big.Int `json:"nonce,omitempty"`
+	Type  string   `json:"type"`
+}
+
+type BroadcastedInvokeV0Transaction struct {
+	BroadcastedTxnCommonProperties
+	types.FunctionCall
+}
+
+type BroadcastedInvokeV1Transaction struct {
+	BroadcastedTxnCommonProperties
+	SenderAddress types.Hash `json:"sender_address"`
+	Calldata      []string   `json:"calldata"`
+}
+
+type BroadcastedDeclareTransaction struct {
+	BroadcastedTxnCommonProperties
+	ContractClass types.ContractClass `json:"contract_class"`
+	SenderAddress types.Hash          `json:"sender_address"`
+}
+
+type BroadcastedDeployTransaction struct {
+	Type string `json:"type"`
+	// Version of the transaction scheme, should be set to 0 or 1
+	Version             *big.Int            `json:"version"`
+	ContractAddressSalt string              `json:"contract_address_salt"`
+	ConstructorCalldata []string            `json:"constructor_calldata"`
+	ContractClass       types.ContractClass `json:"contract_class"`
+}
+
+type BroadcastedDeployAccountTransaction struct {
+	BroadcastedTxnCommonProperties
+	ContractAddressSalt string     `json:"contract_address_salt"`
+	ConstructorCalldata []string   `json:"constructor_calldata"`
+	ClassHash           types.Hash `json:"class_hash"`
 }

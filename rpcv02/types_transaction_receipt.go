@@ -79,9 +79,33 @@ type DeployTransactionReceipt struct {
 	ContractAddress string `json:"contract_address"`
 }
 
-// L1HandlerTransactionReceipt L1 Handler Transaction Receipt
-type L1HandlerTransactionReceipt struct {
+// DeployAccountTransactionReceipt Deploy Account Transaction Receipt
+type DeployAccountTransactionReceipt struct {
 	CommonTransactionReceipt
+	// ContractAddress The address of the deployed contract
+	ContractAddress string `json:"contract_address"`
+}
+
+// L1HandlerTransactionReceipt L1 Handler Transaction Receipt
+type L1HandlerTransactionReceipt CommonTransactionReceipt
+
+// PendingDeployTransactionReceipt Pending Transaction Receipt
+type PendingDeployTransactionReceipt struct {
+	PendingCommonTransactionReceipt
+	// ContractAddress The address of the deployed contract
+	ContractAddress string `json:"contract_address"`
+}
+
+// PendingCommonTransactionReceipt Pending Transaction Receipt
+type PendingCommonTransactionReceipt struct {
+	// TransactionHash The hash identifying the transaction
+	TransactionHash types.Hash `json:"transaction_hash"`
+	// ActualFee The fee that was charged by the sequencer
+	ActualFee    string          `json:"actual_fee"`
+	Type         TransactionType `json:"type,omitempty"`
+	MessagesSent []MsgToL1       `json:"messages_sent"`
+	// Events The events emitted as part of this transaction
+	Events []Event `json:"events"`
 }
 
 type TransactionReceipt interface {

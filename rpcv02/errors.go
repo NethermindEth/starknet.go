@@ -5,7 +5,7 @@ type RPCError struct {
 	message string
 }
 
-func (e *RPCError) Message() string {
+func (e *RPCError) Error() string {
 	return e.message
 }
 

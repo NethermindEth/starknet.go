@@ -2,6 +2,7 @@ package rpcv02
 
 import (
 	"context"
+	"errors"
 
 	ctypes "github.com/dontpanicdao/caigo/types"
 )
@@ -10,6 +11,7 @@ import (
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
 	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
+		// TODO bind Pathfinder/Devnet error to NO_BLOCKS
 		return 0, err
 	}
 	return blockNumber, nil
@@ -19,6 +21,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
+		// TODO bind Pathfinder/Devnet error to NO_BLOCKS
 		return nil, err
 	}
 	return &block, nil
@@ -43,12 +46,28 @@ func WithBlockTag(tag string) BlockID {
 }
 
 // BlockWithTxHashes gets block information given the block id.
-func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (Block, error) {
+// TODO: add support for PendingBlock
+func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		return Block{}, err
+		if errors.Is(err, errNotFound) {
+			return nil, ErrBlockNotFound
+		}
+		return nil, err
 	}
-	return result, nil
+	return &result, nil
+}
+
+// StateUpdate gets the information about the result of executing the requested block.
+func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
+	var state StateUpdateOutput
+	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
+		if errors.Is(err, errNotFound) {
+			return nil, ErrBlockNotFound
+		}
+		return nil, err
+	}
+	return &state, nil
 }
 
 // BlockTransactionCount gets the number of transactions in a block
@@ -64,6 +83,9 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
+		if errors.Is(err, errNotFound) {
+			return nil, ErrBlockNotFound
+		}
 		return nil, err
 	}
 	return &result, nil

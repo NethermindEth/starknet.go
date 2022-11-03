@@ -87,6 +87,17 @@ type Block struct {
 	Transactions Transactions `json:"transactions"`
 }
 
+type PendingBlock struct {
+	// ParentHash The hash of this block's parent
+	ParentHash types.Hash `json:"parent_hash"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress string `json:"sequencer_address"`
+	// Transactions The hashes of the transactions included in this block
+	Transactions Transactions `json:"transactions"`
+}
+
 type BlockHeader struct {
 	// BlockHash The hash of this block
 	BlockHash types.Hash `json:"block_hash"`
