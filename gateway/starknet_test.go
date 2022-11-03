@@ -170,7 +170,7 @@ func TestDeployAccountContract(t *testing.T) {
 		// Step 5: deploy the account
 		resp, err := gw.DeployAccount(context.Background(), types.DeployAccountRequest{
 			MaxFee:              big.NewInt(10000000000000000),
-			Version:             1,
+			Version:             big.NewInt(1),
 			ContractAddressSalt: "0x0",
 			ConstructorCalldata: []string{test.PublicKey},
 			ClassHash:           tx.ClassHash,

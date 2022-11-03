@@ -269,7 +269,7 @@ func TestSyncing(t *testing.T) {
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		i, ok = big.NewInt(0).SetString(syncv02.CurrentBlockNum, 0)
+		i, ok = big.NewInt(0).SetString(string(syncv02.CurrentBlockNum), 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv02.CurrentBlockNum)
 		}

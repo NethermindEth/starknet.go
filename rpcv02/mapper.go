@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
-type functionInvoke ctypes.FunctionInvoke
+type functionInvoke types.FunctionInvoke
 
 func (f functionInvoke) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}

@@ -69,8 +69,16 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 // InvokeTransactionReceipt Invoke Transaction Receipt
 type InvokeTransactionReceipt CommonTransactionReceipt
 
+func (tr InvokeTransactionReceipt) Hash() types.Hash {
+	return tr.TransactionHash
+}
+
 // DeclareTransactionReceipt Declare Transaction Receipt
 type DeclareTransactionReceipt CommonTransactionReceipt
+
+func (tr DeclareTransactionReceipt) Hash() types.Hash {
+	return tr.TransactionHash
+}
 
 // DeployTransactionReceipt Deploy Transaction Receipt
 type DeployTransactionReceipt struct {
@@ -88,6 +96,10 @@ type DeployAccountTransactionReceipt struct {
 
 // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
 type L1HandlerTransactionReceipt CommonTransactionReceipt
+
+func (tr L1HandlerTransactionReceipt) Hash() types.Hash {
+	return tr.TransactionHash
+}
 
 // PendingDeployTransactionReceipt Pending Transaction Receipt
 type PendingDeployTransactionReceipt struct {

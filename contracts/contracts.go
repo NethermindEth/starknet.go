@@ -95,7 +95,7 @@ func (p *RPCv02Provider) declareAndWaitNoWallet(ctx context.Context, compiledCla
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeclareTransaction(ctx, class, "0x0")
+	tx, err := provider.AddDeclareTransaction(ctx, class)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (p *RPCv02Provider) deployAndWaitNoWallet(ctx context.Context, compiledClas
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeployTransaction(ctx, salt, inputs, class)
+	tx, err := provider.AddDeployTransaction(ctx, inputs)
 	if err != nil {
 		return nil, err
 	}
