@@ -9,7 +9,6 @@ import (
 
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/types"
-	ctypes "github.com/dontpanicdao/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction
@@ -80,20 +79,20 @@ func TestDeployTransaction(t *testing.T) {
 			{
 				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
+				ConstructorCall:         []string{},
+				ExpectedContractAddress: "0xbaaa96effb3564b6047e45944e8db9d9b0a056886d131038baabb56a959390",
 			},
 			{
 				Filename:                artifacts.AccountV0Compiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: DevNetAccount032Address,
+				ExpectedContractAddress: TestNetAccount032Address,
 			},
 			{
 				Filename:                artifacts.AccountCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: DevNetAccount040Address,
+				ExpectedContractAddress: TestNetAccount040Address,
 			},
 		},
 		"mainnet": {},
@@ -102,8 +101,8 @@ func TestDeployTransaction(t *testing.T) {
 			{
 				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef",
+				ConstructorCall:         []string{},
+				ExpectedContractAddress: "0xbaaa96effb3564b6047e45944e8db9d9b0a056886d131038baabb56a959390",
 			},
 			{
 				Filename:                artifacts.AccountV0Compiled,
@@ -121,7 +120,7 @@ func TestDeployTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		contractClass := ctypes.ContractClass{}
+		contractClass := types.ContractClass{}
 		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
@@ -129,6 +128,7 @@ func TestDeployTransaction(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		broadcastedDeployTransaction := BroadcastedDeployTransaction{
+			Type:                "DEPLOY",
 			Version:             big.NewInt(0),
 			ContractAddressSalt: test.Salt,
 			ConstructorCalldata: test.ConstructorCall,
@@ -138,13 +138,15 @@ func TestDeployTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
-		if dec.ContractAddress != test.ExpectedContractAddress {
-			t.Fatalf("contractAddress does not match expected, current: %s", dec.ContractAddress)
+		fmt.Printf("transaction hash: %s\n", dec.TransactionHash)
+		expectedContractAddress, _ := big.NewInt(0).SetString(test.ExpectedContractAddress, 0)
+		contractAddress, _ := big.NewInt(0).SetString(dec.ContractAddress, 0)
+		if contractAddress.Cmp(expectedContractAddress) != 0 {
+			t.Fatalf("contractAddress expecting %s, current: %s", test.ExpectedContractAddress, dec.ContractAddress)
 		}
 		if diff, err := spy.Compare(dec, false); err != nil || diff != "FullMatch" {
 			spy.Compare(dec, true)
 			t.Fatal("expecting to match", err)
 		}
-		fmt.Println("transaction hash:", dec.TransactionHash)
 	}
 }

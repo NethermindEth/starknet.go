@@ -2,6 +2,7 @@ package rpcv02
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -278,6 +279,28 @@ type BroadcastedDeployTransaction struct {
 	ContractAddressSalt string              `json:"contract_address_salt"`
 	ConstructorCalldata []string            `json:"constructor_calldata"`
 	ContractClass       types.ContractClass `json:"contract_class"`
+}
+
+func (b BroadcastedDeployTransaction) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["type"] = "DEPLOY"
+	output["version"] = fmt.Sprintf("0x%s", b.Version.Text(16))
+	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
+	if !ok {
+		return nil, errors.New("wrong salt")
+	}
+	output["contract_address_salt"] = fmt.Sprintf("0x%s", contractAddressSalt.Text(16))
+	constructorCalldata := []string{}
+	for _, v := range b.ConstructorCalldata {
+		constructorCall, ok := big.NewInt(0).SetString(v, 0)
+		if !ok {
+			return nil, errors.New("wrong constructor call data")
+		}
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x%s", constructorCall.Text(16)))
+	}
+	output["constructor_calldata"] = constructorCalldata
+	output["contract_class"] = b.ContractClass
+	return json.Marshal(output)
 }
 
 type BroadcastedDeployAccountTransaction struct {
