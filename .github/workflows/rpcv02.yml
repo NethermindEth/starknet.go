@@ -1,4 +1,4 @@
-name: test
+name: rpcv02
 
 on:
   push:
