@@ -18,19 +18,22 @@ func TestDeclareTransaction(t *testing.T) {
 	type testSetType struct {
 		Filename          []byte
 		Version           *big.Int
+		Signature         []string
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {{
 			Filename:          artifacts.CounterCompiled,
-			Version:           big.NewInt(0),
-			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
+			Version:           big.NewInt(1),
+			Signature:         []string{"0x1", "0x2"},
+			ExpectedClassHash: "0x029c64881bf658fae000fa6d5112f379eb4fc9c629a5cd7455eafc0744e34a8a",
 		}},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
 			Filename:          artifacts.CounterCompiled,
-			Version:           big.NewInt(0),
+			Version:           big.NewInt(1),
+			Signature:         []string{"0x1", "0x2"},
 			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
 		}},
 	}[testEnv]
@@ -40,14 +43,19 @@ func TestDeclareTransaction(t *testing.T) {
 		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
-
+		maxFee, _ := big.NewInt(0).SetString("10000000000000", 0)
+		nonce := big.NewInt(1)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		declareTransaction := BroadcastedDeclareTransaction{
 			BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-				Version: test.Version,
+				Version:   test.Version,
+				MaxFee:    maxFee,
+				Nonce:     nonce,
+				Signature: test.Signature,
 			},
 			ContractClass: contractClass,
+			SenderAddress: types.HexToHash(TestNetAccount040Address),
 		}
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTransaction)
 		if err != nil {
