@@ -23,7 +23,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"devnet": {{
 			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
-			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
+			ExpectedClassHash: "0x07c9716ab7c3e398ff5bf5b90366e18687915a57080c0e9f9c58ffea9bdf02e2",
 		}},
 		"mainnet": {},
 		"mock":    {},
@@ -72,8 +72,8 @@ func TestDeployTransaction(t *testing.T) {
 			{
 				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x056a8f90b554bcea44456ee5da33b9c329a15dba09083bcd3a731017d269dc68",
+				ConstructorCall:         []string{},
+				ExpectedContractAddress: "0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b",
 			},
 			{
 				Filename:                artifacts.AccountV0Compiled,
@@ -103,7 +103,7 @@ func TestDeployTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 		dec, err := testConfig.provider.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCall, contractClass)
 		if err != nil {
-			t.Fatal("declare should succeed, instead:", err)
+			t.Fatal("deploy should succeed, instead:", err)
 		}
 		if dec.ContractAddress != test.ExpectedContractAddress {
 			t.Fatalf("contractAddress does not match expected %s, got: %s", test.ExpectedContractAddress, dec.ContractAddress)
