@@ -12,7 +12,6 @@ import (
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/plugins/xsessions"
 	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/rpcv02"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -30,8 +29,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 	)
 }
 
-// TODO: why we do have *rpcv02.Provider
-func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv02.Provider) (string, error) {
+func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
 
@@ -84,46 +82,6 @@ func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string,
 }
 
 func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
-	v := caigo.AccountVersion0
-	if ap.Version == "v1" {
-		v = caigo.AccountVersion1
-	}
-	account, err := caigo.NewRPCAccount(
-		ap.PrivateKey,
-		ap.AccountAddress,
-		provider,
-		v,
-	)
-	if err != nil {
-		return "", err
-	}
-	calls := []types.FunctionCall{
-		{
-			ContractAddress:    types.HexToHash(counterAddress),
-			EntryPointSelector: "increment",
-			Calldata:           []string{},
-		},
-	}
-	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return "", err
-	}
-	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return tx.TransactionHash, err
-	}
-	if status != types.TransactionAcceptedOnL2 {
-		log.Printf("transaction has failed with %s", status)
-		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
-	}
-	return tx.TransactionHash, nil
-}
-
-func (ap *AccountManager) ExecuteWithRPCv02(counterAddress, selector string, provider *rpcv02.Provider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1

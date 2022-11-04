@@ -41,11 +41,8 @@ jobs:
       - name: Test RPC v0.1 with mocks
         run: cd rpcv01 && go test -v .
 
-      - name: Test RPC v0.2 with mocks
-        run: cd rpcv02 && go test -v .
-
-      - name: Preinstall RPC v0.2 contracts on devnet
-        run: cd rpcv02 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
+      - name: Preinstall RPC v0.1 contracts on devnet
+        run: cd rpcv01 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
@@ -56,8 +53,8 @@ jobs:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
-      - name: Test RPC v0.2 on devnet
-        run: cd rpcv02 && go test -timeout 600s -v -env devnet .
+      - name: Test RPC v0.1 on devnet
+        run: cd rpcv01 && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
@@ -65,14 +62,14 @@ jobs:
       - name: Test sessionkey on devnet
         run: cd plugins/xsessions && ./sessionkey.sh
 
-      - name: Test RPC v0.2 on testnet
-        run: cd rpcv02 && go test -timeout 1200s -v -env testnet .
+      - name: Test RPC v0.1 on testnet
+        run: cd rpcv01 && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/rpc/v0.1"
 
-      - name: Test RPC v0.2 with mainnet
-        run: cd rpcv02 && go test -timeout 600s -v -env mainnet .
+      - name: Test RPC v0.1 with mainnet
+        run: cd rpcv01 && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet.cartridge.gg/rpc/v0.1"
