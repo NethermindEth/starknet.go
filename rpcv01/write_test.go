@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/artifacts"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction
@@ -15,32 +15,28 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Filename          string
+		Filename          []byte
 		Version           string
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {{
-			Filename:          "./tests/counter.json",
+			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
 			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
 		}},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			Filename:          "./tests/counter.json",
+			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
 			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		content, err := os.ReadFile(test.Filename)
-		if err != nil {
-			t.Fatal("should read file with success, instead:", err)
-		}
-		contractClass := ctypes.ContractClass{}
-		if err := json.Unmarshal(content, &contractClass); err != nil {
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 
@@ -66,7 +62,7 @@ func TestDeployTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Filename                string
+		Filename                []byte
 		Salt                    string
 		ConstructorCall         []string
 		ExpectedContractAddress string
@@ -74,19 +70,19 @@ func TestDeployTransaction(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Filename:                "./tests/counter.json",
+				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x1"},
 				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
 			},
 			{
-				Filename:                "./tests/oz_v0.3.2_account.json",
+				Filename:                artifacts.AccountV0Compiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
 				ExpectedContractAddress: DevNetAccount032Address,
 			},
 			{
-				Filename:                "./tests/oz_v0.4.0b_account.json",
+				Filename:                artifacts.AccountCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
 				ExpectedContractAddress: DevNetAccount040Address,
@@ -98,12 +94,8 @@ func TestDeployTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		content, err := os.ReadFile(test.Filename)
-		if err != nil {
-			t.Fatal("should read file with success, instead:", err)
-		}
-		contractClass := ctypes.ContractClass{}
-		if err := json.Unmarshal(content, &contractClass); err != nil {
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 

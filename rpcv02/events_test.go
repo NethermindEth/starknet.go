@@ -40,7 +40,10 @@ func TestEvents(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		events, err := testConfig.provider.Events(context.Background(), test.eventFilter)
+		eventInput := EventsInput{
+			EventFilter: test.eventFilter,
+		}
+		events, err := testConfig.provider.Events(context.Background(), eventInput)
 		if err != nil {
 			t.Fatal(err)
 		}

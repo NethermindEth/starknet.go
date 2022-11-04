@@ -178,17 +178,13 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return errWrongArgs
 	}
 
-	transaction := InvokeTransactionReceipt{
-		CommonTransactionReceipt: CommonTransactionReceipt{
-			TransactionHash: ctypes.HexToHash(args[0].(string)),
-			Status:          types.TransactionState("ACCEPTED_ON_L1"),
-		},
-		InvokeTransactionReceiptProperties: InvokeTransactionReceiptProperties{
-			Events: []Event{{
-				FromAddress: ctypes.HexToHash("0xdeadbeef"),
-			}},
-		},
-	}
+	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
+		TransactionHash: ctypes.HexToHash(args[0].(string)),
+		Status:          types.TransactionState("ACCEPTED_ON_L1"),
+		Events: []Event{{
+			FromAddress: ctypes.HexToHash("0xdeadbeef"),
+		}},
+	})
 	outputContent, _ := json.Marshal(transaction)
 	json.Unmarshal(outputContent, r)
 	return nil

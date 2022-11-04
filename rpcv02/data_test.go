@@ -80,38 +80,34 @@ var fullBlockGoerli310370 = Block{
 	},
 }
 
-var receiptTxn310370_0 = InvokeTransactionReceipt{
-	CommonTransactionReceipt: CommonTransactionReceipt{
-		TransactionHash: ctypes.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
-		ActualFee:       "0x1709a2f3a2",
-		Status:          types.TransactionAcceptedOnL1,
-		BlockHash:       ctypes.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
-		BlockNumber:     310370,
-	},
-	InvokeTransactionReceiptProperties: InvokeTransactionReceiptProperties{
-		MessageSent: []MsgToL1{},
-		Events: []Event{
-			{
-				FromAddress: ctypes.HexToHash("0x37de00fb1416936b3074fc78bcc811d83046009b162c4a822ce84dabedd0ea9"),
-				Data: []string{
-					"0x0",
-					"0x35b32bb4a1969175fb14b6c09838d1b3200724cc4d2b0891be319764021f5ac",
-					"0xe9",
-					"0x0",
-				},
-				Keys: []string{"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"},
+var receiptTxn310370_0 = InvokeTransactionReceipt(CommonTransactionReceipt{
+	TransactionHash: ctypes.HexToHash("0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+	ActualFee:       "0x1709a2f3a2",
+	Status:          types.TransactionAcceptedOnL1,
+	BlockHash:       ctypes.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
+	BlockNumber:     310370,
+	MessagesSent:    []MsgToL1{},
+	Events: []Event{
+		{
+			FromAddress: ctypes.HexToHash("0x37de00fb1416936b3074fc78bcc811d83046009b162c4a822ce84dabedd0ea9"),
+			Data: []string{
+				"0x0",
+				"0x35b32bb4a1969175fb14b6c09838d1b3200724cc4d2b0891be319764021f5ac",
+				"0xe9",
+				"0x0",
 			},
-			{
-				FromAddress: ctypes.HexToHash("0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
-				Data: []string{
-					"0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3",
-					"0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6",
-				},
-				Keys: []string{"0xf806f71b19e4744968b37e3fb288e61309ab33a782ea9d11e18f67a1fbb110"},
+			Keys: []string{"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"},
+		},
+		{
+			FromAddress: ctypes.HexToHash("0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
+			Data: []string{
+				"0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3",
+				"0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6",
 			},
+			Keys: []string{"0xf806f71b19e4744968b37e3fb288e61309ab33a782ea9d11e18f67a1fbb110"},
 		},
 	},
-}
+})
 
 var fullBlockGoerli310843 = Block{
 	BlockHeader: BlockHeader{
@@ -125,32 +121,25 @@ var fullBlockGoerli310843 = Block{
 	Status: "ACCEPTED_ON_L1",
 	Transactions: []Transaction{
 		DeployTxn{
-			ContractAddress:     "0x21c40b1377353924e185c9536469787dbe0cdb77b6877fa3a9946b795c71ec7",
-			ContractAddressSalt: "0x4241e90ee6a33a1e2e70b088f7e4acfb3d6630964c1a85e96fa96acd56dcfcf",
 			ConstructorCalldata: []string{
 				"0x31ad196615d50956d98be085eb1774624106a6936c7c38696e730d2a6df735a",
 				"0x736affc32af71f8d361c855b38ffef58ec151bd8361a3b160017b90ada1068e",
 			},
-			ClassHash: "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5",
-			CommonTransaction: CommonTransaction{
-				Type:            "DEPLOY",
-				Version:         "0x0",
-				TransactionHash: ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-			},
+			ClassHash:       "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5",
+			Type:            "DEPLOY",
+			Version:         "0x0",
+			TransactionHash: ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
 		},
 	},
 }
 
-var receiptTxn310843_14 = InvokeTransactionReceipt{
-	CommonTransactionReceipt: CommonTransactionReceipt{
-		TransactionHash: ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-		ActualFee:       "0x0",
-		Status:          types.TransactionAcceptedOnL1,
-		BlockHash:       ctypes.HexToHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
-		BlockNumber:     310843,
-	},
-	// ContractAddress: "",
-}
+var receiptTxn310843_14 = InvokeTransactionReceipt(CommonTransactionReceipt{
+	TransactionHash: ctypes.HexToHash("0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
+	ActualFee:       "0x0",
+	Status:          types.TransactionAcceptedOnL1,
+	BlockHash:       ctypes.HexToHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
+	BlockNumber:     310843,
+})
 
 var fullBlockGoerli300114 = Block{
 	BlockHeader: BlockHeader{
@@ -178,15 +167,14 @@ var fullBlockGoerli300114 = Block{
 	},
 }
 
-var receiptTxn300114_3 = InvokeTransactionReceipt{
-	CommonTransactionReceipt: CommonTransactionReceipt{
+var receiptTxn300114_3 = InvokeTransactionReceipt(
+	CommonTransactionReceipt{
 		TransactionHash: ctypes.HexToHash("0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 		ActualFee:       "0x0",
 		Status:          types.TransactionAcceptedOnL1,
 		BlockHash:       ctypes.HexToHash("0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
 		BlockNumber:     300114,
-	},
-}
+	})
 
 var InvokeTxnV00x705547f8f2f8f = InvokeTxnV0{
 	CommonTransaction: CommonTransaction{
