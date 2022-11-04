@@ -27,7 +27,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []string{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x01$",
+				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 			{
 				FunctionCall: types.FunctionCall{
