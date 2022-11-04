@@ -126,7 +126,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			continue
 		}
 
-		if !cmp.Equal(test.ExpectedBlockWithTxHashes, block) {
+		if !cmp.Equal(test.ExpectedBlockWithTxHashes, *block) {
 			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
 		}
 	}
@@ -419,7 +419,19 @@ func TestStateUpdate(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID: WithBlockTag("latest"),
+				BlockID: WithBlockNumber(300000),
+				ExpectedStateUpdateOutput: StateUpdateOutput{
+					BlockHash: types.HexToHash("0x03b6d94b246815960f38b7dffc53cda192e7d1dcfff61e1bc042fb57e95f8349"),
+					NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
+					OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
+					StateDiff: StateDiff{
+						StorageDiffs: []ContractStorageDiffItem{{
+							Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
+							Key:     "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
+							Value:   "0x630b4197",
+						}},
+					},
+				},
 			},
 		},
 		"mainnet": {},
@@ -432,7 +444,7 @@ func TestStateUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 		if stateUpdate.BlockHash.Hex() != test.ExpectedStateUpdateOutput.BlockHash.Hex() {
-			t.Fatalf("structure expecting 0x%s, instead: 0x%s", test.ExpectedStateUpdateOutput.BlockHash.Hex(), stateUpdate.BlockHash.Hex())
+			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.Hex(), stateUpdate.BlockHash.Hex())
 		}
 	}
 }

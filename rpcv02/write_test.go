@@ -25,7 +25,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"devnet": {{
 			Filename:          artifacts.CounterCompiled,
 			Version:           big.NewInt(1),
-			Signature:         []string{"0x1", "0x2"},
+			Signature:         []string{"0x62fe3eb3f30824c8039e5a8b9f16e02f6ad71e01d5593b330451fccd97a2576", "0x33eda2c4b010a3365a9ed453c0f21b796f84e03cc33d3602f49f57cd50d2270"},
 			ExpectedClassHash: "0x029c64881bf658fae000fa6d5112f379eb4fc9c629a5cd7455eafc0744e34a8a",
 		}},
 		"mainnet": {},
@@ -33,8 +33,8 @@ func TestDeclareTransaction(t *testing.T) {
 		"testnet": {{
 			Filename:          artifacts.CounterCompiled,
 			Version:           big.NewInt(1),
-			Signature:         []string{"0x1", "0x2"},
-			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
+			Signature:         []string{"0x62fe3eb3f30824c8039e5a8b9f16e02f6ad71e01d5593b330451fccd97a2576", "0x33eda2c4b010a3365a9ed453c0f21b796f84e03cc33d3602f49f57cd50d2270"},
+			ExpectedClassHash: "0x7853290c8ec2d52a9e2b241abb6d7fd0757c1c28c8be7e2471ed3357d5c0758",
 		}},
 	}[testEnv]
 
@@ -110,19 +110,7 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{},
-				ExpectedContractAddress: "0xbaaa96effb3564b6047e45944e8db9d9b0a056886d131038baabb56a959390",
-			},
-			{
-				Filename:                artifacts.AccountV0Compiled,
-				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: TestNetAccount032Address,
-			},
-			{
-				Filename:                artifacts.AccountCompiled,
-				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: TestNetAccount040Address,
+				ExpectedContractAddress: "0x694e6ea14f47c9413e7c38ba6e2f98d21c1fc14f663e5ee05b13e350a2ba216",
 			},
 		},
 	}[testEnv]

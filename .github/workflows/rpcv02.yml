@@ -47,10 +47,10 @@ jobs:
         run: cd rpcv02 && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
+          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/rpc/v0.2"
 
       - name: Test RPC v0.2 with mainnet
         run: cd rpcv02 && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
+          INTEGRATION_BASE: "https://starknet.cartridge.gg/rpc/v0.2"

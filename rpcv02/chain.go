@@ -3,7 +3,7 @@ package rpcv02
 import (
 	"context"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // ChainID retrieves the current chain ID for transaction replay protection.
@@ -13,7 +13,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if err := provider.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...); err != nil {
 		return "", err
 	}
-	return ctypes.HexToShortStr(result), nil
+	return types.HexToShortStr(result), nil
 }
 
 // Syncing checks the syncing status of the node.

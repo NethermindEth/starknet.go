@@ -1,6 +1,8 @@
 package rpcv02
 
 import (
+	"encoding/json"
+
 	types "github.com/dontpanicdao/caigo/types"
 )
 
@@ -68,12 +70,46 @@ type StateUpdateOutput struct {
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
 	SyncStatus        bool
-	StartingBlockHash string         `json:"starting_block_hash"`
-	StartingBlockNum  types.NumAsHex `json:"starting_block_num"`
-	CurrentBlockHash  string         `json:"current_block_hash"`
-	CurrentBlockNum   types.NumAsHex `json:"current_block_num"`
-	HighestBlockHash  string         `json:"highest_block_hash"`
-	HighestBlockNum   types.NumAsHex `json:"highest_block_num"`
+	StartingBlockHash string         `json:"starting_block_hash,omitempty"`
+	StartingBlockNum  types.NumAsHex `json:"starting_block_num,omitempty"`
+	CurrentBlockHash  string         `json:"current_block_hash,omitempty"`
+	CurrentBlockNum   types.NumAsHex `json:"current_block_num,omitempty"`
+	HighestBlockHash  string         `json:"highest_block_hash,omitempty"`
+	HighestBlockNum   types.NumAsHex `json:"highest_block_num,omitempty"`
+}
+
+func (s SyncStatus) MarshalJSON() ([]byte, error) {
+	if !s.SyncStatus {
+		return []byte("false"), nil
+	}
+	output := map[string]interface{}{}
+	output["starting_block_hash"] = s.StartingBlockHash
+	output["starting_block_num"] = s.StartingBlockNum
+	output["current_block_hash"] = s.CurrentBlockHash
+	output["current_block_num"] = s.CurrentBlockNum
+	output["highest_block_hash"] = s.HighestBlockHash
+	output["highest_block_num"] = s.HighestBlockNum
+	return json.Marshal(output)
+}
+
+func (s *SyncStatus) UnmarshalJSON(data []byte) error {
+	if string(data) == "false" {
+		s.SyncStatus = false
+		return nil
+	}
+	s.SyncStatus = true
+	output := map[string]interface{}{}
+	err := json.Unmarshal(data, &output)
+	if err != nil {
+		return err
+	}
+	s.StartingBlockHash = output["starting_block_hash"].(string)
+	s.StartingBlockNum = types.NumAsHex(output["starting_block_num"].(string))
+	s.CurrentBlockHash = output["current_block_hash"].(string)
+	s.CurrentBlockNum = types.NumAsHex(output["current_block_num"].(string))
+	s.HighestBlockHash = output["highest_block_hash"].(string)
+	s.HighestBlockNum = types.NumAsHex(output["highest_block_num"].(string))
+	return nil
 }
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
