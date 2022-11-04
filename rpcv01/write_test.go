@@ -73,7 +73,7 @@ func TestDeployTransaction(t *testing.T) {
 				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
+				ExpectedContractAddress: "0x056a8f90b554bcea44456ee5da33b9c329a15dba09083bcd3a731017d269dc68",
 			},
 			{
 				Filename:                artifacts.AccountV0Compiled,
@@ -106,7 +106,7 @@ func TestDeployTransaction(t *testing.T) {
 			t.Fatal("declare should succeed, instead:", err)
 		}
 		if dec.ContractAddress != test.ExpectedContractAddress {
-			t.Fatalf("contractAddress does not match expected, current: %s", dec.ContractAddress)
+			t.Fatalf("contractAddress does not match expected %s, got: %s", test.ExpectedContractAddress, dec.ContractAddress)
 		}
 		if diff, err := spy.Compare(dec, false); err != nil || diff != "FullMatch" {
 			spy.Compare(dec, true)
