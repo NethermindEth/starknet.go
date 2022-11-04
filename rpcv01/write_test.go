@@ -30,7 +30,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"testnet": {{
 			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
-			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
+			ExpectedClassHash: "0x29c64881bf658fae000fa6d5112f379eb4fc9c629a5cd7455eafc0744e34a8a",
 		}},
 	}[testEnv]
 

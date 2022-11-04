@@ -27,7 +27,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []string{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
+				ExpectedPatternResult: "^0x01$",
 			},
 			{
 				FunctionCall: types.FunctionCall{
@@ -66,15 +66,6 @@ func TestCall(t *testing.T) {
 					ContractAddress:    types.HexToHash(TestNetETHAddress),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
-				},
-				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
-			},
-			{
-				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash(TestNetAccount032Address),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
 				},
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: "^0x[0-9a-f]+$",
