@@ -3,7 +3,7 @@ name: rpcv02
 on:
   push:
     branches:
-      - 'feature/rpcv02'  
+      - '**'
     tags-ignore:
       - '**'
 
