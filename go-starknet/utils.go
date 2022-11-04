@@ -11,6 +11,29 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var signFlags = []cli.Flag{
+	&cli.StringFlag{
+		Name:    "private-key",
+		Aliases: []string{"p"},
+		Usage:   "private key used to sign a message",
+	}}
+
+var verifyFlags = []cli.Flag{
+	&cli.StringFlag{
+		Name:    "public-key",
+		Aliases: []string{"p"},
+		Usage:   "public key used to sign a message",
+	},
+	&cli.StringFlag{
+		Name:  "s0",
+		Usage: "first signature",
+	},
+	&cli.StringFlag{
+		Name:  "s1",
+		Usage: "2nd signature",
+	},
+}
+
 var utilsCommand = cli.Command{
 	Name:    "utils",
 	Aliases: []string{"u"},
@@ -87,6 +110,87 @@ var utilsCommand = cli.Command{
 					return err
 				}
 				fmt.Printf("public key: 0x%s\n", publicKey.Text(16))
+				fmt.Printf("public key: %s\n", publicKey.Text(10))
+				fmt.Println()
+				return nil
+			},
+		},
+		{
+			Name:  "sign",
+			Usage: "sign a message with a private key",
+			Flags: signFlags,
+			Action: func(cCtx *cli.Context) error {
+				if !cCtx.IsSet("private-key") {
+					return errors.New("private key is mandatory")
+				}
+				privateKey := cCtx.String("private-key")
+				privateKeyInt, ok := big.NewInt(0).SetString(privateKey, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				message := cCtx.Args().First()
+				messageInt, ok := big.NewInt(0).SetString(message, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				publicKey, _, err := caigo.Curve.PrivateToPoint(privateKeyInt)
+				if err != nil {
+					return err
+				}
+				x, y, err := caigo.Curve.Sign(messageInt, privateKeyInt)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("public key:   0x%s\n", publicKey.Text(16))
+				fmt.Printf("public key:   %s\n", publicKey.Text(10))
+				fmt.Printf("signature[0]: 0x%s\n", x.Text(16))
+				fmt.Printf("signature[0]: %s\n", x.Text(10))
+				fmt.Printf("signature[1]: 0x%s\n", y.Text(16))
+				fmt.Printf("signature[1]: %s\n", y.Text(10))
+				fmt.Println()
+				return nil
+			},
+		},
+		{
+			Name:  "verify",
+			Usage: "verify a signature with a public key and the message",
+			Flags: verifyFlags,
+			Action: func(cCtx *cli.Context) error {
+				if !cCtx.IsSet("public-key") {
+					return errors.New("public key is mandatory")
+				}
+				if !cCtx.IsSet("s0") {
+					return errors.New("s0 is mandatory")
+				}
+				if !cCtx.IsSet("s1") {
+					return errors.New("s1 is mandatory")
+				}
+				publicKey := cCtx.String("public-key")
+				publicKeyInt, ok := big.NewInt(0).SetString(publicKey, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				y := caigo.Curve.GetYCoordinate(publicKeyInt)
+				s0 := cCtx.String("s0")
+				s0Int, ok := big.NewInt(0).SetString(s0, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				s1 := cCtx.String("s1")
+				s1Int, ok := big.NewInt(0).SetString(s1, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				message := cCtx.Args().First()
+				messageInt, ok := big.NewInt(0).SetString(message, 0)
+				if !ok {
+					return errors.New("not a number")
+				}
+				ok = caigo.Curve.Verify(messageInt, s0Int, s1Int, publicKeyInt, y)
+				if !ok {
+					return errors.New("invalid signature")
+				}
+				fmt.Println("signature is valid")
 				fmt.Println()
 				return nil
 			},
