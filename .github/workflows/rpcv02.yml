@@ -28,6 +28,9 @@ jobs:
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 
+      - name: Test contracts deployment and execute
+        run: cd contracts && go test -env devnet -v -run "^TestRPCv02" .
+
       - name: Preinstall RPC v0.2 contracts on devnet
         run: cd rpcv02 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
         env:
