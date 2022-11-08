@@ -208,7 +208,7 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 }
 
 // TestChainID checks the chainId matches the one for the environment
-func TestChainID(t *testing.T) {
+func TestGeneral_ChainID(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -238,7 +238,7 @@ func TestChainID(t *testing.T) {
 }
 
 // TestSyncing checks the values returned are consistent
-func TestSyncing(t *testing.T) {
+func TestGeneral_Syncing(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {

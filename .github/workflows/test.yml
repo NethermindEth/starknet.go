@@ -48,7 +48,7 @@ jobs:
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test Accounts (Caigo) on devnet
-        run: go test -timeout 600s -v -env devnet .
+        run: go test -timeout 600s -v -env devnet -run "^(TestGateway|TestRPCv01|TestGeneral)" .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"

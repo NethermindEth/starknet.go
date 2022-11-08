@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	rpc "github.com/dontpanicdao/caigo/rpcv01"
+	rpc "github.com/dontpanicdao/caigo/rpcv02"
 	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestAccountNonce tests the account Nonce
-func TestRPCv01Account_Nonce(t *testing.T) {
+func TestRPCv02Account_Nonce(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -40,7 +40,7 @@ func TestRPCv01Account_Nonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +52,7 @@ func TestRPCv01Account_Nonce(t *testing.T) {
 }
 
 // TestAccountEstimateFee tests the account EstimateFee
-func TestRPCv01Account_EstimateFee(t *testing.T) {
+func TestRPCv02Account_EstimateFee(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -88,7 +88,7 @@ func TestRPCv01Account_EstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -103,7 +103,7 @@ func TestRPCv01Account_EstimateFee(t *testing.T) {
 }
 
 // TestRPCAccount_Execute tests the account Execute method
-func TestRPCv01Account_Execute(t *testing.T) {
+func TestRPCv02Account_Execute(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -119,7 +119,7 @@ func TestRPCv01Account_Execute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv01)
+		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}

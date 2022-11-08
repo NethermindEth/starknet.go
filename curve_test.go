@@ -50,7 +50,7 @@ func BenchmarkCurveSign(b *testing.B) {
 	}
 }
 
-func TestPrivateToPoint(t *testing.T) {
+func TestGeneral_PrivateToPoint(t *testing.T) {
 	x, _, err := Curve.PrivateToPoint(big.NewInt(2))
 	if err != nil {
 		t.Errorf("PrivateToPoint err %v", err)
@@ -61,7 +61,7 @@ func TestPrivateToPoint(t *testing.T) {
 	}
 }
 
-func TestPedersenHash(t *testing.T) {
+func TestGeneral_PedersenHash(t *testing.T) {
 	testPedersen := []struct {
 		elements []*big.Int
 		expected *big.Int
@@ -91,7 +91,7 @@ func TestPedersenHash(t *testing.T) {
 	}
 }
 
-func TestDivMod(t *testing.T) {
+func TestGeneral_DivMod(t *testing.T) {
 	testDivmod := []struct {
 		x        *big.Int
 		y        *big.Int
@@ -118,7 +118,7 @@ func TestDivMod(t *testing.T) {
 	}
 }
 
-func TestAdd(t *testing.T) {
+func TestGeneral_Add(t *testing.T) {
 	testAdd := []struct {
 		x         *big.Int
 		y         *big.Int
@@ -151,7 +151,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestMultAir(t *testing.T) {
+func TestGeneral_MultAir(t *testing.T) {
 	testMult := []struct {
 		r         *big.Int
 		x         *big.Int
