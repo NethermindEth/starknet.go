@@ -38,12 +38,12 @@ var (
 		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
-			base: "http://localhost:9545",
+			base: "http://localhost:9545/v0.1/rpc",
 		},
 		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base: "http://localhost:9545",
+			base: "http://localhost:9545/v0.1/rpc",
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/Shard-Labs/starknet-devnet)
