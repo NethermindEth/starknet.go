@@ -472,7 +472,8 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				Calldata: call.FunctionCall.Calldata,
+				Calldata:      call.FunctionCall.Calldata,
+				SenderAddress: types.HexToHash(account.AccountAddress),
 			}, rpcv02.WithBlockTag("latest"))
 		}
 	case ProviderGateway:
@@ -539,7 +540,8 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				Calldata: call.FunctionCall.Calldata,
+				SenderAddress: types.HexToHash(account.AccountAddress),
+				Calldata:      call.FunctionCall.Calldata,
 			})
 		}
 	case ProviderGateway:

@@ -273,6 +273,27 @@ type BroadcastedInvokeV1Transaction struct {
 	Calldata      []string   `json:"calldata"`
 }
 
+func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["type"] = b.Type
+	if b.MaxFee != nil {
+		output["max_fee"] = fmt.Sprintf("0x%s", b.MaxFee.Text(16))
+	}
+	if b.Nonce != nil {
+		output["nonce"] = fmt.Sprintf("0x%s", b.Nonce.Text(16))
+	}
+	output["version"] = b.Version
+	signature := []string{}
+	for _, v := range b.Signature {
+		s, _ := big.NewInt(0).SetString(v, 0)
+		signature = append(signature, fmt.Sprintf("0x%s", s.Text(16)))
+	}
+	output["signature"] = signature
+	output["sender_address"] = b.SenderAddress
+	output["calldata"] = b.Calldata
+	return json.Marshal(output)
+}
+
 type BroadcastedDeclareTransaction struct {
 	BroadcastedTxnCommonProperties
 	ContractClass types.ContractClass `json:"contract_class"`
