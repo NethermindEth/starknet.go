@@ -242,12 +242,19 @@ func remarshal(v interface{}, dst interface{}) error {
 	return nil
 }
 
+type TransactionVersion string
+
+const (
+	TransactionV0 TransactionVersion = "0x0"
+	TransactionV1 TransactionVersion = "0x1"
+)
+
 type BroadcastedTransaction interface{}
 
 type BroadcastedTxnCommonProperties struct {
 	MaxFee *big.Int `json:"max_fee"`
 	// Version of the transaction scheme, should be set to 0 or 1
-	Version *big.Int `json:"version"`
+	Version TransactionVersion `json:"version"`
 	// Signature
 	Signature []string `json:"signature"`
 	// Nonce should only be set with Transaction V1
@@ -281,7 +288,7 @@ func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
 	if b.Nonce != nil {
 		output["nonce"] = fmt.Sprintf("0x%s", b.Nonce.Text(16))
 	}
-	output["version"] = fmt.Sprintf("0x%s", b.Version.Text(16))
+	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)

@@ -454,22 +454,20 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		}
 		switch account.version {
 		case 0:
-			v0, _ := big.NewInt(0).SetString("0x100000000000000000000000000000000", 0)
 			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV0Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   v0,
+					Version:   rpcv02.TransactionV0,
 					Signature: signature,
 					Type:      "INVOKE",
 				},
 				FunctionCall: call.FunctionCall,
 			}, rpcv02.WithBlockTag("latest"))
 		case 1:
-			v1, _ := big.NewInt(0).SetString("0x100000000000000000000000000000001", 0)
 			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   v1,
+					Version:   rpcv02.TransactionV1,
 					Signature: signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
@@ -526,7 +524,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV0Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   big.NewInt(0),
+					Version:   rpcv02.TransactionV0,
 					Signature: signature,
 					Type:      "INVOKE",
 				},
@@ -536,7 +534,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   big.NewInt(1),
+					Version:   rpcv02.TransactionV1,
 					Signature: signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",

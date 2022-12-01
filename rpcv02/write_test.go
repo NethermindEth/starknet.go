@@ -17,14 +17,14 @@ func TestDeclareTransaction(t *testing.T) {
 
 	type testSetType struct {
 		Filename          []byte
-		Version           *big.Int
+		Version           TransactionVersion
 		Signature         []string
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {{
 			Filename:          artifacts.CounterCompiled,
-			Version:           big.NewInt(1),
+			Version:           TransactionV1,
 			Signature:         []string{"0x62fe3eb3f30824c8039e5a8b9f16e02f6ad71e01d5593b330451fccd97a2576", "0x33eda2c4b010a3365a9ed453c0f21b796f84e03cc33d3602f49f57cd50d2270"},
 			ExpectedClassHash: "0x029c64881bf658fae000fa6d5112f379eb4fc9c629a5cd7455eafc0744e34a8a",
 		}},
@@ -32,7 +32,7 @@ func TestDeclareTransaction(t *testing.T) {
 		"mock":    {},
 		"testnet": {{
 			Filename:          artifacts.CounterCompiled,
-			Version:           big.NewInt(1),
+			Version:           TransactionV1,
 			Signature:         []string{"0x62fe3eb3f30824c8039e5a8b9f16e02f6ad71e01d5593b330451fccd97a2576", "0x33eda2c4b010a3365a9ed453c0f21b796f84e03cc33d3602f49f57cd50d2270"},
 			ExpectedClassHash: "0x7853290c8ec2d52a9e2b241abb6d7fd0757c1c28c8be7e2471ed3357d5c0758",
 		}},
