@@ -17,9 +17,11 @@ const (
 	DEPLOY_ACCOUNT string = "DEPLOY_ACCOUNT"
 	DECLARE        string = "DECLARE"
 	GOERLI_ID      string = "SN_GOERLI"
+	GOERLI2_ID     string = "SN_GOERLI2"
 	MAINNET_ID     string = "SN_MAIN"
 	LOCAL_BASE     string = "http://localhost:5050"
 	GOERLI_BASE    string = "https://alpha4.starknet.io"
+	GOERLI2_BASE   string = "https://alpha4-2.starknet.io"
 	MAINNET_BASE   string = "https://alpha-mainnet.starknet.io"
 )
 
@@ -62,6 +64,11 @@ func NewClient(opts ...Option) *Gateway {
 		gopts.chainID = GOERLI_ID
 		if gopts.baseUrl == "" {
 			gopts.baseUrl = LOCAL_BASE
+		}
+	case strings.Contains(id, "goerli2"):
+		gopts.chainID = GOERLI2_ID
+		if gopts.baseUrl == "" {
+			gopts.baseUrl = GOERLI2_BASE
 		}
 	default:
 		gopts.chainID = GOERLI_ID
