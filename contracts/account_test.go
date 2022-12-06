@@ -141,8 +141,8 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []string{"rpcv01"} {
-		for _, version := range []string{"v0", "v1"} {
+	for _, provider := range []string{"rpcv02"} {
+		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
 					devnet = append(devnet, TestCase{
