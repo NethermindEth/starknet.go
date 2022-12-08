@@ -47,8 +47,7 @@ jobs:
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test RPC v0.2 with mocks
-        run: echo "skip for now"
-        # run: cd rpcv02 && go test -v .
+        run: cd rpcv02 && go test -v .
 
       - name: Test RPC v0.2 on devnet
         run: echo "skip for now"
@@ -58,15 +57,13 @@ jobs:
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test RPC v0.2 on testnet
-        run: echo "skip for now"
-        # run: cd rpcv02 && go test -timeout 1200s -v -env testnet .
+        run: cd rpcv02 && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
 
       - name: Test RPC v0.2 with mainnet
-        run: echo "skip for now"
-        # run: cd rpcv02 && go test -timeout 600s -v -env mainnet .
+        run: cd rpcv02 && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet.cartridge.gg/"
