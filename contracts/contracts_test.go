@@ -19,7 +19,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  string
+		providerType  caigo.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -28,7 +28,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  PROVIDER_GATEWAY,
+				providerType:  caigo.ProviderGateway,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
@@ -42,7 +42,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case "gateway":
+		case caigo.ProviderGateway:
 			provider := GatewayProvider(*testConfiguration.gateway)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -60,7 +60,7 @@ func TestRPCv01_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  string
+		providerType  caigo.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -69,7 +69,7 @@ func TestRPCv01_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  PROVIDER_RPCV01,
+				providerType:  caigo.ProviderRPCv02,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
@@ -83,7 +83,7 @@ func TestRPCv01_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			provider := RPCv01Provider(*testConfiguration.rpcv01)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -101,7 +101,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  string
+		providerType  caigo.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -110,7 +110,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  PROVIDER_RPCV01,
+				providerType:  caigo.ProviderRPCv02,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
@@ -124,10 +124,10 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			provider := RPCv01Provider(*testConfiguration.rpcv01)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
-		case "gateway":
+		case caigo.ProviderGateway:
 			provider := GatewayProvider(*testConfiguration.gateway)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -146,7 +146,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    string
+		providerType    caigo.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -154,7 +154,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0x1",
-				providerType:    PROVIDER_GATEWAY,
+				providerType:    caigo.ProviderGateway,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -167,7 +167,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
 		switch test.providerType {
-		case "gateway":
+		case caigo.ProviderGateway:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			accountManager, err := InstallAndWaitForAccountNoWallet(
 				ctx,
@@ -210,7 +210,7 @@ func TestRPCv01_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    string
+		providerType    caigo.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -218,7 +218,7 @@ func TestRPCv01_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0x1",
-				providerType:    PROVIDER_RPCV01,
+				providerType:    caigo.ProviderRPCv01,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -231,7 +231,7 @@ func TestRPCv01_LoadAndExecuteCounter(t *testing.T) {
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			accountManager, err := InstallAndWaitForAccountNoWallet(
 				ctx,
@@ -274,7 +274,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    string
+		providerType    caigo.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -282,7 +282,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0x1",
-				providerType:    PROVIDER_RPCV01,
+				providerType:    caigo.ProviderRPCv02,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -295,7 +295,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			accountManager, err := InstallAndWaitForAccountNoWallet(
 				ctx,

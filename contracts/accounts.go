@@ -51,8 +51,6 @@ type Provider interface {
 }
 
 const (
-	PROVIDER_GATEWAY = "gateway"
-	PROVIDER_RPCV01  = "rpcv01"
 	ACCOUNT_VERSION0 = "v0"
 	ACCOUNT_VERSION1 = "v1"
 )

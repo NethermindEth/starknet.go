@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/joho/godotenv"
 )
@@ -18,11 +19,11 @@ func TestGateway_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     string
+		providerType     caigo.ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []string{"gateway"} {
+	for _, provider := range []caigo.ProviderType{caigo.ProviderGateway} {
 		for _, version := range []string{"v0", "v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -46,14 +47,14 @@ func TestGateway_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.rpcv01,
 				privateKey,
 				test.CompiledContract,
 			)
-		case "gateway":
+		case caigo.ProviderGateway:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.gateway,
@@ -77,11 +78,11 @@ func TestRPCv01_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     string
+		providerType     caigo.ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []string{"rpcv01"} {
+	for _, provider := range []caigo.ProviderType{caigo.ProviderRPCv01} {
 		for _, version := range []string{"v0", "v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -105,14 +106,14 @@ func TestRPCv01_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.rpcv01,
 				privateKey,
 				test.CompiledContract,
 			)
-		case "gateway":
+		case caigo.ProviderGateway:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.gateway,
@@ -129,7 +130,6 @@ func TestRPCv01_InstallAccounts(t *testing.T) {
 	}
 }
 
-
 func TestRPCv02_InstallAccounts(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
@@ -137,11 +137,11 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     string
+		providerType     caigo.ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []string{"rpcv02"} {
+	for _, provider := range []caigo.ProviderType{caigo.ProviderRPCv02} {
 		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -165,14 +165,14 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case "rpcv01":
+		case caigo.ProviderRPCv01:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.rpcv01,
 				privateKey,
 				test.CompiledContract,
 			)
-		case "gateway":
+		case caigo.ProviderGateway:
 			accountManager, err = InstallAndWaitForAccountNoWallet(
 				ctx,
 				testConfiguration.gateway,
