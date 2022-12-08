@@ -19,6 +19,11 @@ jobs:
         ports:
           - 5050:5050
 
+      devnetv2:
+        image: shardlabs/starknet-devnet:0.4.2
+        ports:
+          - 5051:5050
+
     steps:
       - uses: actions/checkout@v3
 
@@ -61,13 +66,13 @@ jobs:
         run: cd rpcv01 && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
+          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/rpc/v0.1"
 
       - name: Test RPC v0.1 with mainnet
         run: cd rpcv01 && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
+          INTEGRATION_BASE: "https://starknet.cartridge.gg/rpc/v0.1"
 
       - name: Test Gateway with testnet
         run: cd gateway && go test -v -env testnet .
