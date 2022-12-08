@@ -39,33 +39,28 @@ jobs:
         run: cd contracts && go test -env devnet -v .
 
       - name: Test RPC v0.1 with mocks
-        run: echo "skip"
-        # run: cd rpcv01 && go test -v .
+        run: cd rpcv01 && go test -v .
 
       - name: Preinstall RPC v0.1 contracts on devnet
-        run: echo "skip"
-        # run: cd rpcv01 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
+        run: cd rpcv01 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test Accounts (Caigo) on devnet
-        run: echo "skip"
-        # run: go test -timeout 600s -v -env devnet .
+        run: go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test RPC v0.1 on devnet
-        run: echo "skip"
-        # run: cd rpcv01 && go test -timeout 600s -v -env devnet .
+        run: cd rpcv01 && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test sessionkey on devnet
-        run: echo "skip"
-        # run: cd plugins/xsessions && ./sessionkey.sh
+        run: cd plugins/xsessions && ./sessionkey.sh
 
       - name: Test RPC v0.1 on testnet
         run: cd rpcv01 && go test -timeout 1200s -v -env testnet .
