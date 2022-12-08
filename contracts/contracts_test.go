@@ -69,7 +69,7 @@ func TestRPCv01_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  caigo.ProviderRPCv02,
+				providerType:  caigo.ProviderRPCv01,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
