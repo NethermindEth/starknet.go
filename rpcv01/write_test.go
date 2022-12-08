@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/artifacts"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction
@@ -15,32 +15,28 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Filename          string
+		Filename          []byte
 		Version           string
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {{
-			Filename:          "./tests/counter.json",
+			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
-			ExpectedClassHash: "0x01649a376a9aa5ccb5ddf2f59c267de5fb6b3b177056a53f45d42877c856a051",
+			ExpectedClassHash: "0x07c9716ab7c3e398ff5bf5b90366e18687915a57080c0e9f9c58ffea9bdf02e2",
 		}},
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			Filename:          "./tests/counter.json",
+			Filename:          artifacts.CounterCompiled,
 			Version:           "0x0",
-			ExpectedClassHash: "0x4484265a6e003e8afe272e6c9bf3e7d0d8e343b2df57763a995828285fdfbbd",
+			ExpectedClassHash: "0x29c64881bf658fae000fa6d5112f379eb4fc9c629a5cd7455eafc0744e34a8a",
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		content, err := os.ReadFile(test.Filename)
-		if err != nil {
-			t.Fatal("should read file with success, instead:", err)
-		}
-		contractClass := ctypes.ContractClass{}
-		if err := json.Unmarshal(content, &contractClass); err != nil {
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 
@@ -66,7 +62,7 @@ func TestDeployTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Filename                string
+		Filename                []byte
 		Salt                    string
 		ConstructorCall         []string
 		ExpectedContractAddress string
@@ -74,19 +70,19 @@ func TestDeployTransaction(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Filename:                "./tests/counter.json",
+				Filename:                artifacts.CounterCompiled,
 				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a",
+				ConstructorCall:         []string{},
+				ExpectedContractAddress: "0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b",
 			},
 			{
-				Filename:                "./tests/oz_v0.3.2_account.json",
+				Filename:                artifacts.AccountV0Compiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
 				ExpectedContractAddress: DevNetAccount032Address,
 			},
 			{
-				Filename:                "./tests/oz_v0.4.0b_account.json",
+				Filename:                artifacts.AccountCompiled,
 				Salt:                    "0xdeadbeef",
 				ConstructorCall:         []string{TestPublicKey},
 				ExpectedContractAddress: DevNetAccount040Address,
@@ -98,12 +94,8 @@ func TestDeployTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		content, err := os.ReadFile(test.Filename)
-		if err != nil {
-			t.Fatal("should read file with success, instead:", err)
-		}
-		contractClass := ctypes.ContractClass{}
-		if err := json.Unmarshal(content, &contractClass); err != nil {
+		contractClass := types.ContractClass{}
+		if err := json.Unmarshal(test.Filename, &contractClass); err != nil {
 			t.Fatal(err)
 		}
 
@@ -111,10 +103,10 @@ func TestDeployTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 		dec, err := testConfig.provider.AddDeployTransaction(context.Background(), test.Salt, test.ConstructorCall, contractClass)
 		if err != nil {
-			t.Fatal("declare should succeed, instead:", err)
+			t.Fatal("deploy should succeed, instead:", err)
 		}
 		if dec.ContractAddress != test.ExpectedContractAddress {
-			t.Fatalf("contractAddress does not match expected, current: %s", dec.ContractAddress)
+			t.Fatalf("contractAddress does not match expected %s, got: %s", test.ExpectedContractAddress, dec.ContractAddress)
 		}
 		if diff, err := spy.Compare(dec, false); err != nil || diff != "FullMatch" {
 			spy.Compare(dec, true)

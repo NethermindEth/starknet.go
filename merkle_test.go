@@ -12,7 +12,7 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 	}
 }
 
-func TestFixedSizeMerkleTree_Check1(t *testing.T) {
+func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(7)}
 	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
 	proof_7_0, _ := MerkleHash(big.NewInt(7), big.NewInt(0))

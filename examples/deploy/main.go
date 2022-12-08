@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
 )
@@ -33,8 +35,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	contractClass := types.ContractClass{}
+	err = json.Unmarshal(artifacts.AccountCompiled, &contractClass)
+	if err != nil {
+		fmt.Println("could not log file", err)
+		os.Exit(1)
+	}
 	fmt.Println("Deploying account to testnet. It may take a while.")
-	accountResponse, err := gw.Deploy(context.Background(), compiledOZAccount, types.DeployRequest{
+	accountResponse, err := gw.Deploy(context.Background(), contractClass, types.DeployRequest{
 		Type:                gateway.DEPLOY,
 		ContractAddressSalt: types.BigToHex(pubX),     // salt to hex
 		ConstructorCalldata: []string{pubX.String()}}) // public key

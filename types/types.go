@@ -34,7 +34,7 @@ type DeployRequest struct {
 type DeployAccountRequest struct {
 	MaxFee *big.Int `json:"max_fee"`
 	// Version of the transaction scheme, should be set to 0 or 1
-	Version uint64 `json:"version"`
+	Version *big.Int `json:"version"`
 	// Signature
 	Signature Signature `json:"signature"`
 	// Nonce should only be set with Transaction V1
@@ -72,9 +72,14 @@ type FunctionInvoke struct {
 }
 
 type FeeEstimate struct {
+	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
 	GasConsumed NumAsHex `json:"gas_consumed"`
-	GasPrice    NumAsHex `json:"gas_price"`
-	OverallFee  NumAsHex `json:"overall_fee"`
+
+	// GasPrice the gas price (in gwei) that was used in the cost estimation
+	GasPrice NumAsHex `json:"gas_price"`
+
+	// OverallFee the estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
+	OverallFee NumAsHex `json:"overall_fee"`
 }
 
 // ExecuteDetails provides some details about the execution.

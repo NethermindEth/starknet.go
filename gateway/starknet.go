@@ -175,7 +175,7 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 	}
 	output["constructor_calldata"] = constructorCalldata
 	output["max_fee"] = fmt.Sprintf("0x%s", d.MaxFee.Text(16))
-	output["version"] = fmt.Sprintf("0x%s", big.NewInt(int64(d.Version)).Text(16))
+	output["version"] = fmt.Sprintf("0x%s", d.Version.Text(16))
 	signature := []string{}
 	for _, value := range d.Signature {
 		signature = append(signature, value.Text(10))

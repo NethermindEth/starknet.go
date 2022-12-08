@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 // TestCall tests Call
@@ -14,25 +14,25 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		FunctionCall          ctypes.FunctionCall
+		FunctionCall          types.FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0x035a55a64238b776664d7723de1f6b50350116a1ab1ca1fe154320a0eba53d3a"),
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b"),
 					EntryPointSelector: "get_count",
 					Calldata:           []string{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x01$",
+				ExpectedPatternResult: "^0x[0-9a-f]+$",
 			},
 			{
-				FunctionCall: ctypes.FunctionCall{
+				FunctionCall: types.FunctionCall{
 					// ContractAddress of devnet ETH
-					ContractAddress:    ctypes.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
+					ContractAddress:    types.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{DevNetAccount032Address},
 				},
@@ -42,8 +42,8 @@ func TestCall(t *testing.T) {
 		},
 		"mock": {
 			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0xdeadbeef"),
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0xdeadbeef"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},
@@ -53,8 +53,8 @@ func TestCall(t *testing.T) {
 		},
 		"testnet": {
 			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},
@@ -62,19 +62,10 @@ func TestCall(t *testing.T) {
 				ExpectedPatternResult: "^0x12$",
 			},
 			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash(TestNetETHAddress),
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash(TestNetETHAddress),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
-				},
-				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
-			},
-			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash(TestNetAccount032Address),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
 				},
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: "^0x[0-9a-f]+$",
@@ -82,8 +73,8 @@ func TestCall(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				FunctionCall: ctypes.FunctionCall{
-					ContractAddress:    ctypes.HexToHash("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
+				FunctionCall: types.FunctionCall{
+					ContractAddress:    types.HexToHash("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},

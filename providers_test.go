@@ -14,7 +14,8 @@ import (
 
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
-	rpc "github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv02"
 	devtest "github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -25,10 +26,10 @@ const (
 	TestPublicKey            = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
 	DevNetETHAddress         = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
 	TestNetETHAddress        = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-	DevNetAccount032Address  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
-	TestNetAccount032Address = "0x32fb76dfaa8d647c1dfa28cf5123543285250e0fcee7dfd76e4b7fa1544cfad"
-	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
-	TestNetAccount040Address = "0x43eb0aebc7e9a628df79fc731cdc37b581338c913839a3f67aae2309d9e88c5"
+	DevNetAccount032Address  = "0x0536244bba4dc9bb219d964b477af6d18f7096635a96284bb0e008bf137650ec"
+	TestNetAccount032Address = "0x6ca4fdd437dffde5253ba7021ef7265c88b07789aa642eafda37791626edf00"
+	DevNetAccount040Address  = "0x058079067104f58fd9f1ef949cd2d2b482d7bca39b793983f077edaf51d979e9"
+	TestNetAccount040Address = "0x6cbfa37f409610fee26eeb427ed854b3a4b24580d9b9ef6c3e38db7b3f7322c"
 	TestnetCounterAddress    = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
 )
 
@@ -135,8 +136,9 @@ func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
 
 // testConfiguration is a type that is used to configure tests
 type testRPCConfiguration struct {
-	provider *rpc.Provider
-	base     string
+	providerv01 *rpcv01.Provider
+	providerv02 *rpcv02.Provider
+	base        string
 }
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
@@ -198,13 +200,15 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	client := rpc.NewProvider(c)
-	testConfig.provider = client
+	clientv01 := rpcv01.NewProvider(c)
+	testConfig.providerv01 = clientv01
+	clientv02 := rpcv02.NewProvider(c)
+	testConfig.providerv02 = clientv02
 	return &testConfig
 }
 
 // TestChainID checks the chainId matches the one for the environment
-func TestChainID(t *testing.T) {
+func TestGeneral_ChainID(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -223,7 +227,7 @@ func TestChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
-		chain, err := testConfig.provider.ChainID(context.Background())
+		chain, err := testConfig.providerv01.ChainID(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -234,7 +238,7 @@ func TestChainID(t *testing.T) {
 }
 
 // TestSyncing checks the values returned are consistent
-func TestSyncing(t *testing.T) {
+func TestGeneral_Syncing(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -249,15 +253,27 @@ func TestSyncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		sync, err := testConfig.provider.Syncing(context.Background())
+		syncv01, err := testConfig.providerv01.Syncing(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		i, ok := big.NewInt(0).SetString(sync.CurrentBlockNum, 0)
+		i, ok := big.NewInt(0).SetString(syncv01.CurrentBlockNum, 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv01.CurrentBlockNum)
 		}
-		if !strings.HasPrefix(sync.CurrentBlockHash, "0x") {
+		if !strings.HasPrefix(syncv01.CurrentBlockHash, "0x") {
+			t.Fatal("current block hash should return a string starting with 0x")
+		}
+
+		syncv02, err := testConfig.providerv02.Syncing(context.Background())
+		if err != nil {
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
+		}
+		i, ok = big.NewInt(0).SetString(string(syncv02.CurrentBlockNum), 0)
+		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
+			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv02.CurrentBlockNum)
+		}
+		if !strings.HasPrefix(syncv02.CurrentBlockHash, "0x") {
 			t.Fatal("current block hash should return a string starting with 0x")
 		}
 	}

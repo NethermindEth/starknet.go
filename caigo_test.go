@@ -29,7 +29,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	})
 }
 
-func TestComputeHashOnElements(t *testing.T) {
+func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	hashEmptyArray, err := Curve.ComputeHashOnElements([]*big.Int{})
 	expectedHashEmmptyArray := types.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
 	if err != nil {
@@ -54,7 +54,7 @@ func TestComputeHashOnElements(t *testing.T) {
 	}
 }
 
-func TestHashAndSign(t *testing.T) {
+func TestGeneral_HashAndSign(t *testing.T) {
 	hashy, err := Curve.HashElements([]*big.Int{
 		big.NewInt(1953658213),
 		big.NewInt(126947999705460),
@@ -80,7 +80,7 @@ func TestHashAndSign(t *testing.T) {
 	}
 }
 
-func TestComputeFact(t *testing.T) {
+func TestGeneral_ComputeFact(t *testing.T) {
 	testFacts := []struct {
 		programHash   *big.Int
 		programOutput []*big.Int
@@ -106,7 +106,7 @@ func TestComputeFact(t *testing.T) {
 	}
 }
 
-func TestBadSignature(t *testing.T) {
+func TestGeneral_BadSignature(t *testing.T) {
 	hash, err := Curve.PedersenHash([]*big.Int{types.HexToBN("0x12773"), types.HexToBN("0x872362")})
 	if err != nil {
 		t.Errorf("Hashing err: %v\n", err)
@@ -139,7 +139,7 @@ func TestBadSignature(t *testing.T) {
 	}
 }
 
-func TestSignature(t *testing.T) {
+func TestGeneral_Signature(t *testing.T) {
 	testSignature := []struct {
 		private *big.Int
 		publicX *big.Int

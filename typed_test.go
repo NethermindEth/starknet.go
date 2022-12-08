@@ -51,7 +51,7 @@ func MockTypedData() (ttd TypedData) {
 	return ttd
 }
 
-func TestGetMessageHash(t *testing.T) {
+func TestGeneral_GetMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
 	mail := Mail{
@@ -97,7 +97,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	})
 }
 
-func TestGetDomainHash(t *testing.T) {
+func TestGeneral_GetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
 	hash, err := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain, Curve)
@@ -112,7 +112,7 @@ func TestGetDomainHash(t *testing.T) {
 }
 
 // equivalent of get struct hash
-func TestGetTypedMessageHash(t *testing.T) {
+func TestGeneral_GetTypedMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
 	mail := Mail{
@@ -138,7 +138,7 @@ func TestGetTypedMessageHash(t *testing.T) {
 	}
 }
 
-func TestGetTypeHash(t *testing.T) {
+func TestGeneral_GetTypeHash(t *testing.T) {
 	tdd := MockTypedData()
 
 	hash, err := tdd.GetTypeHash("StarkNetDomain")
@@ -172,7 +172,7 @@ func TestGetTypeHash(t *testing.T) {
 	}
 }
 
-func TestGetSelectorFromName(t *testing.T) {
+func TestGeneral_GetSelectorFromName(t *testing.T) {
 	sel1 := types.BigToHex(types.GetSelectorFromName("initialize"))
 	sel2 := types.BigToHex(types.GetSelectorFromName("mint"))
 	sel3 := types.BigToHex(types.GetSelectorFromName("test"))
@@ -186,7 +186,7 @@ func TestGetSelectorFromName(t *testing.T) {
 	}
 }
 
-func TestEncodeType(t *testing.T) {
+func TestGeneral_EncodeType(t *testing.T) {
 	tdd := MockTypedData()
 
 	enc, err := tdd.EncodeType("Mail")
