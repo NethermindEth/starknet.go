@@ -19,6 +19,11 @@ jobs:
         ports:
           - 5050:5050
 
+      devnetv2:
+        image: shardlabs/starknet-devnet:0.4.2
+        ports:
+          - 5051:5050
+
     steps:
       - uses: actions/checkout@v3
 
@@ -34,10 +39,12 @@ jobs:
         run: cd contracts && go test -env devnet -v .
 
       - name: Test RPC v0.1 with mocks
-        run: cd rpcv01 && go test -v .
+        run: echo "skip"
+        # run: cd rpcv01 && go test -v .
 
       - name: Preinstall RPC v0.1 contracts on devnet
-        run: cd rpcv01 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
+        run: echo "skip"
+        # run: cd rpcv01 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
