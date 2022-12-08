@@ -19,11 +19,6 @@ jobs:
         ports:
           - 5050:5050
 
-      devnetv2:
-        image: shardlabs/starknet-devnet:0.4.2
-        ports:
-          - 5051:5050
-
     steps:
       - uses: actions/checkout@v3
 
