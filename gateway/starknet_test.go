@@ -61,7 +61,7 @@ func TestDeployCounterContract(t *testing.T) {
 		"devnet":  {{}},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {{}},
+		"testnet": {},
 	}[testEnv]
 
 	for range testSet {
