@@ -94,26 +94,7 @@ func TestDeployTransaction(t *testing.T) {
 		},
 		"mainnet": {},
 		"mock":    {},
-		"testnet": {
-			{
-				Filename:                "./tests/counter.json",
-				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{"0x1"},
-				ExpectedContractAddress: "0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef",
-			},
-			{
-				Filename:                "./tests/oz_v0.3.2_account.json",
-				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: TestNetAccount032Address,
-			},
-			{
-				Filename:                "./tests/oz_v0.4.0b_account.json",
-				Salt:                    "0xdeadbeef",
-				ConstructorCall:         []string{TestPublicKey},
-				ExpectedContractAddress: TestNetAccount040Address,
-			},
-		},
+		"testnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
