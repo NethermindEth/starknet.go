@@ -57,18 +57,6 @@ jobs:
       - name: Test sessionkey on devnet
         run: cd plugins/xsessions && ./sessionkey.sh
 
-      - name: Test RPC v0.1 on testnet
-        run: cd rpcv01 && go test -timeout 1200s -v -env testnet .
-        env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
-
-      - name: Test RPC v0.1 with mainnet
-        run: cd rpcv01 && go test -timeout 600s -v -env mainnet .
-        env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
-
       - name: Test Gateway with testnet
         run: cd gateway && go test -v -env testnet .
 
