@@ -40,6 +40,9 @@ var (
 		"devnet": {
 			base: "http://localhost:5050",
 		},
+		"privatenet": {
+			base: "https://alpha-privatenet.starknet.io",
+		},
 		"mock": {},
 	}
 )
@@ -122,10 +125,11 @@ func TestGateway(t *testing.T) {
 		BlockHash string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{BlockHash: "0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f"}},
-		"mock":    {{BlockHash: "0xdeadbeef"}},
-		"testnet": {{BlockHash: "0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db"}},
+		"devnet":     {},
+		"mainnet":    {{BlockHash: "0x4ee4c886d1767b7165a1e3a7c6ad145543988465f2bda680c16a79536f6d81f"}},
+		"mock":       {{BlockHash: "0xdeadbeef"}},
+		"testnet":    {{BlockHash: "0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684cb7aa4db"}},
+		"privatenet": {{BlockHash: "0x787af09f1cacdc5de1df83e8cdca3a48c1194171c742e78a9f684abcdabcd"}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -160,6 +164,12 @@ func TestContractAddresses(t *testing.T) {
 			{
 				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9c8c4",
 				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605bdb60",
+			},
+		},
+		"privatenet": {
+			{
+				Starknet:             "0xc662c410c0ecf747543f5ba90660f6abebd9abcd",
+				GpsStatementVerifier: "0x47312450b3ac8b5b8e247a6bb6d523e7605b1234",
 			},
 		},
 	}[testEnv]

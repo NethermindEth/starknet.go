@@ -70,6 +70,8 @@ func NewClient(opts ...Option) *Gateway {
 		if gopts.baseUrl == "" {
 			gopts.baseUrl = GOERLI2_BASE
 		}
+	case strings.Contains(id, "private"):
+		gopts.chainID = id
 	default:
 		gopts.chainID = GOERLI_ID
 		if gopts.baseUrl == "" {
