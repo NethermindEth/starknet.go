@@ -181,11 +181,13 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 		signature = append(signature, value.Text(10))
 	}
 	output["signature"] = signature
-	nonce := "0x0"
 	if d.Nonce != nil {
+<<<<<<< HEAD
 		output["version"] = fmt.Sprintf("0x%s", d.Nonce.Text(16))
+=======
+		output["nonce"] = fmt.Sprintf("0x0%s", d.Nonce.Text(16))
+>>>>>>> a9eb721... Add DeployAccountTransaction MarshalJSON definition
 	}
-	output["nonce"] = nonce
 	output["type"] = "DEPLOY_ACCOUNT"
 	if d.ContractAddressSalt == "" {
 		d.ContractAddressSalt = "0x0"
