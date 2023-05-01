@@ -8,18 +8,6 @@ import (
 	"github.com/dontpanicdao/caigo/types"
 )
 
-//go:embed accountv0.json
-var AccountV0Compiled []byte
-
-//go:embed accountv0_plugin.json
-var AccountV0WithPluginCompiled []byte
-
-//go:embed pluginv0.json
-var PluginV0Compiled []byte
-
-//go:embed proxyv0.json
-var ProxyV0Compiled []byte
-
 //go:embed account.json
 var AccountCompiled []byte
 
@@ -115,32 +103,6 @@ type CompiledContract struct {
 type CompiledContracts map[string]map[bool]map[bool]CompiledContract
 
 var AccountContracts = CompiledContracts{
-	"v0": {
-		false: {
-			false: {
-				AccountCompiled: AccountV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-			true: {
-				AccountCompiled: AccountV0WithPluginCompiled,
-				PluginCompiled:  PluginV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-		},
-		true: {
-			false: {
-				AccountCompiled: AccountV0Compiled,
-				ProxyCompiled:   ProxyV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-			true: {
-				AccountCompiled: AccountV0WithPluginCompiled,
-				PluginCompiled:  PluginV0Compiled,
-				ProxyCompiled:   ProxyV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-		},
-	},
 	"v1": {
 		false: {
 			false: {

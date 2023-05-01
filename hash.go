@@ -47,12 +47,3 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 	callArray = append(callArray, calldataArray...)
 	return callArray
 }
-
-/*
-Formats the multicall transactions with v0 of OpenZeppelin contract
-*/
-func fmtV0Calldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
-	callArray := fmtCalldata(calls)
-	callArray = append(callArray, nonce)
-	return callArray
-}

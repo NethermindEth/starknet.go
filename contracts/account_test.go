@@ -24,7 +24,7 @@ func TestGateway_InstallAccounts(t *testing.T) {
 
 	devnet := []TestCase{}
 	for _, provider := range []caigo.ProviderType{caigo.ProviderGateway} {
-		for _, version := range []string{"v0", "v1"} {
+		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
 					devnet = append(devnet, TestCase{
@@ -83,7 +83,7 @@ func TestRPCv01_InstallAccounts(t *testing.T) {
 
 	devnet := []TestCase{}
 	for _, provider := range []caigo.ProviderType{caigo.ProviderRPCv01} {
-		for _, version := range []string{"v0", "v1"} {
+		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
 					devnet = append(devnet, TestCase{

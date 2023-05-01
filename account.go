@@ -180,10 +180,8 @@ func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
 func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 
 	var callArray []*big.Int
-	switch {
-	case account.version == 0:
-		callArray = fmtV0Calldata(details.Nonce, calls)
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		callArray = fmtCalldata(calls)
 	default:
 		return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -194,18 +192,8 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 	}
 
 	var multiHashData []*big.Int
-	switch {
-	case account.version == 0:
-		multiHashData = []*big.Int{
-			types.UTF8StrToBig(TRANSACTION_PREFIX),
-			big.NewInt(int64(account.version)),
-			types.SNValToBN(account.AccountAddress),
-			types.GetSelectorFromName(EXECUTE_SELECTOR),
-			cdHash,
-			details.MaxFee,
-			types.UTF8StrToBig(account.chainId),
-		}
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
@@ -224,10 +212,8 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 
 func (account *Account) estimateFeeHash(calls []types.FunctionCall, details types.ExecuteDetails, version *big.Int) (*big.Int, error) {
 	var callArray []*big.Int
-	switch {
-	case account.version == 0:
-		callArray = fmtV0Calldata(details.Nonce, calls)
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		callArray = fmtCalldata(calls)
 	default:
 		return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -237,18 +223,8 @@ func (account *Account) estimateFeeHash(calls []types.FunctionCall, details type
 		return nil, err
 	}
 	var multiHashData []*big.Int
-	switch {
-	case account.version == 0:
-		multiHashData = []*big.Int{
-			types.UTF8StrToBig(TRANSACTION_PREFIX),
-			version,
-			types.SNValToBN(account.AccountAddress),
-			types.GetSelectorFromName(EXECUTE_SELECTOR),
-			cdHash,
-			details.MaxFee,
-			types.UTF8StrToBig(account.chainId),
-		}
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			version,
@@ -267,53 +243,6 @@ func (account *Account) estimateFeeHash(calls []types.FunctionCall, details type
 
 func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	switch account.version {
-	case 0:
-		switch account.provider {
-		case ProviderRPCv01:
-			nonce, err := account.rpcv01.Call(
-				ctx,
-				types.FunctionCall{
-					ContractAddress:    types.HexToHash(account.AccountAddress),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
-				},
-				rpcv01.WithBlockTag("latest"),
-			)
-			if err != nil {
-				return nil, err
-			}
-			if len(nonce) == 0 {
-				return nil, errors.New("nonce error")
-			}
-			n, ok := big.NewInt(0).SetString(nonce[0], 0)
-			if !ok {
-				return nil, errors.New("nonce error")
-			}
-			return n, nil
-		case ProviderRPCv02:
-			nonce, err := account.rpcv02.Call(
-				ctx,
-				types.FunctionCall{
-					ContractAddress:    types.HexToHash(account.AccountAddress),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
-				},
-				rpcv02.WithBlockTag("latest"),
-			)
-			if err != nil {
-				return nil, err
-			}
-			if len(nonce) == 0 {
-				return nil, errors.New("nonce error")
-			}
-			n, ok := big.NewInt(0).SetString(nonce[0], 0)
-			if !ok {
-				return nil, errors.New("nonce error")
-			}
-			return n, nil
-		case ProviderGateway:
-			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.AccountAddress))
-		}
 	case 1:
 		switch account.provider {
 		case ProviderRPCv01:
@@ -411,18 +340,6 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 		return nil, err
 	}
 	switch account.version {
-	case 0:
-		calldata := fmtV0CalldataStrings(nonce, calls)
-		return &types.FunctionInvoke{
-			MaxFee:    maxFee,
-			Version:   version,
-			Signature: types.Signature{s1, s2},
-			FunctionCall: types.FunctionCall{
-				ContractAddress:    types.HexToHash(account.AccountAddress),
-				EntryPointSelector: EXECUTE_SELECTOR,
-				Calldata:           calldata,
-			},
-		}, nil
 	case 1:
 		calldata := fmtCalldataStrings(calls)
 		return &types.FunctionInvoke{
@@ -453,16 +370,6 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
 		}
 		switch account.version {
-		case 0:
-			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV0Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV0,
-					Signature: signature,
-					Type:      "INVOKE",
-				},
-				FunctionCall: call.FunctionCall,
-			}, rpcv02.WithBlockTag("latest"))
 		case 1:
 			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
@@ -521,16 +428,6 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
 		}
 		switch account.version {
-		case 0:
-			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV0Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV0,
-					Signature: signature,
-					Type:      "INVOKE",
-				},
-				FunctionCall: call.FunctionCall,
-			})
 		case 1:
 			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
