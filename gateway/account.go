@@ -75,7 +75,7 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 		sigs = append(sigs, sig.Text(10))
 	}
 	output["signature"] = sigs
-	output["contract_address"] = f.ContractAddress.Hex()
+	output["sender_address"] = f.SenderAddress.Hex()
 	if f.EntryPointSelector != "" {
 		output["entry_point_selector"] = f.EntryPointSelector
 	}
