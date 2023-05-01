@@ -176,7 +176,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		}
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting *rpv01.Block, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
 		}
 		_, err = spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -253,7 +253,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		}
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpcv02.Block, instead %T", blockWithTxsInterface)
 		}
 		diff, err := spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -347,7 +347,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 			}
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			if !ok {
-				t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
+				t.Fatalf("expecting *rpcv02.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
 				_, okv0 := v.(InvokeTxnV0)

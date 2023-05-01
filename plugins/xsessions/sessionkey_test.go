@@ -91,7 +91,7 @@ func TestSessionKey_CheckEth(t *testing.T) {
 
 // IncrementWithSessionKeyPlugin
 func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginClass string, token *SessionKeyToken, counterAddress string) {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 	account, err := caigo.NewRPCAccount(
 		sessionPrivateKey,
 		accountAddress,

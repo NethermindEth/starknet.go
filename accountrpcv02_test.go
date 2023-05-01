@@ -134,7 +134,7 @@ func TestRPCv02Account_Execute(t *testing.T) {
 		fmt.Println("transaction_hash:", execute.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 		defer cancel()
-		status, err := account.rpcv01.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
+		status, err := account.rpcv02.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}

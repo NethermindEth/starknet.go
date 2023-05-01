@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv02"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
 )
 
 // RegisterClass
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 
 	yeasayerClass := types.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
@@ -58,7 +58,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 	contractClass := types.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
@@ -124,14 +124,14 @@ func MintEth(t *testing.T, accountAddress string) {
 
 // CheckEth
 func CheckEth(t *testing.T, accountAddress string) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 	ctx := context.Background()
 	output, err := provider.Call(ctx, types.FunctionCall{
 		ContractAddress:    types.HexToHash(devnetEth),
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},
 	},
-		rpcv01.WithBlockTag("latest"),
+		rpcv02.WithBlockTag("latest"),
 	)
 	if err != nil {
 		log.Fatal("could not call Eth", err)

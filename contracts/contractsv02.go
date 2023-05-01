@@ -47,7 +47,7 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 	}, nil
 }
 
-func (p *RPCv02Provider) deployAccountAndWaitWithoutWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpcv02.Provider(*p)
 	class := types.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
@@ -55,9 +55,8 @@ func (p *RPCv02Provider) deployAccountAndWaitWithoutWallet(ctx context.Context, 
 	}
 	tx, err := provider.AddDeployAccountTransaction(ctx, rpcv02.BroadcastedDeployAccountTransaction{
 		BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{},
-		ContractAddressSalt: salt,
-		ConstructorCalldata: inputs,
-		
+		ContractAddressSalt:            salt,
+		ConstructorCalldata:            inputs,
 	})
 	if err != nil {
 		return nil, err

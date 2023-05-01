@@ -14,7 +14,6 @@ import (
 
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv01"
 	"github.com/dontpanicdao/caigo/rpcv02"
 	devtest "github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
@@ -136,7 +135,6 @@ func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
 
 // testConfiguration is a type that is used to configure tests
 type testRPCConfiguration struct {
-	providerv01 *rpcv01.Provider
 	providerv02 *rpcv02.Provider
 	base        string
 }
@@ -200,8 +198,6 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	clientv01 := rpcv01.NewProvider(c)
-	testConfig.providerv01 = clientv01
 	clientv02 := rpcv02.NewProvider(c)
 	testConfig.providerv02 = clientv02
 	return &testConfig
@@ -227,7 +223,7 @@ func TestGeneral_ChainID(t *testing.T) {
 	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
-		chain, err := testConfig.providerv01.ChainID(context.Background())
+		chain, err := testConfig.providerv02.ChainID(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -253,23 +249,11 @@ func TestGeneral_Syncing(t *testing.T) {
 	}[testEnv]
 
 	for range testSet {
-		syncv01, err := testConfig.providerv01.Syncing(context.Background())
-		if err != nil {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
-		i, ok := big.NewInt(0).SetString(syncv01.CurrentBlockNum, 0)
-		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv01.CurrentBlockNum)
-		}
-		if !strings.HasPrefix(syncv01.CurrentBlockHash, "0x") {
-			t.Fatal("current block hash should return a string starting with 0x")
-		}
-
 		syncv02, err := testConfig.providerv02.Syncing(context.Background())
 		if err != nil {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		i, ok = big.NewInt(0).SetString(string(syncv02.CurrentBlockNum), 0)
+		i, ok := big.NewInt(0).SetString(string(syncv02.CurrentBlockNum), 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv02.CurrentBlockNum)
 		}
