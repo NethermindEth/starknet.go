@@ -14,7 +14,7 @@ type BroadcastedInvokeTransaction interface{}
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*types.AddInvokeTransactionOutput, error) {
 	tx, ok := broadcastedInvoke.(BroadcastedInvokeV0Transaction)
 	if ok {
-		tx.EntryPointSelector = fmt.Sprintf("0x%s", types.GetSelectorFromName(tx.EntryPointSelector).Text(16))
+		tx.EntryPointSelector = fmt.Sprintf("0x0%s", types.GetSelectorFromName(tx.EntryPointSelector).Text(16))
 		broadcastedInvoke = tx
 	}
 	var output types.AddInvokeTransactionOutput

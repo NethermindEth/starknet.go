@@ -43,7 +43,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 // StorageAt gets the value of the storage at the given address and key.
 func (provider *Provider) StorageAt(ctx context.Context, contractAddress types.Hash, key string, blockID BlockID) (string, error) {
 	var value string
-	hashKey := fmt.Sprintf("0x%s", types.GetSelectorFromName(key).Text(16))
+	hashKey := fmt.Sprintf("0x0%s", types.GetSelectorFromName(key).Text(16))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
@@ -67,7 +67,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 func (provider *Provider) EstimateFee(ctx context.Context, request BroadcastedTransaction, blockID BlockID) (*types.FeeEstimate, error) {
 	tx, ok := request.(*BroadcastedInvokeV0Transaction)
 	if ok {
-		tx.EntryPointSelector = fmt.Sprintf("0x%s", types.GetSelectorFromName(tx.EntryPointSelector).Text(16))
+		tx.EntryPointSelector = fmt.Sprintf("0x0%s", types.GetSelectorFromName(tx.EntryPointSelector).Text(16))
 		request = tx
 	}
 	var raw types.FeeEstimate

@@ -32,7 +32,7 @@ func main() {
 
 	// will fail w/o new seed
 	deployResponse, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
-		ContractAddressSalt: fmt.Sprintf("0x%x", time.Now().UnixNano()),
+		ContractAddressSalt: fmt.Sprintf("0x0%x", time.Now().UnixNano()),
 	})
 	if err != nil {
 		panic(err.Error())

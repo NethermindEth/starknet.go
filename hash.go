@@ -10,14 +10,14 @@ import (
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", data.Text(16)))
+		calldataStrings = append(calldataStrings, fmt.Sprintf("0x0%s", data.Text(16)))
 	}
 	return calldataStrings
 }
 
 func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
 	calldataStrings = fmtCalldataStrings(calls)
-	calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", nonce.Text(16)))
+	calldataStrings = append(calldataStrings, fmt.Sprintf("0x0%s", nonce.Text(16)))
 	return calldataStrings
 }
 

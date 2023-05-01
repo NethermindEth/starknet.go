@@ -71,7 +71,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 			{
 				providerType:  caigo.ProviderRPCv02,
 				CompiledClass: artifacts.CounterCompiled,
-				Salt:          "0x0",
+				Salt:          "0x01",
 				Inputs:        []string{},
 			},
 		},
