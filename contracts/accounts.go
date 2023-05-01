@@ -127,7 +127,7 @@ func InstallAndWaitForAccountNoWallet[V *rpcv02.Provider | *gateway.GatewayProvi
 		ProxyClassHash:   proxyClassHash,
 		PublicKey:        publicKeyString,
 		TransactionHash:  deployedOutput.TransactionHash,
-		Version:          "v0",
+		Version:          "v1",
 	}, nil
 
 }

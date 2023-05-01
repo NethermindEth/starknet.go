@@ -10,7 +10,7 @@ import (
 
 type EntryPoint struct {
 	// The offset of the entry point in the program
-	Offset NumAsHex `json:"offset"`
+	Offset uint64 `json:"offset"`
 	// A unique identifier of the entry point (function) in the program
 	Selector string `json:"selector"`
 }
