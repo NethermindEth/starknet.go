@@ -313,14 +313,12 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 	case 1:
 		calldata := fmtCalldataStrings(calls)
 		return &types.FunctionInvoke{
-			MaxFee:    maxFee,
-			Version:   version,
-			Signature: types.Signature{s1, s2},
-			FunctionCall: types.FunctionCall{
-				ContractAddress: types.HexToHash(account.AccountAddress),
-				Calldata:        calldata,
-			},
-			Nonce: nonce,
+			MaxFee:        maxFee,
+			Version:       version,
+			Signature:     types.Signature{s1, s2},
+			SenderAddress: types.HexToHash(account.AccountAddress),
+			Calldata:      calldata,
+			Nonce:         nonce,
 		}, nil
 	}
 	return nil, ErrUnsupportedAccount
@@ -347,7 +345,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				Calldata:      call.FunctionCall.Calldata,
+				Calldata:      call.Calldata,
 				SenderAddress: types.HexToHash(account.AccountAddress),
 			}, rpcv02.WithBlockTag("latest"))
 		}
@@ -393,7 +391,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 					Type:      "INVOKE",
 				},
 				SenderAddress: types.HexToHash(account.AccountAddress),
-				Calldata:      call.FunctionCall.Calldata,
+				Calldata:      call.Calldata,
 			})
 		}
 	case ProviderGateway:

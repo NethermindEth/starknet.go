@@ -68,7 +68,11 @@ type FunctionInvoke struct {
 	// Defines the transaction type to invoke
 	Type string `json:"type,omitempty"`
 
-	FunctionCall
+	SenderAddress      Hash   `json:"sender_address"`
+	EntryPointSelector string `json:"entry_point_selector,omitempty"`
+
+	// Calldata The parameters passed to the function
+	Calldata []string `json:"calldata"`
 }
 
 type FeeEstimate struct {

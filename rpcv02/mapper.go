@@ -17,7 +17,7 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 		sigs = append(sigs, fmt.Sprintf("0x0%s", sig.Text(16)))
 	}
 	output["signature"] = sigs
-	v, err := json.Marshal(f.FunctionCall)
+	v, err := json.Marshal(f)
 	if err != nil {
 		return nil, err
 	}
