@@ -357,3 +357,37 @@ type BroadcastedDeployAccountTransaction struct {
 	ConstructorCalldata []string   `json:"constructor_calldata"`
 	ClassHash           types.Hash `json:"class_hash"`
 }
+
+func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["type"] = "DEPLOY_ACCOUNT"
+	if b.MaxFee != nil {
+		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+	}
+	if b.Nonce != nil {
+		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+	}
+	output["version"] = b.Version
+	signature := []string{}
+	for _, v := range b.Signature {
+		s, _ := big.NewInt(0).SetString(v, 0)
+		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+	}
+	output["signature"] = signature
+	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
+	if !ok {
+		return nil, errors.New("wrong salt")
+	}
+	output["contract_address_salt"] = fmt.Sprintf("0x0%s", contractAddressSalt.Text(16))
+	constructorCalldata := []string{}
+	for _, v := range b.ConstructorCalldata {
+		constructorCall, ok := big.NewInt(0).SetString(v, 0)
+		if !ok {
+			return nil, errors.New("wrong constructor call data")
+		}
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x0%s", constructorCall.Text(16)))
+	}
+	output["constructor_calldata"] = constructorCalldata
+	output["class_hash"] = b.ClassHash.Hex()
+	return json.Marshal(output)
+}
