@@ -15,12 +15,15 @@ func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	return calldataStrings
 }
 
+<<<<<<< HEAD
 func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
 	calldataStrings = fmtCalldataStrings(calls)
 	calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", nonce.Text(16)))
 	return calldataStrings
 }
 
+=======
+>>>>>>> 0d842c7... Remove v0 invoke hash
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
