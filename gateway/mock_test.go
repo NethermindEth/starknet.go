@@ -1,4 +1,4 @@
-package gateway
+package gateway_test
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"encoding/json"
+
+	"github.com/dontpanicdao/caigo/gateway"
 )
 
 // httpMock is a mock of the client.
@@ -36,7 +38,7 @@ func (r *httpMock) Do(req *http.Request) (*http.Response, error) {
 
 func get_block(req *http.Request) (*http.Response, error) {
 	blockHash := req.URL.Query().Get("blockHash")
-	block := Block{
+	block := gateway.Block{
 		BlockHash: blockHash,
 	}
 	body, _ := json.Marshal(block)

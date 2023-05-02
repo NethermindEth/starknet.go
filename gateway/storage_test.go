@@ -1,8 +1,10 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
 	"testing"
+
+	"github.com/dontpanicdao/caigo/gateway"
 	//	"github.com/google/go-cmp/cmp"
 )
 
@@ -51,7 +53,7 @@ func TestStorageAt(t *testing.T) {
 		address string
 		key     string
 		value   string
-		opts    *StorageAtOptions
+		opts    *gateway.StorageAtOptions
 	}
 
 	testSet := map[string][]testSetType{
@@ -59,7 +61,7 @@ func TestStorageAt(t *testing.T) {
 		"testnet": {{address: "0x035401b96dc690eda2716068d3b03732d7c18af7c0327787660179108789d84f",
 			key:   "475322019845212235330707245667153666023074534120350221048512561271566416926",
 			value: "0x14a7a59e3e2d058d4c7c868e05907b2b49e324cc5b6af71182f008feb939e91",
-			opts:  &StorageAtOptions{BlockNumber: 281263}}},
+			opts:  &gateway.StorageAtOptions{BlockNumber: 281263}}},
 	}[testEnv]
 
 	for _, test := range testSet {

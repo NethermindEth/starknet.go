@@ -1,4 +1,4 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/dontpanicdao/caigo/artifacts"
+	"github.com/dontpanicdao/caigo/gateway"
 	devtest "github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 )
@@ -37,17 +38,17 @@ func TestDeclare(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
-		declareTx, err := gw.Declare(context.Background(), accountClass, DeclareRequest{})
+		declareTx, err := gw.Declare(context.Background(), accountClass, gateway.DeclareRequest{})
 		if err != nil {
 			t.Errorf("%s: could not 'DECLARE' contract: %v\n", env, err)
 			return
 		}
 
-		tx, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: declareTx.TransactionHash})
+		tx, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: declareTx.TransactionHash})
 		if err != nil {
 			t.Errorf("%s: could not get 'DECLARE' transaction: %v\n", env, err)
 		}
-		if tx.Transaction.Type != DECLARE {
+		if tx.Transaction.Type != gateway.DECLARE {
 			t.Errorf("%s: incorrect declare transaction: %v\n", env, tx)
 		}
 	}
@@ -74,7 +75,7 @@ func TestDeployCounterContract(t *testing.T) {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
 		tx, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
-			ContractAddressSalt: "0x1",
+			ContractAddressSalt: "0x01",
 			ConstructorCalldata: []string{},
 		})
 		if err != nil {
@@ -146,7 +147,7 @@ func TestDeployAccountContract(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not parse account: %v\n", err)
 		}
-		tx, err := gw.Declare(context.Background(), accountClass, DeclareRequest{})
+		tx, err := gw.Declare(context.Background(), accountClass, gateway.DeclareRequest{})
 		if err != nil {
 			t.Fatalf("could not declare contract: %v\n", err)
 		}
