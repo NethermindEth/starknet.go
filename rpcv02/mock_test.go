@@ -59,8 +59,6 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeclareTransaction":
 		return mock_starknet_addDeclareTransaction(result, method, args...)
-	case "starknet_addDeployTransaction":
-		return mock_starknet_addDeployTransaction(result, method, args...)
 	case "starknet_addInvokeTransaction":
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
@@ -313,41 +311,6 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 	output := AddDeclareTransactionOutput{
 		TransactionHash: "0xdeadbeef",
 		ClassHash:       "0xdeadbeef",
-	}
-	outputContent, _ := json.Marshal(output)
-	json.Unmarshal(outputContent, r)
-	return nil
-}
-
-func mock_starknet_addDeployTransaction(result interface{}, method string, args ...interface{}) error {
-	r, ok := result.(*json.RawMessage)
-	if !ok {
-		return errWrongType
-	}
-	if len(args) != 3 {
-		fmt.Printf("args: %d\n", len(args))
-		return errWrongArgs
-	}
-	_, ok = args[0].(string)
-	if !ok {
-		fmt.Printf("args[0] should be string, got %T\n", args[0])
-		return errWrongArgs
-	}
-	_, ok = args[1].([]string)
-	if !ok {
-		fmt.Printf("args[1] should be ConstructorCalldata, got %T\n", args[1])
-		return errWrongArgs
-	}
-
-	_, ok = args[2].(types.ContractClass)
-	if !ok {
-		fmt.Printf("args[2] should be ContractClass, got %T\n", args[2])
-		return errWrongArgs
-	}
-
-	output := AddDeployTransactionOutput{
-		TransactionHash: "0xdeadbeef",
-		ContractAddress: "0xdeadbeef",
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
