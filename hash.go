@@ -15,12 +15,6 @@ func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	return calldataStrings
 }
 
-func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
-	calldataStrings = fmtCalldataStrings(calls)
-	calldataStrings = append(calldataStrings, fmt.Sprintf("0x0%s", nonce.Text(16)))
-	return calldataStrings
-}
-
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
