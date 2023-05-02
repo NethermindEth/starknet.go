@@ -1,4 +1,4 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dontpanicdao/caigo"
+	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/test"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/joho/godotenv"
@@ -18,7 +20,7 @@ import (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client         *Gateway
+	client         *gateway.Gateway
 	base           string
 	privateKey     string
 	accountAddress string
@@ -94,8 +96,8 @@ func beforeEach(t *testing.T) *testConfiguration {
 	}
 	switch testEnv {
 	case "mock":
-		testConfig.client = &Gateway{
-			client: &httpMock{},
+		testConfig.client = &gateway.Gateway{
+			Client: &httpMock{},
 		}
 	case "devnet":
 		v, err := test.NewDevNet().Accounts()
@@ -105,9 +107,9 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.privateKey = v[0].PrivateKey
 		testConfig.publicKey = v[0].PublicKey
 		testConfig.accountAddress = v[0].Address
-		testConfig.client = NewClient(WithChain(testEnv))
+		testConfig.client = gateway.NewClient(gateway.WithChain(testEnv))
 	default:
-		testConfig.client = NewClient(WithChain(testEnv))
+		testConfig.client = gateway.NewClient(gateway.WithChain(testEnv))
 	}
 	t.Cleanup(func() {
 	})
@@ -129,7 +131,7 @@ func TestGateway(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.Block(context.Background(), &BlockOptions{BlockHash: test.BlockHash})
+		block, err := testConfig.client.Block(context.Background(), &gateway.BlockOptions{BlockHash: test.BlockHash})
 
 		if err != nil {
 			t.Fatal(err)

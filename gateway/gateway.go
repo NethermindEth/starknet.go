@@ -34,7 +34,7 @@ type Gateway struct {
 	Feeder       string `json:"feeder"`
 	Gateway      string `json:"gateway"`
 	ChainId      string `json:"chainId"`
-	client       doer
+	Client       doer
 	errorHandler func(e error) error
 }
 
@@ -82,7 +82,7 @@ func NewClient(opts ...Option) *Gateway {
 		Feeder:       gopts.baseUrl + "/feeder_gateway",
 		Gateway:      gopts.baseUrl + "/gateway",
 		ChainId:      gopts.chainID,
-		client:       gopts.client,
+		Client:       gopts.client,
 		errorHandler: gopts.errorHandler,
 	}
 }
@@ -139,7 +139,7 @@ func NewError(resp *http.Response) error {
 }
 
 func (sg *Gateway) do(req *http.Request, v interface{}) error {
-	resp, err := sg.client.Do(req)
+	resp, err := sg.Client.Do(req)
 	if err != nil {
 		return err
 	}
