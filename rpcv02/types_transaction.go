@@ -49,13 +49,6 @@ type CommonTransaction struct {
 	Nonce string `json:"nonce,omitempty"`
 }
 
-// InvokeTxnDuck is a type used to understand the Invoke Version
-type InvokeTxnDuck struct {
-	AccountAddress     types.Hash `json:"account_address"`
-	ContractAddress    types.Hash `json:"contract_address"`
-	EntryPointSelector string     `json:"entry_point_selector"`
-}
-
 type InvokeTxnV0 struct {
 	CommonTransaction
 	ContractAddress    types.Hash `json:"contract_address"`
@@ -260,11 +253,6 @@ type BroadcastedTxnCommonProperties struct {
 	// Nonce should only be set with Transaction V1
 	Nonce *big.Int `json:"nonce,omitempty"`
 	Type  string   `json:"type"`
-}
-
-type BroadcastedInvokeV0Transaction struct {
-	BroadcastedTxnCommonProperties
-	types.FunctionCall
 }
 
 type BroadcastedInvokeV1Transaction struct {

@@ -350,13 +350,12 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv0 := v.(InvokeTxnV0)
 				_, okv1 := v.(InvokeTxnV1)
 				_, okl1 := v.(L1HandlerTxn)
 				_, okdec := v.(DeclareTxn)
 				_, okdep := v.(DeployTxn)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec && !okdep && !okdepac {
+				if !okv1 && !okl1 && !okdec && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
