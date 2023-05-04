@@ -379,7 +379,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	case ProviderRPCv02:
 		signature := []string{}
 		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
+			signature = append(signature, fmt.Sprintf("0x0%s", v.Text(16)))
 		}
 		switch account.version {
 		case 1:
@@ -472,4 +472,77 @@ func (account *Account) Declare(ctx context.Context, classHash string, contract 
 		return account.sequencer.Declare(ctx, contract, request)
 	}
 	return types.AddDeclareResponse{}, ErrUnsupportedAccount
+}
+
+// Deploys a declared contract using the UDC.
+// TODO: use types.DeployRequest{} as input for salt + calldata (remove contract_definition)
+func (account *Account) Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error) {
+	// TODO: allow passing salt in
+	salt, err := Curve.GetRandomPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	unique := true
+	calldata := []string{}
+
+	uniqueInt := big.NewInt(0)
+	if unique {
+		uniqueInt = big.NewInt(1)
+	}
+
+	deployerAddress := types.HexToHash("0x41a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf") // UDC
+	tx, err := account.Execute(ctx, []types.FunctionCall{
+		{
+			ContractAddress:    deployerAddress,
+			EntryPointSelector: "deployContract",
+			Calldata: append([]string{
+				classHash,
+				fmt.Sprintf("0x0%s", salt.Text(16)),
+				fmt.Sprintf("0x0%s", uniqueInt.Text(16)), // unique
+				fmt.Sprintf("0x0%x", len(calldata)),
+			}, calldata...),
+		},
+	}, details)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate the resulting contract address
+	constructorCalldata := []*big.Int{}
+	for _, value := range calldata {
+		constructorCalldata = append(constructorCalldata, types.SNValToBN(value))
+	}
+	constructorCalldataHash, err := Curve.ComputeHashOnElements(constructorCalldata)
+	if err != nil {
+		return nil, err
+	}
+
+	if unique {
+		salt, err = Curve.PedersenHash([]*big.Int{
+			types.HexToBN(account.AccountAddress),
+			salt,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	prefix := types.HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
+
+	contractAddress, err := Curve.ComputeHashOnElements([]*big.Int{
+		prefix,                // CONTRACT_ADDRESS_PREFIX
+		deployerAddress.Big(), // TODO: 0 if !unique
+		salt,
+		types.HexToBN(classHash),
+		constructorCalldataHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AddDeployResponse{
+		TransactionHash: tx.TransactionHash,
+		ContractAddress: fmt.Sprintf("0x0%s", contractAddress.Text(16)),
+	}, nil
 }
