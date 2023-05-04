@@ -24,6 +24,7 @@ type AddDeployResponse struct {
 	ContractAddress string `json:"address"`
 }
 
+// TODO: remove
 type DeployRequest struct {
 	Type                string        `json:"type"`
 	ContractAddressSalt string        `json:"contract_address_salt"`

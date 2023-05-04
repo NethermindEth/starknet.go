@@ -140,26 +140,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
 func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
-	d := DeployRequest(deployRequest)
-	d.Type = DEPLOY
-	if len(d.ConstructorCalldata) == 0 {
-		d.ConstructorCalldata = []string{}
-	}
-	if d.ContractAddressSalt == "" {
-		d.ContractAddressSalt = "0x0"
-	}
-
-	d.ContractDefinition = contract
-	if err != nil {
-		return resp, err
-	}
-
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, sg.do(req, &resp)
+	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
 type DeployAccountRequest types.DeployAccountRequest
