@@ -219,14 +219,6 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 */
 func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
-	declareRequest.SenderAddress = "0x1"
-	declareRequest.MaxFee = "0x0"
-	declareRequest.Nonce = "0x0"
-	declareRequest.Signature = []string{}
-	declareRequest.ContractClass = contract
-	if err != nil {
-		return resp, err
-	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
 	if err != nil {
@@ -249,7 +241,8 @@ func (d DeployRequest) MarshalJSON() ([]byte, error) {
 
 type DeclareRequest struct {
 	Type          string              `json:"type"`
-	SenderAddress string              `json:"sender_address"`
+	SenderAddress types.Hash          `json:"sender_address"`
+	Version       string              `json:"version"`
 	MaxFee        string              `json:"max_fee"`
 	Nonce         string              `json:"nonce"`
 	Signature     []string            `json:"signature"`

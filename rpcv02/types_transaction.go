@@ -250,9 +250,8 @@ type BroadcastedTxnCommonProperties struct {
 	Version TransactionVersion `json:"version"`
 	// Signature
 	Signature []string `json:"signature"`
-	// Nonce should only be set with Transaction V1
-	Nonce *big.Int `json:"nonce,omitempty"`
-	Type  string   `json:"type"`
+	Nonce     *big.Int `json:"nonce"`
+	Type      string   `json:"type"`
 }
 
 type BroadcastedInvokeV1Transaction struct {

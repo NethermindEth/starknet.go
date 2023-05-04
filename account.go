@@ -19,6 +19,7 @@ var (
 
 const (
 	TRANSACTION_PREFIX      = "invoke"
+	DECLARE_PREFIX          = "declare"
 	EXECUTE_SELECTOR        = "__execute__"
 	CONTRACT_ADDRESS_PREFIX = "STARKNET_CONTRACT_ADDRESS"
 )
@@ -446,4 +447,74 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		)
 	}
 	return nil, ErrUnsupportedAccount
+}
+
+func (account *Account) Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+	switch account.provider {
+	case ProviderRPCv02:
+		panic("unsupported")
+	case ProviderGateway:
+		version := big.NewInt(1)
+		nonce := details.Nonce
+		var err error
+		if details.Nonce == nil {
+			nonce, err = account.Nonce(ctx)
+			if err != nil {
+				return types.AddDeclareResponse{}, err
+			}
+		}
+		// TODO: use max fee estimation instead
+		maxFee := MAX_FEE
+		if details.MaxFee != nil {
+			maxFee = details.MaxFee
+		}
+
+		// TODO: extract as declareHash
+		hash, _ := big.NewInt(0).SetString(classHash, 0)
+		calldataHash, err := Curve.ComputeHashOnElements([]*big.Int{hash})
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+		var multiHashData []*big.Int
+		switch account.version {
+		case 1:
+			multiHashData = []*big.Int{
+				types.UTF8StrToBig(DECLARE_PREFIX),
+				version,
+				types.SNValToBN(account.AccountAddress),
+				big.NewInt(0),
+				calldataHash,
+				maxFee,
+				types.UTF8StrToBig(account.chainId),
+				nonce, // TODO: also include compiledClassHash for cairo 1.0?
+			}
+		default:
+			return types.AddDeclareResponse{}, fmt.Errorf("version %d unsupported", account.version)
+		}
+		txHash, err := Curve.ComputeHashOnElements(multiHashData)
+		// TODO: end extract as declareHash
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+
+		s1, s2, err := account.Sign(txHash)
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+		signature := []string{}
+		signature = append(signature, s1.String())
+		signature = append(signature, s2.String())
+
+		request := gateway.DeclareRequest{
+			SenderAddress: types.HexToHash(account.AccountAddress),
+			Version:       fmt.Sprintf("0x0%d", version),
+			MaxFee:        fmt.Sprintf("0x0%s", maxFee.Text(16)),
+			Nonce:         fmt.Sprintf("0x0%s", nonce.Text(16)),
+			Signature:     signature,
+			ContractClass: contract,
+			Type:          "DECLARE",
+		}
+		return account.sequencer.Declare(ctx, contract, request)
+	}
+	return types.AddDeclareResponse{}, ErrUnsupportedAccount
 }
