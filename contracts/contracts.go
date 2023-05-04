@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/types"
@@ -24,7 +25,7 @@ type DeployOutput struct {
 
 type GatewayProvider gateway.GatewayProvider
 
-func (p *GatewayProvider) declareAndWaitNoWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
+func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	provider := gateway.GatewayProvider(*p)
 	class := types.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
@@ -45,6 +46,47 @@ func (p *GatewayProvider) declareAndWaitNoWallet(ctx context.Context, compiledCl
 	return &DeclareOutput{
 		classHash:       tx.ClassHash,
 		transactionHash: tx.TransactionHash,
+	}, nil
+}
+
+// TODO: remove compiledClass from the interface
+func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Hash, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+	provider := gateway.GatewayProvider(*p)
+	class := types.ContractClass{}
+
+	if err := json.Unmarshal(compiledClass, &class); err != nil {
+		return nil, err
+	}
+	fmt.Printf("classHash %v\n", classHash.String())
+	tx, err := provider.DeployAccount(ctx, types.DeployAccountRequest{
+		// MaxFee
+		Version:             big.NewInt(1),
+		ContractAddressSalt: salt,
+		ConstructorCalldata: inputs,
+		ClassHash:           classHash.String(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, receipt, err := (&provider).WaitForTransaction(ctx, tx.TransactionHash, 8, 60)
+
+	if err != nil {
+		log.Printf("contract Address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return nil, err
+	}
+
+	if !receipt.Status.IsTransactionFinal() ||
+
+		receipt.Status == types.TransactionRejected {
+		return nil, fmt.Errorf("wrong status: %s", receipt.Status)
+	}
+
+	return &DeployOutput{
+		ContractAddress: tx.ContractAddress,
+		TransactionHash: tx.TransactionHash,
 	}, nil
 }
 

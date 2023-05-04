@@ -13,6 +13,7 @@ import (
 	"github.com/dontpanicdao/caigo/artifacts"
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/rpcv02"
+	"github.com/dontpanicdao/caigo/types"
 )
 
 type AccountManager struct {
@@ -46,8 +47,8 @@ func (ap *AccountManager) Write(filename string) error {
 }
 
 type Provider interface {
-	declareAndWaitNoWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
-	deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
+	declareAndWaitWithWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
+	deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Hash, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
 }
 
 const (
@@ -56,9 +57,9 @@ const (
 
 func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
-	// case *rpcv02.Provider:
-	// 	provider := RPCv02Provider(*v)
-	// 	return &provider, nil
+	case *rpcv02.Provider:
+		provider := RPCv02Provider(*v)
+		return &provider, nil
 	case *gateway.GatewayProvider:
 		provider := GatewayProvider(*v)
 		return &provider, nil
@@ -70,7 +71,7 @@ func guessProviderType(p interface{}) (Provider, error) {
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccountNoWallet[V *rpcv02.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
@@ -80,21 +81,22 @@ func InstallAndWaitForAccountNoWallet[V *rpcv02.Provider | *gateway.GatewayProvi
 		return nil, err
 	}
 	publicKeyString := fmt.Sprintf("0x0%s", publicKey.Text(16))
+	fmt.Println("z")
 	p, err := guessProviderType(provider)
 	if err != nil {
 		return nil, err
 	}
 	accountClassHash := ""
-	if len(compiledContracts.ProxyCompiled) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.AccountCompiled)
-		if err != nil {
-			return nil, err
-		}
-		accountClassHash = output.classHash
+	// if len(compiledContracts.ProxyCompiled) != 0 {
+	output, err := p.declareAndWaitWithWallet(ctx, compiledContracts.AccountCompiled)
+	if err != nil {
+		return nil, err
 	}
+	accountClassHash = output.classHash
+	// }
 	pluginClassHash := ""
 	if len(compiledContracts.PluginCompiled) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.PluginCompiled)
+		output, err := p.declareAndWaitWithWallet(ctx, compiledContracts.PluginCompiled)
 		if err != nil {
 			return nil, err
 		}
@@ -108,10 +110,13 @@ func InstallAndWaitForAccountNoWallet[V *rpcv02.Provider | *gateway.GatewayProvi
 	if err != nil {
 		return nil, err
 	}
-	deployedOutput, err := p.deployAndWaitNoWallet(ctx, compiledDeployed, publicKeyString, calldata)
+	fmt.Println("d")
+	// TODO: compiledDeploed could be proxy
+	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, types.HexToHash(accountClassHash), compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("e")
 	proxyClassHash := ""
 	switch len(compiledContracts.ProxyCompiled) {
 	case 0:

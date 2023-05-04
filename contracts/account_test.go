@@ -48,7 +48,7 @@ func TestGateway_InstallAccounts(t *testing.T) {
 		var err error
 		switch test.providerType {
 		case caigo.ProviderGateway:
-			accountManager, err = InstallAndWaitForAccountNoWallet(
+			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.gateway,
 				privateKey,
@@ -100,14 +100,14 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 		var err error
 		switch test.providerType {
 		case caigo.ProviderRPCv02:
-			accountManager, err = InstallAndWaitForAccountNoWallet(
+			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.rpcv02,
 				privateKey,
 				test.CompiledContract,
 			)
 		case caigo.ProviderGateway:
-			accountManager, err = InstallAndWaitForAccountNoWallet(
+			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.gateway,
 				privateKey,

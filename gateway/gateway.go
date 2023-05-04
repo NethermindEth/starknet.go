@@ -102,6 +102,7 @@ func (sg *Gateway) newRequest(
 
 	if body != nil {
 		data, err := json.Marshal(body)
+		// fmt.Printf("request: %v\n", string(data))
 		if err != nil {
 			return nil, fmt.Errorf("marshal body: %w", err)
 		}
@@ -153,6 +154,7 @@ func (sg *Gateway) do(req *http.Request, v interface{}) error {
 		return e
 	}
 	body, err := io.ReadAll(resp.Body)
+	// fmt.Printf("response: %v\n", string(body))
 	if err != nil {
 		return err
 	}
