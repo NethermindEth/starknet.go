@@ -14,7 +14,7 @@ import (
 
 var (
 	ErrUnsupportedAccount = errors.New("unsupported account implementation")
-	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000", 0)
+	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000000", 0)
 )
 
 const (
