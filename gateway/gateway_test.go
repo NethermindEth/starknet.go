@@ -3,7 +3,6 @@ package gateway_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -47,28 +46,62 @@ var (
 )
 
 func setupDevnet(ctx context.Context) error {
-	provider := NewClient(WithBaseURL(testConfigurations["devnet"].base))
+	provider := gateway.NewProvider(gateway.WithBaseURL(testConfigurations["devnet"].base))
+
+	v, err := test.NewDevNet().Accounts()
+	if err != nil {
+		return fmt.Errorf("could not connect to devnet: %v", err)
+	}
+
 	contract := types.ContractClass{}
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
-	tx, err := provider.Deploy(ctx, contract, types.DeployRequest{})
+	account, err := caigo.NewGatewayAccount(
+		v[0].PrivateKey,
+		v[0].Address,
+		provider,
+		caigo.AccountVersion1,
+	)
 	if err != nil {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 		return err
 	}
-	counterAddress = tx.ContractAddress
-	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+
+	// starknet-class-hash --deprecated counter.json
+	classHash := "0x36a03c54ac060f8083f1d1254ca824ae36bc73222a81a851a91ac0c36d852d6"
+
+	// declare
+	declare, err := account.Declare(ctx, classHash, contract, types.ExecuteDetails{})
 	if err != nil {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
+	}
+	_, receipt, err := provider.WaitForTransaction(ctx, declare.TransactionHash, 3, 10)
+	if err != nil {
+		log.Printf("transaction Hash: %s\n", declare.TransactionHash)
 		return err
 	}
 	if receipt.Status == types.TransactionRejected {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", declare.TransactionHash)
+		return fmt.Errorf("declare rejected: %+v", receipt.TransactionFailureReason)
+	}
+
+	// deploy
+	tx, err := account.Deploy(ctx, classHash, types.ExecuteDetails{})
+	if err != nil {
+		return err
+	}
+	counterAddress = tx.ContractAddress
+	_, receipt, err = provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		// log.Printf("contract address: %s\n", tx.ContractAddress)
 		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-		return errors.New("deployed rejected")
+		return err
+	}
+	fmt.Printf("receipt: %+v\n", receipt.Events[0])
+	fmt.Printf("receipt: %+v\n", receipt)
+	if receipt.Status == types.TransactionRejected {
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return fmt.Errorf("deployed rejected: %+v", receipt.TransactionFailureReason)
 	}
 	return nil
 }
