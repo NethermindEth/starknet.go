@@ -124,12 +124,18 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
+<<<<<<< HEAD
 		case caigo.ProviderRPCv01:
 			provider := RPCv01Provider(*testConfiguration.rpcv01)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		case caigo.ProviderGateway:
 			provider := GatewayProvider(*testConfiguration.gateway)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
+=======
+		case caigo.ProviderRPCv02:
+			provider := RPCv02Provider(*testConfiguration.rpcv02)
+			tx, err = provider.deployAndWaitWithWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
+>>>>>>> 6ecfc39... wip
 		default:
 			t.Fatal("unsupported client type", test.providerType)
 		}
@@ -153,7 +159,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				privateKey:      "0x1",
+				privateKey:      "0x01",
 				providerType:    caigo.ProviderGateway,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
@@ -169,7 +175,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		switch test.providerType {
 		case caigo.ProviderGateway:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
-			accountManager, err := InstallAndWaitForAccountNoWallet(
+			accountManager, err := InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.gateway,
 				pk,
@@ -281,7 +287,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				privateKey:      "0x1",
+				privateKey:      "0xe3e70682c2094cac629f6fbed82c07cd",
 				providerType:    caigo.ProviderRPCv02,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
@@ -297,7 +303,9 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		switch test.providerType {
 		case caigo.ProviderRPCv01:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
-			accountManager, err := InstallAndWaitForAccountNoWallet(
+			fmt.Println("befor")
+			accountManager := &AccountManager{}
+			accountManager, err := InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.rpcv01,
 				pk,
@@ -306,13 +314,14 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
+			fmt.Println("after")
 			mint, err := devtest.NewDevNet().Mint(types.HexToHash(accountManager.AccountAddress), 1000000000000000000)
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
 			fmt.Printf("current balance is %d\n", mint.NewBalance)
-			provider := RPCv01Provider(*testConfiguration.rpcv01)
-			counterTransaction, err = provider.deployAndWaitNoWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
+			provider := RPCv02Provider(*testConfiguration.rpcv02)
+			counterTransaction, err = provider.deployAndWaitWithWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}

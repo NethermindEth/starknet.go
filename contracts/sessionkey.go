@@ -12,6 +12,7 @@ import (
 	"github.com/dontpanicdao/caigo/gateway"
 	"github.com/dontpanicdao/caigo/plugins/xsessions"
 	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/dontpanicdao/caigo/rpcv02"
 	"github.com/dontpanicdao/caigo/types"
 )
 
@@ -29,7 +30,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 	)
 }
 
-func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
+func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv02.Provider) (string, error) {
 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
 
