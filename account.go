@@ -31,6 +31,8 @@ type account interface {
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+	Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
 var _ account = &Account{}
