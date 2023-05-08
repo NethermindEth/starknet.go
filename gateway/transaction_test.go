@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestTransaction(t *testing.T) {

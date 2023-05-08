@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func (sg *Gateway) AccountNonce(ctx context.Context, address types.Hash) (*big.Int, error) {

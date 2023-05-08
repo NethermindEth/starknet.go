@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 

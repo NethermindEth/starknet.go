@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/smartcontractkit/caigo/gateway"
 )
 
 func Test_Block_Devnet(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var ErrInvalidBlockID = errors.New("invalid blockid")

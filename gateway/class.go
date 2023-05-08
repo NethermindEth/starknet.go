@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
+// TODO: returns DeprecatedContractClass | SierraContractClass
 func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*types.ContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_by_hash", nil)
 	if err != nil {

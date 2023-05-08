@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestDevnet_IsAlive(t *testing.T) {

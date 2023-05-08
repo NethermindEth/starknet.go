@@ -8,10 +8,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/gateway"
-	devtest "github.com/dontpanicdao/caigo/test"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	devtest "github.com/smartcontractkit/caigo/test"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var (

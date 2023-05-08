@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv02"
-	devtest "github.com/dontpanicdao/caigo/test"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	devtest "github.com/smartcontractkit/caigo/test"
+	"github.com/smartcontractkit/caigo/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )

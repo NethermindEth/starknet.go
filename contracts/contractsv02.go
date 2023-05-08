@@ -10,8 +10,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpcv02"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type RPCv02Provider rpcv02.Provider

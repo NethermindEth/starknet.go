@@ -1,8 +1,8 @@
 package rpcv02
 
 import (
-	"github.com/dontpanicdao/caigo/types"
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
+	ctypes "github.com/smartcontractkit/caigo/types"
 )
 
 var blockGoerli310370 = Block{

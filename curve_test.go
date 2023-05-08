@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func BenchmarkPedersenHash(b *testing.B) {

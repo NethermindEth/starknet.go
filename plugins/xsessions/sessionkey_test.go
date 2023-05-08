@@ -10,9 +10,9 @@ import (
 
 	_ "embed"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var sessionPluginCompiled = artifacts.PluginV0Compiled

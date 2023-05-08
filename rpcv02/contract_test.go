@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // TestClassAt tests code for a class.

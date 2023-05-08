@@ -9,11 +9,11 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv02"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type AccountManager struct {

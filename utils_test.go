@@ -3,7 +3,7 @@ package caigo
 import (
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestGeneral_SplitFactStr(t *testing.T) {

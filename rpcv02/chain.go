@@ -3,7 +3,7 @@ package rpcv02
 import (
 	"context"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // ChainID retrieves the current chain ID for transaction replay protection.

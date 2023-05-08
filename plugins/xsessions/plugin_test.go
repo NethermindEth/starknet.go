@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpcv02"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 	"github.com/joho/godotenv"
 )
 

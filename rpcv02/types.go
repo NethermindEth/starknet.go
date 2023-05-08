@@ -3,7 +3,7 @@ package rpcv02
 import (
 	"encoding/json"
 
-	types "github.com/dontpanicdao/caigo/types"
+	types "github.com/smartcontractkit/caigo/types"
 )
 
 type ResultPageRequest struct {

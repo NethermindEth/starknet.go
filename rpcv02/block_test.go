@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 	"github.com/google/go-cmp/cmp"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type DevNet struct {

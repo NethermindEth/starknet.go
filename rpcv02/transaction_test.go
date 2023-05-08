@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	ctypes "github.com/smartcontractkit/caigo/types"
 	"github.com/google/go-cmp/cmp"
 )
 

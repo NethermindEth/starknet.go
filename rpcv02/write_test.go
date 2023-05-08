@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction

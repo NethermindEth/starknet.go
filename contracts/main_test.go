@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )

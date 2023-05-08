@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv02"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var (
