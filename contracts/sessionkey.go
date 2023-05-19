@@ -85,9 +85,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
 	}
+	// shim in  the keystore. while weird and awkward, it's functionally ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 		v,
 	)
@@ -121,9 +129,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 }
 
 func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
+	//  shim in  the keystore. while weird and awkward, it's functionally ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 	)
 	if err != nil {
