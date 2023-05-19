@@ -166,6 +166,14 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		var err error
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
+		// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
+		// they concurrently mutate shared test config, ...
+		// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+		ks := caigo.NewMemKeystore()
+
+		fakeSenderAddress := test.privateKey
+		k := types.SNValToBN(test.privateKey)
+		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
 		case caigo.ProviderGateway:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
@@ -189,7 +197,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewGatewayAccount(test.privateKey, accountManager.AccountAddress, testConfiguration.gateway, caigo.AccountVersion1)
+			account, err = caigo.NewGatewayAccount(fakeSenderAddress, accountManager.AccountAddress, ks, testConfiguration.gateway, caigo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
@@ -230,6 +238,11 @@ func TestRPCv01_LoadAndExecuteCounter(t *testing.T) {
 		var err error
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
+		ks := caigo.NewMemKeystore()
+
+		fakeSenderAddress := test.privateKey
+		k := types.SNValToBN(test.privateKey)
+		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
 		case caigo.ProviderRPCv01:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
@@ -253,7 +266,7 @@ func TestRPCv01_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewRPCAccount(test.privateKey, accountManager.AccountAddress, testConfiguration.rpcv01, caigo.AccountVersion1)
+			account, err = caigo.NewRPCAccount(fakeSenderAddress, accountManager.AccountAddress, ks, testConfiguration.rpcv01, caigo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
@@ -294,6 +307,11 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		var err error
 		var counterTransaction *DeployOutput
 		var account *caigo.Account
+		ks := caigo.NewMemKeystore()
+
+		fakeSenderAddress := test.privateKey
+		k := types.SNValToBN(test.privateKey)
+		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
 		case caigo.ProviderRPCv01:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
@@ -317,7 +335,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewRPCAccount(test.privateKey, accountManager.AccountAddress, testConfiguration.rpcv01, caigo.AccountVersion1)
+			account, err = caigo.NewRPCAccount(fakeSenderAddress, accountManager.AccountAddress, ks, testConfiguration.rpcv01, caigo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}

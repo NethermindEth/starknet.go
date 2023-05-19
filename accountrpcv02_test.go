@@ -40,7 +40,15 @@ func TestRPCv02Account_Nonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
+		// they concurrently mutate shared test config, ...
+		// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +96,15 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
+		// they concurrently mutate shared test config, ...
+		// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -119,7 +135,15 @@ func TestRPCv02Account_Execute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
+		// they concurrently mutate shared test config, ...
+		// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}

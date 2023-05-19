@@ -45,9 +45,16 @@ func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string,
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
 	}
+	// hack. shim in  the keystore. while gross, it's ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := types.BigToHex(sessionPrivateKey)
+	ks.Put(fakeSenderAddress, sessionPrivateKey)
 	account, err := caigo.NewRPCAccount(
-		types.BigToHex(sessionPrivateKey),
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 		plugin,
 		v,
@@ -86,9 +93,17 @@ func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, pro
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
 	}
+	// hack. shim in  the keystore. while gross, it's ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewRPCAccount(
-		ap.PrivateKey,
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 		v,
 	)
@@ -126,9 +141,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
 	}
+	// hack. shim in  the keystore. while gross, it's ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 		v,
 	)
@@ -162,9 +185,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 }
 
 func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
+	// hack. shim in  the keystore. while gross, it's ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
+		fakeSenderAddress,
 		ap.AccountAddress,
+		ks,
 		provider,
 	)
 	if err != nil {

@@ -53,9 +53,11 @@ type Account struct {
 	provider       ProviderType
 	chainId        string
 	AccountAddress string
-	private        *big.Int
-	version        uint64
-	plugin         AccountPlugin
+	sender         string
+	ks             Keystore
+	//	private        *big.Int
+	version uint64
+	plugin  AccountPlugin
 }
 
 type AccountOption struct {
@@ -77,11 +79,11 @@ func AccountVersion1(string, string) (AccountOption, error) {
 	}, nil
 }
 
-func newAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
+func newAccount(sender, address string, ks Keystore, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := uint64(0)
 	for _, o := range options {
-		opt, err := o(private, address)
+		opt, err := o(sender, address)
 		if err != nil {
 			return nil, err
 		}
@@ -95,12 +97,12 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 			accountPlugin = opt.AccountPlugin
 		}
 	}
-	priv := types.SNValToBN(private)
+	//priv := types.SNValToBN(private)
 	return &Account{
 		AccountAddress: address,
-		private:        priv,
-		version:        version,
-		plugin:         accountPlugin,
+		//private:        priv,
+		version: version,
+		plugin:  accountPlugin,
 	}, nil
 }
 
@@ -128,8 +130,8 @@ func setAccountProvider(account *Account, provider interface{}) error {
 	return errors.New("unsupported provider")
 }
 
-func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](private, address string, provider Provider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](sender, address string, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +139,8 @@ func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](private, addres
 	return account, err
 }
 
-func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewGatewayAccount(sender, address string, ks Keystore, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +176,8 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 }
 
 func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return Curve.Sign(msgHash, account.private)
+	todo := big.NewInt(0)
+	return Curve.Sign(msgHash, todo)
 }
 
 func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
@@ -406,7 +409,17 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 			return nil, err
 		}
 	}
-	s1, s2, err := account.Sign(txHash)
+	/*
+		s1, s2, err := account.Sign(txHash)
+		if err != nil {
+			return nil, err
+		}
+	*/
+	raw, err := account.ks.Sign(account.sender, txHash.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	s, err := signatureFromBytes(raw)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +429,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 		return &types.FunctionInvoke{
 			MaxFee:    maxFee,
 			Version:   version,
-			Signature: types.Signature{s1, s2},
+			Signature: types.Signature{s.x, s.y},
 			FunctionCall: types.FunctionCall{
 				ContractAddress:    types.HexToHash(account.AccountAddress),
 				EntryPointSelector: EXECUTE_SELECTOR,
@@ -428,7 +441,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 		return &types.FunctionInvoke{
 			MaxFee:    maxFee,
 			Version:   version,
-			Signature: types.Signature{s1, s2},
+			Signature: types.Signature{s.x, s.y},
 			FunctionCall: types.FunctionCall{
 				ContractAddress: types.HexToHash(account.AccountAddress),
 				Calldata:        calldata,

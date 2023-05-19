@@ -47,9 +47,17 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
+		// they concurrently mutate shared test config, ...
+		// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		fakeSenderAddress := testConfig.AccountPrivateKey
+		k := types.SNValToBN(testConfig.AccountPrivateKey)
+		ks.Put(fakeSenderAddress, k)
 		account, err := NewGatewayAccount(
-			testConfig.AccountPrivateKey,
+			fakeSenderAddress,
 			testConfig.AccountAddress,
+			ks,
 			testConfig.client,
 			AccountVersion1)
 		if err != nil {
