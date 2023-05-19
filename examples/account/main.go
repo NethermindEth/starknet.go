@@ -35,7 +35,10 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewGatewayAccount(privakeKey, address, gw)
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := privakeKey
+	ks.Put(fakeSenderAddress, types.SNValToBN(fakeSenderAddress))
+	account, err := caigo.NewGatewayAccount(fakeSenderAddress, address, ks, gw)
 	if err != nil {
 		panic(err.Error())
 	}

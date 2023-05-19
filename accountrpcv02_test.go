@@ -40,7 +40,14 @@ func TestRPCv02Account_Nonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests.
+		// use string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +95,14 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests.
+		// use string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -119,7 +133,14 @@ func TestRPCv02Account_Execute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		account, err := NewRPCAccount(os.Getenv(test.PrivateKeyEnvVar), test.Address, testConfig.providerv02)
+		// shim a keystore into existing tests.
+		// use string representation of the PK as a fake sender address for the keystore
+		ks := NewMemKeystore()
+		pk := os.Getenv(test.PrivateKeyEnvVar)
+		fakeSenderAddress := pk
+		k := types.SNValToBN(pk)
+		ks.Put(fakeSenderAddress, k)
+		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
