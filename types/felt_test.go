@@ -1,9 +1,9 @@
 package types
 
 import (
-	"fmt"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"strconv"
 	"testing"
@@ -26,9 +26,9 @@ var (
 var feltTest FeltTest
 
 type FeltTest struct {
-	MaxFelt *big.Int    `json:"max_felt"`
-	LongString string `json:"long_string"`
-	Felts   []FeltValue `json:"felts"`
+	MaxFelt    *big.Int    `json:"max_felt"`
+	LongString string      `json:"long_string"`
+	Felts      []FeltValue `json:"felts"`
 }
 
 type FeltValue struct {
@@ -117,5 +117,13 @@ func TestGQLMarshal(t *testing.T) {
 		if buf.String() != strconv.Quote(cmp.String()) {
 			t.Errorf("Could not marshal GQL for felt: %v %v\n", buf.String(), strconv.Quote(cmp.String()))
 		}
+	}
+}
+
+func TestBytes(t *testing.T) {
+	feltBytes := StrToFelt("0x010203").Bytes()
+	expectedBytes := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3}
+	if !bytes.Equal(expectedBytes, feltBytes) {
+		t.Errorf("Byte slices are not equal:\nExpected: %v\nGot: %v\n", expectedBytes, feltBytes)
 	}
 }
