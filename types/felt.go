@@ -32,6 +32,12 @@ func (f *Felt) Big() *big.Int {
 	return new(big.Int).SetBytes(f.Int.Bytes())
 }
 
+func (f *Felt) Bytes() []byte {
+	ret := [32]byte{}
+	f.Int.FillBytes(ret[:])
+	return ret[:]
+}
+
 // StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
 func StrToFelt(str string) *Felt {
 	f := new(Felt)
@@ -70,7 +76,7 @@ func BytesToFelt(b []byte) *Felt {
 
 // String converts a Felt into its 'short string' representation.
 func (f *Felt) ShortString() string {
-	str := string(f.Bytes())
+	str := string(f.Int.Bytes())
 	if asciiRegexp.MatchString(str) {
 		return str
 	}
