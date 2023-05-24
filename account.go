@@ -303,7 +303,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 			return nil, err
 		}
 	}
-	s1, s2, err := account.ks.Sign(account.sender, txHash)
+	s1, s2, err := account.ks.Sign(ctx, account.sender, txHash)
 	if err != nil {
 		return nil, err
 	}
@@ -450,7 +450,7 @@ func (account *Account) Declare(ctx context.Context, classHash string, contract 
 			return types.AddDeclareResponse{}, err
 		}
 
-		s1, s2, err := account.ks.Sign(account.sender, txHash)
+		s1, s2, err := account.ks.Sign(ctx, account.sender, txHash)
 		if err != nil {
 			return types.AddDeclareResponse{}, err
 		}
