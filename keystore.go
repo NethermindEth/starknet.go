@@ -1,6 +1,7 @@
 package caigo
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/big"
@@ -8,7 +9,7 @@ import (
 )
 
 type Keystore interface {
-	Sign(senderAddress string, msgHash *big.Int) (x *big.Int, y *big.Int, err error)
+	Sign(ctx context.Context, id string, msgHash *big.Int) (x *big.Int, y *big.Int, err error)
 }
 
 // MemKeystore implements the Keystore interface and is intended for example and test code.
@@ -41,12 +42,27 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	return k, nil
 }
 
-func (ks *MemKeystore) Sign(id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
+func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
 
 	k, err := ks.Get(id)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return Curve.Sign(msgHash, k)
+	return sign(ctx, msgHash, k)
+}
+
+// sign illustrates one way to handle context cancellation
+func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *big.Int, err error) {
+
+	select {
+	case <-ctx.Done():
+		x = nil
+		y = nil
+		err = ctx.Err()
+
+	default:
+		x, y, err = Curve.Sign(msgHash, key)
+	}
+	return x, y, err
 }
