@@ -47,9 +47,15 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		// shim a keystore into existing tests.
+		ks := NewMemKeystore()
+		fakeSenderAddress := testConfig.AccountPrivateKey
+		k := types.SNValToBN(testConfig.AccountPrivateKey)
+		ks.Put(fakeSenderAddress, k)
 		account, err := NewGatewayAccount(
-			testConfig.AccountPrivateKey,
+			fakeSenderAddress,
 			testConfig.AccountAddress,
+			ks,
 			testConfig.client,
 			AccountVersion1)
 		if err != nil {

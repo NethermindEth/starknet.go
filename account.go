@@ -24,7 +24,6 @@ const (
 )
 
 type account interface {
-	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
 	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
 	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
@@ -53,7 +52,8 @@ type Account struct {
 	provider       ProviderType
 	chainId        string
 	AccountAddress string
-	private        *big.Int
+	sender         string
+	ks             Keystore
 	version        uint64
 	plugin         AccountPlugin
 }
@@ -77,11 +77,11 @@ func AccountVersion1(string, string) (AccountOption, error) {
 	}, nil
 }
 
-func newAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
+func newAccount(sender, address string, ks Keystore, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := uint64(0)
 	for _, o := range options {
-		opt, err := o(private, address)
+		opt, err := o(sender, address)
 		if err != nil {
 			return nil, err
 		}
@@ -95,12 +95,11 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 			accountPlugin = opt.AccountPlugin
 		}
 	}
-	priv := types.SNValToBN(private)
 	return &Account{
 		AccountAddress: address,
-		private:        priv,
 		version:        version,
 		plugin:         accountPlugin,
+		ks:             ks,
 	}, nil
 }
 
@@ -119,8 +118,8 @@ func setAccountProvider(account *Account, provider interface{}) error {
 	return errors.New("unsupported provider")
 }
 
-func NewRPCAccount[Provider *rpcv02.Provider](private, address string, provider Provider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewRPCAccount[Provider *rpcv02.Provider](sender, address string, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +127,8 @@ func NewRPCAccount[Provider *rpcv02.Provider](private, address string, provider 
 	return account, err
 }
 
-func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewGatewayAccount(sender, address string, ks Keystore, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -157,10 +156,6 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 		return account.sequencer.Call(ctx, call, "latest")
 	}
 	return nil, ErrUnsupportedAccount
-}
-
-func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return Curve.Sign(msgHash, account.private)
 }
 
 func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
@@ -308,10 +303,11 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 			return nil, err
 		}
 	}
-	s1, s2, err := account.Sign(txHash)
+	s1, s2, err := account.ks.Sign(ctx, account.sender, txHash)
 	if err != nil {
 		return nil, err
 	}
+
 	switch account.version {
 	case 1:
 		calldata := fmtCalldataStrings(calls)
@@ -454,7 +450,7 @@ func (account *Account) Declare(ctx context.Context, classHash string, contract 
 			return types.AddDeclareResponse{}, err
 		}
 
-		s1, s2, err := account.Sign(txHash)
+		s1, s2, err := account.ks.Sign(ctx, account.sender, txHash)
 		if err != nil {
 			return types.AddDeclareResponse{}, err
 		}
