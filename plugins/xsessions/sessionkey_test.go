@@ -92,9 +92,8 @@ func TestSessionKey_CheckEth(t *testing.T) {
 // IncrementWithSessionKeyPlugin
 func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginClass string, token *SessionKeyToken, counterAddress string) {
 	provider := beforeEachRPCv02(t)
-	// shim a keystore into existing tests. these tests are garbage -- they have all sort of external state dependence,
-	// they concurrently mutate shared test config, ...
-	// rather then attempt to fix or understand, shim a string representation of the PK as a fake sender address for the keystore
+	// shim a keystore into existing tests.
+	// use a string representation of the PK as a fake sender address for the keystore
 	ks := caigo.NewMemKeystore()
 
 	fakeSenderAddress := sessionPrivateKey
