@@ -100,6 +100,7 @@ func newAccount(sender, address string, ks Keystore, options ...AccountOptionFun
 		version:        version,
 		plugin:         accountPlugin,
 		ks:             ks,
+		sender:         sender,
 	}, nil
 }
 
