@@ -47,7 +47,7 @@ func TestRPCv02Account_Nonce(t *testing.T) {
 		fakeSenderAddress := pk
 		k := types.SNValToBN(pk)
 		ks.Put(fakeSenderAddress, k)
-		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
+		account, err := NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(test.Address), ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -102,7 +102,7 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 		fakeSenderAddress := pk
 		k := types.SNValToBN(pk)
 		ks.Put(fakeSenderAddress, k)
-		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
+		account, err := NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(test.Address), ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -140,7 +140,7 @@ func TestRPCv02Account_Execute(t *testing.T) {
 		fakeSenderAddress := pk
 		k := types.SNValToBN(pk)
 		ks.Put(fakeSenderAddress, k)
-		account, err := NewRPCAccount(fakeSenderAddress, test.Address, ks, testConfig.providerv02)
+		account, err := NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(test.Address), ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}

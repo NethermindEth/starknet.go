@@ -100,8 +100,8 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	k := types.SNValToBN(sessionPrivateKey)
 	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewRPCAccount(
-		fakeSenderAddress,
-		accountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(accountAddress),
 		ks,
 		provider,
 		WithSessionKeyPlugin(

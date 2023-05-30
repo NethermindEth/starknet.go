@@ -38,6 +38,12 @@ func (f *Felt) Bytes() []byte {
 	return ret[:]
 }
 
+func (f *Felt) Hash() Hash {
+	ret := [HashLength]byte{}
+	f.Int.FillBytes(ret[:])
+	return ret
+}
+
 // StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
 func StrToFelt(str string) *Felt {
 	f := new(Felt)
