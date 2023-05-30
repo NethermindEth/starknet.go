@@ -21,7 +21,7 @@ type SessionKeyPlugin struct {
 }
 
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
-	return func(unused, address string) (caigo.AccountOption, error) {
+	return func(unused, address *ctypes.Felt) (caigo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
 			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
@@ -31,7 +31,7 @@ func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.
 		}
 		return caigo.AccountOption{
 			AccountPlugin: &SessionKeyPlugin{
-				accountAddress: ctypes.HexToHash(address),
+				accountAddress: address.Hash(),
 				classHash:      plugin,
 				token:          token,
 			},
