@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/joho/godotenv"
 	"github.com/smartcontractkit/caigo"
 	"github.com/smartcontractkit/caigo/gateway"
 	"github.com/smartcontractkit/caigo/test"
 	"github.com/smartcontractkit/caigo/types"
-	"github.com/joho/godotenv"
 )
 
 // testConfiguration is a type that is used to configure tests
@@ -57,9 +57,11 @@ func setupDevnet(ctx context.Context) error {
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
+	ks := caigo.NewMemKeystore()
 	account, err := caigo.NewGatewayAccount(
 		v[0].PrivateKey,
 		v[0].Address,
+		ks,
 		provider,
 		caigo.AccountVersion1,
 	)
