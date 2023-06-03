@@ -1,6 +1,6 @@
 <div align="center">
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img src="docs/images/caigo-no-bg.png" height="256">
 </div>
@@ -160,6 +160,7 @@ Thanks goes to these wonderful people
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/drspacemn"><img src="https://avatars.githubusercontent.com/u/16685321?v=4?s=100" width="100px;" alt="drspacemn"/><br /><sub><b>drspacemn</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=drspacemn" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gregoryguillou"><img src="https://avatars.githubusercontent.com/u/10611760?v=4?s=100" width="100px;" alt="Gregory Guillou"/><br /><sub><b>Gregory Guillou</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=gregoryguillou" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tarrencev"><img src="https://avatars.githubusercontent.com/u/4740651?v=4?s=100" width="100px;" alt="Tarrence van As"/><br /><sub><b>Tarrence van As</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=tarrencev" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
