@@ -166,6 +166,9 @@ Thanks goes to these wonderful people
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Larkooo"><img src="https://avatars.githubusercontent.com/u/59736843?v=4?s=100" width="100px;" alt="Larko"/><br /><sub><b>Larko</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=Larkooo" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/oxlime"><img src="https://avatars.githubusercontent.com/u/93354898?v=4?s=100" width="100px;" alt="oxlime"/><br /><sub><b>oxlime</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=oxlime" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rzmahmood"><img src="https://avatars.githubusercontent.com/u/35128199?v=4?s=100" width="100px;" alt="Zoraiz Mahmood"/><br /><sub><b>Zoraiz Mahmood</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rzmahmood" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
