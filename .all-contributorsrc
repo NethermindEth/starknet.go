@@ -132,6 +132,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "krebernisak",
+      "name": "Kristijan Rebernisak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/615877?v=4",
+      "profile": "https://runningbeta.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
