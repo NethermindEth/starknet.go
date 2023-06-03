@@ -1,6 +1,6 @@
 <div align="center">
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img src="docs/images/caigo-no-bg.png" height="256">
 </div>
@@ -173,6 +173,7 @@ Thanks goes to these wonderful people
       <td align="center" valign="top" width="14.28%"><a href="http://mxxn.io"><img src="https://avatars.githubusercontent.com/u/1372918?v=4?s=100" width="100px;" alt="Blaž Hrastnik"/><br /><sub><b>Blaž Hrastnik</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=archseer" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/FlorianRichardSMT"><img src="https://avatars.githubusercontent.com/u/110891350?v=4?s=100" width="100px;" alt="Florian"/><br /><sub><b>Florian</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=FlorianRichardSMT" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/greged93"><img src="https://avatars.githubusercontent.com/u/82421016?v=4?s=100" width="100px;" alt="greged93"/><br /><sub><b>greged93</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=greged93" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jney"><img src="https://avatars.githubusercontent.com/u/747?v=4?s=100" width="100px;" alt="Jean-Sébastien Ney"/><br /><sub><b>Jean-Sébastien Ney</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=jney" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
