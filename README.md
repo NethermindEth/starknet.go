@@ -1,23 +1,48 @@
-<h1 align="center">Golang Library for StarkNet</h1>
+<div align="center">
+  <img src="docs/images/caigo-no-bg.png" height="256">
+</div>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
         <img src="https://pkg.go.dev/badge/github.com/dontpanicdao/caigo.svg" alt="Go Reference">
     </a>
-    <a href="https://github.com/dontpanicdao/caigo/blob/main/LICENSE">
+    <a href="https://github.com/nethermindeth/caigo/blob/main/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-black">
     </a>
-    <a href="https://starkware.co/">
-        <img src="https://img.shields.io/badge/powered_by-StarkWare-navy">
+    <a href="https://github.com/nethermindeth/caigo/actions/workflows/test.yml">
+        <img src="https://github.com/nethermindeth/caigo/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
     </a>
-    <a href="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml">
-        <img src="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
+    <a href="https://twitter.com/NethermindStark">
+      <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
+    </a>
+    <a href="https://github.com/nethermindeth/caigo">
+      <img src="https://img.shields.io/github/stars/nethermindeth/caigo?style=social"/>
     </a>
 </p>
 
-Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs.starknet.io/docs/intro).
+<h1 align="center">Get the gopher high on StarkNet</h1>
 
-### Getting Started
+<a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
+<img src="https://img.shields.io/badge/Documentation-Website-yellow"
+ height="50" />
+</a>
+
+#### :warning: `cai.go` is currently under active development and is experiencing a rearchitecture. It will undergo breaking changes.
+
+`cai.go` will get your golang backends and WASM frontends to Starknet easily.
+With simple abstractions for the Starknet RPC, account management and common
+operations on the wallets. The package has excellent documentation for a smooth
+0 to 1 experience.
+
+# 🌟 Features
+
+- Seamless interaction with the Starknet RPC
+- Tight integration with Juno (uses the RPC types, resulting in updates and
+  breaking changes landing quickly)
+- Account management: Deploy accounts easily
+- Good concurrency support
+
+# Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
@@ -52,7 +77,7 @@ go run main.go
 
 ### RPC
 
-Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
+`cai.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
 | Method                                         | Implemented (*)    |
 | ---------------------------------------------- | ------------------ |
@@ -105,15 +130,38 @@ go test -bench=.
 
 ### Compatibility and stability
 
-Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
-*NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
 
-## Issues
+## 🤝 Contribute
 
-If you find an issue/bug or have a feature request please submit an issue here
-[Issues](https://github.com/dontpanicdao/caigo/issues)
+We're always looking for passionate developers to join our community and
+contribute to `cai.go`. Check out our [contributing guide](./docs/CONTRIBUTING.md)
+for more information on how to get started.
 
-## Contributing
+## 📖 License
 
-If you are looking to contribute, please head to the
-[Contributing](https://github.com/dontpanicdao/caigo/blob/main/CONTRIBUTING.md) section.
+This project is licensed under the **MIT license**.
+
+See [LICENSE](LICENSE) for more information.
+
+Happy coding! 🎉
+## Contributors ✨
+
+Thanks goes to these wonderful people
+([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the
+[all-contributors](https://github.com/all-contributors/all-contributors)
+specification. Contributions of any kind welcome!
