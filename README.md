@@ -1,6 +1,6 @@
 <div align="center">
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img src="docs/images/caigo-no-bg.png" height="256">
 </div>
@@ -161,18 +161,17 @@ Thanks goes to these wonderful people
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/drspacemn"><img src="https://avatars.githubusercontent.com/u/16685321?v=4?s=100" width="100px;" alt="drspacemn"/><br /><sub><b>drspacemn</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=drspacemn" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/gregoryguillou"><img src="https://avatars.githubusercontent.com/u/10611760?v=4?s=100" width="100px;" alt="Gregory Guillou"/><br /><sub><b>Gregory Guillou</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=gregoryguillou" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tarrencev"><img src="https://avatars.githubusercontent.com/u/4740651?v=4?s=100" width="100px;" alt="Tarrence van As"/><br /><sub><b>Tarrence van As</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=tarrencev" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alex-sumner"><img src="https://avatars.githubusercontent.com/u/46249612?v=4?s=100" width="100px;" alt="Alex Sumner"/><br /><sub><b>Alex Sumner</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=alex-sumner" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/broody"><img src="https://avatars.githubusercontent.com/u/610224?v=4?s=100" width="100px;" alt="Yun"/><br /><sub><b>Yun</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=broody" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rzmahmood"><img src="https://avatars.githubusercontent.com/u/35128199?v=4?s=100" width="100px;" alt="Zoraiz Mahmood"/><br /><sub><b>Zoraiz Mahmood</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rzmahmood" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/LucasLvy"><img src="https://avatars.githubusercontent.com/u/70894690?v=4?s=100" width="100px;" alt="Lucas @ StarkWare"/><br /><sub><b>Lucas @ StarkWare</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=LucasLvy" title="Code">💻</a></td>
+    </tr>
+    <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/coburn24"><img src="https://avatars.githubusercontent.com/u/29192260?v=4?s=100" width="100px;" alt="Coburn"/><br /><sub><b>Coburn</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=coburn24" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Larkooo"><img src="https://avatars.githubusercontent.com/u/59736843?v=4?s=100" width="100px;" alt="Larko"/><br /><sub><b>Larko</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=Larkooo" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/oxlime"><img src="https://avatars.githubusercontent.com/u/93354898?v=4?s=100" width="100px;" alt="oxlime"/><br /><sub><b>oxlime</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=oxlime" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://mxxn.io"><img src="https://avatars.githubusercontent.com/u/1372918?v=4?s=100" width="100px;" alt="Blaž Hrastnik"/><br /><sub><b>Blaž Hrastnik</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=archseer" title="Code">💻</a></td>
     </tr>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alex-sumner"><img src="https://avatars.githubusercontent.com/u/46249612?v=4?s=100" width="100px;" alt="Alex Sumner"/><br /><sub><b>Alex Sumner</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=alex-sumner" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://rootulp.xyz"><img src="https://avatars.githubusercontent.com/u/3699047?v=4?s=100" width="100px;" alt="Rootul P"/><br /><sub><b>Rootul P</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rootulp" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rzmahmood"><img src="https://avatars.githubusercontent.com/u/35128199?v=4?s=100" width="100px;" alt="Zoraiz Mahmood"/><br /><sub><b>Zoraiz Mahmood</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rzmahmood" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/PacoEdwin"><img src="https://avatars.githubusercontent.com/u/37144944?v=4?s=100" width="100px;" alt="Edwin"/><br /><sub><b>Edwin</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=PacoEdwin" title="Code">💻</a></td>    
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/broody"><img src="https://avatars.githubusercontent.com/u/610224?v=4?s=100" width="100px;" alt="Yun"/><br /><sub><b>Yun</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=broody" title="Code">💻</a></td>
-  </tr>
   </tbody>
 </table>
 

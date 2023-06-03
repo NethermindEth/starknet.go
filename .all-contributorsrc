@@ -96,6 +96,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "archseer",
+      "name": "Blaž Hrastnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1372918?v=4",
+      "profile": "http://mxxn.io",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
