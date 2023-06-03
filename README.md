@@ -167,6 +167,7 @@ Thanks goes to these wonderful people
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/oxlime"><img src="https://avatars.githubusercontent.com/u/93354898?v=4?s=100" width="100px;" alt="oxlime"/><br /><sub><b>oxlime</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=oxlime" title="Code">💻</a></td>
     </tr>
     <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://rootulp.xyz"><img src="https://avatars.githubusercontent.com/u/3699047?v=4?s=100" width="100px;" alt="Rootul P"/><br /><sub><b>Rootul P</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rootulp" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rzmahmood"><img src="https://avatars.githubusercontent.com/u/35128199?v=4?s=100" width="100px;" alt="Zoraiz Mahmood"/><br /><sub><b>Zoraiz Mahmood</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rzmahmood" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/PacoEdwin"><img src="https://avatars.githubusercontent.com/u/37144944?v=4?s=100" width="100px;" alt="Edwin"/><br /><sub><b>Edwin</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=PacoEdwin" title="Code">💻</a></td>    
   </tr>
