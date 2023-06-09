@@ -62,7 +62,7 @@ func TestCounter_DeployContract(t *testing.T) {
 	if tx.ContractAddress != counterAddress {
 		t.Fatal("deploy should return counter address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

@@ -24,10 +24,10 @@ func TestUint256_Big(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to convert to uin256: %v", err)
 	}
-	if uint256.Low.Cmp(low.Int) != 0 {
+	if uint256.Low.Big().Cmp(low.Big()) != 0 {
 		t.Fatalf("uint256 low value mismatch, want: %s, got: %s", low.String(), uint256.Low.String())
 	}
-	if uint256.High.Cmp(high.Int) != 0 {
+	if uint256.High.Big().Cmp(high.Big()) != 0 {
 		t.Fatalf("uint256 high value mismatch, want: %s, got: %s", high.String(), uint256.High.String())
 	}
 
@@ -50,10 +50,10 @@ func TestUint256_Big(t *testing.T) {
 		t.Fatalf("failed to convert to uin256: %v", err)
 	}
 
-	if uint256.Low.Cmp(low.Int) != 0 {
+	if uint256.Low.Big().Cmp(low.Big()) != 0 {
 		t.Fatalf("uint256 low value mismatch, want: %s, got: %s", low.String(), uint256.Low.String())
 	}
-	if uint256.High.Cmp(high.Int) != 0 {
+	if uint256.High.Big().Cmp(high.Big()) != 0 {
 		t.Fatalf("uint256 high value mismatch, want: %s, got: %s", high.String(), uint256.High.String())
 	}
 

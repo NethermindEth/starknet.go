@@ -51,8 +51,8 @@ type Account struct {
 	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
-	AccountAddress *types.Felt
-	sender         *types.Felt
+	AccountAddress types.Felt
+	sender         types.Felt
 	ks             Keystore
 	version        uint64
 	plugin         AccountPlugin
@@ -63,21 +63,21 @@ type AccountOption struct {
 	version       uint64
 }
 
-type AccountOptionFunc func(*types.Felt, *types.Felt) (AccountOption, error)
+type AccountOptionFunc func(types.Felt, types.Felt) (AccountOption, error)
 
-func AccountVersion0(*types.Felt, *types.Felt) (AccountOption, error) {
+func AccountVersion0(types.Felt, types.Felt) (AccountOption, error) {
 	return AccountOption{
 		version: uint64(0),
 	}, nil
 }
 
-func AccountVersion1(*types.Felt, *types.Felt) (AccountOption, error) {
+func AccountVersion1(types.Felt, types.Felt) (AccountOption, error) {
 	return AccountOption{
 		version: uint64(1),
 	}, nil
 }
 
-func newAccount(sender, address *types.Felt, ks Keystore, options ...AccountOptionFunc) (*Account, error) {
+func newAccount(sender, address types.Felt, ks Keystore, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := uint64(0)
 	for _, o := range options {
@@ -119,7 +119,7 @@ func setAccountProvider(account *Account, provider interface{}) error {
 	return errors.New("unsupported provider")
 }
 
-func NewRPCAccount[Provider *rpcv02.Provider](sender, address *types.Felt, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
+func NewRPCAccount[Provider *rpcv02.Provider](sender, address types.Felt, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
@@ -128,7 +128,7 @@ func NewRPCAccount[Provider *rpcv02.Provider](sender, address *types.Felt, ks Ke
 	return account, err
 }
 
-func NewGatewayAccount(sender, address *types.Felt, ks Keystore, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
+func NewGatewayAccount(sender, address types.Felt, ks Keystore, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
@@ -231,7 +231,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 			nonce, err := account.rpcv02.Nonce(
 				ctx,
 				rpcv02.WithBlockTag("latest"),
-				account.AccountAddress.Hash(),
+				account.AccountAddress,
 			)
 			if err != nil {
 				return nil, err
@@ -316,7 +316,7 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 			MaxFee:        maxFee,
 			Version:       version,
 			Signature:     types.Signature{s1, s2},
-			SenderAddress: account.AccountAddress.Hash(),
+			SenderAddress: account.AccountAddress,
 			Calldata:      calldata,
 			Nonce:         nonce,
 		}, nil
@@ -346,7 +346,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 					Type:      "INVOKE",
 				},
 				Calldata:      call.Calldata,
-				SenderAddress: account.AccountAddress.Hash(),
+				SenderAddress: account.AccountAddress,
 			}, rpcv02.WithBlockTag("latest"))
 		}
 	case ProviderGateway:
@@ -390,7 +390,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				SenderAddress: account.AccountAddress.Hash(),
+				SenderAddress: account.AccountAddress,
 				Calldata:      call.Calldata,
 			})
 		}
@@ -460,7 +460,7 @@ func (account *Account) Declare(ctx context.Context, classHash string, contract 
 		signature = append(signature, s2.String())
 
 		request := gateway.DeclareRequest{
-			SenderAddress: account.AccountAddress.Hash(),
+			SenderAddress: account.AccountAddress,
 			Version:       fmt.Sprintf("0x0%d", version),
 			MaxFee:        fmt.Sprintf("0x0%s", maxFee.Text(16)),
 			Nonce:         fmt.Sprintf("0x0%s", nonce.Text(16)),
@@ -490,7 +490,7 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 		uniqueInt = big.NewInt(1)
 	}
 
-	deployerAddress := types.HexToHash("0x41a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf") // UDC
+	deployerAddress := types.StrToFelt("0x41a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf") // UDC
 	tx, err := account.Execute(ctx, []types.FunctionCall{
 		{
 			ContractAddress:    deployerAddress,

@@ -31,14 +31,14 @@ func TestDevnet_FeeToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Reading token should succeed, instead: %v", err)
 	}
-	if token.Address.Hex() != "0x062230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488" {
-		t.Fatalf("devnet ETH address, instead %s", token.Address.Hex())
+	if token.Address.String() != "0x062230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488" {
+		t.Fatalf("devnet ETH address, instead %s", token.Address.String())
 	}
 }
 
 func TestDevnet_Mint(t *testing.T) {
 	d := NewDevNet()
-	resp, err := d.Mint(types.HexToHash("0x1"), 1000000000000000000)
+	resp, err := d.Mint(types.StrToFelt("0x1"), 1000000000000000000)
 	if err != nil {
 		t.Fatalf("Minting ETH should succeed, instead: %v", err)
 	}

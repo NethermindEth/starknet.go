@@ -14,7 +14,7 @@ import (
 	"github.com/smartcontractkit/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address types.Hash) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address types.Felt) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
@@ -75,7 +75,7 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 		sigs = append(sigs, sig.Text(10))
 	}
 	output["signature"] = sigs
-	output["sender_address"] = f.SenderAddress.Hex()
+	output["sender_address"] = f.SenderAddress.String()
 	if f.EntryPointSelector != "" {
 		output["entry_point_selector"] = f.EntryPointSelector
 	}

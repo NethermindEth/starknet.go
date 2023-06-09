@@ -48,7 +48,7 @@ func (ap *AccountManager) Write(filename string) error {
 
 type Provider interface {
 	declareAndWaitWithWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
-	deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Hash, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
+	deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
 }
 
 const (
@@ -112,7 +112,7 @@ func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx
 	}
 	fmt.Println("d")
 	// TODO: compiledDeploed could be proxy
-	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, types.HexToHash(accountClassHash), compiledDeployed, publicKeyString, calldata)
+	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, types.StrToFelt(accountClassHash), compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}
