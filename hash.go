@@ -31,7 +31,7 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
-		address, _ := big.NewInt(0).SetString(tx.ContractAddress.Hex(), 0)
+		address := tx.ContractAddress.Big()
 		callArray = append(callArray, address, types.GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {

@@ -75,9 +75,9 @@ type MintResponse struct {
 	Unit       string `json:"unit"`
 }
 
-func (devnet *DevNet) Mint(address types.Hash, amount uint64) (*MintResponse, error) {
+func (devnet *DevNet) Mint(address types.Felt, amount uint64) (*MintResponse, error) {
 	data := struct {
-		Address types.Hash `json:"address"`
+		Address types.Felt `json:"address"`
 		Amount  uint64     `json:"amount"`
 	}{
 		Address: address,
@@ -107,7 +107,7 @@ func (devnet *DevNet) Mint(address types.Hash, amount uint64) (*MintResponse, er
 
 type FeeToken struct {
 	Symbol  string
-	Address types.Hash
+	Address types.Felt
 }
 
 func (devnet *DevNet) FeeToken() (*FeeToken, error) {

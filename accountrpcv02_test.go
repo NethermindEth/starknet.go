@@ -74,7 +74,7 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 				Address:          DevNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b"),
+					ContractAddress:    types.StrToFelt("0x07704fb2d72fcdae1e6f658ef8521415070a01a3bd3cc5788f7b082126922b7b"),
 					EntryPointSelector: "increment",
 					Calldata:           []string{},
 				},
@@ -85,7 +85,7 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 				Address:          TestNetAccount032Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef"),
+					ContractAddress:    types.StrToFelt("0x357b37bf12f59dd04c4da4933dcadf4a104e158365886d64ca0e554ada68fef"),
 					EntryPointSelector: "increment",
 					Calldata:           []string{},
 				},
@@ -155,7 +155,7 @@ func TestRPCv02Account_Execute(t *testing.T) {
 		fmt.Println("transaction_hash:", execute.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 		defer cancel()
-		status, err := account.rpcv01.WaitForTransaction(ctx, types.HexToHash(execute.TransactionHash), 8*time.Second)
+		status, err := account.rpcv02.WaitForTransaction(ctx, types.StrToFelt(execute.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}

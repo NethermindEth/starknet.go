@@ -10,8 +10,12 @@ import (
 	"net/url"
 	"strings"
 
+<<<<<<< HEAD
 	"github.com/dontpanicdao/caigo/types"
+=======
+>>>>>>> 6c99bdb... replace types.Hash and types.Felt with byte-array backed Felt implementation
 	"github.com/google/go-querystring/query"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type StarkResp struct {
@@ -44,7 +48,7 @@ type FunctionCall types.FunctionCall
 
 func (f FunctionCall) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
-	output["contract_address"] = f.ContractAddress.Hex()
+	output["contract_address"] = f.ContractAddress.String()
 	if f.EntryPointSelector != "" {
 		output["entry_point_selector"] = f.EntryPointSelector
 	}
@@ -102,10 +106,17 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddInvokeTransactionOutput, error) {
 	tx := Transaction{
+<<<<<<< HEAD
 		Type:            INVOKE,
 		ContractAddress: invoke.ContractAddress.Hex(),
 		Version:         fmt.Sprintf("0x%d", invoke.Version),
 		MaxFee:          fmt.Sprintf("0x%s", invoke.MaxFee.Text(16)),
+=======
+		Type:          INVOKE,
+		SenderAddress: invoke.SenderAddress.String(),
+		Version:       fmt.Sprintf("0x0%d", invoke.Version),
+		MaxFee:        fmt.Sprintf("0x0%s", invoke.MaxFee.Text(16)),
+>>>>>>> 6c99bdb... replace types.Hash and types.Felt with byte-array backed Felt implementation
 	}
 	if invoke.EntryPointSelector != "" {
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
@@ -218,7 +229,7 @@ func (d DeployRequest) MarshalJSON() ([]byte, error) {
 
 type DeclareRequest struct {
 	Type          string              `json:"type"`
-	SenderAddress types.Hash          `json:"sender_address"`
+	SenderAddress types.Felt          `json:"sender_address"`
 	Version       string              `json:"version"`
 	MaxFee        string              `json:"max_fee"`
 	Nonce         string              `json:"nonce"`

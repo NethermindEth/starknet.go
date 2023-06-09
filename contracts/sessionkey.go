@@ -34,6 +34,7 @@ func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string,
 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
 
+<<<<<<< HEAD
 	signedSessionKey, err := signSessionKey(ap.PrivateKey, ap.AccountAddress, counterAddress, "increment", types.BigToHex(sessionPublicKey))
 	if err != nil {
 		return "", err
@@ -121,8 +122,57 @@ func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, pro
 	}
 	return tx.TransactionHash, nil
 }
+=======
+// 	signedSessionKey, err := signSessionKey(ap.PrivateKey, ap.AccountAddress, counterAddress, "increment", types.BigToHex(sessionPublicKey))
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	plugin := xsessions.WithSessionKeyPlugin(
+// 		ap.PluginClassHash,
+// 		signedSessionKey,
+// 	)
+// 	v := caigo.AccountVersion0
+// 	if ap.Version == "v1" {
+// 		v = caigo.AccountVersion1
+// 	}
+// 	account, err := caigo.NewRPCAccount(
+// 		types.BigToHex(sessionPrivateKey),
+// 		ap.AccountAddress,
+// 		provider,
+// 		plugin,
+// 		v,
+// 	)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	calls := []types.FunctionCall{
+// 		{
+// 			ContractAddress:    types.StrToFelt(counterAddress),
+// 			EntryPointSelector: "increment",
+// 			Calldata:           []string{},
+// 		},
+// 	}
+// 	ctx := context.Background()
+// 	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
+// 	if err != nil {
+// 		log.Printf("could not execute transaction %v\n", err)
+// 		return "", err
+// 	}
+// 	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
+// 	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
+// 	if err != nil {
+// 		log.Printf("could not execute transaction %v\n", err)
+// 		return tx.TransactionHash, err
+// 	}
+// 	if status != types.TransactionAcceptedOnL2 {
+// 		log.Printf("transaction has failed with %s", status)
+// 		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
+// 	}
+// 	return tx.TransactionHash, nil
+// }
+>>>>>>> 6c99bdb... replace types.Hash and types.Felt with byte-array backed Felt implementation
 
-func (ap *AccountManager) ExecuteWithGateway(counterAddress *types.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
+func (ap *AccountManager) ExecuteWithGateway(counterAddress types.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -146,7 +196,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress *types.Felt, selecto
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    counterAddress.Hash(),
+			ContractAddress:    counterAddress,
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},

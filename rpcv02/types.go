@@ -38,7 +38,7 @@ type DeployedContractItem struct {
 // ContractNonce is a the updated nonce per contract address
 type ContractNonce struct {
 	// ContractAddress is the address of the contract
-	ContractAddress types.Hash `json:"contract_address"`
+	ContractAddress types.Felt `json:"contract_address"`
 	// Nonce is the nonce for the given address at the end of the block"
 	Nonce string `json:"nonce"`
 }
@@ -58,7 +58,7 @@ type StateDiff struct {
 
 type StateUpdateOutput struct {
 	// BlockHash is the block identifier,
-	BlockHash types.Hash `json:"block_hash"`
+	BlockHash types.Felt `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot string `json:"new_root"`
 	// OldRoot is the previous global state root.

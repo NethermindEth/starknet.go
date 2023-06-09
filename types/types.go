@@ -49,7 +49,7 @@ type DeployAccountRequest struct {
 
 // FunctionCall function call information
 type FunctionCall struct {
-	ContractAddress    Hash   `json:"contract_address"`
+	ContractAddress    Felt   `json:"contract_address"`
 	EntryPointSelector string `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function
@@ -69,7 +69,7 @@ type FunctionInvoke struct {
 	// Defines the transaction type to invoke
 	Type string `json:"type,omitempty"`
 
-	SenderAddress      Hash   `json:"sender_address"`
+	SenderAddress      Felt   `json:"sender_address"`
 	EntryPointSelector string `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function

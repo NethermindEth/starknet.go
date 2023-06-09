@@ -55,7 +55,7 @@ func main() {
 
 	// call StarkNet contract
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(tx.Transaction.ContractAddress),
+		ContractAddress:    types.StrToFelt(tx.Transaction.ContractAddress),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {

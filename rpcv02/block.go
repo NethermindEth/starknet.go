@@ -33,9 +33,9 @@ func WithBlockNumber(n uint64) BlockID {
 	}
 }
 
-func WithBlockHash(h ctypes.Hash) BlockID {
+func WithBlockHash(h ctypes.Felt) BlockID {
 	return BlockID{
-		Hash: &h,
+		Hash: h,
 	}
 }
 

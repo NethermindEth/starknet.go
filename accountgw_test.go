@@ -27,21 +27,21 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		"devnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 	}[testEnv]
