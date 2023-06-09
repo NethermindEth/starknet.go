@@ -66,7 +66,7 @@ func BytesToBig(bytes []byte) *big.Int {
 
 // convert big int to hexidecimal string
 func BigToHex(in *big.Int) string {
-	return fmt.Sprintf("0x0%x", in)
+	return fmt.Sprintf("0x%x", in)
 }
 
 func GetSelectorFromName(funcName string) *big.Int {
