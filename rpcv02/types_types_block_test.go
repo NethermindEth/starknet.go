@@ -42,7 +42,7 @@ func TestBlockID_Marshal(t *testing.T) {
 				Hash: h,
 			}
 		}(),
-		want: `{"block_hash":"0x000000000000000000000000000000000000000000000000000000000000dead"}`,
+		want: `{"block_hash":"0xdead"}`,
 	}} {
 		b, err := tc.id.MarshalJSON()
 		if err != nil && tc.wantErr == nil {

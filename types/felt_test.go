@@ -79,9 +79,7 @@ func TestJSONMarshal(t *testing.T) {
 	json.Unmarshal(raw, &newTest)
 
 	for i, nb := range newBigs {
-		var nbBytes [32]byte
-		nb.FillBytes(nbBytes[:])
-		if fmt.Sprintf("0x%x", nbBytes) != newTest.Felts[i].Expected.String() {
+		if fmt.Sprintf("0x%x", nb) != newTest.Felts[i].Expected.String() {
 			t.Errorf("Incorrect marshal entries: %s %s\n", nb.String(), newTest.Felts[i].Expected.String())
 		}
 	}
