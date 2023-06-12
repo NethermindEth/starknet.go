@@ -14,7 +14,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedI
 	// TODO: EntryPointSelector now part of calldata
 	// tx, ok := broadcastedInvoke.(BroadcastedInvokeV0Transaction)
 	// if ok {
-	// 	tx.EntryPointSelector = fmt.Sprintf("0x0%s", types.GetSelectorFromName(tx.EntryPointSelector).Text(16))
+	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
 	// 	broadcastedInvoke = tx
 	// }
 	var output types.AddInvokeTransactionOutput

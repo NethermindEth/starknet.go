@@ -75,12 +75,12 @@ func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
-	privateKeyString := fmt.Sprintf("0x0%s", privateKey.Text(16))
+	privateKeyString := fmt.Sprintf("0x%x", privateKey)
 	publicKey, _, err := caigo.Curve.PrivateToPoint(privateKey)
 	if err != nil {
 		return nil, err
 	}
-	publicKeyString := fmt.Sprintf("0x0%s", publicKey.Text(16))
+	publicKeyString := fmt.Sprintf("0x%x", publicKey)
 	fmt.Println("z")
 	p, err := guessProviderType(provider)
 	if err != nil {

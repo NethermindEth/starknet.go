@@ -87,15 +87,15 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 	output["calldata"] = calldata
 	if f.Nonce != nil {
 		output["nonce"] = json.RawMessage(
-			strconv.Quote(fmt.Sprintf("0x0%s", f.Nonce.Text(16))),
+			strconv.Quote(fmt.Sprintf("0x%x", f.Nonce)),
 		)
 	}
 	if f.MaxFee != nil {
 		output["max_fee"] = json.RawMessage(
-			strconv.Quote(fmt.Sprintf("0x0%s", f.MaxFee.Text(16))),
+			strconv.Quote(fmt.Sprintf("0x%x", f.MaxFee)),
 		)
 	}
-	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x0%s", f.Version.Text(16))))
+	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%x", f.Version)))
 	output["type"] = "INVOKE_FUNCTION"
 	return json.Marshal(output)
 }

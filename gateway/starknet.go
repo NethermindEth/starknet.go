@@ -104,14 +104,14 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	tx := Transaction{
 		Type:          INVOKE,
 		SenderAddress: invoke.SenderAddress.String(),
-		Version:       fmt.Sprintf("0x0%d", invoke.Version),
-		MaxFee:        fmt.Sprintf("0x0%s", invoke.MaxFee.Text(16)),
+		Version:       fmt.Sprintf("0x%x", invoke.Version),
+		MaxFee:        fmt.Sprintf("0x%x", invoke.MaxFee),
 	}
 	if invoke.EntryPointSelector != "" {
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
 	}
 	if invoke.Nonce != nil {
-		tx.Nonce = fmt.Sprintf("0x0%s", invoke.Nonce.Text(16))
+		tx.Nonce = fmt.Sprintf("0x%x", invoke.Nonce)
 	}
 
 	calldata := []string{}
@@ -155,23 +155,23 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 		constructorCalldata = append(constructorCalldata, types.SNValToBN(value).Text(10))
 	}
 	output["constructor_calldata"] = constructorCalldata
-	output["max_fee"] = fmt.Sprintf("0x0%s", d.MaxFee.Text(16))
-	output["version"] = fmt.Sprintf("0x0%s", d.Version.Text(16))
+	output["max_fee"] = fmt.Sprintf("0x%x", d.MaxFee)
+	output["version"] = fmt.Sprintf("0x%x", d.Version)
 	signature := []string{}
 	for _, value := range d.Signature {
 		signature = append(signature, value.Text(10))
 	}
 	output["signature"] = signature
 	if d.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", d.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", d.Nonce)
 	}
 	output["type"] = "DEPLOY_ACCOUNT"
 	if d.ContractAddressSalt == "" {
 		d.ContractAddressSalt = "0x0"
 	}
-	contractAddressSalt := fmt.Sprintf("0x0%s", types.SNValToBN(d.ContractAddressSalt).Text(16))
+	contractAddressSalt := fmt.Sprintf("0x%x", types.SNValToBN(d.ContractAddressSalt))
 	output["contract_address_salt"] = contractAddressSalt
-	classHash := fmt.Sprintf("0x0%s", types.SNValToBN(d.ClassHash).Text(16))
+	classHash := fmt.Sprintf("0x%x", types.SNValToBN(d.ClassHash))
 	output["class_hash"] = classHash
 	return json.Marshal(output)
 }

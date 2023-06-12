@@ -10,7 +10,7 @@ import (
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, fmt.Sprintf("0x0%s", data.Text(16)))
+		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%x", data))
 	}
 	return calldataStrings
 }

@@ -41,7 +41,7 @@ func AccountV0Formater(accountHash, pluginHash, publicKey string) ([]string, err
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x0%s", types.GetSelectorFromName("initialize").Text(16))
+	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
 	calldata = append(calldata, initialize)
 	paramLen := "0x1"
 	if pluginHash != "" {
@@ -68,7 +68,8 @@ func AccountFormater(accountHash, pluginHash, publicKey string) ([]string, error
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x0%s", types.GetSelectorFromName("initialize").Text(16))
+	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
+
 	calldata = append(calldata, initialize)
 	calldata = append(calldata, "0x1")
 	calldata = append(calldata, publicKey)
@@ -82,7 +83,7 @@ func AccountPluginFormater(accountHash, pluginHash, publicKey string) ([]string,
 	calldata := []string{}
 	if accountHash != "" {
 		calldata = append(calldata, accountHash)
-		initialize := fmt.Sprintf("0x0%s", types.GetSelectorFromName("initialize").Text(16))
+		initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
 		calldata = append(calldata, initialize)
 		calldata = append(calldata, "0x4")
 	}

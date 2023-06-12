@@ -260,16 +260,16 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = b.Type
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
 	output["sender_address"] = b.SenderAddress
@@ -287,16 +287,16 @@ func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DECLARE"
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
 	output["sender_address"] = b.SenderAddress.String()
@@ -316,19 +316,19 @@ type BroadcastedDeployTransaction struct {
 func (b BroadcastedDeployTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DEPLOY"
-	output["version"] = fmt.Sprintf("0x0%s", b.Version.Text(16))
+	output["version"] = fmt.Sprintf("0x%x", b.Version)
 	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
 	if !ok {
 		return nil, errors.New("wrong salt")
 	}
-	output["contract_address_salt"] = fmt.Sprintf("0x0%s", contractAddressSalt.Text(16))
+	output["contract_address_salt"] = fmt.Sprintf("0x%x", contractAddressSalt)
 	constructorCalldata := []string{}
 	for _, v := range b.ConstructorCalldata {
 		constructorCall, ok := big.NewInt(0).SetString(v, 0)
 		if !ok {
 			return nil, errors.New("wrong constructor call data")
 		}
-		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x0%s", constructorCall.Text(16)))
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x%x", constructorCall))
 	}
 	output["constructor_calldata"] = constructorCalldata
 	output["contract_class"] = b.ContractClass
@@ -346,30 +346,30 @@ func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DEPLOY_ACCOUNT"
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
 	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
 	if !ok {
 		return nil, errors.New("wrong salt")
 	}
-	output["contract_address_salt"] = fmt.Sprintf("0x0%s", contractAddressSalt.Text(16))
+	output["contract_address_salt"] = fmt.Sprintf("0x%x", contractAddressSalt)
 	constructorCalldata := []string{}
 	for _, v := range b.ConstructorCalldata {
 		constructorCall, ok := big.NewInt(0).SetString(v, 0)
 		if !ok {
 			return nil, errors.New("wrong constructor call data")
 		}
-		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x0%s", constructorCall.Text(16)))
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x%x", constructorCall))
 	}
 	output["constructor_calldata"] = constructorCalldata
 	output["class_hash"] = b.ClassHash.String()
