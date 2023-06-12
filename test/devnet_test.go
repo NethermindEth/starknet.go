@@ -1,6 +1,7 @@
 package test
 
 import (
+	"math/big"
 	"strings"
 	"testing"
 
@@ -38,11 +39,12 @@ func TestDevnet_FeeToken(t *testing.T) {
 
 func TestDevnet_Mint(t *testing.T) {
 	d := NewDevNet()
-	resp, err := d.Mint(types.StrToFelt("0x1"), 1000000000000000000)
+	amount := big.NewInt(int64(1000000000000000000))
+	resp, err := d.Mint(types.StrToFelt("0x1"), amount)
 	if err != nil {
 		t.Fatalf("Minting ETH should succeed, instead: %v", err)
 	}
-	if resp.NewBalance < 1000000000000000000 {
+	if resp.NewBalance.Cmp(amount) < 0 {
 		t.Fatalf("ETH should be higher than the last mint, instead: %d", resp.NewBalance)
 	}
 }

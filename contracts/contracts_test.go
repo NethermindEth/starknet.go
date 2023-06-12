@@ -182,7 +182,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
-			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), 1000000000000000000)
+			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
@@ -254,7 +254,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("error deploying account", err)
 			}
 			fmt.Println("after")
-			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), 1000000000000000000)
+			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
