@@ -83,7 +83,7 @@ func (f Felt) ShortString() string {
 
 // String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
 func (f Felt) String() string {
-	return fmt.Sprintf("0x%x", f[:])
+	return fmt.Sprintf("0x%x", f.Big())
 }
 
 // MarshalJSON implements the json Marshaller interface for a Signature array to marshal types to []byte.

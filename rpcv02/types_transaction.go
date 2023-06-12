@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strconv"
 
 	types "github.com/dontpanicdao/caigo/types"
 )
@@ -14,26 +13,24 @@ type TransactionHash struct {
 	TransactionHash types.Felt `json:"transaction_hash"`
 }
 
-func (tx TransactionHash) Hash() types.Felt {
-	return tx.TransactionHash
+func (t TransactionHash) Hash() types.Felt {
+	return t.TransactionHash
 }
 
-func (tx *TransactionHash) UnmarshalJSON(input []byte) error {
-	unquoted, err := strconv.Unquote(string(input))
-	if err != nil {
-		return err
-	}
-	tx.TransactionHash = types.StrToFelt(unquoted)
-	return nil
+func (t *TransactionHash) UnmarshalJSON(input []byte) error {
+	return t.TransactionHash.UnmarshalJSON(input)
 }
 
-func (tx TransactionHash) MarshalJSON() ([]byte, error) {
-	b, err := tx.TransactionHash.MarshalText()
-	if err != nil {
-		return nil, err
-	}
+func (t TransactionHash) MarshalJSON() ([]byte, error) {
+	return t.TransactionHash.MarshalJSON()
+}
 
-	return []byte(strconv.Quote(string(b))), nil
+func (t TransactionHash) MarshalText() ([]byte, error) {
+	return t.TransactionHash.MarshalText()
+}
+
+func (t *TransactionHash) UnmarshalText(input []byte) error {
+	return t.TransactionHash.UnmarshalText(input)
 }
 
 type CommonTransaction struct {
