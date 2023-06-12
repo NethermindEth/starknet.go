@@ -5,39 +5,36 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strconv"
 
 	types "github.com/smartcontractkit/caigo/types"
 )
 
 type TransactionHash struct {
-	TransactionHash types.Hash `json:"transaction_hash"`
+	TransactionHash types.Felt `json:"transaction_hash"`
 }
 
-func (tx TransactionHash) Hash() types.Hash {
-	return tx.TransactionHash
+func (t TransactionHash) Hash() types.Felt {
+	return t.TransactionHash
 }
 
-func (tx *TransactionHash) UnmarshalJSON(input []byte) error {
-	unquoted, err := strconv.Unquote(string(input))
-	if err != nil {
-		return err
-	}
-	tx.TransactionHash = types.HexToHash(unquoted)
-	return nil
+func (t *TransactionHash) UnmarshalJSON(input []byte) error {
+	return t.TransactionHash.UnmarshalJSON(input)
 }
 
-func (tx TransactionHash) MarshalJSON() ([]byte, error) {
-	b, err := tx.TransactionHash.MarshalText()
-	if err != nil {
-		return nil, err
-	}
+func (t TransactionHash) MarshalJSON() ([]byte, error) {
+	return t.TransactionHash.MarshalJSON()
+}
 
-	return []byte(strconv.Quote(string(b))), nil
+func (t TransactionHash) MarshalText() ([]byte, error) {
+	return t.TransactionHash.MarshalText()
+}
+
+func (t *TransactionHash) UnmarshalText(input []byte) error {
+	return t.TransactionHash.UnmarshalText(input)
 }
 
 type CommonTransaction struct {
-	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
+	TransactionHash types.Felt      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee,omitempty"`
@@ -51,45 +48,45 @@ type CommonTransaction struct {
 
 type InvokeTxnV0 struct {
 	CommonTransaction
-	ContractAddress    types.Hash `json:"contract_address"`
+	ContractAddress    types.Felt `json:"contract_address"`
 	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx InvokeTxnV0) Hash() types.Hash {
+func (tx InvokeTxnV0) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
 type InvokeTxnV1 struct {
 	CommonTransaction
-	SenderAddress types.Hash `json:"sender_address"`
+	SenderAddress types.Felt `json:"sender_address"`
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx InvokeTxnV1) Hash() types.Hash {
+func (tx InvokeTxnV1) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
 type InvokeTxn interface{}
 
 type L1HandlerTxn struct {
-	TransactionHash types.Hash      `json:"transaction_hash,omitempty"`
+	TransactionHash types.Felt      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
 	Version types.NumAsHex `json:"version"`
 	// Nonce
 	Nonce              string     `json:"nonce,omitempty"`
-	ContractAddress    types.Hash `json:"contract_address"`
+	ContractAddress    types.Felt `json:"contract_address"`
 	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx L1HandlerTxn) Hash() types.Hash {
+func (tx L1HandlerTxn) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
@@ -103,13 +100,13 @@ type DeclareTxn struct {
 	SenderAddress string `json:"sender_address"`
 }
 
-func (tx DeclareTxn) Hash() types.Hash {
+func (tx DeclareTxn) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
-	TransactionHash types.Hash `json:"transaction_hash,omitempty"`
+	TransactionHash types.Felt `json:"transaction_hash,omitempty"`
 	// ClassHash The hash of the deployed contract's class
 	ClassHash string          `json:"class_hash"`
 	Type      TransactionType `json:"type,omitempty"`
@@ -121,12 +118,12 @@ type DeployTxn struct {
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-func (tx DeployTxn) Hash() types.Hash {
+func (tx DeployTxn) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
 type Transaction interface {
-	Hash() types.Hash
+	Hash() types.Felt
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
@@ -142,7 +139,7 @@ type DeployAccountTxn struct {
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-func (tx DeployAccountTxn) Hash() types.Hash {
+func (tx DeployAccountTxn) Hash() types.Felt {
 	return tx.TransactionHash
 }
 
@@ -187,7 +184,7 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{types.HexToHash(casted)}, nil
+		return TransactionHash{types.StrToFelt(casted)}, nil
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
@@ -255,7 +252,7 @@ type BroadcastedTxnCommonProperties struct {
 
 type BroadcastedInvokeV1Transaction struct {
 	BroadcastedTxnCommonProperties
-	SenderAddress types.Hash `json:"sender_address"`
+	SenderAddress types.Felt `json:"sender_address"`
 	Calldata      []string   `json:"calldata"`
 }
 
@@ -263,16 +260,16 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = b.Type
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
 	output["sender_address"] = b.SenderAddress
@@ -283,26 +280,26 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 type BroadcastedDeclareTransaction struct {
 	BroadcastedTxnCommonProperties
 	ContractClass types.ContractClass `json:"contract_class"`
-	SenderAddress types.Hash          `json:"sender_address"`
+	SenderAddress types.Felt          `json:"sender_address"`
 }
 
 func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DECLARE"
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
-	output["sender_address"] = b.SenderAddress.Hex()
+	output["sender_address"] = b.SenderAddress.String()
 	output["contract_class"] = b.ContractClass
 	return json.Marshal(output)
 }
@@ -319,19 +316,19 @@ type BroadcastedDeployTransaction struct {
 func (b BroadcastedDeployTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DEPLOY"
-	output["version"] = fmt.Sprintf("0x0%s", b.Version.Text(16))
+	output["version"] = fmt.Sprintf("0x%x", b.Version)
 	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
 	if !ok {
 		return nil, errors.New("wrong salt")
 	}
-	output["contract_address_salt"] = fmt.Sprintf("0x0%s", contractAddressSalt.Text(16))
+	output["contract_address_salt"] = fmt.Sprintf("0x%x", contractAddressSalt)
 	constructorCalldata := []string{}
 	for _, v := range b.ConstructorCalldata {
 		constructorCall, ok := big.NewInt(0).SetString(v, 0)
 		if !ok {
 			return nil, errors.New("wrong constructor call data")
 		}
-		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x0%s", constructorCall.Text(16)))
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x%x", constructorCall))
 	}
 	output["constructor_calldata"] = constructorCalldata
 	output["contract_class"] = b.ContractClass
@@ -342,39 +339,39 @@ type BroadcastedDeployAccountTransaction struct {
 	BroadcastedTxnCommonProperties
 	ContractAddressSalt string     `json:"contract_address_salt"`
 	ConstructorCalldata []string   `json:"constructor_calldata"`
-	ClassHash           types.Hash `json:"class_hash"`
+	ClassHash           types.Felt `json:"class_hash"`
 }
 
 func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DEPLOY_ACCOUNT"
 	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x0%s", b.MaxFee.Text(16))
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
 	}
 	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", b.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
 	}
 	output["version"] = b.Version
 	signature := []string{}
 	for _, v := range b.Signature {
 		s, _ := big.NewInt(0).SetString(v, 0)
-		signature = append(signature, fmt.Sprintf("0x0%s", s.Text(16)))
+		signature = append(signature, fmt.Sprintf("0x%x", s))
 	}
 	output["signature"] = signature
 	contractAddressSalt, ok := big.NewInt(0).SetString(b.ContractAddressSalt, 0)
 	if !ok {
 		return nil, errors.New("wrong salt")
 	}
-	output["contract_address_salt"] = fmt.Sprintf("0x0%s", contractAddressSalt.Text(16))
+	output["contract_address_salt"] = fmt.Sprintf("0x%x", contractAddressSalt)
 	constructorCalldata := []string{}
 	for _, v := range b.ConstructorCalldata {
 		constructorCall, ok := big.NewInt(0).SetString(v, 0)
 		if !ok {
 			return nil, errors.New("wrong constructor call data")
 		}
-		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x0%s", constructorCall.Text(16)))
+		constructorCalldata = append(constructorCalldata, fmt.Sprintf("0x%x", constructorCall))
 	}
 	output["constructor_calldata"] = constructorCalldata
-	output["class_hash"] = b.ClassHash.Hex()
+	output["class_hash"] = b.ClassHash.String()
 	return json.Marshal(output)
 }

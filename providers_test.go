@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
+	"github.com/joho/godotenv"
 	"github.com/smartcontractkit/caigo/artifacts"
 	"github.com/smartcontractkit/caigo/gateway"
 	"github.com/smartcontractkit/caigo/rpcv02"
 	devtest "github.com/smartcontractkit/caigo/test"
 	"github.com/smartcontractkit/caigo/types"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
-	"github.com/joho/godotenv"
 )
 
 const (

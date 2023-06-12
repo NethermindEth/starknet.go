@@ -26,7 +26,7 @@ func main() {
 
 	// get count before tx
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(counterContract),
+		ContractAddress:    types.StrToFelt(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {
@@ -45,7 +45,7 @@ func main() {
 
 	increment := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterContract),
+			ContractAddress:    types.StrToFelt(counterContract),
 			EntryPointSelector: "increment",
 		},
 	}
@@ -74,7 +74,7 @@ func main() {
 
 	// get count after tx
 	callResp, err = gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(counterContract),
+		ContractAddress:    types.StrToFelt(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {

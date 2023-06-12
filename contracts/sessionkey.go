@@ -56,7 +56,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 	}
 // 	calls := []types.FunctionCall{
 // 		{
-// 			ContractAddress:    types.HexToHash(counterAddress),
+// 			ContractAddress:    types.StrToFelt(counterAddress),
 // 			EntryPointSelector: "increment",
 // 			Calldata:           []string{},
 // 		},
@@ -68,7 +68,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 		return "", err
 // 	}
 // 	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-// 	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+// 	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 // 	if err != nil {
 // 		log.Printf("could not execute transaction %v\n", err)
 // 		return tx.TransactionHash, err
@@ -80,7 +80,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 	return tx.TransactionHash, nil
 // }
 
-func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, provider *gateway.GatewayProvider) (string, error) {
+func (ap *AccountManager) ExecuteWithGateway(counterAddress types.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -93,8 +93,8 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		fakeSenderAddress,
-		ap.AccountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(ap.AccountAddress),
 		ks,
 		provider,
 		v,
@@ -104,7 +104,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterAddress),
+			ContractAddress:    counterAddress,
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},
@@ -137,8 +137,8 @@ func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gat
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		fakeSenderAddress,
-		ap.AccountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(ap.AccountAddress),
 		ks,
 		provider,
 	)

@@ -50,7 +50,7 @@ func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiled
 }
 
 // TODO: remove compiledClass from the interface
-func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Hash, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := gateway.GatewayProvider(*p)
 	class := types.ContractClass{}
 

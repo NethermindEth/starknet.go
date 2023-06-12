@@ -27,21 +27,21 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		"devnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 	}[testEnv]
@@ -53,8 +53,8 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		k := types.SNValToBN(testConfig.AccountPrivateKey)
 		ks.Put(fakeSenderAddress, k)
 		account, err := NewGatewayAccount(
-			fakeSenderAddress,
-			testConfig.AccountAddress,
+			types.StrToFelt(fakeSenderAddress),
+			types.StrToFelt(testConfig.AccountAddress),
 			ks,
 			testConfig.client,
 			AccountVersion1)

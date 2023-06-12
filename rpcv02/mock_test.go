@@ -156,7 +156,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	_, ok = args[0].(types.Hash)
+	_, ok = args[0].(types.Felt)
 	if !ok {
 		return errWrongArgs
 	}
@@ -176,10 +176,10 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 
 	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
-		TransactionHash: types.HexToHash(args[0].(string)),
+		TransactionHash: types.StrToFelt(args[0].(string)),
 		Status:          types.TransactionState("ACCEPTED_ON_L1"),
 		Events: []Event{{
-			FromAddress: types.HexToHash("0xdeadbeef"),
+			FromAddress: types.StrToFelt("0xdeadbeef"),
 		}},
 	})
 	outputContent, _ := json.Marshal(transaction)
@@ -260,12 +260,12 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	}
 	events := &EventsOutput{
 		Events: []EmittedEvent{
-			{BlockHash: types.HexToHash("0xdeadbeef"),
+			{BlockHash: types.StrToFelt("0xdeadbeef"),
 				Event: Event{
 					FromAddress: query.Address,
 				},
 				BlockNumber:     1,
-				TransactionHash: types.HexToHash("0xdeadbeef"),
+				TransactionHash: types.StrToFelt("0xdeadbeef"),
 			},
 		},
 	}
@@ -395,7 +395,7 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 		return errWrongArgs
 	}
 
-	if _, ok := args[0].(types.Hash); !ok {
+	if _, ok := args[0].(types.Felt); !ok {
 		return errWrongArgs
 	}
 
@@ -430,7 +430,7 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 	}
 
 	output := StateUpdateOutput{
-		BlockHash: types.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
+		BlockHash: types.StrToFelt("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 		NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 		OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 		StateDiff: StateDiff{
@@ -459,8 +459,8 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
-	if _, ok := args[1].(types.Hash); !ok {
-		fmt.Printf("args[0] should be types.Hash, got %T\n", args[1])
+	if _, ok := args[1].(types.Felt); !ok {
+		fmt.Printf("args[0] should be types.Felt, got %T\n", args[1])
 		return errWrongArgs
 	}
 	output := "0x0"

@@ -30,12 +30,12 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 			Nonce:   big.NewInt(1), // TODO: nonce handling
 		},
 		ContractClass: class,
-		SenderAddress: types.HexToHash("0x01"), // TODO: contant devnet address
+		SenderAddress: types.StrToFelt("0x01"), // TODO: contant devnet address
 	})
 	if err != nil {
 		return nil, err
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		log.Printf("class Hash: %s\n", tx.ClassHash)
 		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
@@ -52,7 +52,7 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 	}, nil
 }
 
-func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Hash, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpcv02.Provider(*p)
 	class := types.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
@@ -72,7 +72,7 @@ func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, class
 	if err != nil {
 		return nil, err
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		log.Printf("contract Address: %s\n", tx.ContractAddress)
 		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
@@ -107,7 +107,7 @@ func (p *RPCv02Provider) deployAndWaitWithWallet(ctx context.Context, compiledCl
 	if err != nil {
 		return nil, err
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	fmt.Println("c")
 	if err != nil {
 		log.Printf("contract Address: %s\n", tx.ContractAddress)

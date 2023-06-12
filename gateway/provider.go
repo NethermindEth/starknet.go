@@ -49,7 +49,7 @@ func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*types.C
 	panic("not implemented")
 }
 
-func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress string) (*types.Felt, error) {
+func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress string) (types.Felt, error) {
 	panic("not implemented")
 }
 

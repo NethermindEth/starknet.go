@@ -100,8 +100,8 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	k := types.SNValToBN(sessionPrivateKey)
 	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewRPCAccount(
-		fakeSenderAddress,
-		accountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(accountAddress),
 		ks,
 		provider,
 		WithSessionKeyPlugin(
@@ -113,7 +113,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterAddress),
+			ContractAddress:    types.StrToFelt(counterAddress),
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},
@@ -126,7 +126,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if !strings.HasPrefix(tx.TransactionHash, "0x") {
 		t.Fatal("execute should return transaction hash, instead:", tx.TransactionHash)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

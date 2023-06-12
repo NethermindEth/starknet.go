@@ -22,34 +22,27 @@ var (
 	asciiRegexp = regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 )
 
+const FeltLength = 32
+
 // Felt represents Field Element or Felt from cairo.
-type Felt struct {
-	*big.Int
-}
+type Felt [FeltLength]byte
 
 // Big converts a Felt to its big.Int representation.
-func (f *Felt) Big() *big.Int {
-	return new(big.Int).SetBytes(f.Int.Bytes())
-}
+func (f Felt) Big() *big.Int { return new(big.Int).SetBytes(f[:]) }
 
-func (f *Felt) Bytes() []byte {
-	ret := [32]byte{}
-	f.Int.FillBytes(ret[:])
-	return ret[:]
-}
+// Bytes gets the byte representation of the Felt.
+func (f Felt) Bytes() []byte { return f[:] }
 
 // StrToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
-func StrToFelt(str string) *Felt {
-	f := new(Felt)
-	if ok := f.strToFelt(str); ok {
-		return f
-	}
-	return nil
+func StrToFelt(str string) Felt {
+	var f Felt
+	f.strToFelt(str)
+	return f
 }
 
 func (f *Felt) strToFelt(str string) bool {
 	if b, ok := new(big.Int).SetString(str, 0); ok {
-		f.Int = b
+		b.FillBytes(f[:])
 		return ok
 	}
 
@@ -57,26 +50,31 @@ func (f *Felt) strToFelt(str string) bool {
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
-			f.Int = b
+			b.FillBytes(f[:])
 			return ok
 		}
 	}
+
 	return false
 }
 
 // BigToFelt converts a big.Int to its Felt representation.
-func BigToFelt(b *big.Int) *Felt {
-	return &Felt{Int: b}
+func BigToFelt(b *big.Int) Felt {
+	var f Felt
+	b.FillBytes(f[:])
+	return f
 }
 
 // BytesToFelt converts a []byte to its Felt representation.
-func BytesToFelt(b []byte) *Felt {
-	return &Felt{Int: new(big.Int).SetBytes(b)}
+func BytesToFelt(b []byte) Felt {
+	var f Felt
+	copy(f[:], b)
+	return f
 }
 
 // String converts a Felt into its 'short string' representation.
-func (f *Felt) ShortString() string {
-	str := string(f.Int.Bytes())
+func (f Felt) ShortString() string {
+	str := string(f.Big().Bytes())
 	if asciiRegexp.MatchString(str) {
 		return str
 	}
@@ -84,8 +82,8 @@ func (f *Felt) ShortString() string {
 }
 
 // String converts a Felt into its hexadecimal string representation and implement fmt.Stringer.
-func (f *Felt) String() string {
-	return fmt.Sprintf("0x%x", f)
+func (f Felt) String() string {
+	return fmt.Sprintf("0x%x", f.Big())
 }
 
 // MarshalJSON implements the json Marshaller interface for a Signature array to marshal types to []byte.
@@ -96,6 +94,20 @@ func (s Signature) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements the json Marshaller interface for Felt to marshal types to []byte.
 func (f Felt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, f.String())), nil
+}
+
+// MarshalText implements encoding.TextMarshaler
+func (f Felt) MarshalText() ([]byte, error) {
+	return []byte(f.String()), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler.
+func (f *Felt) UnmarshalText(input []byte) error {
+	if f.strToFelt(string(input)) {
+		return nil
+	} else {
+		return fmt.Errorf("Could not unmarshal to felt")
+	}
 }
 
 // UnmarshalJSON implements the json Unmarshaller interface to unmarshal []byte into types.
@@ -125,17 +137,16 @@ func (f Felt) MarshalGQL(w io.Writer) {
 }
 
 // UnmarshalGQL implements the gqlgen Unmarshaller interface to unmarshal an interface into a Felt.
-func (b *Felt) UnmarshalGQL(v interface{}) error {
+func (f *Felt) UnmarshalGQL(v interface{}) error {
 	switch bi := v.(type) {
 	case string:
-		if ok := b.strToFelt(bi); ok {
+		if ok := f.strToFelt(bi); ok {
 			return nil
 		}
 	case int:
-		b.Int = big.NewInt(int64(bi))
-		if b.Int != nil {
-			return nil
-		}
+		b := big.NewInt(int64(bi))
+		b.FillBytes(f[:])
+		return nil
 	}
 
 	return fmt.Errorf("invalid big number")
@@ -143,14 +154,11 @@ func (b *Felt) UnmarshalGQL(v interface{}) error {
 
 // Value is used by database/sql drivers to store data in databases
 func (f Felt) Value() (driver.Value, error) {
-	if f.Int == nil {
-		return "", nil
-	}
 	return f.String(), nil
 }
 
 // Scan implements the database/sql Scanner interface to read Felt from a databases.
-func (f *Felt) Scan(src interface{}) error {
+func (f Felt) Scan(src interface{}) error {
 	var i sql.NullString
 	if err := i.Scan(src); err != nil {
 		return err
@@ -158,18 +166,20 @@ func (f *Felt) Scan(src interface{}) error {
 	if !i.Valid {
 		return nil
 	}
-	if f.Int == nil {
-		f.Int = big.NewInt(0)
-	}
 	// Value came in a floating point format.
 	if strings.ContainsAny(i.String, ".+e") {
 		flt := big.NewFloat(0)
-		if _, err := fmt.Sscan(i.String, f); err != nil {
+		if _, err := fmt.Sscan(i.String, flt); err != nil {
 			return err
 		}
-		f.Int, _ = flt.Int(f.Int)
-	} else if _, err := fmt.Sscan(i.String, f.Int); err != nil {
-		return err
+		i, _ := flt.Int(nil)
+		i.FillBytes(f[:])
+	} else {
+		intValue := big.NewInt(0)
+		if _, err := fmt.Sscan(i.String, intValue); err != nil {
+			return err
+		}
+		intValue.FillBytes(f[:])
 	}
 	return nil
 }

@@ -141,7 +141,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
-			mint, err := devtest.NewDevNet().Mint(types.HexToHash(accountManager.AccountAddress), 1000000000000000000)
+			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
@@ -152,14 +152,14 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewGatewayAccount(fakeSenderAddress, accountManager.AccountAddress, ks, testConfiguration.gateway, caigo.AccountVersion1)
+			account, err = caigo.NewGatewayAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.gateway, caigo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
 		default:
 			t.Fatal("unsupported client type", test.providerType)
 		}
-		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.HexToHash(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
+		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.StrToFelt(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
@@ -213,7 +213,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("error deploying account", err)
 			}
 			fmt.Println("after")
-			mint, err := devtest.NewDevNet().Mint(types.HexToHash(accountManager.AccountAddress), 1000000000000000000)
+			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
@@ -224,14 +224,14 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewRPCAccount(fakeSenderAddress, accountManager.AccountAddress, ks, testConfiguration.rpcv02, caigo.AccountVersion1)
+			account, err = caigo.NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.rpcv02, caigo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
 		default:
 			t.Fatal("unsupported client type", test.providerType)
 		}
-		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.HexToHash(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
+		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.StrToFelt(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}

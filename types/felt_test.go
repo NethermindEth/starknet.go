@@ -12,7 +12,6 @@ import (
 var (
 	rawTest string = `{
 		"max_felt": 3618502788666131213697322783095070105623107215331596699973092056135872020481,
-		"long_string": "STRINGTHATISLONGERTHANTHIRTYONECHARACTERS",
 		"felts": [
 			{"value": "0x0", "expected": 0},
 			{"value": "0x1277312773", "expected": 79309121395},
@@ -26,20 +25,19 @@ var (
 var feltTest FeltTest
 
 type FeltTest struct {
-	MaxFelt    *big.Int    `json:"max_felt"`
-	LongString string      `json:"long_string"`
-	Felts      []FeltValue `json:"felts"`
+	MaxFelt *big.Int    `json:"max_felt"`
+	Felts   []FeltValue `json:"felts"`
 }
 
 type FeltValue struct {
 	Value    string `json:"value"`
-	Expected *Felt  `json:"expected"`
+	Expected Felt   `json:"expected"`
 }
 
 func TestJSONUnmarshal(t *testing.T) {
 	json.Unmarshal([]byte(rawTest), &feltTest)
 
-	fetchedMax := &Felt{feltTest.MaxFelt}
+	fetchedMax := BigToFelt(feltTest.MaxFelt)
 	if fetchedMax.String() != MaxFelt.String() {
 		t.Errorf("Incorrect unmarshal and for max felt: %v %v\n", MaxFelt, feltTest.MaxFelt)
 	}
@@ -51,21 +49,13 @@ func TestJSONUnmarshal(t *testing.T) {
 	for _, felt := range feltTest.Felts {
 		f := StrToFelt(felt.Value)
 
-		if f.Int.Cmp(felt.Expected.Big()) != 0 {
+		if f.Big().Cmp(felt.Expected.Big()) != 0 {
 			t.Errorf("Incorrect unmarshal and felt comparison: %v %v\n", f.Big(), felt.Expected.Big())
 		}
 
 		if f.String() != felt.Expected.String() {
 			t.Errorf("Incorrect unmarshal and hex comparison: %v %v\n", f.Big(), felt.Expected.Big())
 		}
-	}
-
-	if StrToFelt(feltTest.LongString) != nil {
-		t.Errorf("Should not convert string longer than 31 characters\n")
-	}
-
-	if StrToFelt(feltTest.LongString[:31]).ShortString() != "STRINGTHATISLONGERTHANTHIRTYONE" {
-		t.Errorf("Could not convert to short string\n")
 	}
 }
 
@@ -76,7 +66,7 @@ func TestJSONMarshal(t *testing.T) {
 		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Big())
 		newBigs = append(newBigs, nb)
 
-		felt.Expected.Int = nb
+		felt.Expected = BigToFelt(nb)
 		newFelts.Felts = append(newFelts.Felts, felt)
 	}
 
@@ -108,6 +98,9 @@ func TestGQLUnmarshal(t *testing.T) {
 
 func TestGQLMarshal(t *testing.T) {
 	for i, felt := range feltTest.Felts {
+		nb := new(big.Int).Add(big.NewInt(int64(i)+7), felt.Expected.Big())
+		felt.Expected = BigToFelt(nb)
+
 		buf := bytes.NewBuffer(nil)
 		felt.Expected.MarshalGQL(buf)
 

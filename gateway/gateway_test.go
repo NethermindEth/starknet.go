@@ -59,8 +59,8 @@ func setupDevnet(ctx context.Context) error {
 	}
 	ks := caigo.NewMemKeystore()
 	account, err := caigo.NewGatewayAccount(
-		v[0].PrivateKey,
-		v[0].Address,
+		types.StrToFelt(v[0].PrivateKey),
+		types.StrToFelt(v[0].Address),
 		ks,
 		provider,
 		caigo.AccountVersion1,
