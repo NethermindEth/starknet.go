@@ -64,7 +64,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (provider *Provider) EstimateFee(ctx context.Context, request BroadcastedTransaction, blockID BlockID) (*types.FeeEstimate, error) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error) {
 	// tx, ok := request.(*BroadcastedInvokeV1Transaction)
 	// TODO:
 	// NOTE: EntryPointSelector is now just part of Calldata
@@ -72,11 +72,11 @@ func (provider *Provider) EstimateFee(ctx context.Context, request BroadcastedTr
 	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
 	// 	request = tx
 	// }
-	var raw types.FeeEstimate
-	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, request, blockID); err != nil {
+	var raw []types.FeeEstimate
+	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
 		// TODO: Bind Pathfinder/Devnet errors to
 		// CONTRACT_NOT_FOUND, INVALID_MESSAGE_SELECTOR, INVALID_CALL_DATA, CONTRACT_ERROR and BLOCK_NOT_FOUND
 		return nil, err
 	}
-	return &raw, nil
+	return raw, nil
 }

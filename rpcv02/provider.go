@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/smartcontractkit/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
@@ -34,7 +34,7 @@ type api interface {
 	Class(ctx context.Context, blockID BlockID, classHash string) (*types.ContractClass, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*types.ContractClass, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
-	EstimateFee(ctx context.Context, request BroadcastedTransaction, blockID BlockID) (*types.FeeEstimate, error)
+	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)

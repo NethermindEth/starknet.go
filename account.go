@@ -337,7 +337,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		}
 		switch account.version {
 		case 1:
-			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV1Transaction{
+			estimates, err := account.rpcv02.EstimateFee(ctx, []rpcv02.BroadcastedTransaction{rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
 					Version:   rpcv02.TransactionV1,
@@ -347,7 +347,11 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 				},
 				Calldata:      call.Calldata,
 				SenderAddress: account.AccountAddress,
-			}, rpcv02.WithBlockTag("latest"))
+			}}, rpcv02.WithBlockTag("latest"))
+			if err != nil {
+				return nil, err
+			}
+			return &estimates[0], nil
 		}
 	case ProviderGateway:
 		return account.sequencer.EstimateFee(ctx, *call, "latest")
