@@ -114,15 +114,24 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 =======
 		Type:          INVOKE,
 		SenderAddress: invoke.SenderAddress.String(),
+<<<<<<< HEAD
 		Version:       fmt.Sprintf("0x0%d", invoke.Version),
 		MaxFee:        fmt.Sprintf("0x0%s", invoke.MaxFee.Text(16)),
 >>>>>>> 6c99bdb... replace types.Hash and types.Felt with byte-array backed Felt implementation
+=======
+		Version:       fmt.Sprintf("0x%x", invoke.Version),
+		MaxFee:        fmt.Sprintf("0x%x", invoke.MaxFee),
+>>>>>>> 3834bc4... dont prepend zero to hex values
 	}
 	if invoke.EntryPointSelector != "" {
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
 	}
 	if invoke.Nonce != nil {
+<<<<<<< HEAD
 		tx.Nonce = fmt.Sprintf("0x%s", invoke.Nonce.Text(16))
+=======
+		tx.Nonce = fmt.Sprintf("0x%x", invoke.Nonce)
+>>>>>>> 3834bc4... dont prepend zero to hex values
 	}
 
 	calldata := []string{}
@@ -166,23 +175,34 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 		constructorCalldata = append(constructorCalldata, types.SNValToBN(value).Text(10))
 	}
 	output["constructor_calldata"] = constructorCalldata
+<<<<<<< HEAD
 	output["max_fee"] = fmt.Sprintf("0x%s", d.MaxFee.Text(16))
 	output["version"] = fmt.Sprintf("0x%s", d.Version.Text(16))
+=======
+	output["max_fee"] = fmt.Sprintf("0x%x", d.MaxFee)
+	output["version"] = fmt.Sprintf("0x%x", d.Version)
+>>>>>>> 3834bc4... dont prepend zero to hex values
 	signature := []string{}
 	for _, value := range d.Signature {
 		signature = append(signature, value.Text(10))
 	}
 	output["signature"] = signature
 	if d.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x0%s", d.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", d.Nonce)
 	}
 	output["type"] = "DEPLOY_ACCOUNT"
 	if d.ContractAddressSalt == "" {
 		d.ContractAddressSalt = "0x0"
 	}
+<<<<<<< HEAD
 	contractAddressSalt := fmt.Sprintf("0x%s", types.SNValToBN(d.ContractAddressSalt).Text(16))
 	output["contract_address_salt"] = contractAddressSalt
 	classHash := fmt.Sprintf("0x%s", types.SNValToBN(d.ClassHash).Text(16))
+=======
+	contractAddressSalt := fmt.Sprintf("0x%x", types.SNValToBN(d.ContractAddressSalt))
+	output["contract_address_salt"] = contractAddressSalt
+	classHash := fmt.Sprintf("0x%x", types.SNValToBN(d.ClassHash))
+>>>>>>> 3834bc4... dont prepend zero to hex values
 	output["class_hash"] = classHash
 	return json.Marshal(output)
 }

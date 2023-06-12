@@ -365,7 +365,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 	case ProviderRPCv02:
 		signature := []string{}
 		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
+			signature = append(signature, fmt.Sprintf("0x%x", v))
 		}
 		switch account.version {
 		case 1:
@@ -423,7 +423,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	case ProviderRPCv02:
 		signature := []string{}
 		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x0%s", v.Text(16)))
+			signature = append(signature, fmt.Sprintf("0x%x", v))
 		}
 		switch account.version {
 		case 1:
@@ -506,9 +506,9 @@ func (account *Account) Declare(ctx context.Context, classHash string, contract 
 
 		request := gateway.DeclareRequest{
 			SenderAddress: account.AccountAddress,
-			Version:       fmt.Sprintf("0x0%d", version),
-			MaxFee:        fmt.Sprintf("0x0%s", maxFee.Text(16)),
-			Nonce:         fmt.Sprintf("0x0%s", nonce.Text(16)),
+			Version:       fmt.Sprintf("0x%x", version),
+			MaxFee:        fmt.Sprintf("0x%x", maxFee),
+			Nonce:         fmt.Sprintf("0x%x", nonce),
 			Signature:     signature,
 			ContractClass: contract,
 			Type:          "DECLARE",
@@ -542,9 +542,9 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 			EntryPointSelector: "deployContract",
 			Calldata: append([]string{
 				classHash,
-				fmt.Sprintf("0x0%s", salt.Text(16)),
-				fmt.Sprintf("0x0%s", uniqueInt.Text(16)), // unique
-				fmt.Sprintf("0x0%x", len(calldata)),
+				fmt.Sprintf("0x%x", salt),
+				fmt.Sprintf("0x%x", uniqueInt), // unique
+				fmt.Sprintf("0x%x", len(calldata)),
 			}, calldata...),
 		},
 	}, details)
@@ -587,6 +587,6 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 
 	return &types.AddDeployResponse{
 		TransactionHash: tx.TransactionHash,
-		ContractAddress: fmt.Sprintf("0x0%s", contractAddress.Text(16)),
+		ContractAddress: fmt.Sprintf("0x%x", contractAddress),
 	}, nil
 }
