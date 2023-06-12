@@ -164,7 +164,7 @@ func TestDeployAccountContract(t *testing.T) {
 			t.Fatalf("unexpected class hash: %s, instead %s\n", test.ExpectedClassHash, tx.ClassHash)
 		}
 		// Step 4: send some eth
-		mint, err := devtest.NewDevNet().Mint(types.StrToFelt(test.ExpectedContractAddress), 1000000000000000000)
+		mint, err := devtest.NewDevNet().Mint(types.StrToFelt(test.ExpectedContractAddress), big.NewInt(int64(1000000000000000000)))
 		if err != nil {
 			t.Fatalf("could not declare contract: %v\n", err)
 		}
