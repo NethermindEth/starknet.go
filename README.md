@@ -1,23 +1,48 @@
-<h1 align="center">Golang Library for StarkNet</h1>
+<div align="center">
+  <img src="docs/images/caigo-no-bg.png" height="256">
+</div>
 
 <p align="center">
     <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
         <img src="https://pkg.go.dev/badge/github.com/dontpanicdao/caigo.svg" alt="Go Reference">
     </a>
-    <a href="https://github.com/dontpanicdao/caigo/blob/main/LICENSE">
+    <a href="https://github.com/nethermindeth/caigo/blob/main/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-black">
     </a>
-    <a href="https://starkware.co/">
-        <img src="https://img.shields.io/badge/powered_by-StarkWare-navy">
+    <a href="https://github.com/nethermindeth/caigo/actions/workflows/test.yml">
+        <img src="https://github.com/nethermindeth/caigo/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
     </a>
-    <a href="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml">
-        <img src="https://github.com/dontpanicdao/caigo/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
+    <a href="https://twitter.com/NethermindStark">
+      <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
+    </a>
+    <a href="https://github.com/nethermindeth/caigo">
+      <img src="https://img.shields.io/github/stars/nethermindeth/caigo?style=social"/>
     </a>
 </p>
 
-Caigo is an MIT-licensed Go library for interacting with [StarkNet](https://docs.starknet.io/docs/intro).
+<h1 align="center">Get the gopher high on StarkNet</h1>
 
-### Getting Started
+<a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
+<img src="https://img.shields.io/badge/Documentation-Website-yellow"
+ height="50" />
+</a>
+
+#### :warning: `cai.go` is currently under active development and is experiencing a rearchitecture. It will undergo breaking changes.
+
+`cai.go` will get your golang backends and WASM frontends to Starknet easily.
+With simple abstractions for the Starknet RPC, account management and common
+operations on the wallets. The package has excellent documentation for a smooth
+0 to 1 experience.
+
+# 🌟 Features
+
+- Seamless interaction with the Starknet RPC
+- Tight integration with Juno (uses the RPC types, resulting in updates and
+  breaking changes landing quickly)
+- Account management: Deploy accounts easily
+- Good concurrency support
+
+# Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
@@ -52,7 +77,7 @@ go run main.go
 
 ### RPC
 
-Caigo RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
+`cai.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
 | Method                                         | Implemented (*)    |
 | ---------------------------------------------- | ------------------ |
@@ -105,15 +130,59 @@ go test -bench=.
 
 ### Compatibility and stability
 
-Caigo is currently under active development and will under go breaking changes until the initial stable(v1.0.0) release. The example directories and *_test.go files should always be applicable for the latest commitment on the main branch.
-*NOTE: examples and tests may be out of sync with tagged versions and pkg.go.dev documentation*
 
-## Issues
+## 🤝 Contribute
 
-If you find an issue/bug or have a feature request please submit an issue here
-[Issues](https://github.com/dontpanicdao/caigo/issues)
+We're always looking for passionate developers to join our community and
+contribute to `cai.go`. Check out our [contributing guide](./docs/CONTRIBUTING.md)
+for more information on how to get started.
 
-## Contributing
+## 📖 License
 
-If you are looking to contribute, please head to the
-[Contributing](https://github.com/dontpanicdao/caigo/blob/main/CONTRIBUTING.md) section.
+This project is licensed under the **MIT license**.
+
+See [LICENSE](LICENSE) for more information.
+
+Happy coding! 🎉
+## Contributors ✨
+
+Thanks goes to these wonderful people
+([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/drspacemn"><img src="https://avatars.githubusercontent.com/u/16685321?v=4?s=100" width="100px;" alt="drspacemn"/><br /><sub><b>drspacemn</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=drspacemn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/gregoryguillou"><img src="https://avatars.githubusercontent.com/u/10611760?v=4?s=100" width="100px;" alt="Gregory Guillou"/><br /><sub><b>Gregory Guillou</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=gregoryguillou" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tarrencev"><img src="https://avatars.githubusercontent.com/u/4740651?v=4?s=100" width="100px;" alt="Tarrence van As"/><br /><sub><b>Tarrence van As</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=tarrencev" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alex-sumner"><img src="https://avatars.githubusercontent.com/u/46249612?v=4?s=100" width="100px;" alt="Alex Sumner"/><br /><sub><b>Alex Sumner</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=alex-sumner" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/broody"><img src="https://avatars.githubusercontent.com/u/610224?v=4?s=100" width="100px;" alt="Yun"/><br /><sub><b>Yun</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=broody" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rzmahmood"><img src="https://avatars.githubusercontent.com/u/35128199?v=4?s=100" width="100px;" alt="Zoraiz Mahmood"/><br /><sub><b>Zoraiz Mahmood</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=rzmahmood" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/LucasLvy"><img src="https://avatars.githubusercontent.com/u/70894690?v=4?s=100" width="100px;" alt="Lucas @ StarkWare"/><br /><sub><b>Lucas @ StarkWare</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=LucasLvy" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/coburn24"><img src="https://avatars.githubusercontent.com/u/29192260?v=4?s=100" width="100px;" alt="Coburn"/><br /><sub><b>Coburn</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=coburn24" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Larkooo"><img src="https://avatars.githubusercontent.com/u/59736843?v=4?s=100" width="100px;" alt="Larko"/><br /><sub><b>Larko</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=Larkooo" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/oxlime"><img src="https://avatars.githubusercontent.com/u/93354898?v=4?s=100" width="100px;" alt="oxlime"/><br /><sub><b>oxlime</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=oxlime" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://mxxn.io"><img src="https://avatars.githubusercontent.com/u/1372918?v=4?s=100" width="100px;" alt="Blaž Hrastnik"/><br /><sub><b>Blaž Hrastnik</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=archseer" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/FlorianRichardSMT"><img src="https://avatars.githubusercontent.com/u/110891350?v=4?s=100" width="100px;" alt="Florian"/><br /><sub><b>Florian</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=FlorianRichardSMT" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/greged93"><img src="https://avatars.githubusercontent.com/u/82421016?v=4?s=100" width="100px;" alt="greged93"/><br /><sub><b>greged93</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=greged93" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jney"><img src="https://avatars.githubusercontent.com/u/747?v=4?s=100" width="100px;" alt="Jean-Sébastien Ney"/><br /><sub><b>Jean-Sébastien Ney</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=jney" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://runningbeta.io"><img src="https://avatars.githubusercontent.com/u/615877?v=4?s=100" width="100px;" alt="Kristijan Rebernisak"/><br /><sub><b>Kristijan Rebernisak</b></sub></a><br /><a href="https://github.com/NethermindEth/caigo/commits?author=krebernisak" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the
+[all-contributors](https://github.com/all-contributors/all-contributors)
+specification. Contributions of any kind welcome!
