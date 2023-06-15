@@ -31,8 +31,8 @@ type EventFilter struct {
 }
 
 type EventsInput struct {
-	EventFilter       EventFilter
-	ResultPageRequest ResultPageRequest
+	EventFilter
+	ResultPageRequest
 }
 
 type EventsOutput struct {
