@@ -27,7 +27,7 @@ type EventFilter struct {
 	// Address from contract
 	Address types.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
-	Keys []string `json:"keys,omitempty"`
+	Keys [][]string `json:"keys,omitempty"`
 }
 
 type EventsInput struct {
