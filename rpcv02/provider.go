@@ -15,7 +15,8 @@ var (
 
 // Provider provides the provider for caigo/rpc implementation.
 type Provider struct {
-	c callCloser
+	c       callCloser
+	chainID string
 }
 
 // NewProvider creates a *Provider from an existing `go-ethereum/rpc` *Client.
