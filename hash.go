@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {

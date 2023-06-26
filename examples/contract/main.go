@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/smartcontractkit/caigo/contracts"
-	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/NethermindEth/caigo/contracts"
+	"github.com/NethermindEth/caigo/gateway"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // Start Devnet:

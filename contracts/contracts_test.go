@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/artifacts"
+	devtest "github.com/NethermindEth/caigo/test"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/joho/godotenv"
-	"github.com/smartcontractkit/caigo"
-	"github.com/smartcontractkit/caigo/artifacts"
-	devtest "github.com/smartcontractkit/caigo/test"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestGateway_InstallCounter(t *testing.T) {

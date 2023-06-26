@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // TODO: returns DeprecatedContractClass | SierraContractClass

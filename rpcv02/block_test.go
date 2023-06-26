@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/caigo/types"
 	"github.com/google/go-cmp/cmp"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive

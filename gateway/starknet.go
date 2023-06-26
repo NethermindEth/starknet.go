@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/NethermindEth/caigo/types"
 	"github.com/google/go-querystring/query"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 type StarkResp struct {

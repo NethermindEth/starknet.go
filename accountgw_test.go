@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type TestAccountType struct {

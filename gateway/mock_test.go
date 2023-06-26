@@ -7,7 +7,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/NethermindEth/caigo/gateway"
 )
 
 // httpMock is a mock of the client.

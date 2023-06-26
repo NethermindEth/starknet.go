@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/NethermindEth/caigo/gateway"
 	"github.com/google/go-cmp/cmp"
 )
 

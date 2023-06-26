@@ -8,8 +8,8 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo/gateway"
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type DeclareOutput struct {

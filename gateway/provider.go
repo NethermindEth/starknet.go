@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type GatewayProvider struct {

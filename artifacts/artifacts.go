@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 //go:embed account.json

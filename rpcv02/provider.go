@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/NethermindEth/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 // ErrNotFound is returned by API methods if the requested item does not exist.

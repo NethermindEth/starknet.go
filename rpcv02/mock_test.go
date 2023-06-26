@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 var (

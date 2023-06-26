@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/smartcontractkit/caigo"
-	ctypes "github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo"
+	ctypes "github.com/NethermindEth/caigo/types"
 )
 
 type Session struct {

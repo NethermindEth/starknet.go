@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	rpc "github.com/smartcontractkit/caigo/rpcv02"
-	"github.com/smartcontractkit/caigo/types"
+	rpc "github.com/NethermindEth/caigo/rpcv02"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // TestAccountNonce tests the account Nonce

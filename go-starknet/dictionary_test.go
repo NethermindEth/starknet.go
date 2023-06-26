@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 var knownEntries = []string{

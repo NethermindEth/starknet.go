@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/NethermindEth/caigo/gateway"
 )
 
 func TestClassByHash(t *testing.T) {

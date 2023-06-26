@@ -5,7 +5,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/NethermindEth/caigo/gateway"
 )
 
 func Test_Block_Devnet(t *testing.T) {

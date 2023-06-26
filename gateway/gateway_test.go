@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/test"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/joho/godotenv"
-	"github.com/smartcontractkit/caigo"
-	"github.com/smartcontractkit/caigo/gateway"
-	"github.com/smartcontractkit/caigo/test"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 // testConfiguration is a type that is used to configure tests

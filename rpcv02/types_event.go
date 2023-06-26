@@ -1,6 +1,6 @@
 package rpcv02
 
-import "github.com/smartcontractkit/caigo/types"
+import "github.com/NethermindEth/caigo/types"
 
 type Event struct {
 	FromAddress types.Felt `json:"from_address"`

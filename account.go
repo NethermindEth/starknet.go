@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo/gateway"
-	"github.com/smartcontractkit/caigo/rpcv02"
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/rpcv02"
+	"github.com/NethermindEth/caigo/types"
 )
 
 var (
 	ErrUnsupportedAccount = errors.New("unsupported account implementation")
-	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000000", 0)
+	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000000", 0) // todo(use felt package)
 )
 
 const (

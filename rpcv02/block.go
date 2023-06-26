@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	ctypes "github.com/smartcontractkit/caigo/types"
+	ctypes "github.com/NethermindEth/caigo/types"
 )
 
 // BlockNumber gets the most recent accepted block number.

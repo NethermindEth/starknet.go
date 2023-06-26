@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	types "github.com/smartcontractkit/caigo/types"
+	types "github.com/NethermindEth/caigo/types"
 )
 
 // TransactionByHash gets the details and status of a submitted transaction.

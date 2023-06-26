@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NethermindEth/caigo/artifacts"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/rpcv02"
+	devtest "github.com/NethermindEth/caigo/test"
+	"github.com/NethermindEth/caigo/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
-	"github.com/smartcontractkit/caigo/artifacts"
-	"github.com/smartcontractkit/caigo/gateway"
-	"github.com/smartcontractkit/caigo/rpcv02"
-	devtest "github.com/smartcontractkit/caigo/test"
-	"github.com/smartcontractkit/caigo/types"
 )
 
 const (

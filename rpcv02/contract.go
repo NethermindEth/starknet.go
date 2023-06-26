@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // Class gets the contract class definition associated with the given hash.

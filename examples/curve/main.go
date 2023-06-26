@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo"
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func main() {

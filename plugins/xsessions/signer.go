@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/smartcontractkit/caigo"
+	"github.com/NethermindEth/caigo"
 
-	ctypes "github.com/smartcontractkit/caigo/types"
+	ctypes "github.com/NethermindEth/caigo/types"
 )
 
 var (

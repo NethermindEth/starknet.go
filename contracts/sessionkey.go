@@ -8,10 +8,10 @@ import (
 
 	_ "embed"
 
-	"github.com/smartcontractkit/caigo"
-	"github.com/smartcontractkit/caigo/gateway"
-	"github.com/smartcontractkit/caigo/plugins/xsessions"
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/plugins/xsessions"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessionPublicKey string) (*xsessions.SessionKeyToken, error) {

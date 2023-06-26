@@ -7,7 +7,7 @@ simply:
 
 ```shell
 cd
-go install github.com/smartcontractkit/caigo/go-starknet@latest
+go install github.com/NethermindEth/caigo/go-starknet@latest
 go-starknet help
 ```
 
@@ -15,7 +15,7 @@ go-starknet help
 
 ```shell
 cd
-brew tap smartcontractkit/smartcontractkit
+brew tap NethermindEth/NethermindEth
 brew install go-starknet
 go-starknet help
 ```

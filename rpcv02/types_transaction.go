@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	types "github.com/smartcontractkit/caigo/types"
+	types "github.com/NethermindEth/caigo/types"
 )
 
 type TransactionHash struct {

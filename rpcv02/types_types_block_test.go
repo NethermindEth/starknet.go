@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/smartcontractkit/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func TestBlockID_Marshal(t *testing.T) {

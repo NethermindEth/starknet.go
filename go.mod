@@ -1,4 +1,4 @@
-module github.com/smartcontractkit/caigo
+module github.com/NethermindEth/caigo
 
 go 1.18
 
