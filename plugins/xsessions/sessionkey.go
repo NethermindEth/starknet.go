@@ -1,7 +1,7 @@
 package xsessions
 
 import (
-	ctypes "github.com/dontpanicdao/caigo/types"
+	ctypes "github.com/smartcontractkit/caigo/types"
 )
 
 var (

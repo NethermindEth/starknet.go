@@ -1,4 +1,4 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
@@ -8,9 +8,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	devtest "github.com/dontpanicdao/caigo/test"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	devtest "github.com/smartcontractkit/caigo/test"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var (
@@ -37,23 +38,24 @@ func TestDeclare(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
-		declareTx, err := gw.Declare(context.Background(), accountClass, DeclareRequest{})
+		declareTx, err := gw.Declare(context.Background(), accountClass, gateway.DeclareRequest{})
 		if err != nil {
 			t.Errorf("%s: could not 'DECLARE' contract: %v\n", env, err)
 			return
 		}
 
-		tx, err := gw.Transaction(context.Background(), TransactionOptions{TransactionHash: declareTx.TransactionHash})
+		tx, err := gw.Transaction(context.Background(), gateway.TransactionOptions{TransactionHash: declareTx.TransactionHash})
 		if err != nil {
 			t.Errorf("%s: could not get 'DECLARE' transaction: %v\n", env, err)
 		}
-		if tx.Transaction.Type != DECLARE {
+		if tx.Transaction.Type != gateway.DECLARE {
 			t.Errorf("%s: incorrect declare transaction: %v\n", env, tx)
 		}
 	}
 }
 
 func TestDeployCounterContract(t *testing.T) {
+	t.Skip() // TODO: use account
 	testConfig := beforeEach(t)
 
 	type testSetType struct{}
@@ -74,7 +76,7 @@ func TestDeployCounterContract(t *testing.T) {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
 		tx, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
-			ContractAddressSalt: "0x1",
+			ContractAddressSalt: "0x01",
 			ConstructorCalldata: []string{},
 		})
 		if err != nil {
@@ -146,7 +148,7 @@ func TestDeployAccountContract(t *testing.T) {
 		if err != nil {
 			t.Fatalf("could not parse account: %v\n", err)
 		}
-		tx, err := gw.Declare(context.Background(), accountClass, DeclareRequest{})
+		tx, err := gw.Declare(context.Background(), accountClass, gateway.DeclareRequest{})
 		if err != nil {
 			t.Fatalf("could not declare contract: %v\n", err)
 		}
@@ -162,7 +164,7 @@ func TestDeployAccountContract(t *testing.T) {
 			t.Fatalf("unexpected class hash: %s, instead %s\n", test.ExpectedClassHash, tx.ClassHash)
 		}
 		// Step 4: send some eth
-		mint, err := devtest.NewDevNet().Mint(types.HexToHash(test.ExpectedContractAddress), 1000000000000000000)
+		mint, err := devtest.NewDevNet().Mint(types.StrToFelt(test.ExpectedContractAddress), big.NewInt(int64(1000000000000000000)))
 		if err != nil {
 			t.Fatalf("could not declare contract: %v\n", err)
 		}
@@ -207,7 +209,7 @@ func TestCall(t *testing.T) {
 		"devnet": {
 			{
 				Call: types.FunctionCall{
-					ContractAddress:    types.HexToHash(counterAddress),
+					ContractAddress:    types.StrToFelt(counterAddress),
 					EntryPointSelector: "get_count",
 					Calldata:           []string{},
 				},

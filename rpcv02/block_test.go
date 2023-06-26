@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
 	"github.com/google/go-cmp/cmp"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // TestBlockNumber tests BlockNumber and check the returned value is strictly positive
@@ -88,7 +88,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:                   WithBlockHash(types.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:                   WithBlockHash(types.StrToFelt("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError:             nil,
 				ExpectedBlockWithTxHashes: blockGoerli310370,
 			},
@@ -122,7 +122,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if len(block.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedBlockWithTxHashes.BlockHash == types.HexToHash("0x0") {
+		if test.ExpectedBlockWithTxHashes.BlockHash == types.StrToFelt("0x0") {
 			continue
 		}
 
@@ -151,7 +151,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:       WithBlockHash(types.HexToHash("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:       WithBlockHash(types.StrToFelt("0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError: nil,
 				want:          fullBlockGoerli310370,
 			},
@@ -176,7 +176,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		}
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting *rpv01.Block, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
 		}
 		_, err = spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -189,7 +189,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.want.BlockHash == types.HexToHash("0x0") {
+		if test.want.BlockHash == types.StrToFelt("0x0") {
 			continue
 		}
 		if !cmp.Equal(test.want.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
@@ -217,7 +217,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:                     WithBlockHash(types.HexToHash("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				BlockID:                     WithBlockHash(types.StrToFelt("0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
@@ -253,7 +253,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		}
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
 		if !ok {
-			t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
+			t.Fatalf("expecting *rpcv02.Block, instead %T", blockWithTxsInterface)
 		}
 		diff, err := spy.Compare(blockWithTxs, false)
 		if err != nil {
@@ -269,7 +269,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		if len(blockWithTxs.Transactions) == 0 {
 			t.Fatal("the number of transaction should not be 0")
 		}
-		if test.ExpectedBlockWithTxs.BlockHash == types.HexToHash("0x0") {
+		if test.ExpectedBlockWithTxs.BlockHash == types.StrToFelt("0x0") {
 			continue
 		}
 		if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
@@ -347,16 +347,15 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 			}
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			if !ok {
-				t.Fatalf("expecting *rpcv01.Block, instead %T", blockWithTxsInterface)
+				t.Fatalf("expecting *rpcv02.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv0 := v.(InvokeTxnV0)
 				_, okv1 := v.(InvokeTxnV1)
 				_, okl1 := v.(L1HandlerTxn)
 				_, okdec := v.(DeclareTxn)
 				_, okdep := v.(DeployTxn)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec && !okdep && !okdepac {
+				if !okv1 && !okl1 && !okdec && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
@@ -404,7 +403,7 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithBlockNumber(300000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: types.HexToHash("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
+					BlockHash: types.StrToFelt("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 					NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 					OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 					StateDiff: StateDiff{
@@ -421,7 +420,7 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithBlockNumber(300000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: types.HexToHash("0x03b6d94b246815960f38b7dffc53cda192e7d1dcfff61e1bc042fb57e95f8349"),
+					BlockHash: types.StrToFelt("0x03b6d94b246815960f38b7dffc53cda192e7d1dcfff61e1bc042fb57e95f8349"),
 					NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
 					OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 					StateDiff: StateDiff{
@@ -443,8 +442,8 @@ func TestStateUpdate(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if stateUpdate.BlockHash.Hex() != test.ExpectedStateUpdateOutput.BlockHash.Hex() {
-			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.Hex(), stateUpdate.BlockHash.Hex())
+		if stateUpdate.BlockHash.String() != test.ExpectedStateUpdateOutput.BlockHash.String() {
+			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String())
 		}
 	}
 }

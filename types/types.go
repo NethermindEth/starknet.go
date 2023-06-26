@@ -24,6 +24,7 @@ type AddDeployResponse struct {
 	ContractAddress string `json:"address"`
 }
 
+// TODO: remove
 type DeployRequest struct {
 	Type                string        `json:"type"`
 	ContractAddressSalt string        `json:"contract_address_salt"`
@@ -48,7 +49,7 @@ type DeployAccountRequest struct {
 
 // FunctionCall function call information
 type FunctionCall struct {
-	ContractAddress    Hash   `json:"contract_address"`
+	ContractAddress    Felt   `json:"contract_address"`
 	EntryPointSelector string `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function
@@ -68,7 +69,11 @@ type FunctionInvoke struct {
 	// Defines the transaction type to invoke
 	Type string `json:"type,omitempty"`
 
-	FunctionCall
+	SenderAddress      Felt   `json:"sender_address"`
+	EntryPointSelector string `json:"entry_point_selector,omitempty"`
+
+	// Calldata The parameters passed to the function
+	Calldata []string `json:"calldata"`
 }
 
 type FeeEstimate struct {

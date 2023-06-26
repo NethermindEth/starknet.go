@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address types.Hash) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address types.Felt) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",
@@ -75,7 +75,7 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 		sigs = append(sigs, sig.Text(10))
 	}
 	output["signature"] = sigs
-	output["contract_address"] = f.ContractAddress.Hex()
+	output["sender_address"] = f.SenderAddress.String()
 	if f.EntryPointSelector != "" {
 		output["entry_point_selector"] = f.EntryPointSelector
 	}
@@ -87,15 +87,15 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 	output["calldata"] = calldata
 	if f.Nonce != nil {
 		output["nonce"] = json.RawMessage(
-			strconv.Quote(fmt.Sprintf("0x%s", f.Nonce.Text(16))),
+			strconv.Quote(fmt.Sprintf("0x%x", f.Nonce)),
 		)
 	}
 	if f.MaxFee != nil {
 		output["max_fee"] = json.RawMessage(
-			strconv.Quote(fmt.Sprintf("0x%s", f.MaxFee.Text(16))),
+			strconv.Quote(fmt.Sprintf("0x%x", f.MaxFee)),
 		)
 	}
-	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%s", f.Version.Text(16))))
+	output["version"] = json.RawMessage(strconv.Quote(fmt.Sprintf("0x%x", f.Version)))
 	output["type"] = "INVOKE_FUNCTION"
 	return json.Marshal(output)
 }

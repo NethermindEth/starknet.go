@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestBlockID_Marshal(t *testing.T) {
@@ -37,12 +37,12 @@ func TestBlockID_Marshal(t *testing.T) {
 		want: `{"block_number":420}`,
 	}, {
 		id: func() BlockID {
-			h := types.HexToHash("0xdead")
+			h := types.StrToFelt("0xdead")
 			return BlockID{
-				Hash: &h,
+				Hash: h,
 			}
 		}(),
-		want: `{"block_hash":"0x000000000000000000000000000000000000000000000000000000000000dead"}`,
+		want: `{"block_hash":"0xdead"}`,
 	}} {
 		b, err := tc.id.MarshalJSON()
 		if err != nil && tc.wantErr == nil {

@@ -9,10 +9,11 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv01"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type AccountManager struct {
@@ -46,19 +47,18 @@ func (ap *AccountManager) Write(filename string) error {
 }
 
 type Provider interface {
-	declareAndWaitNoWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
-	deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
+	declareAndWaitWithWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
+	deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
 }
 
 const (
-	ACCOUNT_VERSION0 = "v0"
 	ACCOUNT_VERSION1 = "v1"
 )
 
 func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
-	case *rpcv01.Provider:
-		provider := RPCv01Provider(*v)
+	case *rpcv02.Provider:
+		provider := RPCv02Provider(*v)
 		return &provider, nil
 	case *gateway.GatewayProvider:
 		provider := GatewayProvider(*v)
@@ -71,31 +71,32 @@ func guessProviderType(p interface{}) (Provider, error) {
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
-	privateKeyString := fmt.Sprintf("0x%s", privateKey.Text(16))
+	privateKeyString := fmt.Sprintf("0x%x", privateKey)
 	publicKey, _, err := caigo.Curve.PrivateToPoint(privateKey)
 	if err != nil {
 		return nil, err
 	}
-	publicKeyString := fmt.Sprintf("0x%s", publicKey.Text(16))
+	publicKeyString := fmt.Sprintf("0x%x", publicKey)
+	fmt.Println("z")
 	p, err := guessProviderType(provider)
 	if err != nil {
 		return nil, err
 	}
 	accountClassHash := ""
-	if len(compiledContracts.ProxyCompiled) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.AccountCompiled)
-		if err != nil {
-			return nil, err
-		}
-		accountClassHash = output.classHash
+	// if len(compiledContracts.ProxyCompiled) != 0 {
+	output, err := p.declareAndWaitWithWallet(ctx, compiledContracts.AccountCompiled)
+	if err != nil {
+		return nil, err
 	}
+	accountClassHash = output.classHash
+	// }
 	pluginClassHash := ""
 	if len(compiledContracts.PluginCompiled) != 0 {
-		output, err := p.declareAndWaitNoWallet(ctx, compiledContracts.PluginCompiled)
+		output, err := p.declareAndWaitWithWallet(ctx, compiledContracts.PluginCompiled)
 		if err != nil {
 			return nil, err
 		}
@@ -109,10 +110,13 @@ func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvi
 	if err != nil {
 		return nil, err
 	}
-	deployedOutput, err := p.deployAndWaitNoWallet(ctx, compiledDeployed, publicKeyString, calldata)
+	fmt.Println("d")
+	// TODO: compiledDeploed could be proxy
+	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, types.StrToFelt(accountClassHash), compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("e")
 	proxyClassHash := ""
 	switch len(compiledContracts.ProxyCompiled) {
 	case 0:
@@ -128,7 +132,7 @@ func InstallAndWaitForAccountNoWallet[V *rpcv01.Provider | *gateway.GatewayProvi
 		ProxyClassHash:   proxyClassHash,
 		PublicKey:        publicKeyString,
 		TransactionHash:  deployedOutput.TransactionHash,
-		Version:          "v0",
+		Version:          "v1",
 	}, nil
 
 }

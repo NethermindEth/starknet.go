@@ -99,37 +99,37 @@
     "entry_points_by_type": {
         "CONSTRUCTOR": [
             {
-                "offset": "0x67",
+                "offset": 103,
                 "selector": "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"
             }
         ],
         "EXTERNAL": [
             {
-                "offset": "0xc4",
+                "offset": 196,
                 "selector": "0x6d4d997abf2f5741546d55e219ef418c592585e6ae9617d8c76f04ad79383d"
             },
             {
-                "offset": "0x126",
+                "offset": 294,
                 "selector": "0x7a44dde9fea32737a5cf3f9683b3235138654aa2d189f6fe44af37a61dc60d"
             },
             {
-                "offset": "0xda",
+                "offset": 218,
                 "selector": "0xb082ad2aa6653bdef6b724bfbfa1327452771d3a25496d3d5729cc8f780ae5"
             },
             {
-                "offset": "0xfc",
+                "offset": 252,
                 "selector": "0x1368f8490cc4d605d3240c5b02e49fadaa30ce506d15c29602ecb6b7f206711"
             },
             {
-                "offset": "0x85",
+                "offset": 133,
                 "selector": "0x20694f8b2b8fdf89588fd05fd4abdb2e3e7d9181a68d8c34872d0b2f8562aad"
             },
             {
-                "offset": "0x14f",
+                "offset": 335,
                 "selector": "0x3a0b04fad2d45d81641f40c55ee13e701dacd4a99cbf4d6ed1e231d717b3e4e"
             },
             {
-                "offset": "0xa2",
+                "offset": 162,
                 "selector": "0x3dbd160736e9b9b51ea9a79a8ed86f427a62e0e377d60335d2ec895c27025bb"
             }
         ],
@@ -141,13 +141,8 @@
             "pedersen",
             "range_check"
         ],
-        "compiler_version": "0.10.1",
+        "compiler_version": "0.11.0.2",
         "data": [
-            "0x20780017fff7ffd",
-            "0x4",
-            "0x400780017fff7ffd",
-            "0x1",
-            "0x208b7fff7fff7ffe",
             "0x480680017fff8000",
             "0x47657443616c6c657241646472657373",
             "0x400280007ffd7fff",
@@ -178,6 +173,11 @@
             "0x2",
             "0x480280017ffd8000",
             "0x208b7fff7fff7ffe",
+            "0x20780017fff7ffd",
+            "0x4",
+            "0x400780017fff7ffd",
+            "0x1",
+            "0x208b7fff7fff7ffe",
             "0x480a7ffc7fff8000",
             "0x480a7ffd7fff8000",
             "0x480680017fff8000",
@@ -190,7 +190,7 @@
             "0x480a7ffb7fff8000",
             "0x48127ffe7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffdf",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffda",
             "0x48127ffe7fff8000",
             "0x48127ff57fff8000",
             "0x48127ff57fff8000",
@@ -204,7 +204,7 @@
             "0x48127ffe7fff8000",
             "0x480a7ffd7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd9",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd4",
             "0x48127ff67fff8000",
             "0x48127ff67fff8000",
             "0x208b7fff7fff7ffe",
@@ -220,7 +220,7 @@
             "0x480a7ffb7fff8000",
             "0x48127ffe7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffc1",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffbc",
             "0x48127ffe7fff8000",
             "0x48127ff57fff8000",
             "0x48127ff57fff8000",
@@ -234,7 +234,7 @@
             "0x48127ffe7fff8000",
             "0x480a7ffd7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffbb",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffb6",
             "0x48127ff67fff8000",
             "0x48127ff67fff8000",
             "0x208b7fff7fff7ffe",
@@ -381,13 +381,13 @@
             "0x208b7fff7fff7ffe",
             "0x480a7ffa7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff19",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff14",
             "0x48127ffe7fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff2d",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff28",
             "0x480080037fff8000",
             "0x1104800180018000",
-            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff0e",
+            "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff2c",
             "0x48127ffb7fff8000",
             "0x480a7ffb7fff8000",
             "0x480a7ffc7fff8000",
@@ -458,7 +458,7 @@
             "0x1104800180018000",
             "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffef1",
             "0x1104800180018000",
-            "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffec7",
+            "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffee5",
             "0x48127ffa7fff8000",
             "0x48127ffa7fff8000",
             "0x48127ffa7fff8000",
@@ -557,6 +557,528 @@
             "instruction_locations": {
                 "0": {
                     "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_caller_address"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 90,
+                        "end_line": 202,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 63,
+                        "start_line": 202
+                    }
+                },
+                "2": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_caller_address"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 92,
+                        "end_line": 202,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 202
+                    }
+                },
+                "3": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_caller_address"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [
+                        {
+                            "location": {
+                                "end_col": 93,
+                                "end_line": 203,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "start_col": 5,
+                                "start_line": 203
+                            },
+                            "n_prefix_newlines": 0
+                        }
+                    ],
+                    "inst": {
+                        "end_col": 58,
+                        "end_line": 204,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "parent_location": [
+                            {
+                                "end_col": 43,
+                                "end_line": 200,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "parent_location": [
+                                    {
+                                        "end_col": 61,
+                                        "end_line": 205,
+                                        "input_file": {
+                                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                        },
+                                        "start_col": 5,
+                                        "start_line": 205
+                                    },
+                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                                ],
+                                "start_col": 25,
+                                "start_line": 200
+                            },
+                            "While expanding the reference 'syscall_ptr' in:"
+                        ],
+                        "start_col": 23,
+                        "start_line": 204
+                    }
+                },
+                "5": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_caller_address"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 59,
+                        "end_line": 205,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 28,
+                        "start_line": 205
+                    }
+                },
+                "6": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_caller_address"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 61,
+                        "end_line": 205,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 205
+                    }
+                },
+                "7": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 79,
+                        "end_line": 354,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 58,
+                        "start_line": 354
+                    }
+                },
+                "9": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 98,
+                        "end_line": 354,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 354
+                    }
+                },
+                "10": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 98,
+                        "end_line": 354,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 354
+                    }
+                },
+                "11": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [
+                        {
+                            "location": {
+                                "end_col": 87,
+                                "end_line": 355,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "start_col": 5,
+                                "start_line": 355
+                            },
+                            "n_prefix_newlines": 0
+                        }
+                    ],
+                    "inst": {
+                        "end_col": 53,
+                        "end_line": 357,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "parent_location": [
+                            {
+                                "end_col": 37,
+                                "end_line": 352,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "parent_location": [
+                                    {
+                                        "end_col": 35,
+                                        "end_line": 358,
+                                        "input_file": {
+                                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                        },
+                                        "start_col": 5,
+                                        "start_line": 358
+                                    },
+                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                                ],
+                                "start_col": 19,
+                                "start_line": 352
+                            },
+                            "While expanding the reference 'syscall_ptr' in:"
+                        ],
+                        "start_col": 23,
+                        "start_line": 357
+                    }
+                },
+                "13": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 33,
+                        "end_line": 358,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 19,
+                        "start_line": 358
+                    }
+                },
+                "14": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_read"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 35,
+                        "end_line": 358,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 358
+                    }
+                },
+                "15": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 40,
+                        "end_line": 372,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 18,
+                        "start_line": 372
+                    }
+                },
+                "17": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 7,
+                        "end_line": 373,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 371
+                    }
+                },
+                "18": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 7,
+                        "end_line": 373,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 371
+                    }
+                },
+                "19": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 7,
+                        "end_line": 373,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 371
+                    }
+                },
+                "20": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [
+                        {
+                            "location": {
+                                "end_col": 88,
+                                "end_line": 374,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "start_col": 5,
+                                "start_line": 374
+                            },
+                            "n_prefix_newlines": 0
+                        }
+                    ],
+                    "inst": {
+                        "end_col": 54,
+                        "end_line": 375,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "parent_location": [
+                            {
+                                "end_col": 38,
+                                "end_line": 370,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "parent_location": [
+                                    {
+                                        "end_col": 15,
+                                        "end_line": 376,
+                                        "input_file": {
+                                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                        },
+                                        "start_col": 5,
+                                        "start_line": 376
+                                    },
+                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                                ],
+                                "start_col": 20,
+                                "start_line": 370
+                            },
+                            "While expanding the reference 'syscall_ptr' in:"
+                        ],
+                        "start_col": 23,
+                        "start_line": 375
+                    }
+                },
+                "22": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.storage_write"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 15,
+                        "end_line": 376,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 376
+                    }
+                },
+                "23": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_tx_info"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 76,
+                        "end_line": 446,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 56,
+                        "start_line": 446
+                    }
+                },
+                "25": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_tx_info"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 78,
+                        "end_line": 446,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 446
+                    }
+                },
+                "26": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_tx_info"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [
+                        {
+                            "location": {
+                                "end_col": 86,
+                                "end_line": 447,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "start_col": 5,
+                                "start_line": 447
+                            },
+                            "n_prefix_newlines": 0
+                        }
+                    ],
+                    "inst": {
+                        "end_col": 51,
+                        "end_line": 449,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "parent_location": [
+                            {
+                                "end_col": 36,
+                                "end_line": 444,
+                                "input_file": {
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                },
+                                "parent_location": [
+                                    {
+                                        "end_col": 39,
+                                        "end_line": 450,
+                                        "input_file": {
+                                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                        },
+                                        "start_col": 5,
+                                        "start_line": 450
+                                    },
+                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+                                ],
+                                "start_col": 18,
+                                "start_line": 444
+                            },
+                            "While expanding the reference 'syscall_ptr' in:"
+                        ],
+                        "start_col": 23,
+                        "start_line": 449
+                    }
+                },
+                "28": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_tx_info"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 37,
+                        "end_line": 450,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 21,
+                        "start_line": 450
+                    }
+                },
+                "29": {
+                    "accessible_scopes": [
+                        "starkware.starknet.common.syscalls",
+                        "starkware.starknet.common.syscalls.get_tx_info"
+                    ],
+                    "flow_tracking_data": null,
+                    "hints": [],
+                    "inst": {
+                        "end_col": 39,
+                        "end_line": 450,
+                        "input_file": {
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 450
+                    }
+                },
+                "30": {
+                    "accessible_scopes": [
                         "starkware.cairo.common.math",
                         "starkware.cairo.common.math.assert_not_zero"
                     ],
@@ -567,7 +1089,7 @@
                                 "end_col": 7,
                                 "end_line": 11,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
                                 },
                                 "start_col": 5,
                                 "start_line": 7
@@ -579,13 +1101,13 @@
                         "end_col": 7,
                         "end_line": 12,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
                         "start_line": 12
                     }
                 },
-                "2": {
+                "32": {
                     "accessible_scopes": [
                         "starkware.cairo.common.math",
                         "starkware.cairo.common.math.assert_not_zero"
@@ -596,13 +1118,13 @@
                         "end_col": 18,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 9,
                         "start_line": 14
                     }
                 },
-                "4": {
+                "34": {
                     "accessible_scopes": [
                         "starkware.cairo.common.math",
                         "starkware.cairo.common.math.assert_not_zero"
@@ -613,532 +1135,10 @@
                         "end_col": 15,
                         "end_line": 17,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
                         "start_line": 17
-                    }
-                },
-                "5": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_caller_address"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 90,
-                        "end_line": 198,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 63,
-                        "start_line": 198
-                    }
-                },
-                "7": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_caller_address"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 92,
-                        "end_line": 198,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 198
-                    }
-                },
-                "8": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_caller_address"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [
-                        {
-                            "location": {
-                                "end_col": 93,
-                                "end_line": 199,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "start_col": 5,
-                                "start_line": 199
-                            },
-                            "n_prefix_newlines": 0
-                        }
-                    ],
-                    "inst": {
-                        "end_col": 58,
-                        "end_line": 200,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "parent_location": [
-                            {
-                                "end_col": 43,
-                                "end_line": 196,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "parent_location": [
-                                    {
-                                        "end_col": 61,
-                                        "end_line": 201,
-                                        "input_file": {
-                                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                        },
-                                        "start_col": 5,
-                                        "start_line": 201
-                                    },
-                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
-                                ],
-                                "start_col": 25,
-                                "start_line": 196
-                            },
-                            "While expanding the reference 'syscall_ptr' in:"
-                        ],
-                        "start_col": 23,
-                        "start_line": 200
-                    }
-                },
-                "10": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_caller_address"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 59,
-                        "end_line": 201,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 28,
-                        "start_line": 201
-                    }
-                },
-                "11": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_caller_address"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 61,
-                        "end_line": 201,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 201
-                    }
-                },
-                "12": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 79,
-                        "end_line": 350,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 58,
-                        "start_line": 350
-                    }
-                },
-                "14": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 98,
-                        "end_line": 350,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 350
-                    }
-                },
-                "15": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 98,
-                        "end_line": 350,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 350
-                    }
-                },
-                "16": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [
-                        {
-                            "location": {
-                                "end_col": 87,
-                                "end_line": 351,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "start_col": 5,
-                                "start_line": 351
-                            },
-                            "n_prefix_newlines": 0
-                        }
-                    ],
-                    "inst": {
-                        "end_col": 53,
-                        "end_line": 353,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "parent_location": [
-                            {
-                                "end_col": 37,
-                                "end_line": 348,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "parent_location": [
-                                    {
-                                        "end_col": 35,
-                                        "end_line": 354,
-                                        "input_file": {
-                                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                        },
-                                        "start_col": 5,
-                                        "start_line": 354
-                                    },
-                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
-                                ],
-                                "start_col": 19,
-                                "start_line": 348
-                            },
-                            "While expanding the reference 'syscall_ptr' in:"
-                        ],
-                        "start_col": 23,
-                        "start_line": 353
-                    }
-                },
-                "18": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 33,
-                        "end_line": 354,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 19,
-                        "start_line": 354
-                    }
-                },
-                "19": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_read"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 35,
-                        "end_line": 354,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 354
-                    }
-                },
-                "20": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 40,
-                        "end_line": 368,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 18,
-                        "start_line": 368
-                    }
-                },
-                "22": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 72,
-                        "end_line": 368,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 367
-                    }
-                },
-                "23": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 72,
-                        "end_line": 368,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 367
-                    }
-                },
-                "24": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 72,
-                        "end_line": 368,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 367
-                    }
-                },
-                "25": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [
-                        {
-                            "location": {
-                                "end_col": 88,
-                                "end_line": 369,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "start_col": 5,
-                                "start_line": 369
-                            },
-                            "n_prefix_newlines": 0
-                        }
-                    ],
-                    "inst": {
-                        "end_col": 54,
-                        "end_line": 370,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "parent_location": [
-                            {
-                                "end_col": 38,
-                                "end_line": 366,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "parent_location": [
-                                    {
-                                        "end_col": 15,
-                                        "end_line": 371,
-                                        "input_file": {
-                                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                        },
-                                        "start_col": 5,
-                                        "start_line": 371
-                                    },
-                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
-                                ],
-                                "start_col": 20,
-                                "start_line": 366
-                            },
-                            "While expanding the reference 'syscall_ptr' in:"
-                        ],
-                        "start_col": 23,
-                        "start_line": 370
-                    }
-                },
-                "27": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.storage_write"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 15,
-                        "end_line": 371,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 371
-                    }
-                },
-                "28": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_tx_info"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 76,
-                        "end_line": 440,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 56,
-                        "start_line": 440
-                    }
-                },
-                "30": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_tx_info"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 78,
-                        "end_line": 440,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 440
-                    }
-                },
-                "31": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_tx_info"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [
-                        {
-                            "location": {
-                                "end_col": 86,
-                                "end_line": 441,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "start_col": 5,
-                                "start_line": 441
-                            },
-                            "n_prefix_newlines": 0
-                        }
-                    ],
-                    "inst": {
-                        "end_col": 51,
-                        "end_line": 443,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "parent_location": [
-                            {
-                                "end_col": 36,
-                                "end_line": 438,
-                                "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                },
-                                "parent_location": [
-                                    {
-                                        "end_col": 39,
-                                        "end_line": 444,
-                                        "input_file": {
-                                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                                        },
-                                        "start_col": 5,
-                                        "start_line": 444
-                                    },
-                                    "While trying to retrieve the implicit argument 'syscall_ptr' in:"
-                                ],
-                                "start_col": 18,
-                                "start_line": 438
-                            },
-                            "While expanding the reference 'syscall_ptr' in:"
-                        ],
-                        "start_col": 23,
-                        "start_line": 443
-                    }
-                },
-                "33": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_tx_info"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 37,
-                        "end_line": 444,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 21,
-                        "start_line": 444
-                    }
-                },
-                "34": {
-                    "accessible_scopes": [
-                        "starkware.starknet.common.syscalls",
-                        "starkware.starknet.common.syscalls.get_tx_info"
-                    ],
-                    "flow_tracking_data": null,
-                    "hints": [],
-                    "inst": {
-                        "end_col": 39,
-                        "end_line": 444,
-                        "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
-                        },
-                        "start_col": 5,
-                        "start_line": 444
                     }
                 },
                 "35": {
@@ -1392,9 +1392,9 @@
                         "parent_location": [
                             {
                                 "end_col": 37,
-                                "end_line": 348,
+                                "end_line": 352,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -1409,7 +1409,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 19,
-                                "start_line": 348
+                                "start_line": 352
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -1475,9 +1475,9 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 348,
+                        "end_line": 352,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
@@ -1504,7 +1504,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 19,
-                        "start_line": 348
+                        "start_line": 352
                     }
                 },
                 "49": {
@@ -1758,9 +1758,9 @@
                         "parent_location": [
                             {
                                 "end_col": 38,
-                                "end_line": 366,
+                                "end_line": 370,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -1775,7 +1775,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 20,
-                                "start_line": 366
+                                "start_line": 370
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -2226,9 +2226,9 @@
                         "parent_location": [
                             {
                                 "end_col": 37,
-                                "end_line": 348,
+                                "end_line": 352,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -2243,7 +2243,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 19,
-                                "start_line": 348
+                                "start_line": 352
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -2309,9 +2309,9 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 348,
+                        "end_line": 352,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
@@ -2338,7 +2338,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 19,
-                        "start_line": 348
+                        "start_line": 352
                     }
                 },
                 "79": {
@@ -2592,9 +2592,9 @@
                         "parent_location": [
                             {
                                 "end_col": 38,
-                                "end_line": 366,
+                                "end_line": 370,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -2609,7 +2609,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 20,
-                                "start_line": 366
+                                "start_line": 370
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -7936,9 +7936,9 @@
                         "parent_location": [
                             {
                                 "end_col": 43,
-                                "end_line": 196,
+                                "end_line": 200,
                                 "input_file": {
-                                    "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                    "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -7953,7 +7953,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 25,
-                                "start_line": 196
+                                "start_line": 200
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -7989,9 +7989,9 @@
                     "hints": [],
                     "inst": {
                         "end_col": 43,
-                        "end_line": 196,
+                        "end_line": 200,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
@@ -8003,9 +8003,9 @@
                                 "parent_location": [
                                     {
                                         "end_col": 36,
-                                        "end_line": 438,
+                                        "end_line": 444,
                                         "input_file": {
-                                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                                         },
                                         "parent_location": [
                                             {
@@ -8020,7 +8020,7 @@
                                             "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                         ],
                                         "start_col": 18,
-                                        "start_line": 438
+                                        "start_line": 444
                                     },
                                     "While expanding the reference 'syscall_ptr' in:"
                                 ],
@@ -8030,7 +8030,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 25,
-                        "start_line": 196
+                        "start_line": 200
                     }
                 },
                 "240": {
@@ -8097,9 +8097,9 @@
                     "hints": [],
                     "inst": {
                         "end_col": 36,
-                        "end_line": 438,
+                        "end_line": 444,
                         "input_file": {
-                            "filename": "/Users/gregory/project/blaqkube/caigo/contracts/py-0.10/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
+                            "filename": "/.venv/lib/python3.9/site-packages/starkware/starknet/common/syscalls.cairo"
                         },
                         "parent_location": [
                             {
@@ -8138,7 +8138,7 @@
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
                         "start_col": 18,
-                        "start_line": 438
+                        "start_line": 444
                     }
                 },
                 "246": {
@@ -11621,25 +11621,7 @@
             }
         },
         "hints": {
-            "0": [
-                {
-                    "accessible_scopes": [
-                        "starkware.cairo.common.math",
-                        "starkware.cairo.common.math.assert_not_zero"
-                    ],
-                    "code": "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.value)\nassert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'",
-                    "flow_tracking_data": {
-                        "ap_tracking": {
-                            "group": 0,
-                            "offset": 0
-                        },
-                        "reference_ids": {
-                            "starkware.cairo.common.math.assert_not_zero.value": 0
-                        }
-                    }
-                }
-            ],
-            "8": [
+            "3": [
                 {
                     "accessible_scopes": [
                         "starkware.starknet.common.syscalls",
@@ -11648,16 +11630,16 @@
                     "code": "syscall_handler.get_caller_address(segments=segments, syscall_ptr=ids.syscall_ptr)",
                     "flow_tracking_data": {
                         "ap_tracking": {
-                            "group": 1,
+                            "group": 0,
                             "offset": 1
                         },
                         "reference_ids": {
-                            "starkware.starknet.common.syscalls.get_caller_address.syscall_ptr": 1
+                            "starkware.starknet.common.syscalls.get_caller_address.syscall_ptr": 0
                         }
                     }
                 }
             ],
-            "16": [
+            "11": [
                 {
                     "accessible_scopes": [
                         "starkware.starknet.common.syscalls",
@@ -11666,16 +11648,16 @@
                     "code": "syscall_handler.storage_read(segments=segments, syscall_ptr=ids.syscall_ptr)",
                     "flow_tracking_data": {
                         "ap_tracking": {
-                            "group": 2,
+                            "group": 1,
                             "offset": 1
                         },
                         "reference_ids": {
-                            "starkware.starknet.common.syscalls.storage_read.syscall_ptr": 2
+                            "starkware.starknet.common.syscalls.storage_read.syscall_ptr": 1
                         }
                     }
                 }
             ],
-            "25": [
+            "20": [
                 {
                     "accessible_scopes": [
                         "starkware.starknet.common.syscalls",
@@ -11684,16 +11666,16 @@
                     "code": "syscall_handler.storage_write(segments=segments, syscall_ptr=ids.syscall_ptr)",
                     "flow_tracking_data": {
                         "ap_tracking": {
-                            "group": 3,
+                            "group": 2,
                             "offset": 1
                         },
                         "reference_ids": {
-                            "starkware.starknet.common.syscalls.storage_write.syscall_ptr": 3
+                            "starkware.starknet.common.syscalls.storage_write.syscall_ptr": 2
                         }
                     }
                 }
             ],
-            "31": [
+            "26": [
                 {
                     "accessible_scopes": [
                         "starkware.starknet.common.syscalls",
@@ -11702,11 +11684,29 @@
                     "code": "syscall_handler.get_tx_info(segments=segments, syscall_ptr=ids.syscall_ptr)",
                     "flow_tracking_data": {
                         "ap_tracking": {
-                            "group": 4,
+                            "group": 3,
                             "offset": 1
                         },
                         "reference_ids": {
-                            "starkware.starknet.common.syscalls.get_tx_info.syscall_ptr": 4
+                            "starkware.starknet.common.syscalls.get_tx_info.syscall_ptr": 3
+                        }
+                    }
+                }
+            ],
+            "30": [
+                {
+                    "accessible_scopes": [
+                        "starkware.cairo.common.math",
+                        "starkware.cairo.common.math.assert_not_zero"
+                    ],
+                    "code": "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.value)\nassert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'",
+                    "flow_tracking_data": {
+                        "ap_tracking": {
+                            "group": 4,
+                            "offset": 0
+                        },
+                        "reference_ids": {
+                            "starkware.cairo.common.math.assert_not_zero.value": 4
                         }
                     }
                 }
@@ -13082,6 +13082,25 @@
                 "destination": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
                 "type": "alias"
             },
+            "starkware.cairo.common.cairo_builtins.PoseidonBuiltin": {
+                "full_name": "starkware.cairo.common.cairo_builtins.PoseidonBuiltin",
+                "members": {
+                    "input": {
+                        "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                        "offset": 0
+                    },
+                    "output": {
+                        "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                        "offset": 3
+                    }
+                },
+                "size": 6,
+                "type": "struct"
+            },
+            "starkware.cairo.common.cairo_builtins.PoseidonBuiltinState": {
+                "destination": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                "type": "alias"
+            },
             "starkware.cairo.common.cairo_builtins.SignatureBuiltin": {
                 "full_name": "starkware.cairo.common.cairo_builtins.SignatureBuiltin",
                 "members": {
@@ -13184,7 +13203,7 @@
             },
             "starkware.cairo.common.math.assert_not_zero": {
                 "decorators": [],
-                "pc": 0,
+                "pc": 30,
                 "type": "function"
             },
             "starkware.cairo.common.math.assert_not_zero.Args": {
@@ -13218,14 +13237,33 @@
                 "references": [
                     {
                         "ap_tracking_data": {
-                            "group": 0,
+                            "group": 4,
                             "offset": 0
                         },
-                        "pc": 0,
+                        "pc": 30,
                         "value": "[cast(fp + (-3), felt*)]"
                     }
                 ],
                 "type": "reference"
+            },
+            "starkware.cairo.common.poseidon_state.PoseidonBuiltinState": {
+                "full_name": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                "members": {
+                    "s0": {
+                        "cairo_type": "felt",
+                        "offset": 0
+                    },
+                    "s1": {
+                        "cairo_type": "felt",
+                        "offset": 1
+                    },
+                    "s2": {
+                        "cairo_type": "felt",
+                        "offset": 2
+                    }
+                },
+                "size": 3,
+                "type": "struct"
             },
             "starkware.starknet.common.storage.ADDR_BOUND": {
                 "type": "const",
@@ -13753,6 +13791,25 @@
                 "size": 5,
                 "type": "struct"
             },
+            "starkware.starknet.common.syscalls.REPLACE_CLASS_SELECTOR": {
+                "type": "const",
+                "value": 25500403217443378527601783667
+            },
+            "starkware.starknet.common.syscalls.ReplaceClass": {
+                "full_name": "starkware.starknet.common.syscalls.ReplaceClass",
+                "members": {
+                    "class_hash": {
+                        "cairo_type": "felt",
+                        "offset": 1
+                    },
+                    "selector": {
+                        "cairo_type": "felt",
+                        "offset": 0
+                    }
+                },
+                "size": 2,
+                "type": "struct"
+            },
             "starkware.starknet.common.syscalls.SEND_MESSAGE_TO_L1_SELECTOR": {
                 "type": "const",
                 "value": 433017908768303439907196859243777073
@@ -13889,7 +13946,7 @@
             },
             "starkware.starknet.common.syscalls.get_caller_address": {
                 "decorators": [],
-                "pc": 5,
+                "pc": 0,
                 "type": "function"
             },
             "starkware.starknet.common.syscalls.get_caller_address.Args": {
@@ -13923,18 +13980,18 @@
                 "references": [
                     {
                         "ap_tracking_data": {
-                            "group": 1,
+                            "group": 0,
                             "offset": 0
                         },
-                        "pc": 5,
+                        "pc": 0,
                         "value": "[cast(fp + (-3), felt**)]"
                     },
                     {
                         "ap_tracking_data": {
-                            "group": 1,
+                            "group": 0,
                             "offset": 1
                         },
-                        "pc": 8,
+                        "pc": 3,
                         "value": "cast([fp + (-3)] + 2, felt*)"
                     }
                 ],
@@ -13942,7 +13999,7 @@
             },
             "starkware.starknet.common.syscalls.get_tx_info": {
                 "decorators": [],
-                "pc": 28,
+                "pc": 23,
                 "type": "function"
             },
             "starkware.starknet.common.syscalls.get_tx_info.Args": {
@@ -13976,18 +14033,18 @@
                 "references": [
                     {
                         "ap_tracking_data": {
-                            "group": 4,
+                            "group": 3,
                             "offset": 0
                         },
-                        "pc": 28,
+                        "pc": 23,
                         "value": "[cast(fp + (-3), felt**)]"
                     },
                     {
                         "ap_tracking_data": {
-                            "group": 4,
+                            "group": 3,
                             "offset": 1
                         },
-                        "pc": 31,
+                        "pc": 26,
                         "value": "cast([fp + (-3)] + 2, felt*)"
                     }
                 ],
@@ -13995,7 +14052,7 @@
             },
             "starkware.starknet.common.syscalls.storage_read": {
                 "decorators": [],
-                "pc": 12,
+                "pc": 7,
                 "type": "function"
             },
             "starkware.starknet.common.syscalls.storage_read.Args": {
@@ -14034,18 +14091,18 @@
                 "references": [
                     {
                         "ap_tracking_data": {
-                            "group": 2,
+                            "group": 1,
                             "offset": 0
                         },
-                        "pc": 12,
+                        "pc": 7,
                         "value": "[cast(fp + (-4), felt**)]"
                     },
                     {
                         "ap_tracking_data": {
-                            "group": 2,
+                            "group": 1,
                             "offset": 1
                         },
-                        "pc": 16,
+                        "pc": 11,
                         "value": "cast([fp + (-4)] + 3, felt*)"
                     }
                 ],
@@ -14053,7 +14110,7 @@
             },
             "starkware.starknet.common.syscalls.storage_write": {
                 "decorators": [],
-                "pc": 20,
+                "pc": 15,
                 "type": "function"
             },
             "starkware.starknet.common.syscalls.storage_write.Args": {
@@ -14096,18 +14153,18 @@
                 "references": [
                     {
                         "ap_tracking_data": {
-                            "group": 3,
+                            "group": 2,
                             "offset": 0
                         },
-                        "pc": 20,
+                        "pc": 15,
                         "value": "[cast(fp + (-5), felt**)]"
                     },
                     {
                         "ap_tracking_data": {
-                            "group": 3,
+                            "group": 2,
                             "offset": 1
                         },
-                        "pc": 25,
+                        "pc": 20,
                         "value": "cast([fp + (-5)] + 3, felt*)"
                     }
                 ],
@@ -14124,39 +14181,39 @@
                         "offset": 0
                     },
                     "pc": 0,
-                    "value": "[cast(fp + (-3), felt*)]"
+                    "value": "[cast(fp + (-3), felt**)]"
                 },
                 {
                     "ap_tracking_data": {
                         "group": 1,
                         "offset": 0
                     },
-                    "pc": 5,
-                    "value": "[cast(fp + (-3), felt**)]"
+                    "pc": 7,
+                    "value": "[cast(fp + (-4), felt**)]"
                 },
                 {
                     "ap_tracking_data": {
                         "group": 2,
                         "offset": 0
                     },
-                    "pc": 12,
-                    "value": "[cast(fp + (-4), felt**)]"
+                    "pc": 15,
+                    "value": "[cast(fp + (-5), felt**)]"
                 },
                 {
                     "ap_tracking_data": {
                         "group": 3,
                         "offset": 0
                     },
-                    "pc": 20,
-                    "value": "[cast(fp + (-5), felt**)]"
+                    "pc": 23,
+                    "value": "[cast(fp + (-3), felt**)]"
                 },
                 {
                     "ap_tracking_data": {
                         "group": 4,
                         "offset": 0
                     },
-                    "pc": 28,
-                    "value": "[cast(fp + (-3), felt**)]"
+                    "pc": 30,
+                    "value": "[cast(fp + (-3), felt*)]"
                 }
             ]
         }

@@ -10,9 +10,9 @@ import (
 
 	_ "embed"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var sessionPluginCompiled = artifacts.PluginV0Compiled
@@ -91,10 +91,18 @@ func TestSessionKey_CheckEth(t *testing.T) {
 
 // IncrementWithSessionKeyPlugin
 func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginClass string, token *SessionKeyToken, counterAddress string) {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
+	// shim a keystore into existing tests.
+	// use a string representation of the PK as a fake sender address for the keystore
+	ks := caigo.NewMemKeystore()
+
+	fakeSenderAddress := sessionPrivateKey
+	k := types.SNValToBN(sessionPrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewRPCAccount(
-		sessionPrivateKey,
-		accountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(accountAddress),
+		ks,
 		provider,
 		WithSessionKeyPlugin(
 			pluginClass,
@@ -105,7 +113,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterAddress),
+			ContractAddress:    types.StrToFelt(counterAddress),
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},
@@ -118,7 +126,7 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if !strings.HasPrefix(tx.TransactionHash, "0x") {
 		t.Fatal("execute should return transaction hash, instead:", tx.TransactionHash)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

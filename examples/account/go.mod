@@ -2,7 +2,7 @@ module account
 
 go 1.18
 
-require github.com/dontpanicdao/caigo v0.2.1-0.20220620163912-1db2ca279608
+require github.com/smartcontractkit/caigo v0.2.1-0.20220620163912-1db2ca279608
 
 require (
 	github.com/google/go-querystring v1.1.0 // indirect

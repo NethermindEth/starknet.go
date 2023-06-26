@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 type TypedData struct {
@@ -36,7 +36,7 @@ type TypedMessage interface {
 }
 
 /*
-	encoding definition for standard StarkNet Domain messages
+encoding definition for standard StarkNet Domain messages
 */
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	switch field {
@@ -51,7 +51,7 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 }
 
 /*
-	'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
+'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
 */
 func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{
