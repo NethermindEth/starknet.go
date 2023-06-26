@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func BenchmarkSignatureVerify(b *testing.B) {

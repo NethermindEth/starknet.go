@@ -26,7 +26,7 @@ func TestEvents(t *testing.T) {
 			// 		ToBlock: types.BlockID{
 			// 			Hash: &blockHash,
 			// 		},
-			// 		Address:    types.HexToHash("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			// 		Address:    types.StrToFelt("0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 			// 		Keys:       []string{"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"},
 			// 		PageSize:   1000,
 			// 		PageNumber: 0,

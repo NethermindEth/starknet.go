@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo"
+	"github.com/smartcontractkit/caigo"
 
-	ctypes "github.com/dontpanicdao/caigo/types"
+	ctypes "github.com/smartcontractkit/caigo/types"
 )
 
 var (
@@ -15,27 +15,24 @@ var (
 )
 
 type SessionKeyPlugin struct {
-	accountAddress ctypes.Hash
+	accountAddress ctypes.Felt
 	classHash      *big.Int
-	private        *big.Int
 	token          *SessionKeyToken
 }
 
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
-	return func(private, address string) (caigo.AccountOption, error) {
+	return func(unused, address ctypes.Felt) (caigo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
 			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
-		pk, ok := big.NewInt(0).SetString(private, 0)
 		if !ok {
 			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		return caigo.AccountOption{
 			AccountPlugin: &SessionKeyPlugin{
-				accountAddress: ctypes.HexToHash(address),
+				accountAddress: address,
 				classHash:      plugin,
-				private:        pk,
 				token:          token,
 			},
 		}, nil

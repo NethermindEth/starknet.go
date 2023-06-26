@@ -5,31 +5,31 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestTransactionHash(t *testing.T) {
 	for _, tc := range []struct {
 		Hash string `json:"transaction_hash"`
 	}{{
-		Hash: "0x0315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
+		Hash: "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
 	}, {
-		Hash: "0x008d6955e1bc0d5ba78b04630375f962ce6e5c91115173bc5f6e7843c6ee1269",
+		Hash: "0x8d6955e1bc0d5ba78b04630375f962ce6e5c91115173bc5f6e7843c6ee1269",
 	}, {
-		Hash: "0x00680b0616e65633dfaf06d5a5ee5f1d1d4b641396009f00a67c0d18dc0f9638",
+		Hash: "0x680b0616e65633dfaf06d5a5ee5f1d1d4b641396009f00a67c0d18dc0f9638",
 	}} {
 		var th TransactionHash
 		if err := json.Unmarshal([]byte(strconv.Quote(tc.Hash)), &th); err != nil {
 			t.Fatalf("Unmarshalling text: %v", err)
 		}
 		h := th
-		h2 := types.HexToHash(tc.Hash)
+		h2 := types.StrToFelt(tc.Hash)
 
 		if h.TransactionHash != h2 {
 			t.Fatalf("Hashes not equal: %s %s", h, h2)
 		}
 
-		m, err := h.TransactionHash.MarshalText()
+		m, err := h.MarshalText()
 		if err != nil {
 			t.Fatalf("Marshalling text: %v", err)
 		}
@@ -50,14 +50,14 @@ func TestTransactionHash(t *testing.T) {
 }
 
 func TestTransaction(t *testing.T) {
-	hash := types.HexToHash("0xdead")
-	th := TransactionHash{hash}
+	f := types.StrToFelt("0xdead")
+	th := TransactionHash{f}
 	b, err := json.Marshal(th)
 	if err != nil {
 		t.Fatalf("marshalling transaction hash: %v", err)
 	}
 
-	marshalled, err := hash.MarshalText()
+	marshalled, err := f.MarshalText()
 	if err != nil {
 		t.Fatalf("marshalling transaction hash: %v", err)
 	}

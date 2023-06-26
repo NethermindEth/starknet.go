@@ -6,30 +6,31 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/rpcv02"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var (
 	ErrUnsupportedAccount = errors.New("unsupported account implementation")
-	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000", 0)
+	MAX_FEE, _            = big.NewInt(0).SetString("0x20000000000000", 0)
 )
 
 const (
 	TRANSACTION_PREFIX      = "invoke"
+	DECLARE_PREFIX          = "declare"
 	EXECUTE_SELECTOR        = "__execute__"
 	CONTRACT_ADDRESS_PREFIX = "STARKNET_CONTRACT_ADDRESS"
 )
 
 type account interface {
-	Sign(msgHash *big.Int) (*big.Int, *big.Int, error)
 	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
 	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
+	Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
 var _ account = &Account{}
@@ -41,19 +42,18 @@ type AccountPlugin interface {
 type ProviderType string
 
 const (
-	ProviderRPCv01  ProviderType = "rpcv01"
 	ProviderRPCv02  ProviderType = "rpcv02"
 	ProviderGateway ProviderType = "gateway"
 )
 
 type Account struct {
-	rpcv01         *rpcv01.Provider
 	rpcv02         *rpcv02.Provider
 	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
-	AccountAddress string
-	private        *big.Int
+	AccountAddress types.Felt
+	sender         types.Felt
+	ks             Keystore
 	version        uint64
 	plugin         AccountPlugin
 }
@@ -63,25 +63,25 @@ type AccountOption struct {
 	version       uint64
 }
 
-type AccountOptionFunc func(string, string) (AccountOption, error)
+type AccountOptionFunc func(types.Felt, types.Felt) (AccountOption, error)
 
-func AccountVersion0(string, string) (AccountOption, error) {
+func AccountVersion0(types.Felt, types.Felt) (AccountOption, error) {
 	return AccountOption{
 		version: uint64(0),
 	}, nil
 }
 
-func AccountVersion1(string, string) (AccountOption, error) {
+func AccountVersion1(types.Felt, types.Felt) (AccountOption, error) {
 	return AccountOption{
 		version: uint64(1),
 	}, nil
 }
 
-func newAccount(private, address string, options ...AccountOptionFunc) (*Account, error) {
+func newAccount(sender, address types.Felt, ks Keystore, options ...AccountOptionFunc) (*Account, error) {
 	var accountPlugin AccountPlugin
 	version := uint64(0)
 	for _, o := range options {
-		opt, err := o(private, address)
+		opt, err := o(sender, address)
 		if err != nil {
 			return nil, err
 		}
@@ -95,26 +95,17 @@ func newAccount(private, address string, options ...AccountOptionFunc) (*Account
 			accountPlugin = opt.AccountPlugin
 		}
 	}
-	priv := types.SNValToBN(private)
 	return &Account{
 		AccountAddress: address,
-		private:        priv,
 		version:        version,
 		plugin:         accountPlugin,
+		ks:             ks,
+		sender:         sender,
 	}, nil
 }
 
 func setAccountProvider(account *Account, provider interface{}) error {
 	switch p := provider.(type) {
-	case *rpcv01.Provider:
-		chainID, err := p.ChainID(context.Background())
-		if err != nil {
-			return err
-		}
-		account.chainId = chainID
-		account.provider = ProviderRPCv01
-		account.rpcv01 = p
-		return nil
 	case *rpcv02.Provider:
 		chainID, err := p.ChainID(context.Background())
 		if err != nil {
@@ -128,8 +119,8 @@ func setAccountProvider(account *Account, provider interface{}) error {
 	return errors.New("unsupported provider")
 }
 
-func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](private, address string, provider Provider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewRPCAccount[Provider *rpcv02.Provider](sender, address types.Felt, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +128,8 @@ func NewRPCAccount[Provider *rpcv01.Provider | *rpcv02.Provider](private, addres
 	return account, err
 }
 
-func NewGatewayAccount(private, address string, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
-	account, err := newAccount(private, address, options...)
+func NewGatewayAccount(sender, address types.Felt, ks Keystore, provider *gateway.GatewayProvider, options ...AccountOptionFunc) (*Account, error) {
+	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,11 +145,6 @@ func NewGatewayAccount(private, address string, provider *gateway.GatewayProvide
 
 func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
 	switch account.provider {
-	case ProviderRPCv01:
-		if account.rpcv01 == nil {
-			return nil, ErrUnsupportedAccount
-		}
-		return account.rpcv01.Call(ctx, call, rpcv01.WithBlockTag("latest"))
 	case ProviderRPCv02:
 		if account.rpcv02 == nil {
 			return nil, ErrUnsupportedAccount
@@ -173,17 +159,11 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 	return nil, ErrUnsupportedAccount
 }
 
-func (account *Account) Sign(msgHash *big.Int) (*big.Int, *big.Int, error) {
-	return Curve.Sign(msgHash, account.private)
-}
-
 func (account *Account) TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error) {
 
 	var callArray []*big.Int
-	switch {
-	case account.version == 0:
-		callArray = fmtV0Calldata(details.Nonce, calls)
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		callArray = fmtCalldata(calls)
 	default:
 		return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -194,22 +174,12 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 	}
 
 	var multiHashData []*big.Int
-	switch {
-	case account.version == 0:
+	switch account.version {
+	case 1:
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			big.NewInt(int64(account.version)),
-			types.SNValToBN(account.AccountAddress),
-			types.GetSelectorFromName(EXECUTE_SELECTOR),
-			cdHash,
-			details.MaxFee,
-			types.UTF8StrToBig(account.chainId),
-		}
-	case account.version == 1:
-		multiHashData = []*big.Int{
-			types.UTF8StrToBig(TRANSACTION_PREFIX),
-			big.NewInt(int64(account.version)),
-			types.SNValToBN(account.AccountAddress),
+			account.AccountAddress.Big(),
 			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
@@ -224,10 +194,8 @@ func (account *Account) TransactionHash(calls []types.FunctionCall, details type
 
 func (account *Account) estimateFeeHash(calls []types.FunctionCall, details types.ExecuteDetails, version *big.Int) (*big.Int, error) {
 	var callArray []*big.Int
-	switch {
-	case account.version == 0:
-		callArray = fmtV0Calldata(details.Nonce, calls)
-	case account.version == 1:
+	switch account.version {
+	case 1:
 		callArray = fmtCalldata(calls)
 	default:
 		return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -237,22 +205,12 @@ func (account *Account) estimateFeeHash(calls []types.FunctionCall, details type
 		return nil, err
 	}
 	var multiHashData []*big.Int
-	switch {
-	case account.version == 0:
+	switch account.version {
+	case 1:
 		multiHashData = []*big.Int{
 			types.UTF8StrToBig(TRANSACTION_PREFIX),
 			version,
-			types.SNValToBN(account.AccountAddress),
-			types.GetSelectorFromName(EXECUTE_SELECTOR),
-			cdHash,
-			details.MaxFee,
-			types.UTF8StrToBig(account.chainId),
-		}
-	case account.version == 1:
-		multiHashData = []*big.Int{
-			types.UTF8StrToBig(TRANSACTION_PREFIX),
-			version,
-			types.SNValToBN(account.AccountAddress),
+			account.AccountAddress.Big(),
 			big.NewInt(0),
 			cdHash,
 			details.MaxFee,
@@ -267,73 +225,13 @@ func (account *Account) estimateFeeHash(calls []types.FunctionCall, details type
 
 func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	switch account.version {
-	case 0:
-		switch account.provider {
-		case ProviderRPCv01:
-			nonce, err := account.rpcv01.Call(
-				ctx,
-				types.FunctionCall{
-					ContractAddress:    types.HexToHash(account.AccountAddress),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
-				},
-				rpcv01.WithBlockTag("latest"),
-			)
-			if err != nil {
-				return nil, err
-			}
-			if len(nonce) == 0 {
-				return nil, errors.New("nonce error")
-			}
-			n, ok := big.NewInt(0).SetString(nonce[0], 0)
-			if !ok {
-				return nil, errors.New("nonce error")
-			}
-			return n, nil
-		case ProviderRPCv02:
-			nonce, err := account.rpcv02.Call(
-				ctx,
-				types.FunctionCall{
-					ContractAddress:    types.HexToHash(account.AccountAddress),
-					EntryPointSelector: "get_nonce",
-					Calldata:           []string{},
-				},
-				rpcv02.WithBlockTag("latest"),
-			)
-			if err != nil {
-				return nil, err
-			}
-			if len(nonce) == 0 {
-				return nil, errors.New("nonce error")
-			}
-			n, ok := big.NewInt(0).SetString(nonce[0], 0)
-			if !ok {
-				return nil, errors.New("nonce error")
-			}
-			return n, nil
-		case ProviderGateway:
-			return account.sequencer.AccountNonce(ctx, types.HexToHash(account.AccountAddress))
-		}
 	case 1:
 		switch account.provider {
-		case ProviderRPCv01:
-			nonce, err := account.rpcv01.Nonce(
-				ctx,
-				types.HexToHash(account.AccountAddress),
-			)
-			if err != nil {
-				return nil, err
-			}
-			n, ok := big.NewInt(0).SetString(*nonce, 0)
-			if !ok {
-				return nil, errors.New("nonce error")
-			}
-			return n, nil
 		case ProviderRPCv02:
 			nonce, err := account.rpcv02.Nonce(
 				ctx,
 				rpcv02.WithBlockTag("latest"),
-				types.HexToHash(account.AccountAddress),
+				account.AccountAddress,
 			)
 			if err != nil {
 				return nil, err
@@ -344,7 +242,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 			}
 			return n, nil
 		case ProviderGateway:
-			return account.sequencer.Nonce(ctx, account.AccountAddress, "latest")
+			return account.sequencer.Nonce(ctx, account.AccountAddress.String(), "latest")
 		}
 	}
 	return nil, fmt.Errorf("version %d unsupported", account.version)
@@ -406,34 +304,21 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 			return nil, err
 		}
 	}
-	s1, s2, err := account.Sign(txHash)
+	s1, s2, err := account.ks.Sign(ctx, account.sender.String(), txHash)
 	if err != nil {
 		return nil, err
 	}
+
 	switch account.version {
-	case 0:
-		calldata := fmtV0CalldataStrings(nonce, calls)
-		return &types.FunctionInvoke{
-			MaxFee:    maxFee,
-			Version:   version,
-			Signature: types.Signature{s1, s2},
-			FunctionCall: types.FunctionCall{
-				ContractAddress:    types.HexToHash(account.AccountAddress),
-				EntryPointSelector: EXECUTE_SELECTOR,
-				Calldata:           calldata,
-			},
-		}, nil
 	case 1:
 		calldata := fmtCalldataStrings(calls)
 		return &types.FunctionInvoke{
-			MaxFee:    maxFee,
-			Version:   version,
-			Signature: types.Signature{s1, s2},
-			FunctionCall: types.FunctionCall{
-				ContractAddress: types.HexToHash(account.AccountAddress),
-				Calldata:        calldata,
-			},
-			Nonce: nonce,
+			MaxFee:        maxFee,
+			Version:       version,
+			Signature:     types.Signature{s1, s2},
+			SenderAddress: account.AccountAddress,
+			Calldata:      calldata,
+			Nonce:         nonce,
 		}, nil
 	}
 	return nil, ErrUnsupportedAccount
@@ -445,26 +330,14 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		return nil, err
 	}
 	switch account.provider {
-	case ProviderRPCv01:
-		return account.rpcv01.EstimateFee(ctx, *call, rpcv01.WithBlockTag("latest"))
 	case ProviderRPCv02:
 		signature := []string{}
 		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
+			signature = append(signature, fmt.Sprintf("0x%x", v))
 		}
 		switch account.version {
-		case 0:
-			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV0Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV0,
-					Signature: signature,
-					Type:      "INVOKE",
-				},
-				FunctionCall: call.FunctionCall,
-			}, rpcv02.WithBlockTag("latest"))
 		case 1:
-			return account.rpcv02.EstimateFee(ctx, rpcv02.BroadcastedInvokeV1Transaction{
+			estimates, err := account.rpcv02.EstimateFee(ctx, []rpcv02.BroadcastedTransaction{rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
 					Version:   rpcv02.TransactionV1,
@@ -472,9 +345,13 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				Calldata:      call.FunctionCall.Calldata,
-				SenderAddress: types.HexToHash(account.AccountAddress),
-			}, rpcv02.WithBlockTag("latest"))
+				Calldata:      call.Calldata,
+				SenderAddress: account.AccountAddress,
+			}}, rpcv02.WithBlockTag("latest"))
+			if err != nil {
+				return nil, err
+			}
+			return &estimates[0], nil
 		}
 	case ProviderGateway:
 		return account.sequencer.EstimateFee(ctx, *call, "latest")
@@ -502,35 +379,12 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		return nil, err
 	}
 	switch account.provider {
-	case ProviderRPCv01:
-		signature := []string{}
-		for _, k := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%s", k.Text(16)))
-		}
-		return account.rpcv01.AddInvokeTransaction(
-			context.Background(),
-			call.FunctionCall,
-			signature,
-			fmt.Sprintf("0x%s", maxFee.Text(16)),
-			fmt.Sprintf("0x%d", account.version),
-			call.Nonce,
-		)
 	case ProviderRPCv02:
 		signature := []string{}
 		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%s", v.Text(16)))
+			signature = append(signature, fmt.Sprintf("0x%x", v))
 		}
 		switch account.version {
-		case 0:
-			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV0Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV0,
-					Signature: signature,
-					Type:      "INVOKE",
-				},
-				FunctionCall: call.FunctionCall,
-			})
 		case 1:
 			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
@@ -540,8 +394,8 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
-				SenderAddress: types.HexToHash(account.AccountAddress),
-				Calldata:      call.FunctionCall.Calldata,
+				SenderAddress: account.AccountAddress,
+				Calldata:      call.Calldata,
 			})
 		}
 	case ProviderGateway:
@@ -551,4 +405,147 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		)
 	}
 	return nil, ErrUnsupportedAccount
+}
+
+func (account *Account) Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+	switch account.provider {
+	case ProviderRPCv02:
+		panic("unsupported")
+	case ProviderGateway:
+		version := big.NewInt(1)
+		nonce := details.Nonce
+		var err error
+		if details.Nonce == nil {
+			nonce, err = account.Nonce(ctx)
+			if err != nil {
+				return types.AddDeclareResponse{}, err
+			}
+		}
+		// TODO: use max fee estimation instead
+		maxFee := MAX_FEE
+		if details.MaxFee != nil {
+			maxFee = details.MaxFee
+		}
+
+		// TODO: extract as declareHash
+		hash, _ := big.NewInt(0).SetString(classHash, 0)
+		calldataHash, err := Curve.ComputeHashOnElements([]*big.Int{hash})
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+		var multiHashData []*big.Int
+		switch account.version {
+		case 1:
+			multiHashData = []*big.Int{
+				types.UTF8StrToBig(DECLARE_PREFIX),
+				version,
+				account.AccountAddress.Big(),
+				big.NewInt(0),
+				calldataHash,
+				maxFee,
+				types.UTF8StrToBig(account.chainId),
+				nonce, // TODO: also include compiledClassHash for cairo 1.0?
+			}
+		default:
+			return types.AddDeclareResponse{}, fmt.Errorf("version %d unsupported", account.version)
+		}
+		txHash, err := Curve.ComputeHashOnElements(multiHashData)
+		// TODO: end extract as declareHash
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+
+		s1, s2, err := account.ks.Sign(ctx, account.sender.String(), txHash)
+		if err != nil {
+			return types.AddDeclareResponse{}, err
+		}
+		signature := []string{}
+		signature = append(signature, s1.String())
+		signature = append(signature, s2.String())
+
+		request := gateway.DeclareRequest{
+			SenderAddress: account.AccountAddress,
+			Version:       fmt.Sprintf("0x%x", version),
+			MaxFee:        fmt.Sprintf("0x%x", maxFee),
+			Nonce:         fmt.Sprintf("0x%x", nonce),
+			Signature:     signature,
+			ContractClass: contract,
+			Type:          "DECLARE",
+		}
+		return account.sequencer.Declare(ctx, contract, request)
+	}
+	return types.AddDeclareResponse{}, ErrUnsupportedAccount
+}
+
+// Deploys a declared contract using the UDC.
+// TODO: use types.DeployRequest{} as input for salt + calldata (remove contract_definition)
+func (account *Account) Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error) {
+	// TODO: allow passing salt in
+	salt, err := Curve.GetRandomPrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	unique := true
+	calldata := []string{}
+
+	uniqueInt := big.NewInt(0)
+	if unique {
+		uniqueInt = big.NewInt(1)
+	}
+
+	deployerAddress := types.StrToFelt("0x41a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf") // UDC
+	tx, err := account.Execute(ctx, []types.FunctionCall{
+		{
+			ContractAddress:    deployerAddress,
+			EntryPointSelector: "deployContract",
+			Calldata: append([]string{
+				classHash,
+				fmt.Sprintf("0x%x", salt),
+				fmt.Sprintf("0x%x", uniqueInt), // unique
+				fmt.Sprintf("0x%x", len(calldata)),
+			}, calldata...),
+		},
+	}, details)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate the resulting contract address
+	constructorCalldata := []*big.Int{}
+	for _, value := range calldata {
+		constructorCalldata = append(constructorCalldata, types.SNValToBN(value))
+	}
+	constructorCalldataHash, err := Curve.ComputeHashOnElements(constructorCalldata)
+	if err != nil {
+		return nil, err
+	}
+
+	if unique {
+		salt, err = Curve.PedersenHash([]*big.Int{
+			account.AccountAddress.Big(),
+			salt,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	prefix := types.HexToBN("0x535441524b4e45545f434f4e54524143545f41444452455353")
+
+	contractAddress, err := Curve.ComputeHashOnElements([]*big.Int{
+		prefix,                // CONTRACT_ADDRESS_PREFIX
+		deployerAddress.Big(), // TODO: 0 if !unique
+		salt,
+		types.HexToBN(classHash),
+		constructorCalldataHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AddDeployResponse{
+		TransactionHash: tx.TransactionHash,
+		ContractAddress: fmt.Sprintf("0x%x", contractAddress),
+	}, nil
 }

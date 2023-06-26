@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	ctypes "github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/artifacts"
+	ctypes "github.com/smartcontractkit/caigo/types"
 )
 
 const (
@@ -46,7 +46,7 @@ var counterCompiled = artifacts.CounterCompiled
 
 // TestCounter_DeployContract
 func TestCounter_DeployContract(t *testing.T) {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 
 	counterClass := ctypes.ContractClass{}
 	inputs := []string{}
@@ -62,7 +62,7 @@ func TestCounter_DeployContract(t *testing.T) {
 	if tx.ContractAddress != counterAddress {
 		t.Fatal("deploy should return counter address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, ctypes.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, ctypes.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

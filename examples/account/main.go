@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 var (
@@ -26,7 +26,7 @@ func main() {
 
 	// get count before tx
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(counterContract),
+		ContractAddress:    types.StrToFelt(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {
@@ -35,14 +35,17 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	account, err := caigo.NewGatewayAccount(privakeKey, address, gw)
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := privakeKey
+	ks.Put(fakeSenderAddress, types.SNValToBN(fakeSenderAddress))
+	account, err := caigo.NewGatewayAccount(fakeSenderAddress, address, ks, gw)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	increment := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterContract),
+			ContractAddress:    types.StrToFelt(counterContract),
 			EntryPointSelector: "increment",
 		},
 	}
@@ -71,7 +74,7 @@ func main() {
 
 	// get count after tx
 	callResp, err = gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(counterContract),
+		ContractAddress:    types.StrToFelt(counterContract),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {

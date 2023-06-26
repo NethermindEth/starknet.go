@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dontpanicdao/caigo/contracts"
-	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/smartcontractkit/caigo/contracts"
+	"github.com/smartcontractkit/caigo/gateway"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 // Start Devnet:
@@ -32,7 +32,7 @@ func main() {
 
 	// will fail w/o new seed
 	deployResponse, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
-		ContractAddressSalt: fmt.Sprintf("0x%x", time.Now().UnixNano()),
+		ContractAddressSalt: fmt.Sprintf("0x0%x", time.Now().UnixNano()),
 	})
 	if err != nil {
 		panic(err.Error())
@@ -55,7 +55,7 @@ func main() {
 
 	// call StarkNet contract
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(tx.Transaction.ContractAddress),
+		ContractAddress:    types.StrToFelt(tx.Transaction.ContractAddress),
 		EntryPointSelector: "get_count",
 	}, "")
 	if err != nil {

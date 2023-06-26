@@ -5,20 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
-
-//go:embed accountv0.json
-var AccountV0Compiled []byte
-
-//go:embed accountv0_plugin.json
-var AccountV0WithPluginCompiled []byte
-
-//go:embed pluginv0.json
-var PluginV0Compiled []byte
-
-//go:embed proxyv0.json
-var ProxyV0Compiled []byte
 
 //go:embed account.json
 var AccountCompiled []byte
@@ -53,7 +41,7 @@ func AccountV0Formater(accountHash, pluginHash, publicKey string) ([]string, err
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
 	calldata = append(calldata, initialize)
 	paramLen := "0x1"
 	if pluginHash != "" {
@@ -80,7 +68,8 @@ func AccountFormater(accountHash, pluginHash, publicKey string) ([]string, error
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
+
 	calldata = append(calldata, initialize)
 	calldata = append(calldata, "0x1")
 	calldata = append(calldata, publicKey)
@@ -94,7 +83,7 @@ func AccountPluginFormater(accountHash, pluginHash, publicKey string) ([]string,
 	calldata := []string{}
 	if accountHash != "" {
 		calldata = append(calldata, accountHash)
-		initialize := fmt.Sprintf("0x%s", types.GetSelectorFromName("initialize").Text(16))
+		initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
 		calldata = append(calldata, initialize)
 		calldata = append(calldata, "0x4")
 	}
@@ -115,32 +104,6 @@ type CompiledContract struct {
 type CompiledContracts map[string]map[bool]map[bool]CompiledContract
 
 var AccountContracts = CompiledContracts{
-	"v0": {
-		false: {
-			false: {
-				AccountCompiled: AccountV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-			true: {
-				AccountCompiled: AccountV0WithPluginCompiled,
-				PluginCompiled:  PluginV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-		},
-		true: {
-			false: {
-				AccountCompiled: AccountV0Compiled,
-				ProxyCompiled:   ProxyV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-			true: {
-				AccountCompiled: AccountV0WithPluginCompiled,
-				PluginCompiled:  PluginV0Compiled,
-				ProxyCompiled:   ProxyV0Compiled,
-				Formatter:       AccountV0Formater,
-			},
-		},
-	},
 	"v1": {
 		false: {
 			false: {

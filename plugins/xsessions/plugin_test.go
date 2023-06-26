@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/rpcv02"
+	"github.com/smartcontractkit/caigo/types"
 	"github.com/joho/godotenv"
 )
 
 // RegisterClass
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 
 	yeasayerClass := types.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
@@ -37,7 +37,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	}
 	fmt.Printf("plugin Class: %s\n", tx.ClassHash)
 	fmt.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -58,7 +58,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 	contractClass := types.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
@@ -74,7 +74,7 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	if !strings.HasPrefix(tx.ContractAddress, "0x") {
 		t.Fatal("deploy should return account address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -124,14 +124,14 @@ func MintEth(t *testing.T, accountAddress string) {
 
 // CheckEth
 func CheckEth(t *testing.T, accountAddress string) string {
-	provider := beforeEachRPCv01(t)
+	provider := beforeEachRPCv02(t)
 	ctx := context.Background()
 	output, err := provider.Call(ctx, types.FunctionCall{
-		ContractAddress:    types.HexToHash(devnetEth),
+		ContractAddress:    types.StrToFelt(devnetEth),
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},
 	},
-		rpcv01.WithBlockTag("latest"),
+		rpcv02.WithBlockTag("latest"),
 	)
 	if err != nil {
 		log.Fatal("could not call Eth", err)

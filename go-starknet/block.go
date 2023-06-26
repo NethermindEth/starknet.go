@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/smartcontractkit/caigo/gateway"
 	"github.com/urfave/cli/v2"
 )
 

@@ -4,20 +4,14 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", data.Text(16)))
+		calldataStrings = append(calldataStrings, fmt.Sprintf("0x%x", data))
 	}
-	return calldataStrings
-}
-
-func fmtV0CalldataStrings(nonce *big.Int, calls []types.FunctionCall) (calldataStrings []string) {
-	calldataStrings = fmtCalldataStrings(calls)
-	calldataStrings = append(calldataStrings, fmt.Sprintf("0x%s", nonce.Text(16)))
 	return calldataStrings
 }
 
@@ -28,7 +22,7 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 
 	for _, tx := range calls {
-		address, _ := big.NewInt(0).SetString(tx.ContractAddress.Hex(), 0)
+		address := tx.ContractAddress.Big()
 		callArray = append(callArray, address, types.GetSelectorFromName(tx.EntryPointSelector))
 
 		if len(tx.Calldata) == 0 {
@@ -45,14 +39,5 @@ func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 
 	callArray = append(callArray, big.NewInt(int64(len(calldataArray))))
 	callArray = append(callArray, calldataArray...)
-	return callArray
-}
-
-/*
-Formats the multicall transactions with v0 of OpenZeppelin contract
-*/
-func fmtV0Calldata(nonce *big.Int, calls []types.FunctionCall) (calldataArray []*big.Int) {
-	callArray := fmtCalldata(calls)
-	callArray = append(callArray, nonce)
 	return callArray
 }

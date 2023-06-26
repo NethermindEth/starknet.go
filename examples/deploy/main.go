@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo"
+	"github.com/smartcontractkit/caigo/artifacts"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 const (
@@ -62,7 +62,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	account, err := caigo.NewGatewayAccount(privateKey.String(), types.HexToHash(tx.Transaction.ContractAddress), gw)
+	account, err := caigo.NewGatewayAccount(privateKey.String(), types.StrToFelt(tx.Transaction.ContractAddress), gw)
 	if err != nil {
 		fmt.Println("can't create account:", err)
 		os.Exit(1)
@@ -171,7 +171,7 @@ func mint(gw *gateway.Gateway, account *caigo.Account, erc20address string) erro
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(erc20address),
+			ContractAddress:    types.StrToFelt(erc20address),
 			EntryPointSelector: "mint",
 			Calldata: []string{
 				account.Address.String(), // to
@@ -198,7 +198,7 @@ func transferFrom(gw *gateway.Gateway, account *caigo.Account, erc20address, oth
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(erc20address),
+			ContractAddress:    types.StrToFelt(erc20address),
 			EntryPointSelector: "transferFrom",
 			Calldata: []string{
 				account.Address.String(),             // sender
@@ -223,7 +223,7 @@ func transferFrom(gw *gateway.Gateway, account *caigo.Account, erc20address, oth
 // balanceOf returns the balance of the account at the accountAddress address.
 func balanceOf(gw *gateway.Gateway, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
-		ContractAddress:    types.HexToHash(erc20address),
+		ContractAddress:    types.StrToFelt(erc20address),
 		EntryPointSelector: "balanceOf",
 		Calldata: []string{
 			types.HexToBN(accountAddress).String(),

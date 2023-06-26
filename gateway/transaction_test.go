@@ -1,11 +1,12 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/smartcontractkit/caigo/gateway"
+	"github.com/smartcontractkit/caigo/types"
 )
 
 func TestTransaction(t *testing.T) {
@@ -14,10 +15,10 @@ func TestTransaction(t *testing.T) {
 	type testSetType struct {
 		TransactionIndex int
 		BlockNumber      int
-		Transaction      Transaction
+		Transaction      gateway.Transaction
 		BlockHash        string
 		Status           string
-		opts             TransactionOptions
+		opts             gateway.TransactionOptions
 	}
 
 	testSet := map[string][]testSetType{
@@ -26,7 +27,7 @@ func TestTransaction(t *testing.T) {
 			Status:      "ACCEPTED_ON_L1",
 			BlockNumber: 0,
 			BlockHash:   "0x7d328a71faf48c5c3857e99f20a77b18522480956d1cd5bff1ff2df3c8b427b",
-			opts:        TransactionOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
+			opts:        gateway.TransactionOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -50,14 +51,14 @@ func TestTransactionStatus(t *testing.T) {
 		TxFailureReason struct {
 			ErrorMessage string
 		}
-		opts TransactionStatusOptions
+		opts gateway.TransactionStatusOptions
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {},
 		"testnet": {{
 			TxStatus:  "ACCEPTED_ON_L1",
 			BlockHash: "0x7d328a71faf48c5c3857e99f20a77b18522480956d1cd5bff1ff2df3c8b427b",
-			opts:      TransactionStatusOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
+			opts:      gateway.TransactionStatusOptions{TransactionHash: "0x1822471b7751cbaf98a5cce0003181af95d588e38c958739213af59f389fdc5"}}},
 	}[testEnv]
 
 	for _, test := range testSet {
