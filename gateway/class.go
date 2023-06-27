@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // TODO: returns DeprecatedContractClass | SierraContractClass

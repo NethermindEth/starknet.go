@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // Class gets the contract class definition associated with the given hash.

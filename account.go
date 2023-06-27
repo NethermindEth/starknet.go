@@ -9,8 +9,8 @@ import (
 	"github.com/NethermindEth/caigo/gateway"
 	"github.com/NethermindEth/caigo/rpcv02"
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 var (

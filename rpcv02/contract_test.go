@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // TestClassAt tests code for a class.

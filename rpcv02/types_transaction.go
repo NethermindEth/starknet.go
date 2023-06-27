@@ -7,8 +7,8 @@ import (
 	"math/big"
 
 	types "github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 type TransactionHash struct {

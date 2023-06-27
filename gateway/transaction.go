@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/google/go-querystring/query"
 )
 

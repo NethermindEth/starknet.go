@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 type GatewayProvider struct {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	types "github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // TransactionByHash gets the details and status of a submitted transaction.

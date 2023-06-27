@@ -1,6 +1,6 @@
 package rpcv02
 
-import "github.com/NethermindEth/caigo/types/felt"
+import "github.com/NethermindEth/juno/core/felt"
 
 type Event struct {
 	FromAddress *felt.Felt `json:"from_address"`

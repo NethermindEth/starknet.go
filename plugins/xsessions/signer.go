@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/caigo"
 
 	ctypes "github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 var (

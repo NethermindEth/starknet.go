@@ -12,8 +12,8 @@ import (
 	"github.com/NethermindEth/caigo/gateway"
 	"github.com/NethermindEth/caigo/plugins/xsessions"
 	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessionPublicKey string) (*xsessions.SessionKeyToken, error) {

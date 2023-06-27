@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // BlockNumber gets the most recent accepted block number.

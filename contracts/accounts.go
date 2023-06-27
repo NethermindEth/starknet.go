@@ -13,8 +13,8 @@ import (
 	"github.com/NethermindEth/caigo/artifacts"
 	"github.com/NethermindEth/caigo/gateway"
 	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 type AccountManager struct {
