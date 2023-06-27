@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type Mail struct {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -15,7 +15,8 @@ var (
 
 // Provider provides the provider for caigo/rpc implementation.
 type Provider struct {
-	c callCloser
+	c       callCloser
+	chainID string
 }
 
 // NewProvider creates a *Provider from an existing `go-ethereum/rpc` *Client.
@@ -32,17 +33,17 @@ type api interface {
 	Call(ctx context.Context, call types.FunctionCall, block BlockID) ([]string, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash string) (*types.ContractClass, error)
-	ClassAt(ctx context.Context, blockID BlockID, contractAddress types.Hash) (*types.ContractClass, error)
-	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress types.Hash) (*string, error)
-	EstimateFee(ctx context.Context, request BroadcastedTransaction, blockID BlockID) (*types.FeeEstimate, error)
+	ClassAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*types.ContractClass, error)
+	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
+	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
-	Nonce(ctx context.Context, blockID BlockID, contractAddress types.Hash) (*string, error)
+	Nonce(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
-	StorageAt(ctx context.Context, contractAddress types.Hash, key string, blockID BlockID) (string, error)
+	StorageAt(ctx context.Context, contractAddress types.Felt, key string, blockID BlockID) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
-	TransactionByHash(ctx context.Context, hash types.Hash) (Transaction, error)
-	TransactionReceipt(ctx context.Context, transactionHash types.Hash) (TransactionReceipt, error)
+	TransactionByHash(ctx context.Context, hash types.Felt) (Transaction, error)
+	TransactionReceipt(ctx context.Context, transactionHash types.Felt) (TransactionReceipt, error)
 }
 
 var _ api = &Provider{}

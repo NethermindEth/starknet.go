@@ -1,13 +1,15 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
 	"log"
 	"testing"
+
+	"github.com/NethermindEth/caigo/gateway"
 )
 
 func Test_Block_Devnet(t *testing.T) {
-	gw := NewClient(WithChain("devnet"))
+	gw := gateway.NewClient(gateway.WithChain("devnet"))
 
 	type testSetType struct {
 		BlockNumber uint64
@@ -25,7 +27,7 @@ func Test_Block_Devnet(t *testing.T) {
 			log.Fatal("error starting test", err)
 		}
 		blockNumber := test.BlockNumber
-		block, _ := gw.Block(context.Background(), &BlockOptions{BlockNumber: &blockNumber})
+		block, _ := gw.Block(context.Background(), &gateway.BlockOptions{BlockNumber: &blockNumber})
 		if block.BlockNumber != int(test.BlockNumber) {
 			t.Fatal("block number should be 1")
 		}
@@ -40,7 +42,7 @@ func Test_Block(t *testing.T) {
 
 	type testSetType struct {
 		BlockHash string
-		opts      *BlockOptions
+		opts      *gateway.BlockOptions
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {},
@@ -49,11 +51,11 @@ func Test_Block(t *testing.T) {
 			// (1) Marshal the block back into a []byte and (2) compare it with the original message
 			// check "github.com/nsf/jsondiff" for ideas how to do that.
 			BlockHash: "0x57f5102f7c61826926a4d76e544d2272cad091aa4e4b12e8e3e2120a220bd11",
-			opts:      &BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 159179; return &v }()}}},
+			opts:      &gateway.BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 159179; return &v }()}}},
 
 		"mainnet": {{
 			BlockHash: "0x3bb30a6d1a3b6dcbc935b18c976126ab8d1fea60ef055be3c78530624824d50",
-			opts:      &BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 5879; return &v }()},
+			opts:      &gateway.BlockOptions{BlockNumber: func() *uint64 { var v uint64 = 5879; return &v }()},
 		}},
 	}[testEnv]
 

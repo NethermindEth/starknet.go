@@ -1,9 +1,8 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -11,14 +10,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/test"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/test"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/joho/godotenv"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	client         *Gateway
+	client         *gateway.Gateway
 	base           string
 	privateKey     string
 	accountAddress string
@@ -45,28 +46,64 @@ var (
 )
 
 func setupDevnet(ctx context.Context) error {
-	provider := NewClient(WithBaseURL(testConfigurations["devnet"].base))
+	provider := gateway.NewProvider(gateway.WithBaseURL(testConfigurations["devnet"].base))
+
+	v, err := test.NewDevNet().Accounts()
+	if err != nil {
+		return fmt.Errorf("could not connect to devnet: %v", err)
+	}
+
 	contract := types.ContractClass{}
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
-	tx, err := provider.Deploy(ctx, contract, types.DeployRequest{})
+	ks := caigo.NewMemKeystore()
+	account, err := caigo.NewGatewayAccount(
+		types.StrToFelt(v[0].PrivateKey),
+		types.StrToFelt(v[0].Address),
+		ks,
+		provider,
+		caigo.AccountVersion1,
+	)
 	if err != nil {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 		return err
 	}
-	counterAddress = tx.ContractAddress
-	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+
+	// starknet-class-hash --deprecated counter.json
+	classHash := "0x36a03c54ac060f8083f1d1254ca824ae36bc73222a81a851a91ac0c36d852d6"
+
+	// declare
+	declare, err := account.Declare(ctx, classHash, contract, types.ExecuteDetails{})
 	if err != nil {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return err
+	}
+	_, receipt, err := provider.WaitForTransaction(ctx, declare.TransactionHash, 3, 10)
+	if err != nil {
+		log.Printf("transaction Hash: %s\n", declare.TransactionHash)
 		return err
 	}
 	if receipt.Status == types.TransactionRejected {
-		log.Printf("contract address: %s\n", tx.ContractAddress)
+		log.Printf("transaction Hash: %s\n", declare.TransactionHash)
+		return fmt.Errorf("declare rejected: %+v", receipt.TransactionFailureReason)
+	}
+
+	// deploy
+	tx, err := account.Deploy(ctx, classHash, types.ExecuteDetails{})
+	if err != nil {
+		return err
+	}
+	counterAddress = tx.ContractAddress
+	_, receipt, err = provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	if err != nil {
+		// log.Printf("contract address: %s\n", tx.ContractAddress)
 		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-		return errors.New("deployed rejected")
+		return err
+	}
+	fmt.Printf("receipt: %+v\n", receipt.Events[0])
+	fmt.Printf("receipt: %+v\n", receipt)
+	if receipt.Status == types.TransactionRejected {
+		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
+		return fmt.Errorf("deployed rejected: %+v", receipt.TransactionFailureReason)
 	}
 	return nil
 }
@@ -94,8 +131,8 @@ func beforeEach(t *testing.T) *testConfiguration {
 	}
 	switch testEnv {
 	case "mock":
-		testConfig.client = &Gateway{
-			client: &httpMock{},
+		testConfig.client = &gateway.Gateway{
+			Client: &httpMock{},
 		}
 	case "devnet":
 		v, err := test.NewDevNet().Accounts()
@@ -105,9 +142,9 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.privateKey = v[0].PrivateKey
 		testConfig.publicKey = v[0].PublicKey
 		testConfig.accountAddress = v[0].Address
-		testConfig.client = NewClient(WithChain(testEnv))
+		testConfig.client = gateway.NewClient(gateway.WithChain(testEnv))
 	default:
-		testConfig.client = NewClient(WithChain(testEnv))
+		testConfig.client = gateway.NewClient(gateway.WithChain(testEnv))
 	}
 	t.Cleanup(func() {
 	})
@@ -129,7 +166,7 @@ func TestGateway(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		block, err := testConfig.client.Block(context.Background(), &BlockOptions{BlockHash: test.BlockHash})
+		block, err := testConfig.client.Block(context.Background(), &gateway.BlockOptions{BlockHash: test.BlockHash})
 
 		if err != nil {
 			t.Fatal(err)

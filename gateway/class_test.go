@@ -1,12 +1,14 @@
-package gateway
+package gateway_test
 
 import (
 	"context"
 	"testing"
+
+	"github.com/NethermindEth/caigo/gateway"
 )
 
 func TestClassByHash(t *testing.T) {
-	gw := NewClient()
+	gw := gateway.NewClient()
 
 	class, err := gw.ClassByHash(context.Background(), "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918")
 	if err != nil {
@@ -19,7 +21,7 @@ func TestClassByHash(t *testing.T) {
 }
 
 func TestClassHashAt(t *testing.T) {
-	gw := NewClient()
+	gw := gateway.NewClient()
 
 	classHash, err := gw.ClassHashAt(context.Background(), "0x0126dd900b82c7fc95e8851f9c64d0600992e82657388a48d3c466553d4d9246")
 	if err != nil {

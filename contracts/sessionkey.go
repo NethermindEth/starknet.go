@@ -8,11 +8,10 @@ import (
 
 	_ "embed"
 
-	"github.com/dontpanicdao/caigo"
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/plugins/xsessions"
-	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/plugins/xsessions"
+	"github.com/NethermindEth/caigo/types"
 )
 
 func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessionPublicKey string) (*xsessions.SessionKeyToken, error) {
@@ -29,106 +28,74 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 	)
 }
 
-func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
-	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
-	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
+// func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv02.Provider) (string, error) {
+// 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
+// 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
 
-	signedSessionKey, err := signSessionKey(ap.PrivateKey, ap.AccountAddress, counterAddress, "increment", types.BigToHex(sessionPublicKey))
-	if err != nil {
-		return "", err
-	}
-	plugin := xsessions.WithSessionKeyPlugin(
-		ap.PluginClassHash,
-		signedSessionKey,
-	)
+// 	signedSessionKey, err := signSessionKey(ap.PrivateKey, ap.AccountAddress, counterAddress, "increment", types.BigToHex(sessionPublicKey))
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	plugin := xsessions.WithSessionKeyPlugin(
+// 		ap.PluginClassHash,
+// 		signedSessionKey,
+// 	)
+// 	v := caigo.AccountVersion0
+// 	if ap.Version == "v1" {
+// 		v = caigo.AccountVersion1
+// 	}
+// 	account, err := caigo.NewRPCAccount(
+// 		types.BigToHex(sessionPrivateKey),
+// 		ap.AccountAddress,
+// 		provider,
+// 		plugin,
+// 		v,
+// 	)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	calls := []types.FunctionCall{
+// 		{
+// 			ContractAddress:    types.StrToFelt(counterAddress),
+// 			EntryPointSelector: "increment",
+// 			Calldata:           []string{},
+// 		},
+// 	}
+// 	ctx := context.Background()
+// 	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
+// 	if err != nil {
+// 		log.Printf("could not execute transaction %v\n", err)
+// 		return "", err
+// 	}
+// 	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
+// 	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
+// 	if err != nil {
+// 		log.Printf("could not execute transaction %v\n", err)
+// 		return tx.TransactionHash, err
+// 	}
+// 	if status != types.TransactionAcceptedOnL2 {
+// 		log.Printf("transaction has failed with %s", status)
+// 		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
+// 	}
+// 	return tx.TransactionHash, nil
+// }
+
+func (ap *AccountManager) ExecuteWithGateway(counterAddress types.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
 	}
-	account, err := caigo.NewRPCAccount(
-		types.BigToHex(sessionPrivateKey),
-		ap.AccountAddress,
-		provider,
-		plugin,
-		v,
-	)
-	if err != nil {
-		return "", err
-	}
-	calls := []types.FunctionCall{
-		{
-			ContractAddress:    types.HexToHash(counterAddress),
-			EntryPointSelector: "increment",
-			Calldata:           []string{},
-		},
-	}
-	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return "", err
-	}
-	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return tx.TransactionHash, err
-	}
-	if status != types.TransactionAcceptedOnL2 {
-		log.Printf("transaction has failed with %s", status)
-		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
-	}
-	return tx.TransactionHash, nil
-}
-
-func (ap *AccountManager) ExecuteWithRPCv01(counterAddress, selector string, provider *rpcv01.Provider) (string, error) {
-	v := caigo.AccountVersion0
-	if ap.Version == "v1" {
-		v = caigo.AccountVersion1
-	}
-	account, err := caigo.NewRPCAccount(
-		ap.PrivateKey,
-		ap.AccountAddress,
-		provider,
-		v,
-	)
-	if err != nil {
-		return "", err
-	}
-	calls := []types.FunctionCall{
-		{
-			ContractAddress:    types.HexToHash(counterAddress),
-			EntryPointSelector: "increment",
-			Calldata:           []string{},
-		},
-	}
-	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return "", err
-	}
-	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.HexToHash(tx.TransactionHash), 8*time.Second)
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return tx.TransactionHash, err
-	}
-	if status != types.TransactionAcceptedOnL2 {
-		log.Printf("transaction has failed with %s", status)
-		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", status)
-	}
-	return tx.TransactionHash, nil
-}
-
-func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, provider *gateway.GatewayProvider) (string, error) {
-	v := caigo.AccountVersion0
-	if ap.Version == "v1" {
-		v = caigo.AccountVersion1
-	}
+	// shim in  the keystore. while weird and awkward, it's functionally ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
-		ap.AccountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(ap.AccountAddress),
+		ks,
 		provider,
 		v,
 	)
@@ -137,7 +104,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.HexToHash(counterAddress),
+			ContractAddress:    counterAddress,
 			EntryPointSelector: "increment",
 			Calldata:           []string{},
 		},
@@ -162,9 +129,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress, selector string, pr
 }
 
 func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
+	//  shim in  the keystore. while weird and awkward, it's functionally ok because
+	// 1. account manager doesn't seem to be used any where
+	// 2. the account that is created below is scoped to this func
+	ks := caigo.NewMemKeystore()
+	fakeSenderAddress := ap.PrivateKey
+	k := types.SNValToBN(ap.PrivateKey)
+	ks.Put(fakeSenderAddress, k)
 	account, err := caigo.NewGatewayAccount(
-		ap.PrivateKey,
-		ap.AccountAddress,
+		types.StrToFelt(fakeSenderAddress),
+		types.StrToFelt(ap.AccountAddress),
+		ks,
 		provider,
 	)
 	if err != nil {

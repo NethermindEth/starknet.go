@@ -37,8 +37,8 @@ attention to the 2 interfaces, even if the implementations are specific.
 supports `v0.1`. However to provide a smooth upgrade the plan is to support
 both in parallel. That is why the current package names are:
 
-- `github.com/dontpanicdao/caigo/rpcv01` for the v0.1 implementation
-- `github.com/dontpanicdao/caigo/rpcv02` for the v0.2 implementation
+- `github.com/NethermindEth/caigo/rpcv01` for the v0.1 implementation
+- `github.com/NethermindEth/caigo/rpcv02` for the v0.2 implementation
 
 ## Where do I find resources about the protocol specifications?
 

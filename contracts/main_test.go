@@ -7,9 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/gateway"
-	"github.com/dontpanicdao/caigo/rpcv01"
-	"github.com/dontpanicdao/caigo/rpcv02"
+	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/caigo/rpcv02"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
@@ -27,7 +26,6 @@ func TestMain(m *testing.M) {
 }
 
 type testConfiguration struct {
-	rpcv01     *rpcv01.Provider
 	rpcv02     *rpcv02.Provider
 	gateway    *gateway.GatewayProvider
 	RPCBaseURL string
@@ -55,8 +53,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 		if err != nil {
 			t.Fatal("connect should succeed, instead:", err)
 		}
-		clientv01 := rpcv01.NewProvider(c)
-		testConfig.rpcv01 = clientv01
 		clientv02 := rpcv02.NewProvider(c)
 		testConfig.rpcv02 = clientv02
 		gw := gateway.NewProvider(gateway.WithBaseURL(testConfig.GWBaseURL))

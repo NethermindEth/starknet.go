@@ -3,8 +3,8 @@
 </div>
 
 <p align="center">
-    <a href="https://pkg.go.dev/github.com/dontpanicdao/caigo">
-        <img src="https://pkg.go.dev/badge/github.com/dontpanicdao/caigo.svg" alt="Go Reference">
+    <a href="https://pkg.go.dev/github.com/NethermindEth/caigo">
+        <img src="https://pkg.go.dev/badge/github.com/NethermindEth/caigo.svg" alt="Go Reference">
     </a>
     <a href="https://github.com/nethermindeth/caigo/blob/main/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-black">
@@ -44,7 +44,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 
 # Getting Started
 
-- library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/dontpanicdao/caigo).
+- library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/caigo).
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
 - [contract example](./examples/contract) for smart contract deployment and function call
 - [account example](./examples/contract) for Account initialization and invocation call

@@ -1,10 +1,10 @@
-module github.com/dontpanicdao/caigo/examples/contract
+module github.com/NethermindEth/caigo/examples/contract
 
 go 1.18
 
-replace github.com/dontpanicdao/caigo => ../../
+replace github.com/NethermindEth/caigo => ../../
 
-require github.com/dontpanicdao/caigo v0.3.1
+require github.com/NethermindEth/caigo v0.3.1
 
 require (
 	github.com/google/go-querystring v1.1.0 // indirect

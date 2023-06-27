@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/artifacts"
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/artifacts"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction
@@ -55,7 +55,7 @@ func TestDeclareTransaction(t *testing.T) {
 				Signature: test.Signature,
 			},
 			ContractClass: contractClass,
-			SenderAddress: types.HexToHash(TestNetAccount040Address),
+			SenderAddress: types.StrToFelt(TestNetAccount040Address),
 		}
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTransaction)
 		if err != nil {

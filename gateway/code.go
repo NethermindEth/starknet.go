@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type Bytecode []string

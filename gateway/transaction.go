@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -38,12 +38,13 @@ type Transaction struct {
 }
 
 type TransactionReceipt struct {
-	Status                types.TransactionState `json:"status"`
-	BlockHash             string                 `json:"block_hash"`
-	BlockNumber           int                    `json:"block_number"`
-	TransactionIndex      int                    `json:"transaction_index"`
-	TransactionHash       string                 `json:"transaction_hash"`
-	L1ToL2ConsumedMessage struct {
+	Status                   types.TransactionState    `json:"status"`
+	BlockHash                string                    `json:"block_hash"`
+	BlockNumber              int                       `json:"block_number"`
+	TransactionFailureReason *TransactionFailureReason `json:"transaction_failure_reason,omitempty"`
+	TransactionIndex         int                       `json:"transaction_index"`
+	TransactionHash          string                    `json:"transaction_hash"`
+	L1ToL2ConsumedMessage    struct {
 		FromAddress string   `json:"from_address"`
 		ToAddress   string   `json:"to_address"`
 		Selector    string   `json:"selector"`
@@ -52,6 +53,11 @@ type TransactionReceipt struct {
 	L2ToL1Messages     []interface{}      `json:"l2_to_l1_messages"`
 	Events             []interface{}      `json:"events"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
+}
+
+type TransactionFailureReason struct {
+	Code         string `json:"code"`
+	ErrorMessage string `json:"error_message"`
 }
 
 type ExecutionResources struct {
@@ -231,25 +237,25 @@ func (gw *Gateway) WaitForTransaction(ctx context.Context, txHash string, interv
 }
 
 type L1Message struct {
-	ToAddress string        `json:"to_address,omitempty"`
-	Payload   []*types.Felt `json:"payload,omitempty"`
+	ToAddress string       `json:"to_address,omitempty"`
+	Payload   []types.Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
-	FromAddress string        `json:"from_address,omitempty"`
-	Payload     []*types.Felt `json:"payload,omitempty"`
+	FromAddress string       `json:"from_address,omitempty"`
+	Payload     []types.Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
-	Order       int           `json:"order,omitempty"`
-	FromAddress string        `json:"from_address,omitempty"`
-	Keys        []*types.Felt `json:"keys,omitempty"`
-	Data        []*types.Felt `json:"data,omitempty"`
+	Order       int          `json:"order,omitempty"`
+	FromAddress string       `json:"from_address,omitempty"`
+	Keys        []types.Felt `json:"keys,omitempty"`
+	Data        []types.Felt `json:"data,omitempty"`
 }
 
 type TransactionTrace struct {
 	FunctionInvocation FunctionInvocation `json:"function_invocation"`
-	Signature          []*types.Felt      `json:"signature"`
+	Signature          []types.Felt       `json:"signature"`
 }
 
 type FunctionInvocation struct {

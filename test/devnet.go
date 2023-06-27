@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type DevNet struct {
@@ -71,14 +72,14 @@ func (devnet *DevNet) IsAlive() bool {
 }
 
 type MintResponse struct {
-	NewBalance uint64 `json:"new_balance"`
-	Unit       string `json:"unit"`
+	NewBalance *big.Int `json:"new_balance"`
+	Unit       string   `json:"unit"`
 }
 
-func (devnet *DevNet) Mint(address types.Hash, amount uint64) (*MintResponse, error) {
+func (devnet *DevNet) Mint(address types.Felt, amount *big.Int) (*MintResponse, error) {
 	data := struct {
-		Address types.Hash `json:"address"`
-		Amount  uint64     `json:"amount"`
+		Address types.Felt `json:"address"`
+		Amount  *big.Int   `json:"amount"`
 	}{
 		Address: address,
 		Amount:  amount,
@@ -107,7 +108,7 @@ func (devnet *DevNet) Mint(address types.Hash, amount uint64) (*MintResponse, er
 
 type FeeToken struct {
 	Symbol  string
-	Address types.Hash
+	Address types.Felt
 }
 
 func (devnet *DevNet) FeeToken() (*FeeToken, error) {

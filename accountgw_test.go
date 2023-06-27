@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 type TestAccountType struct {
@@ -27,29 +27,35 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		"devnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
 				EntryPointSelector: "increment",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
 				EntryPointSelector: "get_count",
-				ContractAddress:    types.HexToHash(testConfig.CounterAddress),
+				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
 			},
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
+		// shim a keystore into existing tests.
+		ks := NewMemKeystore()
+		fakeSenderAddress := testConfig.AccountPrivateKey
+		k := types.SNValToBN(testConfig.AccountPrivateKey)
+		ks.Put(fakeSenderAddress, k)
 		account, err := NewGatewayAccount(
-			testConfig.AccountPrivateKey,
-			testConfig.AccountAddress,
+			types.StrToFelt(fakeSenderAddress),
+			types.StrToFelt(testConfig.AccountAddress),
+			ks,
 			testConfig.client,
 			AccountVersion1)
 		if err != nil {

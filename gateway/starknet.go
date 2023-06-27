@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 	"github.com/google/go-querystring/query"
 )
 
@@ -44,7 +44,7 @@ type FunctionCall types.FunctionCall
 
 func (f FunctionCall) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
-	output["contract_address"] = f.ContractAddress.Hex()
+	output["contract_address"] = f.ContractAddress.String()
 	if f.EntryPointSelector != "" {
 		output["entry_point_selector"] = f.EntryPointSelector
 	}
@@ -102,16 +102,16 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 */
 func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*types.AddInvokeTransactionOutput, error) {
 	tx := Transaction{
-		Type:            INVOKE,
-		ContractAddress: invoke.ContractAddress.Hex(),
-		Version:         fmt.Sprintf("0x%d", invoke.Version),
-		MaxFee:          fmt.Sprintf("0x%s", invoke.MaxFee.Text(16)),
+		Type:          INVOKE,
+		SenderAddress: invoke.SenderAddress.String(),
+		Version:       fmt.Sprintf("0x%x", invoke.Version),
+		MaxFee:        fmt.Sprintf("0x%x", invoke.MaxFee),
 	}
 	if invoke.EntryPointSelector != "" {
 		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
 	}
 	if invoke.Nonce != nil {
-		tx.Nonce = fmt.Sprintf("0x%s", invoke.Nonce.Text(16))
+		tx.Nonce = fmt.Sprintf("0x%x", invoke.Nonce)
 	}
 
 	calldata := []string{}
@@ -140,26 +140,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
 func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
-	d := DeployRequest(deployRequest)
-	d.Type = DEPLOY
-	if len(d.ConstructorCalldata) == 0 {
-		d.ConstructorCalldata = []string{}
-	}
-	if d.ContractAddressSalt == "" {
-		d.ContractAddressSalt = "0x0"
-	}
-
-	d.ContractDefinition = contract
-	if err != nil {
-		return resp, err
-	}
-
-	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", d)
-	if err != nil {
-		return resp, err
-	}
-
-	return resp, sg.do(req, &resp)
+	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
 type DeployAccountRequest types.DeployAccountRequest
@@ -174,25 +155,23 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 		constructorCalldata = append(constructorCalldata, types.SNValToBN(value).Text(10))
 	}
 	output["constructor_calldata"] = constructorCalldata
-	output["max_fee"] = fmt.Sprintf("0x%s", d.MaxFee.Text(16))
-	output["version"] = fmt.Sprintf("0x%s", d.Version.Text(16))
+	output["max_fee"] = fmt.Sprintf("0x%x", d.MaxFee)
+	output["version"] = fmt.Sprintf("0x%x", d.Version)
 	signature := []string{}
 	for _, value := range d.Signature {
 		signature = append(signature, value.Text(10))
 	}
 	output["signature"] = signature
-	nonce := "0x0"
 	if d.Nonce != nil {
-		output["version"] = fmt.Sprintf("0x%s", d.Nonce.Text(16))
+		output["nonce"] = fmt.Sprintf("0x%x", d.Nonce)
 	}
-	output["nonce"] = nonce
 	output["type"] = "DEPLOY_ACCOUNT"
 	if d.ContractAddressSalt == "" {
 		d.ContractAddressSalt = "0x0"
 	}
-	contractAddressSalt := fmt.Sprintf("0x%s", types.SNValToBN(d.ContractAddressSalt).Text(16))
+	contractAddressSalt := fmt.Sprintf("0x%x", types.SNValToBN(d.ContractAddressSalt))
 	output["contract_address_salt"] = contractAddressSalt
-	classHash := fmt.Sprintf("0x%s", types.SNValToBN(d.ClassHash).Text(16))
+	classHash := fmt.Sprintf("0x%x", types.SNValToBN(d.ClassHash))
 	output["class_hash"] = classHash
 	return json.Marshal(output)
 }
@@ -217,14 +196,6 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 */
 func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
-	declareRequest.SenderAddress = "0x1"
-	declareRequest.MaxFee = "0x0"
-	declareRequest.Nonce = "0x0"
-	declareRequest.Signature = []string{}
-	declareRequest.ContractClass = contract
-	if err != nil {
-		return resp, err
-	}
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
 	if err != nil {
@@ -247,7 +218,8 @@ func (d DeployRequest) MarshalJSON() ([]byte, error) {
 
 type DeclareRequest struct {
 	Type          string              `json:"type"`
-	SenderAddress string              `json:"sender_address"`
+	SenderAddress types.Felt          `json:"sender_address"`
+	Version       string              `json:"version"`
 	MaxFee        string              `json:"max_fee"`
 	Nonce         string              `json:"nonce"`
 	Signature     []string            `json:"signature"`

@@ -6,13 +6,35 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"strings"
 )
 
 type EntryPoint struct {
 	// The offset of the entry point in the program
-	Offset NumAsHex `json:"offset"`
+	Offset LegacyEntryPointOffset `json:"offset"`
 	// A unique identifier of the entry point (function) in the program
 	Selector string `json:"selector"`
+}
+
+type LegacyEntryPointOffset uint64
+
+// NOTE: formatting changed from string to uint64 on starknet 0.11 but some responses still return string
+func (n *LegacyEntryPointOffset) UnmarshalJSON(content []byte) error {
+	var i uint64
+	if err := json.Unmarshal(content, &i); err != nil {
+		// attempt to parse as int
+		var s string
+		if err = json.Unmarshal(content, &s); err != nil {
+			return err
+		}
+		numStr := strings.Replace(s, "0x", "", -1)
+		b, _ := new(big.Int).SetString(numStr, 16)
+		*n = LegacyEntryPointOffset(b.Uint64())
+		return nil
+	}
+	*n = LegacyEntryPointOffset(i)
+	return nil
 }
 
 type ABI []ABIEntry

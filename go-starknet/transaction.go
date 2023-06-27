@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dontpanicdao/caigo/gateway"
+	"github.com/NethermindEth/caigo/gateway"
 	"github.com/urfave/cli/v2"
 )
 

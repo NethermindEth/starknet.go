@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/dontpanicdao/caigo/types"
+	"github.com/NethermindEth/caigo/types"
 )
 
 // TestCall tests Call
@@ -22,7 +22,7 @@ func TestCall(t *testing.T) {
 		"devnet": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0xbaaa96effb3564b6047e45944e8db9d9b0a056886d131038baabb56a959390"),
+					ContractAddress:    types.StrToFelt("0xbaaa96effb3564b6047e45944e8db9d9b0a056886d131038baabb56a959390"),
 					EntryPointSelector: "get_count",
 					Calldata:           []string{},
 				},
@@ -32,7 +32,7 @@ func TestCall(t *testing.T) {
 			{
 				FunctionCall: types.FunctionCall{
 					// ContractAddress of devnet ETH
-					ContractAddress:    types.HexToHash("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
+					ContractAddress:    types.StrToFelt("0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{DevNetAccount032Address},
 				},
@@ -43,7 +43,7 @@ func TestCall(t *testing.T) {
 		"mock": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0xdeadbeef"),
+					ContractAddress:    types.StrToFelt("0xdeadbeef"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},
@@ -54,7 +54,7 @@ func TestCall(t *testing.T) {
 		"testnet": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
+					ContractAddress:    types.StrToFelt("0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},
@@ -63,7 +63,7 @@ func TestCall(t *testing.T) {
 			},
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash(TestNetETHAddress),
+					ContractAddress:    types.StrToFelt(TestNetETHAddress),
 					EntryPointSelector: "balanceOf",
 					Calldata:           []string{"0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde"},
 				},
@@ -72,7 +72,7 @@ func TestCall(t *testing.T) {
 			},
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash(TestNetAccount032Address),
+					ContractAddress:    types.StrToFelt(TestNetAccount032Address),
 					EntryPointSelector: "get_nonce",
 					Calldata:           []string{},
 				},
@@ -83,7 +83,7 @@ func TestCall(t *testing.T) {
 		"mainnet": {
 			{
 				FunctionCall: types.FunctionCall{
-					ContractAddress:    types.HexToHash("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
+					ContractAddress:    types.StrToFelt("0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: "decimals",
 					Calldata:           []string{},
 				},
