@@ -3,9 +3,10 @@ package rpcv02
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
 )
 
 var ErrInvalidBlockID = errors.New("invalid blockid")
@@ -20,7 +21,7 @@ type BlockHashAndNumberOutput struct {
 // search types.
 type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
-	Hash   types.Felt `json:"block_hash,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
@@ -37,7 +38,7 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"block_number":%d}`, *b.Number)), nil
 	}
 
-	if b.Hash.Big().BitLen() != 0 {
+	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
 		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
 	}
 
@@ -89,7 +90,7 @@ type Block struct {
 
 type PendingBlock struct {
 	// ParentHash The hash of this block's parent
-	ParentHash types.Felt `json:"parent_hash"`
+	ParentHash *felt.Felt `json:"parent_hash"`
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
@@ -100,9 +101,9 @@ type PendingBlock struct {
 
 type BlockHeader struct {
 	// BlockHash The hash of this block
-	BlockHash types.Felt `json:"block_hash"`
+	BlockHash *felt.Felt `json:"block_hash"`
 	// ParentHash The hash of this block's parent
-	ParentHash types.Felt `json:"parent_hash"`
+	ParentHash *felt.Felt `json:"parent_hash"`
 	// BlockNumber the block number (its height)
 	BlockNumber uint64 `json:"block_number"`
 	// NewRoot The new global state root

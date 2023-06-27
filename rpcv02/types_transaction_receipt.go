@@ -6,16 +6,18 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/caigo/utils"
 )
 
 // CommonTransactionReceipt Common properties for a transaction receipt
 type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
-	TransactionHash types.Felt `json:"transaction_hash"`
+	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee    string                 `json:"actual_fee"`
 	Status       types.TransactionState `json:"status"`
-	BlockHash    types.Felt             `json:"block_hash"`
+	BlockHash    *felt.Felt             `json:"block_hash"`
 	BlockNumber  uint64                 `json:"block_number"`
 	Type         TransactionType        `json:"type,omitempty"`
 	MessagesSent []MsgToL1              `json:"messages_sent"`
@@ -23,7 +25,7 @@ type CommonTransactionReceipt struct {
 	Events []Event `json:"events"`
 }
 
-func (tr CommonTransactionReceipt) Hash() types.Felt {
+func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
@@ -69,14 +71,14 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 // InvokeTransactionReceipt Invoke Transaction Receipt
 type InvokeTransactionReceipt CommonTransactionReceipt
 
-func (tr InvokeTransactionReceipt) Hash() types.Felt {
+func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
 // DeclareTransactionReceipt Declare Transaction Receipt
 type DeclareTransactionReceipt CommonTransactionReceipt
 
-func (tr DeclareTransactionReceipt) Hash() types.Felt {
+func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
@@ -97,7 +99,7 @@ type DeployAccountTransactionReceipt struct {
 // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
 type L1HandlerTransactionReceipt CommonTransactionReceipt
 
-func (tr L1HandlerTransactionReceipt) Hash() types.Felt {
+func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
@@ -111,7 +113,7 @@ type PendingDeployTransactionReceipt struct {
 // PendingCommonTransactionReceipt Pending Transaction Receipt
 type PendingCommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
-	TransactionHash types.Felt `json:"transaction_hash"`
+	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee    string          `json:"actual_fee"`
 	Type         TransactionType `json:"type,omitempty"`
@@ -121,7 +123,7 @@ type PendingCommonTransactionReceipt struct {
 }
 
 type TransactionReceipt interface {
-	Hash() types.Felt
+	Hash() *felt.Felt
 }
 
 type MsgToL1 struct {
@@ -150,7 +152,12 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{types.StrToFelt(casted)}, nil
+		var txn InvokeTransactionReceipt
+		txhash, err := utils.HexToFelt(casted)
+		if err != nil {
+			return txn, err
+		}
+		return TransactionHash{txhash}, nil
 	case map[string]interface{}:
 		// NOTE(tvanas): Pathfinder 0.3.3 does not return
 		// transaction receipt types. We handle this by

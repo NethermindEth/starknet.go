@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -33,17 +34,17 @@ type api interface {
 	Call(ctx context.Context, call types.FunctionCall, block BlockID) ([]string, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash string) (*types.ContractClass, error)
-	ClassAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*types.ContractClass, error)
-	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
+	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*types.ContractClass, error)
+	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
-	Nonce(ctx context.Context, blockID BlockID, contractAddress types.Felt) (*string, error)
+	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
-	StorageAt(ctx context.Context, contractAddress types.Felt, key string, blockID BlockID) (string, error)
+	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
-	TransactionByHash(ctx context.Context, hash types.Felt) (Transaction, error)
-	TransactionReceipt(ctx context.Context, transactionHash types.Felt) (TransactionReceipt, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
+	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
 }
 
 var _ api = &Provider{}

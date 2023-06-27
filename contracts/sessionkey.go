@@ -12,6 +12,8 @@ import (
 	"github.com/NethermindEth/caigo/gateway"
 	"github.com/NethermindEth/caigo/plugins/xsessions"
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/caigo/utils"
 )
 
 func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessionPublicKey string) (*xsessions.SessionKeyToken, error) {
@@ -80,7 +82,7 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 	return tx.TransactionHash, nil
 // }
 
-func (ap *AccountManager) ExecuteWithGateway(counterAddress types.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
+func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
 	v := caigo.AccountVersion0
 	if ap.Version == "v1" {
 		v = caigo.AccountVersion1
@@ -92,9 +94,17 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress types.Felt, selector
 	fakeSenderAddress := ap.PrivateKey
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
+	fakeSenderAdd, err := utils.HexToFelt(fakeSenderAddress)
+	if err != nil {
+		return "", err
+	}
+	apAcntAdd, err := utils.HexToFelt(ap.AccountAddress)
+	if err != nil {
+		return "", err
+	}
 	account, err := caigo.NewGatewayAccount(
-		types.StrToFelt(fakeSenderAddress),
-		types.StrToFelt(ap.AccountAddress),
+		fakeSenderAdd,
+		apAcntAdd,
 		ks,
 		provider,
 		v,
@@ -136,9 +146,17 @@ func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gat
 	fakeSenderAddress := ap.PrivateKey
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
+	fakeSenderAdd, err := utils.HexToFelt(fakeSenderAddress)
+	if err != nil {
+		return nil, err
+	}
+	apAcntAdd, err := utils.HexToFelt(ap.AccountAddress)
+	if err != nil {
+		return nil, err
+	}
 	account, err := caigo.NewGatewayAccount(
-		types.StrToFelt(fakeSenderAddress),
-		types.StrToFelt(ap.AccountAddress),
+		fakeSenderAdd,
+		apAcntAdd,
 		ks,
 		provider,
 	)

@@ -13,7 +13,8 @@ import (
 	"github.com/NethermindEth/caigo/artifacts"
 	"github.com/NethermindEth/caigo/gateway"
 	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/caigo/utils"
 )
 
 type AccountManager struct {
@@ -48,7 +49,7 @@ func (ap *AccountManager) Write(filename string) error {
 
 type Provider interface {
 	declareAndWaitWithWallet(context context.Context, contractClass []byte) (*DeclareOutput, error)
-	deployAccountAndWaitNoWallet(ctx context.Context, classHash types.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
+	deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error)
 }
 
 const (
@@ -111,8 +112,13 @@ func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx
 		return nil, err
 	}
 	fmt.Println("d")
+	accountClassHashStr, err := utils.HexToFelt(accountClassHash)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: compiledDeploed could be proxy
-	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, types.StrToFelt(accountClassHash), compiledDeployed, publicKeyString, calldata)
+	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, accountClassHashStr, compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}

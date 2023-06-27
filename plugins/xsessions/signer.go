@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/caigo"
 
 	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
 )
 
 var (
@@ -15,13 +16,13 @@ var (
 )
 
 type SessionKeyPlugin struct {
-	accountAddress ctypes.Felt
+	accountAddress *felt.Felt
 	classHash      *big.Int
 	token          *SessionKeyToken
 }
 
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
-	return func(unused, address ctypes.Felt) (caigo.AccountOption, error) {
+	return func(unused, address *felt.Felt) (caigo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
 			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
@@ -57,9 +58,10 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
+
 	callkey, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 		POLICY_TYPE_HASH,
-		call.ContractAddress.Big(),
+		call.ContractAddress.BigInt(big.NewInt(0)),
 		ctypes.GetSelectorFromName(call.EntryPointSelector),
 	})
 	if err != nil {

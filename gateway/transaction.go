@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
 	"github.com/google/go-querystring/query"
 )
 
@@ -238,24 +239,24 @@ func (gw *Gateway) WaitForTransaction(ctx context.Context, txHash string, interv
 
 type L1Message struct {
 	ToAddress string       `json:"to_address,omitempty"`
-	Payload   []types.Felt `json:"payload,omitempty"`
+	Payload   []*felt.Felt `json:"payload,omitempty"`
 }
 
 type L2Message struct {
 	FromAddress string       `json:"from_address,omitempty"`
-	Payload     []types.Felt `json:"payload,omitempty"`
+	Payload     []*felt.Felt `json:"payload,omitempty"`
 }
 
 type Event struct {
 	Order       int          `json:"order,omitempty"`
 	FromAddress string       `json:"from_address,omitempty"`
-	Keys        []types.Felt `json:"keys,omitempty"`
-	Data        []types.Felt `json:"data,omitempty"`
+	Keys        []*felt.Felt `json:"keys,omitempty"`
+	Data        []*felt.Felt `json:"data,omitempty"`
 }
 
 type TransactionTrace struct {
 	FunctionInvocation FunctionInvocation `json:"function_invocation"`
-	Signature          []types.Felt       `json:"signature"`
+	Signature          []*felt.Felt       `json:"signature"`
 }
 
 type FunctionInvocation struct {

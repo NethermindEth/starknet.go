@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
 )
 
 type DevNet struct {
@@ -76,9 +76,9 @@ type MintResponse struct {
 	Unit       string   `json:"unit"`
 }
 
-func (devnet *DevNet) Mint(address types.Felt, amount *big.Int) (*MintResponse, error) {
+func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error) {
 	data := struct {
-		Address types.Felt `json:"address"`
+		Address *felt.Felt `json:"address"`
 		Amount  *big.Int   `json:"amount"`
 	}{
 		Address: address,
@@ -108,7 +108,7 @@ func (devnet *DevNet) Mint(address types.Felt, amount *big.Int) (*MintResponse, 
 
 type FeeToken struct {
 	Symbol  string
-	Address types.Felt
+	Address *felt.Felt
 }
 
 func (devnet *DevNet) FeeToken() (*FeeToken, error) {

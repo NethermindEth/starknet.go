@@ -7,13 +7,15 @@ import (
 	"math/big"
 
 	types "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/types/felt"
+	"github.com/NethermindEth/caigo/utils"
 )
 
 type TransactionHash struct {
-	TransactionHash types.Felt `json:"transaction_hash"`
+	TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 
-func (t TransactionHash) Hash() types.Felt {
+func (t TransactionHash) Hash() *felt.Felt {
 	return t.TransactionHash
 }
 
@@ -26,15 +28,15 @@ func (t TransactionHash) MarshalJSON() ([]byte, error) {
 }
 
 func (t TransactionHash) MarshalText() ([]byte, error) {
-	return t.TransactionHash.MarshalText()
+	return t.TransactionHash.MarshalJSON()
 }
 
 func (t *TransactionHash) UnmarshalText(input []byte) error {
-	return t.TransactionHash.UnmarshalText(input)
+	return t.TransactionHash.UnmarshalJSON(input)
 }
 
 type CommonTransaction struct {
-	TransactionHash types.Felt      `json:"transaction_hash,omitempty"`
+	TransactionHash *felt.Felt      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// MaxFee maximal fee that can be charged for including the transaction
 	MaxFee string `json:"max_fee,omitempty"`
@@ -48,45 +50,45 @@ type CommonTransaction struct {
 
 type InvokeTxnV0 struct {
 	CommonTransaction
-	ContractAddress    types.Felt `json:"contract_address"`
+	ContractAddress    *felt.Felt `json:"contract_address"`
 	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx InvokeTxnV0) Hash() types.Felt {
+func (tx InvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 type InvokeTxnV1 struct {
 	CommonTransaction
-	SenderAddress types.Felt `json:"sender_address"`
+	SenderAddress *felt.Felt `json:"sender_address"`
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx InvokeTxnV1) Hash() types.Felt {
+func (tx InvokeTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 type InvokeTxn interface{}
 
 type L1HandlerTxn struct {
-	TransactionHash types.Felt      `json:"transaction_hash,omitempty"`
+	TransactionHash *felt.Felt      `json:"transaction_hash,omitempty"`
 	Type            TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
 	Version types.NumAsHex `json:"version"`
 	// Nonce
 	Nonce              string     `json:"nonce,omitempty"`
-	ContractAddress    types.Felt `json:"contract_address"`
+	ContractAddress    *felt.Felt `json:"contract_address"`
 	EntryPointSelector string     `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
 }
 
-func (tx L1HandlerTxn) Hash() types.Felt {
+func (tx L1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
@@ -100,13 +102,13 @@ type DeclareTxn struct {
 	SenderAddress string `json:"sender_address"`
 }
 
-func (tx DeclareTxn) Hash() types.Felt {
+func (tx DeclareTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
-	TransactionHash types.Felt `json:"transaction_hash,omitempty"`
+	TransactionHash *felt.Felt `json:"transaction_hash,omitempty"`
 	// ClassHash The hash of the deployed contract's class
 	ClassHash string          `json:"class_hash"`
 	Type      TransactionType `json:"type,omitempty"`
@@ -118,12 +120,12 @@ type DeployTxn struct {
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-func (tx DeployTxn) Hash() types.Felt {
+func (tx DeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 type Transaction interface {
-	Hash() types.Felt
+	Hash() *felt.Felt
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
@@ -139,7 +141,7 @@ type DeployAccountTxn struct {
 	ConstructorCalldata []string `json:"constructor_calldata"`
 }
 
-func (tx DeployAccountTxn) Hash() types.Felt {
+func (tx DeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
@@ -184,7 +186,12 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case string:
-		return TransactionHash{types.StrToFelt(casted)}, nil
+		var txn InvokeTransactionReceipt
+		txhash, err := utils.HexToFelt(casted)
+		if err != nil {
+			return txn, err
+		}
+		return TransactionHash{txhash}, nil
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
@@ -252,7 +259,7 @@ type BroadcastedTxnCommonProperties struct {
 
 type BroadcastedInvokeV1Transaction struct {
 	BroadcastedTxnCommonProperties
-	SenderAddress types.Felt `json:"sender_address"`
+	SenderAddress *felt.Felt `json:"sender_address"`
 	Calldata      []string   `json:"calldata"`
 }
 
@@ -280,7 +287,7 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 type BroadcastedDeclareTransaction struct {
 	BroadcastedTxnCommonProperties
 	ContractClass types.ContractClass `json:"contract_class"`
-	SenderAddress types.Felt          `json:"sender_address"`
+	SenderAddress *felt.Felt          `json:"sender_address"`
 }
 
 func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
@@ -339,7 +346,7 @@ type BroadcastedDeployAccountTransaction struct {
 	BroadcastedTxnCommonProperties
 	ContractAddressSalt string     `json:"contract_address_salt"`
 	ConstructorCalldata []string   `json:"constructor_calldata"`
-	ClassHash           types.Felt `json:"class_hash"`
+	ClassHash           *felt.Felt `json:"class_hash"`
 }
 
 func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+
+	"github.com/NethermindEth/caigo/types/felt"
 )
 
 type NumAsHex string
@@ -49,8 +51,8 @@ type DeployAccountRequest struct {
 
 // FunctionCall function call information
 type FunctionCall struct {
-	ContractAddress    Felt   `json:"contract_address"`
-	EntryPointSelector string `json:"entry_point_selector,omitempty"`
+	ContractAddress    *felt.Felt `json:"contract_address"`
+	EntryPointSelector string     `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
@@ -69,8 +71,8 @@ type FunctionInvoke struct {
 	// Defines the transaction type to invoke
 	Type string `json:"type,omitempty"`
 
-	SenderAddress      Felt   `json:"sender_address"`
-	EntryPointSelector string `json:"entry_point_selector,omitempty"`
+	SenderAddress      *felt.Felt `json:"sender_address"`
+	EntryPointSelector string     `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function
 	Calldata []string `json:"calldata"`
