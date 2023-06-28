@@ -1,4 +1,4 @@
-package types
+package rpcv02
 
 import (
 	"bytes"
@@ -6,35 +6,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"strings"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
+
+type NumAsHex string
 
 type EntryPoint struct {
 	// The offset of the entry point in the program
-	Offset LegacyEntryPointOffset `json:"offset"`
-	// A unique identifier of the entry point (function) in the program
-	Selector string `json:"selector"`
-}
-
-type LegacyEntryPointOffset uint64
-
-// NOTE: formatting changed from string to uint64 on starknet 0.11 but some responses still return string
-func (n *LegacyEntryPointOffset) UnmarshalJSON(content []byte) error {
-	var i uint64
-	if err := json.Unmarshal(content, &i); err != nil {
-		// attempt to parse as int
-		var s string
-		if err = json.Unmarshal(content, &s); err != nil {
-			return err
-		}
-		numStr := strings.Replace(s, "0x", "", -1)
-		b, _ := new(big.Int).SetString(numStr, 16)
-		*n = LegacyEntryPointOffset(b.Uint64())
-		return nil
-	}
-	*n = LegacyEntryPointOffset(i)
-	return nil
+	Offset NumAsHex `json:"offset"`
+	// A unique  identifier of the entry point (function) in the program
+	Selector *felt.Felt `json:"selector"`
 }
 
 type ABI []ABIEntry
@@ -152,6 +134,7 @@ type StructABIEntry struct {
 	// The event name
 	Name string `json:"name"`
 
+	// todo(minumum size should be 1)
 	Size uint64 `json:"size"`
 
 	Members []Member `json:"members"`
@@ -159,7 +142,7 @@ type StructABIEntry struct {
 
 type Member struct {
 	TypedParameter
-	Offset uint64 `json:"offset"`
+	Offset int64 `json:"offset"`
 }
 
 type EventABIEntry struct {

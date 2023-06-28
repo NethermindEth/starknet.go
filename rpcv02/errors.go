@@ -66,4 +66,8 @@ var (
 		code:    40,
 		message: "Contract error",
 	}
+	ErrInvlaidContractClass = &RPCError{
+		code:    50,
+		message: "Invalid contract class",
+	}
 )

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	types "github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -53,7 +52,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 }
 
 // WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (types.TransactionState, error) {
+func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (TransactionState, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {

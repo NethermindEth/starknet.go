@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -15,12 +14,12 @@ type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee    string                 `json:"actual_fee"`
-	Status       types.TransactionState `json:"status"`
-	BlockHash    *felt.Felt             `json:"block_hash"`
-	BlockNumber  uint64                 `json:"block_number"`
-	Type         TransactionType        `json:"type,omitempty"`
-	MessagesSent []MsgToL1              `json:"messages_sent"`
+	ActualFee    *felt.Felt       `json:"actual_fee"`
+	Status       TransactionState `json:"status"`
+	BlockHash    *felt.Felt       `json:"block_hash"`
+	BlockNumber  uint64           `json:"block_number"`
+	Type         TransactionType  `json:"type"`
+	MessagesSent []MsgToL1        `json:"messages_sent"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
 }
@@ -105,17 +104,17 @@ func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 
 // PendingDeployTransactionReceipt Pending Transaction Receipt
 type PendingDeployTransactionReceipt struct {
-	PendingCommonTransactionReceipt
+	PendingCommonTransactionReceiptProperties
 	// ContractAddress The address of the deployed contract
-	ContractAddress string `json:"contract_address"`
+	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
-// PendingCommonTransactionReceipt Pending Transaction Receipt
-type PendingCommonTransactionReceipt struct {
+// PendingCommonTransactionReceiptProperties Pending Transaction Receipt
+type PendingCommonTransactionReceiptProperties struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee    string          `json:"actual_fee"`
+	ActualFee    *felt.Felt      `json:"actual_fee"`
 	Type         TransactionType `json:"type,omitempty"`
 	MessagesSent []MsgToL1       `json:"messages_sent"`
 	// Events The events emitted as part of this transaction
@@ -128,9 +127,9 @@ type TransactionReceipt interface {
 
 type MsgToL1 struct {
 	// ToAddress The target L1 address the message is sent to
-	ToAddress string `json:"to_address"`
+	ToAddress *felt.Felt `json:"to_address"`
 	//Payload  The payload of the message
-	Payload []string `json:"payload"`
+	Payload []*felt.Felt `json:"payload"`
 }
 
 type UnknownTransactionReceipt struct{ TransactionReceipt }

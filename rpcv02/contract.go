@@ -9,8 +9,8 @@ import (
 )
 
 // Class gets the contract class definition associated with the given hash.
-func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (*types.ContractClass, error) {
-	var rawClass types.ContractClass
+func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (*ContractClass, error) {
+	var rawClass ContractClass
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CLASS_HASH_NOT_FOUND and BLOCK_NOT_FOUND
@@ -20,8 +20,8 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 }
 
 // ClassAt get the contract class definition at the given address.
-func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*types.ContractClass, error) {
-	var rawClass types.ContractClass
+func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*ContractClass, error) {
+	var rawClass ContractClass
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
@@ -65,7 +65,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 }
 
 // EstimateFee estimates the fee for a given StarkNet transaction.
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error) {
 	// tx, ok := request.(*BroadcastedInvokeV1Transaction)
 	// TODO:
 	// NOTE: EntryPointSelector is now just part of Calldata
@@ -73,7 +73,7 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []Broadcaste
 	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
 	// 	request = tx
 	// }
-	var raw []types.FeeEstimate
+	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
 		// TODO: Bind Pathfinder/Devnet errors to
 		// CONTRACT_NOT_FOUND, INVALID_MESSAGE_SELECTOR, INVALID_CALL_DATA, CONTRACT_ERROR and BLOCK_NOT_FOUND

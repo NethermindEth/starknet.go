@@ -3,21 +3,20 @@ package rpcv02
 import (
 	"context"
 	"errors"
-
-	"github.com/NethermindEth/caigo/types"
+	"strings"
 )
 
 type BroadcastedInvokeTransaction interface{}
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*types.AddInvokeTransactionOutput, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error) {
 	// TODO: EntryPointSelector now part of calldata
 	// tx, ok := broadcastedInvoke.(BroadcastedInvokeV0Transaction)
 	// if ok {
 	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
 	// 	broadcastedInvoke = tx
 	// }
-	var output types.AddInvokeTransactionOutput
+	var output AddInvokeTransactionResponse
 	switch invoke := broadcastedInvoke.(type) {
 	case BroadcastedInvokeV1Transaction:
 		if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invoke); err != nil {
@@ -29,11 +28,12 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedI
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionOutput, error) {
-	var result AddDeclareTransactionOutput
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error) {
+	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
-		// TODO: check Pathfinder/Devnet error and return
-		// INVALID_CONTRACT_CLASS
+		if strings.Contains(err.Error(), "Invalid contract class") {
+			return nil, ErrInvlaidContractClass
+		}
 		return nil, err
 	}
 	return &result, nil
@@ -44,17 +44,18 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 // replaced by AddDeclareTransaction to declare a class, followed by
 // AddInvokeTransaction to instantiate the contract. For now, it remains the only
 // way to deploy an account without being charged for it.
-func (provider *Provider) AddDeployTransaction(ctx context.Context, deployTransaction BroadcastedDeployTransaction) (*AddDeployTransactionOutput, error) {
-	var result AddDeployTransactionOutput
+func (provider *Provider) AddDeployTransaction(ctx context.Context, deployTransaction BroadcastedDeployTxn) (*AddDeployTransactionResponse, error) {
+	var result AddDeployTransactionResponse
 	return &result, errors.New("AddDeployTransaction was removed, UDC should be used instead")
 }
 
 // AddDeployAccountTransaction manages the DEPLOY_ACCOUNT syscall
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionOutput, error) {
-	var result AddDeployTransactionOutput
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionResponse, error) {
+	var result AddDeployTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
-		// TODO: check Pathfinder/Devnet error and return
-		// CLASS_HASH_NOT_FOUND
+		if strings.Contains(err.Error(), "Class hash not found") {
+			return nil, ErrClassHashNotFound
+		}
 		return nil, err
 	}
 	return &result, nil

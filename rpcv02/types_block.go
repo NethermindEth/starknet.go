@@ -13,8 +13,8 @@ var ErrInvalidBlockID = errors.New("invalid blockid")
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
 type BlockHashAndNumberOutput struct {
-	BlockNumber uint64 `json:"block_number,omitempty"`
-	BlockHash   string `json:"block_hash,omitempty"`
+	BlockNumber uint64     `json:"block_number,omitempty"`
+	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
 }
 
 // BlockID is a struct that is used to choose between different
@@ -94,7 +94,7 @@ type PendingBlock struct {
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress string `json:"sequencer_address"`
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// Transactions The hashes of the transactions included in this block
 	Transactions Transactions `json:"transactions"`
 }
@@ -107,9 +107,9 @@ type BlockHeader struct {
 	// BlockNumber the block number (its height)
 	BlockNumber uint64 `json:"block_number"`
 	// NewRoot The new global state root
-	NewRoot string `json:"new_root"`
+	NewRoot *felt.Felt `json:"new_root"`
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress string `json:"sequencer_address"`
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
 }

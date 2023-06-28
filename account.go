@@ -31,7 +31,7 @@ type account interface {
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
-	Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Declare(ctx context.Context, classHash string, contract rpcv02.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
 	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
@@ -151,7 +151,13 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 		if account.rpcv02 == nil {
 			return nil, ErrUnsupportedAccount
 		}
-		return account.rpcv02.Call(ctx, call, rpcv02.WithBlockTag("latest"))
+		return account.rpcv02.Call(
+			ctx,
+			rpcv02.FunctionCall{
+				ContractAddress:    call.ContractAddress,
+				EntryPointSelector: call.EntryPointSelector,
+				Calldata:           call.Calldata},
+			rpcv02.WithBlockTag("latest"))
 	case ProviderGateway:
 		if account.sequencer == nil {
 			return nil, ErrUnsupportedAccount
@@ -250,6 +256,111 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
+func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpcv02.BroadcastedInvokeV1Transaction, error) {
+	if messageType != "invoke" && messageType != "estimate" {
+		return nil, errors.New("unsupported message type")
+	}
+	nonce := details.Nonce
+	var err error
+	if details.Nonce == nil {
+		nonce, err = account.Nonce(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	maxFee := MAX_FEE
+	if details.MaxFee != nil {
+		maxFee = details.MaxFee
+	}
+	if account.plugin != nil {
+		call, err := account.plugin.PluginCall(calls)
+		if err != nil {
+			return nil, err
+		}
+		calls = append([]types.FunctionCall{call}, calls...)
+	}
+
+	// Caigo currently only supports V1
+	version := rpcv02.TransactionV1
+
+	var txHash *big.Int
+	switch messageType {
+	case "invoke":
+		// version = big.NewInt(int64(account.version))
+		txHash, err = account.TransactionHash(
+			calls,
+			types.ExecuteDetails{
+				Nonce:  nonce,
+				MaxFee: maxFee,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+	case "estimate":
+		if account.version == 1 {
+			// version, _ = big.NewInt(0).SetString("0x100000000000000000000000000000001", 0)
+			version = rpcv02.TransactionV1
+		}
+		versionBig, err := version.BigInt()
+		if err != nil {
+			return nil, err
+		}
+		txHash, err = account.estimateFeeHash(
+			calls,
+			types.ExecuteDetails{
+				Nonce:  nonce,
+				MaxFee: maxFee,
+			},
+			versionBig,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	s1, s2, err := account.ks.Sign(ctx, account.sender.String(), txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	switch account.version {
+	case 1:
+		calldata := fmtCalldataStrings(calls)
+
+		maxFeeFelt, err := new(felt.Felt).SetString(maxFee.String())
+		if err != nil {
+			return nil, err
+		}
+		calldataFelt, err := utils.HexArrToFelt(calldata)
+		if err != nil {
+			return nil, err
+		}
+		nonceFelt, err := utils.BigIntToFelt(nonce)
+		if err != nil {
+			return nil, err
+		}
+		s1Felt, err := utils.BigIntToFelt(s1)
+		if err != nil {
+			return nil, err
+		}
+		s2Felt, err := utils.BigIntToFelt(s2)
+		if err != nil {
+			return nil, err
+		}
+		return &rpcv02.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+				MaxFee:    maxFeeFelt,
+				Version:   version,
+				Signature: []*felt.Felt{s1Felt, s2Felt},
+				Nonce:     nonceFelt,
+			},
+			SenderAddress: account.AccountAddress,
+			Calldata:      calldataFelt,
+		}, nil
+	}
+	return nil, ErrUnsupportedAccount
+}
+
 func (account *Account) prepFunctionInvoke(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FunctionInvoke, error) {
 	if messageType != "invoke" && messageType != "estimate" {
 		return nil, errors.New("unsupported message type")
@@ -327,15 +438,12 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 }
 
 func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
-	call, err := account.prepFunctionInvoke(ctx, "estimate", calls, details)
-	if err != nil {
-		return nil, err
-	}
+
 	switch account.provider {
 	case ProviderRPCv02:
-		signature := []string{}
-		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%x", v))
+		call, err := account.prepFunctionInvokeRPCv02(ctx, "estimate", calls, details)
+		if err != nil {
+			return nil, err
 		}
 		switch account.version {
 		case 1:
@@ -343,7 +451,7 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
 					Version:   rpcv02.TransactionV1,
-					Signature: signature,
+					Signature: call.Signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
@@ -353,9 +461,13 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 			if err != nil {
 				return nil, err
 			}
-			return &estimates[0], nil
+			return &types.FeeEstimate{types.NumAsHex(estimates[0].GasConsumed), types.NumAsHex(estimates[0].GasPrice), types.NumAsHex(estimates[0].OverallFee)}, nil
 		}
 	case ProviderGateway:
+		call, err := account.prepFunctionInvoke(ctx, "estimate", calls, details)
+		if err != nil {
+			return nil, err
+		}
 		return account.sequencer.EstimateFee(ctx, *call, "latest")
 	}
 	return nil, ErrUnsupportedAccount
@@ -376,31 +488,36 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		maxFee = v.Mul(v, big.NewInt(2))
 	}
 	details.MaxFee = maxFee
-	call, err := account.prepFunctionInvoke(ctx, "invoke", calls, details)
-	if err != nil {
-		return nil, err
-	}
+
 	switch account.provider {
 	case ProviderRPCv02:
-		signature := []string{}
-		for _, v := range call.Signature {
-			signature = append(signature, fmt.Sprintf("0x%x", v))
+		call, err := account.prepFunctionInvokeRPCv02(ctx, "invoke", calls, details)
+		if err != nil {
+			return nil, err
 		}
 		switch account.version {
 		case 1:
-			return account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
+			resp, err := account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
 				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
 					Version:   rpcv02.TransactionV1,
-					Signature: signature,
+					Signature: call.Signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
 				SenderAddress: account.AccountAddress,
 				Calldata:      call.Calldata,
 			})
+			if err != nil {
+				return nil, err
+			}
+			return &types.AddInvokeTransactionOutput{resp.TransactionHash}, nil
 		}
 	case ProviderGateway:
+		call, err := account.prepFunctionInvoke(ctx, "invoke", calls, details)
+		if err != nil {
+			return nil, err
+		}
 		return account.sequencer.Invoke(
 			context.Background(),
 			*call,
@@ -409,7 +526,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	return nil, ErrUnsupportedAccount
 }
 
-func (account *Account) Declare(ctx context.Context, classHash string, contract types.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+func (account *Account) Declare(ctx context.Context, classHash string, contract rpcv02.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
 	switch account.provider {
 	case ProviderRPCv02:
 		panic("unsupported")
@@ -500,16 +617,36 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 	if err != nil {
 		return nil, err
 	}
+	classhHashFelt, err := utils.HexToFelt(classHash)
+	if err != nil {
+		return nil, err
+	}
+	saltFelt, err := utils.BigIntToFelt(salt)
+	if err != nil {
+		return nil, err
+	}
+	uniqueIntFelt, err := utils.BigIntToFelt(uniqueInt)
+	if err != nil {
+		return nil, err
+	}
+	lenCalldataFelt, err := utils.HexToFelt(fmt.Sprintf("0x%x", len(calldata)))
+	if err != nil {
+		return nil, err
+	}
+	calldataFelt, err := utils.HexArrToFelt(calldata)
+	if err != nil {
+		return nil, err
+	}
 	tx, err := account.Execute(ctx, []types.FunctionCall{
 		{
 			ContractAddress:    deployerAddress,
-			EntryPointSelector: "deployContract",
-			Calldata: append([]string{
-				classHash,
-				fmt.Sprintf("0x%x", salt),
-				fmt.Sprintf("0x%x", uniqueInt), // unique
-				fmt.Sprintf("0x%x", len(calldata)),
-			}, calldata...),
+			EntryPointSelector: types.GetSelectorFromNameFelt("deployContract"),
+			Calldata: append([]*felt.Felt{
+				classhHashFelt,
+				saltFelt,
+				uniqueIntFelt, // unique
+				lenCalldataFelt,
+			}, calldataFelt...),
 		},
 	}, details)
 	if err != nil {
@@ -550,7 +687,7 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 	}
 
 	return &types.AddDeployResponse{
-		TransactionHash: tx.TransactionHash,
+		TransactionHash: tx.TransactionHash.String(),
 		ContractAddress: fmt.Sprintf("0x%x", contractAddress),
 	}, nil
 }

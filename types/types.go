@@ -11,7 +11,7 @@ import (
 type NumAsHex string
 
 type AddInvokeTransactionOutput struct {
-	TransactionHash string `json:"transaction_hash"`
+	TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 
 type AddDeclareResponse struct {
@@ -26,13 +26,13 @@ type AddDeployResponse struct {
 	ContractAddress string `json:"address"`
 }
 
-// TODO: remove
-type DeployRequest struct {
-	Type                string        `json:"type"`
-	ContractAddressSalt string        `json:"contract_address_salt"`
-	ConstructorCalldata []string      `json:"constructor_calldata"`
-	ContractDefinition  ContractClass `json:"contract_definition"`
-}
+// // TODO: remove
+// type DeployRequest struct {
+// 	Type                string               `json:"type"`
+// 	ContractAddressSalt string               `json:"contract_address_salt"`
+// 	ConstructorCalldata []string             `json:"constructor_calldata"`
+// 	ContractDefinition  rpcv02.ContractClass `json:"contract_definition"`
+// }
 
 type DeployAccountRequest struct {
 	MaxFee *big.Int `json:"max_fee"`
@@ -52,14 +52,15 @@ type DeployAccountRequest struct {
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    *felt.Felt `json:"contract_address"`
-	EntryPointSelector string     `json:"entry_point_selector,omitempty"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector,omitempty"`
 
 	// Calldata The parameters passed to the function
-	Calldata []string `json:"calldata"`
+	Calldata []*felt.Felt `json:"calldata"`
 }
 
 type Signature []*big.Int
 
+// todo(): what is this used for?
 type FunctionInvoke struct {
 	MaxFee *big.Int `json:"max_fee"`
 	// Version of the transaction scheme, should be set to 0 or 1

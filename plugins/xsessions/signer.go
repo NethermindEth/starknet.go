@@ -7,7 +7,9 @@ import (
 
 	"github.com/NethermindEth/caigo"
 
+	"github.com/NethermindEth/caigo/types"
 	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -47,7 +49,7 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 			POLICY_TYPE_HASH,
 			ctypes.HexToBN(policy.ContractAddress),
-			ctypes.GetSelectorFromName(policy.Selector),
+			ctypes.GetSelectorFromName(policy.Selector), // should we use felt??
 		})
 		if err != nil {
 			return nil, err
@@ -62,7 +64,7 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 	callkey, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
 		POLICY_TYPE_HASH,
 		call.ContractAddress.BigInt(big.NewInt(0)),
-		ctypes.GetSelectorFromName(call.EntryPointSelector),
+		ctypes.GetSelectorFromName(call.EntryPointSelector.String()),
 	})
 	if err != nil {
 		return nil, err
@@ -103,9 +105,13 @@ func (plugin *SessionKeyPlugin) PluginCall(calls []ctypes.FunctionCall) (ctypes.
 	for _, signature := range plugin.token.signedSession.Signature {
 		data = append(data, fmt.Sprintf("0x%s", signature.Text(16)))
 	}
+	calldAtafelt, err := utils.HexArrToFelt(data)
+	if err != nil {
+		return ctypes.FunctionCall{}, err
+	}
 	return ctypes.FunctionCall{
 		ContractAddress:    plugin.accountAddress,
-		EntryPointSelector: "use_plugin",
-		Calldata:           data,
+		EntryPointSelector: types.GetSelectorFromNameFelt("use_plugin"),
+		Calldata:           calldAtafelt,
 	}, nil
 }

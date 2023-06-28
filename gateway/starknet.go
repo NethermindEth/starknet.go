@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/NethermindEth/caigo/rpcv02"
 	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/google/go-querystring/query"
@@ -44,18 +45,19 @@ type GatewayFunctionCall struct {
 type FunctionCall types.FunctionCall
 
 func (f FunctionCall) MarshalJSON() ([]byte, error) {
-	output := map[string]interface{}{}
-	output["contract_address"] = f.ContractAddress.String()
-	if f.EntryPointSelector != "" {
-		output["entry_point_selector"] = f.EntryPointSelector
-	}
-	calldata := []string{}
-	for _, v := range f.Calldata {
-		data, _ := big.NewInt(0).SetString(v, 0)
-		calldata = append(calldata, data.Text(10))
-	}
-	output["calldata"] = calldata
-	return json.Marshal(output)
+	return json.Marshal(f)
+	// output := map[string]interface{}{}
+	// output["contract_address"] = f.ContractAddress.String()
+	// if f.EntryPointSelector != "" {
+	// 	output["entry_point_selector"] = f.EntryPointSelector
+	// }
+	// calldata := []string{}
+	// for _, v := range f.Calldata {
+	// 	data, _ := big.NewInt(0).SetString(v, 0)
+	// 	calldata = append(calldata, data.Text(10))
+	// }
+	// output["calldata"] = calldata
+	// return json.Marshal(output)
 }
 
 /*
@@ -65,9 +67,9 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	gc := GatewayFunctionCall{
 		FunctionCall: FunctionCall(call),
 	}
-	gc.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(gc.EntryPointSelector))
+	gc.EntryPointSelector = types.GetSelectorFromNameFelt(gc.EntryPointSelector.String())
 	if len(gc.Calldata) == 0 {
-		gc.Calldata = []string{}
+		gc.Calldata = []*felt.Felt{}
 	}
 
 	if len(gc.Signature) == 0 {
@@ -109,7 +111,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 		MaxFee:        fmt.Sprintf("0x%x", invoke.MaxFee),
 	}
 	if invoke.EntryPointSelector != "" {
-		tx.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(invoke.EntryPointSelector))
+		tx.EntryPointSelector = types.GetSelectorFromName(invoke.EntryPointSelector).String()
 	}
 	if invoke.Nonce != nil {
 		tx.Nonce = fmt.Sprintf("0x%x", invoke.Nonce)
@@ -140,7 +142,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, contract types.ContractClass, deployRequest types.DeployRequest) (resp types.AddDeployResponse, err error) {
+func (sg *Gateway) Deploy(ctx context.Context, contract rpcv02.ContractClass, deployRequest rpcv02.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
 	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
@@ -195,7 +197,7 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
+func (sg *Gateway) Declare(ctx context.Context, contract rpcv02.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
@@ -206,25 +208,25 @@ func (sg *Gateway) Declare(ctx context.Context, contract types.ContractClass, de
 	return resp, sg.do(req, &resp)
 }
 
-type DeployRequest types.DeployRequest
+// type DeployRequest rpcv02.DeployRequest
 
-func (d DeployRequest) MarshalJSON() ([]byte, error) {
-	calldata := []string{}
-	for _, value := range d.ConstructorCalldata {
-		calldata = append(calldata, types.SNValToBN(value).Text(10))
-	}
-	d.ConstructorCalldata = calldata
-	return json.Marshal(types.DeployRequest(d))
-}
+// func (d DeployRequest) MarshalJSON() ([]byte, error) {
+// 	calldata := []string{}
+// 	for _, value := range d.ConstructorCalldata {
+// 		calldata = append(calldata, types.SNValToBN(value).Text(10))
+// 	}
+// 	d.ConstructorCalldata = calldata
+// 	return json.Marshal(types.DeployRequest(d))
+// }
 
 type DeclareRequest struct {
-	Type          string              `json:"type"`
-	SenderAddress *felt.Felt          `json:"sender_address"`
-	Version       string              `json:"version"`
-	MaxFee        string              `json:"max_fee"`
-	Nonce         string              `json:"nonce"`
-	Signature     []string            `json:"signature"`
-	ContractClass types.ContractClass `json:"contract_class"`
+	Type          string               `json:"type"`
+	SenderAddress *felt.Felt           `json:"sender_address"`
+	Version       string               `json:"version"`
+	MaxFee        string               `json:"max_fee"`
+	Nonce         string               `json:"nonce"`
+	Signature     []string             `json:"signature"`
+	ContractClass rpcv02.ContractClass `json:"contract_class"`
 }
 
 func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {
