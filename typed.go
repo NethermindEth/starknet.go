@@ -42,25 +42,21 @@ type TypedMessage interface {
 encoding definition for standard StarkNet Domain messages
 */
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
+	processStrToBig := func(fieldVal string) {
+		felt := strToFelt(fieldVal)
+		bigInt, ok := feltToBig(felt)
+		if ok {
+			fmtEnc = append(fmtEnc, bigInt)
+		}
+	}
+
 	switch field {
 	case "name":
-		nameFelt := strToFelt(dm.Name)
-		nameBig, ok := feltToBig(nameFelt)
-		if ok {
-			fmtEnc = append(fmtEnc, nameBig)
-		}
+		processStrToBig(dm.Name)
 	case "version":
-		versionFelt := strToFelt(dm.Version)
-		versionBig, ok := feltToBig(versionFelt)
-		if ok {
-			fmtEnc = append(fmtEnc, versionBig)
-		}
+		processStrToBig(dm.Version)
 	case "chainId":
-		chainIdFelt := strToFelt(dm.ChainId)
-		chainIdBig, ok := feltToBig(chainIdFelt)
-		if ok {
-			fmtEnc = append(fmtEnc, chainIdBig)
-		}
+		processStrToBig(dm.ChainId)
 	}
 	return fmtEnc
 }
