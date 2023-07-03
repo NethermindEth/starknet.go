@@ -2,10 +2,13 @@ package caigo
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"math/big"
+	"regexp"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 type TypedData struct {
@@ -39,15 +42,51 @@ type TypedMessage interface {
 encoding definition for standard StarkNet Domain messages
 */
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
+	processStrToBig := func(fieldVal string) {
+		felt := strToFelt(fieldVal)
+		bigInt, ok := feltToBig(felt)
+		if ok {
+			fmtEnc = append(fmtEnc, bigInt)
+		}
+	}
+
 	switch field {
 	case "name":
-		fmtEnc = append(fmtEnc, types.StrToFelt(dm.Name).Big())
+		processStrToBig(dm.Name)
 	case "version":
-		fmtEnc = append(fmtEnc, types.StrToFelt(dm.Version).Big())
+		processStrToBig(dm.Version)
 	case "chainId":
-		fmtEnc = append(fmtEnc, types.StrToFelt(dm.ChainId).Big())
+		processStrToBig(dm.ChainId)
 	}
 	return fmtEnc
+}
+
+// strToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
+func strToFelt(str string) *felt.Felt {
+	var f *felt.Felt
+	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
+
+	if b, ok := new(big.Int).SetString(str, 0); ok {
+		fBytes := f.Bytes()
+		b.FillBytes(fBytes[:])
+		return f
+	}
+	// TODO: revisit conversation on seperate 'ShortString' conversion
+	if asciiRegexp.MatchString(str) {
+		hexStr := hex.EncodeToString([]byte(str))
+		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
+			fBytes := f.Bytes()
+			b.FillBytes(fBytes[:])
+			return f
+		}
+	}
+
+	return f
+}
+
+func feltToBig(feltNum *felt.Felt) (*big.Int, bool) {
+	return new(big.Int).SetString(feltNum.String(), 0)
+
 }
 
 /*

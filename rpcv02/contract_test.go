@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // TestClassAt tests code for a class.
@@ -13,7 +14,7 @@ func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractAddress   types.Felt
+		ContractAddress   *felt.Felt
 		ExpectedOperation string
 	}
 	testSet := map[string][]testSetType{
@@ -63,7 +64,7 @@ func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash      types.Felt
+		ContractHash      *felt.Felt
 		ExpectedClassHash string
 	}
 	testSet := map[string][]testSetType{
@@ -165,7 +166,7 @@ func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractHash  types.Felt
+		ContractHash  *felt.Felt
 		StorageKey    string
 		Block         BlockID
 		ExpectedValue string
@@ -223,7 +224,7 @@ func TestNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		ContractAddress types.Felt
+		ContractAddress *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {

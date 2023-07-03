@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // BlockNumber gets the most recent accepted block number.
@@ -33,7 +33,7 @@ func WithBlockNumber(n uint64) BlockID {
 	}
 }
 
-func WithBlockHash(h ctypes.Felt) BlockID {
+func WithBlockHash(h *felt.Felt) BlockID {
 	return BlockID{
 		Hash: h,
 	}

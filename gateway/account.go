@@ -12,9 +12,10 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
-func (sg *Gateway) AccountNonce(ctx context.Context, address types.Felt) (*big.Int, error) {
+func (sg *Gateway) AccountNonce(ctx context.Context, address *felt.Felt) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: "get_nonce",

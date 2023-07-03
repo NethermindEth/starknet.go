@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/google/go-querystring/query"
 )
 
@@ -124,7 +125,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 	if len(invoke.Signature) == 0 {
 		tx.Signature = []string{}
 	} else {
-		// stop-gap before full types.Felt cutover
+		// stop-gap before full *felt.Felt cutover
 		tx.Signature = []string{invoke.Signature[0].String(), invoke.Signature[1].String()}
 	}
 
@@ -218,7 +219,7 @@ func (d DeployRequest) MarshalJSON() ([]byte, error) {
 
 type DeclareRequest struct {
 	Type          string              `json:"type"`
-	SenderAddress types.Felt          `json:"sender_address"`
+	SenderAddress *felt.Felt          `json:"sender_address"`
 	Version       string              `json:"version"`
 	MaxFee        string              `json:"max_fee"`
 	Nonce         string              `json:"nonce"`

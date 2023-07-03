@@ -6,10 +6,11 @@ import (
 	"time"
 
 	types "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // TransactionByHash gets the details and status of a submitted transaction.
-func (provider *Provider) TransactionByHash(ctx context.Context, hash types.Felt) (Transaction, error) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error) {
 	var tx UnknownTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		// TODO: Bind Pathfinder/Devnet Error to
@@ -40,7 +41,7 @@ func (provider *Provider) PendingTransaction(ctx context.Context) ([]Transaction
 }
 
 // TxnReceipt gets the transaction receipt by the transaction hash.
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash types.Felt) (TransactionReceipt, error) {
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
 	var receipt UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
@@ -52,7 +53,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 }
 
 // WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash types.Felt, pollInterval time.Duration) (types.TransactionState, error) {
+func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (types.TransactionState, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 var (
@@ -156,7 +157,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	_, ok = args[0].(types.Felt)
+	_, ok = args[0].(*felt.Felt)
 	if !ok {
 		return errWrongArgs
 	}
@@ -395,7 +396,7 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 		return errWrongArgs
 	}
 
-	if _, ok := args[0].(types.Felt); !ok {
+	if _, ok := args[0].(*felt.Felt); !ok {
 		return errWrongArgs
 	}
 
@@ -459,8 +460,8 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
-	if _, ok := args[1].(types.Felt); !ok {
-		fmt.Printf("args[0] should be types.Felt, got %T\n", args[1])
+	if _, ok := args[1].(*felt.Felt); !ok {
+		fmt.Printf("args[0] should be *felt.Felt, got %T\n", args[1])
 		return errWrongArgs
 	}
 	output := "0x0"
