@@ -36,7 +36,7 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 			Nonce:   big.NewInt(1), // TODO: nonce handling
 		},
 		ContractClass: class,
-		SenderAddress: SenderAddress, // TODO: contant devnet address
+		SenderAddress: SenderAddress, // TODO: constant devnet address
 	})
 	if err != nil {
 		return nil, err
