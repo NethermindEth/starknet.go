@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/images/caigo-no-bg.png" height="256">
+  <img src="docs/images/golang_starknet_repo_banner.png" height="256">
 </div>
 
 <p align="center">
@@ -27,9 +27,9 @@
  height="50" />
 </a>
 
-#### :warning: `cai.go` is currently under active development and is experiencing a rearchitecture. It will undergo breaking changes.
+#### :warning: `starknet.go` is currently under active development and is experiencing a rearchitecture. It will undergo breaking changes.
 
-`cai.go` will get your golang backends and WASM frontends to Starknet easily.
+`starknet.go` will get your golang backends and WASM frontends to Starknet easily.
 With simple abstractions for the Starknet RPC, account management and common
 operations on the wallets. The package has excellent documentation for a smooth
 0 to 1 experience.
@@ -77,7 +77,7 @@ go run main.go
 
 ### RPC
 
-`cai.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
+`starknet.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
 
 | Method                                         | Implemented (*)    |
 | ---------------------------------------------- | ------------------ |
@@ -134,7 +134,7 @@ go test -bench=.
 ## 🤝 Contribute
 
 We're always looking for passionate developers to join our community and
-contribute to `cai.go`. Check out our [contributing guide](./docs/CONTRIBUTING.md)
+contribute to `starknet.go`. Check out our [contributing guide](./docs/CONTRIBUTING.md)
 for more information on how to get started.
 
 ## 📖 License
