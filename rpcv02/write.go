@@ -32,7 +32,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
 		if strings.Contains(err.Error(), "Invalid contract class") {
-			return nil, ErrInvlaidContractClass
+			return nil, ErrInvalidContractClass
 		}
 		return nil, err
 	}

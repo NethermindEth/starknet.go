@@ -105,13 +105,13 @@ func (plugin *SessionKeyPlugin) PluginCall(calls []ctypes.FunctionCall) (ctypes.
 	for _, signature := range plugin.token.signedSession.Signature {
 		data = append(data, fmt.Sprintf("0x%s", signature.Text(16)))
 	}
-	calldAtafelt, err := utils.HexArrToFelt(data)
+	calldataFelt, err := utils.HexArrToFelt(data)
 	if err != nil {
 		return ctypes.FunctionCall{}, err
 	}
 	return ctypes.FunctionCall{
 		ContractAddress:    plugin.accountAddress,
 		EntryPointSelector: types.GetSelectorFromNameFelt("use_plugin"),
-		Calldata:           calldAtafelt,
+		Calldata:           calldataFelt,
 	}, nil
 }
