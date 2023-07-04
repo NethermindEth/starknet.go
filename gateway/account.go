@@ -18,7 +18,7 @@ import (
 func (sg *Gateway) AccountNonce(ctx context.Context, address *felt.Felt) (*big.Int, error) {
 	resp, err := sg.Call(ctx, types.FunctionCall{
 		ContractAddress:    address,
-		EntryPointSelector: "get_nonce",
+		EntryPointSelector: types.GetSelectorFromNameFelt("get_nonce"),
 	}, "")
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (f functionInvoke) MarshalJSON() ([]byte, error) {
 
 func (sg *Gateway) EstimateFee(ctx context.Context, call types.FunctionInvoke, hash string) (*types.FeeEstimate, error) {
 	if call.EntryPointSelector != "" {
-		call.EntryPointSelector = types.BigToHex(types.GetSelectorFromName(call.EntryPointSelector))
+		call.EntryPointSelector = types.GetSelectorFromName(call.EntryPointSelector).String()
 	}
 	c := functionInvoke(call)
 	req, err := sg.newRequest(ctx, http.MethodPost, "/estimate_fee", c)

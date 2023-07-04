@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -31,12 +30,12 @@ type api interface {
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
 	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
-	Call(ctx context.Context, call types.FunctionCall, block BlockID) ([]string, error)
+	Call(ctx context.Context, call FunctionCall, block BlockID) ([]string, error)
 	ChainID(ctx context.Context) (string, error)
-	Class(ctx context.Context, blockID BlockID, classHash string) (*types.ContractClass, error)
-	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*types.ContractClass, error)
+	Class(ctx context.Context, blockID BlockID, classHash string) (*ContractClass, error)
+	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*ContractClass, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
-	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]types.FeeEstimate, error)
+	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)

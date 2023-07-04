@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 func TestBlockID_Marshal(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBlockID_Marshal(t *testing.T) {
 		want: `{"block_number":420}`,
 	}, {
 		id: func() BlockID {
-			h := types.StrToFelt("0xdead")
+			h, _ := new(felt.Felt).SetString("0xdead")
 			return BlockID{
 				Hash: h,
 			}

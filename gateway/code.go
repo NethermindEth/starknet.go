@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/rpcv02"
 )
 
 type Bytecode []string
 
 type Code struct {
-	Bytecode Bytecode   `json:"bytecode"`
-	Abi      *types.ABI `json:"abi"`
+	Bytecode Bytecode    `json:"bytecode"`
+	Abi      *rpcv02.ABI `json:"abi"`
 }
 
 func (c *Code) UnmarshalJSON(content []byte) error {
@@ -47,21 +47,21 @@ func (c *Code) UnmarshalJSON(content []byte) error {
 		return err
 	}
 
-	abiPointer := types.ABI{}
+	abiPointer := rpcv02.ABI{}
 	for _, abi := range abis {
 		if checkABI, ok := abi.(map[string]interface{}); ok {
-			var ab types.ABIEntry
+			var ab rpcv02.ABIEntry
 			abiType, ok := checkABI["type"].(string)
 			if !ok {
 				return fmt.Errorf("unknown abi type %v", checkABI["type"])
 			}
 			switch abiType {
-			case string(types.ABITypeConstructor), string(types.ABITypeFunction), string(types.ABITypeL1Handler):
-				ab = &types.FunctionABIEntry{}
-			case string(types.ABITypeStruct):
-				ab = &types.StructABIEntry{}
-			case string(types.ABITypeEvent):
-				ab = &types.EventABIEntry{}
+			case string(rpcv02.ABITypeConstructor), string(rpcv02.ABITypeFunction), string(rpcv02.ABITypeL1Handler):
+				ab = &rpcv02.FunctionABIEntry{}
+			case string(rpcv02.ABITypeStruct):
+				ab = &rpcv02.StructABIEntry{}
+			case string(rpcv02.ABITypeEvent):
+				ab = &rpcv02.EventABIEntry{}
 			default:
 				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
 			}
@@ -100,7 +100,7 @@ func (sg *Gateway) CodeAt(ctx context.Context, contract string, blockNumber *big
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) FullContract(ctx context.Context, contract string) (*types.ContractClass, error) {
+func (sg *Gateway) FullContract(ctx context.Context, contract string) (*rpcv02.ContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_full_contract", nil)
 	if err != nil {
 		return nil, err
@@ -108,6 +108,6 @@ func (sg *Gateway) FullContract(ctx context.Context, contract string) (*types.Co
 
 	appendQueryValues(req, url.Values{"contractAddress": []string{contract}})
 
-	var resp types.ContractClass
+	var resp rpcv02.ContractClass
 	return &resp, sg.do(req, &resp)
 }

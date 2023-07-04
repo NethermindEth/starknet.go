@@ -3,9 +3,9 @@ package rpcv02
 import "github.com/NethermindEth/juno/core/felt"
 
 type Event struct {
-	FromAddress *felt.Felt `json:"from_address"`
-	Keys        []string   `json:"keys"`
-	Data        []string   `json:"data"`
+	FromAddress *felt.Felt   `json:"from_address"`
+	Keys        []*felt.Felt `json:"keys"`
+	Data        []*felt.Felt `json:"data"`
 }
 
 // EmittedEvent an event emitted as a result of transaction execution
@@ -27,7 +27,7 @@ type EventFilter struct {
 	// Address from contract
 	Address *felt.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
-	Keys [][]string `json:"keys,omitempty"`
+	Keys [][]*felt.Felt `json:"keys,omitempty"`
 }
 
 type EventsInput struct {

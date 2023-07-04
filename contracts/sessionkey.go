@@ -115,8 +115,8 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector
 	calls := []types.FunctionCall{
 		{
 			ContractAddress:    counterAddress,
-			EntryPointSelector: "increment",
-			Calldata:           []string{},
+			EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
+			Calldata:           []*felt.Felt{},
 		},
 	}
 	ctx := context.Background()
@@ -126,16 +126,16 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector
 		return "", err
 	}
 	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash.String(), 3, 10)
 	if err != nil {
 		log.Printf("could not execute transaction %v\n", err)
-		return tx.TransactionHash, err
+		return tx.TransactionHash.String(), err
 	}
 	if receipt.Status != types.TransactionAcceptedOnL2 {
 		log.Printf("transaction has failed with %s", receipt.Status)
-		return tx.TransactionHash, fmt.Errorf("unexpected status: %s", receipt.Status)
+		return tx.TransactionHash.String(), fmt.Errorf("unexpected status: %s", receipt.Status)
 	}
-	return tx.TransactionHash, nil
+	return tx.TransactionHash.String(), nil
 }
 
 func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {

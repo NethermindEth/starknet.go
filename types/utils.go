@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -69,12 +70,21 @@ func BigToHex(in *big.Int) string {
 	return fmt.Sprintf("0x%x", in)
 }
 
+// todo(): this is used by the signer. Should it return a felt?
 func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
 	maskedKec := MaskBits(250, 8, kec)
 
 	return new(big.Int).SetBytes(maskedKec)
+}
+
+func GetSelectorFromNameFelt(funcName string) *felt.Felt {
+	kec := Keccak256([]byte(funcName))
+
+	maskedKec := MaskBits(250, 8, kec)
+
+	return new(felt.Felt).SetBytes(maskedKec)
 }
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.

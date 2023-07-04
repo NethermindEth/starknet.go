@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/rpcv02"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -46,7 +46,7 @@ func (p *GatewayProvider) TransactionByHash(ctx context.Context, hash string) (*
 	return &t.Transaction, nil
 }
 
-func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*types.ContractClass, error) {
+func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*rpcv02.ContractClass, error) {
 	panic("not implemented")
 }
 
@@ -54,6 +54,6 @@ func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress strin
 	panic("not implemented")
 }
 
-func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*types.ContractClass, error) {
+func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*rpcv02.ContractClass, error) {
 	panic("not implemented")
 }
