@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 	ctypes "github.com/NethermindEth/starknet.go/types"
 )
 
@@ -48,7 +49,7 @@ var counterCompiled = artifacts.CounterCompiled
 func TestCounter_DeployContract(t *testing.T) {
 	provider := beforeEachRPCv02(t)
 
-	counterClass := ctypes.ContractClass{}
+	counterClass := rpcv02.ContractClass{}
 	inputs := []string{}
 
 	if err := json.Unmarshal(counterCompiled, &counterClass); err != nil {
@@ -59,10 +60,10 @@ func TestCounter_DeployContract(t *testing.T) {
 	if err != nil {
 		t.Fatal("deploy should succeed, instead:", err)
 	}
-	if tx.ContractAddress != counterAddress {
+	if tx.ContractAddress.String() != counterAddress {
 		t.Fatal("deploy should return counter address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, ctypes.StrToFelt(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}

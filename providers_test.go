@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpcv02"
@@ -88,17 +89,18 @@ var (
 )
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := types.ContractClass{}
+	class := rpcv02.ContractClass{}
 	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
 		return "", err
 	}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
-	tx, err := provider.Deploy(context.Background(), class, types.DeployRequest{
-		ContractAddressSalt: "0x0",
-		ConstructorCalldata: []string{},
-	})
+	tx, err := provider.Deploy(context.Background(), class, rpcv02.DeployAccountTxn{
+		DeployAccountTransactionProperties: rpcv02.DeployAccountTransactionProperties{
+			ContractAddressSalt: &felt.Zero,
+			ConstructorCalldata: []*felt.Felt{},
+		}})
 	if err != nil {
 		return "", err
 	}
@@ -257,7 +259,7 @@ func TestGeneral_Syncing(t *testing.T) {
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv02.CurrentBlockNum)
 		}
-		if !strings.HasPrefix(syncv02.CurrentBlockHash, "0x") {
+		if !strings.HasPrefix(syncv02.CurrentBlockHash.String(), "0x") {
 			t.Fatal("current block hash should return a string starting with 0x")
 		}
 	}

@@ -10,9 +10,11 @@ import (
 
 	_ "embed"
 
-	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/juno/core/felt"
+	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var sessionPluginCompiled = artifacts.PluginV0Compiled
@@ -47,7 +49,7 @@ func TestSessionKey_DeployAccount(t *testing.T) {
 	if !ok {
 		t.Fatal("could not match *big.Int private key with current value")
 	}
-	publicKey, _, err := starknet.go.Curve.PrivateToPoint(pk)
+	publicKey, _, err := starknetgo.Curve.PrivateToPoint(pk)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,14 +96,14 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	provider := beforeEachRPCv02(t)
 	// shim a keystore into existing tests.
 	// use a string representation of the PK as a fake sender address for the keystore
-	ks := starknet.go.NewMemKeystore()
+	ks := starknetgo.NewMemKeystore()
 
 	fakeSenderAddress := sessionPrivateKey
 	k := types.SNValToBN(sessionPrivateKey)
 	ks.Put(fakeSenderAddress, k)
-	account, err := starknet.go.NewRPCAccount(
-		types.StrToFelt(fakeSenderAddress),
-		types.StrToFelt(accountAddress),
+	account, err := starknetgo.NewRPCAccount(
+		utils.TestHexToFelt(t, fakeSenderAddress),
+		utils.TestHexToFelt(t, accountAddress),
 		ks,
 		provider,
 		WithSessionKeyPlugin(
@@ -113,9 +115,9 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	}
 	calls := []types.FunctionCall{
 		{
-			ContractAddress:    types.StrToFelt(counterAddress),
-			EntryPointSelector: "increment",
-			Calldata:           []string{},
+			ContractAddress:    utils.TestHexToFelt(t, counterAddress),
+			EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
+			Calldata:           []*felt.Felt{},
 		},
 	}
 	ctx := context.Background()
@@ -123,10 +125,10 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	if err != nil {
 		t.Fatal("execute should succeed, instead:", err)
 	}
-	if !strings.HasPrefix(tx.TransactionHash, "0x") {
+	if !strings.HasPrefix(tx.TransactionHash.String(), "0x") {
 		t.Fatal("execute should return transaction hash, instead:", tx.TransactionHash)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -156,7 +158,7 @@ func TestCounter_IncrementWithSessionKeyPlugin(t *testing.T) {
 	if !ok {
 		t.Fatal("could not match *big.Int private key with current value")
 	}
-	sessionPublicKeyInt, _, err := starknet.go.Curve.PrivateToPoint(sessionPrivateKeyInt)
+	sessionPublicKeyInt, _, err := starknetgo.Curve.PrivateToPoint(sessionPrivateKeyInt)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,10 +8,13 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
@@ -33,7 +36,7 @@ func TestDeclare(t *testing.T) {
 
 	for _, env := range testSet {
 		gw := testConfig.client
-		accountClass := types.ContractClass{}
+		accountClass := rpcv02.ContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
@@ -70,14 +73,16 @@ func TestDeployCounterContract(t *testing.T) {
 
 		gw := testConfig.client
 
-		counterClass := types.ContractClass{}
+		counterClass := rpcv02.ContractClass{}
 		err := json.Unmarshal(counterCompiled, &counterClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
-		tx, err := gw.Deploy(context.Background(), counterClass, types.DeployRequest{
-			ContractAddressSalt: "0x01",
-			ConstructorCalldata: []string{},
+		tx, err := gw.Deploy(context.Background(), counterClass, rpcv02.DeployAccountTxn{
+			DeployAccountTransactionProperties: rpcv02.DeployAccountTransactionProperties{
+				ContractAddressSalt: utils.TestHexToFelt(t, "0x01"),
+				ConstructorCalldata: []*felt.Felt{},
+			},
 		})
 		if err != nil {
 			t.Fatalf("testnet: could not deploy contract: %v\n", err)
@@ -143,7 +148,7 @@ func TestDeployAccountContract(t *testing.T) {
 	for _, test := range testSet {
 		gw := testConfig.client
 		// Step 1: deploy the a class
-		accountClass := types.ContractClass{}
+		accountClass := rpcv02.ContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse account: %v\n", err)
@@ -164,7 +169,7 @@ func TestDeployAccountContract(t *testing.T) {
 			t.Fatalf("unexpected class hash: %s, instead %s\n", test.ExpectedClassHash, tx.ClassHash)
 		}
 		// Step 4: send some eth
-		mint, err := devtest.NewDevNet().Mint(types.StrToFelt(test.ExpectedContractAddress), big.NewInt(int64(1000000000000000000)))
+		mint, err := devtest.NewDevNet().Mint(utils.TestHexToFelt(t, test.ExpectedContractAddress), big.NewInt(int64(1000000000000000000)))
 		if err != nil {
 			t.Fatalf("could not declare contract: %v\n", err)
 		}
@@ -209,9 +214,9 @@ func TestCall(t *testing.T) {
 		"devnet": {
 			{
 				Call: types.FunctionCall{
-					ContractAddress:    types.StrToFelt(counterAddress),
-					EntryPointSelector: "get_count",
-					Calldata:           []string{},
+					ContractAddress:    utils.TestHexToFelt(t, counterAddress),
+					EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
+					Calldata:           []*felt.Felt{},
 				},
 			},
 		},

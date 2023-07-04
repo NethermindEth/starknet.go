@@ -14,8 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpcv02"
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
 
@@ -23,7 +25,7 @@ import (
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	provider := beforeEachRPCv02(t)
 
-	yeasayerClass := types.ContractClass{}
+	yeasayerClass := rpcv02.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
 		t.Fatal(err)
 	}
@@ -32,12 +34,12 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
-	if !strings.HasPrefix(tx.ClassHash, "0x") {
+	if !strings.HasPrefix(tx.ClassHash.String(), "0x") {
 		t.Fatal("declare should return classHash, instead:", tx.ClassHash)
 	}
 	fmt.Printf("plugin Class: %s\n", tx.ClassHash)
 	fmt.Printf("transaction Hash: %s\n", tx.TransactionHash)
-	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -53,13 +55,13 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 		t.Log("...")
 		t.Fail()
 	}
-	return tx.ClassHash
+	return tx.ClassHash.String()
 }
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
 	provider := beforeEachRPCv02(t)
-	contractClass := types.ContractClass{}
+	contractClass := rpcv02.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
 		t.Fatal(err)
@@ -71,10 +73,10 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	}
 	fmt.Printf("contract Address: %s\n", tx.ContractAddress)
 	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	if !strings.HasPrefix(tx.ContractAddress, "0x") {
+	if !strings.HasPrefix(tx.ContractAddress.String(), "0x") {
 		t.Fatal("deploy should return account address, instead:", tx.ContractAddress)
 	}
-	status, err := provider.WaitForTransaction(ctx, types.StrToFelt(tx.TransactionHash), 8*time.Second)
+	status, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 8*time.Second)
 	if err != nil {
 		t.Fatal("declare should succeed, instead:", err)
 	}
@@ -90,7 +92,7 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 		t.Log("...")
 		t.Fail()
 	}
-	return tx.ContractAddress
+	return tx.ContractAddress.String()
 }
 
 // MintEth
@@ -126,10 +128,10 @@ func MintEth(t *testing.T, accountAddress string) {
 func CheckEth(t *testing.T, accountAddress string) string {
 	provider := beforeEachRPCv02(t)
 	ctx := context.Background()
-	output, err := provider.Call(ctx, types.FunctionCall{
-		ContractAddress:    types.StrToFelt(devnetEth),
-		EntryPointSelector: "balanceOf",
-		Calldata:           []string{accountAddress},
+	output, err := provider.Call(ctx, rpcv02.FunctionCall{
+		ContractAddress:    utils.TestHexToFelt(t, devnetEth),
+		EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
+		Calldata:           []*felt.Felt{utils.TestHexToFelt(t, accountAddress)},
 	},
 		rpcv02.WithBlockTag("latest"),
 	)
