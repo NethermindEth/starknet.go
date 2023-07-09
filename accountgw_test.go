@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/utils"
 )
 
 type TestAccountType struct {
@@ -26,38 +27,59 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {{
 			ExecuteCalls: []types.FunctionCall{{
-				EntryPointSelector: "increment",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
 			}},
 			QueryCall: types.FunctionCall{
-				EntryPointSelector: "get_count",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
 			},
 		}},
 		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
-				EntryPointSelector: "increment",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
 			}},
 			QueryCall: types.FunctionCall{
-				EntryPointSelector: "get_count",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
 			},
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		// shim a keystore into existing tests.
+		// Convert the counter address to a Felt.
+		counterAddress, err := utils.HexToFelt(testConfig.CounterAddress)
+		if err != nil {
+			t.Fatalf("Failed to convert counter address to Felt: %v", err)
+		}
+
+		// Set the contract address for the execute and query calls.
+		for i := range test.ExecuteCalls {
+			test.ExecuteCalls[i].ContractAddress = counterAddress
+		}
+		test.QueryCall.ContractAddress = counterAddress
+
+		// Shim a keystore into existing tests.
 		ks := NewMemKeystore()
 		fakeSenderAddress := testConfig.AccountPrivateKey
 		k := types.SNValToBN(testConfig.AccountPrivateKey)
 		ks.Put(fakeSenderAddress, k)
+
+		// Convert the account address to a Felt.
+		accountAddress, err := utils.HexToFelt(testConfig.AccountAddress)
+		if err != nil {
+			t.Fatalf("Failed to convert account address to Felt: %v", err)
+		}
+
+		fakeSenderAddressFelt, err := utils.HexToFelt(fakeSenderAddress)
+		if err != nil {
+			t.Fatalf("Failed to convert fake sender address to Felt: %v", err)
+		}
+
 		account, err := NewGatewayAccount(
-			types.StrToFelt(fakeSenderAddress),
-			types.StrToFelt(testConfig.AccountAddress),
+			fakeSenderAddressFelt,
+			accountAddress,
 			ks,
 			testConfig.client,
 			AccountVersion1)
+		// Handle error from NewGatewayAccount...
 		if err != nil {
 			t.Fatal("should access the existing accounts", err)
 		}
@@ -77,7 +99,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 			t.Fatal("should succeed with Execute, instead:", err)
 		}
 		fmt.Printf("Execute txHash: %v\n", tx.TransactionHash)
-		_, state, err := testConfig.client.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+		_, state, err := testConfig.client.WaitForTransaction(ctx, tx.TransactionHash.String(), 3, 10)
 		if err != nil {
 			t.Fatal("should succeed with Execute, instead:", err)
 		}

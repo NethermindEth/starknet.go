@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -20,7 +21,7 @@ func TestClassAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:   types.StrToFelt("0xdeadbeef"),
+				ContractAddress:   utils.HexToFelt("0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
 			},
 		},

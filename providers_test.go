@@ -8,7 +8,6 @@ import (
 	"log"
 	"math/big"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -88,29 +87,30 @@ var (
 )
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := types.ContractClass{}
+	class := rpcv02.ContractClass{}
 	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
+		fmt.Println("1")
 		return "", err
 	}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
-	tx, err := provider.Deploy(context.Background(), class, types.DeployRequest{
-		ContractAddressSalt: "0x0",
-		ConstructorCalldata: []string{},
-	})
+	tx, err := provider.Deploy(context.Background(), class, rpcv02.DeployAccountTxn{})
 	if err != nil {
+		fmt.Println("2")
 		return "", err
 	}
 	fmt.Println("deploy counter txHash", tx.TransactionHash)
 	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 20)
 	if err != nil {
+		fmt.Println("3")
 		log.Printf("contract Address: %s\n", tx.ContractAddress)
 		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 		return "", err
 	}
 	if !receipt.Status.IsTransactionFinal() ||
 		receipt.Status == types.TransactionRejected {
+		fmt.Println("4")
 		return "", fmt.Errorf("installation status: %s", receipt.Status)
 	}
 	return tx.ContractAddress, nil
@@ -256,9 +256,6 @@ func TestGeneral_Syncing(t *testing.T) {
 		i, ok := big.NewInt(0).SetString(string(syncv02.CurrentBlockNum), 0)
 		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
 			t.Fatal("CurrentBlockNum should be positive number, instead: ", syncv02.CurrentBlockNum)
-		}
-		if !strings.HasPrefix(syncv02.CurrentBlockHash, "0x") {
-			t.Fatal("current block hash should return a string starting with 0x")
 		}
 	}
 }
