@@ -68,6 +68,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 			t.Fatalf("Failed to convert account address to Felt: %v", err)
 		}
 
+		fmt.Println("fake_sender", fakeSenderAddress)
 		fakeSenderAddressFelt, err := utils.HexToFelt(fakeSenderAddress)
 		if err != nil {
 			t.Fatalf("Failed to convert fake sender address to Felt: %v", err)
@@ -79,7 +80,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 			ks,
 			testConfig.client,
 			AccountVersion1)
-		// Handle error from NewGatewayAccount...
+
 		if err != nil {
 			t.Fatal("should access the existing accounts", err)
 		}

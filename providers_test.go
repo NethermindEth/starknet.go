@@ -2,7 +2,6 @@ package caigo
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -27,8 +26,11 @@ const (
 	DevNetAccount032Address  = "0x0536244bba4dc9bb219d964b477af6d18f7096635a96284bb0e008bf137650ec"
 	TestNetAccount032Address = "0x6ca4fdd437dffde5253ba7021ef7265c88b07789aa642eafda37791626edf00"
 	DevNetAccount040Address  = "0x058079067104f58fd9f1ef949cd2d2b482d7bca39b793983f077edaf51d979e9"
-	TestNetAccount040Address = "0x6cbfa37f409610fee26eeb427ed854b3a4b24580d9b9ef6c3e38db7b3f7322c"
-	TestnetCounterAddress    = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
+
+	TestNetAccount040Address    = "0x05f96a97ff46439e2e1b53aed5977429fd51ba17a2ac8a457db7dc75fb20c758"
+	TestNetAccount040PrivateKey = "0x3bb60a1a352ce04ad9e612f3b87ba8e9"
+
+	TestnetCounterAddress = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
 )
 
 // testGatewayConfiguration is a type that is used to configure tests
@@ -72,9 +74,10 @@ var (
 		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base:           "https://alpha4.starknet.io",
-			CounterAddress: TestnetCounterAddress,
-			AccountAddress: TestNetAccount040Address,
+			base:              "https://alpha4.starknet.io",
+			CounterAddress:    TestnetCounterAddress,
+			AccountAddress:    TestNetAccount040Address,
+			AccountPrivateKey: TestNetAccount040PrivateKey,
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/Shard-Labs/starknet-devnet)
@@ -88,7 +91,8 @@ var (
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
 	class := rpcv02.ContractClass{}
-	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
+
+	if err := class.UnmarshalJSON(artifacts.CounterCompiled); err != nil {
 		fmt.Println("1")
 		return "", err
 	}
