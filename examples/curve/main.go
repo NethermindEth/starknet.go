@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func main() {
@@ -15,24 +15,24 @@ func main() {
 		It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 		NOTE: when not given local file path this pulls the curve data from Starkware github repo
 	*/
-	hash, err := caigo.Curve.PedersenHash([]*big.Int{types.HexToBN("0x12773"), types.HexToBN("0x872362")})
+	hash, err := starknet.go.Curve.PedersenHash([]*big.Int{types.HexToBN("0x12773"), types.HexToBN("0x872362")})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	priv, _ := caigo.Curve.GetRandomPrivateKey()
+	priv, _ := starknet.go.Curve.GetRandomPrivateKey()
 
-	x, y, err := caigo.Curve.PrivateToPoint(priv)
+	x, y, err := starknet.go.Curve.PrivateToPoint(priv)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	r, s, err := caigo.Curve.Sign(hash, priv)
+	r, s, err := starknet.go.Curve.Sign(hash, priv)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	if caigo.Curve.Verify(hash, r, s, x, y) {
+	if starknet.go.Curve.Verify(hash, r, s, x, y) {
 		fmt.Println("signature is valid")
 	} else {
 		fmt.Println("signature is invalid")

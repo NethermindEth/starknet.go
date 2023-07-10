@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/caigo/artifacts"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // TestDeclareTransaction tests starknet_addDeclareTransaction

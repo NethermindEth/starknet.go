@@ -1,4 +1,4 @@
-package caigo
+package starknet.go
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/caigo/artifacts"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/rpcv02"
-	devtest "github.com/NethermindEth/caigo/test"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
+	devtest "github.com/NethermindEth/starknet.go/test"
+	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )

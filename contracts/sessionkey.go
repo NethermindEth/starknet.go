@@ -8,11 +8,11 @@ import (
 
 	_ "embed"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/plugins/xsessions"
-	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/plugins/xsessions"
+	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -31,8 +31,8 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 }
 
 // func (ap *AccountManager) ExecuteWithSessionKey(counterAddress, selector string, provider *rpcv02.Provider) (string, error) {
-// 	sessionPrivateKey, _ := caigo.Curve.GetRandomPrivateKey()
-// 	sessionPublicKey, _, _ := caigo.Curve.PrivateToPoint(sessionPrivateKey)
+// 	sessionPrivateKey, _ := starknet.go.Curve.GetRandomPrivateKey()
+// 	sessionPublicKey, _, _ := starknet.go.Curve.PrivateToPoint(sessionPrivateKey)
 
 // 	signedSessionKey, err := signSessionKey(ap.PrivateKey, ap.AccountAddress, counterAddress, "increment", types.BigToHex(sessionPublicKey))
 // 	if err != nil {
@@ -42,11 +42,11 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 		ap.PluginClassHash,
 // 		signedSessionKey,
 // 	)
-// 	v := caigo.AccountVersion0
+// 	v := starknet.go.AccountVersion0
 // 	if ap.Version == "v1" {
-// 		v = caigo.AccountVersion1
+// 		v = starknet.go.AccountVersion1
 // 	}
-// 	account, err := caigo.NewRPCAccount(
+// 	account, err := starknet.go.NewRPCAccount(
 // 		types.BigToHex(sessionPrivateKey),
 // 		ap.AccountAddress,
 // 		provider,
@@ -83,14 +83,14 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // }
 
 func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
-	v := caigo.AccountVersion0
+	v := starknet.go.AccountVersion0
 	if ap.Version == "v1" {
-		v = caigo.AccountVersion1
+		v = starknet.go.AccountVersion1
 	}
 	// shim in  the keystore. while weird and awkward, it's functionally ok because
 	// 1. account manager doesn't seem to be used any where
 	// 2. the account that is created below is scoped to this func
-	ks := caigo.NewMemKeystore()
+	ks := starknet.go.NewMemKeystore()
 	fakeSenderAddress := ap.PrivateKey
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
@@ -102,7 +102,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector
 	if err != nil {
 		return "", err
 	}
-	account, err := caigo.NewGatewayAccount(
+	account, err := starknet.go.NewGatewayAccount(
 		fakeSenderAdd,
 		apAcntAdd,
 		ks,
@@ -142,7 +142,7 @@ func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gat
 	//  shim in  the keystore. while weird and awkward, it's functionally ok because
 	// 1. account manager doesn't seem to be used any where
 	// 2. the account that is created below is scoped to this func
-	ks := caigo.NewMemKeystore()
+	ks := starknet.go.NewMemKeystore()
 	fakeSenderAddress := ap.PrivateKey
 	k := types.SNValToBN(ap.PrivateKey)
 	ks.Put(fakeSenderAddress, k)
@@ -154,7 +154,7 @@ func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gat
 	if err != nil {
 		return nil, err
 	}
-	account, err := caigo.NewGatewayAccount(
+	account, err := starknet.go.NewGatewayAccount(
 		fakeSenderAdd,
 		apAcntAdd,
 		ks,

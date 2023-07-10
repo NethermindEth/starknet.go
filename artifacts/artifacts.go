@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 //go:embed account.json

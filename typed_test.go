@@ -1,11 +1,11 @@
-package caigo
+package starknet.go
 
 import (
 	"fmt"
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type Mail struct {

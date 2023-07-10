@@ -1,7 +1,7 @@
 # A few words for developers
 
 This document points some things you might want to know when onboarding on
-Caigo. For now, we have listed a number of questions that we would like you
+starknet.go. For now, we have listed a number of questions that we would like you
 know before you contribute:
 
 - What is the difference between `rpc` and `gateway`?
@@ -12,7 +12,7 @@ know before you contribute:
 
 ## What is the difference between `rpc` and `gateway`?
 
-Caigo provides an access to Starknet through several interfaces:
+starknet.go provides an access to Starknet through several interfaces:
 - the `gateway` remains a primary access to Starknet. It is managed by
   Starkware and is stable. It evolves with the protocol features and is
   actually split in 2: the gateway allows to run transactions, and the feeder
@@ -22,23 +22,23 @@ Caigo provides an access to Starknet through several interfaces:
   node like [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder). This
   access has several benefits, including the fact that it will implement a
   peer-to-peer connection and is based on `openrpc` 2.0. As a result, the
-  protocol definition is better standardize and Caigo uses the
+  protocol definition is better standardize and starknet.go uses the
   [go-ethereum/rpc](https://pkg.go.dev/github.com/ethereum/go-ethereum/rpc)
   client to access Starknet.
 
-If you wonder which one to use, the short answer is it depends. However, Caigo
+If you wonder which one to use, the short answer is it depends. However, starknet.go
 provide an access to both and tries to share a common interface between the 2.
 Be careful that when you are doing something on the project, you should pay
 attention to the 2 interfaces, even if the implementations are specific.
 
 ## What version of `rpc` should I use?
 
-`rpc` is currently being upgrade from `v0.1` to `v0.2`. Right now `caigo` only
+`rpc` is currently being upgrade from `v0.1` to `v0.2`. Right now `starknet.go` only
 supports `v0.1`. However to provide a smooth upgrade the plan is to support
 both in parallel. That is why the current package names are:
 
-- `github.com/NethermindEth/caigo/rpcv01` for the v0.1 implementation
-- `github.com/NethermindEth/caigo/rpcv02` for the v0.2 implementation
+- `github.com/NethermindEth/starknet.go/rpcv01` for the v0.1 implementation
+- `github.com/NethermindEth/starknet.go/rpcv02` for the v0.2 implementation
 
 ## Where do I find resources about the protocol specifications?
 
@@ -63,7 +63,7 @@ resources available, check:
   from the eqlabs/pathfinder project that provides RPC tests with the project.
   Note that the [go-ethereum] implementation of openrpc only support positional
   arguments and, some of these examples must be changed into positional calls.
-- `#🦦| caigo` channel in the discord from Starknet.
+- `#🦦| starknet.go` channel in the discord from Starknet.
 
 ## How to interact with accounts?
 

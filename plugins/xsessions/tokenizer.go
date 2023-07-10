@@ -5,8 +5,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/NethermindEth/caigo"
-	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	ctypes "github.com/NethermindEth/starknet.go/types"
 )
 
 type Session struct {
@@ -29,14 +29,14 @@ type SessionKeyToken struct {
 
 // TODO remove use of `HexToBN`
 func computeSessionHash(sessionKey, expires, root, chainId, accountAddress string) (*big.Int, error) {
-	hashDomain, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
+	hashDomain, err := starknet.go.Curve.ComputeHashOnElements([]*big.Int{
 		STARKNET_DOMAIN_TYPE_HASH,
 		ctypes.HexToBN(chainId),
 	})
 	if err != nil {
 		return nil, err
 	}
-	hashMessage, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
+	hashMessage, err := starknet.go.Curve.ComputeHashOnElements([]*big.Int{
 		SESSION_TYPE_HASH,
 		ctypes.HexToBN(sessionKey),
 		ctypes.HexToBN(expires),
@@ -45,7 +45,7 @@ func computeSessionHash(sessionKey, expires, root, chainId, accountAddress strin
 	if err != nil {
 		return nil, err
 	}
-	return caigo.Curve.ComputeHashOnElements([]*big.Int{
+	return starknet.go.Curve.ComputeHashOnElements([]*big.Int{
 		STARKNET_MESSAGE,
 		hashDomain,
 		ctypes.HexToBN(accountAddress),
@@ -56,7 +56,7 @@ func computeSessionHash(sessionKey, expires, root, chainId, accountAddress strin
 func getMerkleRoot(policies []Policy) (string, error) {
 	leaves := []*big.Int{}
 	for _, policy := range policies {
-		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
+		leave, err := starknet.go.Curve.ComputeHashOnElements([]*big.Int{
 			POLICY_TYPE_HASH,
 			ctypes.HexToBN(policy.ContractAddress),
 			ctypes.GetSelectorFromName(policy.Selector),
@@ -66,7 +66,7 @@ func getMerkleRoot(policies []Policy) (string, error) {
 		}
 		leaves = append(leaves, leave)
 	}
-	tree, err := caigo.NewFixedSizeMerkleTree(leaves...)
+	tree, err := starknet.go.NewFixedSizeMerkleTree(leaves...)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +89,7 @@ func SignToken(privateKey, chainId, sessionPublicKey, accountAddress string, dur
 	if err != nil {
 		return nil, err
 	}
-	x, y, err := caigo.Curve.Sign(res, ctypes.HexToBN(privateKey))
+	x, y, err := starknet.go.Curve.Sign(res, ctypes.HexToBN(privateKey))
 	if err != nil {
 		return nil, err
 	}

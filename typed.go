@@ -1,4 +1,4 @@
-package caigo
+package starknet.go
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"regexp"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/juno/core/felt"
 )
 

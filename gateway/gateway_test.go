@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/test"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/test"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/joho/godotenv"
 )
 
@@ -57,13 +57,13 @@ func setupDevnet(ctx context.Context) error {
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
-	ks := caigo.NewMemKeystore()
-	account, err := caigo.NewGatewayAccount(
+	ks := starknet.go.NewMemKeystore()
+	account, err := starknet.go.NewGatewayAccount(
 		types.StrToFelt(v[0].PrivateKey),
 		types.StrToFelt(v[0].Address),
 		ks,
 		provider,
-		caigo.AccountVersion1,
+		starknet.go.AccountVersion1,
 	)
 	if err != nil {
 		return err

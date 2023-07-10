@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NethermindEth/caigo/rpcv02"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 )
 
 // TODO: returns DeprecatedContractClass | SierraContractClass

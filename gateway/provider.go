@@ -4,8 +4,8 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/rpcv02"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 )
 
 type GatewayProvider struct {

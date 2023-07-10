@@ -1,9 +1,9 @@
-package caigo
+package starknet.go
 
 import (
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func TestGeneral_SplitFactStr(t *testing.T) {

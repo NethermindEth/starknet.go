@@ -1,4 +1,4 @@
-module github.com/NethermindEth/caigo
+module github.com/NethermindEth/starknet.go
 
 go 1.18
 

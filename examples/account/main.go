@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var (
@@ -35,10 +35,10 @@ func main() {
 	fmt.Println("Counter is currently at: ", callResp[0])
 
 	// init account handler
-	ks := caigo.NewMemKeystore()
+	ks := starknet.go.NewMemKeystore()
 	fakeSenderAddress := privakeKey
 	ks.Put(fakeSenderAddress, types.SNValToBN(fakeSenderAddress))
-	account, err := caigo.NewGatewayAccount(fakeSenderAddress, address, ks, gw)
+	account, err := starknet.go.NewGatewayAccount(fakeSenderAddress, address, ks, gw)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/artifacts"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 const (
@@ -24,12 +24,12 @@ const (
 func main() {
 	gw := gateway.NewClient(gateway.WithChain(env))
 
-	privateKey, err := caigo.Curve.GetRandomPrivateKey()
+	privateKey, err := starknet.go.Curve.GetRandomPrivateKey()
 	if err != nil {
 		fmt.Println("can't get random private key:", err)
 		os.Exit(1)
 	}
-	pubX, _, err := caigo.Curve.PrivateToPoint(privateKey)
+	pubX, _, err := starknet.go.Curve.PrivateToPoint(privateKey)
 	if err != nil {
 		fmt.Println("can't generate public key:", err)
 		os.Exit(1)
@@ -62,7 +62,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	account, err := caigo.NewGatewayAccount(privateKey.String(), types.StrToFelt(tx.Transaction.ContractAddress), gw)
+	account, err := starknet.go.NewGatewayAccount(privateKey.String(), types.StrToFelt(tx.Transaction.ContractAddress), gw)
 	if err != nil {
 		fmt.Println("can't create account:", err)
 		os.Exit(1)
@@ -167,7 +167,7 @@ func waitForTransaction(gw *gateway.Gateway, transactionHash string) error {
 }
 
 // mint mints the erc20 contract through the account.
-func mint(gw *gateway.Gateway, account *caigo.Account, erc20address string) error {
+func mint(gw *gateway.Gateway, account *starknet.go.Account, erc20address string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
 		{
@@ -194,7 +194,7 @@ func mint(gw *gateway.Gateway, account *caigo.Account, erc20address string) erro
 
 // transferFrom will transfer 5 tokens from account balance to the otherAccount by
 // calling the transferFrom function of the erc20 contract.
-func transferFrom(gw *gateway.Gateway, account *caigo.Account, erc20address, otherAccount string) error {
+func transferFrom(gw *gateway.Gateway, account *starknet.go.Account, erc20address, otherAccount string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
 		{

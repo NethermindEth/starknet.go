@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func TestTransactionHash(t *testing.T) {

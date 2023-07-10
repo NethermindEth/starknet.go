@@ -10,9 +10,9 @@ import (
 
 	_ "embed"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/artifacts"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var sessionPluginCompiled = artifacts.PluginV0Compiled
@@ -47,7 +47,7 @@ func TestSessionKey_DeployAccount(t *testing.T) {
 	if !ok {
 		t.Fatal("could not match *big.Int private key with current value")
 	}
-	publicKey, _, err := caigo.Curve.PrivateToPoint(pk)
+	publicKey, _, err := starknet.go.Curve.PrivateToPoint(pk)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,12 +94,12 @@ func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginCl
 	provider := beforeEachRPCv02(t)
 	// shim a keystore into existing tests.
 	// use a string representation of the PK as a fake sender address for the keystore
-	ks := caigo.NewMemKeystore()
+	ks := starknet.go.NewMemKeystore()
 
 	fakeSenderAddress := sessionPrivateKey
 	k := types.SNValToBN(sessionPrivateKey)
 	ks.Put(fakeSenderAddress, k)
-	account, err := caigo.NewRPCAccount(
+	account, err := starknet.go.NewRPCAccount(
 		types.StrToFelt(fakeSenderAddress),
 		types.StrToFelt(accountAddress),
 		ks,
@@ -156,7 +156,7 @@ func TestCounter_IncrementWithSessionKeyPlugin(t *testing.T) {
 	if !ok {
 		t.Fatal("could not match *big.Int private key with current value")
 	}
-	sessionPublicKeyInt, _, err := caigo.Curve.PrivateToPoint(sessionPrivateKeyInt)
+	sessionPublicKeyInt, _, err := starknet.go.Curve.PrivateToPoint(sessionPrivateKeyInt)
 	if err != nil {
 		t.Fatal(err)
 	}

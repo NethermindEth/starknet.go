@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func (sg *Gateway) AccountNonce(ctx context.Context, address *felt.Felt) (*big.Int, error) {

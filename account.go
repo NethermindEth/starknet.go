@@ -1,4 +1,4 @@
-package caigo
+package starknet.go
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/utils"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -280,7 +280,7 @@ func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageTyp
 		calls = append([]types.FunctionCall{call}, calls...)
 	}
 
-	// Caigo currently only supports V1
+	// starknet.go currently only supports V1
 	version := rpcv02.TransactionV1
 
 	var txHash *big.Int

@@ -13,7 +13,7 @@ var (
 	errNotFound = errors.New("not found")
 )
 
-// Provider provides the provider for caigo/rpc implementation.
+// Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
 	c       callCloser
 	chainID string

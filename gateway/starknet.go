@@ -10,9 +10,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/google/go-querystring/query"
 )
 

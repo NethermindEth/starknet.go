@@ -1,10 +1,10 @@
-package caigo
+package starknet.go
 
 import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {

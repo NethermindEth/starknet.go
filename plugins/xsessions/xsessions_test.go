@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/caigo/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )

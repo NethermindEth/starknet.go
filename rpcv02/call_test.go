@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // TestCall tests Call
