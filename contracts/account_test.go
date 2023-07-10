@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/artifacts"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/joho/godotenv"
 )
 
@@ -19,11 +19,11 @@ func TestGateway_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     caigo.ProviderType
+		providerType     starknet.go.ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []caigo.ProviderType{caigo.ProviderGateway} {
+	for _, provider := range []starknet.go.ProviderType{starknet.go.ProviderGateway} {
 		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -47,7 +47,7 @@ func TestGateway_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case caigo.ProviderGateway:
+		case starknet.go.ProviderGateway:
 			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.gateway,
@@ -71,11 +71,11 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     caigo.ProviderType
+		providerType     starknet.go.ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []caigo.ProviderType{caigo.ProviderRPCv02} {
+	for _, provider := range []starknet.go.ProviderType{starknet.go.ProviderRPCv02} {
 		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -99,14 +99,14 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case caigo.ProviderRPCv02:
+		case starknet.go.ProviderRPCv02:
 			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.rpcv02,
 				privateKey,
 				test.CompiledContract,
 			)
-		case caigo.ProviderGateway:
+		case starknet.go.ProviderGateway:
 			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.gateway,

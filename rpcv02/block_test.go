@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/google/go-cmp/cmp"
 )
 

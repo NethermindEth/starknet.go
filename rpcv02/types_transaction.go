@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type TransactionHash struct {

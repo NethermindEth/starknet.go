@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/artifacts"
-	devtest "github.com/NethermindEth/caigo/test"
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	devtest "github.com/NethermindEth/starknet.go/test"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/joho/godotenv"
 )
 
@@ -19,7 +19,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  caigo.ProviderType
+		providerType  starknet.go.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -28,7 +28,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  caigo.ProviderGateway,
+				providerType:  starknet.go.ProviderGateway,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
@@ -42,7 +42,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case caigo.ProviderGateway:
+		case starknet.go.ProviderGateway:
 			provider := GatewayProvider(*testConfiguration.gateway)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -60,7 +60,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  caigo.ProviderType
+		providerType  starknet.go.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -69,7 +69,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  caigo.ProviderRPCv02,
+				providerType:  starknet.go.ProviderRPCv02,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x01",
 				Inputs:        []string{},
@@ -83,7 +83,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case caigo.ProviderRPCv02:
+		case starknet.go.ProviderRPCv02:
 			provider := RPCv02Provider(*testConfiguration.rpcv02)
 			tx, err = provider.deployAndWaitWithWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -102,7 +102,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    caigo.ProviderType
+		providerType    starknet.go.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -110,7 +110,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0x01",
-				providerType:    caigo.ProviderGateway,
+				providerType:    starknet.go.ProviderGateway,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -121,16 +121,16 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		defer cancel()
 		var err error
 		var counterTransaction *DeployOutput
-		var account *caigo.Account
+		var account *starknet.go.Account
 		// shim a keystore into existing tests.
 		// use string representation of the PK as a fake sender address for the keystore
-		ks := caigo.NewMemKeystore()
+		ks := starknet.go.NewMemKeystore()
 
 		fakeSenderAddress := test.privateKey
 		k := types.SNValToBN(test.privateKey)
 		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
-		case caigo.ProviderGateway:
+		case starknet.go.ProviderGateway:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			accountManager, err := InstallAndWaitForAccount(
 				ctx,
@@ -152,7 +152,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewGatewayAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.gateway, caigo.AccountVersion1)
+			account, err = starknet.go.NewGatewayAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.gateway, starknet.go.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
@@ -173,7 +173,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    caigo.ProviderType
+		providerType    starknet.go.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -181,7 +181,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0xe3e70682c2094cac629f6fbed82c07cd",
-				providerType:    caigo.ProviderRPCv02,
+				providerType:    starknet.go.ProviderRPCv02,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -192,14 +192,14 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		defer cancel()
 		var err error
 		var counterTransaction *DeployOutput
-		var account *caigo.Account
-		ks := caigo.NewMemKeystore()
+		var account *starknet.go.Account
+		ks := starknet.go.NewMemKeystore()
 
 		fakeSenderAddress := test.privateKey
 		k := types.SNValToBN(test.privateKey)
 		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
-		case caigo.ProviderRPCv02:
+		case starknet.go.ProviderRPCv02:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			fmt.Println("befor")
 			accountManager := &AccountManager{}
@@ -224,7 +224,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = caigo.NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.rpcv02, caigo.AccountVersion1)
+			account, err = starknet.go.NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.rpcv02, starknet.go.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}

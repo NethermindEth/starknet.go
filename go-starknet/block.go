@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/urfave/cli/v2"
 )
 

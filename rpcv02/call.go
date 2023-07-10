@@ -3,8 +3,8 @@ package rpcv02
 import (
 	"context"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // Call a starknet function without creating a StarkNet transaction.

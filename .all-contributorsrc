@@ -147,6 +147,6 @@
   "skipCi": true,
   "repoType": "github",
   "repoHost": "https://github.com",
-  "projectName": "caigo",
+  "projectName": "starknet.go",
   "projectOwner": "NethermindEth"
 }

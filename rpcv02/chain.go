@@ -3,7 +3,7 @@ package rpcv02
 import (
 	"context"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // ChainID retrieves the current chain ID for transaction replay protection.

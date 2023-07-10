@@ -1,11 +1,11 @@
-package caigo
+package starknetgo
 
 import (
 	"fmt"
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func BenchmarkPedersenHash(b *testing.B) {

@@ -1,4 +1,4 @@
-caigo
+starknet.go
 vendor/
 .env*
 !.env.template

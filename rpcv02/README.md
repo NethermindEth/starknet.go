@@ -1,11 +1,11 @@
 ## RPC implementation
 
-Caigo RPC implementation provides the RPC API to perform operations with 
+starknet.go RPC implementation provides the RPC API to perform operations with 
 StarkNet. It is currently being tested and maintained up-to-date with
 Pathfinder and relies on [go-ethereum](github.com/ethereum/go-ethereum/rpc)
 to provide the JSON RPC 2.0 client implementation.
 
-If you need Caigo to support another API, open an issue on the project.
+If you need starknet.go to support another API, open an issue on the project.
 
 ### Testing the RPC API
 

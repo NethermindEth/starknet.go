@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 import (
 	"crypto/elliptic"
@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func BenchmarkSignatureVerify(b *testing.B) {

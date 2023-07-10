@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 /*
 	Although the library adheres to the 'elliptic/curve' interface.

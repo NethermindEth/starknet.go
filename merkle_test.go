@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 import (
 	"math/big"

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // Class gets the contract class definition associated with the given hash.

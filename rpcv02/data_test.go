@@ -1,8 +1,8 @@
 package rpcv02
 
 import (
-	"github.com/NethermindEth/caigo/types"
-	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/types"
+	ctypes "github.com/NethermindEth/starknet.go/types"
 )
 
 var blockGoerli310370 = Block{

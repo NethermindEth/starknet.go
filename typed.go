@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"regexp"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type TypedData struct {

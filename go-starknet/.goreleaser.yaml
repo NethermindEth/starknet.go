@@ -24,7 +24,7 @@ archives:
       amd64: x86_64
 brews:
   - name: go-starknet
-    homepage: "https://github.com/dontpanicdao/caigo"
+    homepage: "https://github.com/dontpanicdao/starknet.go"
     tap:
       owner: dontpanicdao
       name: homebrew-dontpanicdao

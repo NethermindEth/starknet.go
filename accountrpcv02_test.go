@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	rpc "github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types"
+	rpc "github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // TestAccountNonce tests the account Nonce
