@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo"
+	starknetgo "github.com/NethermindEth/starknet.go"
 
-	"github.com/NethermindEth/caigo/types"
-	ctypes "github.com/NethermindEth/caigo/types"
-	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
+	ctypes "github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
-	_ caigo.AccountPlugin = &SessionKeyPlugin{}
+	_ starknetgo.AccountPlugin = &SessionKeyPlugin{}
 )
 
 type SessionKeyPlugin struct {
@@ -23,16 +23,16 @@ type SessionKeyPlugin struct {
 	token          *SessionKeyToken
 }
 
-func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.AccountOptionFunc {
-	return func(unused, address *felt.Felt) (caigo.AccountOption, error) {
+func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) starknetgo.AccountOptionFunc {
+	return func(unused, address *felt.Felt) (starknetgo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
 		if !ok {
-			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
+			return starknetgo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
 		if !ok {
-			return caigo.AccountOption{}, errors.New("could not convert plugin class hash")
+			return starknetgo.AccountOption{}, errors.New("could not convert plugin class hash")
 		}
-		return caigo.AccountOption{
+		return starknetgo.AccountOption{
 			AccountPlugin: &SessionKeyPlugin{
 				accountAddress: address,
 				classHash:      plugin,
@@ -46,7 +46,7 @@ func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) caigo.
 func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, error) {
 	leaves := []*big.Int{}
 	for _, policy := range policies {
-		leave, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
+		leave, err := starknetgo.Curve.ComputeHashOnElements([]*big.Int{
 			POLICY_TYPE_HASH,
 			ctypes.HexToBN(policy.ContractAddress),
 			ctypes.GetSelectorFromName(policy.Selector), // should we use felt??
@@ -56,12 +56,12 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 		}
 		leaves = append(leaves, leave)
 	}
-	tree, err := caigo.NewFixedSizeMerkleTree(leaves...)
+	tree, err := starknetgo.NewFixedSizeMerkleTree(leaves...)
 	if err != nil {
 		return nil, err
 	}
 
-	callkey, err := caigo.Curve.ComputeHashOnElements([]*big.Int{
+	callkey, err := starknetgo.Curve.ComputeHashOnElements([]*big.Int{
 		POLICY_TYPE_HASH,
 		call.ContractAddress.BigInt(big.NewInt(0)),
 		ctypes.GetSelectorFromName(call.EntryPointSelector.String()),

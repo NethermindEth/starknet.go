@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // TestClassAt tests code for a class.

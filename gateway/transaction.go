@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/google/go-querystring/query"
 )
 

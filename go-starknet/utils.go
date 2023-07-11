@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/types"
+	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/urfave/cli/v2"
 )
 
@@ -105,7 +105,7 @@ var utilsCommand = cli.Command{
 				if !ok {
 					return errors.New("not a number")
 				}
-				publicKey, _, err := caigo.Curve.PrivateToPoint(privateKeyInt)
+				publicKey, _, err := starknetgo.Curve.PrivateToPoint(privateKeyInt)
 				if err != nil {
 					return err
 				}
@@ -133,11 +133,11 @@ var utilsCommand = cli.Command{
 				if !ok {
 					return errors.New("not a number")
 				}
-				publicKey, _, err := caigo.Curve.PrivateToPoint(privateKeyInt)
+				publicKey, _, err := starknetgo.Curve.PrivateToPoint(privateKeyInt)
 				if err != nil {
 					return err
 				}
-				x, y, err := caigo.Curve.Sign(messageInt, privateKeyInt)
+				x, y, err := starknetgo.Curve.Sign(messageInt, privateKeyInt)
 				if err != nil {
 					return err
 				}
@@ -170,7 +170,7 @@ var utilsCommand = cli.Command{
 				if !ok {
 					return errors.New("not a number")
 				}
-				y := caigo.Curve.GetYCoordinate(publicKeyInt)
+				y := starknetgo.Curve.GetYCoordinate(publicKeyInt)
 				s0 := cCtx.String("s0")
 				s0Int, ok := big.NewInt(0).SetString(s0, 0)
 				if !ok {
@@ -186,7 +186,7 @@ var utilsCommand = cli.Command{
 				if !ok {
 					return errors.New("not a number")
 				}
-				ok = caigo.Curve.Verify(messageInt, s0Int, s1Int, publicKeyInt, y)
+				ok = starknetgo.Curve.Verify(messageInt, s0Int, s1Int, publicKeyInt, y)
 				if !ok {
 					return errors.New("invalid signature")
 				}

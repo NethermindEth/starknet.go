@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/google/go-cmp/cmp"
 )
 

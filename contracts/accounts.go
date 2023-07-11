@@ -9,12 +9,12 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/NethermindEth/caigo"
-	"github.com/NethermindEth/caigo/artifacts"
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
+	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type AccountManager struct {
@@ -77,7 +77,7 @@ func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx
 		return nil, errors.New("empty account")
 	}
 	privateKeyString := fmt.Sprintf("0x%x", privateKey)
-	publicKey, _, err := caigo.Curve.PrivateToPoint(privateKey)
+	publicKey, _, err := starknetgo.Curve.PrivateToPoint(privateKey)
 	if err != nil {
 		return nil, err
 	}

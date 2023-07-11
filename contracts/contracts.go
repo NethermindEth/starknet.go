@@ -8,10 +8,10 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/NethermindEth/caigo/gateway"
-	"github.com/NethermindEth/caigo/rpcv02"
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type DeclareOutput struct {

@@ -1,4 +1,4 @@
-package caigo
+package starknetgo
 
 type curveOptions struct {
 	initConstants bool

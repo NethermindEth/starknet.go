@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/NethermindEth/caigo/gateway"
+	"github.com/NethermindEth/starknet.go/gateway"
 )
 
 func TestClassByHash(t *testing.T) {

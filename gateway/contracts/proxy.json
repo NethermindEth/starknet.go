@@ -1976,7 +1976,7 @@
                         "end_col": 45,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -1990,7 +1990,7 @@
                                         "end_col": 39,
                                         "end_line": 21,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 17,
                                         "start_line": 21
@@ -2017,7 +2017,7 @@
                         "end_col": 74,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -2031,7 +2031,7 @@
                                         "end_col": 39,
                                         "end_line": 21,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 17,
                                         "start_line": 21
@@ -2058,7 +2058,7 @@
                         "end_col": 91,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -2072,7 +2072,7 @@
                                         "end_col": 39,
                                         "end_line": 21,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 17,
                                         "start_line": 21
@@ -2099,7 +2099,7 @@
                         "end_col": 39,
                         "end_line": 21,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "start_col": 17,
                         "start_line": 21
@@ -2116,7 +2116,7 @@
                         "end_col": 32,
                         "end_line": 22,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "start_col": 5,
                         "start_line": 22
@@ -2133,14 +2133,14 @@
                         "end_col": 26,
                         "end_line": 26,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 35,
                                 "end_line": 28,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "start_col": 21,
                                 "start_line": 28
@@ -2162,7 +2162,7 @@
                         "end_col": 36,
                         "end_line": 28,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "start_col": 5,
                         "start_line": 28
@@ -2179,7 +2179,7 @@
                         "end_col": 45,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -2193,7 +2193,7 @@
                                         "end_col": 42,
                                         "end_line": 29,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 29
@@ -2220,7 +2220,7 @@
                         "end_col": 74,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -2234,7 +2234,7 @@
                                         "end_col": 42,
                                         "end_line": 29,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 29
@@ -2261,7 +2261,7 @@
                         "end_col": 91,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
@@ -2275,7 +2275,7 @@
                                         "end_col": 42,
                                         "end_line": 29,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 29
@@ -2302,14 +2302,14 @@
                         "end_col": 26,
                         "end_line": 26,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 41,
                                 "end_line": 29,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "start_col": 27,
                                 "start_line": 29
@@ -2331,7 +2331,7 @@
                         "end_col": 42,
                         "end_line": 29,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "start_col": 5,
                         "start_line": 29
@@ -2348,7 +2348,7 @@
                         "end_col": 14,
                         "end_line": 30,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "start_col": 5,
                         "start_line": 30
@@ -2366,21 +2366,21 @@
                         "end_col": 37,
                         "end_line": 13,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 45,
                                 "end_line": 25,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 40,
                                         "end_line": 16,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 16
@@ -2408,21 +2408,21 @@
                         "end_col": 66,
                         "end_line": 13,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 74,
                                 "end_line": 25,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 40,
                                         "end_line": 16,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 16
@@ -2450,21 +2450,21 @@
                         "end_col": 83,
                         "end_line": 13,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 91,
                                 "end_line": 25,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 40,
                                         "end_line": 16,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 5,
                                         "start_line": 16
@@ -2492,14 +2492,14 @@
                         "end_col": 26,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 39,
                                 "end_line": 16,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 25,
                                 "start_line": 16
@@ -2522,7 +2522,7 @@
                         "end_col": 40,
                         "end_line": 16,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 16
@@ -2540,14 +2540,14 @@
                         "end_col": 45,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 40,
                                 "end_line": 16,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -2561,7 +2561,7 @@
                                                 "end_col": 6,
                                                 "end_line": 22,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 17
@@ -2594,14 +2594,14 @@
                         "end_col": 26,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 34,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 20,
                                 "start_line": 18
@@ -2624,14 +2624,14 @@
                         "end_col": 43,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 35,
                                 "end_line": 19,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 27,
                                 "start_line": 19
@@ -2654,14 +2654,14 @@
                         "end_col": 64,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 35,
                                 "end_line": 20,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 23,
                                 "start_line": 20
@@ -2684,14 +2684,14 @@
                         "end_col": 82,
                         "end_line": 14,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 26,
                                 "end_line": 21,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 18,
                                 "start_line": 21
@@ -2714,7 +2714,7 @@
                         "end_col": 6,
                         "end_line": 22,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 17
@@ -2739,21 +2739,21 @@
                                 "end_col": 6,
                                 "end_line": 22,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 37,
                                         "end_line": 13,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 23,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 23
@@ -2786,28 +2786,28 @@
                         "end_col": 74,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 40,
                                 "end_line": 16,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 66,
                                         "end_line": 13,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 23,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 23
@@ -2840,28 +2840,28 @@
                         "end_col": 91,
                         "end_line": 25,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 40,
                                 "end_line": 16,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 83,
                                         "end_line": 13,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 23,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 23
@@ -2894,7 +2894,7 @@
                         "end_col": 14,
                         "end_line": 23,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 23
@@ -2920,7 +2920,7 @@
                                 "end_col": 83,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -2934,7 +2934,7 @@
                                                 "end_col": 82,
                                                 "end_line": 14,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 66,
                                                 "start_line": 14
@@ -2975,7 +2975,7 @@
                                 "end_col": 64,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -2989,7 +2989,7 @@
                                                 "end_col": 82,
                                                 "end_line": 14,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 66,
                                                 "start_line": 14
@@ -3030,7 +3030,7 @@
                                 "end_col": 82,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 66,
                                 "start_line": 14
@@ -3061,7 +3061,7 @@
                                 "end_col": 64,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3075,7 +3075,7 @@
                                                 "end_col": 82,
                                                 "end_line": 14,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 66,
                                                 "start_line": 14
@@ -3116,7 +3116,7 @@
                                 "end_col": 64,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3130,7 +3130,7 @@
                                                 "end_col": 82,
                                                 "end_line": 14,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 66,
                                                 "start_line": 14
@@ -3171,7 +3171,7 @@
                                 "end_col": 82,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 66,
                                 "start_line": 14
@@ -3202,7 +3202,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 13
@@ -3233,7 +3233,7 @@
                                 "end_col": 83,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3247,7 +3247,7 @@
                                                 "end_col": 82,
                                                 "end_line": 14,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "parent_location": [
                                                     {
@@ -3261,7 +3261,7 @@
                                                                 "end_col": 17,
                                                                 "end_line": 13,
                                                                 "input_file": {
-                                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                                 },
                                                                 "start_col": 6,
                                                                 "start_line": 13
@@ -3312,7 +3312,7 @@
                                 "end_col": 37,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3326,7 +3326,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3367,7 +3367,7 @@
                                 "end_col": 66,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3381,7 +3381,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3422,7 +3422,7 @@
                                 "end_col": 82,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3436,7 +3436,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3477,7 +3477,7 @@
                                 "end_col": 26,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3491,7 +3491,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3532,7 +3532,7 @@
                                 "end_col": 43,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3546,7 +3546,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3587,7 +3587,7 @@
                                 "end_col": 64,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3601,7 +3601,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3642,7 +3642,7 @@
                                 "end_col": 82,
                                 "end_line": 14,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3656,7 +3656,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3690,7 +3690,7 @@
                         "end_col": 17,
                         "end_line": 13,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 6,
                         "start_line": 13
@@ -3717,7 +3717,7 @@
                                         "end_col": 17,
                                         "end_line": 13,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 6,
                                         "start_line": 13
@@ -3741,7 +3741,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 13
@@ -3772,7 +3772,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3786,7 +3786,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3827,7 +3827,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3841,7 +3841,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3882,7 +3882,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3896,7 +3896,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3937,7 +3937,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -3951,7 +3951,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -3992,7 +3992,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -4006,7 +4006,7 @@
                                                 "end_col": 17,
                                                 "end_line": 13,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 13
@@ -4047,7 +4047,7 @@
                                 "end_col": 17,
                                 "end_line": 13,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 13
@@ -4070,21 +4070,21 @@
                         "end_col": 37,
                         "end_line": 33,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 45,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 36,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 36
@@ -4112,21 +4112,21 @@
                         "end_col": 66,
                         "end_line": 33,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 74,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 36,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 36
@@ -4154,21 +4154,21 @@
                         "end_col": 83,
                         "end_line": 33,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 91,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 36,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 36
@@ -4196,7 +4196,7 @@
                         "end_col": 49,
                         "end_line": 36,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 28,
                         "start_line": 36
@@ -4214,14 +4214,14 @@
                         "end_col": 45,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 36,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -4235,7 +4235,7 @@
                                                 "end_col": 6,
                                                 "end_line": 43,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 50,
                                                 "start_line": 38
@@ -4268,14 +4268,14 @@
                         "end_col": 24,
                         "end_line": 36,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 34,
                                 "end_line": 39,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 20,
                                 "start_line": 39
@@ -4298,14 +4298,14 @@
                         "end_col": 20,
                         "end_line": 34,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 35,
                                 "end_line": 40,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 27,
                                 "start_line": 40
@@ -4328,14 +4328,14 @@
                         "end_col": 42,
                         "end_line": 34,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 36,
                                 "end_line": 41,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 23,
                                 "start_line": 41
@@ -4358,14 +4358,14 @@
                         "end_col": 60,
                         "end_line": 34,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 26,
                                 "end_line": 42,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 18,
                                 "start_line": 42
@@ -4388,7 +4388,7 @@
                         "end_col": 6,
                         "end_line": 43,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 50,
                         "start_line": 38
@@ -4413,21 +4413,21 @@
                                 "end_col": 6,
                                 "end_line": 43,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 37,
                                         "end_line": 33,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 56,
                                                 "end_line": 44,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 44
@@ -4460,28 +4460,28 @@
                         "end_col": 74,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 36,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 66,
                                         "end_line": 33,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 56,
                                                 "end_line": 44,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 44
@@ -4514,28 +4514,28 @@
                         "end_col": 91,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 36,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 83,
                                         "end_line": 33,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 56,
                                                 "end_line": 44,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 44
@@ -4568,14 +4568,14 @@
                         "end_col": 29,
                         "end_line": 38,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 38,
                                 "end_line": 44,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 26,
                                 "start_line": 44
@@ -4598,14 +4598,14 @@
                         "end_col": 46,
                         "end_line": 38,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 55,
                                 "end_line": 44,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 48,
                                 "start_line": 44
@@ -4628,7 +4628,7 @@
                         "end_col": 56,
                         "end_line": 44,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 44
@@ -4654,7 +4654,7 @@
                                 "end_col": 37,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -4668,7 +4668,7 @@
                                                 "end_col": 17,
                                                 "end_line": 33,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 33
@@ -4709,7 +4709,7 @@
                                 "end_col": 66,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -4723,7 +4723,7 @@
                                                 "end_col": 17,
                                                 "end_line": 33,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 33
@@ -4764,7 +4764,7 @@
                                 "end_col": 83,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -4778,7 +4778,7 @@
                                                 "end_col": 17,
                                                 "end_line": 33,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 33
@@ -4819,7 +4819,7 @@
                                 "end_col": 17,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 33
@@ -4850,7 +4850,7 @@
                                 "end_col": 17,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 33
@@ -4881,7 +4881,7 @@
                                 "end_col": 17,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 33
@@ -4905,7 +4905,7 @@
                         "end_col": 17,
                         "end_line": 33,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 6,
                         "start_line": 33
@@ -4931,7 +4931,7 @@
                                 "end_col": 17,
                                 "end_line": 33,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 33
@@ -4954,21 +4954,21 @@
                         "end_col": 40,
                         "end_line": 49,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 45,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 52,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 52
@@ -4996,21 +4996,21 @@
                         "end_col": 69,
                         "end_line": 49,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 74,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 52,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 52
@@ -5038,21 +5038,21 @@
                         "end_col": 86,
                         "end_line": 49,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 91,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 52,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 52
@@ -5080,7 +5080,7 @@
                         "end_col": 49,
                         "end_line": 52,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 28,
                         "start_line": 52
@@ -5098,14 +5098,14 @@
                         "end_col": 45,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 52,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5119,7 +5119,7 @@
                                                 "end_col": 6,
                                                 "end_line": 59,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 54
@@ -5152,14 +5152,14 @@
                         "end_col": 24,
                         "end_line": 52,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 34,
                                 "end_line": 55,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 20,
                                 "start_line": 55
@@ -5182,14 +5182,14 @@
                         "end_col": 20,
                         "end_line": 50,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 35,
                                 "end_line": 56,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 27,
                                 "start_line": 56
@@ -5212,14 +5212,14 @@
                         "end_col": 42,
                         "end_line": 50,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 36,
                                 "end_line": 57,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 23,
                                 "start_line": 57
@@ -5242,14 +5242,14 @@
                         "end_col": 60,
                         "end_line": 50,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 26,
                                 "end_line": 58,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 18,
                                 "start_line": 58
@@ -5272,7 +5272,7 @@
                         "end_col": 6,
                         "end_line": 59,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 54
@@ -5297,21 +5297,21 @@
                                 "end_col": 6,
                                 "end_line": 59,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 40,
                                         "end_line": 49,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 60,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 60
@@ -5344,28 +5344,28 @@
                         "end_col": 74,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 52,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 69,
                                         "end_line": 49,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 60,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 60
@@ -5398,28 +5398,28 @@
                         "end_col": 91,
                         "end_line": 18,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 49,
                                 "end_line": 52,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 86,
                                         "end_line": 49,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 14,
                                                 "end_line": 60,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 5,
                                                 "start_line": 60
@@ -5452,7 +5452,7 @@
                         "end_col": 14,
                         "end_line": 60,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 60
@@ -5478,7 +5478,7 @@
                                 "end_col": 40,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5492,7 +5492,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5533,7 +5533,7 @@
                                 "end_col": 69,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5547,7 +5547,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5588,7 +5588,7 @@
                                 "end_col": 86,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5602,7 +5602,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5643,7 +5643,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 49
@@ -5674,7 +5674,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 49
@@ -5705,7 +5705,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 49
@@ -5729,7 +5729,7 @@
                         "end_col": 20,
                         "end_line": 49,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 6,
                         "start_line": 49
@@ -5756,7 +5756,7 @@
                                         "end_col": 20,
                                         "end_line": 49,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 6,
                                         "start_line": 49
@@ -5780,7 +5780,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 49
@@ -5811,7 +5811,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5825,7 +5825,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5866,7 +5866,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5880,7 +5880,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5921,7 +5921,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5935,7 +5935,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -5976,7 +5976,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -5990,7 +5990,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -6031,7 +6031,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6045,7 +6045,7 @@
                                                 "end_col": 20,
                                                 "end_line": 49,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 49
@@ -6086,7 +6086,7 @@
                                 "end_col": 20,
                                 "end_line": 49,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 49
@@ -6109,21 +6109,21 @@
                         "end_col": 44,
                         "end_line": 68,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 45,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 71,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 71
@@ -6151,21 +6151,21 @@
                         "end_col": 73,
                         "end_line": 68,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 74,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 71,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 71
@@ -6193,21 +6193,21 @@
                         "end_col": 90,
                         "end_line": 68,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 91,
                                 "end_line": 18,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Upgradable.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Upgradable.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 49,
                                         "end_line": 71,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 28,
                                         "start_line": 71
@@ -6235,7 +6235,7 @@
                         "end_col": 49,
                         "end_line": 71,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 28,
                         "start_line": 71
@@ -6253,7 +6253,7 @@
                         "end_col": 43,
                         "end_line": 72,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 5,
                         "start_line": 72
@@ -6280,7 +6280,7 @@
                                         "end_col": 24,
                                         "end_line": 68,
                                         "input_file": {
-                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                         },
                                         "start_col": 6,
                                         "start_line": 68
@@ -6304,7 +6304,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68
@@ -6335,7 +6335,7 @@
                                 "end_col": 26,
                                 "end_line": 69,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 5,
                                 "start_line": 69
@@ -6366,7 +6366,7 @@
                                 "end_col": 26,
                                 "end_line": 69,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6380,7 +6380,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6421,7 +6421,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6435,7 +6435,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6476,7 +6476,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68
@@ -6507,7 +6507,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6521,7 +6521,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6562,7 +6562,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68
@@ -6593,7 +6593,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68
@@ -6624,7 +6624,7 @@
                                 "end_col": 44,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6638,7 +6638,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6679,7 +6679,7 @@
                                 "end_col": 73,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6693,7 +6693,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6734,7 +6734,7 @@
                                 "end_col": 90,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6748,7 +6748,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6782,7 +6782,7 @@
                         "end_col": 24,
                         "end_line": 68,
                         "input_file": {
-                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                            "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                         },
                         "start_col": 6,
                         "start_line": 68
@@ -6808,7 +6808,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6822,7 +6822,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6863,7 +6863,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68
@@ -6894,7 +6894,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6908,7 +6908,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -6949,7 +6949,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -6963,7 +6963,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -7004,7 +7004,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -7018,7 +7018,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -7059,7 +7059,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -7073,7 +7073,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -7114,7 +7114,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "parent_location": [
                                     {
@@ -7128,7 +7128,7 @@
                                                 "end_col": 24,
                                                 "end_line": 68,
                                                 "input_file": {
-                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                                 },
                                                 "start_col": 6,
                                                 "start_line": 68
@@ -7169,7 +7169,7 @@
                                 "end_col": 24,
                                 "end_line": 68,
                                 "input_file": {
-                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/caigo/gateway/contracts/Proxy.cairo"
+                                    "filename": "/home/bgoebel/go/src/github.com/NethermindEth/starknet.go/gateway/contracts/Proxy.cairo"
                                 },
                                 "start_col": 6,
                                 "start_line": 68

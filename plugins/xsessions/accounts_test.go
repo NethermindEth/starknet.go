@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/caigo/artifacts"
-	ctypes "github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	ctypes "github.com/NethermindEth/starknet.go/types"
 )
 
 const (

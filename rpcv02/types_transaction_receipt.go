@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // CommonTransactionReceipt Common properties for a transaction receipt
@@ -28,7 +28,7 @@ func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// TODO: check how we can move that type up in caigo/types
+// TODO: check how we can move that type up in starknet.go/types
 type TransactionType string
 
 const (

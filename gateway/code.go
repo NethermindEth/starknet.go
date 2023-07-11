@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NethermindEth/caigo/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 )
 
 type Bytecode []string

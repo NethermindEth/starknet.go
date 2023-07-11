@@ -7,8 +7,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/NethermindEth/caigo/types"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var (
