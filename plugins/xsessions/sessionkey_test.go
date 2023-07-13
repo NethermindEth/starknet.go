@@ -93,7 +93,7 @@ func TestSessionKey_CheckEth(t *testing.T) {
 
 // IncrementWithSessionKeyPlugin
 func IncrementWithSessionKeyPlugin(t *testing.T, accountAddress string, pluginClass string, token *SessionKeyToken, counterAddress string) {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 	// shim a keystore into existing tests.
 	// use a string representation of the PK as a fake sender address for the keystore
 	ks := starknetgo.NewMemKeystore()

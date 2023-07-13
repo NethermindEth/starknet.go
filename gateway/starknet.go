@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/google/go-querystring/query"
 )
@@ -142,7 +142,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, contract rpcv02.ContractClass, deployRequest rpcv02.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
+func (sg *Gateway) Deploy(ctx context.Context, contract rpc.ContractClass, deployRequest rpc.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
 	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
@@ -197,7 +197,7 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, contract rpcv02.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
+func (sg *Gateway) Declare(ctx context.Context, contract rpc.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
@@ -208,7 +208,7 @@ func (sg *Gateway) Declare(ctx context.Context, contract rpcv02.ContractClass, d
 	return resp, sg.do(req, &resp)
 }
 
-// type DeployRequest rpcv02.DeployRequest
+// type DeployRequest rpc.DeployRequest
 
 // func (d DeployRequest) MarshalJSON() ([]byte, error) {
 // 	calldata := []string{}
@@ -226,7 +226,7 @@ type DeclareRequest struct {
 	MaxFee        string               `json:"max_fee"`
 	Nonce         string               `json:"nonce"`
 	Signature     []string             `json:"signature"`
-	ContractClass rpcv02.ContractClass `json:"contract_class"`
+	ContractClass rpc.ContractClass `json:"contract_class"`
 }
 
 func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {

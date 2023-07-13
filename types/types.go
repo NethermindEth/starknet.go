@@ -31,7 +31,7 @@ type AddDeployResponse struct {
 // 	Type                string               `json:"type"`
 // 	ContractAddressSalt string               `json:"contract_address_salt"`
 // 	ConstructorCalldata []string             `json:"constructor_calldata"`
-// 	ContractDefinition  rpcv02.ContractClass `json:"contract_definition"`
+// 	ContractDefinition  rpc.ContractClass `json:"contract_definition"`
 // }
 
 type DeployAccountRequest struct {

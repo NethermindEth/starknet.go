@@ -13,7 +13,7 @@ import (
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -58,8 +58,8 @@ const (
 
 func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
-	case *rpcv02.Provider:
-		provider := RPCv02Provider(*v)
+	case *rpc.Provider:
+		provider := RPCProvider(*v)
 		return &provider, nil
 	case *gateway.GatewayProvider:
 		provider := GatewayProvider(*v)
@@ -72,7 +72,7 @@ func guessProviderType(p interface{}) (Provider, error) {
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccount[V *rpcv02.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccount[V *rpc.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
