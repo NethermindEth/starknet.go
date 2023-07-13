@@ -10,16 +10,16 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-type RPCv02Provider rpcv02.Provider
+type RPCProvider rpc.Provider
 
-func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
-	provider := rpcv02.Provider(*p)
-	class := rpcv02.ContractClass{}
+func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
+	provider := rpc.Provider(*p)
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -27,8 +27,8 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 	if err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeclareTransaction(ctx, rpcv02.BroadcastedDeclareTransaction{
-		BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+	tx, err := provider.AddDeclareTransaction(ctx, rpc.BroadcastedDeclareTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 			Type:    "DECLARE",
 			MaxFee:  new(felt.Felt).SetUint64(10000),
 			Version: "0x01",
@@ -58,9 +58,9 @@ func (p *RPCv02Provider) declareAndWaitWithWallet(ctx context.Context, compiledC
 	}, nil
 }
 
-func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
-	provider := rpcv02.Provider(*p)
-	class := rpcv02.ContractClass{}
+func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+	provider := rpc.Provider(*p)
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -76,8 +76,8 @@ func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, class
 		return nil, err
 	}
 
-	tx, err := provider.AddDeployAccountTransaction(ctx, rpcv02.BroadcastedDeployAccountTransaction{
-		BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+	tx, err := provider.AddDeployAccountTransaction(ctx, rpc.BroadcastedDeployAccountTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 			MaxFee:  new(felt.Felt).SetUint64(1),
 			Version: "0x01",
 			Nonce:   new(felt.Felt).SetUint64(2), // TODO: nonce handling
@@ -107,9 +107,9 @@ func (p *RPCv02Provider) deployAccountAndWaitNoWallet(ctx context.Context, class
 	}, nil
 }
 
-func (p *RPCv02Provider) deployAndWaitWithWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
-	provider := rpcv02.Provider(*p)
-	class := rpcv02.ContractClass{}
+func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
+	provider := rpc.Provider(*p)
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -125,9 +125,9 @@ func (p *RPCv02Provider) deployAndWaitWithWallet(ctx context.Context, compiledCl
 	}
 
 	// TODO: use UDC via account
-	tx, err := provider.AddDeployTransaction(ctx, rpcv02.BroadcastedDeployTxn{
-		DeployTransactionProperties: rpcv02.DeployTransactionProperties{
-			Version:             rpcv02.TransactionV1,
+	tx, err := provider.AddDeployTransaction(ctx, rpc.BroadcastedDeployTxn{
+		DeployTransactionProperties: rpc.DeployTransactionProperties{
+			Version:             rpc.TransactionV1,
 			ContractAddressSalt: saltFelt,
 			ConstructorCalldata: inputsFelt,
 		},

@@ -1,4 +1,4 @@
-name: rpcv02
+name: rpc
 
 on:
   push:
@@ -30,40 +30,40 @@ jobs:
 
       - name: Test contracts deployment and execute
         run: echo "skip for now"
-        # run: cd contracts && go test -env devnet -v -run "^TestRPCv02" .
+        # run: cd contracts && go test -env devnet -v -run "^Testrpc" .
 
       - name: Preinstall RPC v0.2 contracts on devnet
         run: echo "skip for now"
-        # run: cd rpcv02 && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
+        # run: cd rpc && go test -timeout 600s -v -env devnet -run TestDeployTransaction . && sleep 5
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test Accounts (starknet.go) on devnet
         run: echo "skip for now"
-        # run: go test -timeout 600s -v -env devnet -run "^(TestGateway|TestRPCv02|TestGeneral)" .
+        # run: go test -timeout 600s -v -env devnet -run "^(TestGateway|TestRPC|TestGeneral)" .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test RPC v0.2 with mocks
-        run: cd rpcv02 && go test -v .
+        run: cd rpc && go test -v .
 
       - name: Test RPC v0.2 on devnet
         run: echo "skip for now"
-        # run: cd rpcv02 && go test -timeout 600s -v -env devnet .
+        # run: cd rpc && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
 
       - name: Test RPC v0.2 on testnet
-        run: cd rpcv02 && go test -timeout 1200s -v -env testnet .
+        run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
 
       - name: Test RPC v0.2 with mainnet
-        run: cd rpcv02 && go test -timeout 600s -v -env mainnet .
+        run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://starknet.cartridge.gg/"

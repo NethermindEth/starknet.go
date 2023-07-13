@@ -14,7 +14,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -135,7 +135,7 @@ func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
 
 // testConfiguration is a type that is used to configure tests
 type testRPCConfiguration struct {
-	providerv02 *rpcv02.Provider
+	providerv02 *rpc.Provider
 	base        string
 }
 
@@ -198,7 +198,7 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	clientv02 := rpcv02.NewProvider(c)
+	clientv02 := rpc.NewProvider(c)
 	testConfig.providerv02 = clientv02
 	return &testConfig
 }

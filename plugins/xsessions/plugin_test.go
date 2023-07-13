@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/joho/godotenv"
 )
 
 // RegisterClass
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 
 	yeasayerClass := types.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
@@ -58,7 +58,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 	contractClass := types.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
@@ -124,14 +124,14 @@ func MintEth(t *testing.T, accountAddress string) {
 
 // CheckEth
 func CheckEth(t *testing.T, accountAddress string) string {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 	ctx := context.Background()
 	output, err := provider.Call(ctx, types.FunctionCall{
 		ContractAddress:    types.StrToFelt(devnetEth),
 		EntryPointSelector: "balanceOf",
 		Calldata:           []string{accountAddress},
 	},
-		rpcv02.WithBlockTag("latest"),
+		rpc.WithBlockTag("latest"),
 	)
 	if err != nil {
 		log.Fatal("could not call Eth", err)

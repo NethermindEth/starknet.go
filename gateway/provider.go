@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 type GatewayProvider struct {
@@ -46,7 +46,7 @@ func (p *GatewayProvider) TransactionByHash(ctx context.Context, hash string) (*
 	return &t.Transaction, nil
 }
 
-func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*rpcv02.ContractClass, error) {
+func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*rpc.ContractClass, error) {
 	panic("not implemented")
 }
 
@@ -54,6 +54,6 @@ func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress strin
 	panic("not implemented")
 }
 
-func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*rpcv02.ContractClass, error) {
+func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*rpc.ContractClass, error) {
 	panic("not implemented")
 }

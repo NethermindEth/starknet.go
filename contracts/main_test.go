@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 }
 
 type testConfiguration struct {
-	rpcv02     *rpcv02.Provider
+	rpc     *rpc.Provider
 	gateway    *gateway.GatewayProvider
 	RPCBaseURL string
 	GWBaseURL  string
@@ -53,8 +53,8 @@ func beforeEach(t *testing.T) *testConfiguration {
 		if err != nil {
 			t.Fatal("connect should succeed, instead:", err)
 		}
-		clientv02 := rpcv02.NewProvider(c)
-		testConfig.rpcv02 = clientv02
+		clientv02 := rpc.NewProvider(c)
+		testConfig.rpc = clientv02
 		gw := gateway.NewProvider(gateway.WithBaseURL(testConfig.GWBaseURL))
 		testConfig.gateway = gw
 	}

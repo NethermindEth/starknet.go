@@ -38,7 +38,7 @@ supports `v0.1`. However to provide a smooth upgrade the plan is to support
 both in parallel. That is why the current package names are:
 
 - `github.com/NethermindEth/starknet.go/rpcv01` for the v0.1 implementation
-- `github.com/NethermindEth/starknet.go/rpcv02` for the v0.2 implementation
+- `github.com/NethermindEth/starknet.go/rpc` for the v0.2 implementation
 
 ## Where do I find resources about the protocol specifications?
 

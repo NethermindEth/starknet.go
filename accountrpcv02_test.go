@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	rpc "github.com/NethermindEth/starknet.go/rpcv02"
+	rpc "github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 )
 
 // TestAccountNonce tests the account Nonce
-func TestRPCv02Account_Nonce(t *testing.T) {
+func TestRPCAccount_Nonce(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -59,7 +59,7 @@ func TestRPCv02Account_Nonce(t *testing.T) {
 }
 
 // TestAccountEstimateFee tests the account EstimateFee
-func TestRPCv02Account_EstimateFee(t *testing.T) {
+func TestRPCAccount_EstimateFee(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -117,7 +117,7 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 }
 
 // TestRPCAccount_Execute tests the account Execute method
-func TestRPCv02Account_Execute(t *testing.T) {
+func TestRPCAccount_Execute(t *testing.T) {
 	testConfig := beforeRPCEach(t)
 
 	type testSetType struct {
@@ -155,7 +155,7 @@ func TestRPCv02Account_Execute(t *testing.T) {
 		fmt.Println("transaction_hash:", execute.TransactionHash)
 		ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 		defer cancel()
-		status, err := account.rpcv02.WaitForTransaction(ctx, types.StrToFelt(execute.TransactionHash), 8*time.Second)
+		status, err := account.rpc.WaitForTransaction(ctx, types.StrToFelt(execute.TransactionHash), 8*time.Second)
 		if err != nil {
 			t.Fatal("declare should succeed, instead:", err)
 		}
