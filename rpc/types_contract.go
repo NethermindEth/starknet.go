@@ -27,13 +27,24 @@ type EntryPointsByType struct {
 	L1Handler   []EntryPoint `json:"L1_HANDLER"`
 }
 
-type ContractClass struct {
+type DeprecatedContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
 	ABI *ABI `json:"abi,omitempty"`
+}
+
+type ContractClass struct {
+	// The list of Sierra instructions of which the program consists
+	SierraProgram []*felt.Felt `json:"sierra_program"`
+
+	ContractClassVersion string `json:"contract_class_version"`
+
+	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+
+	ABI string `json:"abi, omitempty"`
 }
 
 func (c *ContractClass) UnmarshalJSON(content []byte) error {
