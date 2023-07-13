@@ -12,26 +12,40 @@ import (
 
 type NumAsHex string
 
-type EntryPoint struct {
+type ABI []ABIEntry
+
+type DeprecatedCairoEntryPoint struct {
 	// The offset of the entry point in the program
 	Offset NumAsHex `json:"offset"`
 	// A unique  identifier of the entry point (function) in the program
 	Selector *felt.Felt `json:"selector"`
 }
 
-type ABI []ABIEntry
+type SierraEntryPoint struct {
+	// A unique identifier of the entry point (function) in the program
+	Selector *felt.Felt `json:"selector"`
+
+	// The index of the function in the program
+	FunctionIdx uint64 `json:"selector"`
+}
+
+type DeprecatedEntryPointsByType struct {
+	Constructor []DeprecatedCairoEntryPoint `json:"CONSTRUCTOR"`
+	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
+	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
+}
 
 type EntryPointsByType struct {
-	Constructor []EntryPoint `json:"CONSTRUCTOR"`
-	External    []EntryPoint `json:"EXTERNAL"`
-	L1Handler   []EntryPoint `json:"L1_HANDLER"`
+	Constructor []SierraEntryPoint `json:"CONSTRUCTOR"`
+	External    []SierraEntryPoint `json:"EXTERNAL"`
+	L1Handler   []SierraEntryPoint `json:"L1_HANDLER"`
 }
 
 type DeprecatedContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
 
-	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+	EntryPointsByType DeprecatedEntryPointsByType `json:"entry_points_by_type"`
 
 	ABI *ABI `json:"abi,omitempty"`
 }
@@ -47,7 +61,7 @@ type ContractClass struct {
 	ABI string `json:"abi, omitempty"`
 }
 
-func (c *ContractClass) UnmarshalJSON(content []byte) error {
+func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
 		return err
@@ -72,7 +86,7 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing entry_points_by_type in json object")
 	}
 
-	entryPointsByType := EntryPointsByType{}
+	entryPointsByType := DeprecatedEntryPointsByType{}
 	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
 		return err
 	}
