@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/NethermindEth/caigo/types"
+	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -67,17 +68,22 @@ func strToFelt(str string) *felt.Felt {
 	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 
 	if b, ok := new(big.Int).SetString(str, 0); ok {
-		fBytes := f.Bytes()
-		b.FillBytes(fBytes[:])
-		return f
+		strAsFelt, _ := utils.BigIntToFelt(b)
+		return strAsFelt
 	}
-	// TODO: revisit conversation on seperate 'ShortString' conversion
+
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
-			fBytes := f.Bytes()
-			b.FillBytes(fBytes[:])
-			return f
+			fmt.Println(f, b)
+
+			if f != nil {
+				fBytes := f.Bytes()
+				b.FillBytes(fBytes[:])
+			}
+			// TODO: handle this error
+			strAsFelt, _ := utils.BigIntToFelt(b)
+			return strAsFelt
 		}
 	}
 
@@ -86,7 +92,6 @@ func strToFelt(str string) *felt.Felt {
 
 func feltToBig(feltNum *felt.Felt) (*big.Int, bool) {
 	return new(big.Int).SetString(feltNum.String(), 0)
-
 }
 
 /*
