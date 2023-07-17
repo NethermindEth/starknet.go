@@ -19,7 +19,6 @@ func main() {
 	}
 
 	app := &cli.App{
-
 		Commands: []*cli.Command{
 			&blockCommand,
 			&transactionCommand,
