@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"testing"
@@ -20,17 +19,18 @@ import (
 )
 
 const (
-	TestPublicKey            = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
-	DevNetETHAddress         = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
-	TestNetETHAddress        = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+	TestPublicKey = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
+
+	DevNetETHAddress  = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
+	TestNetETHAddress = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+
 	DevNetAccount032Address  = "0x0536244bba4dc9bb219d964b477af6d18f7096635a96284bb0e008bf137650ec"
 	TestNetAccount032Address = "0x6ca4fdd437dffde5253ba7021ef7265c88b07789aa642eafda37791626edf00"
+
 	DevNetAccount040Address  = "0x058079067104f58fd9f1ef949cd2d2b482d7bca39b793983f077edaf51d979e9"
+	TestNetAccount040Address = "0x0132726589c65f7a309c3fa2ce8310accf7df6aeb97c50336bba6f9f493785d0"
 
-	TestNetAccount040Address    = "0x05f96a97ff46439e2e1b53aed5977429fd51ba17a2ac8a457db7dc75fb20c758"
-	TestNetAccount040PrivateKey = "0x3bb60a1a352ce04ad9e612f3b87ba8e9"
-
-	TestnetCounterAddress = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
+	TestnetCounterAddress = "0x0043311af2cb455b4f5eb1eadcd7822196e72ae85b1650b9e490bd8062e3486a"
 )
 
 // testGatewayConfiguration is a type that is used to configure tests
@@ -74,10 +74,9 @@ var (
 		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base:              "https://alpha4.starknet.io",
-			CounterAddress:    TestnetCounterAddress,
-			AccountAddress:    TestNetAccount040Address,
-			AccountPrivateKey: TestNetAccount040PrivateKey,
+			base:           "https://alpha4.starknet.io",
+			CounterAddress: TestnetCounterAddress,
+			AccountAddress: TestNetAccount040Address,
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/Shard-Labs/starknet-devnet)
@@ -93,7 +92,6 @@ func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
 	class := rpcv02.ContractClass{}
 
 	if err := class.UnmarshalJSON(artifacts.CounterCompiled); err != nil {
-		fmt.Println("1")
 		return "", err
 	}
 	ctx := context.Background()
@@ -101,20 +99,15 @@ func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
 	defer cancel()
 	tx, err := provider.Deploy(context.Background(), class, rpcv02.DeployAccountTxn{})
 	if err != nil {
-		fmt.Println("2")
 		return "", err
 	}
 	fmt.Println("deploy counter txHash", tx.TransactionHash)
 	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 20)
 	if err != nil {
-		fmt.Println("3")
-		log.Printf("contract Address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 		return "", err
 	}
 	if !receipt.Status.IsTransactionFinal() ||
 		receipt.Status == types.TransactionRejected {
-		fmt.Println("4")
 		return "", fmt.Errorf("installation status: %s", receipt.Status)
 	}
 	return tx.ContractAddress, nil

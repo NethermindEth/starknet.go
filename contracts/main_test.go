@@ -13,10 +13,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
-)
+// set the environment for the test, default: mock
+var testEnv = "mock"
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {

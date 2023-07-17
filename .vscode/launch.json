@@ -1,0 +1,91 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "remotePath": "",
+            "port": 38697,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}",
+            "env": {
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env",
+            "buildFlags":""
+        },
+        {
+            "name": "Debug current package",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 38697,
+            "host": "127.0.0.1",
+            "program": "${fileDirname}",
+            "env": {
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env",
+            "buildFlags":""
+        },
+        {
+            "name": "Launch test function",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}",
+            "args": [
+                "-test.run",
+                "TestGatewayAccount_EstimateAndExecute",
+                "-env",
+                "testnet"
+            ]
+        },
+        {
+            "name": "Attach main",
+            "type": "go",
+            "request": "attach",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 38697,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/main.go",
+            "env": {
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "processId":"",
+            "envFile": "${workspaceFolder}/.env",
+            "buildFlags":""
+        },
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "processId": 0
+        },
+        {
+            "name": "Launch file",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}"
+        },
+
+      {
+          "name": "Test file",
+          "type": "go",
+          "request": "launch",
+          "mode": "test",
+          "program": "${fileDirname}/somelogic_test.go",
+          "env": {},
+          "args": ["-test.v", "--", "-env", "devnet"]
+      }
+    ]
+}
