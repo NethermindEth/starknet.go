@@ -45,19 +45,17 @@ type GatewayFunctionCall struct {
 type FunctionCall types.FunctionCall
 
 func (f FunctionCall) MarshalJSON() ([]byte, error) {
-	return json.Marshal(f)
-	// output := map[string]interface{}{}
-	// output["contract_address"] = f.ContractAddress.String()
-	// if f.EntryPointSelector != "" {
-	// 	output["entry_point_selector"] = f.EntryPointSelector
-	// }
-	// calldata := []string{}
-	// for _, v := range f.Calldata {
-	// 	data, _ := big.NewInt(0).SetString(v, 0)
-	// 	calldata = append(calldata, data.Text(10))
-	// }
-	// output["calldata"] = calldata
-	// return json.Marshal(output)
+	output := map[string]interface{}{}
+	output["contract_address"] = f.ContractAddress.String()
+	if *f.EntryPointSelector != (felt.Felt{}) {
+		output["entry_point_selector"] = f.EntryPointSelector
+	}
+	calldata := []string{}
+	for _, v := range f.Calldata {
+		calldata = append(calldata, v.String())
+	}
+	output["calldata"] = calldata
+	return json.Marshal(output)
 }
 
 /*
@@ -67,7 +65,7 @@ func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashO
 	gc := GatewayFunctionCall{
 		FunctionCall: FunctionCall(call),
 	}
-	gc.EntryPointSelector = types.GetSelectorFromNameFelt(gc.EntryPointSelector.String())
+	gc.EntryPointSelector = gc.EntryPointSelector
 	if len(gc.Calldata) == 0 {
 		gc.Calldata = []*felt.Felt{}
 	}
@@ -142,7 +140,11 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, contract rpcv02.ContractClass, deployRequest rpcv02.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
+func (sg *Gateway) Deploy(
+	ctx context.Context,
+	contract rpcv02.ContractClass,
+	deployRequest rpcv02.DeployAccountTxn,
+) (resp types.AddDeployResponse, err error) {
 	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
@@ -182,7 +184,10 @@ func (d DeployAccountRequest) MarshalJSON() ([]byte, error) {
 /*
 'add_transaction' wrapper for deploying a compiled StarkNet account
 */
-func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types.DeployAccountRequest) (resp types.AddDeployResponse, err error) {
+func (sg *Gateway) DeployAccount(
+	ctx context.Context,
+	deployAccountRequest types.DeployAccountRequest,
+) (resp types.AddDeployResponse, err error) {
 	d := DeployAccountRequest(deployAccountRequest)
 	d.Type = DEPLOY_ACCOUNT
 
@@ -197,7 +202,11 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, contract rpcv02.ContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
+func (sg *Gateway) Declare(
+	ctx context.Context,
+	contract rpcv02.ContractClass,
+	declareRequest DeclareRequest,
+) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)

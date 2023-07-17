@@ -43,6 +43,8 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		}},
 	}[testEnv]
 
+	t.Log("get_count selector", types.GetSelectorFromNameFelt("get_count"))
+
 	for _, test := range testSet {
 		// Convert the counter address to a Felt.
 		counterAddress, err := utils.HexToFelt(testConfig.CounterAddress)
