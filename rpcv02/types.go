@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/NethermindEth/caigo/utils"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -73,7 +74,6 @@ type StateUpdateOutput struct {
 
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
-	SyncStatus        bool       // todo(remove? not in spec)
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
 	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
@@ -83,9 +83,6 @@ type SyncStatus struct {
 }
 
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
-	if !s.SyncStatus {
-		return []byte("false"), nil
-	}
 	output := map[string]interface{}{}
 	output["starting_block_hash"] = s.StartingBlockHash
 	output["starting_block_num"] = s.StartingBlockNum
@@ -97,25 +94,29 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 }
 
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, s)
+	// return json.Unmarshal(data, s)
+	output := map[string]interface{}{}
+	err := json.Unmarshal(data, &output)
+	if err != nil {
+		return err
+	}
+	if s.StartingBlockHash, err = utils.HexToFelt(output["starting_block_hash"].(string)); err != nil {
+		return err
+	}
+	if s.CurrentBlockHash, err = utils.HexToFelt(output["current_block_hash"].(string)); err != nil {
+		return err
+	}
+	if s.HighestBlockHash, err = utils.HexToFelt(output["highest_block_hash"].(string)); err != nil {
+		return err
+	}
 
-	// if string(data) == "false" {
-	// 	s.SyncStatus = false
-	// 	return nil
-	// }
-	// s.SyncStatus = true
-	// output := map[string]interface{}{}
-	// err := json.Unmarshal(data, &output)
-	// if err != nil {
-	// 	return err
-	// }
-	// s.StartingBlockHash = output["starting_block_hash"].(string)
-	// s.StartingBlockNum = types.NumAsHex(output["starting_block_num"].(string))
-	// s.CurrentBlockHash = output["current_block_hash"].(string)
-	// s.CurrentBlockNum = types.NumAsHex(output["current_block_num"].(string))
-	// s.HighestBlockHash = output["highest_block_hash"].(string)
-	// s.HighestBlockNum = types.NumAsHex(output["highest_block_num"].(string))
-	// return nil
+	fmt.Println(output)
+	fmt.Printf("TYPES %T %T %T\n", output["starting_block_num"], output["current_block_num"], output["highest_block_num"])
+
+	s.StartingBlockNum = NumAsHex(output["starting_block_num"].(string))
+	s.CurrentBlockNum = NumAsHex(output["current_block_num"].(string))
+	s.HighestBlockNum = NumAsHex(output["highest_block_num"].(string))
+	return nil
 }
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
