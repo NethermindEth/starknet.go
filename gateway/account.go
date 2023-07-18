@@ -31,7 +31,6 @@ func (sg *Gateway) AccountNonce(ctx context.Context, address *felt.Felt) (*big.I
 }
 
 func (sg *Gateway) Nonce(ctx context.Context, contractAddress, blockHashOrTag string) (*big.Int, error) {
-
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_nonce", nil)
 	if err != nil {
 		return nil, err
