@@ -354,12 +354,14 @@ func (account *Account) prepFunctionInvokeRPCv02(
 	switch account.version {
 	case 1:
 		calldata := fmtCalldataStrings(calls)
+		fmt.Println("CALLDATA", calldata)
 
 		maxFeeFelt, err := new(felt.Felt).SetString(maxFee.String())
 		if err != nil {
 			return nil, err
 		}
 		calldataFelt, err := utils.HexArrToFelt(calldata)
+		fmt.Println("CALLDATA_FELT", calldataFelt)
 		if err != nil {
 			return nil, err
 		}

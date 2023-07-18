@@ -59,8 +59,7 @@ func TestRPCv02Account_Nonce(t *testing.T) {
 			t.Fatalf("Failed to convert test address to Felt: %v", err)
 		}
 
-		account, err := NewRPCAccount(fakeSenderFelt, testAddressFelt, ks, testConfig.providerv02, AccountVersion1)
-		fmt.Println(account.rpcv02, testConfig.providerv02)
+		account, err := NewRPCAccount(fakeSenderFelt, testAddressFelt, ks, testConfig.providerv02)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -105,7 +104,7 @@ func TestRPCv02Account_EstimateFee(t *testing.T) {
 		},
 		"testnet": {
 			{
-				Address:          TestNetAccount032Address,
+				Address:          TestNetAccount040Address,
 				PrivateKeyEnvVar: "TESTNET_ACCOUNT_PRIVATE_KEY",
 				Call: types.FunctionCall{
 					ContractAddress:    testnetContractAddress,
