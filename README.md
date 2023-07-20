@@ -22,7 +22,7 @@
 
 <h1 align="center">Get the gopher high on StarkNet</h1>
 
-<a href="https://pkg.go.dev/github.com/dontpanicdao/starknet.go">
+<a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
  height="50" />
 </a>
