@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type TestAccountType struct {
@@ -26,22 +27,22 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {{
 			ExecuteCalls: []types.FunctionCall{{
-				EntryPointSelector: "increment",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
+				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
-				EntryPointSelector: "get_count",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
+				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			},
 		}},
 		"testnet": {{
 			ExecuteCalls: []types.FunctionCall{{
-				EntryPointSelector: "increment",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
+				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			}},
 			QueryCall: types.FunctionCall{
-				EntryPointSelector: "get_count",
-				ContractAddress:    types.StrToFelt(testConfig.CounterAddress),
+				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
+				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			},
 		}},
 	}[testEnv]
@@ -53,8 +54,8 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 		k := types.SNValToBN(testConfig.AccountPrivateKey)
 		ks.Put(fakeSenderAddress, k)
 		account, err := NewGatewayAccount(
-			types.StrToFelt(fakeSenderAddress),
-			types.StrToFelt(testConfig.AccountAddress),
+			utils.TestHexToFelt(t, fakeSenderAddress),
+			utils.TestHexToFelt(t, testConfig.AccountAddress),
 			ks,
 			testConfig.client,
 			AccountVersion1)
@@ -77,7 +78,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 			t.Fatal("should succeed with Execute, instead:", err)
 		}
 		fmt.Printf("Execute txHash: %v\n", tx.TransactionHash)
-		_, state, err := testConfig.client.WaitForTransaction(ctx, tx.TransactionHash, 3, 10)
+		_, state, err := testConfig.client.WaitForTransaction(ctx, tx.TransactionHash.String(), 3, 10)
 		if err != nil {
 			t.Fatal("should succeed with Execute, instead:", err)
 		}

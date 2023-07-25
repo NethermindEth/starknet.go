@@ -2,6 +2,7 @@ package rpcv02
 
 import (
 	"context"
+	"errors"
 
 	"github.com/NethermindEth/starknet.go/types"
 )
@@ -22,11 +23,18 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 
 // Syncing checks the syncing status of the node.
 func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
-	// TODO: manage the fact SyncingStatus is set to false.
-	var result SyncStatus
+	var result interface{}
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
 	if err := provider.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
 		return nil, err
 	}
-	return &result, nil
+	switch res := result.(type) {
+	case bool:
+		return &SyncStatus{SyncStatus: res}, nil
+	case SyncStatus:
+		return &res, nil
+	default:
+		return nil, errors.New("internal error with starknet_syncing")
+	}
+
 }

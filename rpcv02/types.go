@@ -19,15 +19,15 @@ type StorageEntry struct {
 	Value *felt.Felt `json:"value"`
 }
 
-type StorageEntries struct {
-	StorageEntry []StorageEntry
-}
+// type StorageEntries struct {
+// 	StorageEntry []StorageEntry
+// }
 
 // ContractStorageDiffItem is a change in a single storage item
 type ContractStorageDiffItem struct {
 	// ContractAddress is the contract address for which the state changed
 	Address        *felt.Felt     `json:"address"`
-	StorageEntries StorageEntries `json:"storage_entries"`
+	StorageEntries []StorageEntry `json:"storage_entries"`
 }
 
 // DeployedContractItem A new contract deployed as part of the new state

@@ -11,6 +11,7 @@ import (
 
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
+	"github.com/test-go/testify/require"
 )
 
 const (
@@ -150,18 +151,25 @@ func TestSyncing(t *testing.T) {
 		testConfig.provider.c = spy
 		sync, err := testConfig.provider.Syncing(context.Background())
 		if err != nil {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
+			t.Fatal("Syncing error:", err)
 		}
-		if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
-			spy.Compare(sync, true)
-			t.Fatal("expecting to match", err)
+		if sync.StartingBlockHash != nil {
+			if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
+				spy.Compare(sync, true)
+				t.Fatal("expecting to match", err)
+			}
+			i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
+			if !ok || i.Cmp(big.NewInt(0)) <= 0 {
+				t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
+			}
+			if !strings.HasPrefix(sync.CurrentBlockHash.String(), "0x") {
+				t.Fatal("current block hash should return a string starting with 0x")
+			}
+		} else {
+			spy.Compare(sync, false)
+			require.Nil(t, sync.CurrentBlockHash)
+
 		}
-		i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
-		if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-			t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
-		}
-		if !strings.HasPrefix(sync.CurrentBlockHash, "0x") {
-			t.Fatal("current block hash should return a string starting with 0x")
-		}
+
 	}
 }

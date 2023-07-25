@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // TestClassAt tests code for a class.
@@ -20,19 +20,19 @@ func TestClassAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:   types.StrToFelt("0xdeadbeef"),
+				ContractAddress:   utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress:   types.StrToFelt("0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
+				ContractAddress:   utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
 				ExpectedOperation: "0x480680017fff8000",
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:   types.StrToFelt("0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
+				ContractAddress:   utils.TestHexToFelt(t, "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
 				ExpectedOperation: "0x20780017fff7ffd",
 			},
 		},
@@ -70,19 +70,19 @@ func TestClassHashAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:      types.StrToFelt("0xdeadbeef"),
+				ContractHash:      utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedClassHash: "0xdeadbeef",
 			},
 		},
 		"testnet": {
 			{
-				ContractHash:      types.StrToFelt("0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
+				ContractHash:      utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
 				ExpectedClassHash: "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
 			},
 		},
 		"mainnet": {
 			{
-				ContractHash:      types.StrToFelt("0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
+				ContractHash:      utils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
 				ExpectedClassHash: "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
 			},
 		},
@@ -127,14 +127,14 @@ func TestClass(t *testing.T) {
 			{
 				BlockID:         WithBlockTag("pending"),
 				ClassHash:       "0xdeadbeef",
-				ExpectedProgram: "H4sIAAAAAAAE",
+				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
 		"testnet": {
 			{
 				BlockID:         WithBlockTag("pending"),
 				ClassHash:       "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
-				ExpectedProgram: "H4sIAAAAAAAE",
+				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
 		"mainnet": {},
@@ -155,6 +155,7 @@ func TestClass(t *testing.T) {
 			spy.Compare(class, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
+
 		if class == nil || !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 			t.Fatal("code should exist")
 		}
@@ -174,7 +175,7 @@ func TestStorageAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:  types.StrToFelt("0xdeadbeef"),
+				ContractHash:  utils.TestHexToFelt(t, "0xdeadbeef"),
 				StorageKey:    "_signer",
 				Block:         WithBlockTag("latest"),
 				ExpectedValue: "0xdeadbeef",
@@ -182,7 +183,7 @@ func TestStorageAt(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractHash:  types.StrToFelt("0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
+				ContractHash:  utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
 				StorageKey:    "balance",
 				Block:         WithBlockTag("latest"),
 				ExpectedValue: "0x1e240",
@@ -190,7 +191,7 @@ func TestStorageAt(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				ContractHash:  types.StrToFelt("0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
+				ContractHash:  utils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:    "_signer",
 				Block:         WithBlockTag("latest"),
 				ExpectedValue: "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
@@ -229,12 +230,12 @@ func TestNonce(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress: types.StrToFelt("0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress: types.StrToFelt("0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
 			},
 		},
 		"mainnet": {},

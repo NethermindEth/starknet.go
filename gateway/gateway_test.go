@@ -10,10 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go"
+	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/gateway"
+	"github.com/NethermindEth/starknet.go/rpcv02"
 	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
 
@@ -53,17 +55,26 @@ func setupDevnet(ctx context.Context) error {
 		return fmt.Errorf("could not connect to devnet: %v", err)
 	}
 
-	contract := types.ContractClass{}
+	contract := rpcv02.ContractClass{}
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
-	ks := starknet.go.NewMemKeystore()
-	account, err := starknet.go.NewGatewayAccount(
-		types.StrToFelt(v[0].PrivateKey),
-		types.StrToFelt(v[0].Address),
+	ks := starknetgo.NewMemKeystore()
+
+	v0PrivKey, err := utils.HexToFelt(v[0].PrivateKey)
+	if err != nil {
+		return err
+	}
+	v0Address, err := utils.HexToFelt(v[0].Address)
+	if err != nil {
+		return err
+	}
+	account, err := starknetgo.NewGatewayAccount(
+		v0PrivKey,
+		v0Address,
 		ks,
 		provider,
-		starknet.go.AccountVersion1,
+		starknetgo.AccountVersion1,
 	)
 	if err != nil {
 		return err

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func TestDevnet_IsAlive(t *testing.T) {
@@ -40,7 +40,7 @@ func TestDevnet_FeeToken(t *testing.T) {
 func TestDevnet_Mint(t *testing.T) {
 	d := NewDevNet()
 	amount := big.NewInt(int64(1000000000000000000))
-	resp, err := d.Mint(types.StrToFelt("0x1"), amount)
+	resp, err := d.Mint(utils.TestHexToFelt(t, "0x1"), amount)
 	if err != nil {
 		t.Fatalf("Minting ETH should succeed, instead: %v", err)
 	}

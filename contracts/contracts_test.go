@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/juno/core/felt"
+	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
 
@@ -19,7 +21,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  starknet.go.ProviderType
+		providerType  starknetgo.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -28,7 +30,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  starknet.go.ProviderGateway,
+				providerType:  starknetgo.ProviderGateway,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x0",
 				Inputs:        []string{},
@@ -42,7 +44,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case starknet.go.ProviderGateway:
+		case starknetgo.ProviderGateway:
 			provider := GatewayProvider(*testConfiguration.gateway)
 			tx, err = provider.deployAndWaitNoWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -60,7 +62,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	testConfiguration := beforeEach(t)
 
 	type TestCase struct {
-		providerType  starknet.go.ProviderType
+		providerType  starknetgo.ProviderType
 		CompiledClass []byte
 		Salt          string
 		Inputs        []string
@@ -69,7 +71,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  starknet.go.ProviderRPCv02,
+				providerType:  starknetgo.ProviderRPCv02,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x01",
 				Inputs:        []string{},
@@ -83,7 +85,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case starknet.go.ProviderRPCv02:
+		case starknetgo.ProviderRPCv02:
 			provider := RPCv02Provider(*testConfiguration.rpcv02)
 			tx, err = provider.deployAndWaitWithWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
@@ -102,7 +104,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    starknet.go.ProviderType
+		providerType    starknetgo.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -110,7 +112,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0x01",
-				providerType:    starknet.go.ProviderGateway,
+				providerType:    starknetgo.ProviderGateway,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -121,16 +123,16 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 		defer cancel()
 		var err error
 		var counterTransaction *DeployOutput
-		var account *starknet.go.Account
+		var account *starknetgo.Account
 		// shim a keystore into existing tests.
 		// use string representation of the PK as a fake sender address for the keystore
-		ks := starknet.go.NewMemKeystore()
+		ks := starknetgo.NewMemKeystore()
 
 		fakeSenderAddress := test.privateKey
 		k := types.SNValToBN(test.privateKey)
 		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
-		case starknet.go.ProviderGateway:
+		case starknetgo.ProviderGateway:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			accountManager, err := InstallAndWaitForAccount(
 				ctx,
@@ -141,7 +143,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
-			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
+			mint, err := devtest.NewDevNet().Mint(utils.TestHexToFelt(t, accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
@@ -152,14 +154,14 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = starknet.go.NewGatewayAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.gateway, starknet.go.AccountVersion1)
+			account, err = starknetgo.NewGatewayAccount(utils.TestHexToFelt(t, fakeSenderAddress), utils.TestHexToFelt(t, accountManager.AccountAddress), ks, testConfiguration.gateway, starknetgo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
 		default:
 			t.Fatal("unsupported client type", test.providerType)
 		}
-		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.StrToFelt(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
+		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: utils.TestHexToFelt(t, counterTransaction.ContractAddress), EntryPointSelector: types.GetSelectorFromNameFelt("increment"), Calldata: []*felt.Felt{}}}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}
@@ -173,7 +175,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 
 	type TestCase struct {
 		privateKey      string
-		providerType    starknet.go.ProviderType
+		providerType    starknetgo.ProviderType
 		accountContract artifacts.CompiledContract
 	}
 
@@ -181,7 +183,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0xe3e70682c2094cac629f6fbed82c07cd",
-				providerType:    starknet.go.ProviderRPCv02,
+				providerType:    starknetgo.ProviderRPCv02,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -192,14 +194,14 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		defer cancel()
 		var err error
 		var counterTransaction *DeployOutput
-		var account *starknet.go.Account
-		ks := starknet.go.NewMemKeystore()
+		var account *starknetgo.Account
+		ks := starknetgo.NewMemKeystore()
 
 		fakeSenderAddress := test.privateKey
 		k := types.SNValToBN(test.privateKey)
 		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
-		case starknet.go.ProviderRPCv02:
+		case starknetgo.ProviderRPCv02:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			fmt.Println("befor")
 			accountManager := &AccountManager{}
@@ -213,7 +215,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("error deploying account", err)
 			}
 			fmt.Println("after")
-			mint, err := devtest.NewDevNet().Mint(types.StrToFelt(accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
+			mint, err := devtest.NewDevNet().Mint(utils.TestHexToFelt(t, accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
 			if err != nil {
 				t.Fatal("error deploying account", err)
 			}
@@ -224,14 +226,14 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = starknet.go.NewRPCAccount(types.StrToFelt(fakeSenderAddress), types.StrToFelt(accountManager.AccountAddress), ks, testConfiguration.rpcv02, starknet.go.AccountVersion1)
+			account, err = starknetgo.NewRPCAccount(utils.TestHexToFelt(t, fakeSenderAddress), utils.TestHexToFelt(t, accountManager.AccountAddress), ks, testConfiguration.rpcv02, starknetgo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
 		default:
 			t.Fatal("unsupported client type", test.providerType)
 		}
-		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: types.StrToFelt(counterTransaction.ContractAddress), EntryPointSelector: "increment", Calldata: []string{}}}, types.ExecuteDetails{})
+		tx, err := account.Execute(ctx, []types.FunctionCall{{ContractAddress: utils.TestHexToFelt(t, counterTransaction.ContractAddress), EntryPointSelector: types.GetSelectorFromNameFelt("increment"), Calldata: []*felt.Felt{}}}, types.ExecuteDetails{})
 		if err != nil {
 			t.Fatal("should succeed, instead", err)
 		}

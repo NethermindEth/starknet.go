@@ -29,7 +29,7 @@ func TestNotImplemented(t *testing.T) {
 		var out string
 		err := do(context.Background(), testConfig.provider.c, test.MissingMethod, &out)
 
-		if err == nil || err.Error() != "Method not found" {
+		if err == nil || err.Error() != "Method Not Found" {
 			t.Fatalf("Method %s is now available, got %v\n", test.MissingMethod, err)
 		}
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
@@ -98,7 +98,8 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 }
 
 func mock_starknet_syncing(result interface{}, method string, args ...interface{}) error {
-	r, ok := result.(*SyncStatus)
+	// Note: Since starknet_syncing returns with bool or SyncStatus, we pass in interface{}
+	r, ok := result.(*interface{})
 	if !ok {
 		return errWrongType
 	}
@@ -106,12 +107,19 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 		return errWrongArgs
 	}
 
+	blockDataFeltArr, err := utils.HexArrToFelt([]string{
+		"0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
+		"0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
+	})
+	if err != nil {
+		return err
+	}
 	value := SyncStatus{
-		StartingBlockHash: "0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
+		StartingBlockHash: blockDataFeltArr[0],
 		StartingBlockNum:  "0x4c602",
-		CurrentBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
+		CurrentBlockHash:  blockDataFeltArr[1],
 		CurrentBlockNum:   "0x4c727",
-		HighestBlockHash:  "0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
+		HighestBlockHash:  blockDataFeltArr[1],
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
@@ -130,8 +138,25 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 	if !ok {
 		return errWrongArgs
 	}
-	outputContent, _ := json.Marshal(InvokeTxnV0_300000_0)
-	json.Unmarshal(outputContent, r)
+
+	var InvokeTxnV1example = `{
+		"transaction_hash": "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
+		"type": "INVOKE",
+		"nonce": "0x0",
+		"max_fee": "0x53685de02fa5",
+		"version": "0x1",
+		"signature": [
+		"0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4",
+		"0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"
+		],
+		"sender_address": "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
+		"calldata": [
+				   "0x1",
+				   "0x13befe6eda920ce4af05a50a67bd808d67eee6ba47bb0892bef2d630eaf1bba"
+		]
+		}`
+
+	json.Unmarshal([]byte(InvokeTxnV1example), r)
 	return nil
 }
 
@@ -161,8 +186,46 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 	if !ok {
 		return errWrongArgs
 	}
-	outputContent, _ := json.Marshal(InvokeTxnV00x705547f8f2f8f)
-	json.Unmarshal(outputContent, r)
+
+	var InvokeTxnV1example = `    {
+		"transaction_hash": "0x1779df1c6de5136ad2620f704b645e9cbd554b57d37f08a06ea60142269c5a5",
+		"version": "0x1",
+		"max_fee": "0x17970b794f000",
+		"signature": [
+		  "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c",
+		  "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"
+		],
+		"nonce": "0x2d",
+		"sender_address": "0x66dd340c03b6b7866fa7bb4bb91cc9e9c2a8eedc321985f334fd55de5e4e071",
+		"calldata": [
+		  "0x3",
+		  "0x39a04b968d794fb076b0fbb146c12b48a23aa785e3d2e5be1982161f7536218",
+		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+		  "0x0",
+		  "0x3",
+		  "0x3207980cd08767c9310d197c38b1a58b2a9bceb61dd9a99f51b407798702991",
+		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+		  "0x3",
+		  "0x3",
+		  "0x42969068f9e84e9bf1c7bb6eb627455287e58f866ba39e45b123f9656aed5e9",
+		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+		  "0x6",
+		  "0x3",
+		  "0x9",
+		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
+		  "0xde0b6b3a7640000",
+		  "0x0",
+		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
+		  "0x10f0cf064dd59200000",
+		  "0x0",
+		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
+		  "0x21e19e0c9bab2400000",
+		  "0x0"
+		],
+		"type": "INVOKE"
+	  }`
+
+	json.Unmarshal([]byte(InvokeTxnV1example), r)
 	return nil
 }
 
@@ -176,11 +239,19 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return errWrongArgs
 	}
 
+	arg0Felt, err := utils.HexToFelt(args[0].(string))
+	if err != nil {
+		return err
+	}
+	fromAddressFelt, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
-		TransactionHash: types.StrToFelt(args[0].(string)),
-		Status:          types.TransactionState("ACCEPTED_ON_L1"),
+		TransactionHash: arg0Felt,
+		Status:          TransactionAcceptedOnL1,
 		Events: []Event{{
-			FromAddress: types.StrToFelt("0xdeadbeef"),
+			FromAddress: fromAddressFelt,
 		}},
 	})
 	outputContent, _ := json.Marshal(transaction)
@@ -197,7 +268,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
+	var class = ContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -239,8 +310,8 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = types.ContractClass{
-		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
+	var class = ContractClass{
+		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, _ := json.Marshal(class)
 	json.Unmarshal(outputContent, r)
@@ -259,14 +330,18 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if !ok {
 		return errWrongArgs
 	}
+	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	events := &EventsOutput{
 		Events: []EmittedEvent{
-			{BlockHash: types.StrToFelt("0xdeadbeef"),
+			{BlockHash: deadbeefFelt,
 				Event: Event{
 					FromAddress: query.Address,
 				},
 				BlockNumber:     1,
-				TransactionHash: types.StrToFelt("0xdeadbeef"),
+				TransactionHash: deadbeefFelt,
 			},
 		},
 	}
@@ -299,7 +374,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.ContractClass)
+	_, ok = args[0].(ContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
@@ -309,9 +384,13 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args[1] should be string, got %T\n", args[1])
 		return errWrongArgs
 	}
+	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	output := AddDeclareTransactionOutput{
-		TransactionHash: "0xdeadbeef",
-		ClassHash:       "0xdeadbeef",
+		TransactionHash: deadbeefFelt,
+		ClassHash:       deadbeefFelt,
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -327,7 +406,7 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.FunctionCall)
+	_, ok = args[0].(FunctionCall)
 	if !ok {
 		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
@@ -338,10 +417,10 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
-	output := types.FeeEstimate{
-		GasConsumed: types.NumAsHex("0x01a4"),
-		GasPrice:    types.NumAsHex("0x45"),
-		OverallFee:  types.NumAsHex("0x7134"),
+	output := FeeEstimate{
+		GasConsumed: NumAsHex("0x01a4"),
+		GasPrice:    NumAsHex("0x45"),
+		OverallFee:  NumAsHex("0x7134"),
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -357,7 +436,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(types.FunctionCall)
+	_, ok = args[0].(FunctionCall)
 	if !ok {
 		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
 		return errWrongArgs
@@ -377,9 +456,12 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		fmt.Printf("args[3] should be []string, got %T\n", args[3])
 		return errWrongArgs
 	}
-
-	output := types.AddInvokeTransactionOutput{
-		TransactionHash: "0xdeadbeef",
+	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+	output := AddInvokeTransactionResponse{
+		TransactionHash: deadbeefFelt,
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -430,15 +512,31 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 		return errWrongArgs
 	}
 
+	stateFeltArr, err := utils.HexArrToFelt([]string{
+		"0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4",
+		"0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
+		"0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
+		"0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
+		"0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
+		"0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
+		"0x630b4197"})
+	if err != nil {
+		return err
+	}
+
 	output := StateUpdateOutput{
-		BlockHash: types.StrToFelt("0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
-		NewRoot:   "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
-		OldRoot:   "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
+		BlockHash: stateFeltArr[0],
+		NewRoot:   stateFeltArr[1],
+		OldRoot:   stateFeltArr[2],
 		StateDiff: StateDiff{
 			StorageDiffs: []ContractStorageDiffItem{{
-				Address: "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
-				Key:     "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
-				Value:   "0x630b4197",
+				Address: stateFeltArr[3],
+				StorageEntries: []StorageEntry{
+					{
+						Key:   stateFeltArr[4],
+						Value: stateFeltArr[5],
+					},
+				},
 			}},
 		},
 	}

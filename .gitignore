@@ -2,6 +2,8 @@ starknet.go
 vendor/
 .env*
 !.env.template
+rpc*/.env.mainnet
+rpc*/.env.testnet
 
 *.txt
 
