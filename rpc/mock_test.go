@@ -60,6 +60,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeclareTransaction":
 		return mock_starknet_addDeclareTransaction(result, method, args...)
+	case "starknet_addDeployAccountTransaction":
+		return mock_starknet_addDeployAccountTransaction(result, method, args...)
 	case "starknet_addInvokeTransaction":
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
@@ -391,6 +393,30 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 	output := AddDeclareTransactionOutput{
 		TransactionHash: deadbeefFelt,
 		ClassHash:       deadbeefFelt,
+	}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_addDeployAccountTransaction(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	_, ok = args[0].(BroadcastedDeployAccountTransaction)
+	if !ok {
+		fmt.Printf("args[0] should be BroadcastedDeployAccountTransaction, got %T\n", args[0])
+		return errWrongArgs
+	}
+
+	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+	output := AddDeployAccountTransactionResponse{
+		TransactionHash: deadbeefFelt,
+		ContractAddress: deadbeefFelt,
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)

@@ -50,8 +50,8 @@ func (provider *Provider) AddDeployTransaction(ctx context.Context, deployTransa
 }
 
 // AddDeployAccountTransaction manages the DEPLOY_ACCOUNT syscall
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionResponse, error) {
-	var result AddDeployTransactionResponse
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error) {
+	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
 		if strings.Contains(err.Error(), "Class hash not found") {
 			return nil, ErrClassHashNotFound

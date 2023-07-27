@@ -79,7 +79,7 @@ go run main.go
 | `starknet_syncing`                             | :heavy_check_mark: |
 | `starknet_getEvents`                           | :heavy_check_mark: |
 | `starknet_addInvokeTransaction`                | :heavy_check_mark: |
-| `starknet_addDeployTransaction`                | :heavy_check_mark: |
+| `starknet_addDeployAccountTransaction`         | :heavy_check_mark: |
 | `starknet_addDeclareTransaction`               | :heavy_check_mark: |
 | `starknet_estimateFee`                         | :heavy_check_mark: |
 | `starknet_getBlockTransactionCountByHash`      | :heavy_check_mark: |

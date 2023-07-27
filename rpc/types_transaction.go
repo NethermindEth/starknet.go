@@ -258,6 +258,17 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	}
 }
 
+func (v *TransactionVersion) Felt() (*felt.Felt, error) {
+	switch *v {
+	case TransactionV0:
+		return &felt.Zero, nil
+	case TransactionV1:
+		return new(felt.Felt).SetUint64(1), nil
+	default:
+		return nil, errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
+	}
+}
+
 type BroadcastedTransaction interface{}
 
 type BroadcastedTxnCommonProperties struct {
@@ -342,5 +353,15 @@ type BroadcastedDeployAccountTransaction struct {
 }
 
 func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
+	output := map[string]interface{}{}
+	output["type"] = TransactionType_DeployAccount
+	output["max_fee"] = b.MaxFee
+	output["nonce"] = b.Nonce
+	output["version"] = b.Version
+	signature := b.Signature
+	output["signature"] = signature
+	output["class_hash"] = b.ClassHash
+	output["constructor_calldata"] = b.ConstructorCalldata
+	output["contract_address_salt"] = b.ContractAddressSalt
+	return json.Marshal(output)
 }

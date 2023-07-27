@@ -12,7 +12,9 @@ type callCloser interface {
 
 func do(ctx context.Context, call callCloser, method string, data interface{}, args ...interface{}) error {
 	var raw json.RawMessage
+
 	err := call.CallContext(ctx, &raw, method, args...)
+
 	if err != nil {
 		return err
 	}
