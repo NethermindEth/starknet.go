@@ -2,6 +2,7 @@ package rpcv02
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -12,6 +13,12 @@ import (
 func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (*ContractClass, error) {
 	var rawClass ContractClass
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
+		switch {
+		case errors.Is(err, ErrClassHashNotFound):
+			return nil, ErrClassHashNotFound
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+		}
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CLASS_HASH_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
@@ -23,6 +30,12 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*ContractClass, error) {
 	var rawClass ContractClass
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return nil, ErrContractNotFound
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+		}
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
@@ -34,6 +47,12 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
 	var result string
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return nil, ErrContractNotFound
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+		}
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
@@ -46,6 +65,12 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 	var value string
 	hashKey := fmt.Sprintf("0x%x", types.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return "", ErrContractNotFound
+		case errors.Is(err, ErrBlockNotFound):
+			return "", ErrBlockNotFound
+		}
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return "", err
@@ -57,6 +82,12 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
 	nonce := ""
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return nil, ErrContractNotFound
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+		}
 		// TODO: bind pathfinder/devnet errors with the correct errors;
 		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
@@ -75,6 +106,23 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []Broadcaste
 	// }
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return nil, ErrContractNotFound
+
+		case errors.Is(err, ErrInvalidMessageSelector):
+			return nil, ErrInvalidMessageSelector
+
+		case errors.Is(err, ErrInvalidCallData):
+			return nil, ErrInvalidCallData
+
+		case errors.Is(err, ErrContractError):
+			return nil, ErrContractError
+
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+
+		}
 		// TODO: Bind Pathfinder/Devnet errors to
 		// CONTRACT_NOT_FOUND, INVALID_MESSAGE_SELECTOR, INVALID_CALL_DATA, CONTRACT_ERROR and BLOCK_NOT_FOUND
 		return nil, err
