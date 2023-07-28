@@ -14,7 +14,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
-
+		return 0, err
 	}
 	return blockNumber, nil
 }
@@ -26,6 +26,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 		if errors.Is(err, errNotFound) {
 			return nil, ErrNoBlocks
 		}
+		return nil, err
 	}
 	return &block, nil
 }

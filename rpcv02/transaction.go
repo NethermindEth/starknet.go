@@ -49,8 +49,6 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 		if errors.Is(err, ErrHashNotFound) {
 			return nil, ErrHashNotFound
 		}
-		// TODO: Bind Pathfinder/Devnet Error to
-		// TXN_HASH_NOT_FOUND
 		return nil, err
 	}
 	return adaptTransaction(tx)
@@ -66,8 +64,6 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
 		}
-		// TODO: Bind Pathfinder/Devnet Error to
-		// INVALID_TXN_INDEX and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return adaptTransaction(tx)
@@ -90,8 +86,6 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 		if errors.Is(err, ErrHashNotFound) {
 			return nil, ErrHashNotFound
 		}
-		// TODO: check Pathfinder/Devnet for error
-		// TXN_HASH_NOT_FOUND
 		return nil, err
 	}
 	return receipt.TransactionReceipt, nil

@@ -18,21 +18,15 @@ func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockI
 		switch {
 		case errors.Is(err, ErrContractNotFound):
 			return nil, ErrContractNotFound
-
 		case errors.Is(err, ErrInvalidMessageSelector):
 			return nil, ErrInvalidMessageSelector
-
 		case errors.Is(err, ErrInvalidCallData):
 			return nil, ErrInvalidCallData
-
 		case errors.Is(err, ErrContractError):
 			return nil, ErrContractError
-
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
-
-		} // TODO: Bind Pathfinder/Devnet Error to
-		// CONTRACT_NOT_FOUND, INVALID_MESSAGE_SELECTOR, INVALID_CALL_DATA, CONTRACT_ERROR, BLOCK_NOT_FOUND
+		}
 		return nil, err
 	}
 	return result, nil

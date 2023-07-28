@@ -19,8 +19,6 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
 		}
-		// TODO: bind pathfinder/devnet errors with the correct errors;
-		// it should return CLASS_HASH_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return &rawClass, nil
@@ -36,8 +34,6 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
 		}
-		// TODO: bind pathfinder/devnet errors with the correct errors;
-		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return &rawClass, nil
@@ -53,8 +49,6 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
 		}
-		// TODO: bind pathfinder/devnet errors with the correct errors;
-		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return &result, nil
@@ -71,8 +65,6 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 		case errors.Is(err, ErrBlockNotFound):
 			return "", ErrBlockNotFound
 		}
-		// TODO: bind pathfinder/devnet errors with the correct errors;
-		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return "", err
 	}
 	return value, nil
@@ -88,8 +80,6 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
 		}
-		// TODO: bind pathfinder/devnet errors with the correct errors;
-		// it should return CONTRACT_NOT_FOUND and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return &nonce, nil
@@ -109,22 +99,15 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []Broadcaste
 		switch {
 		case errors.Is(err, ErrContractNotFound):
 			return nil, ErrContractNotFound
-
 		case errors.Is(err, ErrInvalidMessageSelector):
 			return nil, ErrInvalidMessageSelector
-
 		case errors.Is(err, ErrInvalidCallData):
 			return nil, ErrInvalidCallData
-
 		case errors.Is(err, ErrContractError):
 			return nil, ErrContractError
-
 		case errors.Is(err, ErrBlockNotFound):
 			return nil, ErrBlockNotFound
-
 		}
-		// TODO: Bind Pathfinder/Devnet errors to
-		// CONTRACT_NOT_FOUND, INVALID_MESSAGE_SELECTOR, INVALID_CALL_DATA, CONTRACT_ERROR and BLOCK_NOT_FOUND
 		return nil, err
 	}
 	return raw, nil
