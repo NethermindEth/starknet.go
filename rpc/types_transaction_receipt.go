@@ -126,6 +126,8 @@ type TransactionReceipt interface {
 }
 
 type MsgToL1 struct {
+	// FromAddress The address of the L2 contract sending the message
+	FromAddress *felt.Felt `json:"from_address"`
 	// ToAddress The target L1 address the message is sent to
 	ToAddress *felt.Felt `json:"to_address"`
 	//Payload  The payload of the message
