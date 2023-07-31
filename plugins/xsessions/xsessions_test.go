@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
 // beforeEach checks the configuration and initializes it before running the script
-func beforeEachRPCv02(t *testing.T) *rpcv02.Provider {
+func beforeEachRPC(t *testing.T) *rpc.Provider {
 	t.Helper()
 	godotenv.Load(".env.devnet")
 	url := os.Getenv("STARKNET_NODE_URL")
@@ -23,7 +23,7 @@ func beforeEachRPCv02(t *testing.T) *rpcv02.Provider {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	provider := rpcv02.NewProvider(c)
+	provider := rpc.NewProvider(c)
 	t.Cleanup(func() {
 		c.Close()
 	})

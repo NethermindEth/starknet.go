@@ -15,7 +15,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -89,15 +89,15 @@ var (
 )
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := rpcv02.ContractClass{}
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
 		return "", err
 	}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
-	tx, err := provider.Deploy(context.Background(), class, rpcv02.DeployAccountTxn{
-		DeployAccountTransactionProperties: rpcv02.DeployAccountTransactionProperties{
+	tx, err := provider.Deploy(context.Background(), class, rpc.DeployAccountTxn{
+		DeployAccountTransactionProperties: rpc.DeployAccountTransactionProperties{
 			ContractAddressSalt: &felt.Zero,
 			ConstructorCalldata: []*felt.Felt{},
 		}})
@@ -137,7 +137,7 @@ func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
 
 // testConfiguration is a type that is used to configure tests
 type testRPCConfiguration struct {
-	providerv02 *rpcv02.Provider
+	providerv02 *rpc.Provider
 	base        string
 }
 
@@ -200,7 +200,7 @@ func beforeRPCEach(t *testing.T) *testRPCConfiguration {
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	clientv02 := rpcv02.NewProvider(c)
+	clientv02 := rpc.NewProvider(c)
 	testConfig.providerv02 = clientv02
 	return &testConfig
 }
