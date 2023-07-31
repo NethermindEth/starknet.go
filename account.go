@@ -8,7 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -31,7 +31,7 @@ type account interface {
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
-	Declare(ctx context.Context, classHash string, contract rpcv02.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Declare(ctx context.Context, classHash string, contract rpc.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
 	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
@@ -44,12 +44,12 @@ type AccountPlugin interface {
 type ProviderType string
 
 const (
-	ProviderRPCv02  ProviderType = "rpcv02"
+	ProviderRPC  ProviderType = "rpc"
 	ProviderGateway ProviderType = "gateway"
 )
 
 type Account struct {
-	rpcv02         *rpcv02.Provider
+	rpc         *rpc.Provider
 	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
@@ -108,20 +108,20 @@ func newAccount(sender, address *felt.Felt, ks Keystore, options ...AccountOptio
 
 func setAccountProvider(account *Account, provider interface{}) error {
 	switch p := provider.(type) {
-	case *rpcv02.Provider:
+	case *rpc.Provider:
 		chainID, err := p.ChainID(context.Background())
 		if err != nil {
 			return err
 		}
 		account.chainId = chainID
-		account.provider = ProviderRPCv02
-		account.rpcv02 = p
+		account.provider = ProviderRPC
+		account.rpc = p
 		return nil
 	}
 	return errors.New("unsupported provider")
 }
 
-func NewRPCAccount[Provider *rpcv02.Provider](sender, address *felt.Felt, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
+func NewRPCAccount[Provider *rpc.Provider](sender, address *felt.Felt, ks Keystore, provider Provider, options ...AccountOptionFunc) (*Account, error) {
 	account, err := newAccount(sender, address, ks, options...)
 	if err != nil {
 		return nil, err
@@ -147,17 +147,17 @@ func NewGatewayAccount(sender, address *felt.Felt, ks Keystore, provider *gatewa
 
 func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
 	switch account.provider {
-	case ProviderRPCv02:
-		if account.rpcv02 == nil {
+	case ProviderRPC:
+		if account.rpc == nil {
 			return nil, ErrUnsupportedAccount
 		}
-		return account.rpcv02.Call(
+		return account.rpc.Call(
 			ctx,
-			rpcv02.FunctionCall{
+			rpc.FunctionCall{
 				ContractAddress:    call.ContractAddress,
 				EntryPointSelector: call.EntryPointSelector,
 				Calldata:           call.Calldata},
-			rpcv02.WithBlockTag("latest"))
+			rpc.WithBlockTag("latest"))
 	case ProviderGateway:
 		if account.sequencer == nil {
 			return nil, ErrUnsupportedAccount
@@ -235,10 +235,10 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	switch account.version {
 	case 1:
 		switch account.provider {
-		case ProviderRPCv02:
-			nonce, err := account.rpcv02.Nonce(
+		case ProviderRPC:
+			nonce, err := account.rpc.Nonce(
 				ctx,
-				rpcv02.WithBlockTag("latest"),
+				rpc.WithBlockTag("latest"),
 				account.AccountAddress,
 			)
 			if err != nil {
@@ -256,7 +256,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
-func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpcv02.BroadcastedInvokeV1Transaction, error) {
+func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpc.BroadcastedInvokeV1Transaction, error) {
 	if messageType != "invoke" && messageType != "estimate" {
 		return nil, errors.New("unsupported message type")
 	}
@@ -281,7 +281,7 @@ func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageTyp
 	}
 
 	// starknet.go currently only supports V1
-	version := rpcv02.TransactionV1
+	version := rpc.TransactionV1
 
 	var txHash *big.Int
 	switch messageType {
@@ -300,7 +300,7 @@ func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageTyp
 	case "estimate":
 		if account.version == 1 {
 			// version, _ = big.NewInt(0).SetString("0x100000000000000000000000000000001", 0)
-			version = rpcv02.TransactionV1
+			version = rpc.TransactionV1
 		}
 		versionBig, err := version.BigInt()
 		if err != nil {
@@ -347,8 +347,8 @@ func (account *Account) prepFunctionInvokeRPCv02(ctx context.Context, messageTyp
 		if err != nil {
 			return nil, err
 		}
-		return &rpcv02.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+		return &rpc.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 				MaxFee:    maxFeeFelt,
 				Version:   version,
 				Signature: []*felt.Felt{s1Felt, s2Felt},
@@ -440,24 +440,24 @@ func (account *Account) prepFunctionInvoke(ctx context.Context, messageType stri
 func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error) {
 
 	switch account.provider {
-	case ProviderRPCv02:
-		call, err := account.prepFunctionInvokeRPCv02(ctx, "estimate", calls, details)
+	case ProviderRPC:
+		call, err := account.prepFunctionInvokeRPC(ctx, "estimate", calls, details)
 		if err != nil {
 			return nil, err
 		}
 		switch account.version {
 		case 1:
-			estimates, err := account.rpcv02.EstimateFee(ctx, []rpcv02.BroadcastedTransaction{rpcv02.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+			estimates, err := account.rpc.EstimateFee(ctx, []rpc.BroadcastedTransaction{rpc.BroadcastedInvokeV1Transaction{
+				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV1,
+					Version:   rpc.TransactionV1,
 					Signature: call.Signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
 				},
 				Calldata:      call.Calldata,
 				SenderAddress: account.AccountAddress,
-			}}, rpcv02.WithBlockTag("latest"))
+			}}, rpc.WithBlockTag("latest"))
 			if err != nil {
 				return nil, err
 			}
@@ -490,17 +490,17 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	details.MaxFee = maxFee
 
 	switch account.provider {
-	case ProviderRPCv02:
-		call, err := account.prepFunctionInvokeRPCv02(ctx, "invoke", calls, details)
+	case ProviderRPC:
+		call, err := account.prepFunctionInvokeRPC(ctx, "invoke", calls, details)
 		if err != nil {
 			return nil, err
 		}
 		switch account.version {
 		case 1:
-			resp, err := account.rpcv02.AddInvokeTransaction(ctx, rpcv02.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpcv02.BroadcastedTxnCommonProperties{
+			resp, err := account.rpc.AddInvokeTransaction(ctx, rpc.BroadcastedInvokeV1Transaction{
+				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 					MaxFee:    call.MaxFee,
-					Version:   rpcv02.TransactionV1,
+					Version:   rpc.TransactionV1,
 					Signature: call.Signature,
 					Nonce:     call.Nonce,
 					Type:      "INVOKE",
@@ -526,9 +526,9 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	return nil, ErrUnsupportedAccount
 }
 
-func (account *Account) Declare(ctx context.Context, classHash string, contract rpcv02.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+func (account *Account) Declare(ctx context.Context, classHash string, contract rpc.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
 	switch account.provider {
-	case ProviderRPCv02:
+	case ProviderRPC:
 		panic("unsupported")
 	case ProviderGateway:
 		version := big.NewInt(1)

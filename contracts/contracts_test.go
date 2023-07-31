@@ -57,7 +57,7 @@ func TestGateway_InstallCounter(t *testing.T) {
 	}
 }
 
-func TestRPCv02_InstallCounter(t *testing.T) {
+func TestRPC_InstallCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
 
@@ -71,7 +71,7 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 	TestCases := map[string][]TestCase{
 		"devnet": {
 			{
-				providerType:  starknetgo.ProviderRPCv02,
+				providerType:  starknetgo.ProviderRPC,
 				CompiledClass: artifacts.CounterCompiled,
 				Salt:          "0x01",
 				Inputs:        []string{},
@@ -85,8 +85,8 @@ func TestRPCv02_InstallCounter(t *testing.T) {
 		var err error
 		var tx *DeployOutput
 		switch test.providerType {
-		case starknetgo.ProviderRPCv02:
-			provider := RPCv02Provider(*testConfiguration.rpcv02)
+		case starknetgo.ProviderRPC:
+			provider := RPCProvider(*testConfiguration.rpc)
 			tx, err = provider.deployAndWaitWithWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
 		default:
 			t.Fatal("unsupported client type", test.providerType)
@@ -169,7 +169,7 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 	}
 }
 
-func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
+func TestRPC_LoadAndExecuteCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
 
@@ -183,7 +183,7 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		"devnet": {
 			{
 				privateKey:      "0xe3e70682c2094cac629f6fbed82c07cd",
-				providerType:    starknetgo.ProviderRPCv02,
+				providerType:    starknetgo.ProviderRPC,
 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
 			},
 		},
@@ -201,13 +201,13 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 		k := types.SNValToBN(test.privateKey)
 		ks.Put(fakeSenderAddress, k)
 		switch test.providerType {
-		case starknetgo.ProviderRPCv02:
+		case starknetgo.ProviderRPC:
 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
 			fmt.Println("befor")
 			accountManager := &AccountManager{}
 			accountManager, err := InstallAndWaitForAccount(
 				ctx,
-				testConfiguration.rpcv02,
+				testConfiguration.rpc,
 				pk,
 				test.accountContract,
 			)
@@ -220,13 +220,13 @@ func TestRPCv02_LoadAndExecuteCounter(t *testing.T) {
 				t.Fatal("error deploying account", err)
 			}
 			fmt.Printf("current balance is %d\n", mint.NewBalance)
-			provider := RPCv02Provider(*testConfiguration.rpcv02)
+			provider := RPCProvider(*testConfiguration.rpc)
 			counterTransaction, err = provider.deployAndWaitWithWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}
 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-			account, err = starknetgo.NewRPCAccount(utils.TestHexToFelt(t, fakeSenderAddress), utils.TestHexToFelt(t, accountManager.AccountAddress), ks, testConfiguration.rpcv02, starknetgo.AccountVersion1)
+			account, err = starknetgo.NewRPCAccount(utils.TestHexToFelt(t, fakeSenderAddress), utils.TestHexToFelt(t, accountManager.AccountAddress), ks, testConfiguration.rpc, starknetgo.AccountVersion1)
 			if err != nil {
 				t.Fatal("should succeed, instead", err)
 			}

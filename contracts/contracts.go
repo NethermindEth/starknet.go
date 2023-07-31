@@ -10,7 +10,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 )
 
@@ -29,7 +29,7 @@ type GatewayProvider gateway.GatewayProvider
 
 func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpcv02.ContractClass{}
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiled
 		return nil, err
 	}
 	if !receipt.Status.IsTransactionFinal() ||
-		rpcv02.TransactionState(receipt.Status.String()) == rpcv02.TransactionRejected {
+		rpc.TransactionState(receipt.Status.String()) == rpc.TransactionRejected {
 		return nil, fmt.Errorf("wrong status: %s", receipt.Status)
 	}
 	return &DeclareOutput{
@@ -54,7 +54,7 @@ func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiled
 // TODO: remove compiledClass from the interface
 func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpcv02.ContractClass{}
+	class := rpc.ContractClass{}
 
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
@@ -99,13 +99,13 @@ func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, clas
 // DEPLOY_ACCOUNT for an account.
 func (p *GatewayProvider) deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpcv02.ContractClass{}
+	class := rpc.ContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
-	tx, err := provider.Deploy(ctx, class, rpcv02.DeployAccountTxn{})
+	tx, err := provider.Deploy(ctx, class, rpc.DeployAccountTxn{})
 
-	// tx, err := provider.Deploy(ctx, class, rpcv02.DeployRequest{
+	// tx, err := provider.Deploy(ctx, class, rpc.DeployRequest{
 	// 	ContractAddressSalt: salt,
 	// 	ConstructorCalldata: inputs,
 	// })

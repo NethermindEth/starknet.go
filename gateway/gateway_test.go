@@ -12,7 +12,7 @@ import (
 
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -55,7 +55,7 @@ func setupDevnet(ctx context.Context) error {
 		return fmt.Errorf("could not connect to devnet: %v", err)
 	}
 
-	contract := rpcv02.ContractClass{}
+	contract := rpc.ContractClass{}
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
