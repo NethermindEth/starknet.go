@@ -11,7 +11,9 @@ import (
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
 	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
-		// TODO bind Pathfinder/Devnet error to NO_BLOCKS
+		if errors.Is(err, errNotFound) {
+			return 0, ErrNoBlocks
+		}
 		return 0, err
 	}
 	return blockNumber, nil
@@ -21,7 +23,9 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
-		// TODO bind Pathfinder/Devnet error to NO_BLOCKS
+		if errors.Is(err, errNotFound) {
+			return nil, ErrNoBlocks
+		}
 		return nil, err
 	}
 	return &block, nil
@@ -74,6 +78,9 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
+		if errors.Is(err, errNotFound) {
+			return 0, ErrBlockNotFound
+		}
 		return 0, err
 	}
 	return result, nil
