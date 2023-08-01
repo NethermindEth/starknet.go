@@ -30,11 +30,27 @@ type ContractStorageDiffItem struct {
 	StorageEntries []StorageEntry `json:"storage_entries"`
 }
 
+// DeclaredClassesItem is an object with class_hash and compiled_class_hash
+type DeclaredClassesItem struct {
+	//The hash of the declared class
+	ClassHash *felt.Felt `json:"class_hash"`
+	//The Cairo assembly hash corresponding to the declared class
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
 // DeployedContractItem A new contract deployed as part of the new state
 type DeployedContractItem struct {
 	// ContractAddress is the address of the contract
 	Address *felt.Felt `json:"address"`
 	// ClassHash is the hash of the contract code
+	ClassHash *felt.Felt `json:"class_hash"`
+}
+
+// contracts whose class was replaced
+type ReplacedClassesItem struct {
+	//The address of the contract whose class was replaced
+	ContractClass *felt.Felt `json:"contract_address"`
+	//The new class hash
 	ClassHash *felt.Felt `json:"class_hash"`
 }
 
@@ -49,12 +65,16 @@ type ContractNonce struct {
 // StateDiff is the change in state applied in this block, given as a
 // mapping of addresses to the new values and/or new contracts.
 type StateDiff struct {
-	// StorageDiffs list storage changes
+	// list storage changes
 	StorageDiffs []ContractStorageDiffItem `json:"storage_diffs"`
-	// Contracts list new contracts added as part of the new state
-	DeclaredContractHashes []*felt.Felt `json:"declared_contract_hashes"`
-	// Nonces provides the updated nonces per contract addresses
+	// a list of Deprecated declared classes
+	DeprecatedDeclaredClasses []*felt.Felt `json:"deprecated_declared_classes"`
+	// list of DeclaredClassesItems objects
+	DeclaredClasses []DeclaredClassesItem `json:"declared_classes"`
+	// list of new contract deployed as part of the state update
 	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
+	// list of contracts whose class was replaced
+	ReplacedClasses []ReplacedClassesItem `json:"replaced_classes"`
 	// Nonces provides the updated nonces per contract addresses
 	Nonces []ContractNonce `json:"nonces"`
 }
@@ -65,6 +85,12 @@ type StateUpdateOutput struct {
 	BlockHash *felt.Felt `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot *felt.Felt `json:"new_root"`
+	// Pending
+	PendingStateUpdate
+}
+
+// PENDING_STATE_UPDATE in spec
+type PendingStateUpdate struct {
 	// OldRoot is the previous global state root.
 	OldRoot *felt.Felt `json:"old_root"`
 	// AcceptedTime is when the block was accepted on L1.

@@ -8,6 +8,11 @@ type Event struct {
 	Data        []*felt.Felt `json:"data"`
 }
 
+type EventChunk struct {
+	Events            []EmittedEvent `json:"events"`
+	ContinuationToken string         `json:"continuation_token"`
+}
+
 // EmittedEvent an event emitted as a result of transaction execution
 type EmittedEvent struct {
 	Event
@@ -36,6 +41,5 @@ type EventsInput struct {
 }
 
 type EventsOutput struct {
-	Events            []EmittedEvent `json:"events"`
-	ContinuationToken *string        `json:"continuation_token,omitempty"`
+	Events []EventChunk `json:"events"`
 }

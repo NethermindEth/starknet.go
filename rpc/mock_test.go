@@ -335,16 +335,23 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 		return err
 	}
 	events := &EventsOutput{
-		Events: []EmittedEvent{
-			{BlockHash: deadbeefFelt,
+
+		Events: []EventChunk{{
+			Events: []EmittedEvent{{
 				Event: Event{
 					FromAddress: query.Address,
+					Keys:        []*felt.Felt{},
+					Data:        []*felt.Felt{},
 				},
+
+				BlockHash:       deadbeefFelt,
 				BlockNumber:     1,
 				TransactionHash: deadbeefFelt,
-			},
-		},
+			}},
+			ContinuationToken: "deadbeef",
+		}},
 	}
+
 	outputContent, _ := json.Marshal(events)
 	json.Unmarshal(outputContent, r)
 	return nil
@@ -530,17 +537,19 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 	output := StateUpdateOutput{
 		BlockHash: stateFeltArr[0],
 		NewRoot:   stateFeltArr[1],
-		OldRoot:   stateFeltArr[2],
-		StateDiff: StateDiff{
-			StorageDiffs: []ContractStorageDiffItem{{
-				Address: stateFeltArr[3],
-				StorageEntries: []StorageEntry{
-					{
-						Key:   stateFeltArr[4],
-						Value: stateFeltArr[5],
+		PendingStateUpdate: PendingStateUpdate{
+			OldRoot: stateFeltArr[2],
+			StateDiff: StateDiff{
+				StorageDiffs: []ContractStorageDiffItem{{
+					Address: stateFeltArr[3],
+					StorageEntries: []StorageEntry{
+						{
+							Key:   stateFeltArr[4],
+							Value: stateFeltArr[5],
+						},
 					},
-				},
-			}},
+				}},
+			},
 		},
 	}
 	outputContent, _ := json.Marshal(output)
