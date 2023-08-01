@@ -51,14 +51,29 @@ operations on the wallets. The package has excellent documentation for a smooth
 
 ### Run Examples
 
-***starknet simpleCall***
+***starkcurve***
 
 ```sh
-cd examples/simpleCall
+cd examples/curve
 go mod tidy
 go run main.go
 ```
 
+***starknet contract***
+
+```sh
+cd examples/contract
+go mod tidy
+go run main.go
+```
+
+***starknet account***
+
+```sh
+cd examples/account
+go mod tidy
+go run main.go
+```
 
 ### RPC
 
