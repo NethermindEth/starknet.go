@@ -63,7 +63,7 @@ func (f FunctionCall) MarshalJSON() ([]byte, error) {
 /*
 'call_contract' wrapper and can accept a blockId in the hash or height format
 */
-func (sg *Gateway) Call(ctx context.Context, call types.FunctionCall, blockHashOrTag string) ([]string, error) {
+func (sg *Gateway) Call(ctx context.Context, call rpc.FunctionCall, blockHashOrTag string) ([]string, error) {
 	gc := GatewayFunctionCall{
 		FunctionCall: FunctionCall(call),
 	}
@@ -220,12 +220,12 @@ func (sg *Gateway) Declare(ctx context.Context, contract rpc.ContractClass, decl
 // }
 
 type DeclareRequest struct {
-	Type          string               `json:"type"`
-	SenderAddress *felt.Felt           `json:"sender_address"`
-	Version       string               `json:"version"`
-	MaxFee        string               `json:"max_fee"`
-	Nonce         string               `json:"nonce"`
-	Signature     []string             `json:"signature"`
+	Type          string            `json:"type"`
+	SenderAddress *felt.Felt        `json:"sender_address"`
+	Version       string            `json:"version"`
+	MaxFee        string            `json:"max_fee"`
+	Nonce         string            `json:"nonce"`
+	Signature     []string          `json:"signature"`
 	ContractClass rpc.ContractClass `json:"contract_class"`
 }
 

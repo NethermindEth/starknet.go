@@ -359,8 +359,11 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	output := []string{"0x12"}
-	outputContent, _ := json.Marshal(output)
+	out, err := new(felt.Felt).SetString("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+	outputContent, _ := json.Marshal([]*felt.Felt{out})
 	json.Unmarshal(outputContent, r)
 	return nil
 }

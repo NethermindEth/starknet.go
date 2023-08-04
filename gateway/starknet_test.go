@@ -208,12 +208,12 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		Call types.FunctionCall
+		Call rpc.FunctionCall
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Call: types.FunctionCall{
+				Call: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, counterAddress),
 					EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
 					Calldata:           []*felt.Felt{},
