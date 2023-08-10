@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
@@ -23,9 +23,9 @@ import (
 
 // RegisterClass
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 
-	yeasayerClass := rpcv02.ContractClass{}
+	yeasayerClass := rpc.ContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
 		t.Fatal(err)
 	}
@@ -60,8 +60,8 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
-	provider := beforeEachRPCv02(t)
-	contractClass := rpcv02.ContractClass{}
+	provider := beforeEachRPC(t)
+	contractClass := rpc.ContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
 		t.Fatal(err)
@@ -126,14 +126,14 @@ func MintEth(t *testing.T, accountAddress string) {
 
 // CheckEth
 func CheckEth(t *testing.T, accountAddress string) string {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 	ctx := context.Background()
-	output, err := provider.Call(ctx, rpcv02.FunctionCall{
+	output, err := provider.Call(ctx, rpc.FunctionCall{
 		ContractAddress:    utils.TestHexToFelt(t, devnetEth),
 		EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
 		Calldata:           []*felt.Felt{utils.TestHexToFelt(t, accountAddress)},
 	},
-		rpcv02.WithBlockTag("latest"),
+		rpc.WithBlockTag("latest"),
 	)
 	if err != nil {
 		log.Fatal("could not call Eth", err)

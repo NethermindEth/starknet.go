@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/starknet.go/artifacts"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	ctypes "github.com/NethermindEth/starknet.go/types"
 )
 
@@ -47,9 +47,9 @@ var counterCompiled = artifacts.CounterCompiled
 
 // TestCounter_DeployContract
 func TestCounter_DeployContract(t *testing.T) {
-	provider := beforeEachRPCv02(t)
+	provider := beforeEachRPC(t)
 
-	counterClass := rpcv02.ContractClass{}
+	counterClass := rpc.ContractClass{}
 	inputs := []string{}
 
 	if err := json.Unmarshal(counterCompiled, &counterClass); err != nil {

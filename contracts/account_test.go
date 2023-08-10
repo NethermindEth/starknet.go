@@ -64,7 +64,7 @@ func TestGateway_InstallAccounts(t *testing.T) {
 	}
 }
 
-func TestRPCv02_InstallAccounts(t *testing.T) {
+func TestRPC_InstallAccounts(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
 
@@ -75,7 +75,7 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []starknetgo.ProviderType{starknetgo.ProviderRPCv02} {
+	for _, provider := range []starknetgo.ProviderType{starknetgo.ProviderRPC} {
 		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -99,10 +99,10 @@ func TestRPCv02_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case starknetgo.ProviderRPCv02:
+		case starknetgo.ProviderRPC:
 			accountManager, err = InstallAndWaitForAccount(
 				ctx,
-				testConfiguration.rpcv02,
+				testConfiguration.rpc,
 				privateKey,
 				test.CompiledContract,
 			)

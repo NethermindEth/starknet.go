@@ -11,7 +11,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/gateway"
-	"github.com/NethermindEth/starknet.go/rpcv02"
+	"github.com/NethermindEth/starknet.go/rpc"
 	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -36,7 +36,7 @@ func TestDeclare(t *testing.T) {
 
 	for _, env := range testSet {
 		gw := testConfig.client
-		accountClass := rpcv02.ContractClass{}
+		accountClass := rpc.ContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
@@ -73,13 +73,13 @@ func TestDeployCounterContract(t *testing.T) {
 
 		gw := testConfig.client
 
-		counterClass := rpcv02.ContractClass{}
+		counterClass := rpc.ContractClass{}
 		err := json.Unmarshal(counterCompiled, &counterClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
-		tx, err := gw.Deploy(context.Background(), counterClass, rpcv02.DeployAccountTxn{
-			DeployAccountTransactionProperties: rpcv02.DeployAccountTransactionProperties{
+		tx, err := gw.Deploy(context.Background(), counterClass, rpc.DeployAccountTxn{
+			DeployAccountTransactionProperties: rpc.DeployAccountTransactionProperties{
 				ContractAddressSalt: utils.TestHexToFelt(t, "0x01"),
 				ConstructorCalldata: []*felt.Felt{},
 			},
@@ -148,7 +148,7 @@ func TestDeployAccountContract(t *testing.T) {
 	for _, test := range testSet {
 		gw := testConfig.client
 		// Step 1: deploy the a class
-		accountClass := rpcv02.ContractClass{}
+		accountClass := rpc.ContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse account: %v\n", err)
