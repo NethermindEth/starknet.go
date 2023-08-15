@@ -134,6 +134,17 @@ type MsgToL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
+type MsgFromL1 struct {
+	// FromAddress The address of the L1 contract sending the message
+	FromAddress *felt.Felt `json:"from_address"`
+	// ToAddress The target L2 address the message is sent to
+	ToAddress *felt.Felt `json:"to_address"`
+	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
+	Selector *felt.Felt `json:"entry_point_selector"`
+	//Payload  The payload of the message
+	Payload []*felt.Felt `json:"payload"`
+}
+
 type UnknownTransactionReceipt struct{ TransactionReceipt }
 
 func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {

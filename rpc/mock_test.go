@@ -64,6 +64,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
+	case "starknet_estimateMessageFee":
+		return mock_starknet_estimateMessageFee(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -421,6 +423,36 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		GasConsumed: NumAsHex("0x01a4"),
 		GasPrice:    NumAsHex("0x45"),
 		OverallFee:  NumAsHex("0x7134"),
+	}
+	outputContent, _ := json.Marshal(output)
+	json.Unmarshal(outputContent, r)
+	return nil
+}
+
+func mock_starknet_estimateMessageFee(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 2 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok = args[0].(MsgFromL1)
+	if !ok {
+		fmt.Printf("args[0] should be MsgFromL1, got %T\n", args[0])
+		return errWrongArgs
+	}
+	_, ok = args[1].(BlockID)
+	if !ok {
+		fmt.Printf("args[1] should be *blockID, got %T\n", args[1])
+		return errWrongArgs
+	}
+
+	output := FeeEstimate{
+		GasConsumed: NumAsHex("0x1"),
+		GasPrice:    NumAsHex("0x2"),
+		OverallFee:  NumAsHex("0x3"),
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)

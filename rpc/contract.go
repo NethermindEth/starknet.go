@@ -112,3 +112,20 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []Broadcaste
 	}
 	return raw, nil
 }
+
+// EstimateMessageFee estimates the L2 fee of a message sent on L1
+func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error) {
+	var raw FeeEstimate
+	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
+		switch {
+		case errors.Is(err, ErrContractNotFound):
+			return nil, ErrContractNotFound
+		case errors.Is(err, ErrContractError):
+			return nil, ErrContractError
+		case errors.Is(err, ErrBlockNotFound):
+			return nil, ErrBlockNotFound
+		}
+		return nil, err
+	}
+	return &raw, nil
+}
