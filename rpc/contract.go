@@ -99,10 +99,6 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []Broadcaste
 		switch {
 		case errors.Is(err, ErrContractNotFound):
 			return nil, ErrContractNotFound
-		case errors.Is(err, ErrInvalidMessageSelector):
-			return nil, ErrInvalidMessageSelector
-		case errors.Is(err, ErrInvalidCallData):
-			return nil, ErrInvalidCallData
 		case errors.Is(err, ErrContractError):
 			return nil, ErrContractError
 		case errors.Is(err, ErrBlockNotFound):

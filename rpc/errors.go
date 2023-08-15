@@ -22,14 +22,6 @@ var (
 		code:    20,
 		message: "Contract not found",
 	}
-	ErrInvalidMessageSelector = &RPCError{
-		code:    21,
-		message: "Invalid message selector",
-	}
-	ErrInvalidCallData = &RPCError{
-		code:    22,
-		message: "Invalid call data",
-	}
 	ErrBlockNotFound = &RPCError{
 		code:    24,
 		message: "Block not found",
