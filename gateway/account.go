@@ -12,11 +12,12 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 )
 
 func (sg *Gateway) AccountNonce(ctx context.Context, address *felt.Felt) (*big.Int, error) {
-	resp, err := sg.Call(ctx, types.FunctionCall{
+	resp, err := sg.Call(ctx, rpc.FunctionCall{
 		ContractAddress:    address,
 		EntryPointSelector: types.GetSelectorFromNameFelt("get_nonce"),
 	}, "")

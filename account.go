@@ -27,7 +27,7 @@ const (
 
 type account interface {
 	TransactionHash(calls []types.FunctionCall, details types.ExecuteDetails) (*big.Int, error)
-	Call(ctx context.Context, call types.FunctionCall) ([]string, error)
+	Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error)
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
@@ -44,12 +44,12 @@ type AccountPlugin interface {
 type ProviderType string
 
 const (
-	ProviderRPC  ProviderType = "rpc"
+	ProviderRPC     ProviderType = "rpc"
 	ProviderGateway ProviderType = "gateway"
 )
 
 type Account struct {
-	rpc         *rpc.Provider
+	rpc            *rpc.Provider
 	sequencer      *gateway.GatewayProvider
 	provider       ProviderType
 	chainId        string
@@ -145,7 +145,7 @@ func NewGatewayAccount(sender, address *felt.Felt, ks Keystore, provider *gatewa
 	return account, nil
 }
 
-func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]string, error) {
+func (account *Account) Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error) {
 	switch account.provider {
 	case ProviderRPC:
 		if account.rpc == nil {
@@ -162,7 +162,11 @@ func (account *Account) Call(ctx context.Context, call types.FunctionCall) ([]st
 		if account.sequencer == nil {
 			return nil, ErrUnsupportedAccount
 		}
-		return account.sequencer.Call(ctx, call, "latest")
+		resp, err := account.sequencer.Call(ctx, call, "latest")
+		if err != nil {
+			return nil, err
+		}
+		return utils.HexArrToFelt(resp)
 	}
 	return nil, ErrUnsupportedAccount
 }

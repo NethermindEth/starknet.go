@@ -12,6 +12,7 @@ import (
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/plugins/xsessions"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -138,7 +139,7 @@ func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector
 	return tx.TransactionHash.String(), nil
 }
 
-func (ap *AccountManager) CallWithGateway(call types.FunctionCall, provider *gateway.GatewayProvider) ([]string, error) {
+func (ap *AccountManager) CallWithGateway(call rpc.FunctionCall, provider *gateway.GatewayProvider) ([]*felt.Felt, error) {
 	//  shim in  the keystore. while weird and awkward, it's functionally ok because
 	// 1. account manager doesn't seem to be used any where
 	// 2. the account that is created below is scoped to this func

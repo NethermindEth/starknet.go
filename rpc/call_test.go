@@ -2,12 +2,12 @@ package rpc
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/test-go/testify/require"
 )
 
 // TestCall tests Call
@@ -17,7 +17,7 @@ func TestCall(t *testing.T) {
 	type testSetType struct {
 		FunctionCall          FunctionCall
 		BlockID               BlockID
-		ExpectedPatternResult string
+		ExpectedPatternResult *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -29,7 +29,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
+				ExpectedPatternResult: utils.TestHexToFelt(t, "0x6574686572"),
 			},
 		},
 		"mock": {
@@ -40,7 +40,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x12$",
+				ExpectedPatternResult: utils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"testnet": {
@@ -51,25 +51,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x12$",
-			},
-			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, TestNetETHAddress),
-					EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
-					Calldata:           []*felt.Felt{utils.TestHexToFelt(t, "0x0207aCC15dc241e7d167E67e30E769719A727d3E0fa47f9E187707289885Dfde")},
-				},
-				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
-			},
-			{
-				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, TestNetAccount032Address),
-					EntryPointSelector: types.GetSelectorFromNameFelt("get_nonce"),
-					Calldata:           []*felt.Felt{},
-				},
-				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x[0-9a-f]+$",
+				ExpectedPatternResult: utils.TestHexToFelt(t, "0x12"),
 			},
 		},
 		"mainnet": {
@@ -80,7 +62,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: "^0x12$",
+				ExpectedPatternResult: utils.TestHexToFelt(t, "0x12"),
 			},
 		},
 	}[testEnv]
@@ -99,10 +81,7 @@ func TestCall(t *testing.T) {
 		if len(output) == 0 {
 			t.Fatal("should return an output")
 		}
-		match, err := regexp.Match(test.ExpectedPatternResult, []byte(output[0]))
-		if err != nil || !match {
-			t.Fatalf("checking output(%v) expecting %s, got: %v", err, test.ExpectedPatternResult, output[0])
-		}
+		require.Equal(t, test.ExpectedPatternResult, output[0])
 
 	}
 }

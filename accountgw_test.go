@@ -6,22 +6,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type TestAccountType struct {
-	PrivateKey   string               `json:"private_key"`
-	PublicKey    string               `json:"public_key"`
-	Address      string               `json:"address"`
-	Transactions []types.FunctionCall `json:"transactions,omitempty"`
+	PrivateKey   string             `json:"private_key"`
+	PublicKey    string             `json:"public_key"`
+	Address      string             `json:"address"`
+	Transactions []rpc.FunctionCall `json:"transactions,omitempty"`
 }
 
 func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 	testConfig := beforeGatewayEach(t)
 	type testSetType struct {
 		ExecuteCalls []types.FunctionCall
-		QueryCall    types.FunctionCall
+		QueryCall    rpc.FunctionCall
 	}
 
 	testSet := map[string][]testSetType{
@@ -30,7 +31,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
 				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			}},
-			QueryCall: types.FunctionCall{
+			QueryCall: rpc.FunctionCall{
 				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
 				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			},
@@ -40,7 +41,7 @@ func TestGatewayAccount_EstimateAndExecute(t *testing.T) {
 				EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
 				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			}},
-			QueryCall: types.FunctionCall{
+			QueryCall: rpc.FunctionCall{
 				EntryPointSelector: types.GetSelectorFromNameFelt("get_count"),
 				ContractAddress:    utils.TestHexToFelt(t, testConfig.CounterAddress),
 			},
