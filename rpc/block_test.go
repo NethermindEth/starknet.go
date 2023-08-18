@@ -569,17 +569,19 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: utils.TestHexToFelt(t, "0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
 					NewRoot:   utils.TestHexToFelt(t, "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b"),
-					OldRoot:   utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
-					StateDiff: StateDiff{
-						StorageDiffs: []ContractStorageDiffItem{{
-							Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
-							StorageEntries: []StorageEntry{
-								{
-									Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-									Value: utils.TestHexToFelt(t, "0x630b4197"),
+					PendingStateUpdate: PendingStateUpdate{
+						OldRoot: utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
+						StateDiff: StateDiff{
+							StorageDiffs: []ContractStorageDiffItem{{
+								Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
+								StorageEntries: []StorageEntry{
+									{
+										Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
+										Value: utils.TestHexToFelt(t, "0x630b4197"),
+									},
 								},
-							},
-						}},
+							}},
+						},
 					},
 				},
 			},
@@ -590,17 +592,19 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: utils.TestHexToFelt(t, "0x03b6d94b246815960f38b7dffc53cda192e7d1dcfff61e1bc042fb57e95f8349"),
 					NewRoot:   utils.TestHexToFelt(t, "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b"),
-					OldRoot:   utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
-					StateDiff: StateDiff{
-						StorageDiffs: []ContractStorageDiffItem{{
-							Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
-							StorageEntries: []StorageEntry{
-								{
-									Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-									Value: utils.TestHexToFelt(t, "0x630b4197"),
+					PendingStateUpdate: PendingStateUpdate{
+						OldRoot: utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
+						StateDiff: StateDiff{
+							StorageDiffs: []ContractStorageDiffItem{{
+								Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
+								StorageEntries: []StorageEntry{
+									{
+										Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
+										Value: utils.TestHexToFelt(t, "0x630b4197"),
+									},
 								},
-							},
-						}},
+							}},
+						},
 					},
 				},
 			},
