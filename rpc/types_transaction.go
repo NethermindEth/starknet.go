@@ -198,10 +198,6 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 			var txn DeclareTxn
 			remarshal(casted, &txn)
 			return txn, nil
-		case TransactionType_Deploy:
-			var txn DeployTxn
-			remarshal(casted, &txn)
-			return txn, nil
 		case TransactionType_DeployAccount:
 			var txn DeployAccountTxn
 			remarshal(casted, &txn)

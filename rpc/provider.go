@@ -46,7 +46,7 @@ type api interface {
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
 	AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
 }
 
 var _ api = &Provider{}
