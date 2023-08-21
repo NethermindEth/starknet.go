@@ -92,7 +92,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 }
 
 // WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (TransactionState, error) {
+func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (TxnExecutionStatus, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
@@ -109,20 +109,20 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 			}
 			switch r := receipt.(type) {
 			case DeclareTransactionReceipt:
-				if r.Status.IsTransactionFinal() {
-					return r.Status, nil
+				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
+					return r.ExecutionStatus, nil
 				}
 			case DeployTransactionReceipt:
-				if r.Status.IsTransactionFinal() {
-					return r.Status, nil
+				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
+					return r.ExecutionStatus, nil
 				}
 			case InvokeTransactionReceipt:
-				if r.Status.IsTransactionFinal() {
-					return r.Status, nil
+				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
+					return r.ExecutionStatus, nil
 				}
 			case L1HandlerTransactionReceipt:
-				if r.Status.IsTransactionFinal() {
-					return r.Status, nil
+				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
+					return r.ExecutionStatus, nil
 				}
 			default:
 				return "", fmt.Errorf("unknown receipt %T", receipt)

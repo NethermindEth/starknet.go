@@ -249,7 +249,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: arg0Felt,
-		Status:          TransactionAcceptedOnL1,
+		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},

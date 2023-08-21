@@ -14,12 +14,14 @@ type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee    *felt.Felt       `json:"actual_fee"`
-	Status       TransactionState `json:"status"`
-	BlockHash    *felt.Felt       `json:"block_hash"`
-	BlockNumber  uint64           `json:"block_number"`
-	Type         TransactionType  `json:"type"`
-	MessagesSent []MsgToL1        `json:"messages_sent"`
+	ActualFee       *felt.Felt         `json:"actual_fee"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
+	BlockHash       *felt.Felt         `json:"block_hash"`
+	BlockNumber     uint64             `json:"block_number"`
+	Type            TransactionType    `json:"type"`
+	MessagesSent    []MsgToL1          `json:"messages_sent"`
+	RevertReason    string             `json:"revert_reason"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
 }
@@ -114,9 +116,12 @@ type PendingCommonTransactionReceiptProperties struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee    *felt.Felt      `json:"actual_fee"`
-	Type         TransactionType `json:"type,omitempty"`
-	MessagesSent []MsgToL1       `json:"messages_sent"`
+	ActualFee       *felt.Felt         `json:"actual_fee"`
+	Type            TransactionType    `json:"type,omitempty"`
+	MessagesSent    []MsgToL1          `json:"messages_sent"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
+	RevertReason    string             `json:"revert_reason"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
 }
