@@ -79,10 +79,8 @@ func TestDeployCounterContract(t *testing.T) {
 			t.Fatalf("could not parse contract: %v\n", err)
 		}
 		tx, err := gw.Deploy(context.Background(), counterClass, rpc.DeployAccountTxn{
-			DeployAccountTransactionProperties: rpc.DeployAccountTransactionProperties{
-				ContractAddressSalt: utils.TestHexToFelt(t, "0x01"),
-				ConstructorCalldata: []*felt.Felt{},
-			},
+			ContractAddressSalt: utils.TestHexToFelt(t, "0x01"),
+			ConstructorCalldata: []*felt.Felt{},
 		})
 		if err != nil {
 			t.Fatalf("testnet: could not deploy contract: %v\n", err)

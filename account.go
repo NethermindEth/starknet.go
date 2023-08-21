@@ -260,7 +260,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
-func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpc.BroadcastedInvokeV1Transaction, error) {
+func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpc.AddInvokeTxnInput, error) {
 	if messageType != "invoke" && messageType != "estimate" {
 		return nil, errors.New("unsupported message type")
 	}
@@ -351,13 +351,11 @@ func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType s
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				MaxFee:    maxFeeFelt,
-				Version:   version,
-				Signature: []*felt.Felt{s1Felt, s2Felt},
-				Nonce:     nonceFelt,
-			},
+		return &rpc.AddInvokeTxnInput{
+			MaxFee:        maxFeeFelt,
+			Version:       version,
+			Signature:     []*felt.Felt{s1Felt, s2Felt},
+			Nonce:         nonceFelt,
 			SenderAddress: account.AccountAddress,
 			Calldata:      calldataFelt,
 		}, nil
@@ -451,14 +449,12 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		}
 		switch account.version {
 		case 1:
-			estimates, err := account.rpc.EstimateFee(ctx, []rpc.BroadcastedTransaction{rpc.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpc.TransactionV1,
-					Signature: call.Signature,
-					Nonce:     call.Nonce,
-					Type:      "INVOKE",
-				},
+			estimates, err := account.rpc.EstimateFee(ctx, []rpc.EstimateFeeInput{rpc.AddInvokeTxnInput{
+				MaxFee:        call.MaxFee,
+				Version:       rpc.TransactionV1,
+				Signature:     call.Signature,
+				Nonce:         call.Nonce,
+				Type:          "INVOKE",
 				Calldata:      call.Calldata,
 				SenderAddress: account.AccountAddress,
 			}}, rpc.WithBlockTag("latest"))
@@ -501,14 +497,12 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		}
 		switch account.version {
 		case 1:
-			resp, err := account.rpc.AddInvokeTransaction(ctx, rpc.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-					MaxFee:    call.MaxFee,
-					Version:   rpc.TransactionV1,
-					Signature: call.Signature,
-					Nonce:     call.Nonce,
-					Type:      "INVOKE",
-				},
+			resp, err := account.rpc.AddInvokeTransaction(ctx, rpc.AddInvokeTxnInput{
+				MaxFee:        call.MaxFee,
+				Version:       rpc.TransactionV1,
+				Signature:     call.Signature,
+				Nonce:         call.Nonce,
+				Type:          "INVOKE",
 				SenderAddress: account.AccountAddress,
 				Calldata:      call.Calldata,
 			})

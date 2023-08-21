@@ -97,10 +97,9 @@ func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
 	defer cancel()
 	tx, err := provider.Deploy(context.Background(), class, rpc.DeployAccountTxn{
-		DeployAccountTransactionProperties: rpc.DeployAccountTransactionProperties{
-			ContractAddressSalt: &felt.Zero,
-			ConstructorCalldata: []*felt.Felt{},
-		}})
+		ContractAddressSalt: &felt.Zero,
+		ConstructorCalldata: []*felt.Felt{},
+	})
 	if err != nil {
 		return "", err
 	}

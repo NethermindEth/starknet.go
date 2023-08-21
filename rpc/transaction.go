@@ -32,10 +32,6 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		var tx L1HandlerTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
-	case TransactionType_Deploy:
-		var tx DeployTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
 	default:
 		panic("not a transaction")
 	}
