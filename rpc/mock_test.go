@@ -64,6 +64,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
+	case "starknet_getBlockWithTxHashes":
+		return mock_starknet_getBlockWithTxHashes(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -577,5 +579,45 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	output := "0x0"
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, &r)
+	return nil
+}
+
+func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockId, ok := args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+	if blockId.Tag == "latest" {
+		pBlock, err := json.Marshal(PendingBlock{
+			ParentHash:       &felt.Zero,
+			Timestamp:        123,
+			SequencerAddress: &felt.Zero,
+		})
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(pBlock, &r)
+	}
+	block, err := json.Marshal(Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        &felt.Zero,
+			ParentHash:       &felt.Zero,
+			Timestamp:        124,
+			SequencerAddress: &felt.Zero},
+		Status: BlockStatus_AcceptedOnL1,
+	})
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(block, &r)
+
 	return nil
 }
