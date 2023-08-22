@@ -19,7 +19,7 @@ type Person struct {
 	Wallet string
 }
 
-func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
+func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int, err error) {
 	if field == "from" {
 		fmtEnc = append(fmtEnc, types.UTF8StrToBig(mail.From.Name))
 		fmtEnc = append(fmtEnc, types.HexToBN(mail.From.Wallet))
@@ -29,7 +29,7 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	} else if field == "contents" {
 		fmtEnc = append(fmtEnc, types.UTF8StrToBig(mail.Contents))
 	}
-	return fmtEnc
+	return fmtEnc, nil
 }
 
 func MockTypedData() (ttd TypedData) {

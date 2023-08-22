@@ -3,6 +3,7 @@ package starknetgo
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -35,30 +36,37 @@ type Definition struct {
 }
 
 type TypedMessage interface {
-	FmtDefinitionEncoding(string) []*big.Int
+	FmtDefinitionEncoding(string) ([]*big.Int, error)
 }
 
 /*
 encoding definition for standard StarkNet Domain messages
 */
-func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
-	processStrToBig := func(fieldVal string) {
-		felt := strToFelt(fieldVal)
-		bigInt, ok := feltToBig(felt)
-		if ok {
-			fmtEnc = append(fmtEnc, bigInt)
+func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int, err error) {
+
+	strToBig := func(str string) (*big.Int, error) {
+		bigInt, ok := new(big.Int).SetString(str, 0)
+		if !ok {
+			err = errors.New("Error setting string to big.Int in FmtDefinitionEncoding()")
+			return nil, err
 		}
+		return bigInt, nil
 	}
 
+	var bigInt *big.Int
 	switch field {
 	case "name":
-		processStrToBig(dm.Name)
+		bigInt, err = strToBig(dm.Name)
 	case "version":
-		processStrToBig(dm.Version)
+		bigInt, err = strToBig(dm.Version)
 	case "chainId":
-		processStrToBig(dm.ChainId)
+		bigInt, err = strToBig(dm.ChainId)
 	}
-	return fmtEnc
+
+	if err != nil {
+		fmtEnc = append(fmtEnc, bigInt)
+	}
+	return fmtEnc, err
 }
 
 // strToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
@@ -140,7 +148,11 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc Star
 
 	for _, def := range prim.Definitions {
 		if def.Type == "felt" {
-			fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
+			fmtDefinitions, errFmt := msg.FmtDefinitionEncoding(def.Name)
+			if errFmt != nil {
+				err = errFmt
+				return
+			}
 			elements = append(elements, fmtDefinitions...)
 			continue
 		}
@@ -148,7 +160,11 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc Star
 		innerElements := []*big.Int{}
 		encType := td.Types[def.Type]
 		innerElements = append(innerElements, encType.Encoding)
-		fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
+		fmtDefinitions, errFmt := msg.FmtDefinitionEncoding(def.Name)
+		if errFmt != nil {
+			err = errFmt
+			return
+		}
 		innerElements = append(innerElements, fmtDefinitions...)
 		innerElements = append(innerElements, big.NewInt(int64(len(innerElements))))
 
