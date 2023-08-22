@@ -295,13 +295,18 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(output)
 }
 
-type BroadcastedDeclareTransaction struct {
+type BroadcastedDeclareTransaction interface{}
+
+var _ BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV1{}
+var _ BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV2{}
+
+type BroadcastedDeclareTransactionV1 struct {
 	BroadcastedTxnCommonProperties
 	ContractClass DepcreatedContractClass `json:"contract_class"`
 	SenderAddress *felt.Felt              `json:"sender_address"`
 }
 
-func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
+func (b BroadcastedDeclareTransactionV1) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DECLARE"
 	if b.MaxFee != nil {
@@ -315,6 +320,31 @@ func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
 	output["signature"] = signature
 	output["sender_address"] = b.SenderAddress.String()
 	output["contract_class"] = b.ContractClass
+	return json.Marshal(output)
+}
+
+type BroadcastedDeclareTransactionV2 struct {
+	BroadcastedTxnCommonProperties
+	ContractClass     ContractClass `json:"contract_class"`
+	SenderAddress     *felt.Felt    `json:"sender_address"`
+	CompiledClassHash *felt.Felt    `json:"compiled_class_hash"`
+}
+
+func (b BroadcastedDeclareTransactionV2) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["type"] = "DECLARE"
+	if b.MaxFee != nil {
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
+	}
+	if b.Nonce != nil {
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
+	}
+	output["version"] = b.Version
+	signature := b.Signature
+	output["signature"] = signature
+	output["sender_address"] = b.SenderAddress.String()
+	output["contract_class"] = b.ContractClass
+	output["compiled_class_hash"] = b.CompiledClassHash
 	return json.Marshal(output)
 }
 

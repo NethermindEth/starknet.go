@@ -27,7 +27,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 	if err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeclareTransaction(ctx, rpc.BroadcastedDeclareTransaction{
+	tx, err := provider.AddDeclareTransaction(ctx, rpc.BroadcastedDeclareTransactionV1{
 		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 			Type:    "DECLARE",
 			MaxFee:  new(felt.Felt).SetUint64(10000),

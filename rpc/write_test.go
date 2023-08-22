@@ -39,7 +39,7 @@ func TestDeclareTransaction(t *testing.T) {
 			t.Fatal("should be able to read file", err)
 		}
 
-		var declareTx BroadcastedDeclareTransaction
+		var declareTx BroadcastedDeclareTransactionV1
 		err = json.Unmarshal(declareTxJSON, &declareTx)
 		require.Nil(t, err, "Error unmarshalling decalreTx")
 
@@ -47,7 +47,7 @@ func TestDeclareTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 
 		// To do: test transaction against client that supports RPC method (currently Sequencer uses
-		// "sierra_program" instead of "program" in BroadcastedDeclareTransaction
+		// "sierra_program" instead of "program" in BroadcastedDeclareTransactionV1
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
