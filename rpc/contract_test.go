@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/test-go/testify/require"
 )
 
 // TestClassAt tests code for a class.
@@ -41,21 +42,27 @@ func TestClassAt(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		class, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
+		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
-		diff, err := spy.Compare(class, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
+		switch class := resp.(type) {
+		case DepcreatedContractClass:
+			diff, err := spy.Compare(class, false)
+			if err != nil {
+				t.Fatal("expecting to match", err)
+			}
+			if diff != "FullMatch" {
+				spy.Compare(class, true)
+				t.Fatal("structure expecting to be FullMatch, instead", diff)
+			}
+			if class.Program == "" {
+				t.Fatal("code should exist")
+			}
+		case ContractClass:
+			panic("Not covered")
 		}
-		if diff != "FullMatch" {
-			spy.Compare(class, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if class == nil || class.Program == "" {
-			t.Fatal("code should exist")
-		}
+
 	}
 }
 
@@ -118,9 +125,10 @@ func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID         BlockID
-		ClassHash       string
-		ExpectedProgram string
+		BlockID                       BlockID
+		ClassHash                     string
+		ExpectedProgram               string
+		ExpectedEntryPointConstructor SierraEntryPoint
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -136,6 +144,11 @@ func TestClass(t *testing.T) {
 				ClassHash:       "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
+			{
+				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x464fc8c86a6452536a2e27cb301815e5f8b16a2f6872ba4f3d83701fbe99fb3")),
+				ClassHash:                     "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571",
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
@@ -143,21 +156,28 @@ func TestClass(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		class, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
+		resp, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		diff, err := spy.Compare(class, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(class, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
 
-		if class == nil || !strings.HasPrefix(class.Program, test.ExpectedProgram) {
-			t.Fatal("code should exist")
+		switch class := resp.(type) {
+		case DepcreatedContractClass:
+
+			diff, err := spy.Compare(class, false)
+			if err != nil {
+				t.Fatal("expecting to match", err)
+			}
+			if diff != "FullMatch" {
+				spy.Compare(class, true)
+				t.Fatal("structure expecting to be FullMatch, instead", diff)
+			}
+
+			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
+				t.Fatal("code should exist")
+			}
+		case ContractClass:
+			require.Equal(t, class.EntryPointsByType.Constructor, test.ExpectedEntryPointConstructor)
 		}
 	}
 }

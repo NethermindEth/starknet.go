@@ -49,7 +49,7 @@ var counterCompiled = artifacts.CounterCompiled
 func TestCounter_DeployContract(t *testing.T) {
 	provider := beforeEachRPC(t)
 
-	counterClass := rpc.ContractClass{}
+	counterClass := rpc.DepcreatedContractClass{}
 	inputs := []string{}
 
 	if err := json.Unmarshal(counterCompiled, &counterClass); err != nil {

@@ -89,7 +89,7 @@ var (
 )
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := rpc.ContractClass{}
+	class := rpc.DepcreatedContractClass{}
 	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
 		return "", err
 	}

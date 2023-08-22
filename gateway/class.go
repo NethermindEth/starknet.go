@@ -10,7 +10,7 @@ import (
 )
 
 // TODO: returns DeprecatedContractClass | SierraContractClass
-func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*rpc.ContractClass, error) {
+func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*rpc.DepcreatedContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_class_by_hash", nil)
 	if err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (sg *Gateway) ClassByHash(ctx context.Context, hash string) (*rpc.ContractC
 		"classHash": []string{hash},
 	})
 
-	var resp rpc.ContractClass
+	var resp rpc.DepcreatedContractClass
 	return &resp, sg.do(req, &resp)
 }
 
@@ -41,10 +41,10 @@ func (sg *Gateway) ClassHashAt(ctx context.Context, address string) (*felt.Felt,
 	return resp, nil
 }
 
-func (sg *Gateway) Class(context.Context, string) (*rpc.ContractClass, error) {
+func (sg *Gateway) Class(context.Context, string) (*rpc.DepcreatedContractClass, error) {
 	panic("not implemented")
 }
 
-func (sg *Gateway) ClassAt(context.Context, string) (*rpc.ContractClass, error) {
+func (sg *Gateway) ClassAt(context.Context, string) (*rpc.DepcreatedContractClass, error) {
 	panic("not implemented")
 }

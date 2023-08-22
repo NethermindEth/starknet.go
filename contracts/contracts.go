@@ -29,7 +29,7 @@ type GatewayProvider gateway.GatewayProvider
 
 func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DepcreatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiled
 // TODO: remove compiledClass from the interface
 func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DepcreatedContractClass{}
 
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (p *GatewayProvider) deployAccountAndWaitNoWallet(ctx context.Context, clas
 // DEPLOY_ACCOUNT for an account.
 func (p *GatewayProvider) deployAndWaitNoWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := gateway.GatewayProvider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DepcreatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}

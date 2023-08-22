@@ -297,8 +297,8 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 
 type BroadcastedDeclareTransaction struct {
 	BroadcastedTxnCommonProperties
-	ContractClass ContractClass `json:"contract_class"`
-	SenderAddress *felt.Felt    `json:"sender_address"`
+	ContractClass DepcreatedContractClass `json:"contract_class"`
+	SenderAddress *felt.Felt              `json:"sender_address"`
 }
 
 func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
@@ -327,7 +327,7 @@ type DeployTransactionProperties struct {
 
 type BroadcastedDeployTxn struct {
 	DeployTransactionProperties
-	ContractClass ContractClass `json:"contract_class"`
+	DepcreatedContractClass DepcreatedContractClass `json:"contract_class"`
 }
 
 func (b BroadcastedDeployTxn) MarshalJSON() ([]byte, error) {

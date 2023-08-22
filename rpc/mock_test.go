@@ -268,7 +268,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	var class = ContractClass{
+	var class = DepcreatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -310,7 +310,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = ContractClass{
+	var class = DepcreatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -384,7 +384,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(ContractClass)
+	_, ok = args[0].(DepcreatedContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
