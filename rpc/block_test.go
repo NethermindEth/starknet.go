@@ -340,34 +340,6 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		},
 	}
 
-	var fullBlockGoerli300114 = Block{
-		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
-			ParentHash:       utils.TestHexToFelt(t, "0x7307cb0d7fa65c111e71cdfb6209bdc90d2454d4c0f34d8bf5a3fe477826c3c"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b"),
-			BlockNumber:      300114,
-			NewRoot:          utils.TestHexToFelt(t, "0x239a44410e78665f41f7a65ef3b5ed244ce411965498a83f80f904e22df1045"),
-			Timestamp:        1660701246,
-		},
-		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV0{
-				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-						Type:      TransactionType_Declare,
-						MaxFee:    &felt.Zero,
-						Version:   TransactionV0,
-						Signature: []*felt.Felt{},
-						Nonce:     &felt.Zero,
-					},
-				},
-				ClassHash:     utils.TestHexToFelt(t, "0x6feb117d1c3032b0ae7bd3b50cd8ec4a78c621dca0d63ddc17890b78a6c3b49"),
-				SenderAddress: utils.TestHexToFelt(t, "0x1"),
-			},
-		},
-	}
-
 	var fullBlockGoerli848622 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x32964e2e407bb9e71b2de8d9d9829b0537df7c4624e1816e6cece80781ab9cc"),
@@ -445,13 +417,6 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        &fullBlockGoerli310843,
-			},
-			{
-				BlockID:                     WithBlockNumber(300114),
-				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 3,
-				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli300114,
 			},
 			{
 				BlockID:                     WithBlockNumber(849399),
@@ -566,8 +531,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 375919,
-				EndBlock:   376000,
+				StartBlock: 381000,
+				EndBlock:   381001,
 			},
 		},
 		"mainnet": {},
@@ -586,12 +551,11 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okv1 := v.(InvokeTxnV1)
 				_, okv0 := v.(InvokeTxnV0)
 				_, okl1 := v.(L1HandlerTxn)
-				_, okdec0 := v.(DeclareTxnV0)
 				_, okdec1 := v.(DeclareTxnV1)
 				_, okdec2 := v.(DeclareTxnV2)
 				_, okdep := v.(DeployTxn)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okl1 && !okdec1 && !okdec2 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
