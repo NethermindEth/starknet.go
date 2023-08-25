@@ -157,6 +157,12 @@ type EventABIEntry struct {
 	Data []TypedParameter `json:"data"`
 }
 
+type FunctionStateMutability string
+
+const (
+	FuncStateMutVIEW FunctionStateMutability = "view"
+)
+
 type FunctionABIEntry struct {
 	// The function type
 	Type ABIType `json:"type"`
@@ -164,7 +170,7 @@ type FunctionABIEntry struct {
 	// The function name
 	Name string `json:"name"`
 
-	StateMutability *string `json:"stateMutability,omitempty"`
+	StateMutability FunctionStateMutability `json:"stateMutability,omitempty"`
 
 	Inputs []TypedParameter `json:"inputs"`
 
