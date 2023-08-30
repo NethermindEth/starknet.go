@@ -24,7 +24,8 @@ func NewProvider(c *rpc.Client) *Provider {
 	return &Provider{c: c}
 }
 
-type api interface {
+//go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
+type RpcProvider interface {
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -49,4 +50,4 @@ type api interface {
 	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionResponse, error)
 }
 
-var _ api = &Provider{}
+var _ RpcProvider = &Provider{}

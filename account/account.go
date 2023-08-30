@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
@@ -38,14 +39,14 @@ type AccountInterface interface {
 var _ AccountInterface = &Account{}
 
 type Account struct {
-	provider       *rpc.Provider
+	provider       rpc.RpcProvider
 	chainId        string
 	AccountAddress *felt.Felt
 	ks             starknetgo.Keystore
 	version        uint64
 }
 
-func NewAccount(provider *rpc.Provider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
@@ -72,6 +73,7 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall) ([]*fel
 }
 
 func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
+	fmt.Println("new(felt.Felt).SetBytes([]byte(account.chainId))", new(felt.Felt).SetBytes([]byte(account.chainId)))
 	calldataHash, err := computeHashOnElementsFelt(call.Calldata)
 	if err != nil {
 		return nil, err
