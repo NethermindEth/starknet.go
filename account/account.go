@@ -28,9 +28,10 @@ const (
 type AccountInterface interface {
 	TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error)
 	Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error)
-	Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
+	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
+	// Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error)
 	// EstimateFee(ctx context.Context, calls []rpc.FunctionCall) (*rpc.FeeEstimate, error)
 	// Declare(ctx context.Context, classHash string, contract rpc.ContractClass) (rpc.AddDeclareTransactionResponse, error)
 	// DeployAccount(ctx context.Context, classHash string) (*rpc.AddDeployTransactionResponse, error) // ToDo: Should be AddDeployAccountTransactionResponse - waiting for PR to be merged
@@ -124,35 +125,58 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
 
-func (account *Account) Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error) {
-	switch account.version {
-	case 1:
-		txHash, err := account.TransactionHash(calls, details)
-		if err != nil {
-			return nil, err
-		}
-		signature, err := account.Sign(ctx, txHash)
-		if err != nil {
-			return nil, err
-		}
-		resp, err := account.provider.AddInvokeTransaction(
-			ctx,
-			rpc.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-					MaxFee:    details.MaxFee,
-					Version:   rpc.TransactionV1,
-					Signature: signature,
-					Nonce:     details.Nonce,
-					Type:      "INVOKE",
-				},
-				SenderAddress: account.AccountAddress,
-				Calldata:      calls.Calldata,
-			})
-		if err != nil {
-			return nil, err
-		}
-		return &rpc.AddInvokeTransactionResponse{TransactionHash: resp.TransactionHash}, nil
-	default:
-		return nil, ErrAccountVersionNotSupported
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error {
+	txHash, err := account.TransactionHash(
+		rpc.FunctionCall{
+			ContractAddress:    invokeTx.SenderAddress,
+			EntryPointSelector: &felt.Zero,
+			Calldata:           invokeTx.Calldata,
+		},
+		rpc.TxDetails{
+			Nonce:  invokeTx.Nonce,
+			MaxFee: invokeTx.MaxFee,
+		})
+	if err != nil {
+		return err
 	}
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return err
+	}
+	invokeTx.Signature = signature
+	return nil
 }
+
+// // Execute hashes, signs and submits an invoke transaction to the rpc provider
+// func (account *Account) Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error) {
+// 	switch account.version {
+// 	case 1:
+// 		txHash, err := account.TransactionHash(calls, details)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		signature, err := account.Sign(ctx, txHash)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		resp, err := account.provider.AddInvokeTransaction(
+// 			ctx,
+// 			rpc.BroadcastedInvokeV1Transaction{
+// 				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+// 					MaxFee:    details.MaxFee,
+// 					Version:   rpc.TransactionV1,
+// 					Signature: signature,
+// 					Nonce:     details.Nonce,
+// 					Type:      "INVOKE",
+// 				},
+// 				SenderAddress: account.AccountAddress,
+// 				Calldata:      calls.Calldata,
+// 			})
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return &rpc.AddInvokeTransactionResponse{TransactionHash: resp.TransactionHash}, nil
+// 	default:
+// 		return nil, ErrAccountVersionNotSupported
+// 	}
+// }
