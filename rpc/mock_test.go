@@ -326,31 +326,30 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	query, ok := args[0].(EventFilter)
+	_, ok = args[0].(EventsInput)
 	if !ok {
 		return errWrongArgs
 	}
-	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+
+	blockHash, err := utils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
 	if err != nil {
 		return err
 	}
-	events := &EventsOutput{
-
-		Events: []EventChunk{{
-			Events: []EmittedEvent{{
-				Event: Event{
-					FromAddress: query.Address,
-					Keys:        []*felt.Felt{},
-					Data:        []*felt.Felt{},
-				},
-
-				BlockHash:       deadbeefFelt,
-				BlockNumber:     1,
-				TransactionHash: deadbeefFelt,
-			}},
-			ContinuationToken: "deadbeef",
-		}},
+	txHash, _ := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	if err != nil {
+		return err
 	}
+
+	events :=
+		EventChunk{
+			Events: []EmittedEvent{
+				EmittedEvent{
+					BlockHash:       blockHash,
+					BlockNumber:     1472,
+					TransactionHash: txHash,
+				},
+			},
+		}
 
 	outputContent, _ := json.Marshal(events)
 	json.Unmarshal(outputContent, r)

@@ -36,7 +36,7 @@ type api interface {
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*ContractClass, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error)
-	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
+	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
