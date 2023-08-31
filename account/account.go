@@ -3,7 +3,6 @@ package account
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
@@ -45,14 +44,16 @@ type Account struct {
 	AccountAddress *felt.Felt
 	ks             starknetgo.Keystore
 	version        uint64
+	senderAddress  string
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore, senderAddress string) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
 		ks:             keystore,
 		version:        version,
+		senderAddress:  senderAddress,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
@@ -74,7 +75,6 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall) ([]*fel
 }
 
 func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
-	fmt.Println("new(felt.Felt).SetBytes([]byte(account.chainId))", new(felt.Felt).SetBytes([]byte(account.chainId)))
 	calldataHash, err := computeHashOnElementsFelt(call.Calldata)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	if ok != true {
 		return nil, ErrFeltToBigInt
 	}
-	s1, s2, err := account.ks.Sign(ctx, account.AccountAddress.String(), msgBig)
+	s1, s2, err := account.ks.Sign(ctx, account.senderAddress, msgBig)
 	if err != nil {
 		return nil, err
 	}
