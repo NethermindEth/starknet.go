@@ -23,7 +23,7 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 		return nil, err
 	}
 
-	return typecastClassOutut(&rawClass)
+	return typecastClassOutput(&rawClass)
 
 }
 
@@ -39,10 +39,10 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 		}
 		return nil, err
 	}
-	return typecastClassOutut(&rawClass)
+	return typecastClassOutput(&rawClass)
 }
 
-func typecastClassOutut(rawClass *map[string]any) (GetClassOutput, error) {
+func typecastClassOutput(rawClass *map[string]any) (GetClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func typecastClassOutut(rawClass *map[string]any) (GetClassOutput, error) {
 		}
 		return &contractClass, nil
 	}
-	var depContractClass DepcreatedContractClass
+	var depContractClass DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
 		return nil, err

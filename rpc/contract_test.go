@@ -47,7 +47,7 @@ func TestClassAt(t *testing.T) {
 			t.Fatal(err)
 		}
 		switch class := resp.(type) {
-		case DepcreatedContractClass:
+		case DeprecatedContractClass:
 			diff, err := spy.Compare(class, false)
 			if err != nil {
 				t.Fatal("expecting to match", err)
@@ -162,7 +162,7 @@ func TestClass(t *testing.T) {
 		}
 
 		switch class := resp.(type) {
-		case DepcreatedContractClass:
+		case DeprecatedContractClass:
 
 			diff, err := spy.Compare(class, false)
 			if err != nil {
