@@ -26,14 +26,12 @@ const (
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error)
-	Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error)
+	Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
 	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
-	// Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error)
-	// Declare(ctx context.Context, classHash string, contract rpc.ContractClass) (rpc.AddDeclareTransactionResponse, error)
-	// DeployAccount(ctx context.Context, classHash string) (*rpc.AddDeployTransactionResponse, error) // ToDo: Should be AddDeployAccountTransactionResponse - waiting for PR to be merged
+	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
 }
 
 var _ AccountInterface = &Account{}
@@ -65,13 +63,13 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 	return account, nil
 }
 
-func (account *Account) Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error) {
+func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error) {
 	return account.provider.Call(ctx,
 		rpc.FunctionCall{
 			ContractAddress:    call.ContractAddress,
 			EntryPointSelector: call.EntryPointSelector,
 			Calldata:           call.Calldata},
-		rpc.WithBlockTag("latest"))
+		blockId)
 }
 
 func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
@@ -157,36 +155,12 @@ func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.Broa
 	}
 }
 
-// // Execute hashes, signs and submits an invoke transaction to the rpc provider
-// func (account *Account) Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error) {
-// 	switch account.version {
-// 	case 1:
-// 		txHash, err := account.TransactionHash(calls, details)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		signature, err := account.Sign(ctx, txHash)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		resp, err := account.provider.AddInvokeTransaction(
-// 			ctx,
-// 			rpc.BroadcastedInvokeV1Transaction{
-// 				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-// 					MaxFee:    details.MaxFee,
-// 					Version:   rpc.TransactionV1,
-// 					Signature: signature,
-// 					Nonce:     details.Nonce,
-// 					Type:      "INVOKE",
-// 				},
-// 				SenderAddress: account.AccountAddress,
-// 				Calldata:      calls.Calldata,
-// 			})
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		return &rpc.AddInvokeTransactionResponse{TransactionHash: resp.TransactionHash}, nil
-// 	default:
-// 		return nil, ErrAccountVersionNotSupported
-// 	}
-// }
+// AddInvokeTransaction submits an invoke transaction to the rpc provider.
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
+	switch account.version {
+	case 1:
+		return account.provider.AddInvokeTransaction(ctx, invokeTx)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
+}
