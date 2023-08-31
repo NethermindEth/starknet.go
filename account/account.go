@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrAccountVersionNotSupported = errors.New("Account version not supported")
+	ErrNotAllParametersSet        = errors.New("Not all neccessary parameters have been set")
 	ErrTxnTypeUnSupported         = errors.New("Unsupported transction type")
 	ErrFeltToBigInt               = errors.New("Felt to BigInt error")
 )
@@ -39,27 +40,27 @@ var _ AccountInterface = &Account{}
 
 type Account struct {
 	provider       rpc.RpcProvider
-	chainId        string
-	AccountAddress *felt.Felt
+	ChainId        *felt.Felt
+	accountAddress *felt.Felt
+	senderAddress  *felt.Felt
 	ks             starknetgo.Keystore
 	version        uint64
-	senderAddress  string
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore, senderAddress string) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, senderAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
-		AccountAddress: accountAddress,
+		accountAddress: accountAddress,
+		senderAddress:  senderAddress,
 		ks:             keystore,
 		version:        version,
-		senderAddress:  senderAddress,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	account.chainId = chainID
+	account.ChainId = new(felt.Felt).SetBytes([]byte(chainID))
 
 	return account, nil
 }
@@ -74,18 +75,24 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 }
 
 func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
+
+	if call.Calldata == nil || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.accountAddress == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
 	calldataHash, err := computeHashOnElementsFelt(call.Calldata)
 	if err != nil {
 		return nil, err
 	}
+
 	return calculateTransactionHashCommon(
 		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
 		new(felt.Felt).SetUint64(account.version),
-		account.AccountAddress,
+		account.accountAddress,
 		&felt.Zero,
 		calldataHash,
 		txDetails.MaxFee,
-		new(felt.Felt).SetBytes([]byte(account.chainId)),
+		account.ChainId,
 		[]*felt.Felt{txDetails.Nonce},
 	)
 }
@@ -94,7 +101,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	switch account.version {
 	case 1:
 		// Todo: simplfy after rpc PRs are merged, return account.provider.Nonce(...)
-		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.accountAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +117,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	if ok != true {
 		return nil, ErrFeltToBigInt
 	}
-	s1, s2, err := account.ks.Sign(ctx, account.senderAddress, msgBig)
+	s1, s2, err := account.ks.Sign(ctx, account.senderAddress.String(), msgBig)
 	if err != nil {
 		return nil, err
 	}
