@@ -30,8 +30,8 @@ type AccountInterface interface {
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
+	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
 	// Execute(ctx context.Context, calls rpc.FunctionCall, details rpc.TxDetails) (*rpc.AddInvokeTransactionResponse, error)
-	// EstimateFee(ctx context.Context, calls []rpc.FunctionCall) (*rpc.FeeEstimate, error)
 	// Declare(ctx context.Context, classHash string, contract rpc.ContractClass) (rpc.AddDeclareTransactionResponse, error)
 	// DeployAccount(ctx context.Context, classHash string) (*rpc.AddDeployTransactionResponse, error) // ToDo: Should be AddDeployAccountTransactionResponse - waiting for PR to be merged
 }
@@ -94,6 +94,7 @@ func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxD
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	switch account.version {
 	case 1:
+		// Todo: simplfy after rpc PRs are merged, return account.provider.Nonce(...)
 		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 		if err != nil {
 			return nil, err
@@ -145,6 +146,15 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	}
 	invokeTx.Signature = signature
 	return nil
+}
+
+func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
+	switch account.version {
+	case 1:
+		return account.provider.EstimateFee(ctx, broadcastTxs, blockId)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
 }
 
 // // Execute hashes, signs and submits an invoke transaction to the rpc provider

@@ -167,8 +167,9 @@ type FunctionCall struct {
 
 // TxDetails contains details needed for computing transaction hashes
 type TxDetails struct {
-	Nonce  *felt.Felt
-	MaxFee *felt.Felt
+	Nonce   *felt.Felt
+	MaxFee  *felt.Felt
+	Version TransactionVersion
 }
 
 type FeeEstimate struct {
