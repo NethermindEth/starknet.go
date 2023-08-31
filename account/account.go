@@ -32,6 +32,7 @@ type AccountInterface interface {
 	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
 	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
 	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
+	Execute(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) // Todo: generalise once rpcv04 PRs are merged
 }
 
 var _ AccountInterface = &Account{}
@@ -160,6 +161,49 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.
 	switch account.version {
 	case 1:
 		return account.provider.AddInvokeTransaction(ctx, invokeTx)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
+}
+
+// Execute Sets maxFee to twice the estimated fee (if not already set), sets the nonce, calculates the transaction hash, signs the transaction
+// and finally submits an addInvokeTransaction to the rpc provider.
+func (account *Account) Execute(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
+	if account.version != 1 {
+		return nil, ErrAccountVersionNotSupported
+	}
+
+	// Set max fee if not already set
+	if invokeTx.MaxFee == nil {
+		estimate, err := account.EstimateFee(ctx, []rpc.BroadcastedTransaction{invokeTx}, rpc.WithBlockTag("latest"))
+		if err != nil {
+			return nil, err
+		}
+		overallFee, err := new(felt.Felt).SetString(string(estimate[0].OverallFee))
+		if err != nil {
+			return nil, err
+		}
+		newMaxFee := new(felt.Felt).Mul(overallFee, new(felt.Felt).SetUint64(2))
+		invokeTx.MaxFee = newMaxFee
+	}
+
+	// Get and set nonce
+	nonce, err := account.Nonce(ctx)
+	if err != nil {
+		return nil, err
+	}
+	invokeTx.Nonce = nonce
+
+	// Sign transaction
+	err = account.SignInvokeTransaction(ctx, invokeTx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Submit transaction
+	switch account.version {
+	case 1:
+		return account.AddInvokeTransaction(ctx, invokeTx)
 	default:
 		return nil, ErrAccountVersionNotSupported
 	}
