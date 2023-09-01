@@ -136,7 +136,7 @@ type MsgToL1 struct {
 
 type MsgFromL1 struct {
 	// FromAddress The address of the L1 contract sending the message
-	FromAddress *felt.Felt `json:"from_address"`
+	FromAddress string `json:"from_address"`
 	// ToAddress The target L2 address the message is sent to
 	ToAddress *felt.Felt `json:"to_address"`
 	// EntryPointSelector The selector of the l1_handler in invoke in the target contract

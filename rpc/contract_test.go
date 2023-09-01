@@ -275,7 +275,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				MsgFromL1: MsgFromL1{FromAddress: &felt.Zero, ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
+				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
 				ExpectedFeeEst: FeeEstimate{
 					GasConsumed: NumAsHex("0x1"),
