@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"math/big"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -9,7 +10,6 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
@@ -100,20 +100,26 @@ func TestSign(t *testing.T) {
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	t.Run("Sign", func(t *testing.T) {
-		expectedS1 := utils.TestHexToFelt(t, "0x44abbb3036bac13c7fd394187f6ad6bf7c19f6869049294fdbdac50c52b65b1")
-		expectedS2 := utils.TestHexToFelt(t, "0xd92b64b64aa2da8aea7de665c741679486087f6d07eead131b8bdde86efb22")
+	// Accepted on testnet https://goerli.voyager.online/tx/0x2a7eec54aab835323a810e893354368a496f1a217e8b6ef295476568ef08f0d
+	t.Run("Sign testnet", func(t *testing.T) {
+		expectedS1 := utils.TestHexToFelt(t, "0x6bf7980d98fa300ed9565b8cd5efcf5582133daa961b5e1d9477bf1bd750727")
+		expectedS2 := utils.TestHexToFelt(t, "0x5886b8236b7dc3665c0014876a644ddd0800a167ff1036fb82af1a6f4134c91")
 
+		pubKey := utils.TestHexToFelt(t, "0xc1e5fc3f93e04dac29878e4efccd81a96547884628d83b40fc9b758b5a349")
+		privKey := utils.TestHexToFelt(t, "0x15d0b81e6140f4cce02b47609879a723f9f5b7b9f3ffca346018c73fe81847e")
+		privKeyBI, ok := new(big.Int).SetString(privKey.String(), 0)
+		require.True(t, ok)
 		ks := starknetgo.NewMemKeystore()
-		fakeSenderAddress := utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8")
-		k := types.SNValToBN(fakeSenderAddress.String())
-		ks.Put(fakeSenderAddress.String(), k)
+		ks.Put(pubKey.String(), privKeyBI)
 
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, fakeSenderAddress, ks)
+		address := utils.TestHexToFelt(t, "0x476466998f22e0b0177ddc76afcf8e3b5d30164f3eb33031aae7a9cb63c831")
+		sender := pubKey
+
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+		account, err := account.NewAccount(mockRpcProvider, 1, address, sender, ks)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
-		msg := utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637")
+		msg := utils.TestHexToFelt(t, "0x2a7eec54aab835323a810e893354368a496f1a217e8b6ef295476568ef08f0d")
 		sig, err := account.Sign(context.Background(), msg)
 
 		require.NoError(t, err, "error returned from account.Sign()")
