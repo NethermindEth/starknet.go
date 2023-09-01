@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/test-go/testify/require"
 )
 
 // TestClassAt tests code for a class.
@@ -259,5 +260,42 @@ func TestNonce(t *testing.T) {
 		if *value != "0x0" {
 			t.Fatalf("expecting value %s, got %s", "0x0", *value)
 		}
+	}
+}
+
+// TestEstimateMessageFee tests EstimateMesssageFee
+func TestEstimateMessageFee(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		MsgFromL1
+		BlockID
+		ExpectedFeeEst FeeEstimate
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
+				BlockID:   BlockID{Tag: "latest"},
+				ExpectedFeeEst: FeeEstimate{
+					GasConsumed: NumAsHex("0x1"),
+					GasPrice:    NumAsHex("0x2"),
+					OverallFee:  NumAsHex("0x3"),
+				},
+			},
+		},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		value, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		require.Equal(t, *value, test.ExpectedFeeEst)
+
 	}
 }
