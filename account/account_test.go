@@ -44,7 +44,7 @@ func TestTransactionHash(t *testing.T) {
 
 	t.Run("Transaction hash mainnet", func(t *testing.T) {
 		expectedHash := utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637")
-		accountAddress := utils.TestHexToFelt(t, "0x3893471bc829289e7cfa46dfa3899dc3eaff5df9cf43f77a588331eaca6860b")
+		accountAddress := utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8")
 		senderAddress := utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8")
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
@@ -63,7 +63,7 @@ func TestTransactionHash(t *testing.T) {
 			},
 		}
 		txDetails := rpc.TxDetails{
-			Nonce:   new(felt.Felt).SetUint64(1),
+			Nonce:   utils.TestHexToFelt(t, "0x1"),
 			MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
 			Version: rpc.TransactionV1,
 		}
