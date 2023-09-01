@@ -42,16 +42,14 @@ type Account struct {
 	provider       rpc.RpcProvider
 	ChainId        *felt.Felt
 	accountAddress *felt.Felt
-	senderAddress  *felt.Felt
 	ks             starknetgo.Keystore
 	version        uint64
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, senderAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		accountAddress: accountAddress,
-		senderAddress:  senderAddress,
 		ks:             keystore,
 		version:        version,
 	}
@@ -117,7 +115,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	if ok != true {
 		return nil, ErrFeltToBigInt
 	}
-	s1, s2, err := account.ks.Sign(ctx, account.senderAddress.String(), msgBig)
+	s1, s2, err := account.ks.Sign(ctx, account.accountAddress.String(), msgBig)
 	if err != nil {
 		return nil, err
 	}
