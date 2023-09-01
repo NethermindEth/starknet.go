@@ -11,7 +11,7 @@ import (
 )
 
 // Class gets the contract class definition associated with the given hash.
-func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (GetClassOutput, error) {
+func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		switch {
@@ -28,7 +28,7 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 }
 
 // ClassAt get the contract class definition at the given address.
-func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (GetClassOutput, error) {
+func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
 		switch {
@@ -42,7 +42,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 	return typecastClassOutput(&rawClass)
 }
 
-func typecastClassOutput(rawClass *map[string]any) (GetClassOutput, error) {
+func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
 		return nil, err

@@ -19,10 +19,10 @@ type DeprecatedCairoEntryPoint struct {
 	Selector *felt.Felt `json:"selector"`
 }
 
-type GetClassOutput interface{}
+type ClassOutput interface{}
 
-var _ GetClassOutput = &DeprecatedContractClass{}
-var _ GetClassOutput = &ContractClass{}
+var _ ClassOutput = &DeprecatedContractClass{}
+var _ ClassOutput = &ContractClass{}
 
 type ABI []ABIEntry
 
