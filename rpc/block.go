@@ -50,7 +50,6 @@ func WithBlockTag(tag string) BlockID {
 }
 
 // BlockWithTxHashes gets block information given the block id.
-// TODO: add support for PendingBlock
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
@@ -59,6 +58,17 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 		}
 		return nil, err
 	}
+
+	// if header.Hash == nil it's a pending block
+	if result.BlockHeader.BlockHash == nil {
+		return PendingBlock{
+			ParentHash:       result.ParentHash,
+			Timestamp:        result.Timestamp,
+			SequencerAddress: result.SequencerAddress,
+			Transactions:     result.Transactions,
+		}, nil
+	}
+
 	return &result, nil
 }
 
@@ -94,6 +104,15 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 			return nil, ErrBlockNotFound
 		}
 		return nil, err
+	}
+	// if header.Hash == nil it's a pending block
+	if result.BlockHeader.BlockHash == nil {
+		return PendingBlock{
+			ParentHash:       result.ParentHash,
+			Timestamp:        result.Timestamp,
+			SequencerAddress: result.SequencerAddress,
+			Transactions:     result.Transactions,
+		}, nil
 	}
 	return &result, nil
 }

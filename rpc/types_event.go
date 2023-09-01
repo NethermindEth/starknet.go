@@ -10,7 +10,7 @@ type Event struct {
 
 type EventChunk struct {
 	Events            []EmittedEvent `json:"events"`
-	ContinuationToken string         `json:"continuation_token"`
+	ContinuationToken string         `json:"continuation_token,omitempty"`
 }
 
 // EmittedEvent an event emitted as a result of transaction execution
@@ -38,8 +38,4 @@ type EventFilter struct {
 type EventsInput struct {
 	EventFilter
 	ResultPageRequest
-}
-
-type EventsOutput struct {
-	Events []EventChunk `json:"events"`
 }

@@ -10,8 +10,8 @@ import (
 
 type ResultPageRequest struct {
 	// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
-	ContinuationToken *string `json:"continuation_token,omitempty"`
-	ChunkSize         int     `json:"chunk_size"`
+	ContinuationToken string `json:"continuation_token,omitempty"`
+	ChunkSize         int    `json:"chunk_size"`
 }
 
 type StorageEntry struct {

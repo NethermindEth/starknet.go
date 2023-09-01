@@ -19,7 +19,7 @@ type RPCProvider rpc.Provider
 
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 
 func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHas
 
 func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
