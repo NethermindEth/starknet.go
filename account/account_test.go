@@ -2,18 +2,34 @@ package account_test
 
 import (
 	"context"
+	"flag"
 	"math/big"
+	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
+
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
 )
+
+var (
+	// set the environment for the test, default: mock
+	testEnv = "mock"
+)
+
+// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+func TestMain(m *testing.M) {
+	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
+	flag.Parse()
+	os.Exit(m.Run())
+}
 
 func TestTransactionHash(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
@@ -125,12 +141,76 @@ func TestSign(t *testing.T) {
 	})
 }
 
-func TestExecute(t *testing.T) {
-	// mockCtrl := gomock.NewController(t)
-	// t.Cleanup(mockCtrl.Finish)
-	// mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+func TestAddInvoke(t *testing.T) {
 
-	t.Run("Test Execute", func(t *testing.T) {
-		panic("Tests for Execute need implemented")
+	t.Run("Test AddInvoke devnet", func(t *testing.T) {
+		if testEnv != "devnet" {
+			t.Skip("Skipping test as it requires a devnet environment")
+		}
+		devNetURL := "http://0.0.0.0:5050"
+		accounts, err := NewDevnet(t, devNetURL)
+		require.NoError(t, err)
+
+		client, err := rpc.NewClient(devNetURL)
+		require.NoError(t, err)
+		provider := rpc.NewProvider(client)
+
+		devAccount := accounts[0]
+		priv, ok := new(big.Int).SetString(devAccount.PrivateKey, 0)
+		require.True(t, ok)
+		ks := starknetgo.SetNewMemKeystore(devAccount.PublicKey, priv)
+
+		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, devAccount.Address), ks)
+		require.NoError(t, err)
+
+		invokeTx := rpc.BroadcastedInvokeV1Transaction{}
+		_, err = account.AddInvokeTransaction(context.Background(), &invokeTx)
+		require.NoError(t, err)
+
 	})
 }
+
+func NewDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
+	// url := SetupLocalStarknetNode(t)
+	devnet := test.NewDevNet(url)
+	acnts, err := devnet.Accounts()
+	return acnts, err
+}
+
+// // SetupLocalStarknetNode sets up a local starknet node via cli, and returns the url
+// func SetupLocalStarknetNode(t *testing.T) string {
+// 	url := "http://127.0.0.1:" + "5050"
+// 	cmd := exec.Command("starknet-devnet",
+// 		"--seed", "0", // use same seed for testing
+// 		"--port", "5050",
+// 		"--lite-mode",
+// 	)
+// 	var stdErr bytes.Buffer
+// 	cmd.Stderr = &stdErr
+// 	require.NoError(t, cmd.Start())
+// 	t.Cleanup(func() {
+// 		assert.NoError(t, cmd.Process.Kill())
+// 		if err2 := cmd.Wait(); assert.Error(t, err2) {
+// 			if !assert.Contains(t, err2.Error(), "signal: killed", cmd.ProcessState.String()) {
+// 				t.Log("starknet-devnet stderr:", stdErr.String())
+// 			}
+// 		}
+// 		t.Log("starknet-devnet server closed")
+// 	})
+
+// 	// Wait for api server to boot
+// 	var ready bool
+// 	for i := 0; i < 30; i++ {
+// 		time.Sleep(time.Second)
+// 		res, err := http.Get(url + "/is_alive")
+// 		if err != nil || res.StatusCode != 200 {
+// 			t.Logf("API server not ready yet (attempt %d)\n", i+1)
+// 			continue
+// 		}
+// 		ready = true
+// 		t.Logf("API server ready at %s\n", url)
+// 		break
+// 	}
+// 	require.True(t, ready)
+// 	return url
+// }

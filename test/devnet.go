@@ -39,13 +39,17 @@ func (devnet *DevNet) api(uri string) string {
 }
 
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
+	qwe := devnet.api("/predeployed_accounts")
+	fmt.Println("]]]]]]", qwe)
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), nil)
 	if err != nil {
+
 		return nil, err
 	}
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Println("=========", req, devnet.api("/predeployed_accounts"))
 		return nil, err
 	}
 	defer resp.Body.Close()

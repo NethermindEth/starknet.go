@@ -32,7 +32,7 @@ func TestDevnet_FeeToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Reading token should succeed, instead: %v", err)
 	}
-	if token.Address.String() != "0x062230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488" {
+	if token.Address.String() != DevNetETHAddress {
 		t.Fatalf("devnet ETH address, instead %s", token.Address.String())
 	}
 }
