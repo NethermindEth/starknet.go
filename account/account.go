@@ -95,6 +95,29 @@ func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxD
 	)
 }
 
+func (account *Account) TransactionHash2(callData []*felt.Felt, txDetails rpc.TxDetails) (*felt.Felt, error) {
+
+	if len(callData) == 0 || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.accountAddress == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	calldataHash, err := computeHashOnElementsFelt(callData)
+	if err != nil {
+		return nil, err
+	}
+
+	return calculateTransactionHashCommon(
+		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
+		new(felt.Felt).SetUint64(account.version),
+		account.accountAddress,
+		&felt.Zero,
+		calldataHash,
+		txDetails.MaxFee,
+		account.ChainId,
+		[]*felt.Felt{txDetails.Nonce},
+	)
+}
+
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	switch account.version {
 	case 1:
@@ -131,16 +154,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 }
 
 func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error {
-	txHash, err := account.TransactionHash(
-		rpc.FunctionCall{
-			ContractAddress:    invokeTx.SenderAddress,
-			EntryPointSelector: &felt.Zero,
-			Calldata:           invokeTx.Calldata,
-		},
-		rpc.TxDetails{
-			Nonce:  invokeTx.Nonce,
-			MaxFee: invokeTx.MaxFee,
-		})
+	txHash, err := account.TransactionHash2(invokeTx.Calldata, rpc.TxDetails{Nonce: invokeTx.Nonce, MaxFee: invokeTx.MaxFee})
 	if err != nil {
 		return err
 	}
