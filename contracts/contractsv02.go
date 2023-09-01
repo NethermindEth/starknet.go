@@ -113,8 +113,6 @@ func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
-	fmt.Println("a")
-
 	saltFelt, err := utils.HexToFelt(salt)
 	if err != nil {
 		return nil, err
@@ -125,15 +123,14 @@ func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass
 	}
 
 	// TODO: use UDC via account
-	tx, err := provider.AddDeployTransaction(ctx, rpc.BroadcastedDeployTxn{
-		DeployTransactionProperties: rpc.DeployTransactionProperties{
-			Version:             rpc.TransactionV1,
-			ContractAddressSalt: saltFelt,
-			ConstructorCalldata: inputsFelt,
+	tx, err := provider.AddDeployAccountTransaction(ctx, rpc.BroadcastedDeployAccountTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+			Version: rpc.TransactionV1,
 		},
-		DeprecatedContractClass: class,
+		ContractAddressSalt: saltFelt,
+		ConstructorCalldata: inputsFelt,
 	})
-	fmt.Println("b")
+
 	if err != nil {
 		return nil, err
 	}

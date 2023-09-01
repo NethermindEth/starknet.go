@@ -216,6 +216,7 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+
 		if txReceiptInterface == nil {
 			t.Fatal("transaction receipt should exist")
 		}
@@ -278,20 +279,6 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		ExpectedTxnReceipt TransactionReceipt
 	}
 
-	var receiptTxn310843_14 = DeployTransactionReceipt{
-		CommonTransactionReceipt: CommonTransactionReceipt{
-			TransactionHash: utils.TestHexToFelt(t, "0x035bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-			ActualFee:       &felt.Zero,
-			Status:          "ACCEPTED_ON_L1",
-			BlockHash:       utils.TestHexToFelt(t, "0x0424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
-			BlockNumber:     310843,
-			Type:            "DEPLOY",
-			MessagesSent:    []MsgToL1{},
-			Events:          []Event{},
-		},
-		ContractAddress: "0x21c40b1377353924e185c9536469787dbe0cdb77b6877fa3a9946b795c71ec7",
-	}
-
 	var receiptTxn300114_3 = DeclareTransactionReceipt(
 		CommonTransactionReceipt{
 			TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
@@ -307,10 +294,6 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
-			{
-				TxnHash:            utils.TestHexToFelt(t, "0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-				ExpectedTxnReceipt: receiptTxn310843_14,
-			},
 			{
 				TxnHash:            utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 				ExpectedTxnReceipt: receiptTxn300114_3,
@@ -329,20 +312,13 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		if txReceiptInterface == nil {
 			t.Fatal("transaction receipt should exist")
 		}
-		txnDeployReceipt, ok1 := txReceiptInterface.(DeployTransactionReceipt)
-		txnDeclareReceipt, ok2 := txReceiptInterface.(DeclareTransactionReceipt)
-		if !ok1 && !ok2 {
+		txnDeclareReceipt, ok := txReceiptInterface.(DeclareTransactionReceipt)
+		if !ok {
 			t.Fatalf("transaction receipt should be Deploy or Declare, instead %T", txReceiptInterface)
 		}
-		switch {
-		case ok1:
-			if !cmp.Equal(test.ExpectedTxnReceipt, txnDeployReceipt) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeployReceipt))
-			}
-		case ok2:
-			if !cmp.Equal(test.ExpectedTxnReceipt, txnDeclareReceipt) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeclareReceipt))
-			}
+		if !cmp.Equal(test.ExpectedTxnReceipt, txnDeclareReceipt) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeclareReceipt))
 		}
+
 	}
 }
