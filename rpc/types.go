@@ -150,12 +150,6 @@ type AddDeclareTransactionOutput struct {
 	ClassHash       *felt.Felt `json:"class_hash"`
 }
 
-// AddDeployTransactionOutput provides the output for AddDeployTransaction.
-type AddDeployTransactionOutput struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-	ContractAddress *felt.Felt `json:"contract_address"`
-}
-
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    *felt.Felt `json:"contract_address"`

@@ -476,9 +476,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okv0 := v.(InvokeTxnV0)
 				_, okl1 := v.(L1HandlerTxn)
 				_, okdec := v.(DeclareTxn)
-				_, okdep := v.(DeployTxn)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okl1 && !okdec && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}

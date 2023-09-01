@@ -312,15 +312,13 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		if txReceiptInterface == nil {
 			t.Fatal("transaction receipt should exist")
 		}
-		txnDeclareReceipt, ok2 := txReceiptInterface.(DeclareTransactionReceipt)
-		if !ok2 {
+		txnDeclareReceipt, ok := txReceiptInterface.(DeclareTransactionReceipt)
+		if !ok {
 			t.Fatalf("transaction receipt should be Deploy or Declare, instead %T", txReceiptInterface)
 		}
-		switch {
-		case ok2:
-			if !cmp.Equal(test.ExpectedTxnReceipt, txnDeclareReceipt) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeclareReceipt))
-			}
+		if !cmp.Equal(test.ExpectedTxnReceipt, txnDeclareReceipt) {
+			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeclareReceipt))
 		}
+
 	}
 }
