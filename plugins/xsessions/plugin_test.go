@@ -25,7 +25,7 @@ import (
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	provider := beforeEachRPC(t)
 
-	yeasayerClass := rpc.ContractClass{}
+	yeasayerClass := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(pluginCompiled, &yeasayerClass); err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 // DeployContract
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
 	provider := beforeEachRPC(t)
-	contractClass := rpc.ContractClass{}
+	contractClass := rpc.DeprecatedContractClass{}
 
 	if err := json.Unmarshal(contractCompiled, &contractClass); err != nil {
 		t.Fatal(err)
