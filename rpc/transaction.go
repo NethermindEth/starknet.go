@@ -22,11 +22,11 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		return tx, nil
 	case TransactionType_Declare:
 		switch t.Version {
-		case felt.Zero.SetUint64(1):
+		case new(felt.Felt).SetUint64(1):
 			var tx DeclareTxnV1
 			json.Unmarshal(txMarshalled, &tx)
 			return tx, nil
-		case felt.Zero.SetUint64(2):
+		case new(felt.Felt).SetUint64(2):
 			var tx DeclareTxnV2
 			json.Unmarshal(txMarshalled, &tx)
 			return tx, nil

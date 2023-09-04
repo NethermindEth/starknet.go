@@ -99,8 +99,6 @@ type DeclareTxnV1 struct {
 	// ClassHash the hash of the declared class
 	ClassHash *felt.Felt `json:"class_hash"`
 
-	DeprecatedContractClass `json:"contract_class"`
-
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
 }
@@ -108,13 +106,12 @@ type DeclareTxnV1 struct {
 type DeclareTxnV2 struct {
 	CommonTransaction
 
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
 
 	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
-
-	ContractClassTemp `json:"contract_class,omitempty"`
-	ClassHash         *felt.Felt `json:"class_hash,omitempty"`
 }
 
 func (tx DeclareTxnV1) Hash() *felt.Felt {
