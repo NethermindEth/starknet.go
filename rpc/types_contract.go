@@ -19,10 +19,10 @@ type DeprecatedCairoEntryPoint struct {
 	Selector *felt.Felt `json:"selector"`
 }
 
-type GetClassOutput interface{}
+type ClassOutput interface{}
 
-var _ GetClassOutput = &DeprecatedContractClass{}
-var _ GetClassOutput = &ContractClass{}
+var _ ClassOutput = &DeprecatedContractClass{}
+var _ ClassOutput = &ContractClass{}
 
 type ABI []ABIEntry
 
@@ -187,6 +187,12 @@ type EventABIEntry struct {
 	Data []TypedParameter `json:"data"`
 }
 
+type FunctionStateMutability string
+
+const (
+	FuncStateMutVIEW FunctionStateMutability = "view"
+)
+
 type FunctionABIEntry struct {
 	// The function type
 	Type ABIType `json:"type"`
@@ -194,7 +200,7 @@ type FunctionABIEntry struct {
 	// The function name
 	Name string `json:"name"`
 
-	StateMutability *string `json:"stateMutability,omitempty"`
+	StateMutability FunctionStateMutability `json:"stateMutability,omitempty"`
 
 	Inputs []TypedParameter `json:"inputs"`
 

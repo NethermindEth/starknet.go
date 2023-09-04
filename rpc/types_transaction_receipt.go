@@ -33,7 +33,6 @@ type TransactionType string
 
 const (
 	TransactionType_Declare       TransactionType = "DECLARE"
-	TransactionType_Deploy        TransactionType = "DEPLOY"
 	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
 	TransactionType_Invoke        TransactionType = "INVOKE"
 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
@@ -48,8 +47,6 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	switch unquoted {
 	case "DECLARE":
 		*tt = TransactionType_Declare
-	case "DEPLOY":
-		*tt = TransactionType_Deploy
 	case "DEPLOY_ACCOUNT":
 		*tt = TransactionType_DeployAccount
 	case "INVOKE":
@@ -81,13 +78,6 @@ func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// DeployTransactionReceipt Deploy Transaction Receipt
-type DeployTransactionReceipt struct {
-	CommonTransactionReceipt
-	// ContractAddress The address of the deployed contract
-	ContractAddress string `json:"contract_address"`
-}
-
 // DeployAccountTransactionReceipt Deploy Account Transaction Receipt
 type DeployAccountTransactionReceipt struct {
 	CommonTransactionReceipt
@@ -100,13 +90,6 @@ type L1HandlerTransactionReceipt CommonTransactionReceipt
 
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
-}
-
-// PendingDeployTransactionReceipt Pending Transaction Receipt
-type PendingDeployTransactionReceipt struct {
-	PendingCommonTransactionReceiptProperties
-	// ContractAddress The address of the deployed contract
-	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
 // PendingCommonTransactionReceiptProperties Pending Transaction Receipt
@@ -176,12 +159,8 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 			var txn DeclareTransactionReceipt
 			remarshal(casted, &txn)
 			return txn, nil
-		case TransactionType_Deploy:
-			var txn DeployTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
 		case TransactionType_DeployAccount:
-			var txn DeployTransactionReceipt
+			var txn DeployAccountTransactionReceipt
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_Invoke:

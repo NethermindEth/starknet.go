@@ -10,8 +10,8 @@ import (
 
 type ResultPageRequest struct {
 	// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
-	ContinuationToken *string `json:"continuation_token,omitempty"`
-	ChunkSize         int     `json:"chunk_size"`
+	ContinuationToken string `json:"continuation_token,omitempty"`
+	ChunkSize         int    `json:"chunk_size"`
 }
 
 type StorageEntry struct {
@@ -148,12 +148,6 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 type AddDeclareTransactionOutput struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	ClassHash       *felt.Felt `json:"class_hash"`
-}
-
-// AddDeployTransactionOutput provides the output for AddDeployTransaction.
-type AddDeployTransactionOutput struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
 // FunctionCall function call information

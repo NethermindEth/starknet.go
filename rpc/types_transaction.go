@@ -107,19 +107,6 @@ func (tx DeclareTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
-type DeployTxn struct {
-	TransactionHash *felt.Felt `json:"transaction_hash,omitempty"`
-	// ClassHash The hash of the deployed contract's class
-	ClassHash *felt.Felt `json:"class_hash"`
-
-	DeployTransactionProperties
-}
-
-func (tx DeployTxn) Hash() *felt.Felt {
-	return tx.TransactionHash
-}
-
 type Transaction interface {
 	Hash() *felt.Felt
 }
@@ -196,10 +183,6 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
 			var txn DeclareTxn
-			remarshal(casted, &txn)
-			return txn, nil
-		case TransactionType_Deploy:
-			var txn DeployTxn
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_DeployAccount:
@@ -353,15 +336,6 @@ type DeployTransactionProperties struct {
 	Type                TransactionType    `json:"type"`
 	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
 	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
-}
-
-type BroadcastedDeployTxn struct {
-	DeployTransactionProperties
-	DeprecatedContractClass DeprecatedContractClass `json:"contract_class"`
-}
-
-func (b BroadcastedDeployTxn) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
 }
 
 type BroadcastedDeployAccountTransaction struct {

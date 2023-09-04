@@ -9,7 +9,7 @@ type AddDeclareTransactionResponse struct {
 }
 
 // AddDeployTransactionResponse provides the output for AddDeployTransaction.
-type AddDeployTransactionResponse struct {
+type AddDeployAccountTransactionResponse struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	ContractAddress *felt.Felt `json:"contract_address"`
 }

@@ -64,6 +64,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
+	case "starknet_getBlockWithTxHashes":
+		return mock_starknet_getBlockWithTxHashes(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -326,31 +328,30 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	query, ok := args[0].(EventFilter)
+	_, ok = args[0].(EventsInput)
 	if !ok {
 		return errWrongArgs
 	}
-	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+
+	blockHash, err := utils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
 	if err != nil {
 		return err
 	}
-	events := &EventsOutput{
-
-		Events: []EventChunk{{
-			Events: []EmittedEvent{{
-				Event: Event{
-					FromAddress: query.Address,
-					Keys:        []*felt.Felt{},
-					Data:        []*felt.Felt{},
-				},
-
-				BlockHash:       deadbeefFelt,
-				BlockNumber:     1,
-				TransactionHash: deadbeefFelt,
-			}},
-			ContinuationToken: "deadbeef",
-		}},
+	txHash, _ := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	if err != nil {
+		return err
 	}
+
+	events :=
+		EventChunk{
+			Events: []EmittedEvent{
+				EmittedEvent{
+					BlockHash:       blockHash,
+					BlockNumber:     1472,
+					TransactionHash: txHash,
+				},
+			},
+		}
 
 	outputContent, _ := json.Marshal(events)
 	json.Unmarshal(outputContent, r)
@@ -577,5 +578,45 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	output := "0x0"
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, &r)
+	return nil
+}
+
+func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockId, ok := args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+	if blockId.Tag == "latest" {
+		pBlock, err := json.Marshal(PendingBlock{
+			ParentHash:       &felt.Zero,
+			Timestamp:        123,
+			SequencerAddress: &felt.Zero,
+		})
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(pBlock, &r)
+	}
+	block, err := json.Marshal(Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        &felt.Zero,
+			ParentHash:       &felt.Zero,
+			Timestamp:        124,
+			SequencerAddress: &felt.Zero},
+		Status: BlockStatus_AcceptedOnL1,
+	})
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(block, &r)
+
 	return nil
 }
