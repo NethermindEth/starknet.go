@@ -21,7 +21,7 @@ type DeprecatedCairoEntryPoint struct {
 
 type GetClassOutput interface{}
 
-var _ GetClassOutput = &DepcreatedContractClass{}
+var _ GetClassOutput = &DeprecatedContractClass{}
 var _ GetClassOutput = &ContractClass{}
 
 type ABI []ABIEntry
@@ -31,7 +31,7 @@ type DeprecatedEntryPointsByType struct {
 	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
 	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
 }
-type DepcreatedContractClass struct {
+type DeprecatedContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
 
@@ -40,7 +40,7 @@ type DepcreatedContractClass struct {
 	ABI *ABI `json:"abi,omitempty"`
 }
 
-func (c *DepcreatedContractClass) UnmarshalJSON(content []byte) error {
+func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
 		return err

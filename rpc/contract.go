@@ -57,7 +57,7 @@ func typecastClassOutut(rawClass *map[string]any) (GetClassOutput, error) {
 		}
 		return &contractClass, nil
 	}
-	var depContractClass DepcreatedContractClass
+	var depContractClass DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
 		return nil, err

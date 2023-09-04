@@ -31,7 +31,7 @@ type account interface {
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
-	Declare(ctx context.Context, classHash string, contract rpc.DepcreatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Declare(ctx context.Context, classHash string, contract rpc.DeprecatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
 	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
@@ -530,7 +530,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	return nil, ErrUnsupportedAccount
 }
 
-func (account *Account) Declare(ctx context.Context, classHash string, contract rpc.DepcreatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+func (account *Account) Declare(ctx context.Context, classHash string, contract rpc.DeprecatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
 	switch account.provider {
 	case ProviderRPC:
 		panic("unsupported")

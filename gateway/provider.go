@@ -46,7 +46,7 @@ func (p *GatewayProvider) TransactionByHash(ctx context.Context, hash string) (*
 	return &t.Transaction, nil
 }
 
-func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*rpc.DepcreatedContractClass, error) {
+func (p *GatewayProvider) Class(ctx context.Context, classHash string) (*rpc.DeprecatedContractClass, error) {
 	panic("not implemented")
 }
 
@@ -54,6 +54,6 @@ func (p *GatewayProvider) ClassHashAt(ctx context.Context, contractAddress strin
 	panic("not implemented")
 }
 
-func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*rpc.DepcreatedContractClass, error) {
+func (p *GatewayProvider) ClassAt(ctx context.Context, contractAddress string) (*rpc.DeprecatedContractClass, error) {
 	panic("not implemented")
 }

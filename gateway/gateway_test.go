@@ -55,7 +55,7 @@ func setupDevnet(ctx context.Context) error {
 		return fmt.Errorf("could not connect to devnet: %v", err)
 	}
 
-	contract := rpc.DepcreatedContractClass{}
+	contract := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(counterCompiled, &contract); err != nil {
 		return err
 	}
