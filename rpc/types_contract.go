@@ -36,16 +36,6 @@ type DeprecatedContractClass struct {
 	ABI *ABI `json:"abi,omitempty"`
 }
 
-type ContractClassTemp struct {
-	SierraProgram []*felt.Felt `json:"sierra_program"`
-
-	ContractClassVersion string `json:"contract_class_version"`
-
-	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-
-	ABI *ABI `json:"abi,omitempty"`
-}
-
 type ContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
