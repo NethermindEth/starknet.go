@@ -122,7 +122,7 @@ type DeployAccountTransactionProperties struct {
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+// DeployAccountTxn The structure of a deployAccount transaction.
 type DeployAccountTxn struct {
 	CommonTransaction
 	DeployAccountTransactionProperties
