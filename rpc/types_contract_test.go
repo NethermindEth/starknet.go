@@ -29,7 +29,7 @@ func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 		t.Fatal("should be able to read file", err)
 	}
 
-	contractClass := DeprecatedContractClass{}
+	contractClass := ContractClass{}
 	if err := json.Unmarshal(content, &contractClass); err != nil {
 		t.Fatal("should be able unmarshall Class", err)
 	}
