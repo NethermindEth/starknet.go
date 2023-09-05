@@ -33,7 +33,6 @@ type TransactionType string
 
 const (
 	TransactionType_Declare       TransactionType = "DECLARE"
-	TransactionType_Deploy        TransactionType = "DEPLOY"
 	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
 	TransactionType_Invoke        TransactionType = "INVOKE"
 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
