@@ -47,7 +47,7 @@ func TestDeclareTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 
 		// To do: test transaction against client that supports RPC method (currently Sequencer uses
-		// "sierra_program" instead of "program" in BroadcastedDeclareTransactionV1
+		// "sierra_program" instead of "program" in BroadcastedDeclareTransactionV2)
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
