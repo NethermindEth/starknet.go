@@ -31,11 +31,12 @@ type DeprecatedEntryPointsByType struct {
 	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
 	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
 }
+
 type DeprecatedContractClass struct {
 	// Program A base64 representation of the compressed program code
 	Program string `json:"program"`
 
-	EntryPointsByType DeprecatedEntryPointsByType `json:"entry_points_by_type"`
+	DeprecatedEntryPointsByType DeprecatedEntryPointsByType `json:"entry_points_by_type"`
 
 	ABI *ABI `json:"abi,omitempty"`
 }
@@ -65,11 +66,11 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing entry_points_by_type in json object")
 	}
 
-	entryPointsByType := DeprecatedEntryPointsByType{}
-	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
+	depEntryPointsByType := DeprecatedEntryPointsByType{}
+	if err := json.Unmarshal(data, &depEntryPointsByType); err != nil {
 		return err
 	}
-	c.EntryPointsByType = entryPointsByType
+	c.DeprecatedEntryPointsByType = depEntryPointsByType
 
 	// process 'abi'
 	data, ok = v["abi"]

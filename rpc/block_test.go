@@ -339,30 +339,59 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 
 	// To do : re-add test for deploy account transaction
 
-	var fullBlockGoerli848634 = Block{
+	var fullBlockGoerli848622 = Block{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x684f3d864e91543bc02e8f1cad53750faf91dae7a7d8a5337d3710cbf7afb3a"),
-			ParentHash:       utils.TestHexToFelt(t, "0x1848e859df691858f9ef2a84d0060de81080f2a5873f76827002512c87eeb96"),
+			BlockHash:        utils.TestHexToFelt(t, "0x32964e2e407bb9e71b2de8d9d9829b0537df7c4624e1816e6cece80781ab9cc"),
+			ParentHash:       utils.TestHexToFelt(t, "0xecbed6cfe85c77f2f8acefe2effbda817f71ca7457f7ece8262d65cc87a9f7"),
 			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-			BlockNumber:      848634,
-			NewRoot:          utils.TestHexToFelt(t, "00edc1cee04b4c7d4ff301151be08aea818ab03edcfe871de824eb3e8b0a729f"),
-			Timestamp:        1692418503,
+			BlockNumber:      848622,
+			NewRoot:          utils.TestHexToFelt(t, "07c4302f09f6a72129679378e9b8d6c67774c5c4e80b1fc186da114f71637b2e"),
+			Timestamp:        1692416283,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []Transaction{
-			DeclareTxn{
+			DeclareTxnV1{
 				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x23ea110ef578b24c2c2e7f5a25ee2983e9d430dc801c01302c1191fd7bf5948"),
+					TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
 					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
 						Type:      TransactionType_Declare,
-						MaxFee:    utils.TestHexToFelt(t, "0x27a64c6eeca"),
+						MaxFee:    utils.TestHexToFelt(t, "0x27a64c6e425"),
 						Version:   TransactionV1,
-						Signature: []*felt.Felt{utils.TestHexToFelt(t, "0x63c588e0e543458fb66d9aee3e1acc8ecd9694502533234b0680c9148bab82c"), utils.TestHexToFelt(t, "0xc7b2e56f0e9990edbe4b86be9ea515c46ec831e0b32cf475f37beb00459ebe")},
-						Nonce:     utils.TestHexToFelt(t, "0x350"),
+						Signature: []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
+						Nonce:     utils.TestHexToFelt(t, "0x333"),
 					},
 				},
-				ClassHash:     utils.TestHexToFelt(t, "0x398f9b04d99ace4cf04d0739dd6649e5e73a3d089e59aef3711f8b079b38849"),
+				ClassHash:     utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
 				SenderAddress: utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
+			},
+		},
+	}
+
+	var fullBlockGoerli849399 = Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        utils.TestHexToFelt(t, "0x6e5b26127400bac0cd1f3c2ab6e76850ec457c71b1f2fc7cda755bee8a1102a"),
+			ParentHash:       utils.TestHexToFelt(t, "0x7cd085d4ab95b3307303cb836ab49c0fbc8d1f9befdcfdc65292d99c9466d05"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      849399,
+			NewRoot:          utils.TestHexToFelt(t, "0x239a44410e78665f41f7a65ef3b5ed244ce411965498a83f80f904e22df1045"),
+			Timestamp:        1692560305,
+		},
+		Status: "ACCEPTED_ON_L1",
+		Transactions: []Transaction{
+			DeclareTxnV2{
+				CommonTransaction: CommonTransaction{
+					TransactionHash: utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
+					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
+						Type:      TransactionType_Declare,
+						MaxFee:    utils.TestHexToFelt(t, "0x50c8f30287c"),
+						Version:   TransactionV2,
+						Signature: []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
+						Nonce:     utils.TestHexToFelt(t, "0xd"),
+					},
+				},
+				ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
+				CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
+				SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
 			},
 		},
 	}
@@ -375,11 +404,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:                     WithBlockNumber(848634),
+				BlockID:                     WithBlockNumber(849399),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 0,
+				LookupTxnPositionInOriginal: 71,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli848634,
+				ExpectedBlockWithTxs:        &fullBlockGoerli849399,
+			},
+			{
+				BlockID:                     WithBlockNumber(848622),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 6,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
 			},
 		},
 		"mainnet": {},
@@ -480,8 +516,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 848634,
-				EndBlock:   848635,
+				StartBlock: 381000,
+				EndBlock:   381001,
 			},
 		},
 		"mainnet": {},
@@ -500,9 +536,10 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okv1 := v.(InvokeTxnV1)
 				_, okv0 := v.(InvokeTxnV0)
 				_, okl1 := v.(L1HandlerTxn)
-				_, okdec := v.(DeclareTxn)
+				_, okdec1 := v.(DeclareTxnV1)
+				_, okdec2 := v.(DeclareTxnV2)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec && !okdepac {
+				if !okv0 && !okv1 && !okl1 && !okdec1 && !okdec2 && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}

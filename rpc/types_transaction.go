@@ -93,7 +93,7 @@ func (tx L1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
-type DeclareTxn struct {
+type DeclareTxnV1 struct {
 	CommonTransaction
 
 	// ClassHash the hash of the declared class
@@ -103,7 +103,21 @@ type DeclareTxn struct {
 	SenderAddress *felt.Felt `json:"sender_address"`
 }
 
-func (tx DeclareTxn) Hash() *felt.Felt {
+type DeclareTxnV2 struct {
+	CommonTransaction
+
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+
+	// SenderAddress the address of the account contract sending the declaration transaction
+	SenderAddress *felt.Felt `json:"sender_address"`
+
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
+func (tx DeclareTxnV1) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+func (tx DeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
@@ -182,9 +196,19 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
-			var txn DeclareTxn
-			remarshal(casted, &txn)
-			return txn, nil
+
+			switch TransactionType(casted["version"].(string)) {
+			case "0x1":
+				var txn DeclareTxnV1
+				remarshal(casted, &txn)
+				return txn, nil
+			case "0x2":
+				var txn DeclareTxnV2
+				remarshal(casted, &txn)
+				return txn, nil
+			default:
+				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+			}
 		case TransactionType_DeployAccount:
 			var txn DeployAccountTxn
 			remarshal(casted, &txn)
@@ -228,6 +252,7 @@ type TransactionVersion string
 const (
 	TransactionV0 TransactionVersion = "0x0"
 	TransactionV1 TransactionVersion = "0x1"
+	TransactionV2 TransactionVersion = "0x2"
 )
 
 func (v *TransactionVersion) BigInt() (*big.Int, error) {

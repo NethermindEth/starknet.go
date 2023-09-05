@@ -21,9 +21,19 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	case TransactionType_Declare:
-		var tx DeclareTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
+		switch t.Version {
+		case new(felt.Felt).SetUint64(1):
+			var tx DeclareTxnV1
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		case new(felt.Felt).SetUint64(2):
+			var tx DeclareTxnV2
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		default:
+			return nil, errors.New("Internal error with adaptTransaction()")
+		}
+
 	case TransactionType_DeployAccount:
 		var tx DeployAccountTxn
 		json.Unmarshal(txMarshalled, &tx)
