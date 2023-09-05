@@ -77,9 +77,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                   BlockID
-		ExpectedError             error
-		ExpectedBlockWithTxHashes *Block
+		BlockID                          BlockID
+		ExpectedError                    error
+		ExpectedBlockWithTxHashes        *Block
+		ExpectedPendingBlockWithTxHashes *PendingBlock
 	}
 
 	var blockGoerli310370 = Block{
@@ -118,7 +119,24 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
-		"mock": {},
+		"mock": {{
+			BlockID: BlockID{Tag: "latest"},
+			ExpectedPendingBlockWithTxHashes: &PendingBlock{
+				ParentHash:       &felt.Zero,
+				Timestamp:        123,
+				SequencerAddress: &felt.Zero,
+			},
+		},
+			{
+				BlockID: BlockID{Hash: &felt.Zero},
+				ExpectedBlockWithTxHashes: &Block{
+					BlockHeader: BlockHeader{
+						ParentHash:       &felt.Zero,
+						Timestamp:        123,
+						SequencerAddress: &felt.Zero},
+					Status: BlockStatus_AcceptedOnL1,
+				},
+			}},
 		"testnet": {
 			{
 				BlockID:       WithBlockTag("latest"),
@@ -145,29 +163,36 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		block, ok := result.(*Block)
-		if !ok {
-			t.Fatalf("should return *Block, instead: %T\n", result)
-		}
-		if test.ExpectedError != nil {
-			continue
-		}
-		if !strings.HasPrefix(block.BlockHash.String(), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
-		}
-
-		if len(block.Transactions) == 0 {
-			t.Fatal("the number of transaction should not be 0")
-		}
-
-		if test.ExpectedBlockWithTxHashes != nil {
-			if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
+		switch resultBlock := result.(type) {
+		case Block:
+			block, ok := result.(*Block)
+			if !ok {
+				t.Fatalf("should return *Block, instead: %T\n", result)
+			}
+			if test.ExpectedError != nil {
 				continue
 			}
-
-			if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
+			if !strings.HasPrefix(block.BlockHash.String(), "0x") {
+				t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
 			}
+
+			if len(block.Transactions) == 0 {
+				t.Fatal("the number of transaction should not be 0")
+			}
+
+			if test.ExpectedBlockWithTxHashes != nil {
+				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
+					continue
+				}
+
+				if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
+					t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
+				}
+			}
+		case PendingBlock:
+			require.Equal(t, resultBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlock ParentHash")
+			require.Equal(t, resultBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlock SequencerAddress")
+			require.Equal(t, resultBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlock Timestamp")
 		}
 
 	}
@@ -312,6 +337,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		ExpectedBlockWithTxs        *Block
 	}
 
+	// To do : re-add test for deploy account transaction
 	var fullBlockGoerli310843 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
