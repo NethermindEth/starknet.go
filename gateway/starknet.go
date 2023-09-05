@@ -142,7 +142,7 @@ func (sg *Gateway) Invoke(ctx context.Context, invoke types.FunctionInvoke) (*ty
 /*
 'add_transaction' wrapper for compressing and deploying a compiled StarkNet contract
 */
-func (sg *Gateway) Deploy(ctx context.Context, contract rpc.DepcreatedContractClass, deployRequest rpc.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
+func (sg *Gateway) Deploy(ctx context.Context, contract rpc.DeprecatedContractClass, deployRequest rpc.DeployAccountTxn) (resp types.AddDeployResponse, err error) {
 	panic("deploy transaction has been removed, use account.Deploy() instead")
 }
 
@@ -197,7 +197,7 @@ func (sg *Gateway) DeployAccount(ctx context.Context, deployAccountRequest types
 /*
 'add_transaction' wrapper for compressing and declaring a contract class
 */
-func (sg *Gateway) Declare(ctx context.Context, contract rpc.DepcreatedContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
+func (sg *Gateway) Declare(ctx context.Context, contract rpc.DeprecatedContractClass, declareRequest DeclareRequest) (resp types.AddDeclareResponse, err error) {
 	declareRequest.Type = DECLARE
 
 	req, err := sg.newRequest(ctx, http.MethodPost, "/add_transaction", declareRequest)
@@ -226,7 +226,7 @@ type DeclareRequest struct {
 	MaxFee        string                      `json:"max_fee"`
 	Nonce         string                      `json:"nonce"`
 	Signature     []string                    `json:"signature"`
-	ContractClass rpc.DepcreatedContractClass `json:"contract_class"`
+	ContractClass rpc.DeprecatedContractClass `json:"contract_class"`
 }
 
 func (sg *Gateway) StateUpdate(ctx context.Context, opts *BlockOptions) (*StateUpdate, error) {
