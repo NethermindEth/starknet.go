@@ -46,7 +46,7 @@ type Account struct {
 	version        uint64
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore, setChainId bool) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		accountAddress: accountAddress,
@@ -54,6 +54,9 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 		version:        version,
 	}
 
+	if setChainId == false {
+		return account, nil
+	}
 	chainID, err := provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err

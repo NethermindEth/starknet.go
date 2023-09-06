@@ -49,7 +49,6 @@ func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("=========", req, devnet.api("/predeployed_accounts"))
 		return nil, err
 	}
 	defer resp.Body.Close()
