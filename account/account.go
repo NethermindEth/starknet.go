@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -169,25 +170,6 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	return nil
 }
 
-func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
-	switch account.version {
-	case 1:
-		return account.provider.EstimateFee(ctx, broadcastTxs, blockId)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
-}
-
-// AddInvokeTransaction submits an invoke transaction to the rpc provider.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
-	switch account.version {
-	case 1:
-		return account.provider.AddInvokeTransaction(ctx, invokeTx)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
-}
-
 // Execute Sets maxFee to twice the estimated fee (if not already set), sets the nonce, calculates the transaction hash, signs the transaction
 // and finally submits an addInvokeTransaction to the rpc provider.
 func (account *Account) Execute(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
@@ -229,4 +211,59 @@ func (account *Account) Execute(ctx context.Context, invokeTx *rpc.BroadcastedIn
 	default:
 		return nil, ErrAccountVersionNotSupported
 	}
+}
+
+func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
+	switch account.version {
+	case 1:
+		return account.provider.EstimateFee(ctx, broadcastTxs, blockId)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
+}
+
+// AddInvokeTransaction submits an invoke transaction to the rpc provider.
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
+	switch account.version {
+	case 1:
+		return account.provider.AddInvokeTransaction(ctx, invokeTx)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
+}
+
+func fmtCalldataStrings(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	callArray := fmtCalldata(fnCalls)
+	calldataStrings := []*felt.Felt{}
+	for _, data := range callArray {
+		calldataStrings = append(calldataStrings, data)
+	}
+	return calldataStrings
+}
+
+/*
+Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
+*/
+// [number_calls, contract_address_1, entry_point_1, _some len 1_ , contract_address_2, ep_2, ...some len2 ..., .., calldata]
+func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	callArray := []*felt.Felt{}
+	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
+
+	for _, tx := range fnCalls {
+		callData = append(callData, tx.ContractAddress, types.GetSelectorFromNameFelt(tx.EntryPointSelector.String()))
+
+		if len(tx.Calldata) == 0 {
+			callData = append(callData, &felt.Zero, &felt.Zero)
+			continue
+		}
+
+		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))))
+		for _, cd := range tx.Calldata {
+			callArray = append(callArray, cd)
+		}
+
+	}
+	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callData))))
+	callData = append(callData, callArray...)
+	return callData
 }
