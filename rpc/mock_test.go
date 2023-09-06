@@ -307,8 +307,8 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("expecting BlockID, instead %T\n", args[1])
 		return errWrongArgs
 	}
-	classHash, ok := args[1].(string)
-	if !ok || !strings.HasPrefix(classHash, "0x") {
+	classHash, ok := args[1].(*felt.Felt)
+	if !ok || !strings.HasPrefix(classHash.String(), "0x") {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 // Class gets the contract class definition associated with the given hash.
-func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (ClassOutput, error) {
+func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		switch {

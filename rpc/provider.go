@@ -32,7 +32,7 @@ type api interface {
 	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
 	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
-	Class(ctx context.Context, blockID BlockID, classHash string) (ClassOutput, error)
+	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error)

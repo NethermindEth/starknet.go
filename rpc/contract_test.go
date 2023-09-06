@@ -126,7 +126,7 @@ func TestClass(t *testing.T) {
 
 	type testSetType struct {
 		BlockID                       BlockID
-		ClassHash                     string
+		ClassHash                     *felt.Felt
 		ExpectedProgram               string
 		ExpectedEntryPointConstructor SierraEntryPoint
 	}
@@ -134,19 +134,19 @@ func TestClass(t *testing.T) {
 		"mock": {
 			{
 				BlockID:         WithBlockTag("pending"),
-				ClassHash:       "0xdeadbeef",
+				ClassHash:       utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
 		"testnet": {
 			{
 				BlockID:         WithBlockTag("pending"),
-				ClassHash:       "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ClassHash:       utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 			{
 				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x464fc8c86a6452536a2e27cb301815e5f8b16a2f6872ba4f3d83701fbe99fb3")),
-				ClassHash:                     "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571",
+				ClassHash:                     utils.TestHexToFelt(t, "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571"),
 				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
