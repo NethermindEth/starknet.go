@@ -11,7 +11,7 @@ import (
 )
 
 // Class gets the contract class definition associated with the given hash.
-func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash string) (ClassOutput, error) {
+func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		switch {
@@ -66,8 +66,8 @@ func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
 }
 
 // ClassHashAt gets the contract class hash for the contract deployed at the given address.
-func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
-	var result string
+func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
 		switch {
 		case errors.Is(err, ErrContractNotFound):
@@ -77,7 +77,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 		}
 		return nil, err
 	}
-	return &result, nil
+	return result, nil
 }
 
 // StorageAt gets the value of the storage at the given address and key.

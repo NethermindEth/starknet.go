@@ -287,7 +287,10 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	classHash := "0xdeadbeef"
+	classHash, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	outputContent, _ := json.Marshal(classHash)
 	json.Unmarshal(outputContent, r)
 	return nil
@@ -307,8 +310,8 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("expecting BlockID, instead %T\n", args[1])
 		return errWrongArgs
 	}
-	classHash, ok := args[1].(string)
-	if !ok || !strings.HasPrefix(classHash, "0x") {
+	classHash, ok := args[1].(*felt.Felt)
+	if !ok || !strings.HasPrefix(classHash.String(), "0x") {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
