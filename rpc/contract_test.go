@@ -72,25 +72,25 @@ func TestClassHashAt(t *testing.T) {
 
 	type testSetType struct {
 		ContractHash      *felt.Felt
-		ExpectedClassHash string
+		ExpectedClassHash *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0xdeadbeef"),
-				ExpectedClassHash: "0xdeadbeef",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"testnet": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
-				ExpectedClassHash: "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
 			},
 		},
 		"mainnet": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
-				ExpectedClassHash: "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
 			},
 		},
 	}[testEnv]
@@ -114,9 +114,7 @@ func TestClassHashAt(t *testing.T) {
 		if classhash == nil {
 			t.Fatalf("should return a class, instead %v", classhash)
 		}
-		if *classhash != test.ExpectedClassHash {
-			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, *classhash)
-		}
+		require.Equal(t, test.ExpectedClassHash, classhash)
 	}
 }
 

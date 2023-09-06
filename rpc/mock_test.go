@@ -287,7 +287,10 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	classHash := "0xdeadbeef"
+	classHash, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	outputContent, _ := json.Marshal(classHash)
 	json.Unmarshal(outputContent, r)
 	return nil
