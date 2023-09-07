@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="docs/images/golang_starknet_repo_banner.png" height="256">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/Starknet.Go_Vertical_Dark.png">
+    <img src="docs/images/Starknet.Go_Vertical_Light.png" height="256">
+  </picture>
 </div>
 
 <p align="center">
