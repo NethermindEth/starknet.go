@@ -96,9 +96,6 @@ go run main.go
 | `starknet_simulateTransaction`                     | :x: |
 | `starknet_traceBlockTransactions`                     | :x: |
 
-> (*) some methods are not implemented because they are not yet available
-> from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
-
 ### Run Tests
 
 ```go
