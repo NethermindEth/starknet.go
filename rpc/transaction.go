@@ -33,7 +33,10 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		default:
 			return nil, errors.New("Internal error with adaptTransaction()")
 		}
-
+	case TransactionType_Deploy:
+		var tx DeployTxn
+		json.Unmarshal(txMarshalled, &tx)
+		return tx, nil
 	case TransactionType_DeployAccount:
 		var tx DeployAccountTxn
 		json.Unmarshal(txMarshalled, &tx)
