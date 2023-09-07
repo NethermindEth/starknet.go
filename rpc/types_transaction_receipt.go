@@ -125,7 +125,7 @@ type PendingCommonTransactionReceiptProperties struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee    *felt.Felt      `json:"actual_fee"`
-	Type         TransactionType `json:"type,omitempty"`
+	Type         TransactionType `json:"type"`
 	MessagesSent []MsgToL1       `json:"messages_sent"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
