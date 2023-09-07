@@ -125,6 +125,19 @@ type Transaction interface {
 	Hash() *felt.Felt
 }
 
+// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+type DeployTxn struct {
+	TransactionHash *felt.Felt `json:"transaction_hash,omitempty"`
+	// ClassHash The hash of the deployed contract's class
+	ClassHash *felt.Felt `json:"class_hash"`
+
+	DeployTransactionProperties
+}
+
+func (tx DeployTxn) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
 type DeployAccountTransactionProperties struct {
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -209,6 +222,10 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 			default:
 				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
 			}
+		case TransactionType_Deploy:
+			var txn DeployTxn
+			remarshal(casted, &txn)
+			return txn, nil
 		case TransactionType_DeployAccount:
 			var txn DeployAccountTxn
 			remarshal(casted, &txn)
