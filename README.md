@@ -65,35 +65,36 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
+`starknet.go` RPC implements the [StarkNet RPC v03 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.3.0/api):
 
 | Method                                         | Implemented (*)    |
 | ---------------------------------------------- | ------------------ |
-| `starknet_getBlockByHash`                      | :heavy_check_mark: |
-| `starknet_getBlockByNumber`                    | :heavy_check_mark: |
-| `starknet_getTransactionByHash`                | :heavy_check_mark: |
-| `starknet_getTransactionReceipt`               | :heavy_check_mark: |
-| `starknet_getClass`                            | :heavy_check_mark: |
-| `starknet_getClassHashAt`                      | :heavy_check_mark: |
-| `starknet_getClassAt`                          | :heavy_check_mark: |
-| `starknet_call`                                | :heavy_check_mark: |
-| `starknet_blockNumber`                         | :heavy_check_mark: |
-| `starknet_chainId`                             | :heavy_check_mark: |
-| `starknet_syncing`                             | :heavy_check_mark: |
-| `starknet_getEvents`                           | :heavy_check_mark: |
-| `starknet_addInvokeTransaction`                | :heavy_check_mark: |
-| `starknet_addDeployTransaction`                | :heavy_check_mark: |
-| `starknet_addDeclareTransaction`               | :heavy_check_mark: |
-| `starknet_estimateFee`                         | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByHash`      | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByNumber`    | :heavy_check_mark: |
-| `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
-| `starknet_getTransactionByBlockHashAndIndex`   | :heavy_check_mark: |
-| `starknet_getStorageAt`                        | :heavy_check_mark: |
-| `starknet_getNonce`                            | :heavy_check_mark: |
+| `starknet_getBlockWithTxHashes`                |  :heavy_check_mark: |
+| `starknet_getBlockWithTxs`                     | :heavy_check_mark: |
 | `starknet_getStateUpdate`                      | :heavy_check_mark: |
-| *`starknet_traceBlockTransactions`             | :x:                |
-| *`starknet_traceTransaction`                   | :x:                |
+| `starknet_getStorageAt`                        | :heavy_check_mark: |
+| `starknet_getTransactionByHash`                | :heavy_check_mark: |
+| `starknet_getTransactionByBlockIdAndIndex`                      | :heavy_check_mark: |
+| `starknet_getTransactionReceipt`                          | :heavy_check_mark: |
+| `starknet_getClass`                                | :heavy_check_mark: |
+| `starknet_getClassHashAt`                         | :heavy_check_mark: |
+| `starknet_getClassAt`                             | :heavy_check_mark: |
+| `starknet_getBlockTransactionCount`                             | :heavy_check_mark: |
+| `starknet_call`                           | :heavy_check_mark: |
+| `starknet_estimateFee`                | :heavy_check_mark: |
+| `starknet_blockNumber`         | :heavy_check_mark: |
+| `starknet_blockHashAndNumber`               | :heavy_check_mark: |
+| `starknet_chainId`                         | :heavy_check_mark: |
+| `starknet_pendingTransactions`      | :heavy_check_mark: |
+| `starknet_syncing`    | :heavy_check_mark: |
+| `starknet_getEvents` | :heavy_check_mark: |
+| `starknet_getNonce`   | :heavy_check_mark: |
+| `starknet_addInvokeTransaction`                      | :heavy_check_mark: |
+| `starknet_addDeclareTransaction`             | :heavy_check_mark:                |
+| `starknet_addDeployAccountTransaction`                   | :heavy_check_mark:                |
+| `starknet_traceTransaction`                        | :x: |
+| `starknet_simulateTransaction`                     | :x: |
+| `starknet_traceBlockTransactions`                     | :x: |
 
 > (*) some methods are not implemented because they are not yet available
 > from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
@@ -162,6 +163,8 @@ Thanks goes to these wonderful people
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://runningbeta.io"><img src="https://avatars.githubusercontent.com/u/615877?v=4?s=100" width="100px;" alt="Kristijan Rebernisak"/><br /><sub><b>Kristijan Rebernisak</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=krebernisak" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rianhughes"><img src="https://avatars.githubusercontent.com/u/45943600?v=4?s=100" width="100px;" alt="rianhughes"/><br /><sub><b>Rian Hughes</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=rianhughes" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cicr99"><img src="https://avatars.githubusercontent.com/u/49727740?v=4?s=100" width="100px;" alt="Carmen"/><br /><sub><b>Carmen Irene Cabrera Rodríguez</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=cicr99" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
