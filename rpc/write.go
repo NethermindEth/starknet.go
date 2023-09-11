@@ -17,13 +17,17 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedI
 	// 	broadcastedInvoke = tx
 	// }
 	var output AddInvokeTransactionResponse
-	switch invoke := broadcastedInvoke.(type) {
-	case BroadcastedInvokeV1Transaction:
-		if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invoke); err != nil {
-			return nil, err
-		}
-		return &output, nil
+	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, broadcastedInvoke); err != nil {
+		return nil, err
 	}
+	return &output, nil
+	// switch invoke := broadcastedInvoke.(type) {
+	// case BroadcastedInvokeV1Transaction:
+	// 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invoke); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	return &output, nil
+	// }
 	return nil, errors.New("invalid invoke type")
 }
 

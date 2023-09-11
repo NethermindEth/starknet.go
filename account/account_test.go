@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -173,7 +174,7 @@ func TestAddInvoke(t *testing.T) {
 		}
 		// New devnet
 		devNetURL := "http://0.0.0.0:5050"
-		accounts, err := NewDevnet(t, devNetURL)
+		accounts, err := newDevnet(t, devNetURL)
 		require.NoError(t, err, "Error in NewDevnet")
 
 		// New Client
@@ -219,7 +220,7 @@ func TestAddInvoke(t *testing.T) {
 
 	t.Run("Test AddInvoke mainnet", func(t *testing.T) {
 		if testEnv != "mainnet" {
-			t.Skip("Skipping test as it requires a devnet environment")
+			t.Skip("Skipping test as it requires a mainnet environment")
 		}
 
 		// New Client
@@ -262,49 +263,61 @@ func TestAddInvoke(t *testing.T) {
 		fmt.Println("resp", resp, err)
 		require.NoError(t, err)
 	})
+
+	t.Run("Test AddInvoke testnet", func(t *testing.T) {
+		if testEnv != "testnet" {
+			t.Skip("Skipping test as it requires a testnet environment")
+		}
+
+		// New Client
+		fmt.Println("base", base)
+		client, err := rpc.NewClient(base + "/rpc")
+		require.NoError(t, err, "Error in rpc.NewClient")
+		provider := rpc.NewProvider(client)
+
+		// Set up ks
+		ks := starknetgo.NewMemKeystore()
+		fakePrivKey := new(big.Int).SetUint64(123)
+		fakePubKey := new(felt.Felt).SetUint64(456)
+
+		ks.Put(fakePubKey.String(), fakePrivKey)
+
+		// Get account
+		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
+		account, err := account.NewAccount(provider, 1, accountAddress, fakePubKey.String(), ks)
+		require.NoError(t, err)
+
+		// Now build the trasaction
+		invokeTx := rpc.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:   &felt.Zero,
+				MaxFee:  new(felt.Felt).SetUint64(1),
+				Version: rpc.TransactionV1,
+				Type:    rpc.TransactionType_Invoke,
+			},
+			SenderAddress: account.AccountAddress,
+		}
+		fnCall := rpc.FunctionCall{
+			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
+			Calldata:           []*felt.Felt{account.AccountAddress},
+		}
+		fmt.Println(fnCall.EntryPointSelector)
+		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
+		require.NoError(t, err, "Error in BuildInvokeTx")
+
+		qwe, _ := json.MarshalIndent(invokeTx, "", "")
+		fmt.Println(string(qwe))
+		// Send tx
+		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
+		fmt.Println("resp", resp, err)
+		require.NoError(t, err)
+	})
 }
 
-func NewDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
+func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
 	// url := SetupLocalStarknetNode(t)
 	devnet := test.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return acnts, err
 }
-
-// // SetupLocalStarknetNode sets up a local starknet node via cli, and returns the url
-// func SetupLocalStarknetNode(t *testing.T) string {
-// 	url := "http://127.0.0.1:" + "5050"
-// 	cmd := exec.Command("starknet-devnet",
-// 		"--seed", "0", // use same seed for testing
-// 		"--port", "5050",
-// 		"--lite-mode",
-// 	)
-// 	var stdErr bytes.Buffer
-// 	cmd.Stderr = &stdErr
-// 	require.NoError(t, cmd.Start())
-// 	t.Cleanup(func() {
-// 		assert.NoError(t, cmd.Process.Kill())
-// 		if err2 := cmd.Wait(); assert.Error(t, err2) {
-// 			if !assert.Contains(t, err2.Error(), "signal: killed", cmd.ProcessState.String()) {
-// 				t.Log("starknet-devnet stderr:", stdErr.String())
-// 			}
-// 		}
-// 		t.Log("starknet-devnet server closed")
-// 	})
-
-// 	// Wait for api server to boot
-// 	var ready bool
-// 	for i := 0; i < 30; i++ {
-// 		time.Sleep(time.Second)
-// 		res, err := http.Get(url + "/is_alive")
-// 		if err != nil || res.StatusCode != 200 {
-// 			t.Logf("API server not ready yet (attempt %d)\n", i+1)
-// 			continue
-// 		}
-// 		ready = true
-// 		t.Logf("API server ready at %s\n", url)
-// 		break
-// 	}
-// 	require.True(t, ready)
-// 	return url
-// }

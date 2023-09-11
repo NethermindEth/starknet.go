@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -232,7 +231,7 @@ func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
 
 	for _, tx := range fnCalls {
-		callData = append(callData, tx.ContractAddress, types.GetSelectorFromNameFelt(tx.EntryPointSelector.String()))
+		callData = append(callData, tx.ContractAddress, tx.EntryPointSelector)
 
 		if len(tx.Calldata) == 0 {
 			callData = append(callData, &felt.Zero, &felt.Zero)

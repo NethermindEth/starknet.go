@@ -39,8 +39,6 @@ func (devnet *DevNet) api(uri string) string {
 }
 
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
-	qwe := devnet.api("/predeployed_accounts")
-	fmt.Println("]]]]]]", qwe)
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), nil)
 	if err != nil {
 
