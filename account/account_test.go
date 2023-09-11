@@ -231,11 +231,11 @@ func TestAddInvoke(t *testing.T) {
 		// Set up ks
 		ks := starknetgo.NewMemKeystore()
 		fakePrivKey := new(big.Int).SetUint64(123)
-		fakePubKey, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+		fakePubKey := new(felt.Felt).SetUint64(456)
 		ks.Put(fakePubKey.String(), fakePrivKey)
 
 		// Get account
-		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"), fakePubKey.String(), ks)
+		account, err := account.NewAccount(provider, 1, fakePubKey, fakePubKey.String(), ks)
 		require.NoError(t, err)
 
 		// Now build the trasaction
