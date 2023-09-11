@@ -226,6 +226,9 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
 // [number_calls, contract_address_1, entry_point_1, _some len 1_ , contract_address_2, ep_2, ...some len2 ..., .., calldata1, calldata2,..]
+// eg no calls [0x0, 0x0]
+// eg 1 read? [0x1, contract_Address, ep, 0x0,0x0,0x5]
+// eg 1 set (with one param)? [0x1, contract_address, ep, 0x0, 0xnum_params, 4+ num_params, 0x1  ]
 func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	callArray := []*felt.Felt{}
 	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
@@ -244,7 +247,7 @@ func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 		}
 
 	}
-	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callData))))
+	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))))
 	callData = append(callData, callArray...)
 	return callData
 }
