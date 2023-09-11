@@ -174,18 +174,18 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.Broadca
 	}
 
 	// Set max fee if not already set
-	if invokeTx.MaxFee == nil {
-		estimate, err := account.EstimateFee(ctx, []rpc.BroadcastedTransaction{invokeTx}, rpc.WithBlockTag("latest"))
-		if err != nil {
-			return err
-		}
-		overallFee, err := new(felt.Felt).SetString(string(estimate[0].OverallFee))
-		if err != nil {
-			return err
-		}
-		newMaxFee := new(felt.Felt).Mul(overallFee, new(felt.Felt).SetUint64(2))
-		invokeTx.MaxFee = newMaxFee
-	}
+	// if invokeTx.MaxFee == nil {
+	// 	estimate, err := account.EstimateFee(ctx, []rpc.BroadcastedTransaction{invokeTx}, rpc.WithBlockTag("latest"))
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	overallFee, err := new(felt.Felt).SetString(string(estimate[0].OverallFee))
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	newMaxFee := new(felt.Felt).Mul(overallFee, new(felt.Felt).SetUint64(2))
+	// 	invokeTx.MaxFee = newMaxFee
+	// }
 	// Compile callData
 	invokeTx.Calldata = fmtCalldata(*fnCall)
 	// Get and set nonce

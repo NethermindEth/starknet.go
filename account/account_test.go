@@ -141,7 +141,7 @@ func TestSign(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	// Accepted on testnet https://goerli.voyager.online/tx/0x2a7eec54aab835323a810e893354368a496f1a217e8b6ef295476568ef08f0d
-	t.Run("Sign testnet", func(t *testing.T) {
+	t.Run("Sign testnet - mock", func(t *testing.T) {
 		expectedS1 := utils.TestHexToFelt(t, "0x6bf7980d98fa300ed9565b8cd5efcf5582133daa961b5e1d9477bf1bd750727")
 		expectedS2 := utils.TestHexToFelt(t, "0x5886b8236b7dc3665c0014876a644ddd0800a167ff1036fb82af1a6f4134c91")
 
@@ -264,7 +264,7 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Test AddInvoke testnet", func(t *testing.T) {
+	t.Run("Test AddInvokeTransction testnet", func(t *testing.T) {
 		if testEnv != "testnet" {
 			t.Skip("Skipping test as it requires a testnet environment")
 		}
@@ -275,14 +275,18 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
+		// account address
+		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
+
 		// Set up ks
 		ks := starknetgo.NewMemKeystore()
-		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
+		// fakePubKey, _ :=  new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
+		fakePubKey := accountAddress
+		fakePubKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
+		fakePrivKey, _ := new(big.Int).SetString(fakePubKeyFelt.String(), 0)
 		ks.Put(fakePubKey.String(), fakePrivKey)
 
 		// Get account
-		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
 		account, err := account.NewAccount(provider, 1, accountAddress, fakePubKey.String(), ks)
 		require.NoError(t, err)
 
