@@ -41,6 +41,5 @@ func calculateTransactionHashCommon(
 		chainId,
 	}
 	dataToHash = append(dataToHash, additionalData...)
-
 	return computeHashOnElementsFelt(dataToHash)
 }

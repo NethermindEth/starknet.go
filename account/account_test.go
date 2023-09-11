@@ -3,17 +3,20 @@ package account_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/joho/godotenv"
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
@@ -22,12 +25,18 @@ import (
 var (
 	// set the environment for the test, default: mock
 	testEnv = "mock"
+	base    = ""
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
 	flag.Parse()
+	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
+	base = os.Getenv("INTEGRATION_BASE")
+	if base == "" && testEnv != "mock" {
+		panic("Failed to set INTEGRATION_BASE for non-mock test.")
+	}
 	os.Exit(m.Run())
 }
 
@@ -41,7 +50,7 @@ func TestTransactionHash(t *testing.T) {
 		address := &felt.Zero
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, address, starknetgo.NewMemKeystore(), false)
+		account, err := account.NewAccount(mockRpcProvider, 1, address, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		call := rpc.FunctionCall{
@@ -63,7 +72,7 @@ func TestTransactionHash(t *testing.T) {
 		accountAddress := utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8")
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, accountAddress, starknetgo.NewMemKeystore(), false)
+		account, err := account.NewAccount(mockRpcProvider, 1, accountAddress, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		call := rpc.FunctionCall{
@@ -93,20 +102,35 @@ func TestChainId(t *testing.T) {
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	t.Run("ChainId mainnet", func(t *testing.T) {
+	t.Run("ChainId mainnet - mock", func(t *testing.T) {
 		mainnetID := utils.TestHexToFelt(t, "0x534e5f4d41494e")
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, starknetgo.NewMemKeystore(), false)
+		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), mainnetID.String())
 	})
 
-	t.Run("ChainId testnet", func(t *testing.T) {
+	t.Run("ChainId testnet - mock", func(t *testing.T) {
 		testnetID := utils.TestHexToFelt(t, "0x534e5f474f45524c49")
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, starknetgo.NewMemKeystore(), false)
+		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), testnetID.String())
+	})
+
+	t.Run("ChainId devnet", func(t *testing.T) {
+		if testEnv != "devnet" {
+			t.Skip("Skipping test as it requires a devnet environment")
+		}
+		devNetURL := "http://0.0.0.0:5050/rpc"
+
+		fmt.Println("devNetURL", devNetURL)
+		client, err := rpc.NewClient(devNetURL)
+		require.NoError(t, err, "Error in rpc.NewClient")
+		provider := rpc.NewProvider(client)
+
+		_, err = account.NewAccount(provider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		require.NoError(t, err)
 	})
 }
 
@@ -129,7 +153,7 @@ func TestSign(t *testing.T) {
 		ks.Put(address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, address, ks, true)
+		account, err := account.NewAccount(mockRpcProvider, 1, address, address.String(), ks)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		msg := utils.TestHexToFelt(t, "0x2a7eec54aab835323a810e893354368a496f1a217e8b6ef295476568ef08f0d")
@@ -147,26 +171,96 @@ func TestAddInvoke(t *testing.T) {
 		if testEnv != "devnet" {
 			t.Skip("Skipping test as it requires a devnet environment")
 		}
+		// New devnet
 		devNetURL := "http://0.0.0.0:5050"
 		accounts, err := NewDevnet(t, devNetURL)
 		require.NoError(t, err, "Error in NewDevnet")
 
-		client, err := rpc.NewClient(devNetURL)
+		// New Client
+		client, err := rpc.NewClient(devNetURL + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
+		// Get devnet account + set up ks
 		devAccount := accounts[0]
 		priv, ok := new(big.Int).SetString(devAccount.PrivateKey, 0)
 		require.True(t, ok)
 		ks := starknetgo.SetNewMemKeystore(devAccount.PublicKey, priv)
 
-		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, devAccount.Address), ks, false)
+		// Get account
+		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, devAccount.Address), devAccount.PublicKey, ks)
 		require.NoError(t, err)
 
-		invokeTx := rpc.BroadcastedInvokeV1Transaction{}
-		_, err = account.AddInvokeTransaction(context.Background(), &invokeTx)
+		// Now build the trasaction
+		invokeTx := rpc.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:   &felt.Zero,
+				MaxFee:  new(felt.Felt).SetUint64(100),
+				Version: rpc.TransactionV1,
+				Type:    rpc.TransactionType_Invoke,
+			},
+			SenderAddress: account.AccountAddress,
+		}
+		fnCall := rpc.FunctionCall{
+			ContractAddress:    utils.TestHexToFelt(t, "0x49D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7"),
+			EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
+			Calldata:           []*felt.Felt{account.AccountAddress},
+		}
+
+		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
+		require.NoError(t, err, "Error in BuildInvokeTx")
+
+		// Send tx
+		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
+		fmt.Println("resp", resp, err)
 		require.NoError(t, err)
 
+	})
+
+	t.Run("Test AddInvoke mainnet", func(t *testing.T) {
+		if testEnv != "mainnet" {
+			t.Skip("Skipping test as it requires a devnet environment")
+		}
+
+		// New Client
+		fmt.Println("base", base)
+		client, err := rpc.NewClient(base + "/rpc")
+		require.NoError(t, err, "Error in rpc.NewClient")
+		provider := rpc.NewProvider(client)
+
+		// Set up ks
+		ks := starknetgo.NewMemKeystore()
+		fakePrivKey := new(big.Int).SetUint64(123)
+		fakePubKey, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+		ks.Put(fakePubKey.String(), fakePrivKey)
+
+		// Get account
+		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"), fakePubKey.String(), ks)
+		require.NoError(t, err)
+
+		// Now build the trasaction
+		invokeTx := rpc.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:   &felt.Zero,
+				MaxFee:  new(felt.Felt).SetUint64(1),
+				Version: rpc.TransactionV1,
+				Type:    rpc.TransactionType_Invoke,
+			},
+			SenderAddress: account.AccountAddress,
+		}
+		fnCall := rpc.FunctionCall{
+			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			EntryPointSelector: types.GetSelectorFromNameFelt("name"),
+			Calldata:           []*felt.Felt{account.AccountAddress},
+		}
+
+		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
+		require.NoError(t, err, "Error in BuildInvokeTx")
+
+		// Send tx
+		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
+		fmt.Println("resp", resp, err)
+		require.NoError(t, err)
 	})
 }
 

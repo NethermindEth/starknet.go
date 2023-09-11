@@ -27,14 +27,14 @@ const (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error)
+	TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) //Todo: remove TxDetails
 	Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
 	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
 	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
-	Execute(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) // Todo: generalise once rpcv04 PRs are merged
+	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
 }
 
 var _ AccountInterface = &Account{}
@@ -42,22 +42,21 @@ var _ AccountInterface = &Account{}
 type Account struct {
 	provider       rpc.RpcProvider
 	ChainId        *felt.Felt
-	accountAddress *felt.Felt
+	AccountAddress *felt.Felt
+	publicKey      string
 	ks             starknetgo.Keystore
 	version        uint64
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, keystore starknetgo.Keystore, setChainId bool) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, publicKey string, keystore starknetgo.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
-		accountAddress: accountAddress,
+		AccountAddress: accountAddress,
+		publicKey:      publicKey,
 		ks:             keystore,
 		version:        version,
 	}
 
-	if setChainId == false {
-		return account, nil
-	}
 	chainID, err := provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
@@ -78,7 +77,7 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 
 func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
 
-	if call.Calldata == nil || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.accountAddress == nil {
+	if call.Calldata == nil || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.AccountAddress == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -90,7 +89,7 @@ func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxD
 	return calculateTransactionHashCommon(
 		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
 		new(felt.Felt).SetUint64(account.version),
-		account.accountAddress,
+		account.AccountAddress,
 		&felt.Zero,
 		calldataHash,
 		txDetails.MaxFee,
@@ -99,26 +98,24 @@ func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxD
 	)
 }
 
-func (account *Account) TransactionHash2(callData []*felt.Felt, txDetails rpc.TxDetails) (*felt.Felt, error) {
+func (account *Account) TransactionHash2(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
 
-	if len(callData) == 0 || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.accountAddress == nil {
+	if len(callData) == 0 || nonce == nil || maxFee == nil || accountAddress == nil {
 		return nil, ErrNotAllParametersSet
 	}
-
 	calldataHash, err := computeHashOnElementsFelt(callData)
 	if err != nil {
 		return nil, err
 	}
-
 	return calculateTransactionHashCommon(
 		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
 		new(felt.Felt).SetUint64(account.version),
-		account.accountAddress,
+		accountAddress,
 		&felt.Zero,
 		calldataHash,
-		txDetails.MaxFee,
+		maxFee,
 		account.ChainId,
-		[]*felt.Felt{txDetails.Nonce},
+		[]*felt.Felt{nonce},
 	)
 }
 
@@ -126,7 +123,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	switch account.version {
 	case 1:
 		// Todo: simplfy after rpc PRs are merged, return account.provider.Nonce(...)
-		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.accountAddress)
+		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +139,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	if ok != true {
 		return nil, ErrFeltToBigInt
 	}
-	s1, s2, err := account.ks.Sign(ctx, account.accountAddress.String(), msgBig)
+	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +155,8 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 }
 
 func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error {
-	txHash, err := account.TransactionHash2(invokeTx.Calldata, rpc.TxDetails{Nonce: invokeTx.Nonce, MaxFee: invokeTx.MaxFee})
+
+	txHash, err := account.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
 	if err != nil {
 		return err
 	}
@@ -170,47 +168,40 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	return nil
 }
 
-// Execute Sets maxFee to twice the estimated fee (if not already set), sets the nonce, calculates the transaction hash, signs the transaction
-// and finally submits an addInvokeTransaction to the rpc provider.
-func (account *Account) Execute(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
+// BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.
+func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error {
 	if account.version != 1 {
-		return nil, ErrAccountVersionNotSupported
+		return ErrAccountVersionNotSupported
 	}
 
 	// Set max fee if not already set
 	if invokeTx.MaxFee == nil {
 		estimate, err := account.EstimateFee(ctx, []rpc.BroadcastedTransaction{invokeTx}, rpc.WithBlockTag("latest"))
 		if err != nil {
-			return nil, err
+			return err
 		}
 		overallFee, err := new(felt.Felt).SetString(string(estimate[0].OverallFee))
 		if err != nil {
-			return nil, err
+			return err
 		}
 		newMaxFee := new(felt.Felt).Mul(overallFee, new(felt.Felt).SetUint64(2))
 		invokeTx.MaxFee = newMaxFee
 	}
-
+	// Compile callData
+	invokeTx.Calldata = fmtCalldata(*fnCall)
 	// Get and set nonce
-	nonce, err := account.Nonce(ctx)
-	if err != nil {
-		return nil, err
-	}
-	invokeTx.Nonce = nonce
+	// nonce, err := account.Nonce(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// invokeTx.Nonce = nonce
 
 	// Sign transaction
-	err = account.SignInvokeTransaction(ctx, invokeTx)
+	err := account.SignInvokeTransaction(ctx, invokeTx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	// Submit transaction
-	switch account.version {
-	case 1:
-		return account.AddInvokeTransaction(ctx, invokeTx)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
+	return nil
 }
 
 func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
@@ -222,7 +213,7 @@ func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.Broa
 	}
 }
 
-// AddInvokeTransaction submits an invoke transaction to the rpc provider.
+// AddInvokeTransaction submits a complete (ie signed, and calldata has been formatted etc) invoke transaction to the rpc provider.
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
 	switch account.version {
 	case 1:
@@ -232,19 +223,10 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.
 	}
 }
 
-func fmtCalldataStrings(fnCalls []rpc.FunctionCall) []*felt.Felt {
-	callArray := fmtCalldata(fnCalls)
-	calldataStrings := []*felt.Felt{}
-	for _, data := range callArray {
-		calldataStrings = append(calldataStrings, data)
-	}
-	return calldataStrings
-}
-
 /*
 Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
 */
-// [number_calls, contract_address_1, entry_point_1, _some len 1_ , contract_address_2, ep_2, ...some len2 ..., .., calldata]
+// [number_calls, contract_address_1, entry_point_1, _some len 1_ , contract_address_2, ep_2, ...some len2 ..., .., calldata1, calldata2,..]
 func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	callArray := []*felt.Felt{}
 	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
