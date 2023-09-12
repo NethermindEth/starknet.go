@@ -1,5 +1,17 @@
 package rpc
 
+import "errors"
+
+func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
+	for _, rpcErr := range rpcErrors {
+		if errors.Is(err, rpcErr) {
+			return rpcErr
+		}
+	}
+
+	return err
+}
+
 type RPCError struct {
 	code    int
 	message string

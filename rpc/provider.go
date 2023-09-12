@@ -47,6 +47,7 @@ type api interface {
 	AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
+	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simFlags []SimulationFlag) ([]SimulatedTransaction, error)
 }
 
 var _ api = &Provider{}
