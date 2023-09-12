@@ -129,7 +129,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
 		} else {
-			require.Equal(t, test.ExpectedResp, *resp)
+			require.Equal(t, test.ExpectedResp, resp)
 		}
 
 	}
