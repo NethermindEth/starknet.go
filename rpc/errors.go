@@ -30,6 +30,10 @@ var (
 		code:    1,
 		message: "Failed to write transaction",
 	}
+	ErrNoTraceAvailable = &RPCError{
+		code: 10,
+        message: "No trace available for transaction",
+	}
 	ErrContractNotFound = &RPCError{
 		code:    20,
 		message: "Contract not found",
@@ -37,6 +41,10 @@ var (
 	ErrBlockNotFound = &RPCError{
 		code:    24,
 		message: "Block not found",
+	}
+	ErrInvalidTxnHash = &RPCError{
+		code:    25,
+		message: "Invalid transaction hash",
 	}
 	ErrHashNotFound = &RPCError{
 		code:    25,

@@ -9,9 +9,15 @@ import (
 
 var ErrNotImplemented = errors.New("not implemented")
 
-// not implemented for testing yet
-func (provider *Provider) TransactionTrace(ctx context.Context, hash string) error {
-	return ErrNotImplemented
+// For a given executed transaction, return the trace of its execution, including internal calls
+func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
+	var output TxnTrace
+	if err := do(ctx, provider.c, "starknet_traceTransaction", &output, transactionHash); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnHash, ErrNoTraceAvailable)
+	}
+
+	return output, nil
+
 }
 
 // Retrieve traces for all transactions in the given block
