@@ -268,9 +268,16 @@ func TestAddInvoke(t *testing.T) {
 		if testEnv != "testnet" {
 			t.Skip("Skipping test as it requires a testnet environment")
 		}
-
+		// Why does deploying an account work (which reqs a sig), but this doesnt?
+		// Should use another library and force it to print data out to see what's going wrong here
 		// New Client
 		fmt.Println("base", base)
+
+		fmt.Println("base", new(felt.Felt).SetBytes([]byte(account.TRANSACTION_PREFIX)))
+		fmt.Println("base", types.UTF8StrToBig(starknetgo.TRANSACTION_PREFIX))
+		bigg := types.UTF8StrToBig(starknetgo.TRANSACTION_PREFIX)
+		fellt := new(felt.Felt).SetBytes(bigg.Bytes())
+		fmt.Println("base", fellt)
 		client, err := rpc.NewClient(base + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
@@ -280,10 +287,11 @@ func TestAddInvoke(t *testing.T) {
 
 		// Set up ks
 		ks := starknetgo.NewMemKeystore()
-		// fakePubKey, _ :=  new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-		fakePubKey := accountAddress
+		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
+		// fakePubKey := accountAddress
 		fakePubKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 		fakePrivKey, _ := new(big.Int).SetString(fakePubKeyFelt.String(), 0)
+		fakePrivKeyFelt, _ := new(felt.Felt).SetString(fakePubKeyFelt.String())
 		ks.Put(fakePubKey.String(), fakePrivKey)
 
 		// Get account
@@ -311,6 +319,20 @@ func TestAddInvoke(t *testing.T) {
 
 		qwe, _ := json.MarshalIndent(invokeTx, "", "")
 		fmt.Println(string(qwe))
+
+		///
+		txHash, err := account.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
+		x, y, err := starknetgo.Curve.SignFelt(txHash, fakePrivKeyFelt)
+		if err != nil {
+			panic(err)
+		}
+		invokeTx.Signature = []*felt.Felt{x, y}
+
+		qqwe, _ := json.MarshalIndent(invokeTx, "", "")
+		fmt.Println(string(qqwe))
+		fmt.Println(txHash)
+		fmt.Println(x, y)
+
 		// Send tx
 		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
 		fmt.Println("resp", resp, err)
