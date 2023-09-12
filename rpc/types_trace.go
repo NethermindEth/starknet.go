@@ -78,24 +78,32 @@ const (
 
 type FnInvocation struct {
 	FunctionCall
-	//The address of the invoking contract. 0 for the root invocation
-	CallerAddress *felt.Felt `json:"caller_address"`
+
 	//The address where the code for this contract is stored in the state
-	CodeAddress *felt.Felt `json:"code_address"`
+	CodeAddress *felt.Felt `json:"code_address,omitempty"`
 
-	EntryPointType EntryPointType `json:"entry_point_type"`
+	//The address of the invoking contract. 0 for the root invocation
+	CallerAddress *felt.Felt `json:"caller_address,omitempty"`
 
-	CallType CallType `json:"call_type"`
+	EntryPointType EntryPointType `json:"entry_point_type,omitempty"`
+
+	CallType CallType `json:"call_type,omitempty"`
 
 	//The value returned from the function invocation
-	Result []*felt.Felt `json:"result"`
+	Result []*felt.Felt `json:"result,omitempty"`
 
 	// The calls made by this invocation
-	NestedCalls []FnInvocation `json:"calls"`
+	NestedCalls []FnInvocation `json:"calls,omitempty"`
 
 	// The events emitted in this invocation
-	InvocationEvents []Event `json:"events"`
+	InvocationEvents []Event `json:"events,omitempty"`
 
 	// The messages sent by this invocation to L1
-	L1Messages []MsgToL1 `json:"messages"`
+	L1Messages []MsgToL1 `json:"messages,omitempty"`
+}
+
+// A single pair of transaction hash and corresponding trace
+type Trace struct {
+	TraceRoot TxnTrace   `json:"trace_root,omitempty"`
+	TxnHash   *felt.Felt `json:"transaction_hash,omitempty"`
 }

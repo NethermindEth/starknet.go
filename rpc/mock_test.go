@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -66,6 +67,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_estimateFee(result, method, args...)
 	case "starknet_getBlockWithTxHashes":
 		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+	case "starknet_traceBlockTransactions":
+		return mock_starknet_traceBlockTransactions(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -622,4 +625,42 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	json.Unmarshal(block, &r)
 
 	return nil
+}
+
+func mock_starknet_traceBlockTransactions(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockHash, ok := args[0].(*felt.Felt)
+	if !ok {
+		fmt.Printf("args[0] should be felt, got %T\n", args[0])
+		return errWrongArgs
+	}
+	if blockHash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
+
+		var rawBlockTrace struct {
+			Result []Trace `json:"result"`
+		}
+		read, err := os.ReadFile("tests/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		if err != nil {
+			return err
+		}
+		if nil != json.Unmarshal(read, &rawBlockTrace) {
+			return err
+		}
+		BlockTrace, err := json.Marshal(rawBlockTrace.Result)
+		if err != nil {
+			return err
+		}
+		if nil != json.Unmarshal(BlockTrace, &r) {
+			return err
+		}
+		return nil
+	}
+
+	return ErrInvalidBlockHash
 }
