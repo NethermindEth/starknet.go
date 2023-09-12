@@ -142,14 +142,9 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	if err != nil {
 		return nil, err
 	}
-	s1Felt, err := utils.BigIntToFelt(s1)
-	if err != nil {
-		return nil, err
-	}
-	s2Felt, err := utils.BigIntToFelt(s2)
-	if err != nil {
-		return nil, err
-	}
+	s1Felt, _ := utils.BigIntToFelt(s1)
+	s2Felt, _ := utils.BigIntToFelt(s2)
+
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
 

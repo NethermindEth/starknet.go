@@ -289,9 +289,9 @@ func TestAddInvoke(t *testing.T) {
 		ks := starknetgo.NewMemKeystore()
 		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
 		// fakePubKey := accountAddress
-		fakePubKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
-		fakePrivKey, _ := new(big.Int).SetString(fakePubKeyFelt.String(), 0)
-		fakePrivKeyFelt, _ := new(felt.Felt).SetString(fakePubKeyFelt.String())
+		// fakePubKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
+		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
+		fakePrivKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 		ks.Put(fakePubKey.String(), fakePrivKey)
 
 		// Get account
@@ -310,8 +310,11 @@ func TestAddInvoke(t *testing.T) {
 		}
 		fnCall := rpc.FunctionCall{
 			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
-			Calldata:           []*felt.Felt{accountAddress},
+			EntryPointSelector: types.GetSelectorFromNameFelt("approve"),
+			Calldata: []*felt.Felt{
+				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+				utils.TestHexToFelt(t, "0x1"),
+			},
 		}
 		fmt.Println(fnCall.EntryPointSelector)
 		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})

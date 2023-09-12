@@ -32,7 +32,7 @@ func FeltToBigInt(f *felt.Felt) (*big.Int, bool) {
 }
 
 func BigIntToFelt(big *big.Int) (*felt.Felt, error) {
-	return new(felt.Felt).SetString(big.String())
+	return new(felt.Felt).SetBytes(big.Bytes()), nil
 }
 func FeltArrToBigIntArr(f []*felt.Felt) (*[]*big.Int, error) {
 	var bigArr []*big.Int
