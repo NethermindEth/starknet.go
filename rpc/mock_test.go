@@ -10,6 +10,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -637,8 +638,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 	}
 	blockHash, ok := args[0].(*felt.Felt)
 	if !ok {
-		fmt.Printf("args[0] should be felt, got %T\n", args[0])
-		return errWrongArgs
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	if blockHash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
 
@@ -656,10 +656,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(BlockTrace, &r) {
-			return err
-		}
-		return nil
+		return json.Unmarshal(BlockTrace, &r)
 	}
 
 	return ErrInvalidBlockHash
