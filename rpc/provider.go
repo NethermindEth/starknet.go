@@ -48,6 +48,7 @@ type api interface {
 	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simFlags []SimulationFlag) ([]SimulatedTransaction, error)
+	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
 }
 
 var _ api = &Provider{}

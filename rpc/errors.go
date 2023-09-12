@@ -42,6 +42,10 @@ var (
 		code:    25,
 		message: "Transaction hash not found",
 	}
+	ErrInvalidBlockHash = &RPCError{
+		code:    24,
+		message: "Invalid block hash",
+	}
 	ErrInvalidTxnIndex = &RPCError{
 		code:    27,
 		message: "Invalid transaction index in a block",
