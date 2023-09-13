@@ -11,31 +11,44 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestNotImplemented checks the method not yet implemented
-func TestNotImplemented(t *testing.T) {
+// TestTraceTransaction tests the TransactionTrace method
+func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
+	var expectedResp InvokeTxnTrace
+	if testEnv == "mock" {
+		var rawjson struct {
+			Result InvokeTxnTrace `json:"result"`
+		}
+		expectedrespRaw, err := os.ReadFile("./tests/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
+
+		err = json.Unmarshal(expectedrespRaw, &rawjson)
+		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
+		expectedResp = rawjson.Result
+	}
+
 	type testSetType struct {
-		MissingMethod string
+		TransactionHash    *felt.Felt
+		ExpectedResp TxnTrace
 	}
 	testSet := map[string][]testSetType{
-		"devnet": {},
-		"mainnet": {
-			{MissingMethod: "starknet_traceTransaction"},
+		"mock": {
+			testSetType{
+				TransactionHash: utils.TestHexToFelt(t, "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329"),
+				ExpectedResp:    expectedResp,
+			},
 		},
-		"mock": {},
-		"testnet": {
-			{MissingMethod: "starknet_traceTransaction"},
-		},
+		"devnet":  {},
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		var out string
-		err := do(context.Background(), testConfig.provider.c, test.MissingMethod, &out)
-
-		if err == nil || err.Error() != "Method Not Found" {
-			t.Fatalf("Method %s is now available, got %v\n", test.MissingMethod, err)
+		resp, err := testConfig.provider.TransactionTrace(context.Background(), test.TransactionHash)
+		if err != nil {
+			t.Fatal(err)
 		}
+		require.Equal(t, test.ExpectedResp, resp)
 	}
 }
 

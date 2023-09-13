@@ -2,6 +2,8 @@ package rpc
 
 import "errors"
 
+var ErrNotImplemented = errors.New("not implemented")
+
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	for _, rpcErr := range rpcErrors {
 		if errors.Is(err, rpcErr) {
