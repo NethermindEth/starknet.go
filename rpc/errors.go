@@ -1,5 +1,17 @@
 package rpc
 
+import "errors"
+
+func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
+	for _, rpcErr := range rpcErrors {
+		if errors.Is(err, rpcErr) {
+			return rpcErr
+		}
+	}
+
+	return err
+}
+
 type RPCError struct {
 	code    int
 	message string
@@ -29,6 +41,10 @@ var (
 	ErrHashNotFound = &RPCError{
 		code:    25,
 		message: "Transaction hash not found",
+	}
+	ErrInvalidBlockHash = &RPCError{
+		code:    24,
+		message: "Invalid block hash",
 	}
 	ErrInvalidTxnIndex = &RPCError{
 		code:    27,

@@ -17,8 +17,9 @@ import (
 type RPCProvider rpc.Provider
 
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
+	panic("This needs updated - Declare transactions have changed significantly over the past few rpc-spec updates")
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -26,13 +27,13 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 	if err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeclareTransaction(ctx, rpc.AddDeclareTxnInput{
+	tx, err := provider.AddDeclareTransaction(ctx, rpc.DeclareTxnV1{
 		Type:    "DECLARE",
 		MaxFee:  new(felt.Felt).SetUint64(10000),
 		Version: "0x01",
 		Nonce:   new(felt.Felt).SetUint64(1), // TODO: nonce handling
 
-		ContractClass: class,
+		// ContractClass: class,
 		SenderAddress: SenderAddress, // TODO: constant devnet address
 	})
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // https://github.com/starkware-libs/starknet-specs/blob/a789ccc3432c57777beceaa53a34a7ae2f25fda0/api/starknet_api_openrpc.json#L1252
@@ -61,6 +60,10 @@ type InvokeTxnV0 struct {
 	FunctionCall
 }
 
+func (tx InvokeTxnV0) Hash() *felt.Felt {
+	return tx.Hash()
+}
+
 type InvokeTxnV1 struct {
 	MaxFee        *felt.Felt         `json:"max_fee"`
 	Version       TransactionVersion `json:"version"`
@@ -72,10 +75,9 @@ type InvokeTxnV1 struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
-type InvokeTxn interface{}
-
-var _ InvokeTxn = InvokeTxnV0{}
-var _ InvokeTxn = InvokeTxnV1{}
+func (tx InvokeTxnV1) Hash() *felt.Felt {
+	return tx.Hash()
+}
 
 type L1HandlerTxn struct {
 	Type TransactionType `json:"type,omitempty"`
@@ -86,12 +88,17 @@ type L1HandlerTxn struct {
 	FunctionCall
 }
 
-type DeclareTxn struct {
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
+func (tx L1HandlerTxn) Hash() *felt.Felt {
+	return tx.Hash()
+}
+
+type DeclareTxnV1 struct {
+	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
+	MaxFee          *felt.Felt         `json:"max_fee"`
+	Version         TransactionVersion `json:"version"`
+	Signature       []*felt.Felt       `json:"signature"`
+	Nonce           *felt.Felt         `json:"nonce"`
+	Type            TransactionType    `json:"type"`
 
 	// ClassHash the hash of the declared class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -100,15 +107,59 @@ type DeclareTxn struct {
 	SenderAddress *felt.Felt `json:"sender_address"`
 }
 
-type Transaction interface{}
+func (tx DeclareTxnV1) Hash() *felt.Felt {
+	return tx.Hash()
+}
+
+type DeclareTxnV2 struct {
+	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
+	MaxFee          *felt.Felt         `json:"max_fee"`
+	Version         TransactionVersion `json:"version"`
+	Signature       []*felt.Felt       `json:"signature"`
+	Nonce           *felt.Felt         `json:"nonce"`
+	Type            TransactionType    `json:"type"`
+
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+
+	// SenderAddress the address of the account contract sending the declaration transaction
+	SenderAddress *felt.Felt `json:"sender_address"`
+
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
+func (tx DeclareTxnV2) Hash() *felt.Felt {
+	return tx.Hash()
+}
+
+type Transaction interface {
+	Hash() *felt.Felt
+}
 
 var _ Transaction = InvokeTxnV0{}
 var _ Transaction = InvokeTxnV1{}
-var _ Transaction = L1HandlerTxn{}
-var _ Transaction = DeclareTxn{}
+var _ Transaction = DeclareTxnV1{}
+var _ Transaction = DeclareTxnV2{}
+var _ Transaction = DeployTxn{}
 var _ Transaction = DeployAccountTxn{}
+var _ Transaction = L1HandlerTxn{}
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+type DeployTxn struct {
+	TransactionHash *felt.Felt `json:"transaction_hash,omitempty"`
+	// ClassHash The hash of the deployed contract's class
+	ClassHash *felt.Felt `json:"class_hash"`
+
+	Version             TransactionVersion `json:"version"`
+	Type                TransactionType    `json:"type"`
+	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
+}
+
+func (tx DeployTxn) Hash() *felt.Felt {
+	return tx.Hash()
+}
+
+// DeployAccountTxn The structure of a deployAccount transaction.
 type DeployAccountTxn struct {
 	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
 	MaxFee          *felt.Felt         `json:"max_fee"`
@@ -124,6 +175,10 @@ type DeployAccountTxn struct {
 
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
+}
+
+func (tx DeployAccountTxn) Hash() *felt.Felt {
+	return tx.Hash()
 }
 
 type Transactions []Transaction
@@ -166,17 +221,24 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
-	case string:
-		var txn InvokeTransactionReceipt
-		txhash, err := utils.HexToFelt(casted)
-		if err != nil {
-			return txn, err
-		}
-		return TransactionHash{txhash}, nil
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
-			var txn DeclareTxn
+
+			switch TransactionType(casted["version"].(string)) {
+			case "0x1":
+				var txn DeclareTxnV1
+				remarshal(casted, &txn)
+				return txn, nil
+			case "0x2":
+				var txn DeclareTxnV2
+				remarshal(casted, &txn)
+				return txn, nil
+			default:
+				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+			}
+		case TransactionType_Deploy:
+			var txn DeployTxn
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_DeployAccount:
@@ -222,6 +284,7 @@ type TransactionVersion string
 const (
 	TransactionV0 TransactionVersion = "0x0"
 	TransactionV1 TransactionVersion = "0x1"
+	TransactionV2 TransactionVersion = "0x2"
 )
 
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
@@ -238,10 +301,12 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 type AddInvokeTxnInput interface{}
 
 var _ AddInvokeTxnInput = InvokeTxnV0{}
+var _ AddInvokeTxnInput = InvokeTxnV1{}
 
 type AddDeclareTxnInput interface{}
 
-var _ AddDeclareTxnInput = DeclareTxn{}
+var _ AddDeclareTxnInput = DeclareTxnV1{}
+var _ AddDeclareTxnInput = DeclareTxnV2{}
 
 type AddDeployAccountTxnInput interface{}
 
@@ -249,7 +314,8 @@ var _ AddDeployAccountTxnInput = DeployAccountTxn{}
 
 type EstimateFeeInput interface{}
 
-var _ EstimateFeeInput = &InvokeTxnV0{}
-var _ EstimateFeeInput = &InvokeTxnV1{}
-var _ EstimateFeeInput = &DeployAccountTxn{}
-var _ EstimateFeeInput = &DeclareTxn{}
+var _ EstimateFeeInput = InvokeTxnV0{}
+var _ EstimateFeeInput = InvokeTxnV1{}
+var _ EstimateFeeInput = DeployAccountTxn{}
+var _ EstimateFeeInput = DeclareTxnV1{}
+var _ EstimateFeeInput = DeclareTxnV2{}

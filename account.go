@@ -31,7 +31,7 @@ type account interface {
 	Nonce(ctx context.Context) (*big.Int, error)
 	EstimateFee(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.FeeEstimate, error)
 	Execute(ctx context.Context, calls []types.FunctionCall, details types.ExecuteDetails) (*types.AddInvokeTransactionOutput, error)
-	Declare(ctx context.Context, classHash string, contract rpc.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
+	Declare(ctx context.Context, classHash string, contract rpc.DeprecatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error)
 	Deploy(ctx context.Context, classHash string, details types.ExecuteDetails) (*types.AddDeployResponse, error)
 }
 
@@ -260,7 +260,7 @@ func (account *Account) Nonce(ctx context.Context) (*big.Int, error) {
 	return nil, fmt.Errorf("version %d unsupported", account.version)
 }
 
-func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpc.AddInvokeTxnInput, error) {
+func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType string, calls []types.FunctionCall, details types.ExecuteDetails) (*rpc.InvokeTxnV1, error) {
 	if messageType != "invoke" && messageType != "estimate" {
 		return nil, errors.New("unsupported message type")
 	}
@@ -351,7 +351,7 @@ func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType s
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.AddInvokeTxnInput{
+		return &rpc.InvokeTxnV1{
 			MaxFee:        maxFeeFelt,
 			Version:       version,
 			Signature:     []*felt.Felt{s1Felt, s2Felt},
@@ -449,7 +449,8 @@ func (account *Account) EstimateFee(ctx context.Context, calls []types.FunctionC
 		}
 		switch account.version {
 		case 1:
-			estimates, err := account.rpc.EstimateFee(ctx, []rpc.EstimateFeeInput{rpc.AddInvokeTxnInput{
+
+			estimates, err := account.rpc.EstimateFee(ctx, []rpc.EstimateFeeInput{rpc.InvokeTxnV1{
 				MaxFee:        call.MaxFee,
 				Version:       rpc.TransactionV1,
 				Signature:     call.Signature,
@@ -497,7 +498,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 		}
 		switch account.version {
 		case 1:
-			resp, err := account.rpc.AddInvokeTransaction(ctx, rpc.AddInvokeTxnInput{
+			resp, err := account.rpc.AddInvokeTransaction(ctx, rpc.InvokeTxnV1{
 				MaxFee:        call.MaxFee,
 				Version:       rpc.TransactionV1,
 				Signature:     call.Signature,
@@ -524,7 +525,7 @@ func (account *Account) Execute(ctx context.Context, calls []types.FunctionCall,
 	return nil, ErrUnsupportedAccount
 }
 
-func (account *Account) Declare(ctx context.Context, classHash string, contract rpc.ContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
+func (account *Account) Declare(ctx context.Context, classHash string, contract rpc.DeprecatedContractClass, details types.ExecuteDetails) (types.AddDeclareResponse, error) {
 	switch account.provider {
 	case ProviderRPC:
 		panic("unsupported")

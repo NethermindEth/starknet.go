@@ -63,20 +63,18 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 
 // strToFelt converts a string containing a decimal, hexadecimal or UTF8 charset into a Felt.
 func strToFelt(str string) *felt.Felt {
-	var f *felt.Felt
+	var f = &felt.Zero
 	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 
 	if b, ok := new(big.Int).SetString(str, 0); ok {
-		fBytes := f.Bytes()
-		b.FillBytes(fBytes[:])
+		f.SetBytes(b.Bytes())
 		return f
 	}
 	// TODO: revisit conversation on seperate 'ShortString' conversion
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
-			fBytes := f.Bytes()
-			b.FillBytes(fBytes[:])
+			f.SetBytes(b.Bytes())
 			return f
 		}
 	}
