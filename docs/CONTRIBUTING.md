@@ -1,7 +1,7 @@
 # Contributors Guide
 
 starknet.go is an open-source Golang Library for Cairo written by NethermindEth.
-We welcome all contributions to this repository to help enrich the StarkNet community.
+We welcome all contributions to this repository to help enrich the Starknet community.
 
 ## How to Contribute
 
