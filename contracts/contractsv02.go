@@ -19,7 +19,7 @@ type RPCProvider rpc.Provider
 
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 	if err != nil {
 		return nil, err
 	}
-	tx, err := provider.AddDeclareTransaction(ctx, rpc.BroadcastedDeclareTransaction{
+	tx, err := provider.AddDeclareTransaction(ctx, rpc.BroadcastedDeclareTransactionV1{
 		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
 			Type:    "DECLARE",
 			MaxFee:  new(felt.Felt).SetUint64(10000),
@@ -60,7 +60,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 
 func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
@@ -109,12 +109,10 @@ func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHas
 
 func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	provider := rpc.Provider(*p)
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(compiledClass, &class); err != nil {
 		return nil, err
 	}
-	fmt.Println("a")
-
 	saltFelt, err := utils.HexToFelt(salt)
 	if err != nil {
 		return nil, err
@@ -125,15 +123,14 @@ func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass
 	}
 
 	// TODO: use UDC via account
-	tx, err := provider.AddDeployTransaction(ctx, rpc.BroadcastedDeployTxn{
-		DeployTransactionProperties: rpc.DeployTransactionProperties{
-			Version:             rpc.TransactionV1,
-			ContractAddressSalt: saltFelt,
-			ConstructorCalldata: inputsFelt,
+	tx, err := provider.AddDeployAccountTransaction(ctx, rpc.BroadcastedDeployAccountTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+			Version: rpc.TransactionV1,
 		},
-		ContractClass: class,
+		ContractAddressSalt: saltFelt,
+		ConstructorCalldata: inputsFelt,
 	})
-	fmt.Println("b")
+
 	if err != nil {
 		return nil, err
 	}

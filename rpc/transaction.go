@@ -21,7 +21,20 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	case TransactionType_Declare:
-		var tx DeclareTxn
+		switch t.Version {
+		case new(felt.Felt).SetUint64(1):
+			var tx DeclareTxnV1
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		case new(felt.Felt).SetUint64(2):
+			var tx DeclareTxnV2
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		default:
+			return nil, errors.New("Internal error with adaptTransaction()")
+		}
+	case TransactionType_Deploy:
+		var tx DeployTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	case TransactionType_DeployAccount:
@@ -30,10 +43,6 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		return tx, nil
 	case TransactionType_L1Handler:
 		var tx L1HandlerTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	case TransactionType_Deploy:
-		var tx DeployTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	default:
@@ -112,7 +121,7 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}
-			case DeployTransactionReceipt:
+			case DeployAccountTransactionReceipt:
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}

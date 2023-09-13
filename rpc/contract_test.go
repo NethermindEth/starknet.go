@@ -42,21 +42,27 @@ func TestClassAt(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		class, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
+		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
-		diff, err := spy.Compare(class, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
+		switch class := resp.(type) {
+		case DeprecatedContractClass:
+			diff, err := spy.Compare(class, false)
+			if err != nil {
+				t.Fatal("expecting to match", err)
+			}
+			if diff != "FullMatch" {
+				spy.Compare(class, true)
+				t.Fatal("structure expecting to be FullMatch, instead", diff)
+			}
+			if class.Program == "" {
+				t.Fatal("code should exist")
+			}
+		case ContractClass:
+			panic("Not covered")
 		}
-		if diff != "FullMatch" {
-			spy.Compare(class, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if class == nil || class.Program == "" {
-			t.Fatal("code should exist")
-		}
+
 	}
 }
 
@@ -66,25 +72,25 @@ func TestClassHashAt(t *testing.T) {
 
 	type testSetType struct {
 		ContractHash      *felt.Felt
-		ExpectedClassHash string
+		ExpectedClassHash *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0xdeadbeef"),
-				ExpectedClassHash: "0xdeadbeef",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"testnet": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
-				ExpectedClassHash: "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
 			},
 		},
 		"mainnet": {
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
-				ExpectedClassHash: "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb",
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
 			},
 		},
 	}[testEnv]
@@ -108,9 +114,7 @@ func TestClassHashAt(t *testing.T) {
 		if classhash == nil {
 			t.Fatalf("should return a class, instead %v", classhash)
 		}
-		if *classhash != test.ExpectedClassHash {
-			t.Fatalf("class expect %s, got %s", test.ExpectedClassHash, *classhash)
-		}
+		require.Equal(t, test.ExpectedClassHash, classhash)
 	}
 }
 
@@ -119,23 +123,29 @@ func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID         BlockID
-		ClassHash       string
-		ExpectedProgram string
+		BlockID                       BlockID
+		ClassHash                     *felt.Felt
+		ExpectedProgram               string
+		ExpectedEntryPointConstructor SierraEntryPoint
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				BlockID:         WithBlockTag("pending"),
-				ClassHash:       "0xdeadbeef",
+				ClassHash:       utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
 		"testnet": {
 			{
 				BlockID:         WithBlockTag("pending"),
-				ClassHash:       "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1",
+				ClassHash:       utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
 				ExpectedProgram: "H4sIAAAAAAAA",
+			},
+			{
+				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x464fc8c86a6452536a2e27cb301815e5f8b16a2f6872ba4f3d83701fbe99fb3")),
+				ClassHash:                     utils.TestHexToFelt(t, "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571"),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 		"mainnet": {},
@@ -144,21 +154,28 @@ func TestClass(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		class, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
+		resp, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
-		diff, err := spy.Compare(class, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			spy.Compare(class, true)
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
 
-		if class == nil || !strings.HasPrefix(class.Program, test.ExpectedProgram) {
-			t.Fatal("code should exist")
+		switch class := resp.(type) {
+		case DeprecatedContractClass:
+
+			diff, err := spy.Compare(class, false)
+			if err != nil {
+				t.Fatal("expecting to match", err)
+			}
+			if diff != "FullMatch" {
+				spy.Compare(class, true)
+				t.Fatal("structure expecting to be FullMatch, instead", diff)
+			}
+
+			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
+				t.Fatal("code should exist")
+			}
+		case ContractClass:
+			require.Equal(t, class.EntryPointsByType.Constructor, test.ExpectedEntryPointConstructor)
 		}
 	}
 }
