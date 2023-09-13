@@ -38,12 +38,12 @@ var (
 		code:    24,
 		message: "Block not found",
 	}
-	ErrHashNotFound = &RPCError{
+	ErrInvalidTransactionHash = &RPCError{
 		code:    25,
-		message: "Transaction hash not found",
+		message: "Invalid transaction hash",
 	}
 	ErrInvalidBlockHash = &RPCError{
-		code:    24,
+		code:    26,
 		message: "Invalid block hash",
 	}
 	ErrInvalidTxnIndex = &RPCError{
@@ -53,6 +53,10 @@ var (
 	ErrClassHashNotFound = &RPCError{
 		code:    28,
 		message: "Class hash not found",
+	}
+	ErrHashNotFound = &RPCError{
+		code:    29,
+		message: "Transaction hash not found",
 	}
 	ErrPageSizeTooBig = &RPCError{
 		code:    31,
