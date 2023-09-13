@@ -77,9 +77,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		BlockID                   BlockID
-		ExpectedError             error
-		ExpectedBlockWithTxHashes *Block
+		BlockID                          BlockID
+		ExpectedError                    error
+		ExpectedBlockWithTxHashes        *Block
+		ExpectedPendingBlockWithTxHashes *PendingBlock
 	}
 
 	var blockGoerli310370 = Block{
@@ -118,7 +119,24 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 
 	testSet := map[string][]testSetType{
-		"mock": {},
+		"mock": {{
+			BlockID: BlockID{Tag: "latest"},
+			ExpectedPendingBlockWithTxHashes: &PendingBlock{
+				ParentHash:       &felt.Zero,
+				Timestamp:        123,
+				SequencerAddress: &felt.Zero,
+			},
+		},
+			{
+				BlockID: BlockID{Hash: &felt.Zero},
+				ExpectedBlockWithTxHashes: &Block{
+					BlockHeader: BlockHeader{
+						ParentHash:       &felt.Zero,
+						Timestamp:        123,
+						SequencerAddress: &felt.Zero},
+					Status: BlockStatus_AcceptedOnL1,
+				},
+			}},
 		"testnet": {
 			{
 				BlockID:       WithBlockTag("latest"),
@@ -145,29 +163,36 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		block, ok := result.(*Block)
-		if !ok {
-			t.Fatalf("should return *Block, instead: %T\n", result)
-		}
-		if test.ExpectedError != nil {
-			continue
-		}
-		if !strings.HasPrefix(block.BlockHash.String(), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
-		}
-
-		if len(block.Transactions) == 0 {
-			t.Fatal("the number of transaction should not be 0")
-		}
-
-		if test.ExpectedBlockWithTxHashes != nil {
-			if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
+		switch resultBlock := result.(type) {
+		case Block:
+			block, ok := result.(*Block)
+			if !ok {
+				t.Fatalf("should return *Block, instead: %T\n", result)
+			}
+			if test.ExpectedError != nil {
 				continue
 			}
-
-			if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
+			if !strings.HasPrefix(block.BlockHash.String(), "0x") {
+				t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
 			}
+
+			if len(block.Transactions) == 0 {
+				t.Fatal("the number of transaction should not be 0")
+			}
+
+			if test.ExpectedBlockWithTxHashes != nil {
+				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
+					continue
+				}
+
+				if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
+					t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
+				}
+			}
+		case PendingBlock:
+			require.Equal(t, resultBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlock ParentHash")
+			require.Equal(t, resultBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlock SequencerAddress")
+			require.Equal(t, resultBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlock Timestamp")
 		}
 
 	}
@@ -312,6 +337,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		ExpectedBlockWithTxs        *Block
 	}
 
+	// To do : re-add test for deploy account transaction
 	var fullBlockGoerli310843 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
@@ -336,34 +362,6 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 					Type:    "DEPLOY",
 					Version: TransactionV0,
 				},
-			},
-		},
-	}
-
-	var fullBlockGoerli300114 = Block{
-		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
-			ParentHash:       utils.TestHexToFelt(t, "0x7307cb0d7fa65c111e71cdfb6209bdc90d2454d4c0f34d8bf5a3fe477826c3c"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b"),
-			BlockNumber:      300114,
-			NewRoot:          utils.TestHexToFelt(t, "0x239a44410e78665f41f7a65ef3b5ed244ce411965498a83f80f904e22df1045"),
-			Timestamp:        1660701246,
-		},
-		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV0{
-				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-						Type:      TransactionType_Declare,
-						MaxFee:    &felt.Zero,
-						Version:   TransactionV0,
-						Signature: []*felt.Felt{},
-						Nonce:     &felt.Zero,
-					},
-				},
-				ClassHash:     utils.TestHexToFelt(t, "0x6feb117d1c3032b0ae7bd3b50cd8ec4a78c621dca0d63ddc17890b78a6c3b49"),
-				SenderAddress: utils.TestHexToFelt(t, "0x1"),
 			},
 		},
 	}
@@ -447,11 +445,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedBlockWithTxs:        &fullBlockGoerli310843,
 			},
 			{
-				BlockID:                     WithBlockNumber(300114),
+				BlockID:                     WithBlockNumber(849399),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 3,
+				LookupTxnPositionInOriginal: 71,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli300114,
+				ExpectedBlockWithTxs:        &fullBlockGoerli849399,
+			},
+			{
+				BlockID:                     WithBlockNumber(848622),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 6,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
 			},
 			{
 				BlockID:                     WithBlockNumber(849399),
@@ -566,8 +571,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 375919,
-				EndBlock:   376000,
+				StartBlock: 381000,
+				EndBlock:   381001,
 			},
 		},
 		"mainnet": {},

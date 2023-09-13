@@ -14,7 +14,7 @@ import (
 type Bytecode []string
 
 type Code struct {
-	Bytecode Bytecode    `json:"bytecode"`
+	Bytecode Bytecode `json:"bytecode"`
 	Abi      *rpc.ABI `json:"abi"`
 }
 
@@ -100,7 +100,7 @@ func (sg *Gateway) CodeAt(ctx context.Context, contract string, blockNumber *big
 	return &resp, sg.do(req, &resp)
 }
 
-func (sg *Gateway) FullContract(ctx context.Context, contract string) (*rpc.ContractClass, error) {
+func (sg *Gateway) FullContract(ctx context.Context, contract string) (*rpc.DeprecatedContractClass, error) {
 	req, err := sg.newRequest(ctx, http.MethodGet, "/get_full_contract", nil)
 	if err != nil {
 		return nil, err
@@ -108,6 +108,6 @@ func (sg *Gateway) FullContract(ctx context.Context, contract string) (*rpc.Cont
 
 	appendQueryValues(req, url.Values{"contractAddress": []string{contract}})
 
-	var resp rpc.ContractClass
+	var resp rpc.DeprecatedContractClass
 	return &resp, sg.do(req, &resp)
 }

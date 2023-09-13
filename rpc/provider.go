@@ -32,11 +32,11 @@ type api interface {
 	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
 	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
-	Class(ctx context.Context, blockID BlockID, classHash string) (*ContractClass, error)
-	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*ContractClass, error)
-	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
+	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
+	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
+	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error)
-	Events(ctx context.Context, input EventsInput) (*EventsOutput, error)
+	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
@@ -46,7 +46,9 @@ type api interface {
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
 	AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
+	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simFlags []SimulationFlag) ([]SimulatedTransaction, error)
+	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
 }
 
 var _ api = &Provider{}

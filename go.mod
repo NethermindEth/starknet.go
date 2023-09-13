@@ -7,6 +7,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/joho/godotenv v1.4.0
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
+	github.com/pkg/errors v0.9.1
 	github.com/test-go/testify v1.1.4
 	github.com/urfave/cli/v2 v2.10.2
 	golang.org/x/crypto v0.2.0

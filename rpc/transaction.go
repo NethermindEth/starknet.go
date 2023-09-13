@@ -35,10 +35,11 @@ func adaptTransaction(t TXN) (Transaction, error) {
 			var tx DeclareTxnV2
 			json.Unmarshal(txMarshalled, &tx)
 			return tx, nil
-		default:
-			return nil, errors.New("Internal error with adaptTransaction()")
 		}
-
+	case TransactionType_Deploy:
+		var tx DeployTxn
+		json.Unmarshal(txMarshalled, &tx)
+		return tx, nil
 	case TransactionType_DeployAccount:
 		var tx DeployAccountTxn
 		json.Unmarshal(txMarshalled, &tx)
@@ -47,13 +48,11 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		var tx L1HandlerTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
-	case TransactionType_Deploy:
-		var tx DeployTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
 	default:
-		panic("not a transaction")
+		return nil, errors.New("Internal error with adaptTransaction() : unknown transaction type")
 	}
+	return nil, errors.New("Internal error with adaptTransaction()")
+
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
@@ -127,7 +126,7 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}
-			case DeployTransactionReceipt:
+			case DeployAccountTransactionReceipt:
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}
