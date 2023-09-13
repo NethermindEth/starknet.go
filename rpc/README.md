@@ -1,7 +1,7 @@
 ## RPC implementation
 
 starknet.go RPC implementation provides the RPC API to perform operations with 
-StarkNet. It is currently being tested and maintained up-to-date with
+Starknet. It is currently being tested and maintained up-to-date with
 Pathfinder and relies on [go-ethereum](github.com/ethereum/go-ethereum/rpc)
 to provide the JSON RPC 2.0 client implementation.
 

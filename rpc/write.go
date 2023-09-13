@@ -8,7 +8,7 @@ import (
 
 type BroadcastedInvokeTransaction interface{}
 
-// AddInvokeTransaction estimates the fee for a given StarkNet transaction.
+// AddInvokeTransaction estimates the fee for a given Starknet transaction.
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error) {
 	// TODO: EntryPointSelector now part of calldata
 	// tx, ok := broadcastedInvoke.(BroadcastedInvokeV0Transaction)
