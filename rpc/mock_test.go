@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -64,6 +66,10 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addInvokeTransaction(result, method, args...)
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
+	case "starknet_getBlockWithTxHashes":
+		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+	case "starknet_traceBlockTransactions":
+		return mock_starknet_traceBlockTransactions(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -268,7 +274,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	var class = ContractClass{
+	var class = DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -285,7 +291,10 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	classHash := "0xdeadbeef"
+	classHash, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	outputContent, _ := json.Marshal(classHash)
 	json.Unmarshal(outputContent, r)
 	return nil
@@ -305,12 +314,12 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 		fmt.Printf("expecting BlockID, instead %T\n", args[1])
 		return errWrongArgs
 	}
-	classHash, ok := args[1].(string)
-	if !ok || !strings.HasPrefix(classHash, "0x") {
+	classHash, ok := args[1].(*felt.Felt)
+	if !ok || !strings.HasPrefix(classHash.String(), "0x") {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = ContractClass{
+	var class = DeprecatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, _ := json.Marshal(class)
@@ -326,31 +335,30 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	query, ok := args[0].(EventFilter)
+	_, ok = args[0].(EventsInput)
 	if !ok {
 		return errWrongArgs
 	}
-	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+
+	blockHash, err := utils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
 	if err != nil {
 		return err
 	}
-	events := &EventsOutput{
-
-		Events: []EventChunk{{
-			Events: []EmittedEvent{{
-				Event: Event{
-					FromAddress: query.Address,
-					Keys:        []*felt.Felt{},
-					Data:        []*felt.Felt{},
-				},
-
-				BlockHash:       deadbeefFelt,
-				BlockNumber:     1,
-				TransactionHash: deadbeefFelt,
-			}},
-			ContinuationToken: "deadbeef",
-		}},
+	txHash, _ := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	if err != nil {
+		return err
 	}
+
+	events :=
+		EventChunk{
+			Events: []EmittedEvent{
+				EmittedEvent{
+					BlockHash:       blockHash,
+					BlockNumber:     1472,
+					TransactionHash: txHash,
+				},
+			},
+		}
 
 	outputContent, _ := json.Marshal(events)
 	json.Unmarshal(outputContent, r)
@@ -384,7 +392,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(ContractClass)
+	_, ok = args[0].(DeprecatedContractClass)
 	if !ok {
 		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
 		return errWrongArgs
@@ -578,4 +586,78 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, &r)
 	return nil
+}
+
+func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockId, ok := args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+	if blockId.Tag == "latest" {
+		pBlock, err := json.Marshal(PendingBlock{
+			ParentHash:       &felt.Zero,
+			Timestamp:        123,
+			SequencerAddress: &felt.Zero,
+		})
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(pBlock, &r)
+	}
+	block, err := json.Marshal(Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        &felt.Zero,
+			ParentHash:       &felt.Zero,
+			Timestamp:        124,
+			SequencerAddress: &felt.Zero},
+		Status: BlockStatus_AcceptedOnL1,
+	})
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(block, &r)
+
+	return nil
+}
+
+func mock_starknet_traceBlockTransactions(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockHash, ok := args[0].(*felt.Felt)
+	if !ok {
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
+	}
+	if blockHash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
+
+		var rawBlockTrace struct {
+			Result []Trace `json:"result"`
+		}
+		read, err := os.ReadFile("tests/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		if err != nil {
+			return err
+		}
+		if nil != json.Unmarshal(read, &rawBlockTrace) {
+			return err
+		}
+		BlockTrace, err := json.Marshal(rawBlockTrace.Result)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(BlockTrace, &r)
+	}
+
+	return ErrInvalidBlockHash
 }

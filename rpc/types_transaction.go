@@ -93,7 +93,7 @@ func (tx L1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
-type DeclareTxn struct {
+type DeclareTxnV1 struct {
 	CommonTransaction
 
 	// ClassHash the hash of the declared class
@@ -103,8 +103,26 @@ type DeclareTxn struct {
 	SenderAddress *felt.Felt `json:"sender_address"`
 }
 
-func (tx DeclareTxn) Hash() *felt.Felt {
+type DeclareTxnV2 struct {
+	CommonTransaction
+
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+
+	// SenderAddress the address of the account contract sending the declaration transaction
+	SenderAddress *felt.Felt `json:"sender_address"`
+
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
+func (tx DeclareTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
+}
+func (tx DeclareTxnV2) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
+type Transaction interface {
+	Hash() *felt.Felt
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
@@ -120,10 +138,6 @@ func (tx DeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
-type Transaction interface {
-	Hash() *felt.Felt
-}
-
 type DeployAccountTransactionProperties struct {
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -135,7 +149,7 @@ type DeployAccountTransactionProperties struct {
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+// DeployAccountTxn The structure of a deployAccount transaction.
 type DeployAccountTxn struct {
 	CommonTransaction
 	DeployAccountTransactionProperties
@@ -195,9 +209,19 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
-			var txn DeclareTxn
-			remarshal(casted, &txn)
-			return txn, nil
+
+			switch TransactionType(casted["version"].(string)) {
+			case "0x1":
+				var txn DeclareTxnV1
+				remarshal(casted, &txn)
+				return txn, nil
+			case "0x2":
+				var txn DeclareTxnV2
+				remarshal(casted, &txn)
+				return txn, nil
+			default:
+				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+			}
 		case TransactionType_Deploy:
 			var txn DeployTxn
 			remarshal(casted, &txn)
@@ -245,6 +269,7 @@ type TransactionVersion string
 const (
 	TransactionV0 TransactionVersion = "0x0"
 	TransactionV1 TransactionVersion = "0x1"
+	TransactionV2 TransactionVersion = "0x2"
 )
 
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
@@ -295,13 +320,18 @@ func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(output)
 }
 
-type BroadcastedDeclareTransaction struct {
+type BroadcastedDeclareTransaction interface{}
+
+var _ BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV1{}
+var _ BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV2{}
+
+type BroadcastedDeclareTransactionV1 struct {
 	BroadcastedTxnCommonProperties
-	ContractClass ContractClass `json:"contract_class"`
-	SenderAddress *felt.Felt    `json:"sender_address"`
+	ContractClass DeprecatedContractClass `json:"contract_class"`
+	SenderAddress *felt.Felt              `json:"sender_address"`
 }
 
-func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
+func (b BroadcastedDeclareTransactionV1) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = "DECLARE"
 	if b.MaxFee != nil {
@@ -318,20 +348,36 @@ func (b BroadcastedDeclareTransaction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(output)
 }
 
+type BroadcastedDeclareTransactionV2 struct {
+	BroadcastedTxnCommonProperties
+	ContractClass     ContractClass `json:"contract_class"`
+	SenderAddress     *felt.Felt    `json:"sender_address"`
+	CompiledClassHash *felt.Felt    `json:"compiled_class_hash"`
+}
+
+func (b BroadcastedDeclareTransactionV2) MarshalJSON() ([]byte, error) {
+	output := map[string]interface{}{}
+	output["type"] = "DECLARE"
+	if b.MaxFee != nil {
+		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
+	}
+	if b.Nonce != nil {
+		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
+	}
+	output["version"] = b.Version
+	signature := b.Signature
+	output["signature"] = signature
+	output["sender_address"] = b.SenderAddress.String()
+	output["contract_class"] = b.ContractClass
+	output["compiled_class_hash"] = b.CompiledClassHash
+	return json.Marshal(output)
+}
+
 type DeployTransactionProperties struct {
 	Version             TransactionVersion `json:"version"`
 	Type                TransactionType    `json:"type"`
 	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
 	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
-}
-
-type BroadcastedDeployTxn struct {
-	DeployTransactionProperties
-	ContractClass ContractClass `json:"contract_class"`
-}
-
-func (b BroadcastedDeployTxn) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
 }
 
 type BroadcastedDeployAccountTransaction struct {
