@@ -12,8 +12,8 @@ type SimulateTransactionInput struct {
 type SimulationFlag string
 
 const (
-	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
-	SKIP_EXECUTE  SimulationFlag = "SKIP_EXECUTE"
+	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
+	SKIP_EXECUTE    SimulationFlag = "SKIP_EXECUTE"
 )
 
 // The execution trace and consumed resources of the required transactions
@@ -79,27 +79,27 @@ const (
 type FnInvocation struct {
 	FunctionCall
 
-	//The address where the code for this contract is stored in the state
-	CodeAddress *felt.Felt `json:"code_address,omitempty"`
-
 	//The address of the invoking contract. 0 for the root invocation
-	CallerAddress *felt.Felt `json:"caller_address,omitempty"`
+	CallerAddress *felt.Felt `json:"caller_address"`
 
-	EntryPointType EntryPointType `json:"entry_point_type,omitempty"`
+	// The hash of the class being called
+	ClassHash *felt.Felt `json:"class_hash"`
 
-	CallType CallType `json:"call_type,omitempty"`
+	EntryPointType EntryPointType `json:"entry_point_type"`
+
+	CallType CallType `json:"call_type"`
 
 	//The value returned from the function invocation
-	Result []*felt.Felt `json:"result,omitempty"`
+	Result []*felt.Felt `json:"result"`
 
 	// The calls made by this invocation
-	NestedCalls []FnInvocation `json:"calls,omitempty"`
+	NestedCalls []FnInvocation `json:"calls"`
 
 	// The events emitted in this invocation
-	InvocationEvents []Event `json:"events,omitempty"`
+	InvocationEvents []Event `json:"events"`
 
 	// The messages sent by this invocation to L1
-	L1Messages []MsgToL1 `json:"messages,omitempty"`
+	L1Messages []MsgToL1 `json:"messages"`
 }
 
 // A single pair of transaction hash and corresponding trace
