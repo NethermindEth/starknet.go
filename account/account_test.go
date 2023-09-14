@@ -268,102 +268,7 @@ func TestSign(t *testing.T) {
 
 func TestAddInvoke(t *testing.T) {
 
-	t.Run("Test AddInvoke devnet", func(t *testing.T) {
-		if testEnv != "devnet" {
-			t.Skip("Skipping test as it requires a devnet environment")
-		}
-		// New devnet
-		devNetURL := "http://0.0.0.0:5050"
-		accounts, err := newDevnet(t, devNetURL)
-		require.NoError(t, err, "Error in NewDevnet")
-
-		// New Client
-		client, err := rpc.NewClient(devNetURL + "/rpc")
-		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
-
-		// Get devnet account + set up ks
-		devAccount := accounts[0]
-		priv, ok := new(big.Int).SetString(devAccount.PrivateKey, 0)
-		require.True(t, ok)
-		ks := starknetgo.SetNewMemKeystore(devAccount.PublicKey, priv)
-
-		// Get account
-		account, err := account.NewAccount(provider, 1, utils.TestHexToFelt(t, devAccount.Address), devAccount.PublicKey, ks)
-		require.NoError(t, err)
-
-		// Now build the trasaction
-		invokeTx := rpc.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:   &felt.Zero,
-				MaxFee:  new(felt.Felt).SetUint64(100),
-				Version: rpc.TransactionV1,
-				Type:    rpc.TransactionType_Invoke,
-			},
-			SenderAddress: account.AccountAddress,
-		}
-		fnCall := rpc.FunctionCall{
-			ContractAddress:    utils.TestHexToFelt(t, "0x49D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("balanceOf"),
-			Calldata:           []*felt.Felt{account.AccountAddress},
-		}
-
-		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
-		require.NoError(t, err, "Error in BuildInvokeTx")
-
-		// Send tx
-		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
-		fmt.Println("resp", resp, err)
-		require.NoError(t, err)
-
-	})
-
-	t.Run("Test AddInvoke mainnet", func(t *testing.T) {
-		if testEnv != "mainnet" {
-			t.Skip("Skipping test as it requires a mainnet environment")
-		}
-
-		// New Client
-		fmt.Println("base", base)
-		client, err := rpc.NewClient(base + "/rpc")
-		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
-
-		// Set up ks
-		ks := starknetgo.NewMemKeystore()
-		fakePrivKey := new(big.Int).SetUint64(123)
-		fakePubKey := new(felt.Felt).SetUint64(456)
-		ks.Put(fakePubKey.String(), fakePrivKey)
-
-		// Get account
-		account, err := account.NewAccount(provider, 1, fakePubKey, fakePubKey.String(), ks)
-		require.NoError(t, err)
-
-		// Now build the trasaction
-		invokeTx := rpc.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:   &felt.Zero,
-				MaxFee:  new(felt.Felt).SetUint64(1),
-				Version: rpc.TransactionV1,
-				Type:    rpc.TransactionType_Invoke,
-			},
-			SenderAddress: account.AccountAddress,
-		}
-		fnCall := rpc.FunctionCall{
-			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("name"),
-			Calldata:           []*felt.Felt{account.AccountAddress},
-		}
-
-		err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
-		require.NoError(t, err, "Error in BuildInvokeTx")
-
-		// Send tx
-		resp, err := account.AddInvokeTransaction(context.Background(), &invokeTx)
-		fmt.Println("resp", resp, err)
-		require.NoError(t, err)
-	})
-
+	// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
 	t.Run("Test AddInvokeTransction testnet", func(t *testing.T) {
 		if testEnv != "testnet" {
 			t.Skip("Skipping test as it requires a testnet environment")
@@ -388,8 +293,6 @@ func TestAddInvoke(t *testing.T) {
 		// Set up ks
 		ks := starknetgo.NewMemKeystore()
 		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-		// fakePubKey := accountAddress
-		// fakePubKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
 		fakePrivKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 		ks.Put(fakePubKey.String(), fakePrivKey)
@@ -399,18 +302,21 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err)
 
 		// Now build the trasaction
+		nonce, _ := new(felt.Felt).SetString("0x2")
+		mxfee, _ := new(felt.Felt).SetString("0x574fbde6000")
 		invokeTx := rpc.BroadcastedInvokeV1Transaction{
 			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:   &felt.Zero,
-				MaxFee:  new(felt.Felt).SetUint64(1),
+				Nonce:   nonce,
+				MaxFee:  mxfee,
 				Version: rpc.TransactionV1,
 				Type:    rpc.TransactionType_Invoke,
 			},
 			SenderAddress: acnt.AccountAddress,
 		}
+		fmt.Println(" ====== ======invokeTx", invokeTx)
 		fnCall := rpc.FunctionCall{
 			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("approve"),
+			EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
 			Calldata: []*felt.Felt{
 				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 				utils.TestHexToFelt(t, "0x1"),
@@ -420,32 +326,50 @@ func TestAddInvoke(t *testing.T) {
 		// err = account.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall})
 		// require.NoError(t, err, "Error in BuildInvokeTx")
 
-		fmtdCallData := account.FmtCalldata([]rpc.FunctionCall{fnCall})
-		fmt.Println("invokeTx.CD", invokeTx.Calldata)
-		fmt.Println("fmtdCallData", fmtdCallData)
+		fmtdCallData := account.FmtCalldata2([]rpc.FunctionCall{fnCall})
 		invokeTx.Calldata = fmtdCallData
-		fmt.Println("invokeTx.CD", invokeTx.Calldata)
-
-		qwe, _ := json.MarshalIndent(invokeTx, "", "")
-		fmt.Println(string(qwe))
 
 		/// NEED TO FORMAT THE CALL DATA
+		fmt.Println("+++++++ pre TransactionHash2", invokeTx.Nonce, invokeTx.MaxFee)
 		txHash, err := acnt.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
+		require.Equal(t, txHash.String(), "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
 		x, y, err := starknetgo.Curve.SignFelt(txHash, fakePrivKeyFelt)
 		if err != nil {
 			panic(err)
 		}
+		require.Equal(t, x.String(), "0x10d405427040655f118bc8b897e2f2f8147858bbcb0e3d6bc6dfbc6d0205e8")
+		require.Equal(t, y.String(), "0x5cdfe4a3d5b63002e9011ec0ba59ae2b75a43cb2a3bc1699b35aa64cb9ca3cf")
+
+		fmt.Println("+++++++ post TransactionHash2", invokeTx.Nonce, invokeTx.MaxFee)
 		invokeTx.Signature = []*felt.Felt{x, y}
+		fmt.Println(" ====== invokeTx", invokeTx)
+		// fmt.Println("sig", invokeTx.Signature)
+		// fmt.Println("invokeTx.Calldata", invokeTx.Calldata)
+		// fmt.Println("txHash", txHash)
+		// fmt.Println(x, y)
+		fmt.Println(" ====== invokeTx", invokeTx)
+		qwe, _ := json.MarshalIndent(invokeTx, "", "")
+		fmt.Println("MarshalIndent", string(qwe))
+		fmt.Println("+++++++ post MarshalIndent", invokeTx.Nonce, invokeTx.MaxFee)
+		fmt.Println(" ====== invokeTx", invokeTx)
 
-		qqwe, _ := json.MarshalIndent(invokeTx, "", "")
-		fmt.Println(string(qqwe))
-		fmt.Println(txHash)
-		fmt.Println(x, y)
-
-		// Send tx
-		// resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
-		// fmt.Println("resp", resp, err)
-		// require.NoError(t, err)
+		///
+		// pub, _ := new(big.Int).SetString("2090221843434510384432085791482977629840322403554658343615172301617258923551", 0)
+		// hash, _ := new(big.Int).SetString("2122438891878094235855424351251599998644607787805056148746903357402852875679", 0)
+		// fmt.Println("")
+		// fmt.Println("txHash", txHash) // It seems the txhash is incorrect. Signature is correct.
+		// fmt.Println("acntadr", accountAddress, accountAddress.BigInt(new(big.Int)))
+		// fmt.Println("pub", pub, new(felt.Felt).SetBytes(pub.Bytes()))
+		// fmt.Println("hash", hash, new(felt.Felt).SetBytes(hash.Bytes()))
+		// fmt.Println("")
+		// fmt.Println(invokeTx.Signature[0].BigInt(new(big.Int)))
+		// fmt.Println(invokeTx.Signature[1].BigInt(new(big.Int)))
+		// fmt.Println(invokeTx.Signature[0].BigInt(new(big.Int)))
+		// fmt.Println(invokeTx.Signature[1].BigInt(new(big.Int)))
+		// // Send tx
+		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
+		fmt.Println("resp", resp, err)
+		require.NoError(t, err)
 	})
 }
 

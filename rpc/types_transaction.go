@@ -281,12 +281,8 @@ type BroadcastedInvokeV1Transaction struct {
 func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
 	output := map[string]interface{}{}
 	output["type"] = b.Type
-	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
-	}
-	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
-	}
+	output["max_fee"] = b.MaxFee
+	output["nonce"] = b.Nonce
 	output["version"] = b.Version
 	signature := b.Signature
 	output["signature"] = signature
