@@ -25,18 +25,28 @@ func TestTransactionTrace(t *testing.T) {
 
 		err = json.Unmarshal(expectedrespRaw, &rawjson)
 		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
-		expectedResp = rawjson.Result
+	
+		txnTrace, err := json.Marshal(rawjson.Result)
+		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
+		err = json.Unmarshal(txnTrace, &expectedResp)
 	}
 
 	type testSetType struct {
-		TransactionHash    *felt.Felt
-		ExpectedResp TxnTrace
+		TransactionHash *felt.Felt
+		ExpectedResp    TxnTrace
+		ExpectedError   *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
 				TransactionHash: utils.TestHexToFelt(t, "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329"),
 				ExpectedResp:    expectedResp,
+				ExpectedError:   nil,
+			},
+			testSetType{
+				TransactionHash: utils.TestHexToFelt(t, "0xc0ffee"),
+				ExpectedResp:    nil,
+				ExpectedError:   ErrInvalidTxnHash,
 			},
 		},
 		"devnet":  {},
@@ -46,9 +56,10 @@ func TestTransactionTrace(t *testing.T) {
 	for _, test := range testSet {
 		resp, err := testConfig.provider.TransactionTrace(context.Background(), test.TransactionHash)
 		if err != nil {
-			t.Fatal(err)
+			require.Equal(t, test.ExpectedError, err)
+		} else {
+			require.Equal(t, test.ExpectedResp, resp)
 		}
-		require.Equal(t, test.ExpectedResp, resp)
 	}
 }
 
