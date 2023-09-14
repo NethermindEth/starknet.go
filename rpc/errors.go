@@ -78,4 +78,56 @@ var (
 		code:    50,
 		message: "Invalid contract class",
 	}
+	ErrClassAlreadyDeclared = &RPCError{
+		code:    51,
+		message: "Class already declared",
+	}
+	ErrInvalidTransactionNonce = &RPCError{
+		code:    52,
+		message: "Invalid transaction nonce",
+	}
+	ErrInsufficientMaxFee = &RPCError{
+		code:    53,
+		message: "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
+	}
+	ErrInsufficientAccountBalance = &RPCError{
+		code:    54,
+		message: "Account balance is smaller than the transaction's max_fee",
+	}
+	ErrValidationFailure = &RPCError{
+		code:    55,
+		message: "Account validation failed",
+	}
+	ErrCompilationFailed = &RPCError{
+		code:    56,
+		message: "Compilation failed",
+	}
+	ErrContractClassSizeTooLarge = &RPCError{
+		code:    57,
+		message: "Contract class size is too large",
+	}
+	ErrNonAccount = &RPCError{
+		code:    58,
+		message: "Sender address is not an account contract",
+	}
+	ErrDuplicateTx = &RPCError{
+		code:    59,
+		message: "A transaction with the same hash already exists in the mempool",
+	}
+	ErrCompiledClassHashMismatch = &RPCError{
+		code:    60,
+		message: "The compiled class hash did not match the one supplied in the transaction",
+	}
+	ErrUnsupportedTxVersion = &RPCError{
+		code:    61,
+		message: "The transaction version is not supported",
+	}
+	ErrUnsupportedContractClassVersion = &RPCError{
+		code:    62,
+		message: "The contract class version is not supported",
+	}
+	ErrUnexpectedError = &RPCError{
+		code:    63,
+		message: "An unexpected error occurred",
+	}
 )
