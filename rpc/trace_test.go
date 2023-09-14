@@ -48,6 +48,15 @@ func TestTransactionTrace(t *testing.T) {
 				ExpectedResp:    nil,
 				ExpectedError:   ErrInvalidTxnHash,
 			},
+			testSetType{
+				TransactionHash: utils.TestHexToFelt(t, "0xf00d"),
+				ExpectedResp:    nil,
+				ExpectedError:   &RPCError{
+					code: 10,
+					message: "No trace available for transaction",
+					data: TransactionRejected,
+				},
+			},
 		},
 		"devnet":  {},
 		"mainnet": {},

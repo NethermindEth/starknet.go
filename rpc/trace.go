@@ -11,7 +11,10 @@ import (
 func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnHash, ErrNoTraceAvailable)
+		if noTraceAvailableError, ok := isErrNoTraceAvailableError(err); ok {
+			return nil, noTraceAvailableError
+		}
+		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnHash)
 	}
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)

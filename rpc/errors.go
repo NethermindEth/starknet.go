@@ -14,9 +14,25 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return err
 }
 
+func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
+	clientErr, ok := err.(*RPCError)
+	if !ok {
+		return nil, false
+	}
+	switch clientErr.code {
+	case ErrNoTraceAvailable.code:
+		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError.data = clientErr.data
+		return noTraceAvailableError, true
+	}
+	return nil, false
+}
+
+
 type RPCError struct {
 	code    int
 	message string
+	data    any
 }
 
 func (e *RPCError) Error() string {
@@ -25,6 +41,10 @@ func (e *RPCError) Error() string {
 
 func (e *RPCError) Code() int {
 	return e.code
+}
+
+func (e *RPCError) Data() any {
+	return e.data
 }
 
 var (
