@@ -46,7 +46,7 @@ func main() {
 			Version: rpc.TransactionV1,
 			Type:    rpc.TransactionType_Invoke,
 		},
-		SenderAddress: accountAddress,
+		SenderAddress: accountAddress, // starknetjs sets as contract Address
 	}
 	//calldata
 	// Make read contract call
@@ -61,9 +61,22 @@ func main() {
 	// => transaction hash is incorrect (not fmtCallData). Alos know signature is correct from postman.
 
 	// sign
+
 	fakePrivKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
+
+	// optin1: Hash unformatted data
 	txHash, err := TransactionHash(
 		invokeTx.Calldata,
+		rpc.TxDetails{
+			Nonce:   invokeTx.Nonce,
+			MaxFee:  invokeTx.MaxFee,
+			Version: invokeTx.Version,
+		},
+		accountAddress,
+	)
+	// optin2: Hash formatted data
+	txHash2, err := TransactionHash(
+		tx.Calldata,
 		rpc.TxDetails{
 			Nonce:   invokeTx.Nonce,
 			MaxFee:  invokeTx.MaxFee,
@@ -84,7 +97,8 @@ func main() {
 	pub, _ := new(big.Int).SetString("2090221843434510384432085791482977629840322403554658343615172301617258923551", 0)
 	hash, _ := new(big.Int).SetString("2391207323525339369856503773624499041713147169482476892458076737242741151771", 0)
 
-	fmt.Println("txHash", txHash) // It seems the txhash is incorrect. Signature is correct.
+	fmt.Println("txHash", txHash)   // It seems the txhash is incorrect. Signature is correct.
+	fmt.Println("txHash2", txHash2) // It seems the txhash is incorrect. Signature is correct.
 	fmt.Println("acntadr", accountAddress, accountAddress.BigInt(new(big.Int)))
 	fmt.Println("pub", pub, new(felt.Felt).SetBytes(pub.Bytes()))
 	fmt.Println("hash", hash, new(felt.Felt).SetBytes(hash.Bytes()))

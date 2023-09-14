@@ -26,7 +26,7 @@ const (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) //Todo: remove TxDetails
+	TransactionHash2(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
 	Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -74,29 +74,7 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 		blockId)
 }
 
-func (account *Account) TransactionHash(call rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
-
-	if call.Calldata == nil || txDetails.Nonce == nil || txDetails.MaxFee == nil || account.AccountAddress == nil {
-		return nil, ErrNotAllParametersSet
-	}
-
-	calldataHash, err := computeHashOnElementsFelt(call.Calldata)
-	if err != nil {
-		return nil, err
-	}
-
-	return calculateTransactionHashCommon(
-		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
-		new(felt.Felt).SetUint64(account.version),
-		account.AccountAddress,
-		&felt.Zero,
-		calldataHash,
-		txDetails.MaxFee,
-		account.ChainId,
-		[]*felt.Felt{txDetails.Nonce},
-	)
-}
-
+// TransactionHash2 requires the callData to be compiled beforehand
 func (account *Account) TransactionHash2(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
 
 	if len(callData) == 0 || nonce == nil || maxFee == nil || accountAddress == nil {
@@ -182,7 +160,7 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.Broadca
 	// 	invokeTx.MaxFee = newMaxFee
 	// }
 	// Compile callData
-	invokeTx.Calldata = fmtCalldata(*fnCall)
+	// invokeTx.Calldata = fmtCalldata(*fnCall)
 	// Get and set nonce
 	// nonce, err := account.Nonce(ctx)
 	// if err != nil {
@@ -224,7 +202,7 @@ Formats the multicall transactions in a format which can be signed and verified 
 // eg no calls [0x0, 0x0]
 // eg 1 read? [0x1, contract_Address, ep, 0x0,0x0,0x5]
 // eg 1 set (with one param)? [0x1, contract_address, ep, 0x0, 0xnum_params, 4+ num_params, 0x1  ]
-func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
+func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	callArray := []*felt.Felt{}
 	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
 
@@ -244,5 +222,27 @@ func fmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	}
 	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))))
 	callData = append(callData, callArray...)
+	return callData
+}
+func FmtCalldata2(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	callArray := []*felt.Felt{}
+	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
+
+	for _, tx := range fnCalls {
+		callData = append(callData, tx.ContractAddress, tx.EntryPointSelector)
+
+		if len(tx.Calldata) == 0 {
+			callData = append(callData, &felt.Zero, &felt.Zero)
+			continue
+		}
+
+		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))+1))
+		for _, cd := range tx.Calldata {
+			callArray = append(callArray, cd)
+		}
+	}
+	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray)+1)))
+	callData = append(callData, callArray...)
+	callData = append(callData, new(felt.Felt).SetUint64(0))
 	return callData
 }
