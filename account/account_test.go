@@ -144,31 +144,43 @@ func TestTransactionHash(t *testing.T) {
 }
 
 func TestFmtCallData(t *testing.T) {
-
-	t.Run("ChainId mainnet - mock", func(t *testing.T) {
-
-		fnCall := rpc.FunctionCall{
-			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
-			Calldata: []*felt.Felt{
-				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				utils.TestHexToFelt(t, "0x1"),
+	type testSetType struct {
+		FnCall           rpc.FunctionCall
+		ExpectedCallData []*felt.Felt
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"mock": {
+			{
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+						utils.TestHexToFelt(t, "0x1"),
+					},
+				},
+				ExpectedCallData: []*felt.Felt{
+					utils.TestHexToFelt(t, "0x1"),
+					utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
+					utils.TestHexToFelt(t, "0x0"),
+					utils.TestHexToFelt(t, "0x3"),
+					utils.TestHexToFelt(t, "0x3"),
+					utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					utils.TestHexToFelt(t, "0x1"),
+					utils.TestHexToFelt(t, "0x0"),
+				},
 			},
-		}
-		expectedCallData := []*felt.Felt{
-			utils.TestHexToFelt(t, "0x1"),
-			utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
-			utils.TestHexToFelt(t, "0x0"),
-			utils.TestHexToFelt(t, "0x3"),
-			utils.TestHexToFelt(t, "0x3"),
-			utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			utils.TestHexToFelt(t, "0x1"),
-			utils.TestHexToFelt(t, "0x0"),
-		}
-		fmtCallData := account.FmtCalldata([]rpc.FunctionCall{fnCall})
-		require.Equal(t, fmtCallData, expectedCallData)
-	})
+		},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		fmtCallData := account.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		require.Equal(t, fmtCallData, test.ExpectedCallData)
+	}
 }
 
 func TestChainIdMOCK(t *testing.T) {
