@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // CommonTransactionReceipt Common properties for a transaction receipt
@@ -28,6 +27,10 @@ type CommonTransactionReceipt struct {
 
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
+}
+
+func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
 }
 
 // TODO: check how we can move that type up in starknet.go/types
@@ -76,11 +79,19 @@ func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
 // DeclareTransactionReceipt Declare Transaction Receipt
 type DeclareTransactionReceipt CommonTransactionReceipt
 
 func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
+}
+
+func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
 }
 
 // DeployTransactionReceipt Deploy  Transaction Receipt
@@ -94,6 +105,10 @@ func (tr DeployTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
 // DeployAccountTransactionReceipt Deploy Account Transaction Receipt
 type DeployAccountTransactionReceipt struct {
 	CommonTransactionReceipt
@@ -105,11 +120,19 @@ func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
 // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
 type L1HandlerTransactionReceipt CommonTransactionReceipt
 
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
+}
+
+func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
 }
 
 type PendingDeployTransactionReceipt struct {
@@ -120,6 +143,10 @@ type PendingDeployTransactionReceipt struct {
 
 func (tr PendingDeployTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
+}
+
+func (tr PendingDeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
 }
 
 type PendingCommonTransactionReceiptProperties struct {
@@ -140,8 +167,13 @@ func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
 type TransactionReceipt interface {
 	Hash() *felt.Felt
+	GetExecutionStatus() TxnExecutionStatus
 }
 
 type MsgToL1 struct {
@@ -171,13 +203,6 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
-	case string:
-		var txn InvokeTransactionReceipt
-		txhash, err := utils.HexToFelt(casted)
-		if err != nil {
-			return txn, err
-		}
-		return TransactionHash{txhash}, nil
 	case map[string]interface{}:
 		// NOTE(tvanas): Pathfinder 0.3.3 does not return
 		// transaction receipt types. We handle this by
@@ -185,9 +210,7 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 		// is supported, this condition can be removed.
 		typ, ok := casted["type"]
 		if !ok {
-			var txn InvokeTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			return nil, fmt.Errorf("unknown transaction type: %v", t)
 		}
 
 		// Pending doesn't have a block number

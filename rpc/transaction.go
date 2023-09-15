@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -116,30 +115,7 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 			if err != nil {
 				continue
 			}
-			switch r := receipt.(type) {
-			case DeclareTransactionReceipt:
-				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
-					return r.ExecutionStatus, nil
-				}
-			case DeployTransactionReceipt:
-				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
-					return r.ExecutionStatus, nil
-				}
-			case DeployAccountTransactionReceipt:
-				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
-					return r.ExecutionStatus, nil
-				}
-			case InvokeTransactionReceipt:
-				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
-					return r.ExecutionStatus, nil
-				}
-			case L1HandlerTransactionReceipt:
-				if r.ExecutionStatus == TxnExecutionStatusSUCCEEDED {
-					return r.ExecutionStatus, nil
-				}
-			default:
-				return "", fmt.Errorf("unknown receipt %T", receipt)
-			}
+			return receipt.GetExecutionStatus(), nil
 		}
 	}
 }
