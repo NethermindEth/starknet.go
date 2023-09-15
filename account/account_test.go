@@ -80,7 +80,7 @@ func TestTransactionHash(t *testing.T) {
 			MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
 			Version: rpc.TransactionV1,
 		}
-		hash, err := account.TransactionHash2(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
+		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
 		require.NoError(t, err, "error returned from account.TransactionHash()")
 		require.Equal(t, expectedHash.String(), hash.String(), "transaction hash does not match expected")
 	})
@@ -105,7 +105,7 @@ func TestTransactionHash(t *testing.T) {
 			Nonce:  &felt.Zero,
 			MaxFee: &felt.Zero,
 		}
-		hash, err := account.TransactionHash2(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
+		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
 		require.NoError(t, err, "error returned from account.TransactionHash()")
 		require.Equal(t, hash.String(), expectedHash.String(), "transaction hash does not match expected")
 	})
@@ -137,7 +137,7 @@ func TestTransactionHash(t *testing.T) {
 			MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
 			Version: rpc.TransactionV1,
 		}
-		hash, err := account.TransactionHash2(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
+		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
 		require.NoError(t, err, "error returned from account.TransactionHash()")
 		require.Equal(t, expectedHash.String(), hash.String(), "transaction hash does not match expected")
 	})
@@ -241,7 +241,7 @@ func TestSign(t *testing.T) {
 func TestAddInvoke(t *testing.T) {
 
 	// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
-	t.Run("Test AddInvokeTransction testnet", func(t *testing.T) {
+	t.Run("Test AddInvokeTransction testnet - transfer ETH", func(t *testing.T) {
 		if testEnv != "testnet" {
 			t.Skip("Skipping test as it requires a testnet environment")
 		}
@@ -329,7 +329,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 		}
 		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
-		txHash, err := acnt.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
+		txHash, err := acnt.TransactionHashInvoke(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
 		require.NoError(t, err)
 		require.Equal(t, txHash.String(), "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86")
 

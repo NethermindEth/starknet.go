@@ -26,14 +26,14 @@ const (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	TransactionHash2(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
 	Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
 	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
-	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
+	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
+	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
+	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
 }
 
 var _ AccountInterface = &Account{}
@@ -75,7 +75,7 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 }
 
 // TransactionHash2 requires the callData to be compiled beforehand
-func (account *Account) TransactionHash2(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
 
 	if len(callData) == 0 || nonce == nil || maxFee == nil || accountAddress == nil {
 		return nil, ErrNotAllParametersSet
@@ -128,7 +128,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 
 func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error {
 
-	txHash, err := account.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
+	txHash, err := account.TransactionHashInvoke(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
 	if err != nil {
 		return err
 	}
