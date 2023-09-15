@@ -248,34 +248,55 @@ func TestChainId(t *testing.T) {
 
 }
 
-func TestSign(t *testing.T) {
+func TestSignMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	// Accepted on testnet https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
-	t.Run("Sign testnet - mock 2", func(t *testing.T) {
-		expectedS1 := utils.TestHexToFelt(t, "0x10d405427040655f118bc8b897e2f2f8147858bbcb0e3d6bc6dfbc6d0205e8")
-		expectedS2 := utils.TestHexToFelt(t, "0x5cdfe4a3d5b63002e9011ec0ba59ae2b75a43cb2a3bc1699b35aa64cb9ca3cf")
+	type testSetType struct {
+		Address     *felt.Felt
+		PrivKey     *felt.Felt
+		ChainId     string
+		FeltToSign  *felt.Felt
+		ExpectedSig []*felt.Felt
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			// Accepted on testnet https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
+			{
+				Address:    utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				PrivKey:    utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				ChainId:    "SN_GOERLI",
+				FeltToSign: utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
+				ExpectedSig: []*felt.Felt{
+					utils.TestHexToFelt(t, "0x10d405427040655f118bc8b897e2f2f8147858bbcb0e3d6bc6dfbc6d0205e8"),
+					utils.TestHexToFelt(t, "0x5cdfe4a3d5b63002e9011ec0ba59ae2b75a43cb2a3bc1699b35aa64cb9ca3cf"),
+				},
+			},
+		},
+		"devnet":  {},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
 
-		address := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
-		privKey := utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
-		privKeyBI, ok := new(big.Int).SetString(privKey.String(), 0)
+	for _, test := range testSet {
+		privKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 		require.True(t, ok)
 		ks := starknetgo.NewMemKeystore()
-		ks.Put(address.String(), privKeyBI)
+		ks.Put(test.Address.String(), privKeyBI)
 
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, address, address.String(), ks)
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
+		account, err := account.NewAccount(mockRpcProvider, 1, test.Address, test.Address.String(), ks)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		msg := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
 		sig, err := account.Sign(context.Background(), msg)
 
 		require.NoError(t, err, "error returned from account.Sign()")
-		require.Equal(t, expectedS1.String(), sig[0].String(), "s1 does not match expected")
-		require.Equal(t, expectedS2.String(), sig[1].String(), "s2 does not match expected")
-	})
+		require.Equal(t, test.ExpectedSig[0].String(), sig[0].String(), "s1 does not match expected")
+		require.Equal(t, test.ExpectedSig[1].String(), sig[1].String(), "s2 does not match expected")
+	}
+
 }
 
 func TestAddInvoke(t *testing.T) {
