@@ -42,8 +42,10 @@ type DeprecatedContractClass struct {
 }
 
 type ContractClass struct {
+	// The list of Sierra instructions of which the program consists
 	SierraProgram []*felt.Felt `json:"sierra_program"`
 
+	// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
 	ContractClassVersion string `json:"contract_class_version"`
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
