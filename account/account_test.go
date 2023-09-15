@@ -166,9 +166,7 @@ func TestFmtCallData(t *testing.T) {
 			utils.TestHexToFelt(t, "0x1"),
 			utils.TestHexToFelt(t, "0x0"),
 		}
-		fmt.Println("fnCall.asd", fnCall.EntryPointSelector)
 		fmtCallData := account.FmtCalldata([]rpc.FunctionCall{fnCall})
-		fmt.Println("fmtCallData", fmtCallData)
 		require.Equal(t, fmtCallData, expectedCallData)
 	})
 }
@@ -284,6 +282,56 @@ func TestAddInvoke(t *testing.T) {
 			},
 		}
 		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
+
+		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
+		require.Equal(t, err.Error(), "A transaction with the same hash already exists in the mempool") // todo : update when rpcv04 gets merged
+		require.Nil(t, resp)
+	})
+
+	t.Run("Test AddInvokeTransction testnet - burn DAI", func(t *testing.T) {
+		if testEnv != "testnet" {
+			t.Skip("Skipping test as it requires a testnet environment")
+		}
+		client, err := rpc.NewClient(base + "/rpc")
+		require.NoError(t, err, "Error in rpc.NewClient")
+		provider := rpc.NewProvider(client)
+
+		// account address
+		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
+
+		// Set up ks
+		ks := starknetgo.NewMemKeystore()
+		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
+		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
+		ks.Put(fakePubKey.String(), fakePrivKey)
+
+		// Get account
+		acnt, err := account.NewAccount(provider, 1, accountAddress, fakePubKey.String(), ks)
+		require.NoError(t, err)
+
+		// Now build the trasaction
+		maxFee, _ := new(felt.Felt).SetString("0x9184e72a000")
+		invokeTx := rpc.BroadcastedInvokeV1Transaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:   new(felt.Felt).SetUint64(6),
+				MaxFee:  maxFee,
+				Version: rpc.TransactionV1,
+				Type:    rpc.TransactionType_Invoke,
+			},
+			SenderAddress: acnt.AccountAddress,
+		}
+		fnCall := rpc.FunctionCall{
+			ContractAddress:    utils.TestHexToFelt(t, "0x03E85bFbb8E2A42B7BeaD9E88e9A1B19dbCcf661471061807292120462396ec9"),
+			EntryPointSelector: types.GetSelectorFromNameFelt("burn"),
+			Calldata: []*felt.Felt{
+				utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				utils.TestHexToFelt(t, "0x1"),
+			},
+		}
+		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
+		txHash, err := acnt.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
+		require.NoError(t, err)
+		require.Equal(t, txHash.String(), "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86")
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
 		require.Equal(t, err.Error(), "A transaction with the same hash already exists in the mempool") // todo : update when rpcv04 gets merged

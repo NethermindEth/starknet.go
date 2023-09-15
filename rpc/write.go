@@ -10,25 +10,12 @@ type BroadcastedInvokeTransaction interface{}
 
 // AddInvokeTransaction estimates the fee for a given StarkNet transaction.
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error) {
-	// TODO: EntryPointSelector now part of calldata
-	// tx, ok := broadcastedInvoke.(BroadcastedInvokeV0Transaction)
-	// if ok {
-	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
-	// 	broadcastedInvoke = tx
-	// }
+
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, broadcastedInvoke); err != nil {
 		return nil, err
 	}
 	return &output, nil
-	// switch invoke := broadcastedInvoke.(type) {
-	// case BroadcastedInvokeV1Transaction:
-	// 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invoke); err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return &output, nil
-	// }
-	return nil, errors.New("invalid invoke type")
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
