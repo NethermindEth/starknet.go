@@ -2,6 +2,8 @@ package rpc
 
 import "errors"
 
+var ErrNotImplemented = errors.New("not implemented")
+
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	for _, rpcErr := range rpcErrors {
 		if errors.Is(err, rpcErr) {
@@ -12,9 +14,25 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return err
 }
 
+func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
+	clientErr, ok := err.(*RPCError)
+	if !ok {
+		return nil, false
+	}
+	switch clientErr.code {
+	case ErrNoTraceAvailable.code:
+		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError.data = clientErr.data
+		return noTraceAvailableError, true
+	}
+	return nil, false
+}
+
+
 type RPCError struct {
 	code    int
 	message string
+	data    any
 }
 
 func (e *RPCError) Error() string {
@@ -25,10 +43,18 @@ func (e *RPCError) Code() int {
 	return e.code
 }
 
+func (e *RPCError) Data() any {
+	return e.data
+}
+
 var (
 	ErrFailedToReceiveTxn = &RPCError{
 		code:    1,
 		message: "Failed to write transaction",
+	}
+	ErrNoTraceAvailable = &RPCError{
+		code: 10,
+        message: "No trace available for transaction",
 	}
 	ErrContractNotFound = &RPCError{
 		code:    20,
@@ -37,6 +63,10 @@ var (
 	ErrBlockNotFound = &RPCError{
 		code:    24,
 		message: "Block not found",
+	}
+	ErrInvalidTxnHash = &RPCError{
+		code:    25,
+		message: "Invalid transaction hash",
 	}
 	ErrHashNotFound = &RPCError{
 		code:    25,
