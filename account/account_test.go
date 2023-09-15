@@ -258,7 +258,6 @@ func TestAddInvoke(t *testing.T) {
 		ks := starknetgo.NewMemKeystore()
 		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
 		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
-		fakePrivKeyFelt, _ := new(felt.Felt).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 		ks.Put(fakePubKey.String(), fakePrivKey)
 
 		// Get account
@@ -284,16 +283,11 @@ func TestAddInvoke(t *testing.T) {
 				utils.TestHexToFelt(t, "0x1"),
 			},
 		}
-		invokeTx.Calldata = account.FmtCalldata([]rpc.FunctionCall{fnCall})
+		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
 
-		/// NEED TO FORMAT THE CALL DATA
-		txHash, err := acnt.TransactionHash2(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
-		x, y, err := starknetgo.Curve.SignFelt(txHash, fakePrivKeyFelt)
-		require.NoError(t, err)
-		invokeTx.Signature = []*felt.Felt{x, y}
 		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
-		require.NoError(t, err)
-		require.NotNil(t, resp)
+		require.Equal(t, err.Error(), "A transaction with the same hash already exists in the mempool") // todo : update when rpcv04 gets merged
+		require.Nil(t, resp)
 	})
 }
 

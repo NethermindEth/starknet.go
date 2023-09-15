@@ -146,34 +146,9 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.Broadca
 		return ErrAccountVersionNotSupported
 	}
 
-	// Set max fee if not already set
-	// if invokeTx.MaxFee == nil {
-	// 	estimate, err := account.EstimateFee(ctx, []rpc.BroadcastedTransaction{invokeTx}, rpc.WithBlockTag("latest"))
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	overallFee, err := new(felt.Felt).SetString(string(estimate[0].OverallFee))
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	newMaxFee := new(felt.Felt).Mul(overallFee, new(felt.Felt).SetUint64(2))
-	// 	invokeTx.MaxFee = newMaxFee
-	// }
-	// Compile callData
-	// invokeTx.Calldata = fmtCalldata(*fnCall)
-	// Get and set nonce
-	// nonce, err := account.Nonce(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// invokeTx.Nonce = nonce
+	invokeTx.Calldata = FmtCalldata(*fnCall)
 
-	// Sign transaction
-	err := account.SignInvokeTransaction(ctx, invokeTx)
-	if err != nil {
-		return err
-	}
-	return nil
+	return account.SignInvokeTransaction(ctx, invokeTx)
 }
 
 func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
