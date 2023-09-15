@@ -45,8 +45,8 @@ type api interface {
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
 	AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, *RPCError)
-	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, *RPCError)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, *RPCError)
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simFlags []SimulationFlag) ([]SimulatedTransaction, error)
 	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
 }

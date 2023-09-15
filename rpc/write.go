@@ -33,7 +33,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedI
 }
 
 // AddDeclareTransaction submits a new class declaration transaction.
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error) {
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, *RPCError) {
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
 		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
@@ -60,7 +60,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 }
 
 // AddDeployAccountTransaction manages the DEPLOY_ACCOUNT syscall
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error) {
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, *RPCError) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
 		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
