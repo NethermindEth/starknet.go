@@ -1,20 +1,60 @@
 package rpc
 
-import "errors"
+import (
+	"errors"
+)
 
-func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
+const (
+	InvalidJSON    = -32700 // Invalid JSON was received by the server.
+	InvalidRequest = -32600 // The JSON sent is not a valid Request object.
+	MethodNotFound = -32601 // The method does not exist / is not available.
+	InvalidParams  = -32602 // Invalid method parameter(s).
+	InternalError  = -32603 // Internal JSON-RPC error.
+)
+
+func Err(code int, data any) *RPCError {
+	switch code {
+	case InvalidJSON:
+		return &RPCError{code: InvalidJSON, message: "Parse error", data: data}
+	case InvalidRequest:
+		return &RPCError{code: InvalidRequest, message: "Invalid Request", data: data}
+	case MethodNotFound:
+		return &RPCError{code: MethodNotFound, message: "Method Not Found", data: data}
+	case InvalidParams:
+		return &RPCError{code: InvalidParams, message: "Invalid Params", data: data}
+	default:
+		return &RPCError{code: InternalError, message: "Internal Error", data: data}
+	}
+}
+
+func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	for _, rpcErr := range rpcErrors {
 		if errors.Is(err, rpcErr) {
 			return rpcErr
 		}
 	}
 
-	return err
+	return Err(InternalError, err.Error())
+}
+
+func isErrUnexpectedError(err error) (*RPCError, bool) {
+	clientErr, ok := err.(*RPCError)
+	if !ok {
+		return nil, false
+	}
+	switch clientErr.code {
+	case ErrUnexpectedError.code:
+		unexpectedErr := ErrUnexpectedError
+		unexpectedErr.data = clientErr.data
+		return unexpectedErr, true
+	}
+	return nil, false
 }
 
 type RPCError struct {
 	code    int
 	message string
+	data    any
 }
 
 func (e *RPCError) Error() string {
@@ -23,6 +63,10 @@ func (e *RPCError) Error() string {
 
 func (e *RPCError) Code() int {
 	return e.code
+}
+
+func (e *RPCError) Data() any {
+	return e.data
 }
 
 var (

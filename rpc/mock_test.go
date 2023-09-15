@@ -450,29 +450,20 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 	if !ok {
 		return errWrongType
 	}
-	if len(args) != 4 {
-		fmt.Printf("args: %d\n", len(args))
-		return errWrongArgs
+	if len(args) != 1 {
+		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong numbre of args ", len(args)))
 	}
-	_, ok = args[0].(FunctionCall)
+	invokeTx, ok := args[0].(BroadcastedInvokeV1Transaction)
 	if !ok {
-		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
-		return errWrongArgs
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastedInvokeV1Transaction, got %T\n", args[0]))
 	}
-	_, ok = args[1].([]string)
-	if !ok {
-		fmt.Printf("args[1] should be []string, got %T\n", args[1])
-		return errWrongArgs
-	}
-	_, ok = args[2].(string)
-	if !ok {
-		fmt.Printf("args[2] should be []string, got %T\n", args[2])
-		return errWrongArgs
-	}
-	_, ok = args[3].(string)
-	if !ok {
-		fmt.Printf("args[3] should be []string, got %T\n", args[3])
-		return errWrongArgs
+	if invokeTx.SenderAddress != nil {
+
+		if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
+			unexpErr := ErrUnexpectedError
+			unexpErr.data = "Something crazy happened"
+			return unexpErr
+		}
 	}
 	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
