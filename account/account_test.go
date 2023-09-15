@@ -171,41 +171,69 @@ func TestFmtCallData(t *testing.T) {
 	})
 }
 
-func TestChainId(t *testing.T) {
+func TestChainIdMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	t.Run("ChainId mainnet - mock", func(t *testing.T) {
-		mainnetID := utils.TestHexToFelt(t, "0x534e5f4d41494e")
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
+	type testSetType struct {
+		ChainID    string
+		ExpectedID string
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"mock": {
+			{
+				ChainID:    "SN_MAIN",
+				ExpectedID: "0x534e5f4d41494e",
+			},
+			{
+				ChainID:    "SN_GOERLI",
+				ExpectedID: "0x534e5f474f45524c49",
+			},
+		},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
-		require.Equal(t, account.ChainId.String(), mainnetID.String())
-	})
+		require.Equal(t, account.ChainId.String(), test.ExpectedID)
+	}
+}
 
-	t.Run("ChainId testnet - mock", func(t *testing.T) {
-		testnetID := utils.TestHexToFelt(t, "0x534e5f474f45524c49")
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
-		require.NoError(t, err)
-		require.Equal(t, account.ChainId.String(), testnetID.String())
-	})
+func TestChainId(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
 
-	t.Run("ChainId devnet", func(t *testing.T) {
-		if testEnv != "devnet" {
-			t.Skip("Skipping test as it requires a devnet environment")
-		}
-		devNetURL := "http://0.0.0.0:5050/rpc"
+	type testSetType struct {
+		ChainID    string
+		ExpectedID string
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				ChainID:    "SN_GOERLI",
+				ExpectedID: "0x534e5f474f45524c49",
+			},
+		},
+		"mock":    {},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
 
-		fmt.Println("devNetURL", devNetURL)
-		client, err := rpc.NewClient(devNetURL)
+	for _, test := range testSet {
+		client, err := rpc.NewClient(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		_, err = account.NewAccount(provider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		account, err := account.NewAccount(provider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
-	})
+		require.Equal(t, account.ChainId.String(), test.ExpectedID)
+	}
+
 }
 
 func TestSign(t *testing.T) {

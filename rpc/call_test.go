@@ -82,6 +82,5 @@ func TestCall(t *testing.T) {
 			t.Fatal("should return an output")
 		}
 		require.Equal(t, test.ExpectedPatternResult, output[0])
-
 	}
 }
