@@ -58,6 +58,7 @@ func TestTransactionHash(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
+				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
 				ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
 				SetKS:          true,
 				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
@@ -127,7 +128,6 @@ func TestTransactionHash(t *testing.T) {
 	}[testEnv]
 	for _, test := range testSet {
 
-		// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
 		t.Run("Transaction hash", func(t *testing.T) {
 			ks := starknetgo.NewMemKeystore()
 			if test.SetKS {
@@ -305,103 +305,102 @@ func TestSignMOCK(t *testing.T) {
 
 func TestAddInvoke(t *testing.T) {
 
-	// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
-	t.Run("Test AddInvokeTransction testnet - transfer ETH", func(t *testing.T) {
-		if testEnv != "testnet" {
-			t.Skip("Skipping test as it requires a testnet environment")
-		}
+	type testSetType struct {
+		ExpectedHash   *felt.Felt
+		ExpectedError  string // todo :update when rpcv04 merged
+		SetKS          bool
+		AccountAddress *felt.Felt
+		PubKey         *felt.Felt
+		PrivKey        *felt.Felt
+		InvokeTx       rpc.BroadcastedInvokeV1Transaction
+		FnCall         rpc.FunctionCall
+		TxDetails      rpc.TxDetails
+	}
+	testSet := map[string][]testSetType{
+		"mock":   {},
+		"devnet": {},
+		"testnet": {{
+			// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
+			ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
+			ExpectedError:  "A transaction with the same hash already exists in the mempool",
+			AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+			SetKS:          true,
+			PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+			PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+			InvokeTx: rpc.BroadcastedInvokeV1Transaction{
+				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+					Nonce:   new(felt.Felt).SetUint64(2),
+					MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
+					Version: rpc.TransactionV1,
+					Type:    rpc.TransactionType_Invoke,
+				},
+				SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+			},
+			FnCall: rpc.FunctionCall{
+				ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+				EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
+				Calldata: []*felt.Felt{
+					utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					utils.TestHexToFelt(t, "0x1"),
+				},
+			},
+		},
+			{
+				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
+				ExpectedHash:   utils.TestHexToFelt(t, "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86"),
+				ExpectedError:  "A transaction with the same hash already exists in the mempool",
+				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				SetKS:          true,
+				PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+				PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				InvokeTx: rpc.BroadcastedInvokeV1Transaction{
+					BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+						Nonce:   new(felt.Felt).SetUint64(6),
+						MaxFee:  utils.TestHexToFelt(t, "0x9184e72a000"),
+						Version: rpc.TransactionV1,
+						Type:    rpc.TransactionType_Invoke,
+					},
+					SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x03E85bFbb8E2A42B7BeaD9E88e9A1B19dbCcf661471061807292120462396ec9"),
+					EntryPointSelector: types.GetSelectorFromNameFelt("burn"),
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+						utils.TestHexToFelt(t, "0x1"),
+					},
+				},
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
 		client, err := rpc.NewClient(base + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		// account address
-		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
-
 		// Set up ks
 		ks := starknetgo.NewMemKeystore()
-		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
-		ks.Put(fakePubKey.String(), fakePrivKey)
+		if test.SetKS {
+			fakePrivKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
+			require.True(t, ok)
+			ks.Put(test.PubKey.String(), fakePrivKeyBI)
+		}
 
-		// Get account
-		acnt, err := account.NewAccount(provider, 1, accountAddress, fakePubKey.String(), ks)
+		acnt, err := account.NewAccount(provider, 1, test.AccountAddress, test.PubKey.String(), ks)
 		require.NoError(t, err)
 
-		// Now build the trasaction
-		maxFee, _ := new(felt.Felt).SetString("0x574fbde6000")
-		invokeTx := rpc.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:   new(felt.Felt).SetUint64(3),
-				MaxFee:  maxFee,
-				Version: rpc.TransactionV1,
-				Type:    rpc.TransactionType_Invoke,
-			},
-			SenderAddress: acnt.AccountAddress,
-		}
-		fnCall := rpc.FunctionCall{
-			ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
-			Calldata: []*felt.Felt{
-				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				utils.TestHexToFelt(t, "0x1"),
-			},
-		}
-		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
+		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &test.InvokeTx, &[]rpc.FunctionCall{test.FnCall}), "Error building Invoke")
 
-		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
-		require.Equal(t, err.Error(), "A transaction with the same hash already exists in the mempool") // todo : update when rpcv04 gets merged
+		txHash, err := acnt.TransactionHashInvoke(test.InvokeTx.Calldata, test.InvokeTx.Nonce, test.InvokeTx.MaxFee, acnt.AccountAddress)
+		require.NoError(t, err)
+		require.Equal(t, txHash.String(), test.ExpectedHash.String())
+
+		resp, err := acnt.AddInvokeTransaction(context.Background(), &test.InvokeTx)
+		require.Equal(t, err.Error(), test.ExpectedError)
 		require.Nil(t, resp)
-	})
-
-	t.Run("Test AddInvokeTransction testnet - burn DAI", func(t *testing.T) {
-		if testEnv != "testnet" {
-			t.Skip("Skipping test as it requires a testnet environment")
-		}
-		client, err := rpc.NewClient(base + "/rpc")
-		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
-
-		// account address
-		accountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
-
-		// Set up ks
-		ks := starknetgo.NewMemKeystore()
-		fakePubKey, _ := new(felt.Felt).SetString("0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-		fakePrivKey, _ := new(big.Int).SetString("0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa", 0)
-		ks.Put(fakePubKey.String(), fakePrivKey)
-
-		// Get account
-		acnt, err := account.NewAccount(provider, 1, accountAddress, fakePubKey.String(), ks)
-		require.NoError(t, err)
-
-		// Now build the trasaction
-		maxFee, _ := new(felt.Felt).SetString("0x9184e72a000")
-		invokeTx := rpc.BroadcastedInvokeV1Transaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:   new(felt.Felt).SetUint64(6),
-				MaxFee:  maxFee,
-				Version: rpc.TransactionV1,
-				Type:    rpc.TransactionType_Invoke,
-			},
-			SenderAddress: acnt.AccountAddress,
-		}
-		fnCall := rpc.FunctionCall{
-			ContractAddress:    utils.TestHexToFelt(t, "0x03E85bFbb8E2A42B7BeaD9E88e9A1B19dbCcf661471061807292120462396ec9"),
-			EntryPointSelector: types.GetSelectorFromNameFelt("burn"),
-			Calldata: []*felt.Felt{
-				utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
-				utils.TestHexToFelt(t, "0x1"),
-			},
-		}
-		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &invokeTx, &[]rpc.FunctionCall{fnCall}))
-		txHash, err := acnt.TransactionHashInvoke(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, acnt.AccountAddress)
-		require.NoError(t, err)
-		require.Equal(t, txHash.String(), "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86")
-
-		resp, err := acnt.AddInvokeTransaction(context.Background(), &invokeTx)
-		require.Equal(t, err.Error(), "A transaction with the same hash already exists in the mempool") // todo : update when rpcv04 gets merged
-		require.Nil(t, resp)
-	})
+	}
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
