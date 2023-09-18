@@ -24,13 +24,13 @@ import (
 
 var (
 	// set the environment for the test, default: mock
-	testEnv = "devnet"
+	testEnv = "mock"
 	base    = ""
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	base = os.Getenv("INTEGRATION_BASE")
@@ -446,7 +446,6 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
 	// Send transaction to the network
-	// WIP breaks here
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
 	require.NoError(t, err)
 	require.NotNil(t, resp)

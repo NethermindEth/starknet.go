@@ -337,6 +337,8 @@ type BroadcastedDeployAccountTransaction struct {
 	ClassHash           *felt.Felt   `json:"class_hash"`
 }
 
-func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
+// AddDeployTransactionResponse provides the output for AddDeployTransaction.
+type AddDeployAccountTransactionResponse struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	ContractAddress *felt.Felt `json:"contract_address"`
 }

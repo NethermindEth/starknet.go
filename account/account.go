@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
@@ -249,9 +250,10 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 	}
 }
 
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployAccountTransactionResponse, error) {
 	switch account.version {
 	case 1:
+		fmt.Println("===")
 		return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 	default:
 		return nil, ErrAccountVersionNotSupported
