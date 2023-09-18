@@ -35,7 +35,7 @@ type AccountInterface interface {
 
 var _ AccountInterface = &Account{}
 
-// var _ rpc.RpcProvider = &Account{} //todo : add all methods
+// var _ rpc.RpcProvider = &Account{} //todo: post rpcv04 merge
 
 type Account struct {
 	provider       rpc.RpcProvider
@@ -223,4 +223,22 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 }
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionReceipt(ctx, hash)
+}
+
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastedDeclareTransaction) (*rpc.AddDeclareTransactionResponse, error) {
+	switch account.version {
+	case 1:
+		return account.provider.AddDeclareTransaction(ctx, declareTransaction)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
+}
+
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployTransactionResponse, error) {
+	switch account.version {
+	case 1:
+		return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
+	default:
+		return nil, ErrAccountVersionNotSupported
+	}
 }
