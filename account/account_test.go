@@ -241,7 +241,7 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base)
+		client, err := rpc.NewClient(base + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
@@ -404,9 +404,9 @@ func TestAddInvoke(t *testing.T) {
 }
 
 func TestAddDeployAccountDevnet(t *testing.T) {
-	// if testEnv != "devnet" {
-	// 	t.Skip("Skipping test as it requires a devnet environment")
-	// }
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
 	client, err := rpc.NewClient(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
@@ -426,7 +426,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
 	require.NoError(t, err)
 
-	classHash := utils.TestHexToFelt(t, "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a") // preDeployed classhash
+	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
 	require.NoError(t, err)
 
 	tx := rpc.BroadcastedDeployAccountTransaction{
@@ -445,10 +445,9 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
-	// Send transaction to the network
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
-	require.NoError(t, err)
-	require.NotNil(t, resp)
+	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
