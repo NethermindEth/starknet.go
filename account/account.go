@@ -26,10 +26,7 @@ const (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error)
-	Nonce(ctx context.Context) (*felt.Felt, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error)
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
@@ -37,6 +34,8 @@ type AccountInterface interface {
 }
 
 var _ AccountInterface = &Account{}
+
+// var _ rpc.RpcProvider = &Account{} //todo : add all methods
 
 type Account struct {
 	provider       rpc.RpcProvider
@@ -65,15 +64,6 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 	return account, nil
 }
 
-func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error) {
-	return account.provider.Call(ctx,
-		rpc.FunctionCall{
-			ContractAddress:    call.ContractAddress,
-			EntryPointSelector: call.EntryPointSelector,
-			Calldata:           call.Calldata},
-		blockId)
-}
-
 // TransactionHash2 requires the callData to be compiled beforehand
 func (account *Account) TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
 
@@ -94,20 +84,6 @@ func (account *Account) TransactionHashInvoke(callData []*felt.Felt, nonce *felt
 		account.ChainId,
 		[]*felt.Felt{nonce},
 	)
-}
-
-func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
-	switch account.version {
-	case 1:
-		// Todo: simplfy after rpc PRs are merged, return account.provider.Nonce(...)
-		nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
-		if err != nil {
-			return nil, err
-		}
-		return new(felt.Felt).SetString(*nonce)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
 }
 
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
@@ -151,15 +127,6 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.Broadca
 	return account.SignInvokeTransaction(ctx, invokeTx)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, broadcastTxs []rpc.BroadcastedTransaction, blockId rpc.BlockID) ([]rpc.FeeEstimate, error) {
-	switch account.version {
-	case 1:
-		return account.provider.EstimateFee(ctx, broadcastTxs, blockId)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
-}
-
 // AddInvokeTransaction submits a complete (ie signed, and calldata has been formatted etc) invoke transaction to the rpc provider.
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
 	switch account.version {
@@ -194,4 +161,66 @@ func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	callData = append(callData, callArray...)
 	callData = append(callData, new(felt.Felt).SetUint64(0))
 	return callData
+}
+
+func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashAndNumberOutput, error) {
+	return account.provider.BlockHashAndNumber(ctx)
+}
+
+func (account *Account) BlockNumber(ctx context.Context) (uint64, error) {
+	return account.provider.BlockNumber(ctx)
+}
+
+func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.BlockID) (uint64, error) {
+	return account.provider.BlockTransactionCount(ctx, blockID)
+}
+
+func (account *Account) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
+	return account.provider.BlockWithTxHashes(ctx, blockID)
+}
+
+func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
+	return account.provider.BlockWithTxs(ctx, blockID)
+}
+
+func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error) {
+	return account.provider.Call(ctx, call, blockId)
+}
+
+func (account *Account) ChainID(ctx context.Context) (string, error) {
+	return account.provider.ChainID(ctx)
+}
+func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash string) (*rpc.ContractClass, error) {
+	return account.provider.Class(ctx, blockID, classHash)
+}
+func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*rpc.ContractClass, error) {
+	return account.provider.ClassAt(ctx, blockID, contractAddress)
+}
+
+func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+	return account.provider.ClassHashAt(ctx, blockID, contractAddress)
+}
+
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastedTransaction, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+	return account.provider.EstimateFee(ctx, requests, blockID)
+}
+
+func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventsOutput, error) {
+	return account.provider.Events(ctx, input)
+}
+func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+	return account.provider.Nonce(ctx, blockID, contractAddress)
+}
+
+func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
+	return account.provider.StateUpdate(ctx, blockID)
+}
+func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
+	return account.provider.Syncing(ctx)
+}
+func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
+}
+func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+	return account.provider.TransactionReceipt(ctx, hash)
 }
