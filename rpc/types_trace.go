@@ -12,8 +12,8 @@ type SimulateTransactionInput struct {
 type SimulationFlag string
 
 const (
-	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
-	SKIP_EXECUTE  SimulationFlag = "SKIP_EXECUTE"
+	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
+	SKIP_EXECUTE    SimulationFlag = "SKIP_EXECUTE"
 )
 
 // The execution trace and consumed resources of the required transactions
@@ -79,11 +79,11 @@ const (
 type FnInvocation struct {
 	FunctionCall
 
-	//The address where the code for this contract is stored in the state
-	CodeAddress *felt.Felt `json:"code_address,omitempty"`
-
 	//The address of the invoking contract. 0 for the root invocation
 	CallerAddress *felt.Felt `json:"caller_address,omitempty"`
+
+	// The hash of the class being called
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
 
 	EntryPointType EntryPointType `json:"entry_point_type,omitempty"`
 
