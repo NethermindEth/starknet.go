@@ -29,7 +29,8 @@ type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error
+	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastedInvokeV1Transaction) error
+	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error
 	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)
 }
 
@@ -113,6 +114,20 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 		return err
 	}
 	invokeTx.Signature = signature
+	return nil
+}
+
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error {
+
+	hash, err := calculateDeployAccountTransactionHash(*tx, precomputeAddress, account.ChainId.String())
+	if err != nil {
+		return err
+	}
+	signature, err := account.Sign(ctx, hash)
+	if err != nil {
+		return err
+	}
+	tx.Signature = signature
 	return nil
 }
 
@@ -241,4 +256,31 @@ func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployA
 	default:
 		return nil, ErrAccountVersionNotSupported
 	}
+}
+
+// precomputeAddress computes the address by hashing the relevant data.
+// ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
+
+	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
+		CONTRACT_ADDRESS_PREFIX,
+		deployerAddress,
+		salt,
+		classHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	constructorCalldataBigIntArr, err := utils.FeltArrToBigIntArr(constructorCalldata)
+	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(*constructorCalldataBigIntArr)
+	*bigIntArr = append(*bigIntArr, constructorCallDataHashInt)
+
+	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
+	if err != nil {
+		return nil, err
+	}
+	return utils.BigIntToFelt(preBigInt)
+
 }

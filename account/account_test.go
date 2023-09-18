@@ -24,13 +24,13 @@ import (
 
 var (
 	// set the environment for the test, default: mock
-	testEnv = "mock"
+	testEnv = "devnet"
 	base    = ""
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
+	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
 	flag.Parse()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	base = os.Getenv("INTEGRATION_BASE")
@@ -401,6 +401,55 @@ func TestAddInvoke(t *testing.T) {
 		require.Equal(t, err.Error(), test.ExpectedError)
 		require.Nil(t, resp)
 	}
+}
+
+func TestAddDeployAccountDevnet(t *testing.T) {
+	// if testEnv != "devnet" {
+	// 	t.Skip("Skipping test as it requires a devnet environment")
+	// }
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+	fakeUser := acnts[0]
+	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
+	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+	// Set up ks
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+	require.True(t, ok)
+	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
+	require.NoError(t, err)
+
+	classHash := utils.TestHexToFelt(t, "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a") // preDeployed classhash
+	require.NoError(t, err)
+
+	tx := rpc.BroadcastedDeployAccountTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+			Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
+			MaxFee:    new(felt.Felt).SetUint64(4724395326064),
+			Type:      rpc.TransactionType_DeployAccount,
+			Version:   rpc.TransactionV1,
+			Signature: []*felt.Felt{},
+		},
+		ClassHash:           classHash,
+		ContractAddressSalt: fakeUserPub,
+		ConstructorCalldata: []*felt.Felt{fakeUserPub},
+	}
+
+	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+	// Send transaction to the network
+	// WIP breaks here
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
