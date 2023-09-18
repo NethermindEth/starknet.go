@@ -45,102 +45,106 @@ func TestTransactionHash(t *testing.T) {
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
-	t.Run("Transaction hash mock", func(t *testing.T) {
-		if testEnv != "mock" {
-			t.Skip("Skipping test as it requires a mock environment")
-		}
-		expectedHash := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
-		acntAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
-		privKey := utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
-		privKeyBI, ok := new(big.Int).SetString(privKey.String(), 0)
-		require.True(t, ok)
-		ks := starknetgo.NewMemKeystore()
-		ks.Put(acntAddress.String(), privKeyBI)
-
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, acntAddress, acntAddress.String(), ks)
-		require.NoError(t, err, "error returned from account.NewAccount()")
-
-		call := rpc.FunctionCall{
-			Calldata: []*felt.Felt{
-				utils.TestHexToFelt(t, "0x1"),
-				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
-				utils.TestHexToFelt(t, "0x0"),
-				utils.TestHexToFelt(t, "0x3"),
-				utils.TestHexToFelt(t, "0x3"),
-				utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				utils.TestHexToFelt(t, "0x1"),
-				utils.TestHexToFelt(t, "0x0"),
+	type testSetType struct {
+		ExpectedHash   *felt.Felt
+		SetKS          bool
+		AccountAddress *felt.Felt
+		PubKey         string
+		PrivKey        *felt.Felt
+		ChainID        string
+		FnCall         rpc.FunctionCall
+		TxDetails      rpc.TxDetails
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
+				SetKS:          true,
+				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				PubKey:         "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e",
+				ChainID:        "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+						utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
+						utils.TestHexToFelt(t, "0x0"),
+						utils.TestHexToFelt(t, "0x3"),
+						utils.TestHexToFelt(t, "0x3"),
+						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x0"),
+					},
+				},
+				TxDetails: rpc.TxDetails{
+					Nonce:   utils.TestHexToFelt(t, "0x2"),
+					MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
+					Version: rpc.TransactionV1,
+				},
 			},
-		}
-		txDetails := rpc.TxDetails{
-			Nonce:   utils.TestHexToFelt(t, "0x2"),
-			MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
-			Version: rpc.TransactionV1,
-		}
-		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
-		require.NoError(t, err, "error returned from account.TransactionHash()")
-		require.Equal(t, expectedHash.String(), hash.String(), "transaction hash does not match expected")
-	})
-
-	t.Run("Transaction hash testnet", func(t *testing.T) {
-		if testEnv != "testnet" {
-			t.Skip("Skipping test as it requires a testnet environment")
-		}
-		expectedHash := utils.TestHexToFelt(t, "0x135c34f53f8b7f59efd450eb689fccd9dd4cfe7f9d9dc4d09954c5653138698")
-		address := &felt.Zero
-
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, address, "pubkey", starknetgo.NewMemKeystore())
-		require.NoError(t, err, "error returned from account.NewAccount()")
-
-		call := rpc.FunctionCall{
-			ContractAddress:    &felt.Zero,
-			EntryPointSelector: &felt.Zero,
-			Calldata:           []*felt.Felt{&felt.Zero},
-		}
-		txDetails := rpc.TxDetails{
-			Nonce:  &felt.Zero,
-			MaxFee: &felt.Zero,
-		}
-		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
-		require.NoError(t, err, "error returned from account.TransactionHash()")
-		require.Equal(t, hash.String(), expectedHash.String(), "transaction hash does not match expected")
-	})
-
-	t.Run("Transaction hash mainnet", func(t *testing.T) {
-		if testEnv != "mainnet" {
-			t.Skip("Skipping test as it requires a mainnet environment")
-		}
-		expectedHash := utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637")
-		accountAddress := utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8")
-
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, accountAddress, "pubkey", starknetgo.NewMemKeystore())
-		require.NoError(t, err, "error returned from account.NewAccount()")
-
-		call := rpc.FunctionCall{
-			Calldata: []*felt.Felt{
-				utils.TestHexToFelt(t, "0x1"),
-				utils.TestHexToFelt(t, "0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af"),
-				utils.TestHexToFelt(t, "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"),
-				utils.TestHexToFelt(t, "0x0"),
-				utils.TestHexToFelt(t, "0x1"),
-				utils.TestHexToFelt(t, "0x1"),
-				utils.TestHexToFelt(t, "0x52884ee3f"),
+			{
+				ExpectedHash:   utils.TestHexToFelt(t, "0x135c34f53f8b7f59efd450eb689fccd9dd4cfe7f9d9dc4d09954c5653138698"),
+				SetKS:          false,
+				AccountAddress: &felt.Zero,
+				ChainID:        "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    &felt.Zero,
+					EntryPointSelector: &felt.Zero,
+					Calldata:           []*felt.Felt{&felt.Zero},
+				},
+				TxDetails: rpc.TxDetails{
+					Nonce:  &felt.Zero,
+					MaxFee: &felt.Zero,
+				},
 			},
-		}
-		txDetails := rpc.TxDetails{
-			Nonce:   utils.TestHexToFelt(t, "0x1"),
-			MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
-			Version: rpc.TransactionV1,
-		}
-		hash, err := account.TransactionHashInvoke(call.Calldata, txDetails.Nonce, txDetails.MaxFee, account.AccountAddress)
-		require.NoError(t, err, "error returned from account.TransactionHash()")
-		require.Equal(t, expectedHash.String(), hash.String(), "transaction hash does not match expected")
-	})
+			{
+				ExpectedHash:   utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637"),
+				SetKS:          false,
+				AccountAddress: utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8"),
+				ChainID:        "SN_MAIN",
+				FnCall: rpc.FunctionCall{
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af"),
+						utils.TestHexToFelt(t, "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"),
+						utils.TestHexToFelt(t, "0x0"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x52884ee3f"),
+					},
+				},
+				TxDetails: rpc.TxDetails{
+					Nonce:   utils.TestHexToFelt(t, "0x1"),
+					MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
+					Version: rpc.TransactionV1,
+				},
+			},
+		},
+		"devnet":  {},
+		"testnet": {},
+		"mainnet": {},
+	}[testEnv]
+	for _, test := range testSet {
+
+		// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
+		t.Run("Transaction hash", func(t *testing.T) {
+			ks := starknetgo.NewMemKeystore()
+			if test.SetKS {
+				privKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
+				require.True(t, ok)
+				ks.Put(test.PubKey, privKeyBI)
+			}
+
+			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+			account, err := account.NewAccount(mockRpcProvider, 1, test.AccountAddress, test.PubKey, ks)
+			require.NoError(t, err, "error returned from account.NewAccount()")
+			hash, err := account.TransactionHashInvoke(test.FnCall.Calldata, test.TxDetails.Nonce, test.TxDetails.MaxFee, account.AccountAddress)
+			require.NoError(t, err, "error returned from account.TransactionHash()")
+			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
+		})
+	}
+
 }
 
 func TestFmtCallData(t *testing.T) {
