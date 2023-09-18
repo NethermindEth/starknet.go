@@ -23,7 +23,7 @@
     </a>
 </p>
 
-<h1 align="center">Get the gopher high on Starknet</h1>
+<h1 align="center">Get the gopher Starkpilled</h1>
 
 <a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
@@ -48,9 +48,11 @@ operations on the wallets. The package has excellent documentation for a smooth
 # Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
+- [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
+<!-- Currently not working
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
 - [contract example](./examples/contract) for smart contract deployment and function call
-- [account example](./examples/contract) for Account initialization and invocation call
+- [account example](./examples/contract) for Account initialization and invocation call -->
 
 ### Run Examples
 
