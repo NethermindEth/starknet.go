@@ -303,23 +303,6 @@ type BroadcastedInvokeV1Transaction struct {
 	Calldata      []*felt.Felt `json:"calldata"`
 }
 
-func (b BroadcastedInvokeV1Transaction) MarshalJSON() ([]byte, error) {
-	output := map[string]interface{}{}
-	output["type"] = b.Type
-	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
-	}
-	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
-	}
-	output["version"] = b.Version
-	signature := b.Signature
-	output["signature"] = signature
-	output["sender_address"] = b.SenderAddress
-	output["calldata"] = b.Calldata
-	return json.Marshal(output)
-}
-
 type BroadcastedDeclareTransaction interface{}
 
 var _ BroadcastedDeclareTransaction = BroadcastedDeclareTransactionV1{}
@@ -330,47 +313,11 @@ type BroadcastedDeclareTransactionV1 struct {
 	ContractClass DeprecatedContractClass `json:"contract_class"`
 	SenderAddress *felt.Felt              `json:"sender_address"`
 }
-
-func (b BroadcastedDeclareTransactionV1) MarshalJSON() ([]byte, error) {
-	output := map[string]interface{}{}
-	output["type"] = "DECLARE"
-	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
-	}
-	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
-	}
-	output["version"] = b.Version
-	signature := b.Signature
-	output["signature"] = signature
-	output["sender_address"] = b.SenderAddress.String()
-	output["contract_class"] = b.ContractClass
-	return json.Marshal(output)
-}
-
 type BroadcastedDeclareTransactionV2 struct {
 	BroadcastedTxnCommonProperties
 	ContractClass     ContractClass `json:"contract_class"`
 	SenderAddress     *felt.Felt    `json:"sender_address"`
 	CompiledClassHash *felt.Felt    `json:"compiled_class_hash"`
-}
-
-func (b BroadcastedDeclareTransactionV2) MarshalJSON() ([]byte, error) {
-	output := map[string]interface{}{}
-	output["type"] = "DECLARE"
-	if b.MaxFee != nil {
-		output["max_fee"] = fmt.Sprintf("0x%x", b.MaxFee)
-	}
-	if b.Nonce != nil {
-		output["nonce"] = fmt.Sprintf("0x%x", b.Nonce)
-	}
-	output["version"] = b.Version
-	signature := b.Signature
-	output["signature"] = signature
-	output["sender_address"] = b.SenderAddress.String()
-	output["contract_class"] = b.ContractClass
-	output["compiled_class_hash"] = b.CompiledClassHash
-	return json.Marshal(output)
 }
 
 type DeployTransactionProperties struct {
@@ -385,8 +332,4 @@ type BroadcastedDeployAccountTransaction struct {
 	ContractAddressSalt *felt.Felt   `json:"contract_address_salt"`
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
 	ClassHash           *felt.Felt   `json:"class_hash"`
-}
-
-func (b BroadcastedDeployAccountTransaction) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
 }

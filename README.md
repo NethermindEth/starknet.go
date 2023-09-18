@@ -92,9 +92,9 @@ go run main.go
 | `starknet_addInvokeTransaction`            | :heavy_check_mark: |
 | `starknet_addDeclareTransaction`           | :heavy_check_mark: |
 | `starknet_addDeployAccountTransaction`     | :heavy_check_mark: |
-| `starknet_traceTransaction`                | :x:                |
-| `starknet_simulateTransaction`             | :x:                |
-| `starknet_traceBlockTransactions`          | :x:                |
+| `starknet_traceTransaction`                | :heavy_check_mark: |
+| `starknet_simulateTransaction`             | :heavy_check_mark: |
+| `starknet_traceBlockTransactions`          | :heavy_check_mark: |
 
 ### Run Tests
 

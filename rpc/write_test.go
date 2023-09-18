@@ -94,7 +94,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, *err, test.ExpectedError, "AddInvokeTransaction did not give expected error")
+			require.Equal(t, err, &test.ExpectedError, "AddInvokeTransaction did not give expected error")
 		} else {
 			require.Equal(t, *resp, test.ExpectedResp)
 		}

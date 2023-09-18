@@ -70,6 +70,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockWithTxHashes(result, method, args...)
 	case "starknet_traceBlockTransactions":
 		return mock_starknet_traceBlockTransactions(result, method, args...)
+	case "starknet_traceTransaction":
+		return mock_starknet_traceTransaction(result, method, args...)
 	default:
 		return errNotFound
 	}
@@ -651,4 +653,44 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 	}
 
 	return ErrInvalidBlockHash
+}
+
+func mock_starknet_traceTransaction(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	transactionHash, ok := args[0].(*felt.Felt)
+	if !ok {
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
+	}
+	switch transactionHash.String() {
+	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329" :
+		var rawTrace struct {
+			Result InvokeTxnTrace `json:"result"`
+		}
+		read, err := os.ReadFile("tests/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		if err != nil {
+			return err
+		}
+		if nil != json.Unmarshal(read, &rawTrace) {
+			return err
+		}
+		txnTrace, err := json.Marshal(rawTrace.Result)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(txnTrace, &r)
+	case "0xf00d" :
+		return &RPCError{
+			code: 10,
+			message: "No trace available for transaction",
+			data: TransactionRejected,
+		}
+	default:
+		return ErrInvalidTxnHash
+	}
 }

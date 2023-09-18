@@ -4,6 +4,8 @@ import (
 	"errors"
 )
 
+var ErrNotImplemented = errors.New("not implemented")
+
 const (
 	InvalidJSON    = -32700 // Invalid JSON was received by the server.
 	InvalidRequest = -32600 // The JSON sent is not a valid Request object.
@@ -27,7 +29,7 @@ func Err(code int, data any) *RPCError {
 	}
 }
 
-func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
+func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	for _, rpcErr := range rpcErrors {
 		if errors.Is(err, rpcErr) {
 			return rpcErr
@@ -47,6 +49,20 @@ func isErrUnexpectedError(err error) (*RPCError, bool) {
 		unexpectedErr := ErrUnexpectedError
 		unexpectedErr.data = clientErr.data
 		return unexpectedErr, true
+	}
+	return nil, false
+}
+
+func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
+	clientErr, ok := err.(*RPCError)
+	if !ok {
+		return nil, false
+	}
+	switch clientErr.code {
+	case ErrNoTraceAvailable.code:
+		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError.data = clientErr.data
+		return noTraceAvailableError, true
 	}
 	return nil, false
 }
@@ -74,6 +90,10 @@ var (
 		code:    1,
 		message: "Failed to write transaction",
 	}
+	ErrNoTraceAvailable = &RPCError{
+		code:    10,
+		message: "No trace available for transaction",
+	}
 	ErrContractNotFound = &RPCError{
 		code:    20,
 		message: "Contract not found",
@@ -81,6 +101,10 @@ var (
 	ErrBlockNotFound = &RPCError{
 		code:    24,
 		message: "Block not found",
+	}
+	ErrInvalidTxnHash = &RPCError{
+		code:    25,
+		message: "Invalid transaction hash",
 	}
 	ErrHashNotFound = &RPCError{
 		code:    25,
