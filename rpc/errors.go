@@ -28,7 +28,6 @@ func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
 	return nil, false
 }
 
-
 type RPCError struct {
 	code    int
 	message string
@@ -53,8 +52,8 @@ var (
 		message: "Failed to write transaction",
 	}
 	ErrNoTraceAvailable = &RPCError{
-		code: 10,
-        message: "No trace available for transaction",
+		code:    10,
+		message: "No trace available for transaction",
 	}
 	ErrContractNotFound = &RPCError{
 		code:    20,
@@ -68,12 +67,8 @@ var (
 		code:    25,
 		message: "Invalid transaction hash",
 	}
-	ErrHashNotFound = &RPCError{
-		code:    25,
-		message: "Transaction hash not found",
-	}
 	ErrInvalidBlockHash = &RPCError{
-		code:    24,
+		code:    26,
 		message: "Invalid block hash",
 	}
 	ErrInvalidTxnIndex = &RPCError{
@@ -83,6 +78,10 @@ var (
 	ErrClassHashNotFound = &RPCError{
 		code:    28,
 		message: "Class hash not found",
+	}
+	ErrHashNotFound = &RPCError{
+		code:    29,
+		message: "Transaction hash not found",
 	}
 	ErrPageSizeTooBig = &RPCError{
 		code:    31,
