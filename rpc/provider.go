@@ -25,6 +25,9 @@ func NewProvider(c *rpc.Client) *Provider {
 }
 
 type api interface {
+	AddInvokeTransaction(ctx context.Context, invokeTxn AddInvokeTxnInput) (*AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction AddDeployAccountTxnInput) (*AddDeployTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -42,12 +45,11 @@ type api interface {
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
+	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
-	AddInvokeTransaction(ctx context.Context, invokeTxn AddInvokeTxnInput) (*AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction AddDeployAccountTxnInput) (*AddDeployTransactionResponse, error)
+	TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }
 
 var _ api = &Provider{}

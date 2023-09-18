@@ -53,7 +53,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	// call StarkNet contract
+	// call Starknet contract
 	callResp, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    types.StrToFelt(tx.Transaction.ContractAddress),
 		EntryPointSelector: "get_count",

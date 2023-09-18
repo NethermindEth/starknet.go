@@ -17,7 +17,7 @@ from starkware.starknet.common.syscalls import get_tx_info, get_block_timestamp
 
 from openzeppelin.account.library import Account, AccountCallArray
 
-# H('StarkNetDomain(chainId:felt)')
+# H('StarknetDomain(chainId:felt)')
 const STARKNET_DOMAIN_TYPE_HASH = 0x13cda234a04d66db62c06b8e3ad5f91bd0c67286c2c7519a826cf49da6ba478
 # H('Session(key:felt,expires:felt,root:merkletree)')
 const SESSION_TYPE_HASH = 0x1aa0e1c56b45cf06a54534fa1707c54e520b842feb21d03b7deddb6f1e340c
@@ -107,7 +107,7 @@ func compute_session_hash{pedersen_ptr: HashBuiltin*}(
     let hash_ptr = pedersen_ptr
     with hash_ptr:
         let (hash_state) = hash_init()
-        let (hash_state) = hash_update_single(hash_state_ptr=hash_state, item='StarkNet Message')
+        let (hash_state) = hash_update_single(hash_state_ptr=hash_state, item='Starknet Message')
         let (domain_hash) = hash_domain(chain_id)
         let (hash_state) = hash_update_single(hash_state_ptr=hash_state, item=domain_hash)
         let (hash_state) = hash_update_single(hash_state_ptr=hash_state, item=account)

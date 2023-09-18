@@ -23,7 +23,7 @@
     </a>
 </p>
 
-<h1 align="center">Get the gopher high on StarkNet</h1>
+<h1 align="center">Get the gopher high on Starknet</h1>
 
 <a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
@@ -65,36 +65,36 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the [StarkNet RPC v03 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.3.0/api):
+`starknet.go` RPC implements the [Starknet RPC v03 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.3.0/api):
 
-| Method                                         | Implemented (*)    |
-| ---------------------------------------------- | ------------------ |
-| `starknet_getBlockWithTxHashes`                |  :heavy_check_mark: |
-| `starknet_getBlockWithTxs`                     | :heavy_check_mark: |
-| `starknet_getStateUpdate`                      | :heavy_check_mark: |
-| `starknet_getStorageAt`                        | :heavy_check_mark: |
-| `starknet_getTransactionByHash`                | :heavy_check_mark: |
-| `starknet_getTransactionByBlockIdAndIndex`                      | :heavy_check_mark: |
-| `starknet_getTransactionReceipt`                          | :heavy_check_mark: |
-| `starknet_getClass`                                | :heavy_check_mark: |
-| `starknet_getClassHashAt`                         | :heavy_check_mark: |
-| `starknet_getClassAt`                             | :heavy_check_mark: |
-| `starknet_getBlockTransactionCount`                             | :heavy_check_mark: |
-| `starknet_call`                           | :heavy_check_mark: |
-| `starknet_estimateFee`                | :heavy_check_mark: |
-| `starknet_blockNumber`         | :heavy_check_mark: |
-| `starknet_blockHashAndNumber`               | :heavy_check_mark: |
+| Method                                     | Implemented (*)    |
+| ------------------------------------------ | ------------------ |
+| `starknet_getBlockWithTxHashes`            | :heavy_check_mark: |
+| `starknet_getBlockWithTxs`                 | :heavy_check_mark: |
+| `starknet_getStateUpdate`                  | :heavy_check_mark: |
+| `starknet_getStorageAt`                    | :heavy_check_mark: |
+| `starknet_getTransactionByHash`            | :heavy_check_mark: |
+| `starknet_getTransactionByBlockIdAndIndex` | :heavy_check_mark: |
+| `starknet_getTransactionReceipt`           | :heavy_check_mark: |
+| `starknet_getClass`                        | :heavy_check_mark: |
+| `starknet_getClassHashAt`                  | :heavy_check_mark: |
+| `starknet_getClassAt`                      | :heavy_check_mark: |
+| `starknet_getBlockTransactionCount`        | :heavy_check_mark: |
+| `starknet_call`                            | :heavy_check_mark: |
+| `starknet_estimateFee`                     | :heavy_check_mark: |
+| `starknet_blockNumber`                     | :heavy_check_mark: |
+| `starknet_blockHashAndNumber`              | :heavy_check_mark: |
 | `starknet_chainId`                         | :heavy_check_mark: |
-| `starknet_pendingTransactions`      | :heavy_check_mark: |
-| `starknet_syncing`    | :heavy_check_mark: |
-| `starknet_getEvents` | :heavy_check_mark: |
-| `starknet_getNonce`   | :heavy_check_mark: |
-| `starknet_addInvokeTransaction`                      | :heavy_check_mark: |
-| `starknet_addDeclareTransaction`             | :heavy_check_mark:                |
-| `starknet_addDeployAccountTransaction`                   | :heavy_check_mark:                |
-| `starknet_traceTransaction`                        | :x: |
-| `starknet_simulateTransaction`                     | :x: |
-| `starknet_traceBlockTransactions`                     | :x: |
+| `starknet_pendingTransactions`             | :heavy_check_mark: |
+| `starknet_syncing`                         | :heavy_check_mark: |
+| `starknet_getEvents`                       | :heavy_check_mark: |
+| `starknet_getNonce`                        | :heavy_check_mark: |
+| `starknet_addInvokeTransaction`            | :heavy_check_mark: |
+| `starknet_addDeclareTransaction`           | :heavy_check_mark: |
+| `starknet_addDeployAccountTransaction`     | :heavy_check_mark: |
+| `starknet_traceTransaction`                | :heavy_check_mark: |
+| `starknet_simulateTransaction`             | :heavy_check_mark: |
+| `starknet_traceBlockTransactions`          | :heavy_check_mark: |
 
 ### Run Tests
 

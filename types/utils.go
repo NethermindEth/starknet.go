@@ -35,7 +35,7 @@ func StrToBig(str string) *big.Int {
 	return b
 }
 
-// convert hex string to StarkNet 'short string'
+// convert hex string to Starknet 'short string'
 func HexToShortStr(hexStr string) string {
 	numStr := strings.Replace(hexStr, "0x", "", -1)
 	hb, _ := new(big.Int).SetString(numStr, 16)
