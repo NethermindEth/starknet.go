@@ -76,7 +76,6 @@ func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deplo
 			ErrClassHashNotFound,
 			ErrDuplicateTx,
 			ErrUnsupportedTxVersion,
-			ErrUnexpectedError,
 		)
 	}
 	return &result, nil

@@ -95,9 +95,9 @@ func TestAddInvokeTransaction(t *testing.T) {
 		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
 			require.Equal(t, *err, test.ExpectedError, "AddInvokeTransaction did not give expected error")
-			continue
+		} else {
+			require.Equal(t, *resp, test.ExpectedResp)
 		}
-		require.Equal(t, *resp, test.ExpectedResp)
 
 	}
 }
