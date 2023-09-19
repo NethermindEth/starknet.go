@@ -18,9 +18,9 @@ type CommonTransactionReceipt struct {
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
 	BlockHash       *felt.Felt         `json:"block_hash"`
 	BlockNumber     uint64             `json:"block_number"`
-	Type            TransactionType    `json:"type"`
+	Type            TransactionType    `json:"type,omitempty"`
 	MessagesSent    []MsgToL1          `json:"messages_sent"`
-	RevertReason    string             `json:"revert_reason"`
+	RevertReason    string             `json:"revert_reason,omitempty"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
 }
