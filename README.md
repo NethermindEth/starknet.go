@@ -15,15 +15,22 @@
     <a href="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml">
         <img src="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
     </a>
-    <a href="https://twitter.com/NethermindStark">
-      <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
-    </a>
     <a href="https://github.com/nethermindeth/starknet.go">
       <img src="https://img.shields.io/github/stars/nethermindeth/starknet.go?style=social"/>
     </a>
 </p>
 
-<h1 align="center">Get the gopher high on Starknet</h1>
+</p>
+<p align="center">
+  <a href="https://twitter.com/NethermindStark">
+    <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
+  </a>
+  <a href="https://t.me/StarknetGo">
+    <img src="https://img.shields.io/badge/Telegram_group-gray?logo=telegram">
+  </a>
+</p>
+
+<h1 align="center">Get the gopher Starkpilled</h1>
 
 <a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
@@ -48,9 +55,11 @@ operations on the wallets. The package has excellent documentation for a smooth
 # Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
+- [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
+<!-- Currently not working
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
 - [contract example](./examples/contract) for smart contract deployment and function call
-- [account example](./examples/contract) for Account initialization and invocation call
+- [account example](./examples/contract) for Account initialization and invocation call -->
 
 ### Run Examples
 

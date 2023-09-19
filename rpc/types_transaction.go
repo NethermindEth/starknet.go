@@ -92,6 +92,21 @@ func (tx L1HandlerTxn) Hash() *felt.Felt {
 	return tx.Hash()
 }
 
+type DeclareTxnV0 struct {
+	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
+	MaxFee          *felt.Felt         `json:"max_fee"`
+	Version         TransactionVersion `json:"version"`
+	Signature       []*felt.Felt       `json:"signature"`
+	Nonce           *felt.Felt         `json:"nonce"`
+	Type            TransactionType    `json:"type"`
+
+	// SenderAddress the address of the account contract sending the declaration transaction
+	SenderAddress *felt.Felt `json:"sender_address"`
+
+	DeprecatedContractClass `json:"contract_class,omitempty"`
+	ClassHash               *felt.Felt `json:"class_hash,omitempty"`
+}
+
 type DeclareTxnV1 struct {
 	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
 	MaxFee          *felt.Felt         `json:"max_fee"`
@@ -102,6 +117,8 @@ type DeclareTxnV1 struct {
 
 	// ClassHash the hash of the declared class
 	ClassHash *felt.Felt `json:"class_hash"`
+
+	DeprecatedContractClass `json:"contract_class"`
 
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
@@ -119,12 +136,17 @@ type DeclareTxnV2 struct {
 	Nonce           *felt.Felt         `json:"nonce"`
 	Type            TransactionType    `json:"type"`
 
-	ClassHash *felt.Felt `json:"class_hash,omitempty"`
-
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
 
 	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+
+	ContractClass `json:"contract_class,omitempty"`
+	ClassHash     *felt.Felt `json:"class_hash,omitempty"`
+}
+
+func (tx DeclareTxnV0) Hash() *felt.Felt {
+	return tx.TransactionHash
 }
 
 func (tx DeclareTxnV2) Hash() *felt.Felt {
@@ -226,6 +248,10 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 		case TransactionType_Declare:
 
 			switch TransactionType(casted["version"].(string)) {
+			case "0x0":
+				var txn DeclareTxnV0
+				remarshal(casted, &txn)
+				return txn, nil
 			case "0x1":
 				var txn DeclareTxnV1
 				remarshal(casted, &txn)
