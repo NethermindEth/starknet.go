@@ -59,3 +59,45 @@ func TestDeclareTransaction(t *testing.T) {
 
 	}
 }
+
+// TestDeclareTransaction tests starknet_addDeclareTransaction
+func TestAddInvokeTransaction(t *testing.T) {
+
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		InvokeTx      BroadcastedInvokeTransaction
+		ExpectedResp  AddInvokeTransactionResponse
+		ExpectedError RPCError
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock": {
+			{
+				InvokeTx:     BroadcastedInvokeV1Transaction{SenderAddress: new(felt.Felt).SetUint64(123)},
+				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
+				ExpectedError: RPCError{
+					code:    ErrUnexpectedError.code,
+					message: ErrUnexpectedError.message,
+					data:    "Something crazy happened"},
+			},
+			{
+				InvokeTx:      BroadcastedInvokeV1Transaction{},
+				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
+				ExpectedError: RPCError{},
+			},
+		},
+		"testnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
+		if err != nil {
+			require.Equal(t, err, &test.ExpectedError, "AddInvokeTransaction did not give expected error")
+		} else {
+			require.Equal(t, *resp, test.ExpectedResp)
+		}
+
+	}
+}
