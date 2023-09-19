@@ -458,6 +458,20 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				LookupTxnPositionInExpected: 0,
 				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
 			},
+			{
+				BlockID:                     WithBlockNumber(849399),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 71,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        &fullBlockGoerli849399,
+			},
+			{
+				BlockID:                     WithBlockNumber(848622),
+				ExpectedError:               nil,
+				LookupTxnPositionInOriginal: 6,
+				LookupTxnPositionInExpected: 0,
+				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
@@ -577,11 +591,12 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okv1 := v.(InvokeTxnV1)
 				_, okv0 := v.(InvokeTxnV0)
 				_, okl1 := v.(L1HandlerTxn)
+				_, okdec0 := v.(DeclareTxnV0)
 				_, okdec1 := v.(DeclareTxnV1)
 				_, okdec2 := v.(DeclareTxnV2)
 				_, okdep := v.(DeployTxn)
 				_, okdepac := v.(DeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec1 && !okdec2 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}

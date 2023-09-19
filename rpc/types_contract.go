@@ -41,6 +41,18 @@ type DeprecatedContractClass struct {
 	ABI *ABI `json:"abi,omitempty"`
 }
 
+type ContractClass struct {
+	// The list of Sierra instructions of which the program consists
+	SierraProgram []*felt.Felt `json:"sierra_program"`
+
+	// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
+	ContractClassVersion string `json:"contract_class_version"`
+
+	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+
+	ABI *ABI `json:"abi,omitempty"`
+}
+
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
@@ -116,19 +128,6 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 
 	c.ABI = &abiPointer
 	return nil
-}
-
-// https://github.com/starkware-libs/starknet-specs/blob/v0.3.0/api/starknet_api_openrpc.json#L2372
-type ContractClass struct {
-	// The list of Sierra instructions of which the program consists
-	SierraProgram []*felt.Felt `json:"sierra_program"`
-
-	// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
-	Version string `json:"contract_class_version"`
-
-	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
-
-	ABI string `json:"abi,omitempty"`
 }
 
 type SierraEntryPoint struct {
