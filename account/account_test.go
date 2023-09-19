@@ -546,12 +546,12 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 // 	fmt.Println(tx, classHash, acnt, fakeUserPub)
 // 	panic("test not finished")
-// 	// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
-// 	// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
-// 	// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
-// 	// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
-// 	// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
+// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 // }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
