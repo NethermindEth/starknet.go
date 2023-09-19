@@ -23,7 +23,6 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedI
 				ErrNonAccount,
 				ErrDuplicateTx,
 				ErrUnsupportedTxVersion,
-				ErrUnexpectedError,
 			)
 		}
 		return &output, nil
@@ -51,7 +50,6 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 			ErrContractClassSizeTooLarge,
 			ErrUnsupportedTxVersion,
 			ErrUnsupportedContractClassVersion,
-			ErrUnexpectedError,
 		)
 	}
 	return &result, nil

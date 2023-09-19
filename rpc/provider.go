@@ -49,6 +49,7 @@ type api interface {
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
+	TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }
 
 var _ api = &Provider{}
