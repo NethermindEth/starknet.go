@@ -450,6 +450,55 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
+func TestAddDeclarDEVNET(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+	fakeUser := acnts[0]
+	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
+	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+	// Set up ks
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+	require.True(t, ok)
+	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
+	require.NoError(t, err)
+
+	// Set up declare tx
+	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
+	require.NoError(t, err)
+
+	tx := rpc.BroadcastedDeclareTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+			Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
+			MaxFee:    new(felt.Felt).SetUint64(4724395326064),
+			Type:      rpc.TransactionType_Declare,
+			Version:   "0x2",
+			Signature: []*felt.Felt{},
+		},
+		ContractClass: rpc.ContractClass{},
+		SenderAddress: fakeUserAddr,
+	}
+
+	fmt.Println(tx, classHash, acnt, fakeUserPub)
+	panic("test not finished")
+	// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+	// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+	// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+	// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
+}
+
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
 	devnet := test.NewDevNet(url)
 	acnts, err := devnet.Accounts()
