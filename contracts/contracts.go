@@ -42,7 +42,7 @@ func (p *GatewayProvider) declareAndWaitWithWallet(ctx context.Context, compiled
 		return nil, err
 	}
 	if !receipt.Status.IsTransactionFinal() ||
-		rpc.TransactionState(receipt.Status.String()) == rpc.TransactionRejected {
+		receipt.Status == types.TransactionState(rpc.TxnExecutionStatusREVERTED) {
 		return nil, fmt.Errorf("wrong status: %s", receipt.Status)
 	}
 	return &DeclareOutput{
