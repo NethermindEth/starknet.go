@@ -29,6 +29,7 @@ type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeployAccount(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastedInvokeV1Transaction) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error
 	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) //todo: post rpcv04 merge
@@ -119,7 +120,7 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error {
 
-	hash, err := calculateDeployAccountTransactionHash(*tx, precomputeAddress, account.ChainId.String())
+	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return err
 	}
@@ -129,6 +130,34 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 	}
 	tx.Signature = signature
 	return nil
+}
+
+// TransactionHashDeployAccount computes the transaction hash for deployAccount transactions
+func (account *Account) TransactionHashDeployAccount(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt) (*felt.Felt, error) {
+	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
+
+	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
+	calldata = append(calldata, tx.ConstructorCalldata...)
+	calldataHash, err := computeHashOnElementsFelt(calldata)
+	if err != nil {
+		return nil, err
+	}
+
+	versionFelt, err := new(felt.Felt).SetString(string(tx.Version))
+	if err != nil {
+		return nil, err
+	}
+
+	return calculateTransactionHashCommon(
+		Prefix_DEPLOY_ACCOUNT,
+		versionFelt,
+		contractAddress,
+		&felt.Zero,
+		calldataHash,
+		tx.MaxFee,
+		account.ChainId,
+		[]*felt.Felt{tx.Nonce},
+	)
 }
 
 // BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.

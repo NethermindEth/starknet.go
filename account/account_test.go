@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -450,58 +451,112 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
-func TestAddDeclarDEVNET(t *testing.T) {
-	if testEnv != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
+func TestTransactionHashDeployAccountTestnet(t *testing.T) {
+
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
 	}
-	client, err := rpc.NewClient(base + "/rpc")
+	client, err := rpc.NewClient(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnts, err := newDevnet(t, base)
-	require.NoError(t, err, "Error setting up Devnet")
-	fakeUser := acnts[0]
-	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
-	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+	AccountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
+	PubKey := utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
+	PrivKey := utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
 
-	// Set up ks
 	ks := starknetgo.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
-	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
+	acnt, err := account.NewAccount(provider, 1, AccountAddress, PubKey.String(), ks)
 	require.NoError(t, err)
 
-	// Set up declare tx
-	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
-	require.NoError(t, err)
+	classHash := utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e")
 
-	tx := rpc.DeclareTxnV2{
-		CommonTransaction: rpc.CommonTransaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
-				MaxFee:    new(felt.Felt).SetUint64(4724395326064),
-				Type:      rpc.TransactionType_Declare,
-				Version:   "0x2",
-				Signature: []*felt.Felt{},
-			},
+	tx := rpc.BroadcastedDeployAccountTransaction{
+		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+			Nonce:     &felt.Zero,
+			MaxFee:    utils.TestHexToFelt(t, "0x105ef39b2000"),
+			Type:      rpc.TransactionType_DeployAccount,
+			Version:   rpc.TransactionV1,
+			Signature: []*felt.Felt{},
 		},
-		SenderAddress:     fakeUserAddr,
-		CompiledClassHash: &felt.Zero,
-		ContractClass:     rpc.ContractClass{},
-		ClassHash:         &felt.Zero,
+		ClassHash:           classHash,
+		ContractAddressSalt: utils.TestHexToFelt(t, "0x49f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+		ConstructorCalldata: []*felt.Felt{
+			utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
+			utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
+			utils.TestHexToFelt(t, "0x1"),
+			utils.TestHexToFelt(t, "0x49f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+		},
 	}
+	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, tx.ContractAddressSalt, classHash, tx.ConstructorCalldata)
+	require.Equal(t, precomputedAddress.String(), "0x43784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e", "Error with calulcating PrecomputeAddress")
+	err = acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
+	require.NoError(t, err)
 
-	fmt.Println(tx, classHash, acnt, fakeUserPub)
-	panic("test not finished")
-	// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
-	// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+	qwe, _ := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
 
-	// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
-	// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
-	// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
+	hash, err := acnt.TransactionHashDeployAccount(tx, precomputedAddress)
+	fmt.Println("hash", hash)
+	require.NoError(t, err, "TransactionHashDeployAccount gave an Error")
+	require.Equal(t, hash.String(), "0x4d77bd68079d42d14f3d8af7c15620ee6f826ea62e5a1ce13741fb032165f08", "Error with calulcating TransactionHashDeployAccount")
 }
+
+// func TestAddDeclareTESTNET(t *testing.T) {
+// 	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
+// 	if testEnv != "testnet" {
+// 		t.Skip("Skipping test as it requires a testnet environment")
+// 	}
+// 	client, err := rpc.NewClient(base)
+// 	require.NoError(t, err, "Error in rpc.NewClient")
+// 	provider := rpc.NewProvider(client)
+
+// 	acnts, err := newDevnet(t, base)
+// 	require.NoError(t, err, "Error setting up Devnet")
+// 	fakeUser := acnts[0]
+// 	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
+// 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+// 	// Set up ks
+// 	ks := starknetgo.NewMemKeystore()
+// 	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+// 	require.True(t, ok)
+// 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+
+// 	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
+// 	require.NoError(t, err)
+
+// 	// Set up declare tx
+// 	classHash := utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982") // preDeployed classhash
+// 	require.NoError(t, err)
+
+// 	tx := rpc.DeclareTxnV2{
+// 		CommonTransaction: rpc.CommonTransaction{
+// 			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+// 				Nonce:     utils.TestHexToFelt(t, "0xb"), // todo:fix??
+// 				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
+// 				Type:      rpc.TransactionType_Declare,
+// 				Version:   "0x2", //todo update when rpcv04 merged
+// 				Signature: []*felt.Felt{},
+// 			},
+// 		},
+// 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+// 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+// 		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+// 	}
+
+// 	fmt.Println(tx, classHash, acnt, fakeUserPub)
+// 	panic("test not finished")
+// 	// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+// 	// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+// 	// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+// 	// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+// 	// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
+// }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
 	devnet := test.NewDevNet(url)

@@ -3,7 +3,6 @@ package account
 import (
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -43,33 +42,4 @@ func calculateTransactionHashCommon(
 	}
 	dataToHash = append(dataToHash, additionalData...)
 	return computeHashOnElementsFelt(dataToHash)
-}
-
-// calculateDeployAccountTransactionHash computes the transaction hash for deployAccount transactions
-func calculateDeployAccountTransactionHash(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt, chainID string) (*felt.Felt, error) {
-	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
-	chainIdFelt := new(felt.Felt).SetBytes([]byte(chainID))
-
-	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
-	calldata = append(calldata, tx.ConstructorCalldata...)
-	calldataHash, err := computeHashOnElementsFelt(calldata)
-	if err != nil {
-		return nil, err
-	}
-
-	versionFelt, err := new(felt.Felt).SetString(string(tx.Version))
-	if err != nil {
-		return nil, err
-	}
-
-	return calculateTransactionHashCommon(
-		Prefix_DEPLOY_ACCOUNT,
-		versionFelt,
-		contractAddress,
-		&felt.Zero,
-		calldataHash,
-		tx.MaxFee,
-		chainIdFelt,
-		[]*felt.Felt{tx.Nonce},
-	)
 }

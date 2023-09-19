@@ -95,14 +95,12 @@ func mock_starknet_blockNumber(result interface{}, method string, args ...interf
 func mock_starknet_chainId(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*string)
 	if !ok {
-		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
 	if len(args) != 0 {
-		fmt.Println(args...)
 		return errWrongArgs
 	}
-	value := "0x4d4f434b"
+	value := "SN_GOERLI"
 	*r = value
 	return nil
 }
@@ -709,7 +707,7 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329" :
+	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
@@ -725,11 +723,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 			return err
 		}
 		return json.Unmarshal(txnTrace, &r)
-	case "0xf00d" :
+	case "0xf00d":
 		return &RPCError{
-			code: 10,
+			code:    10,
 			message: "No trace available for transaction",
-			data: TransactionRejected,
+			data:    TransactionRejected,
 		}
 	default:
 		return ErrInvalidTxnHash
