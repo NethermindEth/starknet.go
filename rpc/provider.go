@@ -27,7 +27,7 @@ func NewProvider(c *rpc.Client) *Provider {
 type api interface {
 	AddInvokeTransaction(ctx context.Context, invokeTxn AddInvokeTxnInput) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction AddDeployAccountTxnInput) (*AddDeployTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction AddDeployAccountTxnInput) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)

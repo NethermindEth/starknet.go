@@ -170,54 +170,64 @@ type FeeEstimate struct {
 	OverallFee NumAsHex `json:"overall_fee"`
 }
 
-type TransactionState string
+type TxnExecutionStatus string
 
 const (
-	TransactionAcceptedOnL1 TransactionState = "ACCEPTED_ON_L1"
-	TransactionAcceptedOnL2 TransactionState = "ACCEPTED_ON_L2"
-	TransactionNotReceived  TransactionState = "NOT_RECEIVED"
-	TransactionPending      TransactionState = "PENDING"
-	TransactionReceived     TransactionState = "RECEIVED"
-	TransactionRejected     TransactionState = "REJECTED"
+	TxnExecutionStatusSUCCEEDED TxnExecutionStatus = "SUCCEEDED"
+	TxnExecutionStatusREVERTED  TxnExecutionStatus = "REVERTED"
 )
 
-func (ts *TransactionState) UnmarshalJSON(data []byte) error {
+func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	switch unquoted {
-	case "ACCEPTED_ON_L2":
-		*ts = TransactionAcceptedOnL2
-	case "ACCEPTED_ON_L1":
-		*ts = TransactionAcceptedOnL1
-	case "NOT_RECEIVED":
-		*ts = TransactionNotReceived
-	case "PENDING":
-		*ts = TransactionPending
-	case "RECEIVED":
-		*ts = TransactionReceived
-	case "REJECTED":
-		*ts = TransactionRejected
+	case "SUCCEEDED":
+		*ts = TxnExecutionStatusSUCCEEDED
+	case "REVERTED":
+		*ts = TxnExecutionStatusREVERTED
 	default:
 		return fmt.Errorf("unsupported status: %s", data)
 	}
 	return nil
 }
 
-func (ts TransactionState) MarshalJSON() ([]byte, error) {
+func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
 
-func (s TransactionState) String() string {
+func (s TxnExecutionStatus) String() string {
 	return string(s)
 }
 
-func (s TransactionState) IsTransactionFinal() bool {
-	if s == TransactionAcceptedOnL2 ||
-		s == TransactionAcceptedOnL1 ||
-		s == TransactionRejected {
-		return true
+type TxnFinalityStatus string
+
+const (
+	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
+	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+)
+
+func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
 	}
-	return false
+	switch unquoted {
+	case "ACCEPTED_ON_L1":
+		*ts = TxnFinalityStatusAcceptedOnL1
+	case "ACCEPTED_ON_L2":
+		*ts = TxnFinalityStatusAcceptedOnL2
+	default:
+		return fmt.Errorf("unsupported status: %s", data)
+	}
+	return nil
+}
+
+func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(ts))), nil
+}
+
+func (s TxnFinalityStatus) String() string {
+	return string(s)
 }

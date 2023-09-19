@@ -259,7 +259,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: arg0Felt,
-		Status:          TransactionAcceptedOnL1,
+		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},
@@ -484,29 +484,20 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 	if !ok {
 		return errWrongType
 	}
-	if len(args) != 4 {
-		fmt.Printf("args: %d\n", len(args))
-		return errWrongArgs
+	if len(args) != 1 {
+		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong numbre of args ", len(args)))
 	}
-	_, ok = args[0].(FunctionCall)
+	invokeTx, ok := args[0].(InvokeTxnV1)
 	if !ok {
-		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
-		return errWrongArgs
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastedInvokeV1Transaction, got %T\n", args[0]))
 	}
-	_, ok = args[1].([]string)
-	if !ok {
-		fmt.Printf("args[1] should be []string, got %T\n", args[1])
-		return errWrongArgs
-	}
-	_, ok = args[2].(string)
-	if !ok {
-		fmt.Printf("args[2] should be []string, got %T\n", args[2])
-		return errWrongArgs
-	}
-	_, ok = args[3].(string)
-	if !ok {
-		fmt.Printf("args[3] should be []string, got %T\n", args[3])
-		return errWrongArgs
+	if invokeTx.SenderAddress != nil {
+
+		if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
+			unexpErr := ErrUnexpectedError
+			unexpErr.data = "Something crazy happened"
+			return unexpErr
+		}
 	}
 	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
@@ -709,7 +700,7 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329" :
+	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
@@ -725,11 +716,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 			return err
 		}
 		return json.Unmarshal(txnTrace, &r)
-	case "0xf00d" :
+	case "0xf00d":
 		return &RPCError{
-			code: 10,
+			code:    10,
 			message: "No trace available for transaction",
-			data: TransactionRejected,
+			data:    "REJECTED",
 		}
 	default:
 		return ErrInvalidTxnHash
