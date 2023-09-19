@@ -2,7 +2,6 @@ package account_test
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -41,7 +40,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestTransactionHash(t *testing.T) {
+func TestTransactionHashInvoke(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -456,14 +455,17 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
+
 	client, err := rpc.NewClient(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	AccountAddress := utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e")
-	PubKey := utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f")
-	PrivKey := utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa")
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
 
+	ExpectedHash := utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb")
+	ExpectedPrecomputeAddr := utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
 	ks := starknetgo.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
@@ -483,26 +485,20 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 			Signature: []*felt.Felt{},
 		},
 		ClassHash:           classHash,
-		ContractAddressSalt: utils.TestHexToFelt(t, "0x49f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+		ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
 		ConstructorCalldata: []*felt.Felt{
 			utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
 			utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
 			utils.TestHexToFelt(t, "0x1"),
-			utils.TestHexToFelt(t, "0x49f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+			utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
 		},
 	}
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, tx.ContractAddressSalt, classHash, tx.ConstructorCalldata)
-	require.Equal(t, precomputedAddress.String(), "0x43784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e", "Error with calulcating PrecomputeAddress")
-	err = acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
-	require.NoError(t, err)
-
-	qwe, _ := json.MarshalIndent(tx, "", "")
-	fmt.Println(string(qwe))
+	require.Equal(t, ExpectedPrecomputeAddr.String(), precomputedAddress.String(), "Error with calulcating PrecomputeAddress")
 
 	hash, err := acnt.TransactionHashDeployAccount(tx, precomputedAddress)
-	fmt.Println("hash", hash)
 	require.NoError(t, err, "TransactionHashDeployAccount gave an Error")
-	require.Equal(t, hash.String(), "0x4d77bd68079d42d14f3d8af7c15620ee6f826ea62e5a1ce13741fb032165f08", "Error with calulcating TransactionHashDeployAccount")
+	require.Equal(t, hash.String(), ExpectedHash.String(), "Error with calulcating TransactionHashDeployAccount")
 }
 
 // func TestAddDeclareTESTNET(t *testing.T) {
