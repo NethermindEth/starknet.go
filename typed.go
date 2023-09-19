@@ -39,7 +39,7 @@ type TypedMessage interface {
 }
 
 /*
-encoding definition for standard StarkNet Domain messages
+encoding definition for standard Starknet Domain messages
 */
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	processStrToBig := func(fieldVal string) {
@@ -113,9 +113,9 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 
 // (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
 func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkCurve) (hash *big.Int, err error) {
-	elements := []*big.Int{types.UTF8StrToBig("StarkNet Message")}
+	elements := []*big.Int{types.UTF8StrToBig("Starknet Message")}
 
-	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
+	domEnc, err := td.GetTypedMessageHash("StarknetDomain", td.Domain, sc)
 	if err != nil {
 		return hash, fmt.Errorf("could not hash domain: %w", err)
 	}

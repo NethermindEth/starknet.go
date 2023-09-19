@@ -2,13 +2,12 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"strings"
 )
 
 type BroadcastedInvokeTransaction interface{}
 
-// AddInvokeTransaction estimates the fee for a given StarkNet transaction.
+// AddInvokeTransaction estimates the fee for a given Starknet transaction.
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error) {
 
 	var output AddInvokeTransactionResponse
@@ -30,16 +29,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 	return &result, nil
 }
 
-// AddDeployTransaction allows to declare a class and instantiate the
-// associated contract in one command. This function will be deprecated and
-// replaced by AddDeclareTransaction to declare a class, followed by
-// AddInvokeTransaction to instantiate the contract. For now, it remains the only
-// way to deploy an account without being charged for it.
-func (provider *Provider) AddDeployTransaction(ctx context.Context, deployTransaction BroadcastedDeployTxn) (*AddDeployTransactionResponse, error) {
-	var result AddDeployTransactionResponse
-	return &result, errors.New("AddDeployTransaction was removed, UDC should be used instead")
-}
-
+// AddDeployAccountTransaction manages the DEPLOY_ACCOUNT syscall
 func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {

@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="docs/images/golang_starknet_repo_banner.png" height="256">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/Starknet.Go_Vertical_Dark.png">
+    <img src="docs/images/Starknet.Go_Vertical_Light.png" height="256">
+  </picture>
 </div>
 
 <p align="center">
@@ -12,15 +15,22 @@
     <a href="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml">
         <img src="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
     </a>
-    <a href="https://twitter.com/NethermindStark">
-      <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
-    </a>
     <a href="https://github.com/nethermindeth/starknet.go">
       <img src="https://img.shields.io/github/stars/nethermindeth/starknet.go?style=social"/>
     </a>
 </p>
 
-<h1 align="center">Get the gopher high on StarkNet</h1>
+</p>
+<p align="center">
+  <a href="https://twitter.com/NethermindStark">
+    <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
+  </a>
+  <a href="https://t.me/StarknetGo">
+    <img src="https://img.shields.io/badge/Telegram_group-gray?logo=telegram">
+  </a>
+</p>
+
+<h1 align="center">Get the gopher Starkpilled</h1>
 
 <a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
@@ -45,9 +55,11 @@ operations on the wallets. The package has excellent documentation for a smooth
 # Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
+- [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
+<!-- Currently not working
 - [curve example](./examples/curve) initializing the StarkCurve for signing and verification
 - [contract example](./examples/contract) for smart contract deployment and function call
-- [account example](./examples/contract) for Account initialization and invocation call
+- [account example](./examples/contract) for Account initialization and invocation call -->
 
 ### Run Examples
 
@@ -62,38 +74,36 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the [StarkNet RPC Spec](https://github.com/starkware-libs/starknet-specs):
+`starknet.go` RPC implements the [Starknet RPC v03 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.3.0/api):
 
-| Method                                         | Implemented (*)    |
-| ---------------------------------------------- | ------------------ |
-| `starknet_getBlockByHash`                      | :heavy_check_mark: |
-| `starknet_getBlockByNumber`                    | :heavy_check_mark: |
-| `starknet_getTransactionByHash`                | :heavy_check_mark: |
-| `starknet_getTransactionReceipt`               | :heavy_check_mark: |
-| `starknet_getClass`                            | :heavy_check_mark: |
-| `starknet_getClassHashAt`                      | :heavy_check_mark: |
-| `starknet_getClassAt`                          | :heavy_check_mark: |
-| `starknet_call`                                | :heavy_check_mark: |
-| `starknet_blockNumber`                         | :heavy_check_mark: |
-| `starknet_chainId`                             | :heavy_check_mark: |
-| `starknet_syncing`                             | :heavy_check_mark: |
-| `starknet_getEvents`                           | :heavy_check_mark: |
-| `starknet_addInvokeTransaction`                | :heavy_check_mark: |
-| `starknet_addDeployTransaction`                | :heavy_check_mark: |
-| `starknet_addDeclareTransaction`               | :heavy_check_mark: |
-| `starknet_estimateFee`                         | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByHash`      | :heavy_check_mark: |
-| `starknet_getBlockTransactionCountByNumber`    | :heavy_check_mark: |
-| `starknet_getTransactionByBlockNumberAndIndex` | :heavy_check_mark: |
-| `starknet_getTransactionByBlockHashAndIndex`   | :heavy_check_mark: |
-| `starknet_getStorageAt`                        | :heavy_check_mark: |
-| `starknet_getNonce`                            | :heavy_check_mark: |
-| `starknet_getStateUpdate`                      | :heavy_check_mark: |
-| *`starknet_traceBlockTransactions`             | :x:                |
-| *`starknet_traceTransaction`                   | :x:                |
-
-> (*) some methods are not implemented because they are not yet available
-> from [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder).
+| Method                                     | Implemented (*)    |
+| ------------------------------------------ | ------------------ |
+| `starknet_getBlockWithTxHashes`            | :heavy_check_mark: |
+| `starknet_getBlockWithTxs`                 | :heavy_check_mark: |
+| `starknet_getStateUpdate`                  | :heavy_check_mark: |
+| `starknet_getStorageAt`                    | :heavy_check_mark: |
+| `starknet_getTransactionByHash`            | :heavy_check_mark: |
+| `starknet_getTransactionByBlockIdAndIndex` | :heavy_check_mark: |
+| `starknet_getTransactionReceipt`           | :heavy_check_mark: |
+| `starknet_getClass`                        | :heavy_check_mark: |
+| `starknet_getClassHashAt`                  | :heavy_check_mark: |
+| `starknet_getClassAt`                      | :heavy_check_mark: |
+| `starknet_getBlockTransactionCount`        | :heavy_check_mark: |
+| `starknet_call`                            | :heavy_check_mark: |
+| `starknet_estimateFee`                     | :heavy_check_mark: |
+| `starknet_blockNumber`                     | :heavy_check_mark: |
+| `starknet_blockHashAndNumber`              | :heavy_check_mark: |
+| `starknet_chainId`                         | :heavy_check_mark: |
+| `starknet_pendingTransactions`             | :heavy_check_mark: |
+| `starknet_syncing`                         | :heavy_check_mark: |
+| `starknet_getEvents`                       | :heavy_check_mark: |
+| `starknet_getNonce`                        | :heavy_check_mark: |
+| `starknet_addInvokeTransaction`            | :heavy_check_mark: |
+| `starknet_addDeclareTransaction`           | :heavy_check_mark: |
+| `starknet_addDeployAccountTransaction`     | :heavy_check_mark: |
+| `starknet_traceTransaction`                | :heavy_check_mark: |
+| `starknet_simulateTransaction`             | :heavy_check_mark: |
+| `starknet_traceBlockTransactions`          | :heavy_check_mark: |
 
 ### Run Tests
 
@@ -159,6 +169,8 @@ Thanks goes to these wonderful people
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://runningbeta.io"><img src="https://avatars.githubusercontent.com/u/615877?v=4?s=100" width="100px;" alt="Kristijan Rebernisak"/><br /><sub><b>Kristijan Rebernisak</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=krebernisak" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rianhughes"><img src="https://avatars.githubusercontent.com/u/45943600?v=4?s=100" width="100px;" alt="rianhughes"/><br /><sub><b>Rian Hughes</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=rianhughes" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cicr99"><img src="https://avatars.githubusercontent.com/u/49727740?v=4?s=100" width="100px;" alt="Carmen"/><br /><sub><b>Carmen Irene Cabrera Rodríguez</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=cicr99" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

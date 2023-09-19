@@ -10,6 +10,12 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+var (
+	feltZero = new(felt.Felt).SetUint64(0)
+	feltOne  = new(felt.Felt).SetUint64(1)
+	feltTwo  = new(felt.Felt).SetUint64(2)
+)
+
 func adaptTransaction(t TXN) (Transaction, error) {
 	txMarshalled, err := json.Marshal(t)
 	if err != nil {
@@ -21,7 +27,22 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	case TransactionType_Declare:
-		var tx DeclareTxn
+		switch {
+		case t.Version.Equal(feltZero):
+			var tx DeclareTxnV0
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		case t.Version.Equal(feltOne):
+			var tx DeclareTxnV1
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		case t.Version.Equal(feltTwo):
+			var tx DeclareTxnV2
+			json.Unmarshal(txMarshalled, &tx)
+			return tx, nil
+		}
+	case TransactionType_Deploy:
+		var tx DeployTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	case TransactionType_DeployAccount:
@@ -32,13 +53,9 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		var tx L1HandlerTxn
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
-	case TransactionType_Deploy:
-		var tx DeployTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	default:
-		panic("not a transaction")
 	}
+	return nil, errors.New(fmt.Sprint("internal error with adaptTransaction() : unknown transaction type ", t.Type))
+
 }
 
 // TransactionByHash gets the details and status of a submitted transaction.
@@ -112,7 +129,7 @@ func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHas
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}
-			case DeployTransactionReceipt:
+			case DeployAccountTransactionReceipt:
 				if r.Status.IsTransactionFinal() {
 					return r.Status, nil
 				}

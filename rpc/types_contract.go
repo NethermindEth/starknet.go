@@ -12,31 +12,48 @@ import (
 
 type NumAsHex string
 
-type EntryPoint struct {
+type DeprecatedCairoEntryPoint struct {
 	// The offset of the entry point in the program
 	Offset NumAsHex `json:"offset"`
 	// A unique  identifier of the entry point (function) in the program
 	Selector *felt.Felt `json:"selector"`
 }
 
+type ClassOutput interface{}
+
+var _ ClassOutput = &DeprecatedContractClass{}
+var _ ClassOutput = &ContractClass{}
+
 type ABI []ABIEntry
 
-type EntryPointsByType struct {
-	Constructor []EntryPoint `json:"CONSTRUCTOR"`
-	External    []EntryPoint `json:"EXTERNAL"`
-	L1Handler   []EntryPoint `json:"L1_HANDLER"`
+type DeprecatedEntryPointsByType struct {
+	Constructor []DeprecatedCairoEntryPoint `json:"CONSTRUCTOR"`
+	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
+	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
+}
+
+type DeprecatedContractClass struct {
+	// Program A base64 representation of the compressed program code
+	Program string `json:"program"`
+
+	DeprecatedEntryPointsByType DeprecatedEntryPointsByType `json:"entry_points_by_type"`
+
+	ABI *ABI `json:"abi,omitempty"`
 }
 
 type ContractClass struct {
-	// Program A base64 representation of the compressed program code
-	Program string `json:"program"`
+	// The list of Sierra instructions of which the program consists
+	SierraProgram []*felt.Felt `json:"sierra_program"`
+
+	// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
+	ContractClassVersion string `json:"contract_class_version"`
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
 	ABI *ABI `json:"abi,omitempty"`
 }
 
-func (c *ContractClass) UnmarshalJSON(content []byte) error {
+func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
 		return err
@@ -61,11 +78,11 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 		return fmt.Errorf("missing entry_points_by_type in json object")
 	}
 
-	entryPointsByType := EntryPointsByType{}
-	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
+	depEntryPointsByType := DeprecatedEntryPointsByType{}
+	if err := json.Unmarshal(data, &depEntryPointsByType); err != nil {
 		return err
 	}
-	c.EntryPointsByType = entryPointsByType
+	c.DeprecatedEntryPointsByType = depEntryPointsByType
 
 	// process 'abi'
 	data, ok = v["abi"]
@@ -111,6 +128,19 @@ func (c *ContractClass) UnmarshalJSON(content []byte) error {
 
 	c.ABI = &abiPointer
 	return nil
+}
+
+type SierraEntryPoint struct {
+	// The index of the function in the program
+	FunctionIdx int `json:"function_idx"`
+	// A unique  identifier of the entry point (function) in the program
+	Selector *felt.Felt `json:"selector"`
+}
+
+type EntryPointsByType struct {
+	Constructor []SierraEntryPoint `json:"CONSTRUCTOR"`
+	External    []SierraEntryPoint `json:"EXTERNAL"`
+	L1Handler   []SierraEntryPoint `json:"L1_HANDLER"`
 }
 
 type ABIEntry interface {

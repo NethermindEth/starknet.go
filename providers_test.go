@@ -48,12 +48,12 @@ var (
 
 	// testConfigurations are predefined test configurations
 	testRPCConfigurations = map[string]testRPCConfiguration{
-		// Requires a Mainnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
 			base: "http://localhost:9545",
 		},
-		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
 			base: "http://localhost:9545",
@@ -71,7 +71,7 @@ var (
 		"mainnet": {
 			base: "https://alpha4-mainnet.starknet.io",
 		},
-		// Requires a Testnet StarkNet JSON-RPC compliant node (e.g. pathfinder)
+		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
 			base:           "https://alpha4.starknet.io",
@@ -89,7 +89,7 @@ var (
 )
 
 func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := rpc.ContractClass{}
+	class := rpc.DeprecatedContractClass{}
 	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
 		return "", err
 	}

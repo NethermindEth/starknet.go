@@ -205,14 +205,14 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 func (account *Account) ChainID(ctx context.Context) (string, error) {
 	return account.provider.ChainID(ctx)
 }
-func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash string) (*rpc.ContractClass, error) {
+func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.Class(ctx, blockID, classHash)
 }
-func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*rpc.ContractClass, error) {
+func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.ClassAt(ctx, blockID, contractAddress)
 }
 
-func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	return account.provider.ClassHashAt(ctx, blockID, contractAddress)
 }
 
@@ -220,7 +220,7 @@ func (account *Account) EstimateFee(ctx context.Context, requests []rpc.Broadcas
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
 
-func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventsOutput, error) {
+func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventChunk, error) {
 	return account.provider.Events(ctx, input)
 }
 func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {

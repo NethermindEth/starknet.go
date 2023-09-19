@@ -33,8 +33,8 @@ type TransactionType string
 
 const (
 	TransactionType_Declare       TransactionType = "DECLARE"
-	TransactionType_Deploy        TransactionType = "DEPLOY"
 	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionType_Deploy        TransactionType = "DEPLOY"
 	TransactionType_Invoke        TransactionType = "INVOKE"
 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
 )
@@ -48,10 +48,10 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	switch unquoted {
 	case "DECLARE":
 		*tt = TransactionType_Declare
-	case "DEPLOY":
-		*tt = TransactionType_Deploy
 	case "DEPLOY_ACCOUNT":
 		*tt = TransactionType_DeployAccount
+	case "DEPLOY":
+		*tt = TransactionType_Deploy
 	case "INVOKE":
 		*tt = TransactionType_Invoke
 	case "L1_HANDLER":
@@ -81,18 +81,26 @@ func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// DeployTransactionReceipt Deploy Transaction Receipt
+// DeployTransactionReceipt Deploy  Transaction Receipt
 type DeployTransactionReceipt struct {
 	CommonTransactionReceipt
-	// ContractAddress The address of the deployed contract
-	ContractAddress string `json:"contract_address"`
+	// The address of the deployed contract
+	ContractAddress *felt.Felt `json:"contract_address"`
+}
+
+func (tr DeployTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
 }
 
 // DeployAccountTransactionReceipt Deploy Account Transaction Receipt
 type DeployAccountTransactionReceipt struct {
 	CommonTransactionReceipt
 	// ContractAddress The address of the deployed contract
-	ContractAddress string `json:"contract_address"`
+	ContractAddress *felt.Felt `json:"contract_address"`
+}
+
+func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
 }
 
 // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
@@ -102,23 +110,29 @@ func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// PendingDeployTransactionReceipt Pending Transaction Receipt
 type PendingDeployTransactionReceipt struct {
-	PendingCommonTransactionReceiptProperties
-	// ContractAddress The address of the deployed contract
+	CommonTransactionReceipt
+	// The address of the deployed contract
 	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
-// PendingCommonTransactionReceiptProperties Pending Transaction Receipt
+func (tr PendingDeployTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
 type PendingCommonTransactionReceiptProperties struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee    *felt.Felt      `json:"actual_fee"`
-	Type         TransactionType `json:"type,omitempty"`
+	Type         TransactionType `json:"type"`
 	MessagesSent []MsgToL1       `json:"messages_sent"`
 	// Events The events emitted as part of this transaction
 	Events []Event `json:"events"`
+}
+
+func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
+	return tr.TransactionHash
 }
 
 type TransactionReceipt interface {
@@ -130,6 +144,17 @@ type MsgToL1 struct {
 	FromAddress *felt.Felt `json:"from_address"`
 	// ToAddress The target L1 address the message is sent to
 	ToAddress *felt.Felt `json:"to_address"`
+	//Payload  The payload of the message
+	Payload []*felt.Felt `json:"payload"`
+}
+
+type MsgFromL1 struct {
+	// FromAddress The address of the L1 contract sending the message
+	FromAddress string `json:"from_address"`
+	// ToAddress The target L2 address the message is sent to
+	ToAddress *felt.Felt `json:"to_address"`
+	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
+	Selector *felt.Felt `json:"entry_point_selector"`
 	//Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
@@ -171,7 +196,29 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 			return txn, nil
 		}
 
+		// Pending doesn't have a block number
+		if casted["block_hash"] == nil {
+			switch TransactionType(typ.(string)) {
+			case TransactionType_Deploy:
+				var txn PendingDeployTransactionReceipt
+				remarshal(casted, &txn)
+				return txn, nil
+			default:
+				var txn PendingCommonTransactionReceiptProperties
+				remarshal(casted, &txn)
+				return txn, nil
+			}
+		}
+
 		switch TransactionType(typ.(string)) {
+		case TransactionType_Invoke:
+			var txn InvokeTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
+		case TransactionType_L1Handler:
+			var txn L1HandlerTransactionReceipt
+			remarshal(casted, &txn)
+			return txn, nil
 		case TransactionType_Declare:
 			var txn DeclareTransactionReceipt
 			remarshal(casted, &txn)
@@ -181,15 +228,7 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_DeployAccount:
-			var txn DeployTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
-		case TransactionType_Invoke:
-			var txn InvokeTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
-		case TransactionType_L1Handler:
-			var txn L1HandlerTransactionReceipt
+			var txn DeployAccountTransactionReceipt
 			remarshal(casted, &txn)
 			return txn, nil
 		}

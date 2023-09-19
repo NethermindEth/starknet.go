@@ -477,19 +477,19 @@ func TestAddDeclarDEVNET(t *testing.T) {
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
 	require.NoError(t, err)
 
-	tx := rpc.BroadcastedDeclareTransaction{
-		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-			Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
-			MaxFee:    new(felt.Felt).SetUint64(4724395326064),
-			Type:      rpc.TransactionType_Declare,
-			Version:   "0x2",
-			Signature: []*felt.Felt{},
-		},
-		ContractClass: rpc.ContractClass{},
-		SenderAddress: fakeUserAddr,
-	}
+	// tx := rpc.BroadcastedDeclareTransaction{
+	// 	BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+	// 		Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
+	// 		MaxFee:    new(felt.Felt).SetUint64(4724395326064),
+	// 		Type:      rpc.TransactionType_Declare,
+	// 		Version:   "0x2",
+	// 		Signature: []*felt.Felt{},
+	// 	},
+	// 	ContractClass: rpc.ContractClass{},
+	// 	SenderAddress: fakeUserAddr,
+	// }
 
-	fmt.Println(tx, classHash, acnt, fakeUserPub)
+	fmt.Println(classHash, acnt, fakeUserPub)
 	panic("test not finished")
 	// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))

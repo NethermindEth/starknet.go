@@ -36,7 +36,7 @@ func TestDeclare(t *testing.T) {
 
 	for _, env := range testSet {
 		gw := testConfig.client
-		accountClass := rpc.ContractClass{}
+		accountClass := rpc.DeprecatedContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
@@ -73,7 +73,7 @@ func TestDeployCounterContract(t *testing.T) {
 
 		gw := testConfig.client
 
-		counterClass := rpc.ContractClass{}
+		counterClass := rpc.DeprecatedContractClass{}
 		err := json.Unmarshal(counterCompiled, &counterClass)
 		if err != nil {
 			t.Fatalf("could not parse contract: %v\n", err)
@@ -148,7 +148,7 @@ func TestDeployAccountContract(t *testing.T) {
 	for _, test := range testSet {
 		gw := testConfig.client
 		// Step 1: deploy the a class
-		accountClass := rpc.ContractClass{}
+		accountClass := rpc.DeprecatedContractClass{}
 		err := json.Unmarshal(accountCompiled, &accountClass)
 		if err != nil {
 			t.Fatalf("could not parse account: %v\n", err)
