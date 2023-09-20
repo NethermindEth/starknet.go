@@ -14,13 +14,8 @@ import (
 func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
-		switch {
-		case errors.Is(err, ErrClassHashNotFound):
-			return nil, ErrClassHashNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(&rawClass)
