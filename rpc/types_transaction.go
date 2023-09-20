@@ -28,11 +28,10 @@ type TXN struct {
 }
 
 type InvokeTxnV0 struct {
+	Type      TransactionType    `json:"type"`
 	MaxFee    *felt.Felt         `json:"max_fee"`
 	Version   TransactionVersion `json:"version"`
 	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
 	FunctionCall
 }
 
@@ -43,7 +42,7 @@ type InvokeTxnV1 struct {
 	Nonce         *felt.Felt         `json:"nonce"`
 	Type          TransactionType    `json:"type"`
 	SenderAddress *felt.Felt         `json:"sender_address"`
-	// Calldata The parameters passed to the function
+	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
 

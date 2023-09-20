@@ -232,7 +232,6 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
 						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
 					},
-					Nonce: nil,
 					FunctionCall: FunctionCall{
 						ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
 						EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
@@ -314,7 +313,6 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				t.Fatal("expected invoke v0 transaction")
 			}
 			require.Equal(t, invokeV0Want.TransactionHash, invokeV0Block.TransactionHash, "expected equal TransactionHash")
-			require.Equal(t, invokeV0Want.InvokeTxnV0.Nonce, invokeV0Block.InvokeTxnV0.Nonce, "expected equal nonce")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
 
