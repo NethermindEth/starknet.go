@@ -4,28 +4,24 @@ import (
 	"context"
 )
 
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn AddInvokeTxnInput) (*AddInvokeTransactionResponse, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn InvokeTxnV1) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
-	switch invokeTxn.(type) {
-	case InvokeTxnV1:
-		if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
-			if unexpectedErr, ok := isErrUnexpectedError(err); ok {
-				return nil, unexpectedErr
-			}
-			return nil, tryUnwrapToRPCErr(
-				err,
-				ErrInsufficientAccountBalance,
-				ErrInsufficientMaxFee,
-				ErrInvalidTransactionNonce,
-				ErrValidationFailure,
-				ErrNonAccount,
-				ErrDuplicateTx,
-				ErrUnsupportedTxVersion,
-			)
+	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
+		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
+			return nil, unexpectedErr
 		}
-		return &output, nil
+		return nil, tryUnwrapToRPCErr(
+			err,
+			ErrInsufficientAccountBalance,
+			ErrInsufficientMaxFee,
+			ErrInvalidTransactionNonce,
+			ErrValidationFailure,
+			ErrNonAccount,
+			ErrDuplicateTx,
+			ErrUnsupportedTxVersion,
+		)
 	}
-	return nil, Err(InvalidParams, "invalid method parameter(s)")
+	return &output, nil
 }
 
 func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error) {

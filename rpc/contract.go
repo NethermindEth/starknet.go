@@ -111,7 +111,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 	return &nonce, nil
 }
 
-// EstimateFee estimates the fee for a given StarkNet transaction.
+// EstimateFee estimates the fee for a given Starknet transaction.
 func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {

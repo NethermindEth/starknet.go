@@ -27,30 +27,6 @@ type TXN struct {
 	CompiledClassHash   *felt.Felt      `json:"compiled_class_hash,omitempty"`
 }
 
-type TransactionHash struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-}
-
-func (t TransactionHash) Hash() *felt.Felt {
-	return t.TransactionHash
-}
-
-func (t *TransactionHash) UnmarshalJSON(input []byte) error {
-	return t.TransactionHash.UnmarshalJSON(input)
-}
-
-func (t TransactionHash) MarshalJSON() ([]byte, error) {
-	return t.TransactionHash.MarshalJSON()
-}
-
-func (t TransactionHash) MarshalText() ([]byte, error) {
-	return t.TransactionHash.MarshalJSON()
-}
-
-func (t *TransactionHash) UnmarshalText(input []byte) error {
-	return t.TransactionHash.UnmarshalJSON(input)
-}
-
 type InvokeTxnV0 struct {
 	MaxFee    *felt.Felt         `json:"max_fee"`
 	Version   TransactionVersion `json:"version"`
@@ -58,10 +34,6 @@ type InvokeTxnV0 struct {
 	Nonce     *felt.Felt         `json:"nonce"`
 	Type      TransactionType    `json:"type"`
 	FunctionCall
-}
-
-func (tx InvokeTxnV0) Hash() *felt.Felt {
-	return tx.Hash()
 }
 
 type InvokeTxnV1 struct {
@@ -75,10 +47,6 @@ type InvokeTxnV1 struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
-func (tx InvokeTxnV1) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
 type L1HandlerTxn struct {
 	Type TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
@@ -88,17 +56,12 @@ type L1HandlerTxn struct {
 	FunctionCall
 }
 
-func (tx L1HandlerTxn) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
 type DeclareTxnV0 struct {
-	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
-	MaxFee          *felt.Felt         `json:"max_fee"`
-	Version         TransactionVersion `json:"version"`
-	Signature       []*felt.Felt       `json:"signature"`
-	Nonce           *felt.Felt         `json:"nonce"`
-	Type            TransactionType    `json:"type"`
+	MaxFee    *felt.Felt         `json:"max_fee"`
+	Version   TransactionVersion `json:"version"`
+	Signature []*felt.Felt       `json:"signature"`
+	Nonce     *felt.Felt         `json:"nonce"`
+	Type      TransactionType    `json:"type"`
 
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
@@ -108,33 +71,27 @@ type DeclareTxnV0 struct {
 }
 
 type DeclareTxnV1 struct {
-	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
-	MaxFee          *felt.Felt         `json:"max_fee"`
-	Version         TransactionVersion `json:"version"`
-	Signature       []*felt.Felt       `json:"signature"`
-	Nonce           *felt.Felt         `json:"nonce"`
-	Type            TransactionType    `json:"type"`
+	MaxFee    *felt.Felt         `json:"max_fee"`
+	Version   TransactionVersion `json:"version"`
+	Signature []*felt.Felt       `json:"signature"`
+	Nonce     *felt.Felt         `json:"nonce"`
+	Type      TransactionType    `json:"type"`
 
 	// ClassHash the hash of the declared class
-	ClassHash *felt.Felt `json:"class_hash"`
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
 
-	DeprecatedContractClass `json:"contract_class"`
+	DeprecatedContractClass `json:"contract_class,omitempty"`
 
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
 }
 
-func (tx DeclareTxnV1) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
 type DeclareTxnV2 struct {
-	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
-	MaxFee          *felt.Felt         `json:"max_fee"`
-	Version         TransactionVersion `json:"version"`
-	Signature       []*felt.Felt       `json:"signature"`
-	Nonce           *felt.Felt         `json:"nonce"`
-	Type            TransactionType    `json:"type"`
+	MaxFee    *felt.Felt         `json:"max_fee"`
+	Version   TransactionVersion `json:"version"`
+	Signature []*felt.Felt       `json:"signature"`
+	Nonce     *felt.Felt         `json:"nonce"`
+	Type      TransactionType    `json:"type"`
 
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt `json:"sender_address"`
@@ -145,16 +102,8 @@ type DeclareTxnV2 struct {
 	ClassHash     *felt.Felt `json:"class_hash,omitempty"`
 }
 
-func (tx DeclareTxnV0) Hash() *felt.Felt {
-	return tx.TransactionHash
-}
-
-func (tx DeclareTxnV2) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
 type Transaction interface {
-	Hash() *felt.Felt
+	GetType() TransactionType
 }
 
 var _ Transaction = InvokeTxnV0{}
@@ -165,9 +114,34 @@ var _ Transaction = DeployTxn{}
 var _ Transaction = DeployAccountTxn{}
 var _ Transaction = L1HandlerTxn{}
 
+func (tx InvokeTxnV0) GetType() TransactionType {
+	return tx.Type
+}
+
+func (tx InvokeTxnV1) GetType() TransactionType {
+	return tx.Type
+}
+func (tx DeclareTxnV0) GetType() TransactionType {
+	return tx.Type
+}
+func (tx DeclareTxnV1) GetType() TransactionType {
+	return tx.Type
+}
+func (tx DeclareTxnV2) GetType() TransactionType {
+	return tx.Type
+}
+func (tx DeployTxn) GetType() TransactionType {
+	return tx.Type
+}
+func (tx DeployAccountTxn) GetType() TransactionType {
+	return tx.Type
+}
+func (tx L1HandlerTxn) GetType() TransactionType {
+	return tx.Type
+}
+
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
-	TransactionHash *felt.Felt `json:"transaction_hash,omitempty"`
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
 
@@ -177,18 +151,13 @@ type DeployTxn struct {
 	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
 }
 
-func (tx DeployTxn) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
 // DeployAccountTxn The structure of a deployAccount transaction.
 type DeployAccountTxn struct {
-	TransactionHash *felt.Felt         `json:"transaction_hash,omitempty"`
-	MaxFee          *felt.Felt         `json:"max_fee"`
-	Version         TransactionVersion `json:"version"`
-	Signature       []*felt.Felt       `json:"signature"`
-	Nonce           *felt.Felt         `json:"nonce"`
-	Type            TransactionType    `json:"type"`
+	MaxFee    *felt.Felt         `json:"max_fee"`
+	Version   TransactionVersion `json:"version"`
+	Signature []*felt.Felt       `json:"signature"`
+	Nonce     *felt.Felt         `json:"nonce"`
+	Type      TransactionType    `json:"type"`
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
 
@@ -197,31 +166,6 @@ type DeployAccountTxn struct {
 
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
-}
-
-func (tx DeployAccountTxn) Hash() *felt.Felt {
-	return tx.Hash()
-}
-
-type Transactions []Transaction
-
-func (txns *Transactions) UnmarshalJSON(data []byte) error {
-	var dec []interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
-
-	unmarshalled := make([]Transaction, len(dec))
-	for i, t := range dec {
-		var err error
-		unmarshalled[i], err = unmarshalTxn(t)
-		if err != nil {
-			return err
-		}
-	}
-
-	*txns = unmarshalled
-	return nil
 }
 
 type UnknownTransaction struct{ Transaction }
@@ -323,11 +267,6 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
 }
-
-type AddInvokeTxnInput interface{}
-
-var _ AddInvokeTxnInput = InvokeTxnV0{}
-var _ AddInvokeTxnInput = InvokeTxnV1{}
 
 type AddDeclareTxnInput interface{}
 

@@ -93,7 +93,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
+		Transactions: []BlockTransaction{
 			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99")},
 			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1")},
 			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72")},
@@ -220,29 +220,31 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			InvokeTxnV0{
-				Type:    "INVOKE",
-				MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
-				Version: TransactionV0,
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
-					utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
-				},
-				Nonce: nil,
-				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
-					EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
-						utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
-						utils.TestHexToFelt(t, "0x0"),
-						utils.TestHexToFelt(t, "0x2"),
-						utils.TestHexToFelt(t, "0x2"),
-						utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
-						utils.TestHexToFelt(t, "0x6307b990"),
-						utils.TestHexToFelt(t, "0x2b81"),
+		Transactions: []BlockTransaction{
+			BlockInvokeTxnV0{
+				InvokeTxnV0: InvokeTxnV0{
+					Type:    "INVOKE",
+					MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
+					Version: TransactionV0,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
+						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
+					},
+					Nonce: nil,
+					FunctionCall: FunctionCall{
+						ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
+						EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+						Calldata: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x1"),
+							utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
+							utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
+							utils.TestHexToFelt(t, "0x0"),
+							utils.TestHexToFelt(t, "0x2"),
+							utils.TestHexToFelt(t, "0x2"),
+							utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
+							utils.TestHexToFelt(t, "0x6307b990"),
+							utils.TestHexToFelt(t, "0x2b81"),
+						},
 					},
 				},
 			},
@@ -301,17 +303,17 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				continue
 			}
 
-			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(InvokeTxnV0)
+			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV0)
 			if !ok {
 				t.Fatal("expected invoke v0 transaction")
 			}
-			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(InvokeTxnV0)
+			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV0)
 			if !ok {
 				t.Fatal("expected invoke v0 transaction")
 			}
-			require.Equal(t, invokeV0Want.Nonce, invokeV0Block.Nonce, "expected equal nonce")
-			require.Equal(t, invokeV0Want.MaxFee, invokeV0Block.MaxFee, "expected equal maxfee")
-			require.Equal(t, invokeV0Want.EntryPointSelector, invokeV0Block.EntryPointSelector, "expected equal eps")
+			require.Equal(t, invokeV0Want.InvokeTxnV0.Nonce, invokeV0Block.InvokeTxnV0.Nonce, "expected equal nonce")
+			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
+			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
 
 		}
 
@@ -341,18 +343,19 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1661486036,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeployTxn{
-				TransactionHash: utils.TestHexToFelt(t, "0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-				ClassHash:       utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
-				ConstructorCalldata: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x31ad196615d50956d98be085eb1774624106a6936c7c38696e730d2a6df735a"),
-					utils.TestHexToFelt(t, "0x736affc32af71f8d361c855b38ffef58ec151bd8361a3b160017b90ada1068e"),
-				},
-				ContractAddressSalt: utils.TestHexToFelt(t, "0x4241e90ee6a33a1e2e70b088f7e4acfb3d6630964c1a85e96fa96acd56dcfcf"),
+		Transactions: []BlockTransaction{
+			BlockDeployTxn{
+				DeployTxn: DeployTxn{
+					ClassHash: utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x31ad196615d50956d98be085eb1774624106a6936c7c38696e730d2a6df735a"),
+						utils.TestHexToFelt(t, "0x736affc32af71f8d361c855b38ffef58ec151bd8361a3b160017b90ada1068e"),
+					},
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x4241e90ee6a33a1e2e70b088f7e4acfb3d6630964c1a85e96fa96acd56dcfcf"),
 
-				Type:    "DEPLOY",
-				Version: TransactionV0,
+					Type:    "DEPLOY",
+					Version: TransactionV0,
+				},
 			},
 		},
 	}
@@ -367,16 +370,17 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1692416283,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV1{
-				TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
-				Type:            TransactionType_Declare,
-				MaxFee:          utils.TestHexToFelt(t, "0x27a64c6e425"),
-				Version:         TransactionV1,
-				Signature:       []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
-				Nonce:           utils.TestHexToFelt(t, "0x333"),
-				ClassHash:       utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
-				SenderAddress:   utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
+		Transactions: []BlockTransaction{
+			BlockDeclareTxnV1{
+				DeclareTxnV1: DeclareTxnV1{
+					Type:          TransactionType_Declare,
+					MaxFee:        utils.TestHexToFelt(t, "0x27a64c6e425"),
+					Version:       TransactionV1,
+					Signature:     []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
+					Nonce:         utils.TestHexToFelt(t, "0x333"),
+					ClassHash:     utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
+					SenderAddress: utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
+				},
 			},
 		},
 	}
@@ -391,17 +395,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1692560305,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV2{
-				TransactionHash:   utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
-				Type:              TransactionType_Declare,
-				MaxFee:            utils.TestHexToFelt(t, "0x50c8f30287c"),
-				Version:           TransactionV2,
-				Signature:         []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
-				Nonce:             utils.TestHexToFelt(t, "0xd"),
-				ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
-				CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
-				SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
+		Transactions: []BlockTransaction{
+			BlockDeclareTxnV2{
+				DeclareTxnV2: DeclareTxnV2{
+					Type:              TransactionType_Declare,
+					MaxFee:            utils.TestHexToFelt(t, "0x50c8f30287c"),
+					Version:           TransactionV2,
+					Signature:         []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
+					Nonce:             utils.TestHexToFelt(t, "0xd"),
+					ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
+					SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
+				},
 			},
 		},
 	}
@@ -571,14 +576,14 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv1 := v.(InvokeTxnV1)
-				_, okv0 := v.(InvokeTxnV0)
-				_, okl1 := v.(L1HandlerTxn)
-				_, okdec0 := v.(DeclareTxnV0)
-				_, okdec1 := v.(DeclareTxnV1)
-				_, okdec2 := v.(DeclareTxnV2)
-				_, okdep := v.(DeployTxn)
-				_, okdepac := v.(DeployAccountTxn)
+				_, okv1 := v.(BlockInvokeTxnV1)
+				_, okv0 := v.(BlockInvokeTxnV0)
+				_, okl1 := v.(BlockL1HandlerTxn)
+				_, okdec0 := v.(BlockDeclareTxnV0)
+				_, okdec1 := v.(BlockDeclareTxnV1)
+				_, okdec2 := v.(BlockDeclareTxnV2)
+				_, okdep := v.(BlockDeployTxn)
+				_, okdepac := v.(BlockDeployAccountTxn)
 				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}

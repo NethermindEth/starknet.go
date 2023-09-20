@@ -85,7 +85,7 @@ type Block struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
 	// Transactions The hashes of the transactions included in this block
-	Transactions Transactions `json:"transactions"`
+	Transactions BlockTransactions `json:"transactions"`
 }
 
 type PendingBlock struct {
@@ -96,7 +96,7 @@ type PendingBlock struct {
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// Transactions The hashes of the transactions included in this block
-	Transactions Transactions `json:"transactions"`
+	Transactions BlockTransactions `json:"transactions"`
 }
 
 type BlockHeader struct {
