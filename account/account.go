@@ -30,6 +30,7 @@ type AccountInterface interface {
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastedInvokeV1Transaction) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error
 	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) //todo: post rpcv04 merge
@@ -157,6 +158,36 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.BroadcastedDeployAcc
 		tx.MaxFee,
 		account.ChainId,
 		[]*felt.Felt{tx.Nonce},
+	)
+}
+
+func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error) {
+	Prefix_DECLARE := new(felt.Felt).SetBytes([]byte("declare"))
+
+	versionFelt, err := new(felt.Felt).SetString(string(tx.Version))
+	if err != nil {
+		return nil, err
+	}
+
+	calldata := []*felt.Felt{tx.ClassHash}
+	calldataHash, err := computeHashOnElementsFelt(calldata)
+	if err != nil {
+		return nil, err
+	}
+
+	extraData := []*felt.Felt{tx.Nonce}
+	if tx.CompiledClassHash != nil {
+		extraData = append(extraData, tx.CompiledClassHash)
+	}
+	return calculateTransactionHashCommon(
+		Prefix_DECLARE,
+		versionFelt,
+		tx.SenderAddress,
+		&felt.Zero,
+		calldataHash,
+		tx.MaxFee,
+		account.ChainId,
+		extraData,
 	)
 }
 

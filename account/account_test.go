@@ -501,58 +501,39 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	require.Equal(t, hash.String(), ExpectedHash.String(), "Error with calulcating TransactionHashDeployAccount")
 }
 
-// func TestAddDeclareTESTNET(t *testing.T) {
-// 	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
-// 	if testEnv != "testnet" {
-// 		t.Skip("Skipping test as it requires a testnet environment")
-// 	}
-// 	client, err := rpc.NewClient(base)
-// 	require.NoError(t, err, "Error in rpc.NewClient")
-// 	provider := rpc.NewProvider(client)
+func TestTransactionHashDeclare(t *testing.T) {
+	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+	expectedHash := utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92")
 
-// 	acnts, err := newDevnet(t, base)
-// 	require.NoError(t, err, "Error setting up Devnet")
-// 	fakeUser := acnts[0]
-// 	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
-// 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+	client, err := rpc.NewClient(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
 
-// 	// Set up ks
-// 	ks := starknetgo.NewMemKeystore()
-// 	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
-// 	require.True(t, ok)
-// 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+	acnt, err := account.NewAccount(provider, 1, &felt.Zero, "", starknetgo.NewMemKeystore())
+	require.NoError(t, err)
 
-// 	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
-// 	require.NoError(t, err)
+	tx := rpc.DeclareTxnV2{
+		CommonTransaction: rpc.CommonTransaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:     utils.TestHexToFelt(t, "0xb"),
+				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
+				Type:      rpc.TransactionType_Declare,
+				Version:   "0x2", //todo update when rpcv04 merged
+				Signature: []*felt.Felt{},
+			},
+		},
+		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+	}
 
-// 	// Set up declare tx
-// 	classHash := utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982") // preDeployed classhash
-// 	require.NoError(t, err)
-
-// 	tx := rpc.DeclareTxnV2{
-// 		CommonTransaction: rpc.CommonTransaction{
-// 			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-// 				Nonce:     utils.TestHexToFelt(t, "0xb"), // todo:fix??
-// 				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
-// 				Type:      rpc.TransactionType_Declare,
-// 				Version:   "0x2", //todo update when rpcv04 merged
-// 				Signature: []*felt.Felt{},
-// 			},
-// 		},
-// 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-// 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-// 		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
-// 	}
-
-// 	fmt.Println(tx, classHash, acnt, fakeUserPub)
-// 	panic("test not finished")
-// precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
-// require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
-
-// resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
-// require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
-// require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
-// }
+	hash, err := acnt.TransactionHashDeclare(tx)
+	require.NoError(t, err)
+	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+}
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
 	devnet := test.NewDevNet(url)
