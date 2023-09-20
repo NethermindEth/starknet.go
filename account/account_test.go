@@ -535,6 +535,58 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
 }
 
+func TestAddDeclareTransaction(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+	// todo: fix
+	expectedTransactionHash := utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92")
+	expectedClassHash := utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92")
+
+	client, err := rpc.NewClient(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, 1, AccountAddress, PubKey.String(), ks)
+	require.NoError(t, err)
+
+	tx := rpc.DeclareTxnV2{
+		CommonTransaction: rpc.CommonTransaction{
+			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
+				Nonce:     utils.TestHexToFelt(t, "0xb"),
+				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
+				Type:      rpc.TransactionType_Declare,
+				Version:   "0x2", //todo update when rpcv04 merged
+				Signature: []*felt.Felt{},
+			},
+		},
+		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+	}
+
+	hash, err := acnt.TransactionHashDeclare(tx)
+	require.NoError(t, err)
+	require.Equal(t, expectedTransactionHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+
+	err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	require.NoError(t, err)
+
+	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
+	require.NoError(t, err)
+	require.Equal(t, resp.TransactionHash.String(), expectedTransactionHash.String(), "AddDeclareTransaction TransactionHash mismatch")
+	require.Equal(t, resp.ClassHash.String(), expectedClassHash.String(), "AddDeclareTransaction ClassHash mismatch")
+}
+
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
 	devnet := test.NewDevNet(url)
 	acnts, err := devnet.Accounts()

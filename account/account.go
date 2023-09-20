@@ -33,7 +33,9 @@ type AccountInterface interface {
 	TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastedInvokeV1Transaction) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error
-	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) //todo: post rpcv04 merge
+	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)                                   // todo: remove after rpcv04?
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployAccountTransactionResponse, error) // todo: remove after rpcv04?
+	AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastedDeclareTransaction) (*rpc.AddDeclareTransactionResponse, error)                         // todo: remove after rpcv04?
 }
 
 var _ AccountInterface = &Account{}
@@ -122,6 +124,20 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error {
 
 	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
+	if err != nil {
+		return err
+	}
+	signature, err := account.Sign(ctx, hash)
+	if err != nil {
+		return err
+	}
+	tx.Signature = signature
+	return nil
+}
+
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error {
+
+	hash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return err
 	}
