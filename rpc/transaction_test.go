@@ -139,7 +139,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		}
 		txCasted, ok := (tx).(InvokeTxnV1)
 		if !ok {
-			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
+			t.Fatalf("transaction should be InvokeTxnV1, instead %T", tx)
 		}
 		require.Equal(t, txCasted.Type, TransactionType_Invoke)
 		require.Equal(t, txCasted, test.ExpectedTxn)
