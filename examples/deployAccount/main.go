@@ -81,7 +81,7 @@ func main() {
 	// Send transaction to the network
 	resp, err := clientv02.AddDeployAccountTransaction(context.Background(), tx)
 	if err != nil {
-		panic(fmt.Sprintf("Error returned from AddDeployAccountTransaction: %+v", err))
+		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", err))
 	}
 
 	fmt.Println("AddDeployAccountTransaction response:", resp)
