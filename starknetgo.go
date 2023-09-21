@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"hash"
 	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 /*
@@ -133,6 +135,22 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 	}
 
 	return x, y, nil
+}
+
+/*
+See Sign. SignFelt just wraps Sign.
+*/
+func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Felt, error) {
+	msgHashInt := msgHash.BigInt(new(big.Int))
+	privKeyInt := privKey.BigInt(new(big.Int))
+	x, y, err := sc.Sign(msgHashInt, privKeyInt)
+	if err != nil {
+		return nil, nil, err
+	}
+	xFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(x))
+	yFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(y))
+	return xFelt, yFelt, nil
+
 }
 
 /*

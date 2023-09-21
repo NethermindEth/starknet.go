@@ -61,6 +61,7 @@ func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deplo
 		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
 			return nil, unexpectedErr
 		}
+
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,

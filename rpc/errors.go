@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -31,12 +31,11 @@ func Err(code int, data any) *RPCError {
 
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	for _, rpcErr := range rpcErrors {
-		if errors.Is(err, rpcErr) {
+		if err.Error() == rpcErr.Error() {
 			return rpcErr
 		}
 	}
-
-	return Err(InternalError, err.Error())
+	return Err(InternalError, err)
 }
 
 func isErrUnexpectedError(err error) (*RPCError, bool) {
