@@ -273,10 +273,6 @@ type AddDeclareTxnInput interface{}
 var _ AddDeclareTxnInput = DeclareTxnV1{}
 var _ AddDeclareTxnInput = DeclareTxnV2{}
 
-type AddDeployAccountTxnInput interface{}
-
-var _ AddDeployAccountTxnInput = DeployAccountTxn{}
-
 type EstimateFeeInput interface{}
 
 var _ EstimateFeeInput = InvokeTxnV0{}

@@ -221,7 +221,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
+
 			BlockInvokeTxnV0{
+				TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
 				InvokeTxnV0: InvokeTxnV0{
 					Type:    "INVOKE",
 					MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
@@ -311,6 +313,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			if !ok {
 				t.Fatal("expected invoke v0 transaction")
 			}
+			require.Equal(t, invokeV0Want.TransactionHash, invokeV0Block.TransactionHash, "expected equal TransactionHash")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.Nonce, invokeV0Block.InvokeTxnV0.Nonce, "expected equal nonce")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
@@ -345,6 +348,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 			BlockDeployTxn{
+				TransactionHash: utils.TestHexToFelt(t, "0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
 				DeployTxn: DeployTxn{
 					ClassHash: utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
 					ConstructorCalldata: []*felt.Felt{
@@ -372,6 +376,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 			BlockDeclareTxnV1{
+				TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
 				DeclareTxnV1: DeclareTxnV1{
 					Type:          TransactionType_Declare,
 					MaxFee:        utils.TestHexToFelt(t, "0x27a64c6e425"),
@@ -397,6 +402,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 			BlockDeclareTxnV2{
+				TransactionHash: utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
 				DeclareTxnV2: DeclareTxnV2{
 					Type:              TransactionType_Declare,
 					MaxFee:            utils.TestHexToFelt(t, "0x50c8f30287c"),
