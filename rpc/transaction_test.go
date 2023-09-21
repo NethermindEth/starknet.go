@@ -21,20 +21,13 @@ func TestTransactionByHash(t *testing.T) {
 	}
 
 	var InvokeTxnV1example = InvokeTxnV1{
-		CommonTransaction: CommonTransaction{
-			TransactionHash: utils.TestHexToFelt(t, "0x1779df1c6de5136ad2620f704b645e9cbd554b57d37f08a06ea60142269c5a5"),
-
-			BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-
-				Type:    TransactionType_Invoke,
-				MaxFee:  utils.TestHexToFelt(t, "0x17970b794f000"),
-				Version: TransactionV1,
-				Nonce:   utils.TestHexToFelt(t, "0x2d"),
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c"),
-					utils.TestHexToFelt(t, "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"),
-				},
-			},
+		Type:    TransactionType_Invoke,
+		MaxFee:  utils.TestHexToFelt(t, "0x17970b794f000"),
+		Version: TransactionV1,
+		Nonce:   utils.TestHexToFelt(t, "0x2d"),
+		Signature: []*felt.Felt{
+			utils.TestHexToFelt(t, "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c"),
+			utils.TestHexToFelt(t, "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"),
 		},
 		SenderAddress: utils.TestHexToFelt(t, "0x66dd340c03b6b7866fa7bb4bb91cc9e9c2a8eedc321985f334fd55de5e4e071"),
 		Calldata: []*felt.Felt{
@@ -95,7 +88,6 @@ func TestTransactionByHash(t *testing.T) {
 			t.Fatalf("transaction should be InvokeTxnV1, instead %T", tx)
 		}
 		require.Equal(t, txCasted.Type, TransactionType_Invoke)
-		require.Equal(t, txCasted.TransactionHash, test.TxHash)
 		require.Equal(t, txCasted, test.ExpectedTxn)
 	}
 }
@@ -110,18 +102,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 
 	var InvokeTxnV1example = InvokeTxnV1{
-		CommonTransaction: CommonTransaction{
-			TransactionHash: utils.TestHexToFelt(t, "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
-			BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-				Type:    TransactionType_Invoke,
-				MaxFee:  utils.TestHexToFelt(t, "0x53685de02fa5"),
-				Version: TransactionV1,
-				Nonce:   &felt.Zero,
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4"),
-					utils.TestHexToFelt(t, "0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"),
-				},
-			},
+		Type:    TransactionType_Invoke,
+		MaxFee:  utils.TestHexToFelt(t, "0x53685de02fa5"),
+		Version: TransactionV1,
+		Nonce:   &felt.Zero,
+		Signature: []*felt.Felt{
+			utils.TestHexToFelt(t, "0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4"),
+			utils.TestHexToFelt(t, "0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"),
 		},
 		SenderAddress: utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
 		Calldata: []*felt.Felt{

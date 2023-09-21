@@ -25,9 +25,9 @@ func NewProvider(c *rpc.Client) *Provider {
 }
 
 type api interface {
-	AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error)
+	AddInvokeTransaction(ctx context.Context, invokeTxn InvokeTxnV1) (*AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction DeployAccountTxn) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -38,11 +38,11 @@ type api interface {
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
-	EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error)
+	EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error)
 	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
-	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simFlags []SimulationFlag) ([]SimulatedTransaction, error)
+	SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)

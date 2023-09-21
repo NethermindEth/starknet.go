@@ -487,7 +487,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong numbre of args ", len(args)))
 	}
-	invokeTx, ok := args[0].(BroadcastedInvokeV1Transaction)
+	invokeTx, ok := args[0].(InvokeTxnV1)
 	if !ok {
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastedInvokeV1Transaction, got %T\n", args[0]))
 	}

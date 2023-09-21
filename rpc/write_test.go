@@ -39,7 +39,7 @@ func TestDeclareTransaction(t *testing.T) {
 			t.Fatal("should be able to read file", err)
 		}
 
-		var declareTx BroadcastedDeclareTransactionV1
+		var declareTx AddDeclareTxnInput
 		err = json.Unmarshal(declareTxJSON, &declareTx)
 		require.Nil(t, err, "Error unmarshalling decalreTx")
 
@@ -47,7 +47,7 @@ func TestDeclareTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 
 		// To do: test transaction against client that supports RPC method (currently Sequencer uses
-		// "sierra_program" instead of "program" in BroadcastedDeclareTransactionV2)
+		// "sierra_program" instead of "program"
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
@@ -66,7 +66,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		InvokeTx      BroadcastedInvokeTransaction
+		InvokeTx      InvokeTxnV1
 		ExpectedResp  AddInvokeTransactionResponse
 		ExpectedError RPCError
 	}
@@ -75,7 +75,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				InvokeTx:     BroadcastedInvokeV1Transaction{SenderAddress: new(felt.Felt).SetUint64(123)},
+				InvokeTx:     InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)},
 				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
 				ExpectedError: RPCError{
 					code:    ErrUnexpectedError.code,
@@ -83,7 +83,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 					data:    "Something crazy happened"},
 			},
 			{
-				InvokeTx:      BroadcastedInvokeV1Transaction{},
+				InvokeTx:      InvokeTxnV1{},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
 				ExpectedError: RPCError{},
 			},
