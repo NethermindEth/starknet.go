@@ -153,7 +153,7 @@ type AddDeclareTransactionOutput struct {
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    *felt.Felt `json:"contract_address"`
-	EntryPointSelector *felt.Felt `json:"entry_point_selector,omitempty"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []*felt.Felt `json:"calldata"`

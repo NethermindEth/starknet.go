@@ -2,8 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
-
-	"github.com/pkg/errors"
+	"errors"
 )
 
 var ErrNotImplemented = errors.New("not implemented")

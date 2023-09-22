@@ -72,7 +72,7 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockHash 
 }
 
 // simulate a given transaction on the requested state, and generate the execution trace
-func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastedTransaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
+func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
 
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
