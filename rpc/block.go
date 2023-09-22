@@ -61,7 +61,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
-		return PendingBlockTxHashes{
+		return &PendingBlockTxHashes{
 			ParentHash:       result.ParentHash,
 			Timestamp:        result.Timestamp,
 			SequencerAddress: result.SequencerAddress,
@@ -107,7 +107,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	}
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
-		return PendingBlock{
+		return &PendingBlock{
 			ParentHash:       result.ParentHash,
 			Timestamp:        result.Timestamp,
 			SequencerAddress: result.SequencerAddress,

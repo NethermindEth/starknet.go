@@ -647,9 +647,13 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		}
 		json.Unmarshal(pBlock, &r)
 	} else {
+		blockHash, err := utils.HexToFelt("0xbeef")
+		if err != nil {
+			return err
+		}
 		block, err := json.Marshal(BlockTxHashes{
 			BlockHeader: BlockHeader{
-				BlockHash:        &felt.Zero,
+				BlockHash:        blockHash,
 				ParentHash:       &felt.Zero,
 				Timestamp:        124,
 				SequencerAddress: &felt.Zero},

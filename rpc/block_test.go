@@ -122,6 +122,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
 		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
 	})
+	blockHash := utils.TestHexToFelt(t, "0xbeef")
 
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -135,10 +136,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 				},
 			},
 			{
-				BlockID: BlockID{Hash: &felt.Zero},
+				BlockID: BlockID{Hash: blockHash},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						BlockHash:        &felt.Zero,
+						BlockHash:        blockHash,
 						ParentHash:       &felt.Zero,
 						Timestamp:        124,
 						SequencerAddress: &felt.Zero},
@@ -165,7 +166,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"mainnet": {},
 	}[testEnv]
-
+	
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
@@ -173,8 +174,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		switch result.(type) {
-		case BlockTxHashes:
+		switch resultType := result.(type) {
+		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)
 			if !ok {
 				t.Fatalf("should return *BlockTxHashes, instead: %T\n", result)
@@ -189,24 +190,30 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if len(block.Transactions) == 0 {
 				t.Fatal("the number of transaction should not be 0")
 			}
-
 			if test.ExpectedBlockWithTxHashes != nil {
 				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
 					continue
 				}
 
-				if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
-					t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
-				}
+				require.Equal(t, block.BlockHeader.BlockHash, test.ExpectedBlockWithTxHashes.BlockHeader.BlockHash, "Error in BlockTxHash BlockHash")
+				require.Equal(t, block.BlockHeader.ParentHash, test.ExpectedBlockWithTxHashes.BlockHeader.ParentHash, "Error in BlockTxHash ParentHash")
+				require.Equal(t, block.BlockHeader.Timestamp, test.ExpectedBlockWithTxHashes.BlockHeader.Timestamp, "Error in BlockTxHash Timestamp")
+				require.Equal(t, block.BlockHeader.SequencerAddress, test.ExpectedBlockWithTxHashes.BlockHeader.SequencerAddress, "Error in BlockTxHash SequencerAddress")
+				require.Equal(t, block.Status, test.ExpectedBlockWithTxHashes.Status, "Error in BlockTxHash Status")
+				require.Equal(t, block.Transactions, test.ExpectedBlockWithTxHashes.Transactions, "Error in BlockTxHash Transactions")
 			}
-		case PendingBlockTxHashes:
-			pBlock, ok := result.(PendingBlockTxHashes)
+		case *PendingBlockTxHashes:
+			pBlock, ok := result.(*PendingBlockTxHashes)
 			if !ok {
 				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
 			}
-			if !cmp.Equal(*test.ExpectedPendingBlockWithTxHashes, pBlock) {
-				t.Fatalf("the expected transaction pending blocks to match, instead: %s", cmp.Diff(test.ExpectedPendingBlockWithTxHashes, pBlock))
-			}
+			
+			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
+			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
+			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")
+			require.Equal(t, pBlock.Transactions, test.ExpectedPendingBlockWithTxHashes.Transactions, "Error in PendingBlockTxHashes Transactions")
+		default:
+			t.Fatalf("unexpected block type, found: %T\n", resultType)
 		}
 	}
 }
