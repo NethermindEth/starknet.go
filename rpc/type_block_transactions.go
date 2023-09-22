@@ -22,7 +22,6 @@ var _ BlockTransaction = BlockDeclareTxnV2{}
 var _ BlockTransaction = BlockDeployTxn{}
 var _ BlockTransaction = BlockDeployAccountTxn{}
 var _ BlockTransaction = BlockL1HandlerTxn{}
-var _ BlockTransaction = TransactionHash{}
 
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
@@ -91,29 +90,29 @@ type BlockDeployAccountTxn struct {
 	DeployAccountTxn
 }
 
-type TransactionHash struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-}
+// type TransactionHash struct {
+// 	TransactionHash *felt.Felt `json:"transaction_hash"`
+// }
 
-func (t TransactionHash) Hash() *felt.Felt {
-	return t.TransactionHash
-}
+// func (t TransactionHash) Hash() *felt.Felt {
+// 	return t.TransactionHash
+// }
 
-func (t *TransactionHash) UnmarshalJSON(input []byte) error {
-	return t.TransactionHash.UnmarshalJSON(input)
-}
+// func (t *TransactionHash) UnmarshalJSON(input []byte) error {
+// 	return t.TransactionHash.UnmarshalJSON(input)
+// }
 
-func (t TransactionHash) MarshalJSON() ([]byte, error) {
-	return t.TransactionHash.MarshalJSON()
-}
+// func (t TransactionHash) MarshalJSON() ([]byte, error) {
+// 	return t.TransactionHash.MarshalJSON()
+// }
 
-func (t TransactionHash) MarshalText() ([]byte, error) {
-	return t.TransactionHash.MarshalJSON()
-}
+// func (t TransactionHash) MarshalText() ([]byte, error) {
+// 	return t.TransactionHash.MarshalJSON()
+// }
 
-func (t *TransactionHash) UnmarshalText(input []byte) error {
-	return t.TransactionHash.UnmarshalJSON(input)
-}
+// func (t *TransactionHash) UnmarshalText(input []byte) error {
+// 	return t.TransactionHash.UnmarshalJSON(input)
+// }
 
 func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	var dec []interface{}
