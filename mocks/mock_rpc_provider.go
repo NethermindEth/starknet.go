@@ -37,7 +37,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 }
 
 // AddDeclareTransaction mocks base method.
-func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastedDeclareTransaction) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeclareTransaction", ctx, declareTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -52,7 +52,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeclareTransaction(ctx, declareTransac
 }
 
 // AddDeployAccountTransaction mocks base method.
-func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeployAccountTransaction", ctx, deployAccountTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeployAccountTransactionResponse)
@@ -67,18 +67,18 @@ func (mr *MockRpcProviderMockRecorder) AddDeployAccountTransaction(ctx, deployAc
 }
 
 // AddInvokeTransaction mocks base method.
-func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke rpc.BroadcastedInvokeTransaction) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, broadcastedInvoke)
+	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, invokeTxn)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddInvokeTransaction indicates an expected call of AddInvokeTransaction.
-func (mr *MockRpcProviderMockRecorder) AddInvokeTransaction(ctx, broadcastedInvoke interface{}) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) AddInvokeTransaction(ctx, invokeTxn interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInvokeTransaction", reflect.TypeOf((*MockRpcProvider)(nil).AddInvokeTransaction), ctx, broadcastedInvoke)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddInvokeTransaction", reflect.TypeOf((*MockRpcProvider)(nil).AddInvokeTransaction), ctx, invokeTxn)
 }
 
 // BlockHashAndNumber mocks base method.
@@ -232,7 +232,7 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 }
 
 // EstimateFee mocks base method.
-func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastedTransaction, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, blockID)
 	ret0, _ := ret[0].([]rpc.FeeEstimate)
@@ -292,18 +292,18 @@ func (mr *MockRpcProviderMockRecorder) Nonce(ctx, blockID, contractAddress inter
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastedTransaction, simFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simFlags)
+	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
 	ret0, _ := ret[0].([]rpc.SimulatedTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SimulateTransactions indicates an expected call of SimulateTransactions.
-func (mr *MockRpcProviderMockRecorder) SimulateTransactions(ctx, blockID, txns, simFlags interface{}) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) SimulateTransactions(ctx, blockID, txns, simulationFlags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimulateTransactions", reflect.TypeOf((*MockRpcProvider)(nil).SimulateTransactions), ctx, blockID, txns, simFlags)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimulateTransactions", reflect.TypeOf((*MockRpcProvider)(nil).SimulateTransactions), ctx, blockID, txns, simulationFlags)
 }
 
 // StateUpdate mocks base method.

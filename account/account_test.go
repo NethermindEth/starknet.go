@@ -312,7 +312,7 @@ func TestAddInvoke(t *testing.T) {
 		AccountAddress *felt.Felt
 		PubKey         *felt.Felt
 		PrivKey        *felt.Felt
-		InvokeTx       rpc.BroadcastedInvokeV1Transaction
+		InvokeTx       rpc.InvokeTxnV1
 		FnCall         rpc.FunctionCall
 		TxDetails      rpc.TxDetails
 	}
@@ -327,13 +327,11 @@ func TestAddInvoke(t *testing.T) {
 			SetKS:          true,
 			PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
 			PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
-			InvokeTx: rpc.BroadcastedInvokeV1Transaction{
-				BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-					Nonce:   new(felt.Felt).SetUint64(2),
-					MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
-					Version: rpc.TransactionV1,
-					Type:    rpc.TransactionType_Invoke,
-				},
+			InvokeTx: rpc.InvokeTxnV1{
+				Nonce:         new(felt.Felt).SetUint64(2),
+				MaxFee:        utils.TestHexToFelt(t, "0x574fbde6000"),
+				Version:       rpc.TransactionV1,
+				Type:          rpc.TransactionType_Invoke,
 				SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 			},
 			FnCall: rpc.FunctionCall{
@@ -353,13 +351,11 @@ func TestAddInvoke(t *testing.T) {
 				SetKS:          true,
 				PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
 				PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
-				InvokeTx: rpc.BroadcastedInvokeV1Transaction{
-					BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-						Nonce:   new(felt.Felt).SetUint64(6),
-						MaxFee:  utils.TestHexToFelt(t, "0x9184e72a000"),
-						Version: rpc.TransactionV1,
-						Type:    rpc.TransactionType_Invoke,
-					},
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(6),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
 					SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 				},
 				FnCall: rpc.FunctionCall{
@@ -429,14 +425,12 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
 	require.NoError(t, err)
 
-	tx := rpc.BroadcastedDeployAccountTransaction{
-		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-			Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
-			MaxFee:    new(felt.Felt).SetUint64(4724395326064),
-			Type:      rpc.TransactionType_DeployAccount,
-			Version:   rpc.TransactionV1,
-			Signature: []*felt.Felt{},
-		},
+	tx := rpc.DeployAccountTxn{
+		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
+		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV1,
+		Signature:           []*felt.Felt{},
 		ClassHash:           classHash,
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
@@ -476,14 +470,12 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	classHash := utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e")
 
-	tx := rpc.BroadcastedDeployAccountTransaction{
-		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-			Nonce:     &felt.Zero,
-			MaxFee:    utils.TestHexToFelt(t, "0x105ef39b2000"),
-			Type:      rpc.TransactionType_DeployAccount,
-			Version:   rpc.TransactionV1,
-			Signature: []*felt.Felt{},
-		},
+	tx := rpc.DeployAccountTxn{
+		Nonce:               &felt.Zero,
+		MaxFee:              utils.TestHexToFelt(t, "0x105ef39b2000"),
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV1,
+		Signature:           []*felt.Felt{},
 		ClassHash:           classHash,
 		ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
 		ConstructorCalldata: []*felt.Felt{
@@ -516,15 +508,11 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		CommonTransaction: rpc.CommonTransaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:     utils.TestHexToFelt(t, "0xb"),
-				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
-				Type:      rpc.TransactionType_Declare,
-				Version:   "0x2", //todo update when rpcv04 merged
-				Signature: []*felt.Felt{},
-			},
-		},
+		Nonce:             utils.TestHexToFelt(t, "0xb"),
+		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:              rpc.TransactionType_Declare,
+		Version:           "0x2", //todo update when rpcv04 merged
+		Signature:         []*felt.Felt{},
 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
 		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
@@ -560,15 +548,11 @@ func TestAddDeclareTransaction(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		CommonTransaction: rpc.CommonTransaction{
-			BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-				Nonce:     utils.TestHexToFelt(t, "0xb"),
-				MaxFee:    utils.TestHexToFelt(t, "0x50c8f3053db"),
-				Type:      rpc.TransactionType_Declare,
-				Version:   "0x2", //todo update when rpcv04 merged
-				Signature: []*felt.Felt{},
-			},
-		},
+		Nonce:             utils.TestHexToFelt(t, "0xb"),
+		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:              rpc.TransactionType_Declare,
+		Version:           "0x2", //todo update when rpcv04 merged
+		Signature:         []*felt.Felt{},
 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
 		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),

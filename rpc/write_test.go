@@ -39,7 +39,7 @@ func TestDeclareTransaction(t *testing.T) {
 			t.Fatal("should be able to read file", err)
 		}
 
-		var declareTx BroadcastedDeclareTransactionV1
+		var declareTx AddDeclareTxnInput
 		err = json.Unmarshal(declareTxJSON, &declareTx)
 		require.Nil(t, err, "Error unmarshalling decalreTx")
 
@@ -47,7 +47,7 @@ func TestDeclareTransaction(t *testing.T) {
 		testConfig.provider.c = spy
 
 		// To do: test transaction against client that supports RPC method (currently Sequencer uses
-		// "sierra_program" instead of "program" in BroadcastedDeclareTransactionV2)
+		// "sierra_program" instead of "program"
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
@@ -55,6 +55,48 @@ func TestDeclareTransaction(t *testing.T) {
 		}
 		if dec.TransactionHash != test.TransactionHash {
 			t.Fatalf("classHash does not match expected, current: %s", dec.ClassHash)
+		}
+
+	}
+}
+
+// TestDeclareTransaction tests starknet_addDeclareTransaction
+func TestAddInvokeTransaction(t *testing.T) {
+
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		InvokeTx      InvokeTxnV1
+		ExpectedResp  AddInvokeTransactionResponse
+		ExpectedError RPCError
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock": {
+			{
+				InvokeTx:     InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)},
+				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
+				ExpectedError: RPCError{
+					code:    ErrUnexpectedError.code,
+					message: ErrUnexpectedError.message,
+					data:    "Something crazy happened"},
+			},
+			{
+				InvokeTx:      InvokeTxnV1{},
+				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
+				ExpectedError: RPCError{},
+			},
+		},
+		"testnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
+		if err != nil {
+			require.Equal(t, err, &test.ExpectedError, "AddInvokeTransaction did not give expected error")
+		} else {
+			require.Equal(t, *resp, test.ExpectedResp)
 		}
 
 	}

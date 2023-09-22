@@ -27,15 +27,15 @@ const (
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error
+	BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
-	TransactionHashDeployAccount(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastedInvokeV1Transaction) error
-	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error
-	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error)                                   // todo: remove after rpcv04?
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployAccountTransactionResponse, error) // todo: remove after rpcv04?
-	AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastedDeclareTransaction) (*rpc.AddDeclareTransactionResponse, error)                         // todo: remove after rpcv04?
+	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
+	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
+	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error)                                   // todo: remove after rpcv04?
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) // todo: remove after rpcv04?
+	AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error)                       // todo: remove after rpcv04?
 }
 
 var _ AccountInterface = &Account{}
@@ -107,7 +107,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
 
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
 
 	txHash, err := account.TransactionHashInvoke(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
 	if err != nil {
@@ -121,7 +121,7 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	return nil
 }
 
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastedDeployAccountTransaction, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error {
 
 	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
@@ -150,7 +150,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.Decl
 }
 
 // TransactionHashDeployAccount computes the transaction hash for deployAccount transactions
-func (account *Account) TransactionHashDeployAccount(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error) {
 	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
 
 	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
@@ -208,7 +208,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt,
 }
 
 // BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.
-func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction, fnCall *[]rpc.FunctionCall) error {
+func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error {
 	if account.version != 1 {
 		return ErrAccountVersionNotSupported
 	}
@@ -219,10 +219,10 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.Broadca
 }
 
 // AddInvokeTransaction submits a complete (ie signed, and calldata has been formatted etc) invoke transaction to the rpc provider.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastedInvokeV1Transaction) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
 	switch account.version {
 	case 1:
-		return account.provider.AddInvokeTransaction(ctx, invokeTx)
+		return account.provider.AddInvokeTransaction(ctx, *invokeTx)
 	default:
 		return nil, ErrAccountVersionNotSupported
 	}
@@ -292,7 +292,7 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 	return account.provider.ClassHashAt(ctx, blockID, contractAddress)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastedTransaction, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
 
@@ -312,11 +312,11 @@ func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
 	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
 }
-func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.TransactionReceipt, error) {
 	return account.provider.TransactionReceipt(ctx, hash)
 }
 
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastedDeclareTransaction) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error) {
 	switch account.version {
 	case 1:
 		return account.provider.AddDeclareTransaction(ctx, declareTransaction)
@@ -325,7 +325,7 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 	}
 }
 
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastedDeployAccountTransaction) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	switch account.version {
 	case 1:
 		return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)

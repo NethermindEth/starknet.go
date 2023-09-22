@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -22,20 +21,13 @@ func TestTransactionByHash(t *testing.T) {
 	}
 
 	var InvokeTxnV1example = InvokeTxnV1{
-		CommonTransaction: CommonTransaction{
-			TransactionHash: utils.TestHexToFelt(t, "0x1779df1c6de5136ad2620f704b645e9cbd554b57d37f08a06ea60142269c5a5"),
-
-			BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-
-				Type:    TransactionType_Invoke,
-				MaxFee:  utils.TestHexToFelt(t, "0x17970b794f000"),
-				Version: TransactionV1,
-				Nonce:   utils.TestHexToFelt(t, "0x2d"),
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c"),
-					utils.TestHexToFelt(t, "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"),
-				},
-			},
+		Type:    TransactionType_Invoke,
+		MaxFee:  utils.TestHexToFelt(t, "0x17970b794f000"),
+		Version: TransactionV1,
+		Nonce:   utils.TestHexToFelt(t, "0x2d"),
+		Signature: []*felt.Felt{
+			utils.TestHexToFelt(t, "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c"),
+			utils.TestHexToFelt(t, "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"),
 		},
 		SenderAddress: utils.TestHexToFelt(t, "0x66dd340c03b6b7866fa7bb4bb91cc9e9c2a8eedc321985f334fd55de5e4e071"),
 		Calldata: []*felt.Felt{
@@ -96,7 +88,6 @@ func TestTransactionByHash(t *testing.T) {
 			t.Fatalf("transaction should be InvokeTxnV1, instead %T", tx)
 		}
 		require.Equal(t, txCasted.Type, TransactionType_Invoke)
-		require.Equal(t, txCasted.TransactionHash, test.TxHash)
 		require.Equal(t, txCasted, test.ExpectedTxn)
 	}
 }
@@ -111,18 +102,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 
 	var InvokeTxnV1example = InvokeTxnV1{
-		CommonTransaction: CommonTransaction{
-			TransactionHash: utils.TestHexToFelt(t, "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0"),
-			BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-				Type:    TransactionType_Invoke,
-				MaxFee:  utils.TestHexToFelt(t, "0x53685de02fa5"),
-				Version: TransactionV1,
-				Nonce:   &felt.Zero,
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4"),
-					utils.TestHexToFelt(t, "0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"),
-				},
-			},
+		Type:    TransactionType_Invoke,
+		MaxFee:  utils.TestHexToFelt(t, "0x53685de02fa5"),
+		Version: TransactionV1,
+		Nonce:   &felt.Zero,
+		Signature: []*felt.Felt{
+			utils.TestHexToFelt(t, "0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4"),
+			utils.TestHexToFelt(t, "0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"),
 		},
 		SenderAddress: utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
 		Calldata: []*felt.Felt{
@@ -153,7 +139,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		}
 		txCasted, ok := (tx).(InvokeTxnV1)
 		if !ok {
-			t.Fatalf("transaction should be InvokeTxnV0, instead %T", tx)
+			t.Fatalf("transaction should be InvokeTxnV1, instead %T", tx)
 		}
 		require.Equal(t, txCasted.Type, TransactionType_Invoke)
 		require.Equal(t, txCasted, test.ExpectedTxn)
@@ -172,7 +158,8 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
 		ActualFee:       utils.TestHexToFelt(t, "0x1709a2f3a2"),
 		Type:            "INVOKE",
-		Status:          TransactionAcceptedOnL1,
+		ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		BlockHash:       utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 		BlockNumber:     310370,
 		MessagesSent:    []MsgToL1{},
@@ -235,15 +222,15 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash     *felt.Felt
-		StatusMatch string
+		TxnHash         *felt.Felt
+		ExecutionStatus string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:     utils.TestHexToFelt(t, "0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
-				StatusMatch: "(ACCEPTED_ON_L1|ACCEPTED_ON_L2|PENDING)",
+				TxnHash:         utils.TestHexToFelt(t, "0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
+				ExecutionStatus: "(SUCCEEDED|REVERTED)",
 			},
 		},
 		"mainnet": {},
@@ -263,10 +250,9 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 		if !ok {
 			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
 		}
-		if ok, err := regexp.MatchString(test.StatusMatch, string(txnReceipt.Status)); err != nil || !ok {
-			t.Fatal("error checking transaction status", ok, err, txnReceipt.Status)
+		if ok, err := regexp.MatchString(test.ExecutionStatus, string(txnReceipt.ExecutionStatus)); err != nil || !ok {
+			t.Fatal("error checking transaction status", ok, err, txnReceipt.ExecutionStatus)
 		}
-		fmt.Println("transaction status", txnReceipt.Status)
 	}
 }
 
@@ -283,7 +269,8 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 		CommonTransactionReceipt{
 			TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
 			ActualFee:       utils.TestHexToFelt(t, "0x0"),
-			Status:          TransactionAcceptedOnL1,
+			FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 			BlockHash:       utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
 			BlockNumber:     300114,
 			Type:            "DECLARE",
