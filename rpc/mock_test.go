@@ -100,7 +100,7 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 	if len(args) != 0 {
 		return errWrongArgs
 	}
-	value := "SN_GOERLI"
+	value := "0x534e5f474f45524c49"
 	*r = value
 	return nil
 }
