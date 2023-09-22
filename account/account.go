@@ -67,7 +67,6 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 	return account, nil
 }
 
-// TransactionHash2 requires the callData to be compiled beforehand
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
@@ -184,6 +183,14 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.Decl
 
 // TransactionHashDeployAccount computes the transaction hash for deployAccount transactions
 func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error) {
+
+	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_transaction
+
+	// There is only version 1 of deployAccount txn
+	if tx.Version != rpc.TransactionV1 {
+		return nil, ErrTxnTypeUnSupported
+	}
+
 	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
 
 	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
