@@ -70,9 +70,10 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 // TransactionHash2 requires the callData to be compiled beforehand
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
+	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
 	switch txn := tx.(type) {
 	case rpc.InvokeTxnV0:
-		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil {
+		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
@@ -89,7 +90,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
 			txnVersionFelt,
 			txn.ContractAddress,
-			&felt.Zero,
+			txn.EntryPointSelector,
 			calldataHash,
 			txn.MaxFee,
 			account.ChainId,
@@ -97,7 +98,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		)
 
 	case rpc.InvokeTxnV1:
-		if len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil {
+		if len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
@@ -105,9 +106,13 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
 		return calculateTransactionHashCommon(
 			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
-			new(felt.Felt).SetUint64(account.version),
+			txnVersionFelt,
 			txn.SenderAddress,
 			&felt.Zero,
 			calldataHash,
@@ -193,6 +198,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 		return nil, err
 	}
 
+	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
 	return calculateTransactionHashCommon(
 		Prefix_DEPLOY_ACCOUNT,
 		versionFelt,

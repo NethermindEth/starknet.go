@@ -95,8 +95,9 @@ func TestTransactionHashInvoke(t *testing.T) {
 					Calldata:           []*felt.Felt{&felt.Zero},
 				},
 				TxDetails: rpc.TxDetails{
-					Nonce:  &felt.Zero,
-					MaxFee: &felt.Zero,
+					Nonce:   &felt.Zero,
+					MaxFee:  &felt.Zero,
+					Version: rpc.TransactionV1,
 				},
 			},
 			{
@@ -144,6 +145,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				Nonce:         test.TxDetails.Nonce,
 				MaxFee:        test.TxDetails.MaxFee,
 				SenderAddress: account.AccountAddress,
+				Version:       test.TxDetails.Version,
 			}
 			hash, err := account.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
