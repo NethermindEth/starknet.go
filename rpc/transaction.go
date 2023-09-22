@@ -74,13 +74,9 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error) {
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
-		switch {
-		case errors.Is(err, ErrInvalidTxnIndex):
-			return nil, ErrInvalidTxnIndex
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil,tryUnwrapToRPCErr(err,  ErrInvalidTxnIndex ,ErrBlockNotFound)
+
 	}
 	return adaptTransaction(tx)
 }
