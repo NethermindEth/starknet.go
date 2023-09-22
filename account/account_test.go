@@ -139,7 +139,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 			account, err := account.NewAccount(mockRpcProvider, 1, test.AccountAddress, test.PubKey, ks)
 			require.NoError(t, err, "error returned from account.NewAccount()")
-			hash, err := account.TransactionHashInvoke(test.FnCall.Calldata, test.TxDetails.Nonce, test.TxDetails.MaxFee, account.AccountAddress)
+			invokeTxn := rpc.InvokeTxnV1{
+				Calldata:      test.FnCall.Calldata,
+				Nonce:         test.TxDetails.Nonce,
+				MaxFee:        test.TxDetails.MaxFee,
+				SenderAddress: account.AccountAddress,
+			}
+			hash, err := account.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
 		})
@@ -389,7 +395,13 @@ func TestAddInvoke(t *testing.T) {
 
 		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &test.InvokeTx, &[]rpc.FunctionCall{test.FnCall}), "Error building Invoke")
 
-		txHash, err := acnt.TransactionHashInvoke(test.InvokeTx.Calldata, test.InvokeTx.Nonce, test.InvokeTx.MaxFee, acnt.AccountAddress)
+		invokeTxn := rpc.InvokeTxnV1{
+			Calldata:      test.FnCall.Calldata,
+			Nonce:         test.TxDetails.Nonce,
+			MaxFee:        test.TxDetails.MaxFee,
+			SenderAddress: acnt.AccountAddress,
+		}
+		txHash, err := acnt.TransactionHashInvoke(invokeTxn)
 		require.NoError(t, err)
 		require.Equal(t, txHash.String(), test.ExpectedHash.String())
 

@@ -28,14 +28,12 @@ const (
 type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error
-	TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
-	AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error)                                   // todo: remove after rpcv04?
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) // todo: remove after rpcv04?
-	AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error)                       // todo: remove after rpcv04?
+	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 }
 
 var _ AccountInterface = &Account{}
@@ -70,25 +68,55 @@ func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.F
 }
 
 // TransactionHash2 requires the callData to be compiled beforehand
-func (account *Account) TransactionHashInvoke(callData []*felt.Felt, nonce *felt.Felt, maxFee *felt.Felt, accountAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
-	if len(callData) == 0 || nonce == nil || maxFee == nil || accountAddress == nil {
-		return nil, ErrNotAllParametersSet
+	switch txn := tx.(type) {
+	case rpc.InvokeTxnV0:
+		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		if err != nil {
+			return nil, err
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
+			txnVersionFelt,
+			txn.ContractAddress,
+			&felt.Zero,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{},
+		)
+
+	case rpc.InvokeTxnV1:
+		if len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
+			new(felt.Felt).SetUint64(account.version),
+			txn.SenderAddress,
+			&felt.Zero,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{txn.Nonce},
+		)
 	}
-	calldataHash, err := computeHashOnElementsFelt(callData)
-	if err != nil {
-		return nil, err
-	}
-	return calculateTransactionHashCommon(
-		new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
-		new(felt.Felt).SetUint64(account.version),
-		accountAddress,
-		&felt.Zero,
-		calldataHash,
-		maxFee,
-		account.ChainId,
-		[]*felt.Felt{nonce},
-	)
+	return nil, ErrTxnTypeUnSupported
 }
 
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
@@ -109,7 +137,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 
 func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
 
-	txHash, err := account.TransactionHashInvoke(invokeTx.Calldata, invokeTx.Nonce, invokeTx.MaxFee, account.AccountAddress)
+	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
 		return err
 	}
