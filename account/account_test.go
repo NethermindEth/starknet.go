@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -397,13 +398,7 @@ func TestAddInvoke(t *testing.T) {
 
 		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &test.InvokeTx, &[]rpc.FunctionCall{test.FnCall}), "Error building Invoke")
 
-		invokeTxn := rpc.InvokeTxnV1{
-			Calldata:      test.FnCall.Calldata,
-			Nonce:         test.TxDetails.Nonce,
-			MaxFee:        test.TxDetails.MaxFee,
-			SenderAddress: acnt.AccountAddress,
-		}
-		txHash, err := acnt.TransactionHashInvoke(invokeTxn)
+		txHash, err := acnt.TransactionHashInvoke(test.InvokeTx)
 		require.NoError(t, err)
 		require.Equal(t, txHash.String(), test.ExpectedHash.String())
 
@@ -525,7 +520,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		Nonce:             utils.TestHexToFelt(t, "0xb"),
 		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
 		Type:              rpc.TransactionType_Declare,
-		Version:           "0x2", //todo update when rpcv04 merged
+		Version:           rpc.TransactionV2,
 		Signature:         []*felt.Felt{},
 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
@@ -565,7 +560,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 		Nonce:             utils.TestHexToFelt(t, "0xb"),
 		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
 		Type:              rpc.TransactionType_Declare,
-		Version:           "0x2", //todo update when rpcv04 merged
+		Version:           rpc.TransactionV2,
 		Signature:         []*felt.Felt{},
 		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
 		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
@@ -577,10 +572,13 @@ func TestAddDeclareTransaction(t *testing.T) {
 	require.Equal(t, expectedTransactionHash.String(), hash.String(), "TransactionHashDeclare not what expected")
 
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
-	require.NoError(t, err)
+	require.NoError(t, err, "Error in SignDeclareTransaction()")
+
+	qwe, _ := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
 
 	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
-	require.NoError(t, err)
+	require.NoError(t, err, "Error in AddDeclareTransaction()")
 	require.Equal(t, resp.TransactionHash.String(), expectedTransactionHash.String(), "AddDeclareTransaction TransactionHash mismatch")
 	require.Equal(t, resp.ClassHash.String(), expectedClassHash.String(), "AddDeclareTransaction ClassHash mismatch")
 }
