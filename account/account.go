@@ -14,6 +14,7 @@ var (
 	ErrAccountVersionNotSupported = errors.New("Account version not supported")
 	ErrNotAllParametersSet        = errors.New("Not all neccessary parameters have been set")
 	ErrTxnTypeUnSupported         = errors.New("Unsupported transction type")
+	ErrTxnVersionUnSupported      = errors.New("Unsupported transction version")
 	ErrFeltToBigInt               = errors.New("Felt to BigInt error")
 )
 
@@ -30,7 +31,7 @@ type AccountInterface interface {
 	BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error)
-	TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error)
+	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
@@ -218,34 +219,65 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	)
 }
 
-func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnV2) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
+
 	Prefix_DECLARE := new(felt.Felt).SetBytes([]byte("declare"))
 
-	versionFelt, err := new(felt.Felt).SetString(string(tx.Version))
-	if err != nil {
-		return nil, err
+	switch txn := tx.(type) {
+	case rpc.DeclareTxnV0:
+		// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
+		return nil, ErrTxnVersionUnSupported
+	case rpc.DeclareTxnV1:
+		if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		if err != nil {
+			return nil, err
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			Prefix_DECLARE,
+			txnVersionFelt,
+			txn.SenderAddress,
+			&felt.Zero,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{txn.Nonce},
+		)
+	case rpc.DeclareTxnV2:
+		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		if err != nil {
+			return nil, err
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			Prefix_DECLARE,
+			txnVersionFelt,
+			txn.SenderAddress,
+			&felt.Zero,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
+		)
 	}
 
-	calldata := []*felt.Felt{tx.ClassHash}
-	calldataHash, err := computeHashOnElementsFelt(calldata)
-	if err != nil {
-		return nil, err
-	}
-
-	extraData := []*felt.Felt{tx.Nonce}
-	if tx.CompiledClassHash != nil {
-		extraData = append(extraData, tx.CompiledClassHash)
-	}
-	return calculateTransactionHashCommon(
-		Prefix_DECLARE,
-		versionFelt,
-		tx.SenderAddress,
-		&felt.Zero,
-		calldataHash,
-		tx.MaxFee,
-		account.ChainId,
-		extraData,
-	)
+	return nil, ErrTxnTypeUnSupported
 }
 
 // BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.
