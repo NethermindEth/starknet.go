@@ -36,14 +36,12 @@ func main() {
 		panic(err)
 	}
 
-	tx := rpc.BroadcastedDeployAccountTransaction{
-		BroadcastedTxnCommonProperties: rpc.BroadcastedTxnCommonProperties{
-			Nonce:     &felt.Zero, // Contract accounts start with nonce zero.
-			MaxFee:    new(felt.Felt).SetUint64(4724395326064),
-			Type:      rpc.TransactionType_DeployAccount,
-			Version:   rpc.TransactionV1,
-			Signature: []*felt.Felt{},
-		},
+	tx := rpc.DeployAccountTxn{
+		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
+		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV1,
+		Signature:           []*felt.Felt{},
 		ClassHash:           classHash,
 		ContractAddressSalt: pub,
 		ConstructorCalldata: []*felt.Felt{pub},
@@ -151,7 +149,7 @@ func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 }
 
 // calculateDeployAccountTransactionHash computes the transaction hash for deployAccount transactions
-func calculateDeployAccountTransactionHash(tx rpc.BroadcastedDeployAccountTransaction, contractAddress *felt.Felt, chainID string) (*felt.Felt, error) {
+func calculateDeployAccountTransactionHash(tx rpc.DeployAccountTxn, contractAddress *felt.Felt, chainID string) (*felt.Felt, error) {
 	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
 	chainIdFelt := new(felt.Felt).SetBytes([]byte(chainID))
 
