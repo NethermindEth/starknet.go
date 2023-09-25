@@ -79,11 +79,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 	type testSetType struct {
 		BlockID                          BlockID
 		ExpectedError                    error
-		ExpectedBlockWithTxHashes        *Block
-		ExpectedPendingBlockWithTxHashes *PendingBlock
+		ExpectedBlockWithTxHashes        *BlockTxHashes
+		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockGoerli310370 = Block{
+	var blockGoerli310370 = BlockTxHashes{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
@@ -93,50 +93,61 @@ func TestBlockWithTxHashes(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x43cd66f3ddbfbf681ab99bb57bf9d94c83d6e9b586bdbde78ab2deb0328ebd5")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x7602cfebe4f3cb3ef4c8b8c6d7dda2efaf4a500723020066f5db50acd5095cd")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x2612f3f870ee7e7617d4f9efdc41fa8fd571f9720b059b1aa14c1bf15d3a92a")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x1a7810a6c68adf0621ed384d915409c936efa0c9d436683ea0cf7ea171719b")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x26683aeef3e9d9bcc1f0d45a5f0b67d0aa1919726524b2a8dc59504dacfd1f4")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x1d374aa073435cdde1ec1caf972f7c175fd23438bb220848e71720e00fd7474")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0xfc13eabaa2f38981e68bb010370cad7a7d0b65a59101ec816042adca0d6841")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x672d007224128b99bcc145cd3dbd8930a944b6a5fff5c27e3b158a6ff701509")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x24795cbca6d2eba941082cea3f686bc86ef27dd46fdf84b32f9ba25bbeddb28")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x69281a4dd58c260a06b3266554c0cf1a4f19b79d8488efef2a1f003d67506ed")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x62211cc3c94d612b580eb729410e52277f838f962d91af91fb2b0526704c04d")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x5e4128b7680db32de4dff7bc57cb11c9f222752b1f875e84b29785b4c284e2a")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0xdb8ad2b7d008fd2ad7fba4315b193032dee85e17346c80276a2e08c7f09f80")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x67b9541ca879abc29fa24a0fa070285d1899fc044159521c827f6b6aa09bbd6")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x5d9c0ab1d4ed6e9376c8ab45ee02b25dd0adced12941aafe8ce37369d19d9c2")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x4e52da53e23d92d9818908aeb104b007ea24d3cd4a5aa43144d2db1011e314f")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x6cc05f5ab469a3675acb5885c274d5143dca75dd9835c582f59e85ab0642d39")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x561ed983d1d9c37c964a96f80ccaf3de772e2b73106d6f49dd7c3f7ed8483d9")},
-		},
+		Transactions: utils.TestHexArrToFelt(t, []string{
+			"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
+			"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+			"0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72",
+			"0x43cd66f3ddbfbf681ab99bb57bf9d94c83d6e9b586bdbde78ab2deb0328ebd5",
+			"0x7602cfebe4f3cb3ef4c8b8c6d7dda2efaf4a500723020066f5db50acd5095cd",
+			"0x2612f3f870ee7e7617d4f9efdc41fa8fd571f9720b059b1aa14c1bf15d3a92a",
+			"0x1a7810a6c68adf0621ed384d915409c936efa0c9d436683ea0cf7ea171719b",
+			"0x26683aeef3e9d9bcc1f0d45a5f0b67d0aa1919726524b2a8dc59504dacfd1f4",
+			"0x1d374aa073435cdde1ec1caf972f7c175fd23438bb220848e71720e00fd7474",
+			"0xfc13eabaa2f38981e68bb010370cad7a7d0b65a59101ec816042adca0d6841",
+			"0x672d007224128b99bcc145cd3dbd8930a944b6a5fff5c27e3b158a6ff701509",
+			"0x24795cbca6d2eba941082cea3f686bc86ef27dd46fdf84b32f9ba25bbeddb28",
+			"0x69281a4dd58c260a06b3266554c0cf1a4f19b79d8488efef2a1f003d67506ed",
+			"0x62211cc3c94d612b580eb729410e52277f838f962d91af91fb2b0526704c04d",
+			"0x5e4128b7680db32de4dff7bc57cb11c9f222752b1f875e84b29785b4c284e2a",
+			"0xdb8ad2b7d008fd2ad7fba4315b193032dee85e17346c80276a2e08c7f09f80",
+			"0x67b9541ca879abc29fa24a0fa070285d1899fc044159521c827f6b6aa09bbd6",
+			"0x5d9c0ab1d4ed6e9376c8ab45ee02b25dd0adced12941aafe8ce37369d19d9c2",
+			"0x4e52da53e23d92d9818908aeb104b007ea24d3cd4a5aa43144d2db1011e314f",
+			"0x6cc05f5ab469a3675acb5885c274d5143dca75dd9835c582f59e85ab0642d39",
+			"0x561ed983d1d9c37c964a96f80ccaf3de772e2b73106d6f49dd7c3f7ed8483d9",
+		}),
 	}
 
+	txHashes := utils.TestHexArrToFelt(t, []string{
+		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
+		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+	})
+	blockHash := utils.TestHexToFelt(t, "0xbeef")
+
 	testSet := map[string][]testSetType{
-		"mock": {{
-			BlockID: BlockID{Tag: "latest"},
-			ExpectedPendingBlockWithTxHashes: &PendingBlock{
-				ParentHash:       &felt.Zero,
-				Timestamp:        123,
-				SequencerAddress: &felt.Zero,
+		"mock": {
+			{
+				BlockID: BlockID{Tag: "latest"},
+				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
+					ParentHash:       &felt.Zero,
+					Timestamp:        123,
+					SequencerAddress: &felt.Zero,
+					Transactions:     txHashes,    
+				},
+			},
+			{
+				BlockID: BlockID{Hash: blockHash},
+				ExpectedBlockWithTxHashes: &BlockTxHashes{
+					BlockHeader: BlockHeader{
+						BlockHash:        blockHash,
+						ParentHash:       &felt.Zero,
+						Timestamp:        124,
+						SequencerAddress: &felt.Zero},
+					Status:       BlockStatus_AcceptedOnL1,
+					Transactions: txHashes,
+				},
 			},
 		},
-			{
-				BlockID: BlockID{Hash: &felt.Zero},
-				ExpectedBlockWithTxHashes: &Block{
-					BlockHeader: BlockHeader{
-						ParentHash:       &felt.Zero,
-						Timestamp:        123,
-						SequencerAddress: &felt.Zero},
-					Status: BlockStatus_AcceptedOnL1,
-				},
-			}},
 		"testnet": {
 			{
 				BlockID:       WithBlockTag("latest"),
@@ -155,7 +166,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"mainnet": {},
 	}[testEnv]
-
+	
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
@@ -163,11 +174,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		switch resultBlock := result.(type) {
-		case Block:
-			block, ok := result.(*Block)
+		switch resultType := result.(type) {
+		case *BlockTxHashes:
+			block, ok := result.(*BlockTxHashes)
 			if !ok {
-				t.Fatalf("should return *Block, instead: %T\n", result)
+				t.Fatalf("should return *BlockTxHashes, instead: %T\n", result)
 			}
 			if test.ExpectedError != nil {
 				continue
@@ -179,22 +190,31 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if len(block.Transactions) == 0 {
 				t.Fatal("the number of transaction should not be 0")
 			}
-
 			if test.ExpectedBlockWithTxHashes != nil {
 				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
 					continue
 				}
 
-				if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
-					t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
-				}
+				require.Equal(t, block.BlockHeader.BlockHash, test.ExpectedBlockWithTxHashes.BlockHeader.BlockHash, "Error in BlockTxHash BlockHash")
+				require.Equal(t, block.BlockHeader.ParentHash, test.ExpectedBlockWithTxHashes.BlockHeader.ParentHash, "Error in BlockTxHash ParentHash")
+				require.Equal(t, block.BlockHeader.Timestamp, test.ExpectedBlockWithTxHashes.BlockHeader.Timestamp, "Error in BlockTxHash Timestamp")
+				require.Equal(t, block.BlockHeader.SequencerAddress, test.ExpectedBlockWithTxHashes.BlockHeader.SequencerAddress, "Error in BlockTxHash SequencerAddress")
+				require.Equal(t, block.Status, test.ExpectedBlockWithTxHashes.Status, "Error in BlockTxHash Status")
+				require.Equal(t, block.Transactions, test.ExpectedBlockWithTxHashes.Transactions, "Error in BlockTxHash Transactions")
 			}
-		case PendingBlock:
-			require.Equal(t, resultBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlock ParentHash")
-			require.Equal(t, resultBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlock SequencerAddress")
-			require.Equal(t, resultBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlock Timestamp")
+		case *PendingBlockTxHashes:
+			pBlock, ok := result.(*PendingBlockTxHashes)
+			if !ok {
+				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
+			}
+			
+			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
+			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
+			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")
+			require.Equal(t, pBlock.Transactions, test.ExpectedPendingBlockWithTxHashes.Transactions, "Error in PendingBlockTxHashes Transactions")
+		default:
+			t.Fatalf("unexpected block type, found: %T\n", resultType)
 		}
-
 	}
 }
 
