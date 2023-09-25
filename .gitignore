@@ -4,6 +4,7 @@ vendor/
 !.env.template
 rpc*/.env.mainnet
 rpc*/.env.testnet
+examples/simpleInvoke/.env.testnet
 
 *.txt
 
@@ -14,7 +15,7 @@ gateway/contracts/*_class.json
 gateway/contracts/*_compiled.json
 
 examples/**/*.json
-examples/**/*.sum
+
 
 */**/*abi.json
 
