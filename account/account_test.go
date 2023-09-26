@@ -315,7 +315,7 @@ func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
-		ExpectedError  string // todo :update when rpcv04 merged
+		ExpectedError  *rpc.RPCError
 		SetKS          bool
 		AccountAddress *felt.Felt
 		PubKey         *felt.Felt
@@ -330,7 +330,7 @@ func TestAddInvoke(t *testing.T) {
 		"testnet": {{
 			// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
 			ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
-			ExpectedError:  "A transaction with the same hash already exists in the mempool",
+			ExpectedError:  rpc.ErrDuplicateTx,
 			AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 			SetKS:          true,
 			PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
@@ -354,7 +354,7 @@ func TestAddInvoke(t *testing.T) {
 			{
 				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
 				ExpectedHash:   utils.TestHexToFelt(t, "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86"),
-				ExpectedError:  "A transaction with the same hash already exists in the mempool",
+				ExpectedError:  rpc.ErrDuplicateTx,
 				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 				SetKS:          true,
 				PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
@@ -401,7 +401,7 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, txHash.String(), test.ExpectedHash.String())
 
-		resp, err := acnt.AddInvokeTransaction(context.Background(), &test.InvokeTx)
+		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
 		require.Equal(t, err.Error(), test.ExpectedError)
 		require.Nil(t, resp)
 	}

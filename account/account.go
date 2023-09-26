@@ -37,8 +37,7 @@ type AccountInterface interface {
 }
 
 var _ AccountInterface = &Account{}
-
-// var _ rpc.RpcProvider = &Account{} //todo: post rpcv04 merge
+var _ rpc.RpcProvider = &Account{}
 
 type Account struct {
 	provider       rpc.RpcProvider
@@ -311,11 +310,11 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeT
 }
 
 // AddInvokeTransaction submits an invoke transaction to the rpc provider.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
-	return account.provider.AddInvokeTransaction(ctx, *invokeTx)
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
+	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
@@ -364,6 +363,9 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 func (account *Account) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
+func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
+	return account.provider.EstimateMessageFee(ctx, msg, blockID)
+}
 
 func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventChunk, error) {
 	return account.provider.Events(ctx, input)
@@ -372,15 +374,35 @@ func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contract
 	return account.provider.Nonce(ctx, blockID, contractAddress)
 }
 
+func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+	return account.provider.SimulateTransactions(ctx, blockID, txns, simulationFlags)
+}
+func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpc.BlockID) (string, error) {
+	return account.provider.StorageAt(ctx, contractAddress, key, blockID)
+}
 func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
 	return account.provider.StateUpdate(ctx, blockID)
 }
 func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
+
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
+	return account.provider.TraceBlockTransactions(ctx, blockHash)
+}
+
+func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, error) {
+	return account.provider.TransactionReceipt(ctx, transactionHash)
+}
+
+func (account *Account) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	return account.provider.TransactionTrace(ctx, transactionHash)
+}
+
 func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
 	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
 }
-func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.TransactionReceipt, error) {
-	return account.provider.TransactionReceipt(ctx, hash)
+
+func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+	return account.provider.TransactionByHash(ctx, hash)
 }
