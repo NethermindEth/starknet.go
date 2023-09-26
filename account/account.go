@@ -18,11 +18,9 @@ var (
 	ErrFeltToBigInt               = errors.New("Felt to BigInt error")
 )
 
-const (
-	TRANSACTION_PREFIX      = "invoke"
-	DECLARE_PREFIX          = "declare"
-	EXECUTE_SELECTOR        = "__execute__"
-	CONTRACT_ADDRESS_PREFIX = "STARKNET_CONTRACT_ADDRESS"
+var (
+	TRANSACTION_PREFIX = new(felt.Felt).SetBytes([]byte("invoke"))
+	DECLARE_PREFIX     = new(felt.Felt).SetBytes([]byte("declare"))
 )
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
@@ -35,6 +33,7 @@ type AccountInterface interface {
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
+	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 }
 
 var _ AccountInterface = &Account{}
@@ -64,62 +63,6 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	account.ChainId = new(felt.Felt).SetBytes([]byte(chainID))
 
 	return account, nil
-}
-
-func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
-
-	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	switch txn := tx.(type) {
-	case rpc.InvokeTxnV0:
-		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
-		if err != nil {
-			return nil, err
-		}
-
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		return calculateTransactionHashCommon(
-			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
-			txnVersionFelt,
-			txn.ContractAddress,
-			txn.EntryPointSelector,
-			calldataHash,
-			txn.MaxFee,
-			account.ChainId,
-			[]*felt.Felt{},
-		)
-
-	case rpc.InvokeTxnV1:
-		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
-		if err != nil {
-			return nil, err
-		}
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		return calculateTransactionHashCommon(
-			new(felt.Felt).SetBytes([]byte(TRANSACTION_PREFIX)),
-			txnVersionFelt,
-			txn.SenderAddress,
-			&felt.Zero,
-			calldataHash,
-			txn.MaxFee,
-			account.ChainId,
-			[]*felt.Felt{txn.Nonce},
-		)
-	}
-	return nil, ErrTxnTypeUnSupported
 }
 
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
@@ -217,6 +160,62 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	)
 }
 
+func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
+
+	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
+	switch txn := tx.(type) {
+	case rpc.InvokeTxnV0:
+		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		if err != nil {
+			return nil, err
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			TRANSACTION_PREFIX,
+			txnVersionFelt,
+			txn.ContractAddress,
+			txn.EntryPointSelector,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{},
+		)
+
+	case rpc.InvokeTxnV1:
+		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		if err != nil {
+			return nil, err
+		}
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		return calculateTransactionHashCommon(
+			TRANSACTION_PREFIX,
+			txnVersionFelt,
+			txn.SenderAddress,
+			&felt.Zero,
+			calldataHash,
+			txn.MaxFee,
+			account.ChainId,
+			[]*felt.Felt{txn.Nonce},
+		)
+	}
+	return nil, ErrTxnTypeUnSupported
+}
+
 func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
 
 	Prefix_DECLARE := new(felt.Felt).SetBytes([]byte("declare"))
@@ -278,41 +277,50 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 	return nil, ErrTxnTypeUnSupported
 }
 
-// BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.
+// precomputeAddress precomputes the accounts address
+// ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
+
+	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
+		CONTRACT_ADDRESS_PREFIX,
+		deployerAddress,
+		salt,
+		classHash,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	constructorCalldataBigIntArr, err := utils.FeltArrToBigIntArr(constructorCalldata)
+	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(*constructorCalldataBigIntArr)
+	*bigIntArr = append(*bigIntArr, constructorCallDataHashInt)
+
+	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
+	if err != nil {
+		return nil, err
+	}
+	return utils.BigIntToFelt(preBigInt)
+
+}
+
+// BuildInvokeTx formats the calldata and signs the transaction
 func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error {
 	invokeTx.Calldata = FmtCalldata(*fnCall)
 	return account.SignInvokeTransaction(ctx, invokeTx)
 }
 
-// AddInvokeTransaction submits a complete (ie signed, and calldata has been formatted etc) invoke transaction to the rpc provider.
+// AddInvokeTransaction submits an invoke transaction to the rpc provider.
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, *invokeTx)
 }
 
-/*
-Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
-*/
-func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
-	callArray := []*felt.Felt{}
-	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error) {
+	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
+}
 
-	for _, tx := range fnCalls {
-		callData = append(callData, tx.ContractAddress, tx.EntryPointSelector)
-
-		if len(tx.Calldata) == 0 {
-			callData = append(callData, &felt.Zero, &felt.Zero)
-			continue
-		}
-
-		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))+1))
-		for _, cd := range tx.Calldata {
-			callArray = append(callArray, cd)
-		}
-	}
-	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray)+1)))
-	callData = append(callData, callArray...)
-	callData = append(callData, new(felt.Felt).SetUint64(0))
-	return callData
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
 func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashAndNumberOutput, error) {
@@ -375,39 +383,4 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 }
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.TransactionReceipt, error) {
 	return account.provider.TransactionReceipt(ctx, hash)
-}
-
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error) {
-	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
-}
-
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
-	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
-}
-
-// precomputeAddress computes the address by hashing the relevant data.
-// ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
-func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
-
-	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
-		CONTRACT_ADDRESS_PREFIX,
-		deployerAddress,
-		salt,
-		classHash,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	constructorCalldataBigIntArr, err := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(*constructorCalldataBigIntArr)
-	*bigIntArr = append(*bigIntArr, constructorCallDataHashInt)
-
-	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
-	if err != nil {
-		return nil, err
-	}
-	return utils.BigIntToFelt(preBigInt)
-
 }
