@@ -86,7 +86,7 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the [Starknet RPC v03 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.3.0/api):
+`starknet.go` RPC implements the [Starknet RPC v04 Spec](https://github.com/starkware-libs/starknet-specs/tree/v0.4.0/api):
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |
@@ -103,6 +103,7 @@ go run main.go
 | `starknet_getBlockTransactionCount`        | :heavy_check_mark: |
 | `starknet_call`                            | :heavy_check_mark: |
 | `starknet_estimateFee`                     | :heavy_check_mark: |
+| `starknet_estimateMessageFee`              | :heavy_check_mark: |
 | `starknet_blockNumber`                     | :heavy_check_mark: |
 | `starknet_blockHashAndNumber`              | :heavy_check_mark: |
 | `starknet_chainId`                         | :heavy_check_mark: |
