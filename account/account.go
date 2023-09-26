@@ -11,16 +11,16 @@ import (
 )
 
 var (
-	ErrAccountVersionNotSupported = errors.New("Account version not supported")
-	ErrNotAllParametersSet        = errors.New("Not all neccessary parameters have been set")
-	ErrTxnTypeUnSupported         = errors.New("Unsupported transction type")
-	ErrTxnVersionUnSupported      = errors.New("Unsupported transction version")
-	ErrFeltToBigInt               = errors.New("Felt to BigInt error")
+	ErrNotAllParametersSet   = errors.New("Not all neccessary parameters have been set")
+	ErrTxnTypeUnSupported    = errors.New("Unsupported transction type")
+	ErrTxnVersionUnSupported = errors.New("Unsupported transction version")
+	ErrFeltToBigInt          = errors.New("Felt to BigInt error")
 )
 
 var (
-	TRANSACTION_PREFIX = new(felt.Felt).SetBytes([]byte("invoke"))
-	DECLARE_PREFIX     = new(felt.Felt).SetBytes([]byte("declare"))
+	TRANSACTION_PREFIX      = new(felt.Felt).SetBytes([]byte("invoke"))
+	DECLARE_PREFIX          = new(felt.Felt).SetBytes([]byte("declare"))
+	CONTRACT_ADDRESS_PREFIX = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 )
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
@@ -279,7 +279,6 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // precomputeAddress precomputes the accounts address
 // ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
 func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
 	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
 		CONTRACT_ADDRESS_PREFIX,
@@ -309,7 +308,6 @@ func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeT
 	return account.SignInvokeTransaction(ctx, invokeTx)
 }
 
-// AddInvokeTransaction submits an invoke transaction to the rpc provider.
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
