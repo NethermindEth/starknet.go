@@ -1,0 +1,33 @@
+name: rpc
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet:latest
+        ports:
+          - 5050:5050
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      # Test devnet pkg
+      - name: Test devnet on devnet
+        run: cd devnet && go test -timeout 600s -v .

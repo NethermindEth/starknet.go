@@ -14,9 +14,9 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/artifacts"
+	devtest "github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpc"
-	devtest "github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"

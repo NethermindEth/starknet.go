@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	starknetgo "github.com/NethermindEth/starknet.go"
+	test "github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
