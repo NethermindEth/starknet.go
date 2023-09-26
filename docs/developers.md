@@ -46,7 +46,7 @@ know them and you can contribute to the associated projects:
   is a project that lists all the existing API and provides some examples
   of how to use them.
 - There is no true specification of the API we are aware of, however the
-  implementationis opensource and can be read from the
+  implementation is opensource and can be read from the
   starkware-libs/cairo-lang
   [api/gateway directory](https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/starknet/services/api/gateway)
 - Starknet `openrpc` specification is available in the
@@ -58,16 +58,16 @@ resources available, check:
 
 - [a set of examples](https://github.com/eqlabs/pathfinder/blob/main/crates/pathfinder/rpc_examples.sh)
   from the eqlabs/pathfinder project that provides RPC tests with the project.
-  Note that the [go-ethereum] implementation of openrpc only support positional
+  Note that the [go-ethereum] implementation of openrpc only supports positional
   arguments and, some of these examples must be changed into positional calls.
 - `#🦦| starknet.go` channel in the discord from Starknet.
 
 ## How to interact with accounts?
 
 An important part of interacting with Starknet consists in interacting
-accounts. The reason is that you need go through an account to run transactions,
+accounts. The reason is that you need to go through an account to run transactions,
 including to create a contract from a class. That is why you should understand
-what is an account is and how to interact with it.
+what an account is and how to interact with it.
 
 The devil living in the details, there are specificities associated with
 account implementations. For instance, you might find that one account does not
@@ -77,7 +77,7 @@ support the same signature as an other. To start with account, read:
 - [Starknet Account Abstraction Model - Part 2](https://community.starknet.io/t/starknet-account-abstraction-model-part-2/839)
 - [Learn how to build and deploy Starknet Accounts](https://github.com/starknet-edu/starknet-accounts)
   and the companion [Starknet workshop](https://www.youtube.com/watch?v=51Qb3TLpNro)
-- Openzeppelin Cairo contracts that includes an account
+- Openzeppelin Cairo contracts that include an account
   [implementation](https://github.com/OpenZeppelin/cairo-contracts/tree/main/src/openzeppelin/account)
 - The argent-x contract
   [implementation](https://github.com/argentlabs/argent-contracts-starknet)
@@ -94,7 +94,7 @@ integration tests and use tools to capture paylods:
   mode allows to create a reverse proxy to the API and capture the workload. You
   then should be able to run transaction with tools like the Starknet CLI and
   better understand that is happening under the hood.
-- If you interact from Dapps, like Voyager and want to unrdestand how the
+- If you interact from Dapps, like Voyager and want to understand how the
   interactions with contract are happening, you can use:
   - Chrome [debugging extensions](https://developer.chrome.com/docs/extensions/mv3/tut_debugging/)
   - Firefox [debugging extensions](https://extensionworkshop.com/documentation/develop/debugging/)
