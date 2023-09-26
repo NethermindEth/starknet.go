@@ -1,4 +1,4 @@
-name: rpc
+name: devnet
 
 on:
   push:
