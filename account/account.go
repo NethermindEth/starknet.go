@@ -47,16 +47,14 @@ type Account struct {
 	AccountAddress *felt.Felt
 	publicKey      string
 	ks             starknetgo.Keystore
-	version        uint64
 }
 
-func NewAccount(provider rpc.RpcProvider, version uint64, accountAddress *felt.Felt, publicKey string, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore starknetgo.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
 		publicKey:      publicKey,
 		ks:             keystore,
-		version:        version,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
@@ -282,23 +280,13 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 
 // BuildInvokeTx Sets maxFee to twice the estimated fee (if not already set), compiles and sets the CallData, calculates the transaction hash, signs the transaction.
 func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error {
-	if account.version != 1 {
-		return ErrAccountVersionNotSupported
-	}
-
 	invokeTx.Calldata = FmtCalldata(*fnCall)
-
 	return account.SignInvokeTransaction(ctx, invokeTx)
 }
 
 // AddInvokeTransaction submits a complete (ie signed, and calldata has been formatted etc) invoke transaction to the rpc provider.
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
-	switch account.version {
-	case 1:
-		return account.provider.AddInvokeTransaction(ctx, *invokeTx)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
+	return account.provider.AddInvokeTransaction(ctx, *invokeTx)
 }
 
 /*
@@ -390,21 +378,11 @@ func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) 
 }
 
 func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.DeclareTxnV2) (*rpc.AddDeclareTransactionResponse, error) {
-	switch account.version {
-	case 1:
-		return account.provider.AddDeclareTransaction(ctx, declareTransaction)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
+	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
 func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
-	switch account.version {
-	case 1:
-		return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
-	default:
-		return nil, ErrAccountVersionNotSupported
-	}
+	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
 // precomputeAddress computes the address by hashing the relevant data.

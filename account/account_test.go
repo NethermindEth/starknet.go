@@ -138,7 +138,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			account, err := account.NewAccount(mockRpcProvider, 1, test.AccountAddress, test.PubKey, ks)
+			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
@@ -222,7 +222,7 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -253,7 +253,7 @@ func TestChainId(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, 1, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -298,7 +298,7 @@ func TestSignMOCK(t *testing.T) {
 		ks.Put(test.Address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
-		account, err := account.NewAccount(mockRpcProvider, 1, test.Address, test.Address.String(), ks)
+		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		msg := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
@@ -392,7 +392,7 @@ func TestAddInvoke(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(provider, 1, test.AccountAddress, test.PubKey.String(), ks)
+		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks)
 		require.NoError(t, err)
 
 		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &test.InvokeTx, &[]rpc.FunctionCall{test.FnCall}), "Error building Invoke")
@@ -427,7 +427,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, 1, fakeUserAddr, fakeUser.PublicKey, ks)
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -473,7 +473,7 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, 1, AccountAddress, PubKey.String(), ks)
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e")
@@ -512,7 +512,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, 1, &felt.Zero, "", starknetgo.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, &felt.Zero, "", starknetgo.NewMemKeystore())
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
