@@ -8,6 +8,9 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
+//go:embed starknet_hello_world_Balance.sierra.json
+var HelloWorldSierra []byte
+
 //go:embed account.json
 var AccountCompiled []byte
 

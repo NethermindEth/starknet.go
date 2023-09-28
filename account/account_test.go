@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -13,6 +14,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	hash "github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
@@ -529,6 +532,50 @@ func TestTransactionHashDeclare(t *testing.T) {
 	hash, err := acnt.TransactionHashDeclare(tx)
 	require.NoError(t, err)
 	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+}
+
+func TestAddDeclare(t *testing.T) {
+
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+
+	client, err := rpc.NewClient(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnt, err := account.NewAccount(provider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	require.NoError(t, err)
+
+	compiledClass := artifacts.HelloWorldSierra
+
+	var class rpc.ContractClass
+	err = json.Unmarshal(compiledClass, &class)
+	require.NoError(t, err, "Error in json.Unmarshal(compiledClass, &class)")
+	classHash, err := hash.ClassHash(class)
+	require.NoError(t, err, "Error in newcontract.ClassHash(class)")
+
+	tx := rpc.DeclareTxnV2{
+		Nonce:         utils.TestHexToFelt(t, "0xb"),
+		MaxFee:        utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:          rpc.TransactionType_Declare,
+		Version:       rpc.TransactionV2,
+		Signature:     []*felt.Felt{},
+		SenderAddress: utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+		ClassHash:     classHash,
+		ContractClass: class,
+	}
+
+	err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	require.NoError(t, err, "Error in SignDeclareTransaction")
+
+	qwe, _ := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
+
+	hash, err := acnt.TransactionHashDeclare(tx)
+	require.NoError(t, err)
+	fmt.Println("HASH", hash)
+
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {

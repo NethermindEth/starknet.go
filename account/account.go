@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
+	hash "github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -136,7 +137,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 
 	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
 	calldata = append(calldata, tx.ConstructorCalldata...)
-	calldataHash, err := computeHashOnElementsFelt(calldata)
+	calldataHash, err := hash.ComputeHashOnElementsFelt(calldata)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +148,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	}
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return calculateTransactionHashCommon(
+	return hash.CalculateTransactionHashCommon(
 		Prefix_DEPLOY_ACCOUNT,
 		versionFelt,
 		contractAddress,
@@ -168,7 +169,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +178,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			TRANSACTION_PREFIX,
 			txnVersionFelt,
 			txn.ContractAddress,
@@ -193,7 +194,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
 		if err != nil {
 			return nil, err
 		}
@@ -201,7 +202,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			TRANSACTION_PREFIX,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -228,7 +229,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +238,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			Prefix_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -252,7 +253,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 		if err != nil {
 			return nil, err
 		}
@@ -261,7 +262,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			Prefix_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
