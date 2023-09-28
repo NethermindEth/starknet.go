@@ -86,3 +86,33 @@ func hashEntryPointByType(qwe []rpc.SierraEntryPoint) (*felt.Felt, error) {
 	}
 	return ComputeHashOnElementsFelt(flattened)
 }
+
+// func CompiledClassHash() (*felt.Felt, error) {
+// 	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
+// 	panic("CompiledClassHash needs implementing")
+// 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(contract.ContractClassVersion))
+// 	ExternalHash, err := hashEntryPointByType(contract.EntryPointsByType.External)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	L1HandleHash, err := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ConstructorHash, err := hashEntryPointByType(contract.EntryPointsByType.Constructor)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ByteCodeHasH, err := hashEntryPointByType(contract.ByteCode)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return ComputeHashOnElementsFelt(
+// 		[]*felt.Felt{
+// 			ContractClassVersionHash,
+// 			ExternalHash,
+// 			L1HandleHash,
+// 			ConstructorHash,
+// 			ByteCodeHasH},
+// 	)
+// }
