@@ -11,8 +11,15 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-func TestUnmarshalCompiledClassHash(t *testing.T) {
-	// todo get ClassHash hash from sequencer
+func TestUnmarshalCasmClassHash(t *testing.T) {
+	compiledClass := artifacts.HelloWorldCasm
+	var class newcontract.CasmClass
+	err := json.Unmarshal(compiledClass, &class)
+	require.NoError(t, err)
+}
+
+func TestClassHash(t *testing.T) {
+	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
 	expectedClasshash := "0x_todo_insert_"
 
 	compiledClass := artifacts.HelloWorldSierra
@@ -24,14 +31,8 @@ func TestUnmarshalCompiledClassHash(t *testing.T) {
 	require.Equal(t, expectedClasshash, compClassHash.String())
 }
 
-func TestUnmarshalCasmClassHash(t *testing.T) {
-	compiledClass := artifacts.HelloWorldCasm
-	var class newcontract.CasmClass
-	err := json.Unmarshal(compiledClass, &class)
-	require.NoError(t, err)
-}
-
 func TestCompiledClassHash(t *testing.T) {
+	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
 	expectedHash := "0x_todo_"
 
 	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
