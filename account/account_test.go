@@ -17,6 +17,7 @@ import (
 	"github.com/NethermindEth/starknet.go/artifacts"
 	hash "github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
+	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
@@ -544,16 +545,33 @@ func TestAddDeclare(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
 	require.NoError(t, err)
 
 	compiledClass := artifacts.HelloWorldSierra
 
+	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
+	require.NoError(t, err)
+	compiledClassHash, err := hash.CompiledClassHash(*casmClass) // Todo pass tests on this first.
+	require.NoError(t, err)
+
+	qweqwe, _ := json.MarshalIndent(casmClass, "", "")
+	fmt.Println(string(qweqwe))
+
 	var class rpc.ContractClass
 	err = json.Unmarshal(compiledClass, &class)
 	require.NoError(t, err, "Error in json.Unmarshal(compiledClass, &class)")
-	classHash, err := hash.ClassHash(class)
-	require.NoError(t, err, "Error in newcontract.ClassHash(class)")
+	// classHash, err := hash.ClassHash(class)
+	// require.NoError(t, err, "Error in newcontract.ClassHash(class)")
 
 	tx := rpc.DeclareTxnV2{
 		Nonce:         utils.TestHexToFelt(t, "0xb"),
@@ -561,21 +579,18 @@ func TestAddDeclare(t *testing.T) {
 		Type:          rpc.TransactionType_Declare,
 		Version:       rpc.TransactionV2,
 		Signature:     []*felt.Felt{},
-		SenderAddress: utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-		ClassHash:     classHash,
-		ContractClass: class,
+		SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+		// ClassHash:         classHash, // This field isn't accepted by the sequencer..
+		ContractClass:     class,
+		CompiledClassHash: compiledClassHash,
 	}
 
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
 	require.NoError(t, err, "Error in SignDeclareTransaction")
 
-	qwe, _ := json.MarshalIndent(tx, "", "")
-	fmt.Println(string(qwe))
-
-	hash, err := acnt.TransactionHashDeclare(tx)
+	hash, err := acnt.AddDeclareTransaction(context.Background(), tx)
 	require.NoError(t, err)
 	fmt.Println("HASH", hash)
-
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {

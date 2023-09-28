@@ -30,3 +30,14 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 	err := json.Unmarshal(compiledClass, &class)
 	require.NoError(t, err)
 }
+
+func TestCompiledClassHash(t *testing.T) {
+	expectedHash := "0x_todo_"
+
+	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
+	require.NoError(t, err)
+
+	hash, err := hash.CompiledClassHash(*casmClass)
+	require.NoError(t, err)
+	require.Equal(t, expectedHash, hash.String())
+}
