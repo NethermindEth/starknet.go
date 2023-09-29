@@ -9,10 +9,7 @@ import (
 
 // computeHashOnElementsFelt hashes the array of felts provided as input
 func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
-	bigIntArr, err := utils.FeltArrToBigIntArr(feltArr)
-	if err != nil {
-		return nil, err
-	}
+	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
 	hash, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err

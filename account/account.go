@@ -274,17 +274,14 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
 func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
 
-	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
+	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
 		PREFIX_CONTRACT_ADDRESS,
 		deployerAddress,
 		salt,
 		classHash,
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	constructorCalldataBigIntArr, err := utils.FeltArrToBigIntArr(constructorCalldata)
+	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
 	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
 	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
 

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -36,21 +35,10 @@ func BigIntToFelt(big *big.Int) *felt.Felt {
 	return new(felt.Felt).SetBytes(big.Bytes())
 }
 
-func FeltArrToBigIntArr(f []*felt.Felt) ([]*big.Int, error) {
+func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 	var bigArr []*big.Int
 	for _, felt := range f {
 		bigArr = append(bigArr, FeltToBigInt(felt))
 	}
-	return bigArr, nil
-}
-func FeltArrToBigIntArr(f []*felt.Felt) (*[]*big.Int, error) {
-	var bigArr []*big.Int
-	for _, felt := range f {
-		bint, ok := FeltToBigInt(felt)
-		if !ok {
-			return nil, errors.New("Failed to convert felt to big.Int")
-		}
-		bigArr = append(bigArr, bint)
-	}
-	return &bigArr, nil
+	return bigArr
 }
