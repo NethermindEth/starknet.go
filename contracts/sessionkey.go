@@ -10,7 +10,6 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
-	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/plugins/xsessions"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/types"
@@ -82,88 +81,3 @@ func signSessionKey(privateKey, accountAddress, counterAddress, selector, sessio
 // 	}
 // 	return tx.TransactionHash, nil
 // }
-
-func (ap *AccountManager) ExecuteWithGateway(counterAddress *felt.Felt, selector string, provider *gateway.GatewayProvider) (string, error) {
-	v := starknetgo.AccountVersion0
-	if ap.Version == "v1" {
-		v = starknetgo.AccountVersion1
-	}
-	// shim in  the keystore. while weird and awkward, it's functionally ok because
-	// 1. account manager doesn't seem to be used any where
-	// 2. the account that is created below is scoped to this func
-	ks := starknetgo.NewMemKeystore()
-	fakeSenderAddress := ap.PrivateKey
-	k := types.SNValToBN(ap.PrivateKey)
-	ks.Put(fakeSenderAddress, k)
-	fakeSenderAdd, err := utils.HexToFelt(fakeSenderAddress)
-	if err != nil {
-		return "", err
-	}
-	apAcntAdd, err := utils.HexToFelt(ap.AccountAddress)
-	if err != nil {
-		return "", err
-	}
-	account, err := starknetgo.NewGatewayAccount(
-		fakeSenderAdd,
-		apAcntAdd,
-		ks,
-		provider,
-		v,
-	)
-	if err != nil {
-		return "", err
-	}
-	calls := []types.FunctionCall{
-		{
-			ContractAddress:    counterAddress,
-			EntryPointSelector: types.GetSelectorFromNameFelt("increment"),
-			Calldata:           []*felt.Felt{},
-		},
-	}
-	ctx := context.Background()
-	tx, err := account.Execute(ctx, calls, types.ExecuteDetails{})
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return "", err
-	}
-	fmt.Printf("tx hash: %s\n", tx.TransactionHash)
-	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash.String(), 3, 10)
-	if err != nil {
-		log.Printf("could not execute transaction %v\n", err)
-		return tx.TransactionHash.String(), err
-	}
-	if receipt.Status != types.TransactionAcceptedOnL2 {
-		log.Printf("transaction has failed with %s", receipt.Status)
-		return tx.TransactionHash.String(), fmt.Errorf("unexpected status: %s", receipt.Status)
-	}
-	return tx.TransactionHash.String(), nil
-}
-
-func (ap *AccountManager) CallWithGateway(call rpc.FunctionCall, provider *gateway.GatewayProvider) ([]*felt.Felt, error) {
-	//  shim in  the keystore. while weird and awkward, it's functionally ok because
-	// 1. account manager doesn't seem to be used any where
-	// 2. the account that is created below is scoped to this func
-	ks := starknetgo.NewMemKeystore()
-	fakeSenderAddress := ap.PrivateKey
-	k := types.SNValToBN(ap.PrivateKey)
-	ks.Put(fakeSenderAddress, k)
-	fakeSenderAdd, err := utils.HexToFelt(fakeSenderAddress)
-	if err != nil {
-		return nil, err
-	}
-	apAcntAdd, err := utils.HexToFelt(ap.AccountAddress)
-	if err != nil {
-		return nil, err
-	}
-	account, err := starknetgo.NewGatewayAccount(
-		fakeSenderAdd,
-		apAcntAdd,
-		ks,
-		provider,
-	)
-	if err != nil {
-		return nil, err
-	}
-	ctx := context.Background()
-	return account.Call(ctx, call)
-}
