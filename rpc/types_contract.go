@@ -50,7 +50,7 @@ type ContractClass struct {
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
-	ABI *ABI `json:"abi,omitempty"`
+	ABI string `json:"abi,omitempty"`
 }
 
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {

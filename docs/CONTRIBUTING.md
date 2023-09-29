@@ -14,7 +14,7 @@ Requests](https://github.com/NethermindEth/starknet.go/pulls) for review by the 
 
  We recommend the following work-flow for contributors:
 
- 1. **Find an issue** to work on and use comments to communciate your intentions and ask questions.
+ 1. **Find an issue** to work on and use comments to communicate your intentions and ask questions.
  2. **Work in a feature branch** of your personal fork (github.com/YOUR_NAME/starknet.go) of the main repository (github.com/NethermindEth/starknet.go).
  3. After you have implemented or resolved the issue, **create a pull-request** to merge your changes in the main repository
  4. Wait for the repository maintainers to **review your changes** to ensure the issue is addressed.
