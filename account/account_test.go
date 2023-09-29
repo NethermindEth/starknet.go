@@ -66,17 +66,17 @@ func TestTransactionHashInvoke(t *testing.T) {
 				PubKey:         "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e",
 				ChainID:        "SN_GOERLI",
 				FnCall: rpc.FunctionCall{
-					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-						utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
-						utils.TestHexToFelt(t, "0x0"),
-						utils.TestHexToFelt(t, "0x3"),
-						utils.TestHexToFelt(t, "0x3"),
-						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x0"),
-					},
+					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+						"0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+						"0x0",
+						"0x3",
+						"0x3",
+						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+						"0x1",
+						"0x0",
+					}),
 				},
 				TxDetails: rpc.TxDetails{
 					Nonce:   utils.TestHexToFelt(t, "0x2"),
@@ -106,15 +106,15 @@ func TestTransactionHashInvoke(t *testing.T) {
 				AccountAddress: utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8"),
 				ChainID:        "SN_MAIN",
 				FnCall: rpc.FunctionCall{
-					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af"),
-						utils.TestHexToFelt(t, "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"),
-						utils.TestHexToFelt(t, "0x0"),
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x52884ee3f"),
-					},
+					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af",
+						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"0x0",
+						"0x1",
+						"0x1",
+						"0x52884ee3f",
+					}),
 				},
 				TxDetails: rpc.TxDetails{
 					Nonce:   utils.TestHexToFelt(t, "0x1"),
@@ -167,22 +167,21 @@ func TestFmtCallData(t *testing.T) {
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
-					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-						utils.TestHexToFelt(t, "0x1"),
-					},
+					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+						"0x1"}),
 				},
-				ExpectedCallData: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x1"),
-					utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					utils.TestHexToFelt(t, "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e"),
-					utils.TestHexToFelt(t, "0x0"),
-					utils.TestHexToFelt(t, "0x3"),
-					utils.TestHexToFelt(t, "0x3"),
-					utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					utils.TestHexToFelt(t, "0x1"),
-					utils.TestHexToFelt(t, "0x0"),
-				},
+				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
+					"0x1",
+					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+					"0x0",
+					"0x3",
+					"0x3",
+					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"0x1",
+					"0x0",
+				}),
 			},
 		},
 		"testnet": {},
@@ -402,7 +401,7 @@ func TestAddInvoke(t *testing.T) {
 		require.Equal(t, txHash.String(), test.ExpectedHash.String())
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
-		require.Equal(t, err.Error(), test.ExpectedError)
+		require.Equal(t, err.Error(), test.ExpectedError.Error())
 		require.Nil(t, resp)
 	}
 }

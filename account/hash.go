@@ -13,11 +13,11 @@ func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	if err != nil {
 		return nil, err
 	}
-	hash, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
+	hash, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}
-	return utils.BigIntToFelt(hash)
+	return utils.BigIntToFelt(hash), nil
 }
 
 // calculateTransactionHashCommon [specification] calculates the transaction hash in the StarkNet network - a unique identifier of the transaction.
@@ -61,9 +61,7 @@ func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
 		}
 
 		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))+1))
-		for _, cd := range tx.Calldata {
-			callArray = append(callArray, cd)
-		}
+		callArray = append(callArray, tx.Calldata...)
 	}
 	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray)+1)))
 	callData = append(callData, callArray...)
