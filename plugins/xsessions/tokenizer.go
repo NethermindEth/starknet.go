@@ -27,6 +27,14 @@ type SessionKeyToken struct {
 	signedSession SignedSession
 }
 
+// computeSessionHash computes the session hash for a given session key, expiration date, root, chain ID, and account address.
+//
+// sessionKey: The session key.
+// expires: The expiration date.
+// root: The root.
+// chainId: The chain ID.
+// accountAddress: The account address.
+// Returns the session hash as a *big.Int and an error if there was an error computing the hash.
 // TODO remove use of `HexToBN`
 func computeSessionHash(sessionKey, expires, root, chainId, accountAddress string) (*big.Int, error) {
 	hashDomain, err := starknetgo.Curve.ComputeHashOnElements([]*big.Int{
@@ -53,6 +61,10 @@ func computeSessionHash(sessionKey, expires, root, chainId, accountAddress strin
 	})
 }
 
+// getMerkleRoot calculates the Merkle root for the given policies.
+//
+// policies: A slice of Policy objects representing the policies.
+// Returns the Merkle root as a string and an error if any.
 func getMerkleRoot(policies []Policy) (string, error) {
 	leaves := []*big.Int{}
 	for _, policy := range policies {
@@ -73,6 +85,19 @@ func getMerkleRoot(policies []Policy) (string, error) {
 	return fmt.Sprintf("0x%s", tree.Root.Text(16)), nil
 }
 
+// SignToken signs a token using the provided parameters.
+//
+// Parameters:
+// - privateKey: the private key used for signing the token.
+// - chainId: the chain ID of the token.
+// - sessionPublicKey: the public key of the session.
+// - accountAddress: the address of the account.
+// - duration: the duration for which the token is valid.
+// - policies: the policies associated with the token.
+//
+// Returns:
+// - (*SessionKeyToken): the signed session key token.
+// - (error): an error if the signing process fails.
 func SignToken(privateKey, chainId, sessionPublicKey, accountAddress string, duration time.Duration, policies []Policy) (*SessionKeyToken, error) {
 	root, err := getMerkleRoot(policies)
 	if err != nil {

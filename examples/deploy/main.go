@@ -21,6 +21,13 @@ const (
 	pollInterval          = 5
 )
 
+// main is the entry point of the deploy example.
+//
+// It initializes a gateway client and generates a random private key. It then deploys an account to the testnet,
+// waits for the deployment transaction to complete, fetches the transaction data, creates a gateway account,
+// saves the private key, and prompts the user to fund the deployed account. After that, it deploys an ERC20 contract,
+// waits for the deployment transaction to complete, fetches the transaction data, and mints tokens to the gateway account.
+// Finally, it transfers tokens from the gateway account to a predeployed contract and prints the account balances.
 func main() {
 	gw := gateway.NewClient(gateway.WithChain(env))
 
@@ -146,7 +153,10 @@ func main() {
 	fmt.Println("Account balance: ", balanceAccount, ". Predeployed account balance: ", balancePredeployed)
 }
 
-// Utils function to wait for transaction to be accepted on L2 and print tx status.
+// waitForTransaction waits for a transaction to be accepted on Layer 2 of the gateway nd print tx status.
+//
+// It takes the gateway instance and the transaction hash as parameters.
+// It returns an error if there is a transaction failure.
 func waitForTransaction(gw *gateway.Gateway, transactionHash string) error {
 	acceptedOnL2 := false
 	var receipt *gateway.TransactionReceipt
@@ -166,7 +176,15 @@ func waitForTransaction(gw *gateway.Gateway, transactionHash string) error {
 	return nil
 }
 
-// mint mints the erc20 contract through the account.
+// mint mints a specified amount of ERC20 tokens for a given account on the StarkNet gateway.
+//
+// Parameters:
+// - gw: The instance of the StarkNet gateway.
+// - account: The account to mint tokens for.
+// - erc20address: The address of the ERC20 contract to interact with.
+//
+// Returns:
+// An error if there was a problem executing the transaction or waiting for it to be confirmed.
 func mint(gw *gateway.Gateway, account *starknetgo.Account, erc20address string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
@@ -192,8 +210,16 @@ func mint(gw *gateway.Gateway, account *starknetgo.Account, erc20address string)
 	return nil
 }
 
-// transferFrom will transfer 5 tokens from account balance to the otherAccount by
-// calling the transferFrom function of the erc20 contract.
+// transferFrom executes a transaction to transfer a specified amount (5) of tokens from one account to another using the ERC20 transferFrom method.
+//
+// Parameters:
+// - gw: the Gateway instance used to interact with the StarkNet network.
+// - account: the account from which the tokens will be transferred.
+// - erc20address: the address of the ERC20 contract.
+// - otherAccount: the address of the recipient account.
+//
+// Returns:
+// - error: an error if the transaction execution or waiting for the transaction fails.
 func transferFrom(gw *gateway.Gateway, account *starknetgo.Account, erc20address, otherAccount string) error {
 	// Transaction that will be executed by the account contract.
 	tx := []types.FunctionCall{
@@ -220,7 +246,16 @@ func transferFrom(gw *gateway.Gateway, account *starknetgo.Account, erc20address
 	return nil
 }
 
-// balanceOf returns the balance of the account at the accountAddress address.
+// balanceOf returns the balance of a specific ERC20 token for a given accountAddress.
+//
+// Parameters:
+// - gw: The gateway used to make the function call.
+// - erc20address: The address of the ERC20 token contract.
+// - accountAddress: The address of the account to check the balance for.
+//
+// Returns:
+// - string: The balance of the ERC20 token for the given account address.
+// - error: An error if the function call fails.
 func balanceOf(gw *gateway.Gateway, erc20address, accountAddress string) (string, error) {
 	res, err := gw.Call(context.Background(), types.FunctionCall{
 		ContractAddress:    types.StrToFelt(erc20address),
@@ -242,6 +277,10 @@ func balanceOf(gw *gateway.Gateway, erc20address, accountAddress string) (string
 	return balance.String(), nil
 }
 
+// savePrivateKey saves the private key to a file (private_key.txt).
+//
+// It takes a string parameter 'privKey' which represents the private key to be saved.
+// Returns an error if there is any issue creating or writing to the file.
 func savePrivateKey(privKey string) error {
 	file, err := os.Create("private_key.txt")
 	if err != nil {

@@ -10,7 +10,20 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestCall tests Call
+// TestCall is a test function that tests the Call method of the provider.
+//
+// It sets up different test scenarios with different function calls and expected results.
+// The function makes use of the beforeEach function to set up the necessary test configurations.
+// It then iterates through the testSet map and performs the following steps for each test case:
+// - Creates a spy object to spy on the provider's calls.
+// - Assigns the spy object to the provider.
+// - Calls the provider's Call method with the provided function call and block ID.
+// - Checks for any errors returned by the Call method and fails the test if there is an error.
+// - Compares the output of the Call method with the expected pattern result using the spy object.
+// - Fails the test if the output does not match the expected pattern result or if the output is empty.
+// - Asserts that the first element of the output matches the expected pattern result.
+//
+// This test function is used to ensure that the Call method of the provider works correctly and returns the expected results.
 func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 

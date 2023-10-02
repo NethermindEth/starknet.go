@@ -7,6 +7,9 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
+// fmtCalldataStrings formats the given list of function calls into a list of calldata strings.
+//
+// It takes in a slice of types.FunctionCall called 'calls' and returns a slice of strings called 'calldataStrings'.
 func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	callArray := fmtCalldata(calls)
 	for _, data := range callArray {
@@ -15,9 +18,10 @@ func fmtCalldataStrings(calls []types.FunctionCall) (calldataStrings []string) {
 	return calldataStrings
 }
 
-/*
-Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
-*/
+// fmtCalldata formats the given list of function calls into a list of calldata (which can be signed and verified by the network and OpenZeppelin account contracts).
+//
+// The function takes in a slice of types.FunctionCall called 'calls', which represents the list of function calls.
+// It returns a slice of *big.Int called 'calldataArray', which contains the generated calldata.
 func fmtCalldata(calls []types.FunctionCall) (calldataArray []*big.Int) {
 	callArray := []*big.Int{big.NewInt(int64(len(calls)))}
 

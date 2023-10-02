@@ -169,6 +169,10 @@ type DeployAccountTxn struct {
 
 type UnknownTransaction struct{ Transaction }
 
+// UnmarshalJSON unmarshals the JSON-encoded data into the UnknownTransaction structure.
+//
+// It takes a byte slice as a parameter, representing the JSON data to be unmarshalled.
+// It returns an error if there was a problem unmarshalling the data.
 func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -184,6 +188,12 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalTxn unmarshals a transaction object from a generic interface{} and returns the corresponding
+// strongly-typed Transaction object.
+//
+// The function takes a parameter, t, which is the generic interface{} representing the transaction object.
+// It returns a Transaction object and an error. The Transaction object is the strongly-typed representation
+// of the transaction, and the error indicates whether the unmarshaling was successful or not.
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -234,6 +244,16 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
 
+// remarshal is a Go function that takes in an interface{} value and a destination interface{}
+// value and converts the input value to JSON format using the json.Marshal function. It then
+// converts the JSON data back to the destination interface{} using the json.Unmarshal function.
+//
+// Parameters:
+// - v: The interface{} value to be converted to JSON.
+// - dst: The destination interface{} to store the unmarshaled JSON data.
+//
+// Return type:
+// - error: Returns an error if there was an issue with marshaling or unmarshaling the data.
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -256,6 +276,9 @@ const (
 	TransactionV2 TransactionVersion = "0x2"
 )
 
+// BigInt returns a big.Int representation of the TransactionVersion.
+//
+// This function takes no parameters and returns a pointer to a big.Int and an error.
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:

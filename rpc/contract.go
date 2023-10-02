@@ -10,7 +10,14 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
-// Class gets the contract class definition associated with the given hash.
+// Class returns the ClassOutput contract class definition for a given block ID and class hash.
+//
+// It takes the following parameters:
+// - ctx: the context.Context object for cancellation and deadline propagation.
+// - blockID: the ID of the block to retrieve the class from.
+// - classHash: the hash of the class to retrieve.
+//
+// It returns a ClassOutput object and an error.
 func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
@@ -27,7 +34,14 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 
 }
 
-// ClassAt get the contract class definition at the given address.
+// ClassAt retrieves the contract class at the specified block ID and contract address.
+//
+// ctx: The context.Context object for cancellation and timeouts.
+// blockID: The ID of the block to retrieve the class from.
+// contractAddress: The address of the contract.
+//
+// ClassOutput: The class output.
+// error: An error if any occurred.
 func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
@@ -42,6 +56,10 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 	return typecastClassOutput(&rawClass)
 }
 
+// typecastClassOutput typecasts the rawClass output into the appropriate ClassOutput type.
+//
+// rawClass: A pointer to a map[string]any containing the raw class data.
+// Returns the typecasted ClassOutput and any error encountered during the typecasting process.
 func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
@@ -65,7 +83,14 @@ func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
 	return &depContractClass, nil
 }
 
-// ClassHashAt gets the contract class hash for the contract deployed at the given address.
+// ClassHashAt returns the contract class hash at the given block ID and contract address.
+//
+// It takes the following parameters:
+// - ctx: the context.Context object for cancellation and timeouts.
+// - blockID: the ID of the block.
+// - contractAddress: the address of the contract.
+//
+// It returns a *felt.Felt object and an error.
 func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {

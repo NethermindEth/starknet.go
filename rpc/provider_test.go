@@ -56,7 +56,12 @@ var (
 	}
 )
 
-// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+// TestMain is a function used to trigger the tests and, in that case, check for the environment to use.
+//
+// It takes a *testing.M object as a parameter.
+// The function sets the value of the testEnv flag to "mock" by default, but can be overridden by passing a different value using the "env" flag.
+// The function then parses the command-line flags.
+// Finally, it exits the program with the return value of m.Run().
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -65,6 +70,9 @@ func TestMain(m *testing.M) {
 }
 
 // beforeEach checks the configuration and initializes it before running the script
+//
+// t: The testing.T object for the current test.
+// Returns: A pointer to the initialized test configuration.
 func beforeEach(t *testing.T) *testConfiguration {
 	t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
@@ -96,7 +104,12 @@ func beforeEach(t *testing.T) *testConfiguration {
 	return &testConfig
 }
 
-// TestChainID checks the chainId matches the one for the environment
+// TestChainID tests if the ChainID matches the one for the environment.
+//
+// It sets up a test configuration and defines a test set of chain IDs for different environments.
+// Then, it prints the environment, base URL, and executes the test set.
+// The function compares the returned chain ID with the expected chain ID for each test case.
+// It uses the testing.T object to report any failures.
 func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -131,7 +144,16 @@ func TestChainID(t *testing.T) {
 	}
 }
 
-// TestSyncing checks the values returned are consistent
+// TestSyncing tests if the Syncing function values returned are consistent.
+//
+// It sets up a test configuration and defines a testSet of testSetType.
+// For each test in the testSet, it creates a spy and sets the provider to the spy.
+// It then calls the Syncing function of the provider and checks for any errors.
+// If there are no errors and the StartingBlockHash is not nil, it compares the sync object with the spy.
+// If the comparison fails, it calls the Compare function of the spy with verbose=true and logs the error.
+// It then checks if the CurrentBlockNum is a positive number and if the CurrentBlockHash starts with "0x".
+// If the StartingBlockHash is nil, it calls the Compare function of the spy with verbose=false.
+// Finally, it asserts that the CurrentBlockHash is nil.
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 

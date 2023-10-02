@@ -16,6 +16,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// TestGateway_InstallCounter: test for the InstallCounter method of the Gateway struct.
+//
+// It tests the deployment of a counter contract on the StarkNet devnet.
+// The test case includes the provider type, compiled class, salt, and inputs.
+// The function deploys the contract, waits for confirmation, and prints the transaction hash.
 func TestGateway_InstallCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
@@ -57,6 +62,9 @@ func TestGateway_InstallCounter(t *testing.T) {
 	}
 }
 
+// TestRPC_InstallCounter: function that installs a counter on a StarkNet devnet.
+//
+// It takes no parameters and does not return any values.
 func TestRPC_InstallCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
@@ -98,6 +106,9 @@ func TestRPC_InstallCounter(t *testing.T) {
 	}
 }
 
+// TestGateway_LoadAndExecuteCounter: function that loads and executes a counter on a gateway.
+//
+// The function takes no parameters and has no return values.
 func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
@@ -169,6 +180,12 @@ func TestGateway_LoadAndExecuteCounter(t *testing.T) {
 	}
 }
 
+// TestRPC_LoadAndExecuteCounter: test function that tests the RPC_LoadAndExecuteCounter function.
+//
+// It sets up test cases and runs them to verify the behavior of the RPC_LoadAndExecuteCounter function.
+// The test cases include different private keys, provider types, and account contracts.
+//
+// The function takes a testing.T parameter and does not return any values.
 func TestRPC_LoadAndExecuteCounter(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)

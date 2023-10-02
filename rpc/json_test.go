@@ -6,7 +6,11 @@ import (
 	"testing"
 )
 
-// TestJSONMultiTypeArrayWithDuck shows how you can guess what a type is and apply it
+// TestJSONMultiTypeArrayWithDuck tests the JSONMultiTypeArrayWithDuck function and shows how you can guess what a type is and apply it.
+//
+// The function tests the unmarshaling of a JSON string into a struct with a multi-type array field.
+// It checks if the unmarshaling is successful and if the correct types are assigned to the elements of the array.
+// The function takes a *testing.T parameter and does not return anything.
 func TestJSONMultiTypeArrayWithDuck(t *testing.T) {
 	type V1 struct {
 		Label1 string
@@ -64,7 +68,18 @@ func TestJSONMultiTypeArrayWithDuck(t *testing.T) {
 	}
 }
 
-// TestJSONMixingStructWithMap shows how 2 embedded type are loaded but not map[string]interface{}
+// TestJSONMixingStructWithMap tests the JSON unmarshaling of a struct that mixes fields and a map and shows how 2 embedded type are loaded but not map[string]interface{}.
+//
+// This function verifies that the JSON unmarshaling of a struct, which includes fields and a map,
+// correctly assigns the values from the JSON content.
+// It creates a struct, `MyType`, that contains fields from `V1`, `V2`, and `V3`.
+// Then, it attempts to unmarshal a JSON string into the `MyType` struct and checks if the values
+// were correctly assigned.
+//
+// Parameters:
+// - t: A testing.T object used for reporting test failures and logs.
+//
+// Return type: None.
 func TestJSONMixingStructWithMap(t *testing.T) {
 	type V1 struct {
 		Label1 string

@@ -108,6 +108,15 @@ type SyncStatus struct {
 	HighestBlockNum   NumAsHex   `json:"highest_block_num,omitempty"`
 }
 
+// MarshalJSON returns the JSON encoding of the SyncStatus receiver.
+//
+// It marshals the SyncStatus receiver into a map[string]interface{} and then
+// encodes it into a JSON byte slice. If the SyncStatus is false, it returns
+// the JSON string "false". The keys in the map are: "starting_block_hash",
+// "starting_block_num", "current_block_hash", "current_block_num",
+// "highest_block_hash", and "highest_block_num". The values for these keys
+// are the respective fields of the SyncStatus struct. The function returns
+// the JSON byte slice and an error.
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !s.SyncStatus {
 		return []byte("false"), nil
@@ -122,6 +131,9 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(output)
 }
 
+// UnmarshalJSON unmarshals the JSON data into a SyncStatus object.
+//
+// It takes a byte slice as the data parameter and returns an error.
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, s)
 
@@ -177,6 +189,13 @@ const (
 	TxnExecutionStatusREVERTED  TxnExecutionStatus = "REVERTED"
 )
 
+// UnmarshalJSON unmarshals the given data into a TxnExecutionStatus struct.
+//
+// It takes a byte slice, `data`, as input and returns an error if the unmarshaling fails.
+// The function first unquotes the data using `strconv.Unquote` and stores the result in the `unquoted` variable.
+// Then, it uses a switch statement to match the value of `unquoted` and assigns the corresponding `TxnExecutionStatus` value to `ts`.
+// If the value of `unquoted` is not "SUCCEEDED" or "REVERTED", the function returns an error with a message indicating the unsupported status.
+// Finally, the function returns nil if there are no errors during the unmarshaling process.
 func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -193,10 +212,16 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON marshals the TxnExecutionStatus into a JSON byte slice.
+//
+// It returns the marshaled JSON byte slice and an error if any.
 func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
 
+// String returns the string representation of the TxnExecutionStatus.
+//
+// It returns a string.
 func (s TxnExecutionStatus) String() string {
 	return string(s)
 }
@@ -208,6 +233,11 @@ const (
 	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
 )
 
+// UnmarshalJSON unmarshals the JSON representation of TxnFinalityStatus.
+//
+// It takes in a byte slice `data` and unmarshals it to a TxnFinalityStatus
+// pointer, modifying the receiver.
+// It returns an `error` if unquoting the data or assigning the status fails.
 func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -224,10 +254,17 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON is a function that converts the TxnFinalityStatus type to JSON format.
+//
+// It takes no parameters and returns a byte slice and an error.
 func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
 
+// String returns a string representation of the TxnFinalityStatus.
+//
+// It has no parameters.
+// It returns a string.
 func (s TxnFinalityStatus) String() string {
 	return string(s)
 }

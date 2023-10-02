@@ -19,7 +19,10 @@ type Provider struct {
 	chainID string
 }
 
-// NewProvider creates a *Provider from an existing `go-ethereum/rpc` *Client.
+// NewProvider creates a new Provider object from an existing `go-ethereum/rpc` *Client.
+//
+// It takes a parameter 'c' of type *rpc.Client.
+// It returns a pointer to a Provider object.
 func NewProvider(c *rpc.Client) *Provider {
 	return &Provider{c: c}
 }

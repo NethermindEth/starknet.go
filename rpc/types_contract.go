@@ -53,6 +53,17 @@ type ContractClass struct {
 	ABI string `json:"abi,omitempty"`
 }
 
+// UnmarshalJSON unmarshals the JSON content into the DeprecatedContractClass.
+//
+// It processes the 'program' field, keeping it as a string if it exists, and encoding it otherwise.
+// It processes the 'entry_points_by_type' field and assigns it to the DeprecatedEntryPointsByType.
+// It processes the 'abi' field and assigns it to the ABI.
+//
+// Parameters:
+// - content: The JSON content to be unmarshaled.
+//
+// Returns:
+// - error: An error if the unmarshaling process fails.
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
@@ -207,14 +218,26 @@ type FunctionABIEntry struct {
 	Outputs []TypedParameter `json:"outputs"`
 }
 
+// IsType returns the type of the StructABIEntry.
+//
+// No parameters.
+// Returns an ABIType.
 func (s *StructABIEntry) IsType() ABIType {
 	return s.Type
 }
 
+// IsType returns the ABIType of the EventABIEntry.
+//
+// No parameters.
+// Returns the ABIType.
 func (e *EventABIEntry) IsType() ABIType {
 	return e.Type
 }
 
+// IsType returns the ABI type of the Go function.
+//
+// No parameters.
+// Returns an ABIType.
 func (f *FunctionABIEntry) IsType() ABIType {
 	return f.Type
 }
@@ -227,7 +250,20 @@ type TypedParameter struct {
 	Type string `json:"type"`
 }
 
-// encodeProgram compress a program to send it to the API
+// encodeProgram compresses the given content using gzip and base64 encoding and sends it to the API.
+//
+// The encodeProgram function takes a byte slice as the content parameter.
+// It compresses the content using gzip and then encodes it using base64 encoding.
+// The encoded program is returned as a string.
+// If an error occurs during the encoding process, an error is returned.
+// The error value is nil if the encoding is successful.
+//
+// Parameters:
+//   - content: A byte slice representing the content to be encoded.
+//
+// Returns:
+//   - program: The encoded program as a string.
+//   - error: An error object if an error occurs during encoding.
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

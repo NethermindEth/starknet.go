@@ -29,6 +29,9 @@ type AccountManager struct {
 	Version          string `json:"accountVersion"`
 }
 
+// Read reads the content of a file and unmarshals it into the AccountManager instance.
+//
+// It takes a filename string as a parameter and returns an error if there is any.
 func (ap *AccountManager) Read(filename string) error {
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -38,6 +41,9 @@ func (ap *AccountManager) Read(filename string) error {
 	return nil
 }
 
+// Write writes the contents of the AccountManager struct to a file.
+//
+// It takes a filename as a parameter and returns an error.
 func (ap *AccountManager) Write(filename string) error {
 	content, err := json.Marshal(ap)
 	if err != nil {
@@ -56,6 +62,14 @@ const (
 	ACCOUNT_VERSION1 = "v1"
 )
 
+// guessProviderType determines the type of provider based on the input parameter.
+//
+// The function takes a parameter 'p' of type interface{} and performs a type switch on it.
+// It checks if 'p' is of type *rpc.Provider or *gateway.GatewayProvider and returns the respective provider
+// type after converting it. If 'p' is of any other type, it returns nil and an error indicating that
+// the type is unsupported.
+//
+// The function returns the provider type and an error, if any.
 func guessProviderType(p interface{}) (Provider, error) {
 	switch v := p.(type) {
 	case *rpc.Provider:

@@ -25,6 +25,9 @@ type accountPlugin struct {
 	AccountAddress string `json:"accountAddress"`
 }
 
+// Read reads the content of a file and unmarshals it into the accountPlugin struct.
+//
+// It takes a filename string as a parameter and returns an error.
 func (ap *accountPlugin) Read(filename string) error {
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -34,6 +37,9 @@ func (ap *accountPlugin) Read(filename string) error {
 	return nil
 }
 
+// Write writes the accountPlugin to a file.
+//
+// It takes a filename as a parameter and returns an error if any occurred.
 func (ap *accountPlugin) Write(filename string) error {
 	content, err := json.Marshal(ap)
 	if err != nil {
@@ -45,7 +51,15 @@ func (ap *accountPlugin) Write(filename string) error {
 var accountCompiled = artifacts.AccountV0WithPluginCompiled
 var counterCompiled = artifacts.CounterCompiled
 
-// TestCounter_DeployContract
+// TestCounter_DeployContract tests the DeployContract function.
+//
+// It initializes the provider and sets up the counterClass and inputs variables.
+// Then it unmarshals the counterCompiled JSON into the counterClass variable.
+// It creates a context and deploys a contract using the AddDeployTransaction function.
+// The function checks that the deployed contract address matches the expected value.
+// It then waits for the transaction status to be accepted on L2.
+// If the status is not as expected, it logs additional information for debugging.
+// Finally, it prints the transaction hash.
 func TestCounter_DeployContract(t *testing.T) {
 	provider := beforeEachRPC(t)
 

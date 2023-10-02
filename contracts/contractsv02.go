@@ -10,6 +10,7 @@ import (
 
 type RPCProvider rpc.Provider
 
+//Deprecated: This needs updated - Declare transactions have changed significantly over the past few rpc-spec updates
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	panic("This needs updated - Declare transactions have changed significantly over the past few rpc-spec updates")
 	// provider := rpc.Provider(*p)
@@ -51,6 +52,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 	// }, nil
 }
 
+//Deprecated: deployAccountAndWaitNoWallet needs updated
 func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHash *felt.Felt, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	panic("deployAccountAndWaitNoWallet needs updated")
 
@@ -102,6 +104,7 @@ func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHas
 	// }, nil
 }
 
+//Deprecated: deployAndWaitWithWallet needs updated
 func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass []byte, salt string, inputs []string) (*DeployOutput, error) {
 	panic("deployAndWaitWithWallet needs updated")
 

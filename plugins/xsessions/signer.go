@@ -23,6 +23,14 @@ type SessionKeyPlugin struct {
 	token          *SessionKeyToken
 }
 
+// WithSessionKeyPlugin creates a new AccountOptionFunc that sets a session key plugin for an account.
+//
+// Parameters:
+// - pluginClassHash: A string representing the hash of the plugin class.
+// - token: A pointer to a SessionKeyToken struct.
+//
+// Returns:
+// - AccountOptionFunc: A function that takes two pointers to felt.Felt and returns an AccountOption and an error.
 func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) starknetgo.AccountOptionFunc {
 	return func(unused, address *felt.Felt) (starknetgo.AccountOption, error) {
 		plugin, ok := big.NewInt(0).SetString(pluginClassHash, 0)
@@ -42,7 +50,16 @@ func WithSessionKeyPlugin(pluginClassHash string, token *SessionKeyToken) starkn
 	}
 }
 
-// TODO: write get merkle proof
+
+// getMerkleProof computes the Merkle proof for a given set of policies and a function call.
+//
+// The function takes in two parameters:
+// - policies: a slice of Policy structs representing the policies to include in the Merkle proof.
+// - call: a FunctionCall struct representing the function call for which the Merkle proof is computed.
+//
+// The function returns two values:
+// - a slice of strings representing the Merkle proof for the given policies and function call.
+// - an error, if any occurred during the computation of the Merkle proof.
 func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, error) {
 	leaves := []*big.Int{}
 	for _, policy := range policies {
@@ -80,6 +97,13 @@ func getMerkleProof(policies []Policy, call ctypes.FunctionCall) ([]string, erro
 	return output, nil
 }
 
+// PluginCall generates a function call for the SessionKeyPlugin type.
+//
+// It takes a slice of FunctionCall objects as input and returns a FunctionCall
+// object and an error. The function constructs a data slice and iterates over
+// the input calls to obtain a Merkle proof. The proof is appended to the data
+// slice. Finally, the function constructs a FunctionCall object using the
+// constructed data slice and returns it along with a nil error.
 func (plugin *SessionKeyPlugin) PluginCall(calls []ctypes.FunctionCall) (ctypes.FunctionCall, error) {
 	data := []string{
 		fmt.Sprintf("0x%s", plugin.classHash.Text(16)),

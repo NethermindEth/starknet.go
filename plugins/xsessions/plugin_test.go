@@ -21,7 +21,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// RegisterClass
+// RegisterClass registers a class for testing purposes.
+//
+// The function takes the following parameter(s):
+// - t: the testing.T object for error reporting.
+// - pluginCompiled: a byte array containing the compiled plugin.
+//
+// It returns a string representing the class hash.
 func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	provider := beforeEachRPC(t)
 
@@ -58,7 +64,12 @@ func RegisterClass(t *testing.T, pluginCompiled []byte) string {
 	return tx.ClassHash.String()
 }
 
-// DeployContract
+// DeployContract deploys a compiled contract to the provider.
+//
+// t is the testing.T instance for error reporting.
+// contractCompiled is the compiled contract to be deployed.
+// inputs is the array of input strings for the contract deployment.
+// Returns the contract address as a string.
 func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) string {
 	provider := beforeEachRPC(t)
 	contractClass := rpc.DeprecatedContractClass{}
@@ -95,7 +106,13 @@ func DeployContract(t *testing.T, contractCompiled []byte, inputs []string) stri
 	return tx.ContractAddress.String()
 }
 
-// MintEth
+// MintEth mints ETH for a given account address.
+//
+// Parameters:
+// - t: The testing.T object for test assertions.
+// - accountAddress: The address of the account to mint ETH for.
+//
+// No return value.
 func MintEth(t *testing.T, accountAddress string) {
 	payload := fmt.Sprintf(`{"address": "%s","amount": 1000000000000000}`, accountAddress)
 	godotenv.Load(".env.devnet")
@@ -124,7 +141,11 @@ func MintEth(t *testing.T, accountAddress string) {
 	fmt.Println("output", string(ret))
 }
 
-// CheckEth
+// CheckEth is a function that checks the balance of an Ethereum account.
+//
+// It takes a testing.T object and a string representing the account address as parameters.
+// The function connects to an Ethereum provider, makes a function call to get the balance
+// of the account, and returns the result as a string.
 func CheckEth(t *testing.T, accountAddress string) string {
 	provider := beforeEachRPC(t)
 	ctx := context.Background()

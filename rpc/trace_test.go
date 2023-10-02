@@ -11,7 +11,13 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestTraceTransaction tests the TransactionTrace method
+// TestTransactionTrace tests the TransactionTrace function.
+//
+// It sets up the necessary test configuration, including the expected response from a mocked environment.
+// It then iterates through a test set, calling the TransactionTrace function with different transaction hashes.
+// It compares the returned response with the expected response for each test case.
+// If the response is not nil, it checks if it matches the expected response.
+// If the response is nil, it checks if the expected error matches the actual error.
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -72,7 +78,11 @@ func TestTransactionTrace(t *testing.T) {
 	}
 }
 
-// TestSimulateTransaction tests the SimulateTransaction method
+// TestSimulateTransaction tests the SimulateTransaction function.
+//
+// It sets up the necessary test configuration and variables. If the test environment is "mainnet", it reads the simulateInvokeTx.json file and unmarshals the data into the `simulateTxIn` variable, as well as the simulateInvokeTxResp.json file and unmarshals the data into the `expectedResp` variable. 
+//
+// The function then iterates through the testSet and calls the `SimulateTransactions` function of the provider with the given inputs. It compares the response with the expected response and ensures that they are equal.
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -118,7 +128,14 @@ func TestSimulateTransaction(t *testing.T) {
 	}
 }
 
-// TestTraceBlockTransactions tests the TraceBlockTransactions method
+// TestTraceBlockTransactions tests the TraceBlockTransactions function.
+//
+// It initializes the test configuration and sets up the expected response. It then iterates over a test set and calls the TraceBlockTransactions function for each test case. It compares the actual response with the expected response and asserts the equality. If there is an error, it also asserts the equality of the error with the expected error. The function uses the testing.T object for assertions.
+//
+// Parameters:
+// - t: The testing.T object for assertions.
+//
+// Return type: None.
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 

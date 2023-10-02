@@ -7,7 +7,10 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
-// ChainID retrieves the current chain ID for transaction replay protection.
+// ChainID returns the chain ID for transaction replay protection.
+//
+// ctx - the context.
+// Returns the chain ID as a string and any error encountered.
 func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if provider.chainID != "" {
 		return provider.chainID, nil
@@ -21,7 +24,9 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	return provider.chainID, nil
 }
 
-// Syncing checks the syncing status of the node.
+// Syncing retrieves the synchronization status of the provider (node).
+//
+// It takes a context.Context as input and returns a *SyncStatus and an error.
 func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
