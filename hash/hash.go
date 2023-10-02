@@ -49,12 +49,13 @@ func CalculateTransactionHashCommon(
 func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	//https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
 
-	SierraProgamHash, err := ComputeHashOnElementsFelt(contract.SierraProgram)
+	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
+	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(Version))
+
+	ConstructorHash, err := hashEntryPointByType(contract.EntryPointsByType.Constructor)
 	if err != nil {
 		return nil, err
 	}
-	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(contract.ContractClassVersion))
-	ABHIHash := new(felt.Felt).SetBytes([]byte(contract.ABI))
 	ExternalHash, err := hashEntryPointByType(contract.EntryPointsByType.External)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,12 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	if err != nil {
 		return nil, err
 	}
-	ConstructorHash, err := hashEntryPointByType(contract.EntryPointsByType.Constructor)
+	ABI := new(felt.Felt).SetBytes([]byte(contract.ABI))
+	ABIHash, err := ComputeHashOnElementsFelt([]*felt.Felt{ABI})
+	if err != nil {
+		return nil, err
+	}
+	SierraProgamHash, err := ComputeHashOnElementsFelt(contract.SierraProgram)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +81,7 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 			ExternalHash,
 			L1HandleHash,
 			ConstructorHash,
-			ABHIHash,
+			ABIHash,
 			SierraProgamHash},
 	)
 }

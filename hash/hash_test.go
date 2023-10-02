@@ -20,9 +20,9 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 
 func TestClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
-	expectedClasshash := "0x_todo_insert_"
+	expectedClasshash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
 
-	compiledClass := artifacts.HelloWorldSierra
+	compiledClass := artifacts.ExampleWorldSierra
 	var class rpc.ContractClass
 	err := json.Unmarshal(compiledClass, &class)
 	require.NoError(t, err)
