@@ -95,14 +95,12 @@ func mock_starknet_blockNumber(result interface{}, method string, args ...interf
 func mock_starknet_chainId(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*string)
 	if !ok {
-		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
 	if len(args) != 0 {
-		fmt.Println(args...)
 		return errWrongArgs
 	}
-	value := "0x4d4f434b"
+	value := "0x534e5f474f45524c49"
 	*r = value
 	return nil
 }

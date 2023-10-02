@@ -106,14 +106,9 @@ func TestChainID(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet":  {{ChainID: "SN_GOERLI"}},
 		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
+		"mock":    {{ChainID: "SN_GOERLI"}},
 		"testnet": {{ChainID: "SN_GOERLI"}},
 	}[testEnv]
-
-	fmt.Printf("----------------------------\n")
-	fmt.Printf("Env: %s\n", testEnv)
-	fmt.Printf("Url: %s\n", testConfig.base)
-	fmt.Printf("----------------------------\n")
 
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)

@@ -339,18 +339,12 @@ func (account *Account) prepFunctionInvokeRPC(ctx context.Context, messageType s
 		if err != nil {
 			return nil, err
 		}
-		nonceFelt, err := utils.BigIntToFelt(nonce)
-		if err != nil {
-			return nil, err
-		}
-		s1Felt, err := utils.BigIntToFelt(s1)
-		if err != nil {
-			return nil, err
-		}
-		s2Felt, err := utils.BigIntToFelt(s2)
-		if err != nil {
-			return nil, err
-		}
+		nonceFelt := utils.BigIntToFelt(nonce)
+
+		s1Felt := utils.BigIntToFelt(s1)
+
+		s2Felt := utils.BigIntToFelt(s2)
+
 		return &rpc.InvokeTxnV1{
 			MaxFee:        maxFeeFelt,
 			Version:       version,
@@ -620,14 +614,10 @@ func (account *Account) Deploy(ctx context.Context, classHash string, details ty
 	if err != nil {
 		return nil, err
 	}
-	saltFelt, err := utils.BigIntToFelt(salt)
-	if err != nil {
-		return nil, err
-	}
-	uniqueIntFelt, err := utils.BigIntToFelt(uniqueInt)
-	if err != nil {
-		return nil, err
-	}
+	saltFelt := utils.BigIntToFelt(salt)
+
+	uniqueIntFelt := utils.BigIntToFelt(uniqueInt)
+
 	lenCalldataFelt, err := utils.HexToFelt(fmt.Sprintf("0x%x", len(calldata)))
 	if err != nil {
 		return nil, err

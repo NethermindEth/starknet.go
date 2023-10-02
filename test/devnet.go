@@ -41,6 +41,7 @@ func (devnet *DevNet) api(uri string) string {
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), nil)
 	if err != nil {
+
 		return nil, err
 	}
 	client := &http.Client{}

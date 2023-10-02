@@ -24,7 +24,8 @@ func NewProvider(c *rpc.Client) *Provider {
 	return &Provider{c: c}
 }
 
-type api interface {
+//go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
+type RpcProvider interface {
 	AddInvokeTransaction(ctx context.Context, invokeTxn InvokeTxnV1) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction DeployAccountTxn) (*AddDeployAccountTransactionResponse, error)
@@ -53,4 +54,4 @@ type api interface {
 	TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }
 
-var _ api = &Provider{}
+var _ RpcProvider = &Provider{}

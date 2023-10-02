@@ -24,6 +24,12 @@ func NewMemKeystore() *MemKeystore {
 	}
 }
 
+func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
+	ks := NewMemKeystore()
+	ks.Put(pub, priv)
+	return ks
+}
+
 func (ks *MemKeystore) Put(senderAddress string, k *big.Int) {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()

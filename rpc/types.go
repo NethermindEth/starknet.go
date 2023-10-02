@@ -159,6 +159,13 @@ type FunctionCall struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
+// TxDetails contains details needed for computing transaction hashes
+type TxDetails struct {
+	Nonce   *felt.Felt
+	MaxFee  *felt.Felt
+	Version TransactionVersion
+}
+
 type FeeEstimate struct {
 	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
 	GasConsumed NumAsHex `json:"gas_consumed"`

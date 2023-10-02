@@ -1,0 +1,41 @@
+name: account
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet:latest
+        ports:
+          - 5050:5050
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+      - uses: actions/setup-go[@v4.1.0](https://github.com/v4.1.0)
+        with:
+          go-version-file: go.mod
+
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      # Test Account on devnet
+      - name: Test Account on devnet
+        run: cd account && go test -timeout 600s -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050"
+
+      # Test Account on mock
+      - name: Test Account with mocks
+        run: cd account && go test -v . -env mock
+
