@@ -11,7 +11,10 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestTransactionByHash tests transaction by hash
+// TestTransactionByHash tests the TransactionByHash function.
+//
+// It tests the retrieval of a transaction by its hash.
+// The function takes no parameters and has no return value.
 func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -92,6 +95,22 @@ func TestTransactionByHash(t *testing.T) {
 	}
 }
 
+// TestTransactionByBlockIdAndIndex tests the TransactionByBlockIdAndIndex function.
+//
+// It sets up a test environment and creates a testSet containing a single test case.
+// The test case includes a BlockID, an Index, and an ExpectedTxn.
+// It then iterates over the testSet and performs the following actions for each test case:
+// - Creates a spy object using the NewSpy function.
+// - Sets the provider.c variable to the spy object.
+// - Calls the provider.TransactionByBlockIdAndIndex function with the provided BlockID and Index.
+// - Checks if an error occurred during the function call and fails the test if it did.
+// - Checks if the returned transaction is nil and fails the test if it is.
+// - Attempts to cast the returned transaction to an InvokeTxnV1 object and fails the test if the cast fails.
+// - Verifies that the Type field of the transaction is TransactionType_Invoke.
+// - Verifies that the transaction matches the ExpectedTxn.
+//
+// The function does not have any parameters.
+// It does not return any values.
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -146,7 +165,10 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt tests transaction receipt
+// TestTransactionReceipt_MatchesCapturedTransaction is a test function that verifies if the transaction receipt matches the captured transaction.
+//
+// This function takes no parameters.
+// It does not return any values.
 func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -217,7 +239,10 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt tests transaction receipt
+// TestTransactionReceipt_MatchesStatus tests the MatchesStatus function of the TransactionReceipt struct.
+//
+// This function verifies that the execution status of a transaction receipt matches the expected status.
+// It takes no parameters and does not return any values.
 func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -256,7 +281,10 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	}
 }
 
-// TestDeployOrDeclareReceipt tests deploy or declare receipt
+// TestDeployOrDeclareReceipt tests the DeployOrDeclareReceipt function.
+//
+// It checks if the transaction receipt matches the expected receipt for a given test set.
+// The function takes no parameters and does not return any values.
 func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 

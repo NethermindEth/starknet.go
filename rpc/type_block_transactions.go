@@ -90,6 +90,10 @@ type BlockDeployAccountTxn struct {
 	DeployAccountTxn
 }
 
+// UnmarshalJSON unmarshals the JSON data into a BlockTransactions object.
+//
+// It takes a byte slice as input representing the JSON data to be unmarshaled.
+// The function returns an error if there was a problem during unmarshaling.
 func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	var dec []interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -109,6 +113,14 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalBlockTxn unmarshals a given interface into a BlockTransaction object.
+//
+// Parameter:
+// - t: The interface to be unmarshaled.
+//
+// Return:
+// - BlockTransaction: The unmarshaled BlockTransaction object.
+// - error: An error if the unmarshaling process fails.
 func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:

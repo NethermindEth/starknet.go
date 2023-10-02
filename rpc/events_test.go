@@ -9,7 +9,13 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestEvents tests Events
+// TestEvents is a test function that tests the Events function in the package.
+//
+// It sets up a test configuration and defines a testSet variable that contains test cases for different environments.
+// For each test case, it sets up a spy, assigns it to the test configuration provider, and creates an eventInput.
+// Then, it calls the provider.Events function with the eventInput and checks the returned events against the expected events.
+// If there is any mismatch, it fails the test.
+// This function is used to test the functionality of the Events function in different scenarios.
 func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 

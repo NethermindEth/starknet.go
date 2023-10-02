@@ -18,7 +18,13 @@ var (
 	testEnv = "mock"
 )
 
+
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
+//
+// It takes a pointer to the testing.M struct as a parameter.
+// It sets the test environment using the flag.StringVar method.
+// It parses the command-line arguments using the flag.Parse method.
+// It exits the program with the exit code returned by the m.Run method.
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
 	flag.Parse()

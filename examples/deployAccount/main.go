@@ -18,6 +18,12 @@ var (
 	predeployedClassHash        = "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a"
 )
 
+// main initializes the client, gets keys, deploys an account transaction, and sends it to the network.
+//
+// It loads the environment variables, establishes a connection to the Ethereum network, and retrieves the client version.
+// It generates random keys, converts a hex string to a Felt value, and constructs a deploy account transaction.
+// It precomputes the address, prompts the user to fund the precomputed address, and retrieves the chain ID.
+// It calculates and signs the transaction hash, and then sends the transaction to the network.
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))
@@ -86,6 +92,11 @@ func main() {
 
 }
 
+// getRandomKeys generates random public and private keys.
+//
+// Returns:
+// - pubFelt: a pointer to a *felt.Felt, representing the random public key.
+// - privFelt: a pointer to a *felt.Felt, representing the random private key.
 func getRandomKeys() (*felt.Felt, *felt.Felt) {
 	privateKey, err := starknetgo.Curve.GetRandomPrivateKey()
 	if err != nil {
@@ -110,6 +121,12 @@ func getRandomKeys() (*felt.Felt, *felt.Felt) {
 
 // precomputeAddress computes the address by hashing the relevant data.
 // ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+//
+// deployerAddress: The address of the deployer.
+// salt: The salt used to deploy the contract.
+// classHash: The hash of the contract class.
+// constructorCalldata: The calldata for the contract constructor.
+// Returns the precomputed address and any error that occurred.
 // TODO: Move to contract / utils package
 func precomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
 	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
@@ -136,6 +153,14 @@ func precomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *f
 
 }
 
+// computeHashOnElementsFelt computes the hash on elements Felt.
+//
+// It takes in an array of felt elements and converts them to an array of big integers using the utils.FeltArrToBigIntArr function.
+// If any error occurs during the conversion, it returns nil and the error.
+// It then computes the hash on the array of big integers using the starknetgo.Curve.ComputeHashOnElements function.
+// If any error occurs during the computation, it returns nil and the error.
+// Finally, it converts the resulting hash from a big integer to a felt element using the utils.BigIntToFelt function and returns it.
+// If any error occurs during the conversion, it returns nil and the error.
 func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr, err := utils.FeltArrToBigIntArr(feltArr)
 	if err != nil {
@@ -148,7 +173,16 @@ func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	return utils.BigIntToFelt(hash)
 }
 
-// calculateDeployAccountTransactionHash computes the transaction hash for deployAccount transactions
+// calculateDeployAccountTransactionHash calculates the transaction hash for deployAccount transactions
+//
+// Parameters:
+// - tx: The deploy account transaction.
+// - contractAddress: The contract address.
+// - chainID: The ID of the chain.
+//
+// Returns:
+// - The calculated transaction hash.
+// - An error if there was an issue calculating the hash.
 func calculateDeployAccountTransactionHash(tx rpc.DeployAccountTxn, contractAddress *felt.Felt, chainID string) (*felt.Felt, error) {
 	Prefix_DEPLOY_ACCOUNT := new(felt.Felt).SetBytes([]byte("deploy_account"))
 	chainIdFelt := new(felt.Felt).SetBytes([]byte(chainID))
@@ -177,6 +211,21 @@ func calculateDeployAccountTransactionHash(tx rpc.DeployAccountTxn, contractAddr
 	)
 }
 
+// calculateTransactionHashCommon calculates the transaction hash in a common way.
+//
+// Parameters:
+// - txHashPrefix: The transaction hash prefix.
+// - version: The version of the transaction.
+// - contractAddress: The address of the contract.
+// - entryPointSelector: The selector of the entry point.
+// - calldata: The transaction calldata.
+// - maxFee: The maximum fee allowed for the transaction.
+// - chainId: The chain ID of the transaction.
+// - additionalData: Additional data for the transaction.
+//
+// Returns:
+// - The calculated transaction hash.
+// - An error if the calculation fails.
 func calculateTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,

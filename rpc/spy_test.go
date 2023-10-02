@@ -15,6 +15,13 @@ type spy struct {
 	debug bool
 }
 
+// NewSpy creates a new spy object.
+//
+// It takes a client callCloser and an optional debug boolean parameter.
+// The client callCloser represents the client object used to make calls.
+// The debug parameter is an optional flag that indicates whether debug mode is enabled.
+//
+// The function returns a pointer to a spy object.
 func NewSpy(client callCloser, debug ...bool) *spy {
 	d := false
 	if len(debug) > 0 {
@@ -35,6 +42,11 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 	}
 }
 
+// CallContext calls the spy's CallContext method.
+//
+// It takes a context.Context object, a result interface{}, a method string,
+// and variadic args ...interface{}.
+// It returns an error.
 func (s *spy) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	if s.mock {
 		return s.callCloser.CallContext(ctx, result, method, args...)
@@ -64,6 +76,15 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	return err
 }
 
+// Compare compares the spy object with the given object and returns the difference between them as a string.
+//
+// Parameters:
+// - o: The object to compare with the spy object.
+// - debug: A boolean indicating whether to print debug information.
+//
+// Returns:
+// - string: The difference between the spy object and the given object as a string.
+// - error: An error if there was an error during comparison.
 func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	if s.mock {
 		if debug {

@@ -11,13 +11,18 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-/*
-Verifies the validity of the stark curve signature
-given the message hash, and public key (x, y) coordinates
-used to sign the message.
-
-(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
-*/
+// Verify verifies the validity of the stark curve signature of a message hash using the Stark elliptic curve used to sign the message.
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+//
+// Parameters:
+// - msgHash: The hash of the message to be verified.
+// - r: The r component of the signature.
+// - s: The s component of the signature.
+// - pubX: The x-coordinate of the public key.
+// - pubY: The y-coordinate of the public key.
+//
+// Returns:
+// - bool: True if the signature is valid, false otherwise.
 func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
 
@@ -81,13 +86,21 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	return false
 }
 
-/*
-Signs the hash value of contents with the provided private key.
-Secret is generated using a golang implementation of RFC 6979.
-Implementation does not yet include "extra entropy" or "retry gen".
-
-(ref: https://datatracker.ietf.org/doc/html/rfc6979)
-*/
+// Sign signs the hash value of contents with a private key using the Stark elliptic curve algorithm.
+// Secret is generated using a golang implementation of RFC 6979.
+// (ref: https://datatracker.ietf.org/doc/html/rfc6979)
+//
+// Implementation does not yet include "extra entropy" or "retry gen".
+//
+// Parameters:
+// - msgHash: The message hash to be signed.
+// - privKey: The private key used for signing.
+// - seed: (optional) Additional seed values for generating the secret.
+//
+// Returns:
+// - x: The x-coordinate of the resulting point on the curve.
+// - y: The y-coordinate of the resulting point on the curve.
+// - err: An error if any occurred during the signing process.
 func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
 	if msgHash == nil {
 		return x, y, fmt.Errorf("nil msgHash")
@@ -137,9 +150,17 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 	return x, y, nil
 }
 
-/*
-See Sign. SignFelt just wraps Sign.
-*/
+// SignFelt signs a message hash with a private key using the Stark elliptic curve.
+// See Sign. SignFelt just wraps Sign.
+//
+// Parameters:
+// - msgHash: The message hash to be signed, of type *felt.Felt.
+// - privKey: The private key to sign the message hash, of type *felt.Felt.
+//
+// Returns:
+// - xFelt: The x-coordinate of the generated signature, of type *felt.Felt.
+// - yFelt: The y-coordinate of the generated signature, of type *felt.Felt.
+// - error: Any error that occurred during the signing process.
 func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Felt, error) {
 	msgHashInt := msgHash.BigInt(new(big.Int))
 	privKeyInt := privKey.BigInt(new(big.Int))
@@ -153,11 +174,10 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 
 }
 
-/*
-Hashes the contents of a given array using a golang Pedersen Hash implementation.
-
-(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-*/
+// HashElements calculates the hash value of the contents of a given array using a golang Pedersen Hash implementation.
+// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+//
+// It takes a slice of big integers as input and returns the resulting hash value and an error, if any.
 func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	if len(elems) == 0 {
 		elems = append(elems, big.NewInt(0))
@@ -173,22 +193,26 @@ func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
 	return hash, err
 }
 
-/*
-Hashes the contents of a given array with its size using a golang Pedersen Hash implementation.
-
-(ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
-*/
+// ComputeHashOnElements computes the hash of a given array with its size using a golang Pedersen Hash implementation.
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
+//
+// It takes a slice of big.Int pointers as the parameter `elems`.
+// It returns a big.Int pointer `hash` and an error `err`.
 func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
 	return Curve.HashElements((elems))
 }
 
-/*
-Provides the pedersen hash of given array of big integers.
-NOTE: This function assumes the curve has been initialized with contant points
-
-(ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-*/
+// PedersenHash calculates the Pedersen hash of the given array of big integers.
+// NOTE: This function assumes the curve has been initialized with contant points
+// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
+//
+// Parameters:
+// - elems: a slice of big integers representing the elements to hash.
+//
+// Returns:
+// - hash: the resulting hash as a big integer.
+// - err: an error if the precomputed constant points are not initiated or if there is an invalid x value or a constant point duplication.
 func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	if len(sc.ConstantPoints) == 0 {
 		return hash, fmt.Errorf("must initiate precomputed constant points")
@@ -220,8 +244,17 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	return ptx, nil
 }
 
+// GenerateSecret generates a secret using the StarkCurve struct in Go.
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
 // for the specification, see https://tools.ietf.org/html/rfc6979#section-3.2
+//
+// Parameters:
+// - msgHash: The hash of the message as a big.Int pointer.
+// - privKey: The private key as a big.Int pointer.
+// - seed: The seed as a big.Int pointer.
+//
+// Return:
+// - secret: The generated secret as a big.Int pointer.
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
 	alg := sha256.New
 	holen := alg().Size()
@@ -267,7 +300,13 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 	}
 }
 
+// int2octets converts a big integer to a byte slice of specified length.
 // https://tools.ietf.org/html/rfc6979#section-2.3.3
+//
+// v: The big integer to convert.
+// rolen: The desired length of the byte slice.
+// Returns a byte slice representing the big integer, padded with zeros if it's shorter than the desired length,
+// or truncated from the most significant bytes if it's longer.
 func int2octets(v *big.Int, rolen int) []byte {
 	out := v.Bytes()
 
@@ -288,7 +327,18 @@ func int2octets(v *big.Int, rolen int) []byte {
 	return out
 }
 
+// bits2octets generates octets from bits.
 // https://tools.ietf.org/html/rfc6979#section-2.3.4
+//
+// It takes in two parameters:
+// - in: a pointer to a big.Int, the input value in bits.
+// - q: a pointer to a big.Int, the modulus value in bits.
+//
+// It also takes in two integers as parameters:
+// - qlen: the length of the modulus value in bits.
+// - rolen: the length of the output value in octets.
+//
+// It returns a byte slice representing the octets.
 func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 	z1 := bits2int(in, qlen)
 	z2 := new(big.Int).Sub(z1, q)
@@ -298,7 +348,14 @@ func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 	return int2octets(z2, rolen)
 }
 
+// bits2int returns a new big.Int that is the result of converting the given big.Int to an integer with a length of qlen bits.
 // https://tools.ietf.org/html/rfc6979#section-2.3.2
+//
+// It takes the following parameter(s):
+// - in: a pointer to a big.Int, the input value to convert.
+// - qlen: an integer, the desired length of the resulting integer in bits.
+//
+// It returns a pointer to a big.Int, the converted integer.
 func bits2int(in *big.Int, qlen int) *big.Int {
 	blen := len(in.Bytes()) * 8
 
@@ -309,14 +366,29 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 	return in
 }
 
-// mac returns an HMAC of the given key and message.
+// mac calculates the message authentication code (MAC) using the specified hash algorithm, key, message, and buffer.
+//
+// The alg parameter is a function that returns a hash.Hash implementation, which will be used to calculate the MAC.
+// The k parameter is the key used for the MAC calculation.
+// The m parameter is the message for which the MAC is being calculated.
+// The buf parameter is a buffer used to store the result of the MAC calculation.
+//
+// The function returns the calculated MAC as a byte slice.
 func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	h := hmac.New(alg, k)
 	h.Write(m)
 	return h.Sum(buf[:0])
 }
 
-// mask excess bits
+
+// MaskBits masks the bits in a byte slice based on the given mask and word size.
+//
+// It takes three parameters: 
+//   - mask: the number of bits to mask
+//   - wordSize: the size of each word in bits
+//   - slice: the byte slice to mask
+//
+// It returns a new byte slice with the masked bits.
 func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	excess := len(slice)*wordSize - mask
 	for _, by := range slice {
@@ -334,7 +406,11 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	return ret
 }
 
+// FmtKecBytes formats the given big integer as a byte slice with a specified length.
 // format the bytes in Keccak hash
+//
+// It takes in a big integer 'in' and an integer 'rolen' which specifies the desired length of the byte slice.
+// It returns a byte slice 'buf' which contains the formatted bytes of the big integer.
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	buf = append(buf, in.Bytes()...)
 

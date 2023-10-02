@@ -20,6 +20,11 @@ var (
 	pollInterval    int    = 6
 )
 
+// main is the entry point of the account example.
+//
+// It initializes the starknet gateway client, retrieves the count before the transaction,
+// initializes the account handler, estimates the fee for executing the transaction,
+// executes the transaction, waits for the transaction to complete, and retrieves the count after the transaction.
 func main() {
 	// init starknet gateway client
 	gw := gateway.NewProvider(gateway.WithChain(name))

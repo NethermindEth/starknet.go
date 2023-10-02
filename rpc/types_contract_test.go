@@ -12,6 +12,16 @@ const (
 	invalidContractCompiledPath         = "./tests/0xFakeContract.json"
 )
 
+// TestDeprecatedContractClass_UnmarshalValidJSON_Successful is a test function that checks the successful unmarshalling of valid JSON into a DeprecatedContractClass instance.
+//
+// The function does the following:
+// - Reads the content of a file specified by validDeprecatedContractCompiledPath.
+// - Unmarshals the content into a DeprecatedContractClass instance.
+//
+// Parameters:
+// - t: A pointer to a testing.T instance.
+//
+// Return type: None.
 func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 	content, err := os.ReadFile(validDeprecatedContractCompiledPath)
 	if err != nil {
@@ -23,6 +33,17 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 		t.Fatal("should be able unmarshall Class", err)
 	}
 }
+
+// TestContractClass_UnmarshalValidJSON_Successful is a test function that unmarshalls a valid JSON into a ContractClass struct and checks for successful execution.
+//
+// The function does the following:
+// - Reads the content of a file using os.ReadFile.
+// - Unmarshalls the content into a ContractClass struct using json.Unmarshal.
+//
+// Parameters:
+// - t: a testing.T object used for testing.
+//
+// Return type: None.
 func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 	content, err := os.ReadFile(validContractCompiledPath)
 	if err != nil {

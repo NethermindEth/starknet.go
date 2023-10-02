@@ -20,6 +20,10 @@ var (
 	pollInterval int    = 5
 )
 
+// main initializes the starknet gateway client, deploys a contract, waits for the transaction status, fetches transaction data, and calls a Starknet contract.
+//
+// No parameters.
+// No return types.
 func main() {
 	// init starknet gateway client
 	gw := gateway.NewClient(gateway.WithChain(name))

@@ -8,6 +8,15 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
+// main is the entry point of the curve example.
+//
+// This function performs various cryptographic operations using the StarknetGo library.
+// It calculates the hash using the PedersenHash function, generates a random private key,
+// converts the private key to a point on the curve, signs the hash using the private key,
+// and verifies the signature. The function prints whether the signature is valid or invalid.
+//
+// No parameters are passed to this function.
+// No return types are specified.
 func main() {
 	/*
 		Although the library adheres to the 'elliptic/curve' interface.

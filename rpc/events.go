@@ -5,7 +5,11 @@ import (
 	"errors"
 )
 
-// Events returns all events matching the given filter
+// Events returns all events based on the given input filter parameters.
+//
+// ctx - The context in which the function is called.
+// input - The input parameters for retrieving events.
+// Returns a pointer to the EventChunk struct and an error.
 func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error) {
 	var result EventChunk
 	if err := do(ctx, provider.c, "starknet_getEvents", &result, input); err != nil {

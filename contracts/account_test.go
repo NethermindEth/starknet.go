@@ -12,6 +12,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// TestGateway_InstallAccounts: test function that installs and waits for
+// multiple accounts on the gateway.
+//
+// It takes no parameters and has no return value.
 func TestGateway_InstallAccounts(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)
@@ -64,6 +68,12 @@ func TestGateway_InstallAccounts(t *testing.T) {
 	}
 }
 
+// TestRPC_InstallAccounts: test for installing accounts on the RPC provider.
+//
+// Parameters:
+// - t: the testing.T object for running the test.
+//
+// Return type: None.
 func TestRPC_InstallAccounts(t *testing.T) {
 	godotenv.Load()
 	testConfiguration := beforeEach(t)

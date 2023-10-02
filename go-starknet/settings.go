@@ -40,10 +40,16 @@ var settingsCommand = cli.Command{
 	},
 }
 
+// saveConfiguration saves the configuration using the provided context.
+//
+// It takes a *cli.Context as a parameter and returns an error.
 func saveConfiguration(cCtx *cli.Context) error {
 	return configuration.save()
 }
 
+// initOrLoadConfig initializes or loads the configuration.
+//
+// It returns a pointer to Configuration and an error.
 func initOrLoadConfig() (*Configuration, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -98,6 +104,14 @@ func (p Configuration) save() error {
 	return os.WriteFile(profileFullFilename, content, 0755)
 }
 
+// or returns the first non-empty string between a and b.
+//
+// Parameters:
+// - a: a string.
+// - b: a string.
+//
+// Returns:
+// - string: the first non-empty string between a and b.
 func or(a string, b string) string {
 	if a != "" {
 		return a
@@ -105,12 +119,19 @@ func or(a string, b string) string {
 	return b
 }
 
+// settingsList prints the current settings.
+//
+// It takes a *cli.Context argument.
+// It returns an error.
 func settingsList(cCtx *cli.Context) error {
 	fmt.Printf("current settings\n")
 	fmt.Printf("  format:   %s\n", or(configuration.DefaultFormat, "friendly"))
 	return nil
 }
 
+// settingsSet is a function that sets the configuration settings based on the provided values.
+//
+// It takes a *cli.Context as a parameter and returns an error.
 func settingsSet(cCtx *cli.Context) error {
 	values := cCtx.Args()
 	if len(values.Slice()) != 1 {

@@ -20,6 +20,10 @@ var transactionCommand = cli.Command{
 
 type friendlyTransaction gateway.StarknetTransaction
 
+// MarshalJSON marshals the friendlyTransaction object to JSON.
+//
+// It returns a byte slice and an error. The byte slice contains the JSON representation of the object,
+// while the error indicates any error encountered during the marshaling process.
 func (f friendlyTransaction) MarshalJSON() ([]byte, error) {
 	content := map[string]interface{}{}
 	content["treansaction_hash"] = f.Transaction.TransactionHash
@@ -53,6 +57,13 @@ var transactionFlags = []cli.Flag{
 	},
 }
 
+// transaction is a function that processes a transaction using the given cli.Context.
+//
+// It takes the following parameters:
+// - cCtx: a pointer to a cli.Context object that contains information about the transaction.
+//
+// It returns an error if the transaction is not supported by the provider, if the transaction hash is invalid,
+// or if there is an error retrieving the transaction.
 func transaction(cCtx *cli.Context) error {
 	providerName := cCtx.Value("provider")
 	if providerName.(string) != "gateway" {

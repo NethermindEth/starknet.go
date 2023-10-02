@@ -18,6 +18,10 @@ var (
 	contractMethod      string = "getName"
 )
 
+// main entry point of the SimpleCall program.
+//
+// It establishes a connection with the client, loads environment variables (.env),
+// and makes a read contract call. It then prints the response.
 func main() {
 	fmt.Println("Starting simpeCall example")
 	godotenv.Load(fmt.Sprintf(".env.%s", name))

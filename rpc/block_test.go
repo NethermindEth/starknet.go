@@ -11,7 +11,16 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestBlockNumber tests BlockNumber and check the returned value is strictly positive
+// TestBlockNumber tests BlockNumber and check the returned value is strictly positive.
+//
+// It does the following:
+// - Initializes the test configuration.
+// - Defines a test set with different environments.
+// - Iterates through the test set.
+// - Creates a spy object with the test configuration provider.
+// - Retrieves the block number from the test configuration provider.
+// - Checks if the retrieved block number matches the expected value.
+// - Checks if the block number is greater than 3000.
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -40,7 +49,18 @@ func TestBlockNumber(t *testing.T) {
 	}
 }
 
-// TestBlockHashAndNumber tests BlockHashAndNumber and check the returned value is strictly positive
+// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check the returned value is strictly positive.
+//
+// The function does the following:
+// - Sets up a test configuration.
+// - Defines a test set.
+// - Iterates over the test set.
+// - Initializes a spy.
+// - Calls the BlockHashAndNumber function.
+// - Checks for the expected error.
+// - Compares the result with a spy.
+// - Checks the block number.
+// - Checks the block hash.
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -72,7 +92,18 @@ func TestBlockHashAndNumber(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxHashes tests BlockWithTxHashes
+// TestBlockWithTxHashes is a unit test function for testing the BlockWithTxHashes function.
+//
+// It tests the behavior of the BlockWithTxHashes function in different scenarios.
+// The function takes a test object of type testSetType and performs the following steps:
+// - Sets up the test configuration.
+// - Calls the BlockWithTxHashes function with the provided test.BlockID.
+// - Compares the result with the expected error and block values.
+//
+// Parameters:
+// - t: A testing.T object used for reporting test failures and logging.
+//
+// Return type: None.
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -218,7 +249,24 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxsAndInvokeTXNV0 tests block with Invoke TXN V0
+// TestBlockWithTxsAndInvokeTXNV0 is a test function that tests the functionality of BlockWithTxs and InvokeTXNV0.
+//
+// The function takes in a testing.T object as a parameter and performs the following steps:
+// 1. Sets up the test configuration using the beforeEach function.
+// 2. Defines a testSetType struct that holds the input parameters, expected error, and expected output for each test case.
+// 3. Initializes a fullBlockGoerli310370 variable of type Block with test data.
+// 4. Defines a testSet map that maps a test environment (mock, testnet, mainnet) to an array of testSetType.
+// 5. Loops through each test case in the testSet and performs the following steps:
+//     a. Initializes a spy object of type Spy using the testConfig provider.
+//     b. Calls the BlockWithTxs function of the testConfig provider with the BlockID from the test case.
+//     c. Checks if the returned error matches the expected error.
+//     d. Checks if the returned blockWithTxs is of type *Block.
+//     e. Compares the returned blockWithTxs with the expected output using the spy's Compare function.
+//     f. Checks if the BlockHash of the returned blockWithTxs starts with "0x".
+//     g. Checks if the number of transactions in the returned blockWithTxs is greater than 0.
+//     h. If the expected output is not nil, checks if the TransactionHash, MaxFee, and EntryPointSelector of the BlockInvokeTxnV0 transaction at the specified position in the returned blockWithTxs match the expected values.
+//
+// The function does not return any values.
 func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -341,7 +389,23 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
+// TestBlockWithTxsAndDeployOrDeclare is a test function that tests the behavior of the BlockWithTxs method with Deploy or Declare TXN.
+//
+// It sets up a test configuration, defines a testSetType struct, and initializes a fullBlockGoerli310843 variable of type Block.
+// Then, it defines a testSet map with testSetType values.
+// The function iterates over the testSet and performs the following actions:
+// - Creates a new spy instance.
+// - Sets the provider.c field of the testConfig to the spy instance.
+// - Calls the BlockWithTxs method of the provider with the given test.BlockID argument and assigns the result to blockWithTxsInterface.
+// - Compares the error returned by the BlockWithTxs method to the expected error. If they don't match, the function terminates with a fatal error.
+// - Checks if the expected error is not nil and the blockWithTxsInterface is nil. If true, the function continues with the next iteration.
+// - Asserts that the blockWithTxsInterface is of type *Block. If not, the function terminates with a fatal error.
+// - Compares the blockWithTxs with the spy instance. If they don't match, the function terminates with a fatal error.
+// - Asserts that the blockWithTxs.BlockHash starts with "0x". If not, the function terminates with a fatal error.
+// - Asserts that the number of transactions in blockWithTxs is not zero. If it is zero, the function terminates with a fatal error.
+// - Checks if test.ExpectedBlockWithTxs is not nil. If true, it compares the expected transaction block at test.LookupTxnPositionInExpected with the actual transaction block at test.LookupTxnPositionInOriginal. If they don't match, the function terminates with a fatal error.
+//
+// The function does not have any parameters and does not return any values.
 func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -524,11 +588,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
 			}
 		}
-
 	}
 }
 
-// TestBlockTransactionCount tests BlockTransactionCount
+// TestBlockTransactionCount tests the BlockTransactionCount function.
+//
+// It sets up a test environment and creates a testSet containing mock,
+// testnet, and mainnet data. For each test in the testSet, it initializes a
+// spy provider and sets the testConfig provider to the spy. Then it calls
+// BlockTransactionCount with the test's BlockID and checks if the returned
+// count matches the test's ExpectedCount. It also compares the returned count
+// with the spy's count to ensure a full match. If any of the checks fail, it
+// logs an error and fails the test.
 func TestBlockTransactionCount(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -572,6 +643,10 @@ func TestBlockTransactionCount(t *testing.T) {
 	}
 }
 
+// TestCaptureUnsupportedBlockTxn tests the capture of unsupported block transactions.
+//
+// This function takes no parameters.
+// It does not return anything.
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -616,8 +691,11 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}
 }
 
+// TestBlockWithTxsAndInvokeTXNV1 is a test function for testing the block with transactions and invoking TXNV1.
+//
+// The function does not take any parameters.
+// It does not return anything.
 // TODO: Find a block with such a Txn
-// TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
 
@@ -640,7 +718,10 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	}
 }
 
-// TestStateUpdate tests StateUpdateByHash
+// TestStateUpdate is a unit test function that tests the StateUpdate function.
+//
+// The function takes no parameters.
+// It does not return any value.
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.

@@ -7,7 +7,11 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// For a given executed transaction, return the trace of its execution, including internal calls
+// TransactionTrace retrieves the transaction trace for a given transaction hash, including internal calls.
+//
+// ctx: The context.Context object for cancellation.
+// transactionHash: The hash of the transaction to retrieve the trace for.
+// Returns: The transaction trace object and an error if any.
 func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
@@ -61,7 +65,12 @@ func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash 
 	return trace, nil
 }
 
-// Retrieve traces for all transactions in the given block
+// TraceBlockTransactions retrieves the trace of all transactions for a given block.
+//
+// ctx: The context.Context used for the function call.
+// blockHash: The hash of the block for which to retrieve the trace.
+// []Trace: The trace of transactions for the given block.
+// error: An error if the function call fails.
 func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error) {
 	var output []Trace
 	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockHash); err != nil {
@@ -71,7 +80,14 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockHash 
 
 }
 
-// simulate a given transaction on the requested state, and generate the execution trace
+// SimulateTransactions simulates transactions on the StarkNet blockchain, and generate the execution trace.
+//
+// ctx - The context of the function call.
+// blockID - The ID of the block to simulate transactions on.
+// txns - The list of transactions to simulate.
+// simulationFlags - The flags to control the simulation process.
+// []SimulatedTransaction - The list of simulated transactions.
+// error - An error, if any occurred.
 func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
 
 	var output []SimulatedTransaction

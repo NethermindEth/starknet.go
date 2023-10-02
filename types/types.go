@@ -107,6 +107,10 @@ const (
 	TransactionRejected     TransactionState = "REJECTED"
 )
 
+// UnmarshalJSON unmarshals the JSON data into a TransactionState object.
+//
+// The function takes a byte slice `data` as its parameter, which represents the JSON data to be unmarshaled.
+// It returns an error if there is an issue unmarshaling the data.
 func (ts *TransactionState) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -131,14 +135,26 @@ func (ts *TransactionState) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON returns the JSON encoding of the TransactionState.
+//
+// It returns a byte slice containing the JSON-encoded string representation of the TransactionState and
+// an error if there was any error during the encoding process.
 func (ts TransactionState) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
 
+// String returns the string representation of the TransactionState.
+//
+// It does not take any parameters.
+// It returns a string.
 func (s TransactionState) String() string {
 	return string(s)
 }
 
+// IsTransactionFinal checks if the transaction state is final.
+//
+// This function takes no parameters.
+// It returns a boolean value indicating whether the transaction state is final or not.
 func (s TransactionState) IsTransactionFinal() bool {
 	if s == TransactionAcceptedOnL2 ||
 		s == TransactionAcceptedOnL1 ||

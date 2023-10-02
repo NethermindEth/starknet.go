@@ -10,7 +10,17 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestClassAt tests code for a class.
+// TestClassAt tests the ClassAt function.
+//
+// The function tests the ClassAt function by executing it with different
+// test cases. It checks the behavior of the function with different contract
+// addresses and expected operation values. It asserts that the returned
+// response matches the expected result based on the provided contract address.
+//
+// Parameters:
+// - t: The testing.T pointer for test assertions.
+//
+// Returns: None.
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -66,7 +76,20 @@ func TestClassAt(t *testing.T) {
 	}
 }
 
-// TestClassHashAt tests code for a ClassHashAt.
+// TestClassHashAt tests the ClassHashAt function.
+//
+// It sets up a test configuration and defines a test set with different
+// contract hashes and expected class hashes for different environments.
+// Then, it iterates over the test set and performs the following steps:
+//   - Creates a new spy object.
+//   - Updates the test configuration provider with the spy object.
+//   - Calls the ClassHashAt function with the specified block tag and
+//     contract hash.
+//   - Compares the obtained class hash with the expected class hash.
+//   - Checks if the obtained class hash is not nil.
+//   - Asserts that the obtained class hash is equal to the expected class hash.
+//
+// The function does not have any parameters and does not return any values.
 func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -118,7 +141,9 @@ func TestClassHashAt(t *testing.T) {
 	}
 }
 
-// TestClass tests code for a class.
+// TestClass is a test function that tests the functionality of the Class method in the provider package.
+//
+// It takes no parameters and does not return anything.
 func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -180,7 +205,12 @@ func TestClass(t *testing.T) {
 	}
 }
 
-// TestStorageAt tests StorageAt
+// TestStorageAt tests the StorageAt function.
+//
+// It tests the StorageAt function by setting up different test scenarios
+// and comparing the expected value with the actual value returned by the function.
+// The function takes a contract hash, storage key, block ID, and expected value as input parameters.
+// It returns an error if there is any issue with the function execution.
 func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -238,7 +268,13 @@ func TestStorageAt(t *testing.T) {
 	}
 }
 
-// TestNonce tests Nonce
+// TestNonce tests the Nonce function of the provider.
+//
+// It sets up a test environment and executes the Nonce function for different test sets.
+// The function retrieves the nonce value for a contract address using the provider's Nonce method.
+// It then compares the returned value with the expected value and checks if they match.
+// If the values do not match, it logs an error.
+// Finally, it verifies that the returned value is "0x0" for each test set.
 func TestNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -280,7 +316,12 @@ func TestNonce(t *testing.T) {
 	}
 }
 
-// TestEstimateMessageFee tests EstimateMesssageFee
+// TestEstimateMessageFee tests the EstimateMessageFee function.
+//
+// It sets up a test configuration and defines a testSet with different scenarios.
+// For each scenario, it creates a spy and sets the provider to the spy.
+// It then calls the EstimateMessageFee function with the test parameters.
+// Finally, it checks if the returned value matches the expected fee estimate.
 func TestEstimateMessageFee(t *testing.T) {
 	testConfig := beforeEach(t)
 

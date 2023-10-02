@@ -15,6 +15,11 @@ const (
 	InternalError  = -32603 // Internal JSON-RPC error.
 )
 
+// Err creates an RPCError based on the given code and data.
+//
+// The code parameter is an integer representing the error code.
+// The data parameter is any data associated with the error.
+// Returns a pointer to an RPCError struct.
 func Err(code int, data any) *RPCError {
 	switch code {
 	case InvalidJSON:
@@ -30,6 +35,14 @@ func Err(code int, data any) *RPCError {
 	}
 }
 
+// tryUnwrapToRPCErr tries to unwrap the given error to an RPCError, and returns the first matching RPCError
+// from the given list of RPCErrors, or returns an InternalError if no match is found.
+//
+// Parameters:
+// - err: the error to unwrap.
+// - rpcErrors: a variadic list of RPCError pointers to match against.
+//
+// Return type: error.
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 
 	var nodeErr *RPCError
@@ -45,6 +58,8 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return Err(InternalError, err)
 }
 
+// isErrUnexpectedError checks if the error is of type RPCError and if its code is ErrUnexpectedError.
+// It takes an error as input and returns a pointer to RPCError and a boolean value.
 func isErrUnexpectedError(err error) (*RPCError, bool) {
 	var nodeErr *RPCError
 	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
@@ -60,6 +75,9 @@ func isErrUnexpectedError(err error) (*RPCError, bool) {
 	return nil, false
 }
 
+// isErrNoTraceAvailableError checks if the error is of type RPCError and if it contains a specific error code.
+//
+// It takes an error as a parameter and returns a pointer to a RPCError struct and a boolean value.
 func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
 	var nodeErr *RPCError
 	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
@@ -81,14 +99,24 @@ type RPCError struct {
 	data    any
 }
 
+// Error returns the error message of the RPCError.
+//
+// It returns a string.
 func (e *RPCError) Error() string {
 	return e.message
 }
 
+// Code returns the code of the RPCError.
+//
+// It returns an integer value representing the error code.
 func (e *RPCError) Code() int {
 	return e.code
 }
 
+// Data returns the value of the data field in the RPCError struct.
+//
+// Returns:
+//     any: The value of the data field.
 func (e *RPCError) Data() any {
 	return e.data
 }

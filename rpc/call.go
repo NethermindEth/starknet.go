@@ -7,7 +7,13 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// Call a starknet function without creating a Starknet transaction.
+// Call calls the Provider's StarkNet function with the given context, request, and block ID without creating a Starknet transaction.
+//
+// ctx: The context.Context to be used for the function call.
+// request: The FunctionCall representing the call data.
+// blockID: The BlockID representing the block to execute the function on.
+// []*felt.Felt: The result of the function call.
+// error: An error if the function call fails.
 func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockID BlockID) ([]*felt.Felt, error) {
 
 	if len(request.Calldata) == 0 {

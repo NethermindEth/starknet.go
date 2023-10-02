@@ -25,6 +25,16 @@ type BlockID struct {
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
+// MarshalJSON marshals the BlockID to JSON format.
+//
+// It returns the JSON representation of the BlockID and an error if any.
+// The BlockID can be marshaled to JSON in the following cases:
+// - If the Tag is "pending" or "latest", it is marshaled as a quoted string.
+// - If the Tag is not empty, it returns an error.
+// - If the Number is not nil, it is marshaled as a JSON object with the key "block_number".
+// - If the Hash is not empty, it is marshaled as a JSON object with the key "block_hash".
+//
+// It returns nil and an error if the BlockID is invalid.
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
@@ -55,6 +65,9 @@ const (
 	BlockStatus_Rejected     BlockStatus = "REJECTED"
 )
 
+// UnmarshalJSON unmarshals the JSON representation of the BlockStatus type.
+//
+// It takes a []byte parameter and returns an error.
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -77,6 +90,10 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON marshals the BlockStatus into JSON.
+//
+// It takes no parameters.
+// It returns a byte slice and an error.
 func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(bs))), nil
 }

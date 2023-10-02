@@ -40,6 +40,10 @@ var workspaceCommand = cli.Command{
 	},
 }
 
+// workspaceListAction is a Go function that lists the workspaces.
+//
+// It takes a *cli.Context as a parameter.
+// It returns an error.
 func workspaceListAction(cCtx *cli.Context) error {
 	if len(configuration.Workspaces) == 0 {
 		configuration.Workspaces = []*Workspace{
@@ -62,6 +66,10 @@ func workspaceListAction(cCtx *cli.Context) error {
 	return nil
 }
 
+// workspaceSelectAction selects a workspace based on the provided name.
+//
+// It takes a *cli.Context as input.
+// It returns an error.
 func workspaceSelectAction(cCtx *cli.Context) error {
 	toSelect := strings.ToLower(cCtx.Args().First())
 	if len(configuration.Workspaces) == 0 {
@@ -81,6 +89,10 @@ func workspaceSelectAction(cCtx *cli.Context) error {
 	return errors.New("workspace not found")
 }
 
+// workspaceCreateAction creates a new workspace.
+//
+// cCtx: The cli context.
+// Returns an error.
 func workspaceCreateAction(cCtx *cli.Context) error {
 	toCreate := strings.ToLower(cCtx.Args().First())
 	if len(configuration.Workspaces) == 0 {
