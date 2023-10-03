@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/joho/godotenv"
 )
@@ -19,11 +18,11 @@ func TestRPC_InstallAccounts(t *testing.T) {
 	type TestCase struct {
 		privateKey       string
 		CompiledContract artifacts.CompiledContract
-		providerType     starknetgo.ProviderType
+		providerType     ProviderType
 	}
 
 	devnet := []TestCase{}
-	for _, provider := range []starknetgo.ProviderType{starknetgo.ProviderRPC} {
+	for _, provider := range []ProviderType{ProviderRPC} {
 		for _, version := range []string{"v1"} {
 			for _, proxy := range []bool{false, true} {
 				for _, plugin := range []bool{false, true} {
@@ -47,7 +46,7 @@ func TestRPC_InstallAccounts(t *testing.T) {
 		var accountManager *AccountManager
 		var err error
 		switch test.providerType {
-		case starknetgo.ProviderRPC:
+		case ProviderRPC:
 			accountManager, err = InstallAndWaitForAccount(
 				ctx,
 				testConfiguration.rpc,

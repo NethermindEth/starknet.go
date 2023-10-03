@@ -10,6 +10,23 @@ import (
 
 type RPCProvider rpc.Provider
 
+type DeclareOutput struct {
+	classHash       string
+	transactionHash string
+}
+
+type DeployOutput struct {
+	ContractAddress string
+	ClassHash       string
+	TransactionHash string
+}
+
+type ProviderType string
+
+const (
+	ProviderRPC     ProviderType = "rpc"
+)
+
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
 	panic("This needs updated - Declare transactions have changed significantly over the past few rpc-spec updates")
 	// provider := rpc.Provider(*p)

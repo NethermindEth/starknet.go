@@ -60,6 +60,7 @@ func guessProviderType(p interface{}) (Provider, error) {
 	case *rpc.Provider:
 		provider := RPCProvider(*v)
 		return &provider, nil
+	}
 	
 	return nil, errors.New("unsupported type")
 }
