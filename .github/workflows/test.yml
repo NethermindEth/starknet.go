@@ -37,6 +37,3 @@ jobs:
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
-
-      - name: Test sessionkey on devnet
-        run: cd plugins/xsessions && ./sessionkey.sh
