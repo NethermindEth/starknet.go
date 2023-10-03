@@ -561,8 +561,7 @@ func TestAddDeclare(t *testing.T) {
 
 	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
 	require.NoError(t, err)
-	compiledClassHash, err := hash.CompiledClassHash(*casmClass) // Todo pass tests on this first.
-	require.NoError(t, err)
+	compiledClassHash := hash.CompiledClassHash(*casmClass) // Todo pass tests on this first.
 
 	qweqwe, _ := json.MarshalIndent(casmClass, "", "")
 	fmt.Println(string(qweqwe))

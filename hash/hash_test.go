@@ -35,10 +35,11 @@ func TestCompiledClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
 	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"
 
-	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
+	compiledClass := artifacts.ExampleWorldCasm
+	var casmClass newcontract.CasmClass
+	err := json.Unmarshal(compiledClass, &casmClass)
 	require.NoError(t, err)
 
-	hash, err := hash.CompiledClassHash(*casmClass)
-	require.NoError(t, err)
+	hash := hash.CompiledClassHash(casmClass)
 	require.Equal(t, expectedHash, hash.String())
 }
