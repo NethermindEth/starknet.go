@@ -59,8 +59,7 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
 
 	// The ABI Bytes seem to match, but the hash does not
-	ABI := new(felt.Felt).SetBytes([]byte(contract.ABI))
-	ABIHash, err := ComputeHashOnElementsFelt([]*felt.Felt{ABI})
+	ABIHash, err := starknetgo.Curve.StarknetKeccak([]byte(contract.ABI))
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	fmt.Println("ExternalHash", ExternalHash)                         // Correct
 	fmt.Println("L1HandleHash", L1HandleHash)                         // Correct
 	fmt.Println("ConstructorHash", ConstructorHash)                   // Correct
-	fmt.Println("newABIHash", ABIHash)                                // Incorrect
+	fmt.Println("newABIHash", ABIHash)                                // Correct
 	fmt.Println("SierraProgamHash", SierraProgamHash)                 // Incorrect
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
@@ -91,10 +90,8 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	flattened := []*felt.Felt{}
 	for _, elt := range entryPoint {
-		fmt.Println("elt", elt)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}
-	fmt.Println("flattened", flattened)
 	return starknetgo.Curve.PoseidonArray(flattened...)
 }
 

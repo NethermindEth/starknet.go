@@ -231,6 +231,16 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PoseidonArray(felts...)
 }
 
+/*
+Provides the starknet keccek hash .
+NOTE: This function just wraps the Juno implementation
+
+(ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/keccak.go#L11)
+*/
+func (sc StarkCurve) StarknetKeccak(b []byte) (*felt.Felt, error) {
+	return junoCrypto.StarknetKeccak(b)
+}
+
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go
 // for the specification, see https://tools.ietf.org/html/rfc6979#section-3.2
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
