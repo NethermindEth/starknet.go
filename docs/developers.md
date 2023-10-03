@@ -39,7 +39,7 @@ both in parallel. That is why the current package names are: -->
 
 ## Where do I find resources about the protocol specifications?
 
-There are several efforts to document how the API are working. You should
+There are several efforts to document how the API is working. You should
 know them and you can contribute to the associated projects:
 
 - [starknet-edu postman reference](https://www.postman.com/starknet-edu/workspace/starknet-edu/collection/20082312-a5291c43-a4e5-4a6d-9c51-125c6acd3b41?ctx=documentation)

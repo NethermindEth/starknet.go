@@ -12,7 +12,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/artifacts"
-	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -61,10 +60,8 @@ func guessProviderType(p interface{}) (Provider, error) {
 	case *rpc.Provider:
 		provider := RPCProvider(*v)
 		return &provider, nil
-	case *gateway.GatewayProvider:
-		provider := GatewayProvider(*v)
-		return &provider, nil
 	}
+	
 	return nil, errors.New("unsupported type")
 }
 
@@ -72,7 +69,7 @@ func guessProviderType(p interface{}) (Provider, error) {
 //
 // Deprecated: this function should be replaced by InstallAndWaitForAccount
 // that will use the DEPLOY_ACCOUNT syscall.
-func InstallAndWaitForAccount[V *rpc.Provider | *gateway.GatewayProvider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
+func InstallAndWaitForAccount[V *rpc.Provider](ctx context.Context, provider V, privateKey *big.Int, compiledContracts artifacts.CompiledContract) (*AccountManager, error) {
 	if len(compiledContracts.AccountCompiled) == 0 {
 		return nil, errors.New("empty account")
 	}
@@ -117,12 +114,11 @@ func InstallAndWaitForAccount[V *rpc.Provider | *gateway.GatewayProvider](ctx co
 		return nil, err
 	}
 
-	// TODO: compiledDeploed could be proxy
+	// TODO: compiledDeployed could be proxy
 	deployedOutput, err := p.deployAccountAndWaitNoWallet(ctx, accountClassHashStr, compiledDeployed, publicKeyString, calldata)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("e")
 	proxyClassHash := ""
 	switch len(compiledContracts.ProxyCompiled) {
 	case 0:

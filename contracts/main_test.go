@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpc"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
@@ -27,7 +26,6 @@ func TestMain(m *testing.M) {
 
 type testConfiguration struct {
 	rpc     *rpc.Provider
-	gateway    *gateway.GatewayProvider
 	RPCBaseURL string
 	GWBaseURL  string
 }
@@ -55,8 +53,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 		}
 		clientv02 := rpc.NewProvider(c)
 		testConfig.rpc = clientv02
-		gw := gateway.NewProvider(gateway.WithBaseURL(testConfig.GWBaseURL))
-		testConfig.gateway = gw
 	}
 	t.Cleanup(func() {
 	})
