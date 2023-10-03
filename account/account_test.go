@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -13,6 +14,9 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
@@ -501,33 +505,82 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 }
 
 func TestTransactionHashDeclare(t *testing.T) {
-	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
+	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
-	expectedHash := utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92")
+	expectedTxHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+	expectedClassHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
 
 	client, err := rpc.NewClient(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
+	require.NoError(t, err)
+
+	// Class Hash
+	exampleSierraClass := artifacts.ExampleWorldSierra
+	var class rpc.ContractClass
+	err = json.Unmarshal(exampleSierraClass, &class)
+	require.NoError(t, err)
+	classHash, err := hash.ClassHash(class)
+	require.NoError(t, err)
+
+	// Compiled Class Hash
+	exampleCasmClass := artifacts.ExampleWorldCasm
+	var casmClass contracts.CasmClass
+	err = json.Unmarshal(exampleCasmClass, &casmClass)
+	require.NoError(t, err)
+	compClassHash := hash.CompiledClassHash(casmClass)
+
+	nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		Nonce:             utils.TestHexToFelt(t, "0xb"),
+		Nonce:             utils.TestHexToFelt(t, *nonce),
 		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
 		Type:              rpc.TransactionType_Declare,
 		Version:           rpc.TransactionV2,
 		Signature:         []*felt.Felt{},
-		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+		SenderAddress:     AccountAddress,
+		CompiledClassHash: compClassHash,
+		ClassHash:         classHash,
+		ContractClass:     class,
 	}
 
-	hash, err := acnt.TransactionHashDeclare(tx)
+	err = acnt.SignDeclareTransaction(context.Background(), &tx)
 	require.NoError(t, err)
-	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+
+	// Need to set for the transaction hash and signing, but should not be present in the submitted tx...
+	tx2 := rpc.DeclareTxnV2{
+		Nonce:             utils.TestHexToFelt(t, *nonce),
+		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:              rpc.TransactionType_Declare,
+		Version:           rpc.TransactionV2,
+		Signature:         []*felt.Felt{},
+		SenderAddress:     AccountAddress,
+		CompiledClassHash: compClassHash,
+		ContractClass:     class,
+	}
+
+	resp, err := acnt.AddDeclareTransaction(context.Background(), tx2)
+
+	if err != nil {
+		require.Equal(t, err.Error(), rpc.ErrDuplicateTx.Error())
+	} else {
+		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
+	}
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
