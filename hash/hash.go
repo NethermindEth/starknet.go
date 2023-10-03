@@ -1,6 +1,8 @@
 package hash
 
 import (
+	"fmt"
+
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
 	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
@@ -73,23 +75,25 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 }
 
 func CompiledClassHash(casmClass newcontract.CasmClass) (*felt.Felt, error) {
-	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(casmClass.Version))
-	ExternalHash, err := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
+	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
+	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
+	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
+	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
+	ByteCodeBytes := []byte{}
+	for _, code := range casmClass.ByteCode {
+		tmp := code.Bytes()
+		ByteCodeBytes = append(ByteCodeBytes, tmp[:]...)
+	}
+	ByteCodeHasH, err := starknetgo.Curve.StarknetKeccak(ByteCodeBytes)
 	if err != nil {
 		return nil, err
 	}
-	L1HandleHash, err := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
-	if err != nil {
-		return nil, err
-	}
-	ConstructorHash, err := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
-	if err != nil {
-		return nil, err
-	}
-	ByteCodeHasH, err := ComputeHashOnElementsFelt(casmClass.ByteCode)
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println("ContractClassVersionHash", ContractClassVersionHash) // Correct
+	fmt.Println("ExternalHash", ExternalHash)                         // Incorrect
+	fmt.Println("L1HandleHash", L1HandleHash)                         // Incorrect
+	fmt.Println("ConstructorHash", ConstructorHash)                   // Incorrect
+	fmt.Println("ByteCodeHasH", ByteCodeHasH)                         // Incorrect
+
 	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
 	return ComputeHashOnElementsFelt(
 		[]*felt.Felt{
@@ -100,18 +104,15 @@ func CompiledClassHash(casmClass newcontract.CasmClass) (*felt.Felt, error) {
 			ByteCodeHasH},
 	)
 }
-func hashCasmClassEntryPointByType(entryPoint []newcontract.CasmClassEntryPoint) (*felt.Felt, error) {
+func hashCasmClassEntryPointByType(entryPoint []newcontract.CasmClassEntryPoint) *felt.Felt {
 	flattened := []*felt.Felt{}
 	for _, elt := range entryPoint {
 		builtInFlat := []*felt.Felt{}
 		for _, builtIn := range elt.Builtins {
 			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
 		}
-		builtInHash, err := ComputeHashOnElementsFelt(builtInFlat)
-		if err != nil {
-			return nil, err
-		}
+		builtInHash := starknetgo.Curve.PoseidonArray(builtInFlat...)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
 	}
-	return ComputeHashOnElementsFelt(flattened)
+	return starknetgo.Curve.PoseidonArray(flattened...)
 }
