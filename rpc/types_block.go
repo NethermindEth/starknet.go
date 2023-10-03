@@ -18,7 +18,7 @@ type BlockHashAndNumberOutput struct {
 }
 
 // BlockID is a struct that is used to choose between different
-// search types.
+// search utils.
 type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
