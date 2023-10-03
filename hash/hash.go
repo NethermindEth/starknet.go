@@ -54,19 +54,10 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(Version))
+	ConstructorHash := hashEntryPointByType(contract.EntryPointsByType.Constructor)
+	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
+	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
 
-	ConstructorHash, err := hashEntryPointByType(contract.EntryPointsByType.Constructor)
-	if err != nil {
-		return nil, err
-	}
-	ExternalHash, err := hashEntryPointByType(contract.EntryPointsByType.External)
-	if err != nil {
-		return nil, err
-	}
-	L1HandleHash, err := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
-	if err != nil {
-		return nil, err
-	}
 	// The ABI Bytes seem to match, but the hash does not
 	ABI := new(felt.Felt).SetBytes([]byte(contract.ABI))
 	ABIHash, err := ComputeHashOnElementsFelt([]*felt.Felt{ABI})
@@ -79,9 +70,9 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	}
 
 	fmt.Println("ContractClassVersionHash", ContractClassVersionHash) // Correct
-	fmt.Println("ExternalHash", ExternalHash)                         // Incorrect
-	fmt.Println("L1HandleHash", L1HandleHash)                         // Incorrect
-	fmt.Println("ConstructorHash", ConstructorHash)                   // Incorrect
+	fmt.Println("ExternalHash", ExternalHash)                         // Correct
+	fmt.Println("L1HandleHash", L1HandleHash)                         // Correct
+	fmt.Println("ConstructorHash", ConstructorHash)                   // Correct
 	fmt.Println("newABIHash", ABIHash)                                // Incorrect
 	fmt.Println("SierraProgamHash", SierraProgamHash)                 // Incorrect
 
@@ -97,12 +88,14 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	)
 }
 
-func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) (*felt.Felt, error) {
+func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	flattened := []*felt.Felt{}
 	for _, elt := range entryPoint {
+		fmt.Println("elt", elt)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}
-	return ComputeHashOnElementsFelt(flattened)
+	fmt.Println("flattened", flattened)
+	return starknetgo.Curve.PoseidonArray(flattened...)
 }
 
 func CompiledClassHash(casmClass newcontract.CasmClass) (*felt.Felt, error) {
