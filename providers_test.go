@@ -2,22 +2,14 @@ package starknetgo
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/artifacts"
-	"github.com/NethermindEth/starknet.go/gateway"
 	"github.com/NethermindEth/starknet.go/rpc"
-	devtest "github.com/NethermindEth/starknet.go/test"
-	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
@@ -32,15 +24,6 @@ const (
 	TestNetAccount040Address = "0x6cbfa37f409610fee26eeb427ed854b3a4b24580d9b9ef6c3e38db7b3f7322c"
 	TestnetCounterAddress    = "0x51e94d515df16ecae5be4a377666121494eb54193d854fcf5baba2b0da679c6"
 )
-
-// testGatewayConfiguration is a type that is used to configure tests
-type testGatewayConfiguration struct {
-	client            *gateway.GatewayProvider
-	base              string
-	CounterAddress    string
-	AccountAddress    string
-	AccountPrivateKey string
-}
 
 var (
 	// set the environment for the test, default: mock
@@ -66,73 +49,7 @@ var (
 		// Used with a mock as a standard configuration, see `mock_test.go``
 		"mock": {},
 	}
-
-	testGatewayConfigurations = map[string]testGatewayConfiguration{
-		"mainnet": {
-			base: "https://alpha4-mainnet.starknet.io",
-		},
-		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base:           "https://alpha4.starknet.io",
-			CounterAddress: TestnetCounterAddress,
-			AccountAddress: TestNetAccount040Address,
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
-		"devnet": {
-			base: "http://localhost:5050",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
-	}
 )
-
-func InstallCounterContract(provider *gateway.GatewayProvider) (string, error) {
-	class := rpc.DeprecatedContractClass{}
-	if err := json.Unmarshal(artifacts.CounterCompiled, &class); err != nil {
-		return "", err
-	}
-	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*60)
-	defer cancel()
-	tx, err := provider.Deploy(context.Background(), class, rpc.DeployAccountTxn{
-		ContractAddressSalt: &felt.Zero,
-		ConstructorCalldata: []*felt.Felt{},
-	})
-	if err != nil {
-		return "", err
-	}
-	fmt.Println("deploy counter txHash", tx.TransactionHash)
-	_, receipt, err := provider.WaitForTransaction(ctx, tx.TransactionHash, 3, 20)
-	if err != nil {
-		log.Printf("contract Address: %s\n", tx.ContractAddress)
-		log.Printf("transaction Hash: %s\n", tx.TransactionHash)
-		return "", err
-	}
-	if !receipt.Status.IsTransactionFinal() ||
-		receipt.Status == types.TransactionRejected {
-		return "", fmt.Errorf("installation status: %s", receipt.Status)
-	}
-	return tx.ContractAddress, nil
-}
-
-// beforeEach checks the configuration and initializes it before running the script
-func beforeGatewayEach(t *testing.T) *testGatewayConfiguration {
-	t.Helper()
-	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testGatewayConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports testnet, mainnet or devnet")
-	}
-	switch testEnv {
-	default:
-		testConfig.client = gateway.NewProvider(gateway.WithBaseURL(testConfig.base))
-	}
-	t.Cleanup(func() {
-	})
-	return &testConfig
-}
 
 // testConfiguration is a type that is used to configure tests
 type testRPCConfiguration struct {
@@ -148,37 +65,10 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	if baseURL != "" {
-		gwLocalConfig := testGatewayConfigurations[testEnv]
-		gwLocalConfig.base = baseURL
-		testGatewayConfigurations[testEnv] = gwLocalConfig
 		rpcLocalConfig := testRPCConfigurations[testEnv]
 		rpcLocalConfig.base = baseURL
 		testRPCConfigurations[testEnv] = rpcLocalConfig
 	}
-	switch testEnv {
-	case "devnet":
-		provider := gateway.NewProvider(gateway.WithBaseURL(testGatewayConfigurations["devnet"].base))
-		counterAddress, err := InstallCounterContract(provider)
-		if err != nil {
-			fmt.Println("error installing counter contract", err)
-			os.Exit(1)
-		}
-		localConfig := testGatewayConfigurations[testEnv]
-		accounts, err := devtest.NewDevNet().Accounts()
-		if err != nil {
-			fmt.Println("error getting devnet accounts", err)
-			os.Exit(1)
-		}
-		localConfig.AccountAddress = accounts[0].Address
-		localConfig.AccountPrivateKey = accounts[0].PrivateKey
-		localConfig.CounterAddress = counterAddress
-		testGatewayConfigurations[testEnv] = localConfig
-	case "testnet":
-		localConfig := testGatewayConfigurations[testEnv]
-		localConfig.AccountPrivateKey = os.Getenv("TESTNET_ACCOUNT_PRIVATE_KEY")
-		testGatewayConfigurations[testEnv] = localConfig
-	}
-
 	os.Exit(m.Run())
 }
 

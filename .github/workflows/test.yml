@@ -30,19 +30,10 @@ jobs:
         run: ./.bin/devnet.sh
 
       - name: Test contracts deployment and execute
-        run: cd contracts && go test -env devnet -v -run "^(TestGateway|TestRPC)" .
+        run: cd contracts && go test -env devnet -v -run "^(TestRPC)" .
 
       - name: Test Accounts (starknet.go) on devnet
-        run: go test -timeout 600s -v -env devnet -run "^(TestGateway|TestRPC|TestGeneral)" .
+        run: go test -timeout 600s -v -env devnet -run "^(TestRPC|TestGeneral)" .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050/rpc"
-
-      - name: Test sessionkey on devnet
-        run: cd plugins/xsessions && ./sessionkey.sh
-
-      - name: Test Gateway with testnet
-        run: cd gateway && go test -v -env testnet .
-
-      - name: Test Gateway with devnet
-        run: cd gateway && go test -v -env devnet .
