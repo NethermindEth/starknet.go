@@ -2,21 +2,14 @@ package starknetgo
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/artifacts"
 	"github.com/NethermindEth/starknet.go/rpc"
-	devtest "github.com/NethermindEth/starknet.go/test"
-	"github.com/NethermindEth/starknet.go/types"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
