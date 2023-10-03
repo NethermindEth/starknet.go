@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 type callCloser interface {
@@ -23,4 +25,8 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 		return err
 	}
 	return nil
+}
+
+func NewClient(url string) (*ethrpc.Client, error) {
+	return ethrpc.DialContext(context.Background(), url)
 }

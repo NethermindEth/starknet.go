@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/NethermindEth/juno v0.3.1
 	github.com/ethereum/go-ethereum v1.10.26
+	github.com/golang/mock v1.6.0
 	github.com/joho/godotenv v1.4.0
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/pkg/errors v0.9.1

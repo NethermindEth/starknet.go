@@ -101,44 +101,6 @@ type DeclareTxnV2 struct {
 	ClassHash     *felt.Felt `json:"class_hash,omitempty"`
 }
 
-type Transaction interface {
-	GetType() TransactionType
-}
-
-var _ Transaction = InvokeTxnV0{}
-var _ Transaction = InvokeTxnV1{}
-var _ Transaction = DeclareTxnV1{}
-var _ Transaction = DeclareTxnV2{}
-var _ Transaction = DeployTxn{}
-var _ Transaction = DeployAccountTxn{}
-var _ Transaction = L1HandlerTxn{}
-
-func (tx InvokeTxnV0) GetType() TransactionType {
-	return tx.Type
-}
-
-func (tx InvokeTxnV1) GetType() TransactionType {
-	return tx.Type
-}
-func (tx DeclareTxnV0) GetType() TransactionType {
-	return tx.Type
-}
-func (tx DeclareTxnV1) GetType() TransactionType {
-	return tx.Type
-}
-func (tx DeclareTxnV2) GetType() TransactionType {
-	return tx.Type
-}
-func (tx DeployTxn) GetType() TransactionType {
-	return tx.Type
-}
-func (tx DeployAccountTxn) GetType() TransactionType {
-	return tx.Type
-}
-func (tx L1HandlerTxn) GetType() TransactionType {
-	return tx.Type
-}
-
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
@@ -266,16 +228,3 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
 }
-
-type AddDeclareTxnInput interface{}
-
-var _ AddDeclareTxnInput = DeclareTxnV1{}
-var _ AddDeclareTxnInput = DeclareTxnV2{}
-
-type EstimateFeeInput interface{}
-
-var _ EstimateFeeInput = InvokeTxnV0{}
-var _ EstimateFeeInput = InvokeTxnV1{}
-var _ EstimateFeeInput = DeployAccountTxn{}
-var _ EstimateFeeInput = DeclareTxnV1{}
-var _ EstimateFeeInput = DeclareTxnV2{}
