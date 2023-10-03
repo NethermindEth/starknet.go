@@ -34,7 +34,7 @@ func TestDeclareTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 
-		declareTxJSON, err := os.ReadFile("./tests/declareTx.json")
+		declareTxJSON, err := os.ReadFile("./tests/write_test/declareTx.json")
 		if err != nil {
 			t.Fatal("should be able to read file", err)
 		}

@@ -684,7 +684,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		var rawBlockTrace struct {
 			Result []Trace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		read, err := os.ReadFile("tests/trace_test/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
 		if err != nil {
 			return err
 		}
@@ -718,7 +718,7 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		read, err := os.ReadFile("tests/trace_test/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
 		if err != nil {
 			return err
 		}

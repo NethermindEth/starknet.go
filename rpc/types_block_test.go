@@ -81,7 +81,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block.json
+//go:embed tests/types_block_test/block.json
 var rawBlock []byte
 
 func TestBlock_Unmarshal(t *testing.T) {
