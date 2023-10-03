@@ -1,8 +1,6 @@
 package hash
 
 import (
-	"fmt"
-
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
 	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
@@ -50,41 +48,20 @@ func CalculateTransactionHashCommon(
 
 func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
-	// https://github.com/starkware-libs/cairo-lang/blob/7712b21fc3b1cb02321a58d0c0579f5370147a8b/src/starkware/starknet/core/os/contracts.cairo#L47
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(Version))
 	ConstructorHash := hashEntryPointByType(contract.EntryPointsByType.Constructor)
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
-
-	// The ABI Bytes seem to match, but the hash does not
+	SierraProgamHash := starknetgo.Curve.PoseidonArray(contract.SierraProgram...)
 	ABIHash, err := starknetgo.Curve.StarknetKeccak([]byte(contract.ABI))
 	if err != nil {
 		return nil, err
 	}
-	SierraProgamHash, err := ComputeHashOnElementsFelt(contract.SierraProgram)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println("ContractClassVersionHash", ContractClassVersionHash) // Correct
-	fmt.Println("ExternalHash", ExternalHash)                         // Correct
-	fmt.Println("L1HandleHash", L1HandleHash)                         // Correct
-	fmt.Println("ConstructorHash", ConstructorHash)                   // Correct
-	fmt.Println("newABIHash", ABIHash)                                // Correct
-	fmt.Println("SierraProgamHash", SierraProgamHash)                 // Incorrect
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return ComputeHashOnElementsFelt(
-		[]*felt.Felt{
-			ContractClassVersionHash,
-			ExternalHash,
-			L1HandleHash,
-			ConstructorHash,
-			ABIHash,
-			SierraProgamHash},
-	)
+	return starknetgo.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
 }
 
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
