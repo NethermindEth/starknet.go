@@ -3,7 +3,7 @@ package hash
 import (
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
-	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -72,7 +72,7 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	return starknetgo.Curve.PoseidonArray(flattened...)
 }
 
-func CompiledClassHash(casmClass newcontract.CasmClass) *felt.Felt {
+func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
@@ -83,7 +83,7 @@ func CompiledClassHash(casmClass newcontract.CasmClass) *felt.Felt {
 	return starknetgo.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
 }
 
-func hashCasmClassEntryPointByType(entryPoint []newcontract.CasmClassEntryPoint) *felt.Felt {
+func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
 	flattened := []*felt.Felt{}
 	for _, elt := range entryPoint {
 		builtInFlat := []*felt.Felt{}

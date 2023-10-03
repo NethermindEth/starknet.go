@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
-	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/test-go/testify/require"
 )
 
 func TestUnmarshalCasmClassHash(t *testing.T) {
 	compiledClass := artifacts.HelloWorldCasm
-	var class newcontract.CasmClass
+	var class contracts.CasmClass
 	err := json.Unmarshal(compiledClass, &class)
 	require.NoError(t, err)
 }
@@ -36,7 +36,7 @@ func TestCompiledClassHash(t *testing.T) {
 	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"
 
 	compiledClass := artifacts.ExampleWorldCasm
-	var casmClass newcontract.CasmClass
+	var casmClass contracts.CasmClass
 	err := json.Unmarshal(compiledClass, &casmClass)
 	require.NoError(t, err)
 

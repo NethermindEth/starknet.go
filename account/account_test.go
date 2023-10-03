@@ -15,9 +15,9 @@ import (
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/artifacts"
+	"github.com/NethermindEth/starknet.go/contracts"
 	hash "github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
-	newcontract "github.com/NethermindEth/starknet.go/newcontracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/types"
@@ -559,7 +559,7 @@ func TestAddDeclare(t *testing.T) {
 
 	compiledClass := artifacts.HelloWorldSierra
 
-	casmClass, err := newcontract.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
+	casmClass, err := contracts.UnmarshalCasmClass("../artifacts/starknet_hello_world_Balance.casm.json")
 	require.NoError(t, err)
 	compiledClassHash := hash.CompiledClassHash(*casmClass) // Todo pass tests on this first.
 
