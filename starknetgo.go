@@ -232,7 +232,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 }
 
 /*
-Provides the starknet keccek hash .
+Provides the starknet keccak hash .
 NOTE: This function just wraps the Juno implementation
 
 (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/keccak.go#L11)
