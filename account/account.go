@@ -3,7 +3,6 @@ package account
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -302,11 +301,9 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("-----------")
 			return nil, ctx.Err()
 		case <-t.C:
 			receipt, err := account.TransactionReceipt(ctx, transactionHash)
-			fmt.Println("===", receipt, err)
 			if err != nil {
 				if err.Error() == rpc.ErrHashNotFound.Error() {
 					continue
