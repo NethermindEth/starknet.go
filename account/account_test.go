@@ -561,19 +561,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
 	require.NoError(t, err)
 
-	// Need to set for the transaction hash and signing, but should not be present in the submitted tx...
-	tx2 := rpc.DeclareTxnV2{
-		Nonce:             utils.TestHexToFelt(t, *nonce),
-		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-		Type:              rpc.TransactionType_Declare,
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{},
-		SenderAddress:     AccountAddress,
-		CompiledClassHash: compClassHash,
-		ContractClass:     class,
-	}
-
-	resp, err := acnt.AddDeclareTransaction(context.Background(), tx2)
+	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
 
 	if err != nil {
 		require.Equal(t, err.Error(), rpc.ErrDuplicateTx.Error())
@@ -581,6 +569,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
+
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
