@@ -629,7 +629,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
 		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
 	})
-	if(err != nil){
+	if err != nil {
 		return err
 	}
 

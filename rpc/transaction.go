@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -106,25 +105,4 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 		return nil, err
 	}
 	return receipt.TransactionReceipt, nil
-}
-
-// WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (TxnExecutionStatus, error) {
-	t := time.NewTicker(pollInterval)
-	for {
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		case <-t.C:
-			_, err := provider.TransactionByHash(ctx, transactionHash)
-			if err != nil {
-				break
-			}
-			receipt, err := provider.TransactionReceipt(ctx, transactionHash)
-			if err != nil {
-				continue
-			}
-			return receipt.GetExecutionStatus(), nil
-		}
-	}
 }

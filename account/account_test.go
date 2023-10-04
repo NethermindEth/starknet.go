@@ -2,11 +2,13 @@ package account_test
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	starknetgo "github.com/NethermindEth/starknet.go"
@@ -528,6 +530,51 @@ func TestTransactionHashDeclare(t *testing.T) {
 	hash, err := acnt.TransactionHashDeclare(tx)
 	require.NoError(t, err)
 	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+}
+
+func TestWaitForTransactionReceiptMOCK(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	require.NoError(t, err, "error returned from account.NewAccount()")
+
+	type testSetType struct {
+		Hash            *felt.Felt
+		ExpectedErr     error
+		ExpectedReceipt rpc.TransactionReceipt
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				Hash:            new(felt.Felt).SetUint64(1),
+				ExpectedReceipt: nil,
+				ExpectedErr:     errors.New("UnExpectedErr"),
+			},
+			{
+				Hash: new(felt.Felt).SetUint64(2),
+				ExpectedReceipt: rpc.InvokeTransactionReceipt{
+					TransactionHash: new(felt.Felt).SetUint64(2),
+					ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
+				},
+				ExpectedErr: nil,
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		mockRpcProvider.EXPECT().TransactionReceipt(context.Background(), test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
+		resp, err := acnt.WaitForTransactionReceipt(context.Background(), test.Hash, 2*time.Second)
+
+		if err != nil {
+			require.Equal(t, test.ExpectedErr, err)
+		} else {
+			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+		}
+	}
+
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
