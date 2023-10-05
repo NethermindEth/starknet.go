@@ -541,7 +541,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
-		Timeout                      int
+		Timeout                      time.Duration
 		ShouldCallTransactionReceipt bool
 		Hash                         *felt.Felt
 		ExpectedErr                  error
@@ -550,14 +550,14 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				Timeout:                      1000,
+				Timeout:                      time.Duration(1000),
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
 				ExpectedErr:                  errors.New("UnExpectedErr"),
 			},
 			{
-				Timeout:                      1000,
+				Timeout:                      time.Duration(1000),
 				Hash:                         new(felt.Felt).SetUint64(2),
 				ShouldCallTransactionReceipt: true,
 				ExpectedReceipt: rpc.InvokeTransactionReceipt{
@@ -567,7 +567,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				Timeout:                      1,
+				Timeout:                      time.Duration(1),
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
@@ -577,7 +577,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
 		defer cancel()
 		if test.ShouldCallTransactionReceipt {
 			mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
