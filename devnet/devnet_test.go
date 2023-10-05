@@ -1,4 +1,4 @@
-package test
+package devnet
 
 import (
 	"math/big"

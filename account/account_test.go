@@ -17,10 +17,10 @@ import (
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
@@ -709,8 +709,8 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
-func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
-	devnet := test.NewDevNet(url)
+func newDevnet(t *testing.T, url string) ([]devnet.TestAccount, error) {
+	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return acnts, err
 }
