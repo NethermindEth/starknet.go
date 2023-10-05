@@ -3,6 +3,7 @@ package contracts
 import (
 	"context"
 	"fmt"
+
 	// "math/big"
 	"testing"
 	"time"
@@ -13,7 +14,6 @@ import (
 	// "github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/artifacts"
 	// devtest "github.com/NethermindEth/starknet.go/test"
-	// "github.com/NethermindEth/starknet.go/types"
 	// "github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -88,7 +88,7 @@ func TestRPC_InstallCounter(t *testing.T) {
 // 		ks := starknetgo.NewMemKeystore()
 
 // 		fakeSenderAddress := test.privateKey
-// 		k := types.SNValToBN(test.privateKey)
+// 		k := utils.SNValToBN(test.privateKey)
 // 		ks.Put(fakeSenderAddress, k)
 // 		switch test.providerType {
 // 		case ProviderRPC:
@@ -121,7 +121,7 @@ func TestRPC_InstallCounter(t *testing.T) {
 // 		default:
 // 			t.Fatal("unsupported client type", test.providerType)
 // 		}
-// 		tx, err := acc.Execute(ctx, []types.FunctionCall{{ContractAddress: utils.TestHexToFelt(t, counterTransaction.ContractAddress), EntryPointSelector: types.GetSelectorFromNameFelt("increment"), Calldata: []*felt.Felt{}}}, types.ExecuteDetails{})
+// 		tx, err := acc.Execute(ctx, []utils.FunctionCall{{ContractAddress: utils.TestHexToFelt(t, counterTransaction.ContractAddress), EntryPointSelector: utils.GetSelectorFromNameFelt("increment"), Calldata: []*felt.Felt{}}}, utils.ExecuteDetails{})
 // 		if err != nil {
 // 			t.Fatal("should succeed, instead", err)
 // 		}

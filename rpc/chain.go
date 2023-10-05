@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // ChainID retrieves the current chain ID for transaction replay protection.
@@ -17,7 +17,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if err := provider.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...); err != nil {
 		return "", err
 	}
-	provider.chainID = types.HexToShortStr(result)
+	provider.chainID = utils.HexToShortStr(result)
 	return provider.chainID, nil
 }
 

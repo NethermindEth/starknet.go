@@ -24,7 +24,7 @@ type DeployOutput struct {
 type ProviderType string
 
 const (
-	ProviderRPC     ProviderType = "rpc"
+	ProviderRPC ProviderType = "rpc"
 )
 
 func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClass []byte) (*DeclareOutput, error) {
@@ -57,7 +57,7 @@ func (p *RPCProvider) declareAndWaitWithWallet(ctx context.Context, compiledClas
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, err
 	// }
-	// if types.TransactionState(status.String()) == types.TransactionRejected {
+	// if utils.TransactionState(status.String()) == utils.TransactionRejected {
 	// 	log.Printf("class Hash: %s\n", tx.ClassHash)
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, errors.New("declare rejected")
@@ -108,7 +108,7 @@ func (p *RPCProvider) deployAccountAndWaitNoWallet(ctx context.Context, classHas
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, err
 	// }
-	// if types.TransactionState(status.String()) == types.TransactionRejected {
+	// if utils.TransactionState(status.String()) == utils.TransactionRejected {
 	// 	log.Printf("contract Address: %s\n", tx.ContractAddress)
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, errors.New("deploy rejected")
@@ -160,7 +160,7 @@ func (p *RPCProvider) deployAndWaitWithWallet(ctx context.Context, compiledClass
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, err
 	// }
-	// if types.TransactionState(status.String()) == types.TransactionRejected {
+	// if utils.TransactionState(status.String()) == utils.TransactionRejected {
 	// 	log.Printf("contract Address: %s\n", tx.ContractAddress)
 	// 	log.Printf("transaction Hash: %s\n", tx.TransactionHash)
 	// 	return nil, errors.New("deploy rejected")

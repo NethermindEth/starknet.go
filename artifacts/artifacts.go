@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 //go:embed account.json
@@ -41,7 +41,7 @@ func AccountV0Formater(accountHash, pluginHash, publicKey string) ([]string, err
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
+	initialize := fmt.Sprintf("0x%x", utils.GetSelectorFromName("initialize"))
 	calldata = append(calldata, initialize)
 	paramLen := "0x1"
 	if pluginHash != "" {
@@ -68,7 +68,7 @@ func AccountFormater(accountHash, pluginHash, publicKey string) ([]string, error
 		return calldata, nil
 	}
 	calldata = append(calldata, accountHash)
-	initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
+	initialize := fmt.Sprintf("0x%x", utils.GetSelectorFromName("initialize"))
 
 	calldata = append(calldata, initialize)
 	calldata = append(calldata, "0x1")
@@ -83,7 +83,7 @@ func AccountPluginFormater(accountHash, pluginHash, publicKey string) ([]string,
 	calldata := []string{}
 	if accountHash != "" {
 		calldata = append(calldata, accountHash)
-		initialize := fmt.Sprintf("0x%x", types.GetSelectorFromName("initialize"))
+		initialize := fmt.Sprintf("0x%x", utils.GetSelectorFromName("initialize"))
 		calldata = append(calldata, initialize)
 		calldata = append(calldata, "0x4")
 	}
