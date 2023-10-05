@@ -2,7 +2,6 @@ package contracts
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -29,13 +28,8 @@ type CasmClassEntryPoint struct {
 }
 
 func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
 
-	content, err := ioutil.ReadAll(file)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}

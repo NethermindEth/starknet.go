@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // Class gets the contract class definition associated with the given hash.
@@ -83,7 +83,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 // StorageAt gets the value of the storage at the given address and key.
 func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error) {
 	var value string
-	hashKey := fmt.Sprintf("0x%x", types.GetSelectorFromName(key))
+	hashKey := fmt.Sprintf("0x%x", utils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
 		switch {
 		case errors.Is(err, ErrContractNotFound):

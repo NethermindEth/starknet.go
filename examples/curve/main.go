@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	starknetgo "github.com/NethermindEth/starknet.go"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 		It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 		NOTE: when not given local file path this pulls the curve data from Starkware github repo
 	*/
-	hash, err := starknetgo.Curve.PedersenHash([]*big.Int{types.HexToBN("0x12773"), types.HexToBN("0x872362")})
+	hash, err := starknetgo.Curve.PedersenHash([]*big.Int{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")})
 	if err != nil {
 		panic(err.Error())
 	}
