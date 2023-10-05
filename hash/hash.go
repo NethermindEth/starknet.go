@@ -2,8 +2,8 @@ package hash
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -12,7 +12,7 @@ import (
 func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
 
-	hash, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
+	hash, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}
@@ -52,14 +52,14 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	ConstructorHash := hashEntryPointByType(contract.EntryPointsByType.Constructor)
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
-	SierraProgamHash := starknetgo.Curve.PoseidonArray(contract.SierraProgram...)
-	ABIHash, err := starknetgo.Curve.StarknetKeccak([]byte(contract.ABI))
+	SierraProgamHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
+	ABIHash, err := curve.Curve.StarknetKeccak([]byte(contract.ABI))
 	if err != nil {
 		return nil, err
 	}
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return starknetgo.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
+	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
 }
 
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
@@ -67,7 +67,7 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	for _, elt := range entryPoint {
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}
-	return starknetgo.Curve.PoseidonArray(flattened...)
+	return curve.Curve.PoseidonArray(flattened...)
 }
 
 func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
@@ -75,10 +75,10 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
-	ByteCodeHasH := starknetgo.Curve.PoseidonArray(casmClass.ByteCode...)
+	ByteCodeHasH := curve.Curve.PoseidonArray(casmClass.ByteCode...)
 
 	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
-	return starknetgo.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
+	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
 }
 
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
@@ -88,8 +88,8 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *
 		for _, builtIn := range elt.Builtins {
 			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
 		}
-		builtInHash := starknetgo.Curve.PoseidonArray(builtInFlat...)
+		builtInHash := curve.Curve.PoseidonArray(builtInFlat...)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
 	}
-	return starknetgo.Curve.PoseidonArray(flattened...)
+	return curve.Curve.PoseidonArray(flattened...)
 }
