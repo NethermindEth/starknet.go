@@ -82,7 +82,7 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 }
 
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
-	flattened := []*felt.Felt{}
+	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
 		builtInFlat := []*felt.Felt{}
 		for _, builtIn := range elt.Builtins {
