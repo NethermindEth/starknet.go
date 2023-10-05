@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
@@ -594,6 +597,9 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 }
 
 func TestWaitForTransactionReceipt(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
 	client, err := rpc.NewClient(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
@@ -629,6 +635,77 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
 		}
 
+	}
+}
+
+func TestAddDeclareTxn(t *testing.T) {
+	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+	expectedTxHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+	expectedClassHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
+
+	client, err := rpc.NewClient(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
+	require.NoError(t, err)
+
+	// Class Hash
+	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	require.NoError(t, err)
+
+	var class rpc.ContractClass
+	err = json.Unmarshal(content, &class)
+	require.NoError(t, err)
+	classHash, err := hash.ClassHash(class)
+	require.NoError(t, err)
+
+	// Compiled Class Hash
+	content2, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	require.NoError(t, err)
+
+	var casmClass contracts.CasmClass
+	err = json.Unmarshal(content2, &casmClass)
+	require.NoError(t, err)
+	compClassHash := hash.CompiledClassHash(casmClass)
+
+	nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
+	require.NoError(t, err)
+
+	tx := rpc.DeclareTxnV2{
+		Nonce:             utils.TestHexToFelt(t, *nonce),
+		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:              rpc.TransactionType_Declare,
+		Version:           rpc.TransactionV2,
+		Signature:         []*felt.Felt{},
+		SenderAddress:     AccountAddress,
+		CompiledClassHash: compClassHash,
+		ClassHash:         classHash,
+		ContractClass:     class,
+	}
+
+	err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	require.NoError(t, err)
+
+	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
+
+	if err != nil {
+		require.Equal(t, err.Error(), rpc.ErrDuplicateTx.Error())
+	} else {
+		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
 
