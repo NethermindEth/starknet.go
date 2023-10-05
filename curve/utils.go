@@ -9,6 +9,7 @@ import (
 	"hash"
 	"math/big"
 
+	junoCrypto "github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -219,6 +220,26 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	}
 
 	return ptx, nil
+}
+
+/*
+Provides the pedersen hash of given array of felts.
+NOTE: This function just wraps the Juno implementation
+
+(ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
+*/
+func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
+	return junoCrypto.PoseidonArray(felts...)
+}
+
+/*
+Provides the starknet keccak hash .
+NOTE: This function just wraps the Juno implementation
+
+(ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/keccak.go#L11)
+*/
+func (sc StarkCurve) StarknetKeccak(b []byte) (*felt.Felt, error) {
+	return junoCrypto.StarknetKeccak(b)
 }
 
 // implementation based on https://github.com/codahale/rfc6979/blob/master/rfc6979.go

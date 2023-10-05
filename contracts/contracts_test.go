@@ -1,130 +1,33 @@
-package contracts
+package contracts_test
 
 import (
-	"context"
-	"fmt"
-
-	// "math/big"
+	"encoding/json"
+	"os"
 	"testing"
-	"time"
 
-	"github.com/joho/godotenv"
-	// "github.com/NethermindEth/juno/core/felt"
-	// starknetgo "github.com/NethermindEth/starknet.go"
-	// "github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/artifacts"
-	// devtest "github.com/NethermindEth/starknet.go/test"
-	// "github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/test-go/testify/assert"
+	"github.com/test-go/testify/require"
 )
 
-func TestRPC_InstallCounter(t *testing.T) {
-	godotenv.Load()
-	testConfiguration := beforeEach(t)
+func TestUnmarshalContractClass(t *testing.T) {
+	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	require.NoError(t, err)
 
-	type TestCase struct {
-		providerType  ProviderType
-		CompiledClass []byte
-		Salt          string
-		Inputs        []string
-	}
-
-	TestCases := map[string][]TestCase{
-		"devnet": {
-			{
-				providerType:  ProviderRPC,
-				CompiledClass: artifacts.CounterCompiled,
-				Salt:          "0x01",
-				Inputs:        []string{},
-			},
-		},
-	}[testEnv]
-	for _, test := range TestCases {
-		ctx := context.Background()
-		ctx, cancel := context.WithTimeout(ctx, time.Second*60)
-		defer cancel()
-		var err error
-		var tx *DeployOutput
-		switch test.providerType {
-		case ProviderRPC:
-			provider := RPCProvider(*testConfiguration.rpc)
-			tx, err = provider.deployAndWaitWithWallet(ctx, test.CompiledClass, test.Salt, test.Inputs)
-		default:
-			t.Fatal("unsupported client type", test.providerType)
-		}
-		if err != nil {
-			t.Fatal("should succeed, instead", err)
-		}
-		fmt.Println("deployment transaction", tx.TransactionHash)
-	}
+	var class rpc.ContractClass
+	err = json.Unmarshal(content, &class)
+	require.NoError(t, err)
+	assert.Equal(t, class.SierraProgram[0].String(), "0x1")
+	assert.Equal(t, class.SierraProgram[1].String(), "0x3")
 }
 
-// TODO: update test with new account implementation
-// func TestRPC_LoadAndExecuteCounter(t *testing.T) {
-// 	godotenv.Load()
-// 	testConfiguration := beforeEach(t)
-
-// 	type TestCase struct {
-// 		privateKey      string
-// 		providerType    ProviderType
-// 		accountContract artifacts.CompiledContract
-// 	}
-
-// 	TestCases := map[string][]TestCase{
-// 		"devnet": {
-// 			{
-// 				privateKey:      "0xe3e70682c2094cac629f6fbed82c07cd",
-// 				providerType:    ProviderRPC,
-// 				accountContract: artifacts.AccountContracts[ACCOUNT_VERSION1][false][false],
-// 			},
-// 		},
-// 	}[testEnv]
-// 	for _, test := range TestCases {
-// 		ctx := context.Background()
-// 		ctx, cancel := context.WithTimeout(ctx, time.Second*120)
-// 		defer cancel()
-// 		var err error
-// 		var counterTransaction *DeployOutput
-// 		var acc *account.Account
-// 		ks := starknetgo.NewMemKeystore()
-
-// 		fakeSenderAddress := test.privateKey
-// 		k := utils.SNValToBN(test.privateKey)
-// 		ks.Put(fakeSenderAddress, k)
-// 		switch test.providerType {
-// 		case ProviderRPC:
-// 			pk, _ := big.NewInt(0).SetString(test.privateKey, 0)
-// 			accountManager := &AccountManager{}
-// 			accountManager, err := InstallAndWaitForAccount(
-// 				ctx,
-// 				testConfiguration.rpc,
-// 				pk,
-// 				test.accountContract,
-// 			)
-// 			if err != nil {
-// 				t.Fatal("error deploying account", err)
-// 			}
-// 			mint, err := devtest.NewDevNet().Mint(utils.TestHexToFelt(t, accountManager.AccountAddress), big.NewInt(int64(1000000000000000000)))
-// 			if err != nil {
-// 				t.Fatal("error deploying account", err)
-// 			}
-// 			fmt.Printf("current balance is %d\n", mint.NewBalance)
-// 			provider := RPCProvider(*testConfiguration.rpc)
-// 			counterTransaction, err = provider.deployAndWaitWithWallet(ctx, artifacts.CounterCompiled, "0x0", []string{})
-// 			if err != nil {
-// 				t.Fatal("should succeed, instead", err)
-// 			}
-// 			fmt.Println("deployment transaction", counterTransaction.TransactionHash)
-// 			acc, err = account.NewAccount(testConfiguration.rpc, utils.TestHexToFelt(t, accountManager.AccountAddress), accountManager.PublicKey, ks)
-// 			if err != nil {
-// 				t.Fatal("should succeed, instead", err)
-// 			}
-// 		default:
-// 			t.Fatal("unsupported client type", test.providerType)
-// 		}
-// 		tx, err := acc.Execute(ctx, []utils.FunctionCall{{ContractAddress: utils.TestHexToFelt(t, counterTransaction.ContractAddress), EntryPointSelector: utils.GetSelectorFromNameFelt("increment"), Calldata: []*felt.Felt{}}}, utils.ExecuteDetails{})
-// 		if err != nil {
-// 			t.Fatal("should succeed, instead", err)
-// 		}
-// 		fmt.Println("increment transaction", tx.TransactionHash)
-// 	}
-// }
+func TestUnmarshalCasmClass(t *testing.T) {
+	casmClass, err := contracts.UnmarshalCasmClass("./tests/hello_starknet_compiled.casm.json")
+	require.NoError(t, err)
+	assert.Equal(t, casmClass.Prime, "0x800000000000011000000000000000000000000000000000000000000000001")
+	assert.Equal(t, casmClass.Version, "2.1.0")
+	assert.Equal(t, casmClass.EntryPointByType.External[0].Selector.String(), "0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320")
+	assert.Equal(t, casmClass.EntryPointByType.External[1].Offset, 130)
+	assert.Equal(t, casmClass.EntryPointByType.External[1].Builtins[0], "range_check")
+}
