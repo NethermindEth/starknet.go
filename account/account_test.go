@@ -542,39 +542,95 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
-		Hash            *felt.Felt
-		ExpectedErr     error
-		ExpectedReceipt rpc.TransactionReceipt
+		Timeout                      int
+		ShouldCallTransactionReceipt bool
+		Hash                         *felt.Felt
+		ExpectedErr                  error
+		ExpectedReceipt              rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				Hash:            new(felt.Felt).SetUint64(1),
-				ExpectedReceipt: nil,
-				ExpectedErr:     errors.New("UnExpectedErr"),
+				Timeout:                      1000,
+				ShouldCallTransactionReceipt: true,
+				Hash:                         new(felt.Felt).SetUint64(1),
+				ExpectedReceipt:              nil,
+				ExpectedErr:                  errors.New("UnExpectedErr"),
 			},
 			{
-				Hash: new(felt.Felt).SetUint64(2),
+				Timeout:                      1000,
+				Hash:                         new(felt.Felt).SetUint64(2),
+				ShouldCallTransactionReceipt: true,
 				ExpectedReceipt: rpc.InvokeTransactionReceipt{
 					TransactionHash: new(felt.Felt).SetUint64(2),
 					ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
 				},
 				ExpectedErr: nil,
 			},
+			{
+				Timeout:                      1,
+				Hash:                         new(felt.Felt).SetUint64(3),
+				ShouldCallTransactionReceipt: false,
+				ExpectedReceipt:              nil,
+				ExpectedErr:                  context.DeadlineExceeded,
+			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().TransactionReceipt(context.Background(), test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
-		resp, err := acnt.WaitForTransactionReceipt(context.Background(), test.Hash, 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+		defer cancel()
+		if test.ShouldCallTransactionReceipt {
+			mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
+		}
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 
-		if err != nil {
+		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr, err)
 		} else {
 			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
 		}
-	}
 
+	}
+}
+
+func TestWaitForTransactionReceipt(t *testing.T) {
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+	require.NoError(t, err, "error returned from account.NewAccount()")
+
+	type testSetType struct {
+		Timeout         int
+		Hash            *felt.Felt
+		ExpectedErr     error
+		ExpectedReceipt rpc.TransactionReceipt
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				Timeout:         3, // Should poll 3 times
+				Hash:            new(felt.Felt).SetUint64(100),
+				ExpectedReceipt: nil,
+				ExpectedErr:     errors.New("Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+		defer cancel()
+
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+		if test.ExpectedErr != nil {
+			require.Equal(t, test.ExpectedErr.Error(), err.Error())
+		} else {
+			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+		}
+
+	}
 }
 
 func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
