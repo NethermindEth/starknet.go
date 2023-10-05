@@ -13,9 +13,9 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/NethermindEth/starknet.go/account"
+	test "github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
