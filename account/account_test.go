@@ -18,7 +18,6 @@ import (
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
-	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
@@ -168,7 +167,7 @@ func TestFmtCallData(t *testing.T) {
 			{
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
 					Calldata: utils.TestHexArrToFelt(t, []string{
 						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
 						"0x1"}),
@@ -345,7 +344,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 			FnCall: rpc.FunctionCall{
 				ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				EntryPointSelector: types.GetSelectorFromNameFelt("transfer"),
+				EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
 				Calldata: []*felt.Felt{
 					utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					utils.TestHexToFelt(t, "0x1"),
@@ -369,7 +368,7 @@ func TestAddInvoke(t *testing.T) {
 				},
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x03E85bFbb8E2A42B7BeaD9E88e9A1B19dbCcf661471061807292120462396ec9"),
-					EntryPointSelector: types.GetSelectorFromNameFelt("burn"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("burn"),
 					Calldata: []*felt.Felt{
 						utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 						utils.TestHexToFelt(t, "0x1"),

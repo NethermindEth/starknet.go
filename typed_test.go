@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type Mail struct {
@@ -21,13 +21,13 @@ type Person struct {
 
 func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	if field == "from" {
-		fmtEnc = append(fmtEnc, types.UTF8StrToBig(mail.From.Name))
-		fmtEnc = append(fmtEnc, types.HexToBN(mail.From.Wallet))
+		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.From.Name))
+		fmtEnc = append(fmtEnc, utils.HexToBN(mail.From.Wallet))
 	} else if field == "to" {
-		fmtEnc = append(fmtEnc, types.UTF8StrToBig(mail.To.Name))
-		fmtEnc = append(fmtEnc, types.HexToBN(mail.To.Wallet))
+		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.To.Name))
+		fmtEnc = append(fmtEnc, utils.HexToBN(mail.To.Wallet))
 	} else if field == "contents" {
-		fmtEnc = append(fmtEnc, types.UTF8StrToBig(mail.Contents))
+		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.Contents))
 	}
 	return fmtEnc
 }
@@ -66,14 +66,14 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetMessageHash(types.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, Curve)
+	hash, err := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
 
 	exp := "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0"
-	if types.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(hash) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 }
 
@@ -91,7 +91,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 		},
 		Contents: "Hello, Bob!",
 	}
-	addr := types.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
+	addr := utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
 		ttd.GetMessageHash(addr, mail, Curve)
 	})
@@ -106,8 +106,8 @@ func TestGeneral_GetDomainHash(t *testing.T) {
 	}
 
 	exp := "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07"
-	if types.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(hash) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 }
 
@@ -133,8 +133,8 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 	}
 
 	exp := "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec"
-	if types.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(hash) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 }
 
@@ -147,13 +147,13 @@ func TestGeneral_GetTypeHash(t *testing.T) {
 	}
 
 	exp := "0x1bfc207425a47a5dfa1a50a4f5241203f50624ca5fdf5e18755765416b8e288"
-	if types.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(hash) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 
 	enc := tdd.Types["StarknetDomain"]
-	if types.BigToHex(enc.Encoding) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(enc.Encoding) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 
 	pHash, err := tdd.GetTypeHash("Person")
@@ -162,20 +162,20 @@ func TestGeneral_GetTypeHash(t *testing.T) {
 	}
 
 	exp = "0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855"
-	if types.BigToHex(pHash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(pHash), exp)
+	if utils.BigToHex(pHash) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(pHash), exp)
 	}
 
 	enc = tdd.Types["Person"]
-	if types.BigToHex(enc.Encoding) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", types.BigToHex(hash), exp)
+	if utils.BigToHex(enc.Encoding) != exp {
+		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 }
 
 func TestGeneral_GetSelectorFromName(t *testing.T) {
-	sel1 := types.BigToHex(types.GetSelectorFromName("initialize"))
-	sel2 := types.BigToHex(types.GetSelectorFromName("mint"))
-	sel3 := types.BigToHex(types.GetSelectorFromName("test"))
+	sel1 := utils.BigToHex(utils.GetSelectorFromName("initialize"))
+	sel2 := utils.BigToHex(utils.GetSelectorFromName("mint"))
+	sel3 := utils.BigToHex(utils.GetSelectorFromName("test"))
 
 	exp1 := "0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463"
 	exp2 := "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"

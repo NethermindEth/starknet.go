@@ -1,4 +1,4 @@
-package types
+package utils
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type KeccakState interface {
 	Read([]byte) (int, error)
 }
 
-// convert utf8 string to big int
+// Convert utf8 string to big int
 func UTF8StrToBig(str string) *big.Int {
 	hexStr := hex.EncodeToString([]byte(str))
 	b, _ := new(big.Int).SetString(hexStr, 16)
