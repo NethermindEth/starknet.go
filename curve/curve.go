@@ -1,4 +1,4 @@
-package starknetgo
+package curve
 
 /*
 	Although the library adheres to the 'elliptic/curve' interface.

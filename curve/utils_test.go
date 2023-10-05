@@ -1,4 +1,4 @@
-package starknetgo
+package curve
 
 import (
 	"crypto/elliptic"
@@ -194,6 +194,22 @@ func TestGeneral_Signature(t *testing.T) {
 
 		if !Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY) {
 			t.Errorf("successful signature did not verify\n")
+		}
+	}
+}
+
+func TestGeneral_SplitFactStr(t *testing.T) {
+	data := []map[string]string{
+		{"input": "0x3", "h": "0x0", "l": "0x3"},
+		{"input": "0x300000000000000000000000000000000", "h": "0x3", "l": "0x0"},
+	}
+	for _, d := range data {
+		l, h := utils.SplitFactStr(d["input"]) // 0x3
+		if l != d["l"] {
+			t.Errorf("expected %s, got %s", d["l"], l)
+		}
+		if h != d["h"] {
+			t.Errorf("expected %s, got %s", d["h"], h)
 		}
 	}
 }

@@ -1,10 +1,11 @@
-package starknetgo
+package typed
 
 import (
 	"fmt"
 	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -66,7 +67,7 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, Curve)
+	hash, err := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, curve.Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -93,14 +94,14 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	}
 	addr := utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
-		ttd.GetMessageHash(addr, mail, Curve)
+		ttd.GetMessageHash(addr, mail, curve.Curve)
 	})
 }
 
 func TestGeneral_GetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	hash, err := ttd.GetTypedMessageHash("StarknetDomain", ttd.Domain, Curve)
+	hash, err := ttd.GetTypedMessageHash("StarknetDomain", ttd.Domain, curve.Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -127,7 +128,7 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetTypedMessageHash("Mail", mail, Curve)
+	hash, err := ttd.GetTypedMessageHash("Mail", mail, curve.Curve)
 	if err != nil {
 		t.Errorf("Could get typed message hash: %v\n", err)
 	}

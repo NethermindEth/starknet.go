@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -45,10 +45,10 @@ type Account struct {
 	ChainId        *felt.Felt
 	AccountAddress *felt.Felt
 	publicKey      string
-	ks             starknetgo.Keystore
+	ks             curve.Keystore
 }
 
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore curve.Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
@@ -282,10 +282,10 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 	})
 
 	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
+	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
 	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
 
-	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
+	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}

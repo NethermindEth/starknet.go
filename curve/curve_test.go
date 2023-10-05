@@ -1,4 +1,4 @@
-package starknetgo
+package curve
 
 import (
 	"fmt"

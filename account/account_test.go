@@ -8,16 +8,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/golang/mock/gomock"
 	"github.com/joho/godotenv"
-
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/golang/mock/gomock"
 	"github.com/test-go/testify/require"
 )
 
@@ -129,7 +128,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	for _, test := range testSet {
 
 		t.Run("Transaction hash", func(t *testing.T) {
-			ks := starknetgo.NewMemKeystore()
+			ks := curve.NewMemKeystore()
 			if test.SetKS {
 				privKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 				require.True(t, ok)
@@ -220,7 +219,7 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", curve.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -251,7 +250,7 @@ func TestChainId(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", curve.NewMemKeystore())
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -292,7 +291,7 @@ func TestSignMOCK(t *testing.T) {
 	for _, test := range testSet {
 		privKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 		require.True(t, ok)
-		ks := starknetgo.NewMemKeystore()
+		ks := curve.NewMemKeystore()
 		ks.Put(test.Address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
@@ -383,7 +382,7 @@ func TestAddInvoke(t *testing.T) {
 		provider := rpc.NewProvider(client)
 
 		// Set up ks
-		ks := starknetgo.NewMemKeystore()
+		ks := curve.NewMemKeystore()
 		if test.SetKS {
 			fakePrivKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 			require.True(t, ok)
@@ -420,7 +419,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
 
 	// Set up ks
-	ks := starknetgo.NewMemKeystore()
+	ks := curve.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
@@ -466,7 +465,7 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	ExpectedHash := utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb")
 	ExpectedPrecomputeAddr := utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
-	ks := starknetgo.NewMemKeystore()
+	ks := curve.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
@@ -510,7 +509,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, &felt.Zero, "", curve.NewMemKeystore())
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{

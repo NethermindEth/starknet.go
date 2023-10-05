@@ -2,7 +2,7 @@ package account
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -10,7 +10,7 @@ import (
 // computeHashOnElementsFelt hashes the array of felts provided as input
 func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
-	hash, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
+	hash, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}

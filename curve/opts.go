@@ -1,4 +1,4 @@
-package starknetgo
+package curve
 
 type curveOptions struct {
 	initConstants bool
