@@ -45,10 +45,10 @@ type Account struct {
 	ChainId        *felt.Felt
 	AccountAddress *felt.Felt
 	publicKey      string
-	ks             curve.Keystore
+	ks             Keystore
 }
 
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore curve.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
