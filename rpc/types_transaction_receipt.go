@@ -216,7 +216,7 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
 		// NOTE(tvanas): Pathfinder 0.3.3 does not return
-		// transaction receipt utils. We handle this by
+		// transaction receipt types. We handle this by
 		// naively marshalling into an invoke type. Once it
 		// is supported, this condition can be removed.
 		typ, ok := casted["type"]
