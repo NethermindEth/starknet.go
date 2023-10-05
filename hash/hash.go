@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-// computeHashOnElementsFelt hashes the array of felts provided as input
+// ComputeHashOnElementsFelt hashes the array of felts provided as input
 func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
 
@@ -19,7 +19,7 @@ func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	return utils.BigIntToFelt(hash), nil
 }
 
-// calculateTransactionHashCommon [specification] calculates the transaction hash in the StarkNet network - a unique identifier of the transaction.
+// CalculateTransactionHashCommon [specification] calculates the transaction hash in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
 func CalculateTransactionHashCommon(
 	txHashPrefix *felt.Felt,
@@ -63,7 +63,7 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 }
 
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
-	flattened := []*felt.Felt{}
+	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}

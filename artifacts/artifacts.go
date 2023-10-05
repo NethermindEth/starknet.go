@@ -8,12 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/types"
 )
 
-//go:embed hello_starknet_compiled.casm.json
-var ExampleWorldCasm []byte
-
-//go:embed hello_starknet_compiled.sierra.json
-var ExampleWorldSierra []byte
-
 //go:embed account.json
 var AccountCompiled []byte
 
