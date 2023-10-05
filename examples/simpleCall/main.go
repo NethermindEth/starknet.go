@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
@@ -38,7 +37,7 @@ func main() {
 	// Make read contract call
 	tx := rpc.FunctionCall{
 		ContractAddress:    contractAddress,
-		EntryPointSelector: types.GetSelectorFromNameFelt(contractMethod),
+		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
 	}
 
 	fmt.Println("Making Call() request")

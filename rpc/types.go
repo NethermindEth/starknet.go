@@ -136,11 +136,11 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	// 	return err
 	// }
 	// s.StartingBlockHash = output["starting_block_hash"].(string)
-	// s.StartingBlockNum = types.NumAsHex(output["starting_block_num"].(string))
+	// s.StartingBlockNum = utils.NumAsHex(output["starting_block_num"].(string))
 	// s.CurrentBlockHash = output["current_block_hash"].(string)
-	// s.CurrentBlockNum = types.NumAsHex(output["current_block_num"].(string))
+	// s.CurrentBlockNum = utils.NumAsHex(output["current_block_num"].(string))
 	// s.HighestBlockHash = output["highest_block_hash"].(string)
-	// s.HighestBlockNum = types.NumAsHex(output["highest_block_num"].(string))
+	// s.HighestBlockNum = utils.NumAsHex(output["highest_block_num"].(string))
 	// return nil
 }
 
