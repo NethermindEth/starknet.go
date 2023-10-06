@@ -1,11 +1,9 @@
-name: (All branches) Auto CI - all tests
+name: (main) Auto CI run
 
 on:
-  push:
+  pull_request:
     branches:
-      - '**'
-    tags-ignore:
-      - '**'
+      - 'main' 
 
 jobs:
   build:

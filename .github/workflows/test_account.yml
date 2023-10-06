@@ -1,4 +1,4 @@
-name: account
+name: (all branches) Auto CI - Account tests
 
 on:
   push:
@@ -18,10 +18,11 @@ jobs:
           - 5050:5050
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout branch
+        uses: actions/checkout@v3
 
       - name: Set up Go
-      - uses: actions/setup-go[@v4.1.0](https://github.com/v4.1.0)
+        uses: actions/setup-go[@v4.1.0](https://github.com/v4.1.0)
         with:
           go-version-file: go.mod
 
