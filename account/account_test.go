@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
-	"github.com/joho/godotenv"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -21,6 +19,8 @@ import (
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/golang/mock/gomock"
+	"github.com/joho/godotenv"
 	"github.com/test-go/testify/require"
 )
 
@@ -538,7 +538,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -602,7 +602,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore())
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -648,7 +648,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
 	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
 
-	ks := starknetgo.NewMemKeystore()
+	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
