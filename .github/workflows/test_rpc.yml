@@ -2,8 +2,8 @@ name: (all branches) Auto CI - all tests
 
 on:
   push:
-    branches:
-      - '**'
+    branches-ignore:
+      - 'main'      # excludes main
     tags-ignore:
       - '**'
 
