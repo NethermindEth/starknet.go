@@ -2,13 +2,13 @@ name: (all branches) Auto CI - all tests
 
 on:
   push:
-    branches:
-      - '**'
+    branches-ignore:
+      - 'main'      # excludes main
     tags-ignore:
       - '**'
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-22.04
 
     services:
