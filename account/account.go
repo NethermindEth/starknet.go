@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
@@ -36,6 +37,7 @@ type AccountInterface interface {
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
+	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error)
 }
 
 var _ AccountInterface = &Account{}
@@ -292,6 +294,27 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 	}
 	return utils.BigIntToFelt(preBigInt), nil
 
+}
+
+// WaitForTransactionReceipt waits for the transaction to succeed or fail
+func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error) {
+	t := time.NewTicker(pollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-t.C:
+			receipt, err := account.TransactionReceipt(ctx, transactionHash)
+			if err != nil {
+				if err.Error() == rpc.ErrHashNotFound.Error() {
+					continue
+				} else {
+					return nil, err
+				}
+			}
+			return &receipt, nil
+		}
+	}
 }
 
 // BuildInvokeTx formats the calldata and signs the transaction

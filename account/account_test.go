@@ -2,19 +2,24 @@ package account_test
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/joho/godotenv"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/devnet"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/test"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/test-go/testify/require"
 )
@@ -527,8 +532,183 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
 }
 
-func newDevnet(t *testing.T, url string) ([]test.TestAccount, error) {
-	devnet := test.NewDevNet(url)
+func TestWaitForTransactionReceiptMOCK(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", starknetgo.NewMemKeystore())
+	require.NoError(t, err, "error returned from account.NewAccount()")
+
+	type testSetType struct {
+		Timeout                      time.Duration
+		ShouldCallTransactionReceipt bool
+		Hash                         *felt.Felt
+		ExpectedErr                  error
+		ExpectedReceipt              rpc.TransactionReceipt
+	}
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				Timeout:                      time.Duration(1000),
+				ShouldCallTransactionReceipt: true,
+				Hash:                         new(felt.Felt).SetUint64(1),
+				ExpectedReceipt:              nil,
+				ExpectedErr:                  errors.New("UnExpectedErr"),
+			},
+			{
+				Timeout:                      time.Duration(1000),
+				Hash:                         new(felt.Felt).SetUint64(2),
+				ShouldCallTransactionReceipt: true,
+				ExpectedReceipt: rpc.InvokeTransactionReceipt{
+					TransactionHash: new(felt.Felt).SetUint64(2),
+					ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
+				},
+				ExpectedErr: nil,
+			},
+			{
+				Timeout:                      time.Duration(1),
+				Hash:                         new(felt.Felt).SetUint64(3),
+				ShouldCallTransactionReceipt: false,
+				ExpectedReceipt:              nil,
+				ExpectedErr:                  context.DeadlineExceeded,
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
+		defer cancel()
+		if test.ShouldCallTransactionReceipt {
+			mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
+		}
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
+
+		if test.ExpectedErr != nil {
+			require.Equal(t, test.ExpectedErr, err)
+		} else {
+			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+		}
+
+	}
+}
+
+func TestWaitForTransactionReceipt(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", starknetgo.NewMemKeystore())
+	require.NoError(t, err, "error returned from account.NewAccount()")
+
+	type testSetType struct {
+		Timeout         int
+		Hash            *felt.Felt
+		ExpectedErr     error
+		ExpectedReceipt rpc.TransactionReceipt
+	}
+	testSet := map[string][]testSetType{
+		"devnet": {
+			{
+				Timeout:         3, // Should poll 3 times
+				Hash:            new(felt.Felt).SetUint64(100),
+				ExpectedReceipt: nil,
+				ExpectedErr:     errors.New("Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+		defer cancel()
+
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+		if test.ExpectedErr != nil {
+			require.Equal(t, test.ExpectedErr.Error(), err.Error())
+		} else {
+			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+		}
+
+	}
+}
+
+func TestAddDeclareTxn(t *testing.T) {
+	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+	expectedTxHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+	expectedClassHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+
+	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
+	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
+	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+
+	ks := starknetgo.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
+
+	client, err := rpc.NewClient(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
+	require.NoError(t, err)
+
+	// Class Hash
+	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	require.NoError(t, err)
+
+	var class rpc.ContractClass
+	err = json.Unmarshal(content, &class)
+	require.NoError(t, err)
+	classHash, err := hash.ClassHash(class)
+	require.NoError(t, err)
+
+	// Compiled Class Hash
+	content2, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	require.NoError(t, err)
+
+	var casmClass contracts.CasmClass
+	err = json.Unmarshal(content2, &casmClass)
+	require.NoError(t, err)
+	compClassHash := hash.CompiledClassHash(casmClass)
+
+	nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
+	require.NoError(t, err)
+
+	tx := rpc.DeclareTxnV2{
+		Nonce:             utils.TestHexToFelt(t, *nonce),
+		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+		Type:              rpc.TransactionType_Declare,
+		Version:           rpc.TransactionV2,
+		Signature:         []*felt.Felt{},
+		SenderAddress:     AccountAddress,
+		CompiledClassHash: compClassHash,
+		ClassHash:         classHash,
+		ContractClass:     class,
+	}
+
+	err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	require.NoError(t, err)
+
+	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
+
+	if err != nil {
+		require.Equal(t, err.Error(), rpc.ErrDuplicateTx.Error())
+	} else {
+		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
+	}
+}
+
+func newDevnet(t *testing.T, url string) ([]devnet.TestAccount, error) {
+	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return acnts, err
 }

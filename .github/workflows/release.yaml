@@ -1,9 +1,7 @@
-name: release
+name: (main) Manual Publish Release
+on: 
+  workflow_dispatch
 
-on:
-  push:
-    tags:
-      - '*'
 jobs:
   goreleaser:
     runs-on: ubuntu-22.04
