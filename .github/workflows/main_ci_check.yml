@@ -6,7 +6,7 @@ on:
       - 'main' 
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-22.04
 
     services:
