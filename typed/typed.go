@@ -1,4 +1,4 @@
-package starknetgo
+package typed
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -43,11 +44,9 @@ encoding definition for standard Starknet Domain messages
 */
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	processStrToBig := func(fieldVal string) {
-		felt := strToFelt(fieldVal)
-		bigInt, ok := feltToBig(felt)
-		if ok {
-			fmtEnc = append(fmtEnc, bigInt)
-		}
+		feltVal := strToFelt(fieldVal)
+		bigInt := utils.FeltToBigInt(feltVal)
+		fmtEnc = append(fmtEnc, bigInt)
 	}
 
 	switch field {
@@ -82,11 +81,6 @@ func strToFelt(str string) *felt.Felt {
 	return f
 }
 
-func feltToBig(feltNum *felt.Felt) (*big.Int, bool) {
-	return new(big.Int).SetString(feltNum.String(), 0)
-
-}
-
 /*
 'typedData' interface for interacting and signing typed data in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
 */
@@ -112,7 +106,7 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 }
 
 // (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
-func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkCurve) (hash *big.Int, err error) {
+func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
 	elements := []*big.Int{utils.UTF8StrToBig("Starknet Message")}
 
 	domEnc, err := td.GetTypedMessageHash("StarknetDomain", td.Domain, sc)
@@ -132,7 +126,7 @@ func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc StarkC
 	return hash, err
 }
 
-func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc StarkCurve) (hash *big.Int, err error) {
+func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
 	prim := td.Types[inType]
 	elements := []*big.Int{prim.Encoding}
 

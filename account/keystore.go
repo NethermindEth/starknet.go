@@ -1,4 +1,4 @@
-package starknetgo
+package account
 
 import (
 	"context"
@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"sync"
+
+	"github.com/NethermindEth/starknet.go/curve"
 )
 
 type Keystore interface {
@@ -68,7 +70,7 @@ func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *b
 		err = ctx.Err()
 
 	default:
-		x, y, err = Curve.Sign(msgHash, key)
+		x, y, err = curve.Curve.Sign(msgHash, key)
 	}
 	return x, y, err
 }

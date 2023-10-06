@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
@@ -70,7 +70,7 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Transaction hash:", hash)
-	x, y, err := starknetgo.Curve.SignFelt(hash, priv)
+	x, y, err := curve.Curve.SignFelt(hash, priv)
 	if err != nil {
 		panic(err)
 	}
@@ -87,24 +87,19 @@ func main() {
 }
 
 func getRandomKeys() (*felt.Felt, *felt.Felt) {
-	privateKey, err := starknetgo.Curve.GetRandomPrivateKey()
+	privateKey, err := curve.Curve.GetRandomPrivateKey()
 	if err != nil {
 		fmt.Println("can't get random private key:", err)
 		os.Exit(1)
 	}
-	pubX, _, err := starknetgo.Curve.PrivateToPoint(privateKey)
+	pubX, _, err := curve.Curve.PrivateToPoint(privateKey)
 	if err != nil {
 		fmt.Println("can't generate public key:", err)
 		os.Exit(1)
 	}
-	privFelt, err := utils.BigIntToFelt(privateKey)
-	if err != nil {
-		panic(err)
-	}
-	pubFelt, err := utils.BigIntToFelt(pubX)
-	if err != nil {
-		panic(err)
-	}
+	privFelt := utils.BigIntToFelt(privateKey)
+	pubFelt := utils.BigIntToFelt(pubX)
+	
 	return pubFelt, privFelt
 }
 
@@ -114,38 +109,31 @@ func getRandomKeys() (*felt.Felt, *felt.Felt) {
 func precomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
 	CONTRACT_ADDRESS_PREFIX := new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
-	bigIntArr, err := utils.FeltArrToBigIntArr([]*felt.Felt{
+	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
 		CONTRACT_ADDRESS_PREFIX,
 		deployerAddress,
 		salt,
 		classHash,
 	})
+	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
+	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
+	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
+
+	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}
-
-	constructorCalldataBigIntArr, err := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(*constructorCalldataBigIntArr)
-	*bigIntArr = append(*bigIntArr, constructorCallDataHashInt)
-
-	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
-	if err != nil {
-		return nil, err
-	}
-	return utils.BigIntToFelt(preBigInt)
+	return utils.BigIntToFelt(preBigInt), nil
 
 }
 
 func computeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
-	bigIntArr, err := utils.FeltArrToBigIntArr(feltArr)
+	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
+	hash, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}
-	hash, err := starknetgo.Curve.ComputeHashOnElements(*bigIntArr)
-	if err != nil {
-		return nil, err
-	}
-	return utils.BigIntToFelt(hash)
+	return utils.BigIntToFelt(hash), nil
 }
 
 // calculateDeployAccountTransactionHash computes the transaction hash for deployAccount transactions

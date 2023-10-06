@@ -1,4 +1,4 @@
-package starknetgo
+package merkle
 
 import (
 	"math/big"
