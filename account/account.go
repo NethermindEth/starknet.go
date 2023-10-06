@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	starknetgo "github.com/NethermindEth/starknet.go"
+	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -47,10 +48,10 @@ type Account struct {
 	ChainId        *felt.Felt
 	AccountAddress *felt.Felt
 	publicKey      string
-	ks             starknetgo.Keystore
+	ks             Keystore
 }
 
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore starknetgo.Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
@@ -134,7 +135,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	}
 	calldata := []*felt.Felt{tx.ClassHash, tx.ContractAddressSalt}
 	calldata = append(calldata, tx.ConstructorCalldata...)
-	calldataHash, err := computeHashOnElementsFelt(calldata)
+	calldataHash, err := hash.ComputeHashOnElementsFelt(calldata)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +146,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	}
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return calculateTransactionHashCommon(
+	return hash.CalculateTransactionHashCommon(
 		PREFIX_DEPLOY_ACCOUNT,
 		versionFelt,
 		contractAddress,
@@ -166,7 +167,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +176,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			PREFIX_TRANSACTION,
 			txnVersionFelt,
 			txn.ContractAddress,
@@ -191,7 +192,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt(txn.Calldata)
+		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +200,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			PREFIX_TRANSACTION,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -224,7 +225,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 		if err != nil {
 			return nil, err
 		}
@@ -233,7 +234,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -248,7 +249,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := computeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 		if err != nil {
 			return nil, err
 		}
@@ -257,7 +258,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return calculateTransactionHashCommon(
+		return hash.CalculateTransactionHashCommon(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -284,10 +285,10 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 	})
 
 	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := starknetgo.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
+	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
 	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
 
-	preBigInt, err := starknetgo.Curve.ComputeHashOnElements(bigIntArr)
+	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
 	if err != nil {
 		return nil, err
 	}
@@ -417,4 +418,28 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
+}
+
+/*
+Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
+*/
+func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	callArray := []*felt.Felt{}
+	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
+
+	for _, tx := range fnCalls {
+		callData = append(callData, tx.ContractAddress, tx.EntryPointSelector)
+
+		if len(tx.Calldata) == 0 {
+			callData = append(callData, &felt.Zero, &felt.Zero)
+			continue
+		}
+
+		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))+1))
+		callArray = append(callArray, tx.Calldata...)
+	}
+	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray)+1)))
+	callData = append(callData, callArray...)
+	callData = append(callData, new(felt.Felt).SetUint64(0))
+	return callData
 }

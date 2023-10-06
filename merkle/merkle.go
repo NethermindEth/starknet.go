@@ -1,8 +1,11 @@
-package starknetgo
+package merkle
 
 import (
 	"fmt"
 	"math/big"
+
+
+	"github.com/NethermindEth/starknet.go/curve"
 )
 
 type FixedSizeMerkleTree struct {
@@ -26,9 +29,9 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) (*FixedSizeMerkleTree, error) {
 
 func MerkleHash(x, y *big.Int) (*big.Int, error) {
 	if x.Cmp(y) <= 0 {
-		return Curve.HashElements([]*big.Int{x, y})
+		return curve.Curve.HashElements([]*big.Int{x, y})
 	}
-	return Curve.HashElements([]*big.Int{y, x})
+	return curve.Curve.HashElements([]*big.Int{y, x})
 }
 
 func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) (*big.Int, error) {
