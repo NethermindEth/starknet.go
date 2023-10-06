@@ -1,4 +1,4 @@
-name: (All branches) Auto CI - all tests
+name: (all branches) Auto CI - all tests
 
 on:
   push:
