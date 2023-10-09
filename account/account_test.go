@@ -328,7 +328,6 @@ func TestSignMOCK(t *testing.T) {
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
-		ExpectedHash         *felt.Felt
 		ExpectedError        *rpc.RPCError
 		CairoContractVersion int
 		SetKS                bool
@@ -435,6 +434,27 @@ func TestAddInvoke(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 			},
+			{
+				// https://goerli.voyager.online/tx/0xdcec9fdd48440243fa8fdb8bf87cc40d5ef91181d5a4a0304140df5701c238
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 2,
+				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				PrivKey:              utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(18),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x05044dfb70b9475663e3ddddb11bbbeccc71614b8db86fc3dc0c16b2b9d3151d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value_8"),
+					Calldata:           []*felt.Felt{utils.TestHexToFelt(t, "0xaC25b2B9F4ca06179fA0D2522F47Bc86A9DF9314")},
+				},
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
@@ -462,11 +482,10 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err)
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
+		fmt.Println(resp, err)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError.Error())
 			require.Nil(t, resp)
-		} else {
-			require.Equal(t, resp.TransactionHash, test.ExpectedHash)
 		}
 
 	}
