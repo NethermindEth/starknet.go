@@ -423,7 +423,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
 
 	resp2, err := devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(1000000000000000000))
-	fmt.Println(resp2, err)
+	fmt.Println("resp2", resp2)
+	fmt.Println("resp2 err", err)
 	require.NoError(t, err, "Error Mint")
 
 	// Set up ks
@@ -448,6 +449,9 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 	}
+
+	qwe, err := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
