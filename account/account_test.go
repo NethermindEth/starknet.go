@@ -506,7 +506,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
 
 	// mint some FeeToken
-	_, err = devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(10000000000000))
+	mintResp, err := devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(10000000000000))
+	fmt.Println(mintResp)
 	require.NoError(t, err, "Error devnet.Mint")
 
 	// Set up ks
@@ -536,6 +537,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	fmt.Println(resp, err)
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
