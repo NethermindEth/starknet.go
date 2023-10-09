@@ -345,7 +345,6 @@ func TestAddInvoke(t *testing.T) {
 		"testnet": {
 			{
 				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
-				ExpectedHash:         utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
 				ExpectedError:        rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
 				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
@@ -370,7 +369,6 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
-				ExpectedHash:         utils.TestHexToFelt(t, "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86"),
 				ExpectedError:        rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
 				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
@@ -395,7 +393,6 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9
-				ExpectedHash:         utils.TestHexToFelt(t, "0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9"),
 				ExpectedError:        rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
@@ -415,6 +412,27 @@ func TestAddInvoke(t *testing.T) {
 					Calldata: []*felt.Felt{
 						utils.TestHexToFelt(t, "0x1234"),
 					},
+				},
+			},
+			{
+				// https://goerli.voyager.online/tx/0xe8cdb03ddc6b65c2c268eb8084bef41ef63009c10a38f8d1e167652a721588
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 2,
+				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				PrivKey:              utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(7),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x05044dfb70b9475663e3ddddb11bbbeccc71614b8db86fc3dc0c16b2b9d3151d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
+					Calldata:           []*felt.Felt{},
 				},
 			},
 		},
