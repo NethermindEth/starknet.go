@@ -441,7 +441,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	tx := rpc.DeployAccountTxn{
 		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
-		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
+		MaxFee:              new(felt.Felt).SetUint64(100000000000),
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             rpc.TransactionV1,
 		Signature:           []*felt.Felt{},
