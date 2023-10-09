@@ -95,6 +95,7 @@ func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, 
 	}
 	req.Header.Add("Content-Type", "application/json")
 	client := &http.Client{}
+	fmt.Println("req", req)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

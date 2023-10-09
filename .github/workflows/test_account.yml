@@ -34,7 +34,7 @@ jobs:
         run: cd account && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050"
+          INTEGRATION_BASE: "http://0.0.0.0:5050"
 
       # Test Account on mock
       - name: Test Account with mocks
