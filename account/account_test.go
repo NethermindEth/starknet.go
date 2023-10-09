@@ -532,6 +532,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 	}
+	qwe, err := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
