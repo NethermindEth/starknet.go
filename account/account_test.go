@@ -413,6 +413,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 	client, err := rpc.NewClient(base + "/rpc")
+	fmt.Println("qwe", base+"/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
@@ -450,13 +451,14 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 	}
 
-	qwe, err := json.MarshalIndent(tx, "", "")
-	fmt.Println(string(qwe))
-
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
+	qwe, err := json.MarshalIndent(tx, "", "")
+	fmt.Println(string(qwe))
+
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	fmt.Println("resp, err", resp, err)
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
