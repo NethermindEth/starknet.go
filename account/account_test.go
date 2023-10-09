@@ -499,11 +499,15 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnts, err := newDevnet(t, base)
+	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
 	fakeUser := acnts[0]
 	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
 	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+	// mint some FeeToken
+	_, err = devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(10000000000000))
+	require.NoError(t, err, "Error devnet.Mint")
 
 	// Set up ks
 	ks := account.NewMemKeystore()
@@ -790,8 +794,8 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
-func newDevnet(t *testing.T, url string) ([]devnet.TestAccount, error) {
+func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
-	return acnts, err
+	return devnet, acnts, err
 }
