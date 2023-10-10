@@ -421,7 +421,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "Error setting up Devnet")
 	fakeUser := acnts[0]
 	fakeUserAddr := utils.TestHexToFelt(t, "0x2a5338be59c7d134754add779b427db76adb734148c075efcc072a7e79858a7")
-	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+	fakeUserPub := utils.TestHexToFelt(t, "0x6a22cc507d29f5dc2b6eacc4ac32dfc61ad00857f5335f3f17be4563352d32f")
 
 	resp2, err := devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(1000000000000000000))
 	fmt.Println("resp2", resp2)
@@ -430,12 +430,13 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	// Set up ks
 	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString("121625785501079010170974323463185986951", 0)
+	fakePrivKeyBI, ok := new(big.Int).SetString("0x5b804633fa41b00a11d6ccdde12f7587", 0)
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	fmt.Println("fakePrivKeyBI", fakeUserAddr)
-	fmt.Println("fakePrivKeyBI", fakePrivKeyBI)
+	fmt.Println("fakePrivKeyBI", fakeUser.PublicKey)
+	fmt.Println("fakePrivKeyBI", fakeUser.PrivateKey, fakePrivKeyBI)
+	fmt.Println("fakePrivKeyBI", fakeUser.Address)
 	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
 	require.NoError(t, err)
 
