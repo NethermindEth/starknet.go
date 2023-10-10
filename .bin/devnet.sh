@@ -12,7 +12,7 @@ while true; do
   if [ $result -eq 0 ]; then
     sleep 5
     curl --fail -H 'Content-Type: application/json' -XPOST http://localhost:5050/mint \
-      -d '{ "address": "'${ACCOUNT_ADDRESS}'", "amount": 1000000000000000}'
+      -d '{ "address": "'${TEST_ACCOUNT_ADDRESS}'", "amount": 1000000000000000}'
     exit 0
   fi
   if [ $i -gt 10 ]; then
