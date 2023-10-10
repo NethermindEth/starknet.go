@@ -450,8 +450,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		Version:             rpc.TransactionV1,
 		Signature:           []*felt.Felt{},
 		ClassHash:           classHash,
-		ContractAddressSalt: fakeUserPub,
-		ConstructorCalldata: []*felt.Felt{fakeUserPub},
+		ContractAddressSalt: fakeUserAddr,
+		ConstructorCalldata: []*felt.Felt{fakeUserAddr},
 	}
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
