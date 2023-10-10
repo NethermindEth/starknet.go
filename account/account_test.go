@@ -498,7 +498,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnts, err := newDevnet(t, base)
+	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
 	fakeUser := acnts[0]
 	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
@@ -529,6 +529,9 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
+	require.NoError(t, err)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
@@ -789,8 +792,8 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
-func newDevnet(t *testing.T, url string) ([]devnet.TestAccount, error) {
+func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
-	return acnts, err
+	return devnet, acnts, err
 }
