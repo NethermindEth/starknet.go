@@ -2,7 +2,8 @@
 
 i=0
 version=""
-export ACCOUNT_ADDRESS=0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829
+export TEST_ACCOUNT_ADDRESS=0x2a5338be59c7d134754add779b427db76adb734148c075efcc072a7e79858a7
+
 
 while true; do
   i=$((i + 1))
