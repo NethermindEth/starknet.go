@@ -29,7 +29,6 @@ var (
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
@@ -317,12 +316,6 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 	}
 }
 
-// BuildInvokeTx formats the calldata and signs the transaction
-func (account *Account) BuildInvokeTx(ctx context.Context, invokeTx *rpc.InvokeTxnV1, fnCall *[]rpc.FunctionCall) error {
-	invokeTx.Calldata = FmtCalldata(*fnCall)
-	return account.SignInvokeTransaction(ctx, invokeTx)
-}
-
 func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
@@ -420,26 +413,63 @@ func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) 
 	return account.provider.TransactionByHash(ctx, hash)
 }
 
-/*
-Formats the multicall transactions in a format which can be signed and verified by the network and OpenZeppelin account contracts
-*/
-func FmtCalldata(fnCalls []rpc.FunctionCall) []*felt.Felt {
-	callArray := []*felt.Felt{}
-	callData := []*felt.Felt{new(felt.Felt).SetUint64(uint64(len(fnCalls)))}
-
-	for _, tx := range fnCalls {
-		callData = append(callData, tx.ContractAddress, tx.EntryPointSelector)
-
-		if len(tx.Calldata) == 0 {
-			callData = append(callData, &felt.Zero, &felt.Zero)
-			continue
-		}
-
-		callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray))), new(felt.Felt).SetUint64(uint64(len(tx.Calldata))+1))
-		callArray = append(callArray, tx.Calldata...)
+func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {
+	switch cairoVersion {
+	case 0:
+		return FmtCalldataCairo0(fnCalls), nil
+	case 2:
+		return FmtCalldataCairo2(fnCalls), nil
+	default:
+		return nil, errors.New("Cairo version not supported")
 	}
-	callData = append(callData, new(felt.Felt).SetUint64(uint64(len(callArray)+1)))
-	callData = append(callData, callArray...)
-	callData = append(callData, new(felt.Felt).SetUint64(0))
-	return callData
+}
+
+/*
+Formats the call data for Cairo0 contracts
+*/
+func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	execCallData := []*felt.Felt{}
+	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))
+
+	// Legacy : Cairo 0
+	concatCallData := []*felt.Felt{}
+	for _, fnCall := range fnCalls {
+		execCallData = append(
+			execCallData,
+			fnCall.ContractAddress,
+			fnCall.EntryPointSelector,
+			new(felt.Felt).SetUint64(uint64(len(concatCallData))),
+			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))+1),
+		)
+		concatCallData = append(concatCallData, fnCall.Calldata...)
+	}
+	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(concatCallData))+1))
+	execCallData = append(execCallData, concatCallData...)
+	execCallData = append(execCallData, new(felt.Felt).SetUint64(0))
+
+	return execCallData
+}
+
+/*
+Formats the call data for Cairo 2 contracs
+*/
+func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
+	execCallData := []*felt.Felt{}
+	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))
+
+	concatCallData := []*felt.Felt{}
+	for _, fnCall := range fnCalls {
+		execCallData = append(
+			execCallData,
+			fnCall.ContractAddress,
+			fnCall.EntryPointSelector,
+			new(felt.Felt).SetUint64(uint64(len(concatCallData))),
+			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))),
+		)
+		concatCallData = append(concatCallData, fnCall.Calldata...)
+	}
+	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(concatCallData))))
+	execCallData = append(execCallData, concatCallData...)
+
+	return execCallData
 }
