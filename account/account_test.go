@@ -450,6 +450,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	resp2, err := devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	fmt.Println(resp2, err)
+	time.Sleep(2)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
