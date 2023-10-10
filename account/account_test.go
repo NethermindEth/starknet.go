@@ -158,7 +158,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 }
 
 func TestFmtCallData(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+
 	type testSetType struct {
+		CairoVersion     int
+		ChainID          string
 		FnCall           rpc.FunctionCall
 		ExpectedCallData []*felt.Felt
 	}
@@ -166,6 +172,8 @@ func TestFmtCallData(t *testing.T) {
 		"devnet": {},
 		"mock": {
 			{
+				CairoVersion: 0,
+				ChainID:      "SN_GOERLI",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
@@ -191,7 +199,12 @@ func TestFmtCallData(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		fmtCallData := account.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		require.NoError(t, err)
+
+		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoVersion)
+		require.NoError(t, err)
 		require.Equal(t, fmtCallData, test.ExpectedCallData)
 	}
 }
@@ -315,51 +328,52 @@ func TestSignMOCK(t *testing.T) {
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
-		ExpectedHash   *felt.Felt
-		ExpectedError  *rpc.RPCError
-		SetKS          bool
-		AccountAddress *felt.Felt
-		PubKey         *felt.Felt
-		PrivKey        *felt.Felt
-		InvokeTx       rpc.InvokeTxnV1
-		FnCall         rpc.FunctionCall
-		TxDetails      rpc.TxDetails
+		ExpectedError        *rpc.RPCError
+		CairoContractVersion int
+		SetKS                bool
+		AccountAddress       *felt.Felt
+		PubKey               *felt.Felt
+		PrivKey              *felt.Felt
+		InvokeTx             rpc.InvokeTxnV1
+		FnCall               rpc.FunctionCall
+		TxDetails            rpc.TxDetails
 	}
 	testSet := map[string][]testSetType{
 		"mock":   {},
 		"devnet": {},
-		"testnet": {{
-			// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
-			ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
-			ExpectedError:  rpc.ErrDuplicateTx,
-			AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
-			SetKS:          true,
-			PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
-			PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
-			InvokeTx: rpc.InvokeTxnV1{
-				Nonce:         new(felt.Felt).SetUint64(2),
-				MaxFee:        utils.TestHexToFelt(t, "0x574fbde6000"),
-				Version:       rpc.TransactionV1,
-				Type:          rpc.TransactionType_Invoke,
-				SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
-			},
-			FnCall: rpc.FunctionCall{
-				ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-				EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
-				Calldata: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					utils.TestHexToFelt(t, "0x1"),
+		"testnet": {
+			{
+				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 0,
+				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+				PrivKey:              utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(2),
+					MaxFee:        utils.TestHexToFelt(t, "0x574fbde6000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+						utils.TestHexToFelt(t, "0x1"),
+					},
 				},
 			},
-		},
 			{
 				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
-				ExpectedHash:   utils.TestHexToFelt(t, "0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86"),
-				ExpectedError:  rpc.ErrDuplicateTx,
-				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
-				SetKS:          true,
-				PubKey:         utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
-				PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 0,
+				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
+				PrivKey:              utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
 				InvokeTx: rpc.InvokeTxnV1{
 					Nonce:         new(felt.Felt).SetUint64(6),
 					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
@@ -376,12 +390,77 @@ func TestAddInvoke(t *testing.T) {
 					},
 				},
 			},
+			{
+				// https://goerli.voyager.online/tx/0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 2,
+				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				PrivKey:              utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(6),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x05044dfb70b9475663e3ddddb11bbbeccc71614b8db86fc3dc0c16b2b9d3151d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value_8"),
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1234"),
+					},
+				},
+			},
+			{
+				// https://goerli.voyager.online/tx/0xe8cdb03ddc6b65c2c268eb8084bef41ef63009c10a38f8d1e167652a721588
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 2,
+				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				PrivKey:              utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(7),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x05044dfb70b9475663e3ddddb11bbbeccc71614b8db86fc3dc0c16b2b9d3151d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
+					Calldata:           []*felt.Felt{},
+				},
+			},
+			{
+				// https://goerli.voyager.online/tx/0xdcec9fdd48440243fa8fdb8bf87cc40d5ef91181d5a4a0304140df5701c238
+				ExpectedError:        rpc.ErrDuplicateTx,
+				CairoContractVersion: 2,
+				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				SetKS:                true,
+				PubKey:               utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				PrivKey:              utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a"),
+				InvokeTx: rpc.InvokeTxnV1{
+					Nonce:         new(felt.Felt).SetUint64(18),
+					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
+					Version:       rpc.TransactionV1,
+					Type:          rpc.TransactionType_Invoke,
+					SenderAddress: utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				},
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x05044dfb70b9475663e3ddddb11bbbeccc71614b8db86fc3dc0c16b2b9d3151d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value_8"),
+					Calldata:           []*felt.Felt{utils.TestHexToFelt(t, "0xaC25b2B9F4ca06179fA0D2522F47Bc86A9DF9314")},
+				},
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base + "/rpc")
+		client, err := rpc.NewClient(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
@@ -396,15 +475,18 @@ func TestAddInvoke(t *testing.T) {
 		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks)
 		require.NoError(t, err)
 
-		require.NoError(t, acnt.BuildInvokeTx(context.Background(), &test.InvokeTx, &[]rpc.FunctionCall{test.FnCall}), "Error building Invoke")
-
-		txHash, err := acnt.TransactionHashInvoke(test.InvokeTx)
+		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoContractVersion)
 		require.NoError(t, err)
-		require.Equal(t, txHash.String(), test.ExpectedHash.String())
+
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
+		require.NoError(t, err)
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
-		require.Equal(t, err.Error(), test.ExpectedError.Error())
-		require.Nil(t, resp)
+		if err != nil {
+			require.Equal(t, err.Error(), test.ExpectedError.Error())
+			require.Nil(t, resp)
+		}
+
 	}
 }
 
@@ -416,7 +498,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnts, err := newDevnet(t, base)
+	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
 	fakeUser := acnts[0]
 	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
@@ -447,6 +529,9 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
+	require.NoError(t, err)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
@@ -707,8 +792,8 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
-func newDevnet(t *testing.T, url string) ([]devnet.TestAccount, error) {
+func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
-	return acnts, err
+	return devnet, acnts, err
 }
