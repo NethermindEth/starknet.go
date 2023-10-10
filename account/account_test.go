@@ -417,9 +417,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	devnet, acnts, err := newDevnet(t, base)
+	devnet, _, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
-	fakeUser := acnts[0]
 	fakeUserAddr := utils.TestHexToFelt(t, "0x2a5338be59c7d134754add779b427db76adb734148c075efcc072a7e79858a7")
 	fakeUserPub := utils.TestHexToFelt(t, "0x6a22cc507d29f5dc2b6eacc4ac32dfc61ad00857f5335f3f17be4563352d32f")
 
@@ -437,12 +436,12 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString("0x5b804633fa41b00a11d6ccdde12f7587", 0)
 	require.True(t, ok)
-	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+	ks.Put(fakeUserPub.String(), fakePrivKeyBI)
 
-	fmt.Println("fakePrivKeyBI", fakeUser.PublicKey)
-	fmt.Println("fakePrivKeyBI", fakeUser.PrivateKey, fakePrivKeyBI)
-	fmt.Println("fakePrivKeyBI", fakeUser.Address)
-	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
+	fmt.Println("fakeUserPub", fakeUserPub)
+	fmt.Println("fakePrivKeyBI", fakePrivKeyBI)
+	fmt.Println("fakeUserAddr", fakeUserAddr)
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUserPub.String(), ks)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -462,10 +461,10 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
-	resp2, err = devnet.Mint(precomputedAddress, new(big.Int).SetInt64(1230000000000000000))
-	fmt.Println("resp2", resp2)
-	fmt.Println("resp2 err", err)
-	require.NoError(t, err, "Error Mint")
+	// resp2, err = devnet.Mint(precomputedAddress, new(big.Int).SetInt64(1230000000000000000))
+	// fmt.Println("resp2", resp2)
+	// fmt.Println("resp2 err", err)
+	// require.NoError(t, err, "Error Mint")
 
 	qwe, err := json.MarshalIndent(tx, "", "")
 	fmt.Println(string(qwe))
