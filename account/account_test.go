@@ -482,7 +482,6 @@ func TestAddInvoke(t *testing.T) {
 		require.NoError(t, err)
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
-		fmt.Println(resp, err)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError.Error())
 			require.Nil(t, resp)

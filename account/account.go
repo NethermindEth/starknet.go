@@ -2,9 +2,7 @@ package account
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -453,7 +451,7 @@ func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
 }
 
 /*
-Formats the call data for Cairo 1 contracs
+Formats the call data for Cairo 2 contracs
 */
 func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	execCallData := []*felt.Felt{}
@@ -474,9 +472,4 @@ func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	execCallData = append(execCallData, concatCallData...)
 
 	return execCallData
-}
-
-func PrintTxAsJson(tx any) {
-	qwe, err := json.MarshalIndent(tx, "", "")
-	fmt.Println(string(qwe), err)
 }
