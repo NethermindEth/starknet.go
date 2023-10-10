@@ -461,10 +461,14 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
-	// resp2, err = devnet.Mint(precomputedAddress, new(big.Int).SetInt64(1230000000000000000))
-	// fmt.Println("resp2", resp2)
-	// fmt.Println("resp2 err", err)
-	// require.NoError(t, err, "Error Mint")
+	// feeAddr, err := devnet.FeeToken()
+	// require.NoError(t, err)
+
+	//
+	resp2, err = devnet.Mint(precomputedAddress, new(big.Int).SetInt64(1230000000000000000))
+	fmt.Println("resp2", resp2)
+	fmt.Println("resp2 err", err)
+	require.NoError(t, err, "Error Mint")
 
 	qwe, err := json.MarshalIndent(tx, "", "")
 	fmt.Println(string(qwe))
