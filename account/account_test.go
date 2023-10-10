@@ -423,7 +423,12 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	fakeUserAddr := utils.TestHexToFelt(t, "0x2a5338be59c7d134754add779b427db76adb734148c075efcc072a7e79858a7")
 	fakeUserPub := utils.TestHexToFelt(t, "0x6a22cc507d29f5dc2b6eacc4ac32dfc61ad00857f5335f3f17be4563352d32f")
 
-	resp2, err := devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(1000000000000000000))
+	resp2, err := devnet.Mint(fakeUserAddr, new(big.Int).SetInt64(1230000000000000000))
+	fmt.Println("resp2", resp2)
+	fmt.Println("resp2 err", err)
+	require.NoError(t, err, "Error Mint")
+
+	resp2, err = devnet.Mint(fakeUserPub, new(big.Int).SetInt64(1230000000000000000))
 	fmt.Println("resp2", resp2)
 	fmt.Println("resp2 err", err)
 	require.NoError(t, err, "Error Mint")
@@ -450,12 +455,17 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		Version:             rpc.TransactionV1,
 		Signature:           []*felt.Felt{},
 		ClassHash:           classHash,
-		ContractAddressSalt: fakeUserAddr,
-		ConstructorCalldata: []*felt.Felt{fakeUserAddr},
+		ContractAddressSalt: fakeUserPub,
+		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 	}
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+
+	resp2, err = devnet.Mint(precomputedAddress, new(big.Int).SetInt64(1230000000000000000))
+	fmt.Println("resp2", resp2)
+	fmt.Println("resp2 err", err)
+	require.NoError(t, err, "Error Mint")
 
 	qwe, err := json.MarshalIndent(tx, "", "")
 	fmt.Println(string(qwe))
