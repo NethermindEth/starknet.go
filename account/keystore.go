@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
 	"sync"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type Keystore interface {
@@ -73,4 +76,31 @@ func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *b
 		x, y, err = curve.Curve.Sign(msgHash, key)
 	}
 	return x, y, err
+}
+
+// GetRandomKeys gets a random set of pub-priv keys. Note: This should be used for testing purposes only, do NOT send real funds to these addresses.
+func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
+	// Get random keys
+	privateKey, err := curve.Curve.GetRandomPrivateKey()
+	if err != nil {
+		fmt.Println("can't get random private key:", err)
+		os.Exit(1)
+	}
+	pubX, _, err := curve.Curve.PrivateToPoint(privateKey)
+	if err != nil {
+		fmt.Println("can't generate public key:", err)
+		os.Exit(1)
+	}
+	privFelt := utils.BigIntToFelt(privateKey)
+	pubFelt := utils.BigIntToFelt(pubX)
+
+	// set up keystore
+	ks := NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(privFelt.String(), 0)
+	if !ok {
+		panic("Error setting up account key store")
+	}
+	ks.Put(pubFelt.String(), fakePrivKeyBI)
+
+	return ks, pubFelt, privFelt
 }
