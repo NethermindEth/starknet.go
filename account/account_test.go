@@ -449,7 +449,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
 	resp2, err := devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
-	fmt.Println(resp2, err)
+	fmt.Println(precomputedAddress, resp2, err)
 	time.Sleep(2)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
