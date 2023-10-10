@@ -1,4 +1,4 @@
-package rpc
+œpackage rpc
 
 import (
 	"encoding/json"
@@ -131,6 +131,10 @@ type DeployAccountTxn struct {
 
 type UnknownTransaction struct{ Transaction }
 
+// UnmarshalJSON unmarshals the JSON data into an UnknownTransaction object.
+//
+// It takes a byte slice, data, as a parameter, which contains the JSON data to be unmarshalled.
+// It returns an error if the unmarshalling process fails.
 func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -146,6 +150,10 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalTxn unmarshals a given interface{} into a Transaction object.
+//
+// It takes an interface{} as a parameter named t, which represents the object to be unmarshaled.
+// The function returns a Transaction object, along with an error if the unmarshaling process fails.
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -196,6 +204,9 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
 
+// remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
+// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
+// It returns an error if there is any error during the marshaling or unmarshaling process, otherwise it returns nil.
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -218,6 +229,10 @@ const (
 	TransactionV2 TransactionVersion = "0x2"
 )
 
+// BigInt returns a big integer corresponding to the transaction version.
+//
+// It takes no parameters.
+// It returns a pointer to a big.Int and an error.
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:

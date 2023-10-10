@@ -20,6 +20,10 @@ type Person struct {
 	Wallet string
 }
 
+// FmtDefinitionEncoding formats the encoding for the given field in the Mail struct.
+//
+// It takes a string parameter 'field' which specifies the field to format the encoding for.
+// The function returns a slice of pointers to big integers 'fmtEnc'.
 func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	if field == "from" {
 		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.From.Name))
@@ -33,6 +37,10 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	return fmtEnc
 }
 
+// MockTypedData generates a TypedData object for testing purposes.
+//
+// It creates example types and initializes a Domain object. Then it uses the example types and the domain to create a new TypedData object.
+// The function returns the generated TypedData object.
 func MockTypedData() (ttd TypedData) {
 	exampleTypes := make(map[string]TypeDef)
 	domDefs := []Definition{{"name", "felt"}, {"version", "felt"}, {"chainId", "felt"}}
@@ -52,6 +60,16 @@ func MockTypedData() (ttd TypedData) {
 	return ttd
 }
 
+// TestGeneral_GetMessageHash tests the GetMessageHash function.
+//
+// It creates a mock TypedData and sets up a test case for hashing a mail message.
+// The mail message contains information about the sender and recipient, as well as the contents of the message.
+//
+// The function then calls the GetMessageHash function with the necessary parameters to calculate the message hash.
+// If an error occurs during the hashing process, an error is reported using the t.Errorf function.
+//
+// The expected hash value is compared with the actual hash value returned by the function.
+// If the values do not match, an error is reported using the t.Errorf function.
 func TestGeneral_GetMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
@@ -78,6 +96,15 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 	}
 }
 
+// BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.
+//
+// It tests the performance of the GetMessageHash function by running it with different input sizes.
+// The input size is determined by the bit length of the address parameter, which is converted from a hexadecimal string to a big integer using the HexToBN function from the utils package.
+//
+// Parameters:
+// - b: A testing.B object that provides methods for benchmarking the function.
+//
+// Return type: None.
 func BenchmarkGetMessageHash(b *testing.B) {
 	ttd := MockTypedData()
 
@@ -98,6 +125,11 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	})
 }
 
+// TestGeneral_GetDomainHash tests the GetDomainHash function.
+//
+// It creates a mock TypedData object and generates the hash of a typed message using the Starknet domain and curve.
+// If there is an error during the hashing process, it logs the error.
+// It then compares the generated hash with the expected hash and logs an error if they do not match.
 func TestGeneral_GetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
@@ -112,7 +144,12 @@ func TestGeneral_GetDomainHash(t *testing.T) {
 	}
 }
 
-// equivalent of get struct hash
+// TestGeneral_GetTypedMessageHash is a unit test for the GetTypedMessageHash function
+// equivalent of get struct hash.
+//
+// It tests the generation of a typed message hash for a given mail object using a specific curve.
+// The function expects the mail object to have a "From" field of type Person, a "To" field of type Person,
+// and a "Contents" field of type string. It returns the generated hash as a byte array and an error object.
 func TestGeneral_GetTypedMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
@@ -139,6 +176,18 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 	}
 }
 
+// TestGeneral_GetTypeHash tests the GetTypeHash function.
+//
+// It tests the GetTypeHash function by calling it with different input values
+// and comparing the result with expected values. It also checks that the
+// encoding of the types matches the expected values.
+// 
+// Parameters:
+// - t: The testing.T object used for reporting test failures and logging test
+//     output.
+//
+// Returns:
+// No return values.
 func TestGeneral_GetTypeHash(t *testing.T) {
 	tdd := MockTypedData()
 
@@ -173,6 +222,13 @@ func TestGeneral_GetTypeHash(t *testing.T) {
 	}
 }
 
+// TestGeneral_GetSelectorFromName tests the GetSelectorFromName function.
+//
+// It checks if the GetSelectorFromName function returns the expected values
+// for different input names.
+// The expected values are hard-coded and compared against the actual values.
+// If any of the actual values do not match the expected values, an error is
+// reported.
 func TestGeneral_GetSelectorFromName(t *testing.T) {
 	sel1 := utils.BigToHex(utils.GetSelectorFromName("initialize"))
 	sel2 := utils.BigToHex(utils.GetSelectorFromName("mint"))
@@ -187,6 +243,12 @@ func TestGeneral_GetSelectorFromName(t *testing.T) {
 	}
 }
 
+// TestGeneral_EncodeType tests the EncodeType function.
+//
+// It creates a mock typed data and calls the EncodeType method with the
+// parameter "Mail". It checks if the returned encoding matches the expected
+// encoding. If there is an error during the encoding process, it fails the
+// test.
 func TestGeneral_EncodeType(t *testing.T) {
 	tdd := MockTypedData()
 

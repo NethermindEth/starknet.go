@@ -24,19 +24,29 @@ type MockAccountInterfaceMockRecorder struct {
 	mock *MockAccountInterface
 }
 
-// NewMockAccountInterface creates a new mock instance.
+// NewMockAccountInterface returns a new instance of MockAccountInterface.
+//
+// It takes a gomock.Controller as a parameter and initializes a new MockAccountInterface with it.
+// It returns a pointer to the newly created MockAccountInterface.
 func NewMockAccountInterface(ctrl *gomock.Controller) *MockAccountInterface {
 	mock := &MockAccountInterface{ctrl: ctrl}
 	mock.recorder = &MockAccountInterfaceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT is a function that returns a pointer to a MockAccountInterfaceMockRecorder
+// (allows the caller to indicate expected use).
+//
+// It does not take any parameters.
+// It returns a pointer to a MockAccountInterfaceMockRecorder.
 func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 	return m.recorder
 }
 
-// Call mocks base method.
+// Call is a method that performs some operation.
+//
+// It takes a context and a rpc.FunctionCall as parameters.
+// It returns a slice of *felt.Felt and an error.
 func (m *MockAccountInterface) Call(ctx context.Context, call rpc.FunctionCall) ([]*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", ctx, call)
@@ -45,13 +55,21 @@ func (m *MockAccountInterface) Call(ctx context.Context, call rpc.FunctionCall) 
 	return ret0, ret1
 }
 
-// Call indicates an expected call of Call.
+// Call is a function that records a call to the Call method of the MockAccountInterface interface.
+//
+// ctx is the context of the call.
+// call is the interface representing the call.
+// Returns a *gomock.Call object.
 func (mr *MockAccountInterfaceMockRecorder) Call(ctx, call interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockAccountInterface)(nil).Call), ctx, call)
 }
 
-// TransactionHash mocks base method.
+// TransactionHash description of the Go function.
+//
+// TransactionHash is a method of the MockAccountInterface struct.
+// It takes two parameters: calls of type rpc.FunctionCall and txDetails of type rpc.TxDetails.
+// It returns a *felt.Felt pointer and an error.
 func (m *MockAccountInterface) TransactionHash(calls rpc.FunctionCall, txDetails rpc.TxDetails) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionHash", calls, txDetails)
@@ -60,7 +78,13 @@ func (m *MockAccountInterface) TransactionHash(calls rpc.FunctionCall, txDetails
 	return ret0, ret1
 }
 
-// TransactionHash indicates an expected call of TransactionHash.
+// TransactionHash description of an expected call of TransactionHash.
+//
+// Parameter(s):
+// - calls: interface{}.
+// - txDetails: interface{}.
+// Return type(s):
+// - *gomock.Call.
 func (mr *MockAccountInterfaceMockRecorder) TransactionHash(calls, txDetails interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionHash", reflect.TypeOf((*MockAccountInterface)(nil).TransactionHash), calls, txDetails)

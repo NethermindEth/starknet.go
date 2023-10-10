@@ -53,6 +53,19 @@ type ContractClass struct {
 	ABI string `json:"abi,omitempty"`
 }
 
+// UnmarshalJSON unmarshals the JSON content into the DeprecatedContractClass struct.
+//
+// It takes a byte array `content` as a parameter and returns an error if there is any.
+// The function processes the `program` field in the JSON object.
+// If `program` is a string, it is assigned to the `Program` field in the struct.
+// Otherwise, it is encoded and assigned to the `Program` field.
+// The function then processes the `entry_points_by_type` field in the JSON object.
+// The value is unmarshaled into the `DeprecatedEntryPointsByType` field in the struct.
+// Finally, the function processes the `abi` field in the JSON object.
+// If it is missing, the function returns nil.
+// Otherwise, it unmarshals the value into a slice of interfaces.
+// For each element in the slice, it checks the type and assigns it to the appropriate field in the `ABI` field in the struct.
+// The function returns nil if there are no errors.
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
@@ -207,14 +220,26 @@ type FunctionABIEntry struct {
 	Outputs []TypedParameter `json:"outputs"`
 }
 
+// IsType returns the ABIType of the StructABIEntry.
+//
+// No parameters.
+// Returns ABIType.
 func (s *StructABIEntry) IsType() ABIType {
 	return s.Type
 }
 
+// IsType returns the ABIType of the EventABIEntry.
+//
+// No parameters are required.
+// Returns the ABIType.
 func (e *EventABIEntry) IsType() ABIType {
 	return e.Type
 }
 
+// IsType returns the ABIType of the FunctionABIEntry.
+//
+// No parameters.
+// Returns the ABIType.
 func (f *FunctionABIEntry) IsType() ABIType {
 	return f.Type
 }
@@ -227,7 +252,9 @@ type TypedParameter struct {
 	Type string `json:"type"`
 }
 
-// encodeProgram compress a program to send it to the API
+// encodeProgram encodes the content byte array using gzip compression and base64 encoding.
+//
+// It takes a content byte array as a parameter and returns the encoded program string and an error.
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

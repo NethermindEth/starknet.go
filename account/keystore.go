@@ -23,18 +23,32 @@ type MemKeystore struct {
 	keys map[string]*big.Int
 }
 
+// NewMemKeystore initializes and returns a new instance of MemKeystore.
+//
+// It does not take any parameters.
+// It returns a pointer to MemKeystore.
 func NewMemKeystore() *MemKeystore {
 	return &MemKeystore{
 		keys: make(map[string]*big.Int),
 	}
 }
 
+// SetNewMemKeystore returns a new instance of MemKeystore and sets the given public key and private key in it.
+//
+// pub: a string representing the public key.
+// priv: a pointer to a big.Int representing the private key.
+// Returns a pointer to the newly created MemKeystore instance.
 func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
 	ks := NewMemKeystore()
 	ks.Put(pub, priv)
 	return ks
 }
 
+// Put stores the given key in the keystore for the specified sender address.
+//
+// Parameters:
+// - senderAddress: the address of the sender
+// - k: the key to be stored
 func (ks *MemKeystore) Put(senderAddress string, k *big.Int) {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
@@ -43,6 +57,14 @@ func (ks *MemKeystore) Put(senderAddress string, k *big.Int) {
 
 var ErrSenderNoExist = errors.New("sender does not exist")
 
+// Get retrieves the value associated with the senderAddress from the MemKeystore.
+//
+// Parameter:
+// - senderAddress: The address of the sender.
+//
+// Returns:
+// - *big.Int: The value associated with the senderAddress.
+// - error: An error if the senderAddress does not exist in the keystore.
 func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
@@ -53,6 +75,13 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	return k, nil
 }
 
+// Sign signs a message hash using the given key in the MemKeystore.
+//
+// ctx is the context of the operation.
+// id is the identifier of the key.
+// msgHash is the message hash to be signed.
+// The function returns the R and S components of the signature as *big.Int,
+// and an error if any occurred.
 func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
 
 	k, err := ks.Get(id)
@@ -63,7 +92,18 @@ func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*
 	return sign(ctx, msgHash, k)
 }
 
-// sign illustrates one way to handle context cancellation
+// sign signs the given message hash with the provided key using the Curve.
+// illustrates one way to handle context cancellation
+//
+// It takes the following parameters:
+// - ctx: the context.Context object for cancellation and timeouts.
+// - msgHash: the message hash to be signed as a *big.Int.
+// - key: the private key as a *big.Int.
+//
+// It returns the following values:
+// - x: the X coordinate of the signature point as a *big.Int.
+// - y: the Y coordinate of the signature point as a *big.Int.
+// - err: an error object if any error occurred during the signing process.
 func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *big.Int, err error) {
 
 	select {

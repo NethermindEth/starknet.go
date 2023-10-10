@@ -10,7 +10,23 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestClassAt tests code for a class.
+// TestClassAt tests the ClassAt function.
+//
+// The function tests the ClassAt function by creating different test sets for different environments
+// (mock, testnet, and mainnet). It then iterates over each test set and performs the following steps:
+//
+//   - Creates a spy object to intercept calls to the provider.
+//   - Sets the provider of the test configuration to the spy object.
+//   - Calls the ClassAt function with the specified block tag and contract address.
+//   - Checks the response type and performs the following actions based on the type:
+//     - If the response type is DeprecatedContractClass:
+//       - Compares the response object with the spy object and checks for a full match.
+//       - If the objects do not match, compares them again and logs an error if the match is still not achieved.
+//       - Checks if the program code exists in the response object.
+//     - If the response type is ContractClass:
+//       - Throws an error indicating that the case is not covered.
+//
+// The function does not return any values.
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -66,7 +82,14 @@ func TestClassAt(t *testing.T) {
 	}
 }
 
-// TestClassHashAt tests code for a ClassHashAt.
+// TestClassHashAt tests the ClassHashAt function.
+//
+// This function tests the behavior of the ClassHashAt function by providing
+// different test cases for the contract hash and expected class hash. It
+// verifies if the returned class hash matches the expected class hash and
+// if there are any differences between the two. It also checks if the
+// returned class hash is not nil. The function takes in a testing.T
+// parameter and does not return anything.
 func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -118,7 +141,34 @@ func TestClassHashAt(t *testing.T) {
 	}
 }
 
-// TestClass tests code for a class.
+// TestClass is a test function that tests the behavior of the Class function.
+//
+// It creates a test configuration and defines a testSet containing different scenarios
+// for testing the Class function. The testSet is a map where the keys represent the
+// test environment and the values are an array of testSetType structs. Each struct in
+// the array represents a specific test case with properties such as BlockID,
+// ClassHash, ExpectedProgram, and ExpectedEntryPointConstructor.
+//
+// The function iterates over each test case in the testSet and performs the following steps:
+// - Creates a new spy object to spy on the provider.
+// - Sets the provider of the test configuration to the spy object.
+// - Calls the Class function with the appropriate parameters.
+// - Handles the response based on its type:
+//   - If the response is of type DeprecatedContractClass:
+//     - Compares the response with the spy object to check for any differences.
+//     - If there is a difference, it reports an error and prints the difference.
+//     - Checks if the class program starts with the expected program.
+//     - If not, it reports an error.
+//   - If the response is of type ContractClass:
+//     - Compares the constructor entry point with the expected entry point constructor.
+//     - If they are not equal, it reports an error.
+//
+// The function is used for testing the behavior of the Class function in different scenarios.
+//
+// Parameters:
+// - t: A *testing.T object used for reporting test failures and logging.
+//
+// Return type: None.
 func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -180,7 +230,19 @@ func TestClass(t *testing.T) {
 	}
 }
 
-// TestStorageAt tests StorageAt
+// TestStorageAt tests the StorageAt function.
+//
+// It tests the StorageAt function by creating a test environment and executing
+// a series of test cases. Each test case represents a different scenario, such
+// as different contract hashes, storage keys, and expected values. The function
+// checks if the actual value returned by the StorageAt function matches the
+// expected value. If there is a mismatch, the test fails and an error is
+// reported.
+//
+// Parameters:
+// - t: The testing.T instance used for reporting test failures.
+//
+// Returns: None.
 func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -238,7 +300,12 @@ func TestStorageAt(t *testing.T) {
 	}
 }
 
-// TestNonce tests Nonce
+// TestNonce is a test function for testing the Nonce functionality.
+//
+// It initializes a test configuration, sets up a test data set, and then performs a series of tests.
+// The tests involve creating a spy object, modifying the test configuration provider, and calling the Nonce function.
+// The expected result is a successful response from the Nonce function and a matching value from the spy object.
+// If any errors occur during the tests, the function will fail and display an error message.
 func TestNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -280,7 +347,9 @@ func TestNonce(t *testing.T) {
 	}
 }
 
-// TestEstimateMessageFee tests EstimateMesssageFee
+// TestEstimateMessageFee is a test function to test the EstimateMessageFee function.
+//
+// This function takes no parameters and does not return any values.
 func TestEstimateMessageFee(t *testing.T) {
 	testConfig := beforeEach(t)
 

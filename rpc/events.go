@@ -5,7 +5,11 @@ import (
 	"errors"
 )
 
-// Events returns all events matching the given filter
+// Events retrieves events from the provider matching the given filter.
+//
+// ctx: The context to use for the request.
+// input: The input parameters for retrieving events.
+// Returns the chunk of events and an error if any.
 func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error) {
 	var result EventChunk
 	if err := do(ctx, provider.c, "starknet_getEvents", &result, input); err != nil {

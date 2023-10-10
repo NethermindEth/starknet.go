@@ -11,13 +11,15 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestTraceTransaction tests the TransactionTrace method
+// TestTransactionTrace is a function that tests the TransactionTrace function.
+//
+// It sets up the necessary test configuration and expected response. Then it performs a series of test sets,
+// each with a different transaction hash. For each test set, it calls the TransactionTrace function and compares
+// the response with the expected response.
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	var expectedResp InvokeTxnTrace
-	if testEnv == "mock" {
-		var rawjson struct {
+	var expectedResp InvokeTxnTraceå
 			Result InvokeTxnTrace `json:"result"`
 		}
 		expectedrespRaw, err := os.ReadFile("./tests/trace/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
@@ -72,7 +74,12 @@ func TestTransactionTrace(t *testing.T) {
 	}
 }
 
-// TestSimulateTransaction tests the SimulateTransaction method
+// TestSimulateTransaction is a function that tests the SimulateTransaction function in the codebase.
+//
+// It sets up the necessary test configuration and variables, and then performs a series of tests based on the test environment.
+// The function reads input data from JSON files and performs JSON unmarshalling to set the values of the simulateTxIn and expectedResp variables.
+// It then iterates over the testSet map, calling the SimulateTransactions function with the appropriate parameters and checking the response against the expected response.
+// The function uses the testing.T type to report any errors or failures during the test execution.
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -118,7 +125,12 @@ func TestSimulateTransaction(t *testing.T) {
 	}
 }
 
-// TestTraceBlockTransactions tests the TraceBlockTransactions method
+// TestTraceBlockTransactions tests the TraceBlockTransactions function.
+//
+// It sets up the test configuration and expected response. It then iterates
+// through the test set, calling TraceBlockTransactions with the provided
+// block hash. It checks if there is an error and compares the response with
+// the expected response.
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 

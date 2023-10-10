@@ -20,7 +20,12 @@ var (
 	testEnv = "devnet"
 )
 
-// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+// TestMain is the main test function for the package, checks configuration for the environment to use.
+//
+// It initializes the test environment and runs the test cases.
+// It accepts a *testing.M parameter, which allows running
+// subtests and controlling the test execution.
+// It does not return anything.
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
 	flag.Parse()

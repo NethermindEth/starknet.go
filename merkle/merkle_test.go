@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+// debugProof is a function used for debugging purposes. It logs the proofs to the testing logger.
+//
+// Parameters:
+// - t: A pointer to the testing.T object.
+// - proofs: A slice of pointers to big.Int objects representing the proofs.
+// Return type: None.
 func debugProof(t *testing.T, proofs []*big.Int) {
 	t.Log("...proof")
 	for k, v := range proofs {
@@ -12,6 +18,14 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 	}
 }
 
+// TestGeneral_FixedSizeMerkleTree_Check1 is a Go function that tests the functionality of the FixedSizeMerkleTree.Check1 method.
+//
+// It creates a fixed-size Merkle tree with the given leaves and calculates the Merkle proof for a specific leaf. It then compares the manual proof generated with the expected proof and checks if the Merkle tree root matches the proof.
+//
+// Parameters:
+// - t: A testing.T object used for reporting test failures and logging.
+//
+// Return type: None.
 func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(7)}
 	merkleTree, err := NewFixedSizeMerkleTree(leaves...)

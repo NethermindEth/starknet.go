@@ -8,7 +8,10 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-// ComputeHashOnElementsFelt hashes the array of felts provided as input
+// ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
+//
+// feltArr: A pointer to an array of Felt objects.
+// Returns a pointer to a Felt object and an error.
 func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
 
@@ -19,8 +22,18 @@ func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	return utils.BigIntToFelt(hash), nil
 }
 
-// CalculateTransactionHashCommon [specification] calculates the transaction hash in the StarkNet network - a unique identifier of the transaction.
+// CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
+//
+// txHashPrefix: The prefix of the transaction hash.
+// version: The version of the transaction.
+// contractAddress: The address of the contract.
+// entryPointSelector: The selector of the entry point.
+// calldata: The data of the transaction.
+// maxFee: The maximum fee for the transaction.
+// chainId: The ID of the blockchain.
+// additionalData: Additional data to be included in the hash.
+// Returns the calculated transaction hash and an error, if any.
 func CalculateTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
@@ -44,6 +57,20 @@ func CalculateTransactionHashCommon(
 	return ComputeHashOnElementsFelt(dataToHash)
 }
 
+// ClassHash calculates the hash of a contract class.
+//
+// It takes a contract class as input and calculates the hash by combining various elements of the class.
+// The hash is calculated using the PoseidonArray function from the Curve package.
+// The elements used in the hash calculation include the contract class version, constructor entry point, external entry point, L1 handler entry point, ABI, and Sierra program.
+// The ABI is converted to bytes and then hashed using the StarknetKeccak function from the Curve package.
+// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgamHash are combined using the PoseidonArray function from the Curve package.
+//
+// Parameters:
+// - contract: A contract class object of type rpc.ContractClass.
+//
+// Return:
+// - A pointer to a felt.Felt object that represents the calculated hash.
+// - An error object if there was an error during the hash calculation.
 func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
 
@@ -62,6 +89,9 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
 }
 
+// hashEntryPointByType calculates the hash of an entry point by type.
+//
+// It takes a slice of rpc.SierraEntryPoint as input and returns a pointer to felt.Felt.
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
@@ -70,6 +100,9 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	return curve.Curve.PoseidonArray(flattened...)
 }
 
+// CompiledClassHash calculates the hash of a compiled class in the Casm format.
+//
+// It takes a `casmClass` of type `contracts.CasmClass` as input and returns a pointer to a `felt.Felt`.
 func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
@@ -81,6 +114,9 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
 }
 
+// hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
+//
+// It takes an array of CasmClassEntryPoint as input and returns a pointer to a Felt type.
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {

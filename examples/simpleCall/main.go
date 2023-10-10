@@ -17,6 +17,10 @@ var (
 	contractMethod      string = "getName"
 )
 
+// main entry point of the program.
+//
+// It initializes the environment and establishes a connection with the client.
+// It then makes a contract call and prints the response.
 func main() {
 	fmt.Println("Starting simpeCall example")
 	godotenv.Load(fmt.Sprintf(".env.%s", name))

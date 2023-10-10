@@ -11,7 +11,13 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestDeclareTransaction tests starknet_addDeclareTransaction
+// TestDeclareTransaction is a test function for declaring a transaction.
+//
+// It sets up different test sets based on the test environment and runs the tests accordingly.
+// Each test set contains a transaction hash, class hash, and an expected error.
+// The function reads a JSON file, unmarshals it into an `AddDeclareTxnInput` struct,
+// and performs various tests using the `AddDeclareTransaction` function.
+// It checks if the error matches the expected error and if the transaction hash matches the expected hash.
 func TestDeclareTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
@@ -46,7 +52,7 @@ func TestDeclareTransaction(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 
-		// To do: test transaction against client that supports RPC method (currently Sequencer uses
+		// TODO: test transaction against client that supports RPC method (currently Sequencer uses
 		// "sierra_program" instead of "program"
 		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
 		if err != nil {
@@ -60,7 +66,11 @@ func TestDeclareTransaction(t *testing.T) {
 	}
 }
 
-// TestDeclareTransaction tests starknet_addDeclareTransaction
+// TestAddInvokeTransaction is a test function that checks the AddInvokeTransaction functionality.
+//
+// It initializes a test configuration and defines sets of test cases for different environments.
+// Each test case includes an InvokeTxnV1 object, an expected AddInvokeTransactionResponse, and an expected RPCError.
+// The function iterates through the test cases, invokes AddInvokeTransaction, and compares the response and error with the expected values.
 func TestAddInvokeTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
