@@ -27,7 +27,10 @@ type TestAccount struct {
 // It accepts an optional baseURL parameter, which is a string representing the base URL of the DevNet server.
 // If no baseURL is provided, the default value of "http://localhost:5050" is used.
 //
-// It returns a pointer to the newly created DevNet instance.
+// Parameters:
+// - baseURL: a string representing the base URL of the DevNet server
+// Returns:
+// - *DevNet: a pointer to the newly created DevNet instance
 func NewDevNet(baseURL ...string) *DevNet {
 	if len(baseURL) == 0 {
 		return &DevNet{
@@ -41,8 +44,10 @@ func NewDevNet(baseURL ...string) *DevNet {
 
 // api returns the full URL for a given URI.
 //
-// It takes a string parameter `uri` which represents the URI path.
-// It returns a string which is the full URL constructed using the `devnet.baseURL` and `uri`.
+// Parameter:
+// - uri: a string which represents the URI path
+// Returns:
+// - string which is the full URL constructed using the `devnet.baseURL` and `uri`
 func (devnet *DevNet) api(uri string) string {
 	uri = strings.TrimPrefix(uri, "/")
 	return fmt.Sprintf("%s/%s", devnet.baseURL, uri)
@@ -53,6 +58,11 @@ func (devnet *DevNet) api(uri string) string {
 // It does an HTTP GET request to the "/predeployed_accounts" endpoint and
 // decodes the response body into a slice of TestAccount structs. It returns
 // the list of accounts and any error that occurred during the process.
+//
+// Parameters:
+//   none
+// Returns:
+// - []TestAccount: a slice of TestAccount structs
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), nil)
 	if err != nil {
@@ -75,6 +85,11 @@ func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 // It sends a GET request to the "/is_alive" endpoint of the DevNet API.
 // It returns true if the response status code is 200 (http.StatusOK),
 // and false otherwise.
+//
+// Parameters:
+//  none
+// Returns:
+//  bool: true if the DevNet is alive, false otherwise
 func (devnet *DevNet) IsAlive() bool {
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/is_alive"), nil)
 	if err != nil {
@@ -98,9 +113,12 @@ type MintResponse struct {
 
 // Mint mints a certain amount of tokens for a given address.
 //
-// address is the address to mint tokens for.
-// amount is the amount of tokens to mint.
-// Returns a MintResponse and an error.
+// Parameters:
+// - address: is the address to mint tokens for
+// - amount: is the amount of tokens to mint
+// Returns:
+// - *MintResponse: a MintResponse
+// - error: an error if any
 func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error) {
 	data := struct {
 		Address *felt.Felt `json:"address"`
@@ -139,7 +157,13 @@ type FeeToken struct {
 // FeeToken retrieves the fee token from the DevNet API.
 //
 // This function does a GET request to the "/fee_token" endpoint of the DevNet API
-// to retrieve the fee token. It returns a pointer to a FeeToken object and an error.
+// to retrieve the fee token.
+//
+// Parameters:
+//   none
+// Returns:
+//   - *FeeToken: a pointer to a FeeToken object
+//   - error: an error, if any
 func (devnet *DevNet) FeeToken() (*FeeToken, error) {
 	req, err := http.NewRequest("GET", devnet.api("/fee_token"), nil)
 	if err != nil {

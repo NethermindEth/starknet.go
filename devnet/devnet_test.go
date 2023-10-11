@@ -12,6 +12,11 @@ import (
 //
 // This function checks if the Devnet is alive by creating a new instance of the Devnet struct and calling the IsAlive method.
 // It then uses the Fatalf method from the testing package to fail the test if the Devnet is not alive.
+//
+// Parameters:
+// - t: is the testing.T instance for running the test
+// Returns:
+//   none
 func TestDevnet_IsAlive(t *testing.T) {
 	d := NewDevNet()
 	if !d.IsAlive() {
@@ -23,8 +28,11 @@ func TestDevnet_IsAlive(t *testing.T) {
 //
 // It verifies that reading the accounts should succeed and that the returned
 // account addresses are valid.
-// Parameter(s): None.
-// Return type(s): None.
+//
+// Parameters:
+//  - t: is the testing.T instance for running the test
+// Returns:
+//  none
 func TestDevnet_Accounts(t *testing.T) {
 	d := NewDevNet()
 	accounts, err := d.Accounts()
@@ -39,7 +47,12 @@ func TestDevnet_Accounts(t *testing.T) {
 // TestDevnet_FeeToken tests the FeeToken function of the Devnet struct.
 //
 // The function retrieves the fee token from the Devnet instance and checks that
-// it matches the expected ETH address. It should not return an error.
+// it matches the expected ETH address.
+//
+// Parameters:
+// - t: is the testing.T instance for running the test
+// Returns:
+//   none
 func TestDevnet_FeeToken(t *testing.T) {
 	d := NewDevNet()
 	token, err := d.FeeToken()
@@ -57,6 +70,11 @@ func TestDevnet_FeeToken(t *testing.T) {
 // Then it calls the Mint method with a test hexadecimal value and the amount.
 // If an error occurs during the Mint method call, it fails the test with the error message.
 // If the NewBalance returned by the Mint method is less than the amount, it fails the test with an error message.
+//
+// Parameters:
+// - t: is the testing.T instance for running the test
+// Returns:
+//   none
 func TestDevnet_Mint(t *testing.T) {
 	d := NewDevNet()
 	amount := big.NewInt(int64(1000000000000000000))
