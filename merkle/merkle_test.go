@@ -8,9 +8,10 @@ import (
 // debugProof is a function used for debugging purposes. It logs the proofs to the testing logger.
 //
 // Parameters:
-// - t: A pointer to the testing.T object.
-// - proofs: A slice of pointers to big.Int objects representing the proofs.
-// Return type: None.
+// - t: a pointer to the testing.T object
+// - proofs: a slice of pointers to big.Int objects representing the proofs
+// Returns:
+//   none
 func debugProof(t *testing.T, proofs []*big.Int) {
 	t.Log("...proof")
 	for k, v := range proofs {
@@ -24,8 +25,8 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 //
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
-//
-// Return type: None.
+// Returns:
+//   none
 func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(7)}
 	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
