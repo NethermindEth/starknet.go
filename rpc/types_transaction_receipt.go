@@ -264,3 +264,18 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
+
+// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+type TxnStatus string
+
+const (
+	TxnStatus_Recieved       TxnStatus = "RECEIVED"
+	TxnStatus_Rejected       TxnStatus = "REJECTED"
+	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
+)
+
+type GetTxnStatusResp struct {
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FinalityStatus  TxnStatus          `json:"finality_status"`
+}

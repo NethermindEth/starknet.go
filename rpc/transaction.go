@@ -106,3 +106,16 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 	}
 	return receipt.TransactionReceipt, nil
 }
+
+// GetTransactionStatus gets the transaction status (possibly reflecting that the tx is still in the mempool, or dropped from it)
+func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*GetTxnStatusResp, error) {
+	var receipt GetTxnStatusResp
+	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
+	if err != nil {
+		if errors.Is(err, ErrHashNotFound) {
+			return nil, ErrHashNotFound
+		}
+		return nil, err
+	}
+	return &receipt, nil
+}
