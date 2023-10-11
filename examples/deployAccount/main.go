@@ -25,6 +25,11 @@ var (
 // sets up the account using the client, converts the predeployed class hash to a felt type, creates transaction data,
 // precomputes an address, prompts the user to add funds to the precomputed address, signs the transaction,
 // and finally sends the transaction to the network.
+//
+// Parameters:
+//   none
+// Returns:
+//  none
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))

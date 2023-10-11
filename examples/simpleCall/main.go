@@ -21,6 +21,11 @@ var (
 //
 // It initializes the environment and establishes a connection with the client.
 // It then makes a contract call and prints the response.
+//
+// Parameters:
+//   none
+// Returns:
+//  none
 func main() {
 	fmt.Println("Starting simpeCall example")
 	godotenv.Load(fmt.Sprintf(".env.%s", name))
