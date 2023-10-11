@@ -10,8 +10,11 @@ import (
 
 // ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
 //
-// feltArr: A pointer to an array of Felt objects.
-// Returns a pointer to a Felt object and an error.
+// Parameters:
+// - feltArr: A pointer to an array of Felt objects.
+// Returns:
+// - *felt.Felt: a pointer to a Felt object
+// - error: an error if any
 func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
 
@@ -25,15 +28,18 @@ func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 // CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
 //
-// txHashPrefix: The prefix of the transaction hash.
-// version: The version of the transaction.
-// contractAddress: The address of the contract.
-// entryPointSelector: The selector of the entry point.
-// calldata: The data of the transaction.
-// maxFee: The maximum fee for the transaction.
-// chainId: The ID of the blockchain.
-// additionalData: Additional data to be included in the hash.
-// Returns the calculated transaction hash and an error, if any.
+// Parameters:
+// - txHashPrefix: The prefix of the transaction hash
+// - version: The version of the transaction
+// - contractAddress: The address of the contract
+// - entryPointSelector: The selector of the entry point
+// - calldata: The data of the transaction
+// - maxFee: The maximum fee for the transaction
+// - chainId: The ID of the blockchain
+// - additionalData: Additional data to be included in the hash
+// Returns:
+// - *felt.Felt: the calculated transaction hash
+// - error: an error if any
 func CalculateTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
@@ -67,10 +73,9 @@ func CalculateTransactionHashCommon(
 //
 // Parameters:
 // - contract: A contract class object of type rpc.ContractClass.
-//
-// Return:
-// - A pointer to a felt.Felt object that represents the calculated hash.
-// - An error object if there was an error during the hash calculation.
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+// - error: an error object if there was an error during the hash calculation.
 func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
 
@@ -91,7 +96,10 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 
 // hashEntryPointByType calculates the hash of an entry point by type.
 //
-// It takes a slice of rpc.SierraEntryPoint as input and returns a pointer to felt.Felt.
+// Parameters:
+// - entryPoint: A slice of rpc.SierraEntryPoint objects
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
@@ -102,7 +110,10 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 
 // CompiledClassHash calculates the hash of a compiled class in the Casm format.
 //
-// It takes a `casmClass` of type `contracts.CasmClass` as input and returns a pointer to a `felt.Felt`.
+// Parameters:
+// - casmClass: A `contracts.CasmClass` object
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
@@ -116,7 +127,10 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 
 // hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
 //
-// It takes an array of CasmClassEntryPoint as input and returns a pointer to a Felt type.
+// Parameters:
+// - entryPoint: An array of CasmClassEntryPoint objects
+// Returns:
+// - *felt.Felt: a pointer to a Felt type
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
