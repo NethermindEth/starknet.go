@@ -108,7 +108,7 @@ var (
 	}
 	ErrBlockNotFound = &RPCError{
 		code:    24,
-		message: "Block not found",
+		message: "Invalid block hash",
 	}
 	ErrInvalidTxnHash = &RPCError{
 		code:    25,
