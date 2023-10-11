@@ -18,6 +18,11 @@ import (
 // block number, and testing the serialization of a block hash.
 // The function uses the testing.T parameter to report any errors that occur
 // during the execution of the test cases.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestBlockID_Marshal(t *testing.T) {
 	blockNumber := uint64(420)
 	for _, tc := range []struct {
@@ -72,8 +77,8 @@ func TestBlockID_Marshal(t *testing.T) {
 //
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
-//
-// Returns: None.
+// Returns:
+//  none
 func TestBlockStatus(t *testing.T) {
 	for _, tc := range []struct {
 		status string
@@ -106,6 +111,11 @@ var rawBlock []byte
 // This test case unmarshals raw block data into a Block instance and verifies
 // that there are no errors during the process. If any error occurs, the test
 // fails with a fatal error message.
+//
+// Parameters:
+// - t: the testing object for running the test
+// Returns:
+//  none
 func TestBlock_Unmarshal(t *testing.T) {
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {

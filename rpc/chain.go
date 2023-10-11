@@ -9,7 +9,11 @@ import (
 
 // ChainID returns the chain ID for transaction replay protection.
 //
-// It takes a context.Context as the parameter and returns a string and an error.
+// Parameters:
+// - ctx: The context.Context object for the function
+// Returns:
+// - string: The chain ID
+// - error: An error if any occurred during the execution
 func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if provider.chainID != "" {
 		return provider.chainID, nil
@@ -25,7 +29,11 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 
 // Syncing retrieves the synchronization status of the provider.
 //
-// It takes a context.Context as a parameter and returns a *SyncStatus and an error.
+// Parameters:
+// - ctx: The context.Context object for the function
+// Returns:
+// - *SyncStatus: The synchronization status
+// - error: An error if any occurred during the execution
 func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request

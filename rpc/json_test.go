@@ -14,9 +14,8 @@ import (
 //
 // Parameters:
 // - t: the testing.T instance for running tests and reporting failures.
-//
-// Return type:
-// The function does not return anything.
+// Returns:
+//  none
 func TestJSONMultiTypeArrayWithDuck(t *testing.T) {
 	type V1 struct {
 		Label1 string
@@ -81,8 +80,8 @@ func TestJSONMultiTypeArrayWithDuck(t *testing.T) {
 //
 // Parameters:
 // - t: the testing.T object for running the test.
-//
-// Return type: None.
+// Returns:
+//  none
 func TestJSONMixingStructWithMap(t *testing.T) {
 	type V1 struct {
 		Label1 string

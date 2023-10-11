@@ -18,6 +18,11 @@ import (
 // the output against the expected output. It also checks that the output is not empty
 // and that it matches the expected pattern result. If any of the assertions fail,
 // the test fails with an error.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 

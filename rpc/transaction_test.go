@@ -12,6 +12,11 @@ import (
 )
 
 // TestTransactionByHash tests transaction by hash
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+// none
 func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -100,6 +105,11 @@ func TestTransactionByHash(t *testing.T) {
 // If there is an error, it fails the test. If the transaction is nil, it fails the test.
 // If the transaction is not of type InvokeTxnV1, it fails the test. Finally, it asserts
 // that the transaction type is TransactionType_Invoke and that the transaction is equal to the expected transaction.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -156,7 +166,10 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 
 // TestTransactionReceipt_MatchesCapturedTransaction tests if the transaction receipt matches the captured transaction.
 //
-// It takes no parameters and does not return anything.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -235,6 +248,11 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 // If the transaction receipt does not exist, it fails the test.
 // It asserts that the transaction receipt is of type InvokeTransactionReceipt.
 // Finally, it checks if the execution status of the transaction receipt matches the expected execution status using a regular expression.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -280,6 +298,11 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 // transaction receipt matches the actual transaction receipt returned by the method.
 //
 // The function takes no parameters and does not return any values.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 

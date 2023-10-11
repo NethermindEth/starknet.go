@@ -14,7 +14,6 @@ import (
 //
 // The function tests the ClassAt function by creating different test sets for different environments
 // (mock, testnet, and mainnet). It then iterates over each test set and performs the following steps:
-//
 //   - Creates a spy object to intercept calls to the provider.
 //   - Sets the provider of the test configuration to the spy object.
 //   - Calls the ClassAt function with the specified block tag and contract address.
@@ -26,7 +25,10 @@ import (
 //     - If the response type is ContractClass:
 //       - Throws an error indicating that the case is not covered.
 //
-// The function does not return any values.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -90,6 +92,11 @@ func TestClassAt(t *testing.T) {
 // if there are any differences between the two. It also checks if the
 // returned class hash is not nil. The function takes in a testing.T
 // parameter and does not return anything.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestClassHashAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -166,9 +173,9 @@ func TestClassHashAt(t *testing.T) {
 // The function is used for testing the behavior of the Class function in different scenarios.
 //
 // Parameters:
-// - t: A *testing.T object used for reporting test failures and logging.
-//
-// Return type: None.
+// - t: A *testing.T object used for reporting test failures and logging
+// Returns:
+//  none
 func TestClass(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -240,9 +247,9 @@ func TestClass(t *testing.T) {
 // reported.
 //
 // Parameters:
-// - t: The testing.T instance used for reporting test failures.
-//
-// Returns: None.
+// - t: The testing.T instance used for reporting test failures and logging
+// Returns:
+//  none
 func TestStorageAt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -306,6 +313,11 @@ func TestStorageAt(t *testing.T) {
 // The tests involve creating a spy object, modifying the test configuration provider, and calling the Nonce function.
 // The expected result is a successful response from the Nonce function and a matching value from the spy object.
 // If any errors occur during the tests, the function will fail and display an error message.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestNonce(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -349,7 +361,10 @@ func TestNonce(t *testing.T) {
 
 // TestEstimateMessageFee is a test function to test the EstimateMessageFee function.
 //
-// This function takes no parameters and does not return any values.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestEstimateMessageFee(t *testing.T) {
 	testConfig := beforeEach(t)
 

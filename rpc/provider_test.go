@@ -63,6 +63,11 @@ var (
 // variables before running the tests and to clean up any resources afterwards.
 // It also parses command line flags and exits with the exit code returned by
 // the testing.M.Run() function.
+//
+// Parameters:
+// - m: the testing.M struct
+// Returns:
+//   none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -72,8 +77,10 @@ func TestMain(m *testing.M) {
 
 // beforeEach initializes the test environment configuration before running the script.
 //
-// t: The testing.T object for testing purposes.
-// Returns a pointer to the testConfiguration struct.
+// Parameters:
+// - t: The testing.T object for testing purposes
+// Returns:
+// - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T) *testConfiguration {
 	t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
@@ -111,6 +118,11 @@ func beforeEach(t *testing.T) *testConfiguration {
 // It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
 // The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
 // If there is a mismatch or an error occurs, the function logs a fatal error.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -140,25 +152,6 @@ func TestChainID(t *testing.T) {
 	}
 }
 
-// TestSyncing is a test function that tests the syncing functionality.
-//
-// It initializes the test configuration and defines a testSet of chain IDs.
-// It then iterates over the testSet and performs the following steps:
-//   - Creates a new spy object.
-//   - Sets the provider's context to the spy object.
-//   - Calls the Syncing method of the provider.
-//   - Checks if there is an error during syncing. If there is, it logs a fatal error.
-//   - Checks if the starting block hash is not nil. If it is not nil, it performs the following checks:
-//     - Compares the sync object with the spy object, expecting a full match.
-//     - Parses the current block number as a big integer and checks if it is a positive number.
-//     - Checks if the current block hash is a string starting with "0x".
-//   - If the starting block hash is nil, it compares the sync object with the spy object and expects the current block hash to be nil.
-//
-// The function is a test case for the TestSyncing function.
-func TestSyncing(t *testing.T) {
-	// Function body
-}
-
 // TestSyncing tests the syncing functionality.
 //
 // It initializes a test configuration and sets up a test set. Then it loops
@@ -169,6 +162,11 @@ func TestSyncing(t *testing.T) {
 // if the current block number is a positive number and if the current block
 // hash starts with "0x". If the starting block hash is nil, it compares the
 // sync object with the spy object and checks if the current block hash is nil.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 

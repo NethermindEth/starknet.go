@@ -29,6 +29,12 @@ type BlockID struct {
 //
 // It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
 // while the error indicates any error that occurred during the marshaling process.
+//
+// Parameters:
+//  none
+// Returns:
+// - []byte: the JSON representation of the BlockID
+// - error: any error that occurred during the marshaling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
@@ -63,6 +69,11 @@ const (
 //
 // It takes in a byte slice containing the JSON data to be unmarshaled.
 // The function returns an error if there is an issue unmarshaling the data.
+//
+// Parameters:
+// - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
+// Returns:
+// - error: an error if the unmarshaling fails
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -87,7 +98,11 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON returns the JSON encoding of BlockStatus.
 //
-// It returns a byte slice and an error.
+// Parameters:
+//  none
+// Returns:
+// - []byte: a byte slice
+// - error: an error if any
 func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(bs))), nil
 }

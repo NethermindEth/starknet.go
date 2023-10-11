@@ -16,6 +16,11 @@ import (
 // It sets up the necessary test configuration and expected response. Then it performs a series of test sets,
 // each with a different transaction hash. For each test set, it calls the TransactionTrace function and compares
 // the response with the expected response.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -80,6 +85,11 @@ func TestTransactionTrace(t *testing.T) {
 // The function reads input data from JSON files and performs JSON unmarshalling to set the values of the simulateTxIn and expectedResp variables.
 // It then iterates over the testSet map, calling the SimulateTransactions function with the appropriate parameters and checking the response against the expected response.
 // The function uses the testing.T type to report any errors or failures during the test execution.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -131,6 +141,11 @@ func TestSimulateTransaction(t *testing.T) {
 // through the test set, calling TraceBlockTransactions with the provided
 // block hash. It checks if there is an error and compares the response with
 // the expected response.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 

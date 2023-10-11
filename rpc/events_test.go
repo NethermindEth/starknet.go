@@ -23,8 +23,10 @@ import (
 // - Checks if there is an error and fails the test if there is.
 // - Compares the events' block hash, block number, and transaction hash with the expected response.
 //
-// This function does not have any parameters.
-// It does not have a return value.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 

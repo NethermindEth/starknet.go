@@ -14,8 +14,14 @@ type callCloser interface {
 
 // do is a function that performs a remote procedure call (RPC) using the provided callCloser.
 //
-// It takes a context.Context object, a callCloser object, a method string, a data interface{}, and optional args ...interface{} as parameters.
-// It returns an error.
+// Parameters:
+// - ctx: represents the current execution context
+// - call: the callCloser object
+// - method: the string representing the RPC method to be called
+// - data: the interface{} to store the result of the RPC call
+// - args: variadic and can be used to pass additional arguments to the RPC method
+// Returns:
+// - error: an error if any occurred during the function call
 func do(ctx context.Context, call callCloser, method string, data interface{}, args ...interface{}) error {
 	var raw json.RawMessage
 	err := call.CallContext(ctx, &raw, method, args...)
@@ -33,7 +39,11 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 
 // NewClient creates a new ethrpc.Client instance.
 //
-// It takes a URL string as a parameter and returns a pointer to ethrpc.Client and an error.
+// Parameters:
+// - url: the URL of the RPC endpoint
+// Returns:
+// - *ethrpc.Client: a new ethrpc.Client
+// - error: an error if any occurred
 func NewClient(url string) (*ethrpc.Client, error) {
 	return ethrpc.DialContext(context.Background(), url)
 }

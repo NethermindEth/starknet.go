@@ -133,8 +133,10 @@ type UnknownTransaction struct{ Transaction }
 
 // UnmarshalJSON unmarshals the JSON data into an UnknownTransaction object.
 //
-// It takes a byte slice, data, as a parameter, which contains the JSON data to be unmarshalled.
-// It returns an error if the unmarshalling process fails.
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
 func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -152,8 +154,11 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 
 // unmarshalTxn unmarshals a given interface{} into a Transaction object.
 //
-// It takes an interface{} as a parameter named t, which represents the object to be unmarshaled.
-// The function returns a Transaction object, along with an error if the unmarshaling process fails.
+// Parameters:
+// - t: The interface{} to be unmarshalled
+// Returns:
+// - Transaction: a Transaction object
+// - error: an error if the unmarshaling process fails
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -206,7 +211,12 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 
 // remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
 // It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
-// It returns an error if there is any error during the marshaling or unmarshaling process, otherwise it returns nil.
+//
+// Parameters:
+// - v: The interface{} value to be marshaled
+// - dst: The interface{} value to be unmarshaled
+// Returns:
+// - error: An error if the marshaling or unmarshaling process fails
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -231,8 +241,11 @@ const (
 
 // BigInt returns a big integer corresponding to the transaction version.
 //
-// It takes no parameters.
-// It returns a pointer to a big.Int and an error.
+// Parameters:
+//  none
+// Returns:
+// - *big.Int: a pointer to a big.Int
+// - error: an error if the conversion fails
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:

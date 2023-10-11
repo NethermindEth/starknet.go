@@ -25,59 +25,79 @@ var _ BlockTransaction = BlockL1HandlerTxn{}
 
 // Hash returns the transaction hash of the BlockInvokeTxnV0.
 //
-// It returns a *felt.Felt, which represents the transaction hash.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockInvokeTxnV1 transaction.
 //
-// It returns a pointer to a felt.Felt value.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 // Hash returns the transaction hash of the BlockDeclareTxnV0.
 //
-// Returns a pointer to felt.Felt.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV1.
 //
-// It does not take any parameters.
-// It returns a pointer to a felt.Felt object.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV2.
 //
-// No parameters.
-// Returns *felt.Felt.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockDeployTxn.
 //
-// No parameters.
-// Return type: *felt.Felt.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the Felt hash of the BlockDeployAccountTxn.
 //
-// It returns a pointer to a felt.Felt type.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockL1HandlerTxn.
 //
-// No parameters.
-// Returns a pointer to a felt.Felt.
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
@@ -126,6 +146,11 @@ type BlockDeployAccountTxn struct {
 //
 // It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
 // The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
 func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	var dec []interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -147,8 +172,11 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 
 // unmarshalBlockTxn unmarshals a given interface and returns a BlockTransaction.
 //
-// The function takes an interface `t` as a parameter, which is used to determine the type of transaction.
-// It returns a BlockTransaction and an error.
+// Parameter:
+// - t: The interface{} to be unmarshalled
+// Returns:
+// - BlockTransaction: a BlockTransaction
+// - error: an error if the unmarshaling process fails
 func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:

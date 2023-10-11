@@ -65,7 +65,11 @@ type ContractClass struct {
 // If it is missing, the function returns nil.
 // Otherwise, it unmarshals the value into a slice of interfaces.
 // For each element in the slice, it checks the type and assigns it to the appropriate field in the `ABI` field in the struct.
-// The function returns nil if there are no errors.
+//
+// Parameters:
+// - content: byte array
+// Returns:
+// - error: error if there is any
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
@@ -222,24 +226,30 @@ type FunctionABIEntry struct {
 
 // IsType returns the ABIType of the StructABIEntry.
 //
-// No parameters.
-// Returns ABIType.
+// Parameters:
+//  none
+// Returns:
+// - ABIType: the ABIType
 func (s *StructABIEntry) IsType() ABIType {
 	return s.Type
 }
 
 // IsType returns the ABIType of the EventABIEntry.
 //
-// No parameters are required.
-// Returns the ABIType.
+// Parameters:
+//  none
+// Returns:
+// - ABIType: the ABIType
 func (e *EventABIEntry) IsType() ABIType {
 	return e.Type
 }
 
 // IsType returns the ABIType of the FunctionABIEntry.
 //
-// No parameters.
-// Returns the ABIType.
+// Parameters:
+//  none
+// Returns:
+// - ABIType: the ABIType
 func (f *FunctionABIEntry) IsType() ABIType {
 	return f.Type
 }
@@ -255,6 +265,12 @@ type TypedParameter struct {
 // encodeProgram encodes the content byte array using gzip compression and base64 encoding.
 //
 // It takes a content byte array as a parameter and returns the encoded program string and an error.
+//
+// Parameters:
+// - content: byte array to be encoded
+// Returns:
+// - string: the encoded program
+// - error: the error if any
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

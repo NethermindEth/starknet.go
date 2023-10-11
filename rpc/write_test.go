@@ -18,6 +18,11 @@ import (
 // The function reads a JSON file, unmarshals it into an `AddDeclareTxnInput` struct,
 // and performs various tests using the `AddDeclareTransaction` function.
 // It checks if the error matches the expected error and if the transaction hash matches the expected hash.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestDeclareTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
@@ -71,6 +76,11 @@ func TestDeclareTransaction(t *testing.T) {
 // It initializes a test configuration and defines sets of test cases for different environments.
 // Each test case includes an InvokeTxnV1 object, an expected AddInvokeTransactionResponse, and an expected RPCError.
 // The function iterates through the test cases, invokes AddInvokeTransaction, and compares the response and error with the expected values.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestAddInvokeTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)

@@ -21,8 +21,10 @@ import (
 // 5. Calls the BlockNumber function on the test provider.
 // 6. Validates the returned block number.
 //
-// The function does not take any parameters.
-// It does not return any values.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -62,6 +64,11 @@ func TestBlockNumber(t *testing.T) {
 //   - Compares the result with the spy and checks if it matches the expected result.
 //   - Checks if the block number is greater than 3000.
 //   - Checks if the block hash starts with "0x".
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -115,7 +122,10 @@ func TestBlockHashAndNumber(t *testing.T) {
 //   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
 //   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
 //
-// The function does not return any values.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -267,6 +277,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 // It then initializes a fullBlockGoerli310370 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
 // The function compares the expected error with the actual error and checks if the BlockWithTxs function returns the correct block data.
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
+//
+// Parameters:
+// - t: The t testing object
+// Returns:
+//  none
 func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -403,10 +418,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 // Finally, the function compares the transactions of the returned blockWithTxs with the expected transactions and returns an error if they don't match.
 //
 // Parameters:
-// - t: *testing.T - the testing object for running the test cases.
-//
-// Return:
-// None.
+// - t: *testing.T - the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -602,6 +616,11 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 // It then compares the returned count with the expected count and verifies that they match.
 // If the counts do not match, the function reports an error and provides additional information.
 // Finally, the function terminates if all test cases pass.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockTransactionCount(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -647,7 +666,10 @@ func TestBlockTransactionCount(t *testing.T) {
 
 // TestCaptureUnsupportedBlockTxn tests the functionality of capturing unsupported block transactions.
 //
-// This function takes no parameters and does not return anything.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -694,8 +716,10 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 
 // TestBlockWithTxsAndInvokeTXNV1 is a test function that tests the behavior of the BlockWithTxsAndInvokeTXNV1 function.
 //
-// It does not take any parameters.
-// It does not return any values.
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 // TODO: Find a block with such a Txn
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
@@ -729,6 +753,11 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestStateUpdate(t *testing.T) {
 	testConfig := beforeEach(t)
 
