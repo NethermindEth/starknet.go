@@ -41,7 +41,10 @@ type TypedMessage interface {
 
 // FmtDefinitionEncoding formats the definition (standard Starknet Domain) encoding.
 //
-// It takes a field string as input and returns a slice of big integers.
+// Parameters:
+// - field: the field to format the encoding for
+// Returns:
+// - fmtEnc: a slice of big integers
 func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	processStrToBig := func(fieldVal string) {
 		feltVal := strToFelt(fieldVal)
@@ -62,7 +65,10 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 
 // strToFelt converts a string (decimal, hexadecimal or UTF8 charset) to a *felt.Felt.
 //
-// It takes a string as a parameter and returns a pointer to a *felt.Felt.
+// Parameters:
+// - str: the string to convert to a *felt.Felt
+// Returns:
+// - *felt.Felt: a *felt.Felt with the value of str
 func strToFelt(str string) *felt.Felt {
 	var f = &felt.Zero
 	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
@@ -85,20 +91,16 @@ func strToFelt(str string) *felt.Felt {
 
 // NewTypedData initializes a new TypedData object with the given types, primary type, and domain
 // for interacting and signing in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
+// If the primary type is invalid, it returns an error with the message "invalid primary type: {pType}".
+// If there is an error encoding the type hash, it returns an error with the message "error encoding type hash: {enc.String()} {err}".
 //
-// It takes the following parameters:
+// Parameters:
 // - types: a map[string]TypeDef representing the types associated with their names.
 // - pType: a string representing the primary type.
 // - dom: a Domain representing the domain.
-//
-// It returns a TypedData object and an error. The TypedData object contains the following fields:
-// - Types: a map[string]TypeDef representing the types associated with their names.
-// - PrimaryType: a string representing the primary type.
-// - Domain: a Domain representing the domain.
-//
-// The function returns the TypedData object and an error. If the primary type is invalid, it returns
-// an error with the message "invalid primary type: {pType}". If there is an error encoding the type hash,
-// it returns an error with the message "error encoding type hash: {enc.String()} {err}".
+// Returns:
+// - td: a TypedData object
+// - err: an error if any
 func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{
 		Types:       types,
@@ -127,7 +129,6 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 // - account: A pointer to a big.Int representing the account.
 // - msg: A TypedMessage object representing the message.
 // - sc: A StarkCurve object representing the curve.
-//
 // Returns:
 // - hash: A pointer to a big.Int representing the calculated hash.
 // - err: An error object indicating any error that occurred during the calculation.
@@ -154,13 +155,12 @@ func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc curve.
 // GetTypedMessageHash calculates the hash of a typed message using the provided StarkCurve.
 //
 // Parameters:
-//    - inType: the type of the message
-//    - msg: the typed message
-//    - sc: the StarkCurve used for hashing
-//
+//  - inType: the type of the message
+//  - msg: the typed message
+//  - sc: the StarkCurve used for hashing
 // Returns:
-//    - hash: the calculated hash
-//    - err: any error that occurred during the calculation
+//  - hash: the calculated hash
+//  - err: any error if any
 func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
 	prim := td.Types[inType]
 	elements := []*big.Int{prim.Encoding}
@@ -192,8 +192,11 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc curv
 
 // GetTypeHash returns the hash of the given type.
 //
-// It takes inType as a parameter, which is the type to encode.
-// It returns ret, which is the hash of the given type, and err, which is an error if there was an issue encoding the type.
+// Parameters:
+// - inType: the type to hash
+// Returns:
+// - ret: the hash of the given type
+// - err: any error if any
 func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 	enc, err := td.EncodeType(inType)
 	if err != nil {
@@ -205,7 +208,11 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 
 // EncodeType encodes the given inType using the TypedData struct.
 //
-// It takes in a string representing the inType and returns the encoded string and an error if any.
+// Parameters:
+// - inType: the type to encode
+// Returns:
+// - enc: the encoded type
+// - err: any error if any
 func (td TypedData) EncodeType(inType string) (enc string, err error) {
 	var typeDefs TypeDef
 	var ok bool
