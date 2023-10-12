@@ -107,7 +107,6 @@ go run main.go
 | `starknet_blockNumber`                     | :heavy_check_mark: |
 | `starknet_blockHashAndNumber`              | :heavy_check_mark: |
 | `starknet_chainId`                         | :heavy_check_mark: |
-| `starknet_pendingTransactions`             | :heavy_check_mark: |
 | `starknet_syncing`                         | :heavy_check_mark: |
 | `starknet_getEvents`                       | :heavy_check_mark: |
 | `starknet_getNonce`                        | :heavy_check_mark: |
