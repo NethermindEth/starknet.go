@@ -269,13 +269,13 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 type TxnStatus string
 
 const (
-	TxnStatus_Recieved       TxnStatus = "RECEIVED"
+	TxnStatus_Received       TxnStatus = "RECEIVED"
 	TxnStatus_Rejected       TxnStatus = "REJECTED"
 	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
 )
 
-type GetTxnStatusResp struct {
+type TxnStatusResp struct {
 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
 	FinalityStatus  TxnStatus          `json:"finality_status"`
 }

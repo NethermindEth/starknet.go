@@ -97,6 +97,7 @@ go run main.go
 | `starknet_getTransactionByHash`            | :heavy_check_mark: |
 | `starknet_getTransactionByBlockIdAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionReceipt`           | :heavy_check_mark: |
+| `starknet_getTransactionStatus`            | :heavy_check_mark: |
 | `starknet_getClass`                        | :heavy_check_mark: |
 | `starknet_getClassHashAt`                  | :heavy_check_mark: |
 | `starknet_getClassAt`                      | :heavy_check_mark: |
