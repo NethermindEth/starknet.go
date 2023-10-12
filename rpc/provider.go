@@ -46,6 +46,7 @@ type RpcProvider interface {
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
+	SpecVersion(ctx context.Context) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
 	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)

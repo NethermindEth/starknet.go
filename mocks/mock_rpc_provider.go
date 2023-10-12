@@ -306,6 +306,21 @@ func (mr *MockRpcProviderMockRecorder) SimulateTransactions(ctx, blockID, txns, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimulateTransactions", reflect.TypeOf((*MockRpcProvider)(nil).SimulateTransactions), ctx, blockID, txns, simulationFlags)
 }
 
+// SpecVersion mocks base method.
+func (m *MockRpcProvider) SpecVersion(ctx context.Context) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpecVersion", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SpecVersion indicates an expected call of SpecVersion.
+func (mr *MockRpcProviderMockRecorder) SpecVersion(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpecVersion", reflect.TypeOf((*MockRpcProvider)(nil).SpecVersion), ctx)
+}
+
 // StateUpdate mocks base method.
 func (m *MockRpcProvider) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
 	m.ctrl.T.Helper()

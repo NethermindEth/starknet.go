@@ -115,6 +115,7 @@ go run main.go
 | `starknet_addDeployAccountTransaction`     | :heavy_check_mark: |
 | `starknet_traceTransaction`                | :heavy_check_mark: |
 | `starknet_simulateTransaction`             | :heavy_check_mark: |
+| `starknet_specVersion`                     | :heavy_check_mark: |
 | `starknet_traceBlockTransactions`          | :heavy_check_mark: |
 
 ### Run Tests
