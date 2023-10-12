@@ -24,28 +24,28 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 	}
 
 	switch rawTxnTrace["type"] {
-	case TransactionType_Invoke:
+	case string(TransactionType_Invoke):
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
 			return nil, err
 		}
 		return trace, nil
-	case TransactionType_Declare:
+	case string(TransactionType_Declare):
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
 			return nil, err
 		}
 		return trace, nil
-	case TransactionType_DeployAccount:
+	case string(TransactionType_DeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
 			return nil, err
 		}
 		return trace, nil
-	case TransactionType_L1Handler:
+	case string(TransactionType_L1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
