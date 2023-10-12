@@ -65,3 +65,9 @@ jobs:
       - name: Test Account with mocks
         run: echo "Skip for now - until account tests stable"
         #run: cd account && go test -v . -env mock
+
+      # Build examples
+      - name: Build examples
+        run: | 
+          cd examples/deployAccount && go build
+          cd ../simpleCall && go build
