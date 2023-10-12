@@ -393,8 +393,8 @@ func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
 
-func (account *Account) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
-	return account.provider.TraceBlockTransactions(ctx, blockHash)
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+	return account.provider.TraceBlockTransactions(ctx, blockID)
 }
 
 func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, error) {

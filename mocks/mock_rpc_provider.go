@@ -352,18 +352,18 @@ func (mr *MockRpcProviderMockRecorder) Syncing(ctx interface{}) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
+func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockHash)
+	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
 	ret0, _ := ret[0].([]rpc.Trace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TraceBlockTransactions indicates an expected call of TraceBlockTransactions.
-func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockHash interface{}) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockID)
 }
 
 // TransactionByBlockIdAndIndex mocks base method.
