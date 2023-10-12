@@ -389,6 +389,9 @@ func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Fel
 func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
 	return account.provider.StateUpdate(ctx, blockID)
 }
+func (account *Account) SpecVersion(ctx context.Context) (string, error) {
+	return account.provider.SpecVersion(ctx)
+}
 func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
