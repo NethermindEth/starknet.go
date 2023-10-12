@@ -69,5 +69,5 @@ jobs:
       # Build examples
       - name: Build examples
         run: | 
-          cd deployAccount && go build
+          cd examples/deployAccount && go build
           cd ../simpleCall && go build
