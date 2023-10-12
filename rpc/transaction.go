@@ -85,15 +85,6 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 	return adaptTransaction(tx)
 }
 
-// PendingTransaction returns the transactions in the transaction pool, recognized by this sequencer.
-func (provider *Provider) PendingTransaction(ctx context.Context) ([]Transaction, error) {
-	txs := []Transaction{}
-	if err := do(ctx, provider.c, "starknet_pendingTransactions", &txs, []interface{}{}); err != nil {
-		return nil, err
-	}
-	return txs, nil
-}
-
 // TxnReceipt gets the transaction receipt by the transaction hash.
 func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
 	var receipt UnknownTransactionReceipt
