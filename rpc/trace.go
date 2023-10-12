@@ -9,7 +9,7 @@ import (
 )
 
 // For a given executed transaction, return the trace of its execution, including internal calls
-func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
+func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
 		if noTraceAvailableError, ok := isErrNoTraceAvailableError(err); ok {

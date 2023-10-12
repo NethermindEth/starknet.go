@@ -366,6 +366,21 @@ func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockHash int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockHash)
 }
 
+// TraceTransaction mocks base method.
+func (m *MockRpcProvider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TraceTransaction", ctx, transactionHash)
+	ret0, _ := ret[0].(rpc.TxnTrace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TraceTransaction indicates an expected call of TraceTransaction.
+func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceTransaction", reflect.TypeOf((*MockRpcProvider)(nil).TraceTransaction), ctx, transactionHash)
+}
+
 // TransactionByBlockIdAndIndex mocks base method.
 func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
 	m.ctrl.T.Helper()
@@ -409,19 +424,4 @@ func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHas
 func (mr *MockRpcProviderMockRecorder) TransactionReceipt(ctx, transactionHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockRpcProvider)(nil).TransactionReceipt), ctx, transactionHash)
-}
-
-// TransactionTrace mocks base method.
-func (m *MockRpcProvider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionTrace", ctx, transactionHash)
-	ret0, _ := ret[0].(rpc.TxnTrace)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// TransactionTrace indicates an expected call of TransactionTrace.
-func (mr *MockRpcProviderMockRecorder) TransactionTrace(ctx, transactionHash interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionTrace", reflect.TypeOf((*MockRpcProvider)(nil).TransactionTrace), ctx, transactionHash)
 }
