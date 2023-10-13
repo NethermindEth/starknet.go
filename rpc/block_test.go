@@ -79,11 +79,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 	type testSetType struct {
 		BlockID                          BlockID
 		ExpectedError                    error
-		ExpectedBlockWithTxHashes        *Block
-		ExpectedPendingBlockWithTxHashes *PendingBlock
+		ExpectedBlockWithTxHashes        *BlockTxHashes
+		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockGoerli310370 = Block{
+	var blockGoerli310370 = BlockTxHashes{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
@@ -93,50 +93,61 @@ func TestBlockWithTxHashes(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x43cd66f3ddbfbf681ab99bb57bf9d94c83d6e9b586bdbde78ab2deb0328ebd5")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x7602cfebe4f3cb3ef4c8b8c6d7dda2efaf4a500723020066f5db50acd5095cd")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x2612f3f870ee7e7617d4f9efdc41fa8fd571f9720b059b1aa14c1bf15d3a92a")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x1a7810a6c68adf0621ed384d915409c936efa0c9d436683ea0cf7ea171719b")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x26683aeef3e9d9bcc1f0d45a5f0b67d0aa1919726524b2a8dc59504dacfd1f4")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x1d374aa073435cdde1ec1caf972f7c175fd23438bb220848e71720e00fd7474")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0xfc13eabaa2f38981e68bb010370cad7a7d0b65a59101ec816042adca0d6841")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x672d007224128b99bcc145cd3dbd8930a944b6a5fff5c27e3b158a6ff701509")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x24795cbca6d2eba941082cea3f686bc86ef27dd46fdf84b32f9ba25bbeddb28")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x69281a4dd58c260a06b3266554c0cf1a4f19b79d8488efef2a1f003d67506ed")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x62211cc3c94d612b580eb729410e52277f838f962d91af91fb2b0526704c04d")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x5e4128b7680db32de4dff7bc57cb11c9f222752b1f875e84b29785b4c284e2a")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0xdb8ad2b7d008fd2ad7fba4315b193032dee85e17346c80276a2e08c7f09f80")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x67b9541ca879abc29fa24a0fa070285d1899fc044159521c827f6b6aa09bbd6")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x5d9c0ab1d4ed6e9376c8ab45ee02b25dd0adced12941aafe8ce37369d19d9c2")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x4e52da53e23d92d9818908aeb104b007ea24d3cd4a5aa43144d2db1011e314f")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x6cc05f5ab469a3675acb5885c274d5143dca75dd9835c582f59e85ab0642d39")},
-			TransactionHash{TransactionHash: utils.TestHexToFelt(t, "0x561ed983d1d9c37c964a96f80ccaf3de772e2b73106d6f49dd7c3f7ed8483d9")},
-		},
+		Transactions: utils.TestHexArrToFelt(t, []string{
+			"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
+			"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+			"0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72",
+			"0x43cd66f3ddbfbf681ab99bb57bf9d94c83d6e9b586bdbde78ab2deb0328ebd5",
+			"0x7602cfebe4f3cb3ef4c8b8c6d7dda2efaf4a500723020066f5db50acd5095cd",
+			"0x2612f3f870ee7e7617d4f9efdc41fa8fd571f9720b059b1aa14c1bf15d3a92a",
+			"0x1a7810a6c68adf0621ed384d915409c936efa0c9d436683ea0cf7ea171719b",
+			"0x26683aeef3e9d9bcc1f0d45a5f0b67d0aa1919726524b2a8dc59504dacfd1f4",
+			"0x1d374aa073435cdde1ec1caf972f7c175fd23438bb220848e71720e00fd7474",
+			"0xfc13eabaa2f38981e68bb010370cad7a7d0b65a59101ec816042adca0d6841",
+			"0x672d007224128b99bcc145cd3dbd8930a944b6a5fff5c27e3b158a6ff701509",
+			"0x24795cbca6d2eba941082cea3f686bc86ef27dd46fdf84b32f9ba25bbeddb28",
+			"0x69281a4dd58c260a06b3266554c0cf1a4f19b79d8488efef2a1f003d67506ed",
+			"0x62211cc3c94d612b580eb729410e52277f838f962d91af91fb2b0526704c04d",
+			"0x5e4128b7680db32de4dff7bc57cb11c9f222752b1f875e84b29785b4c284e2a",
+			"0xdb8ad2b7d008fd2ad7fba4315b193032dee85e17346c80276a2e08c7f09f80",
+			"0x67b9541ca879abc29fa24a0fa070285d1899fc044159521c827f6b6aa09bbd6",
+			"0x5d9c0ab1d4ed6e9376c8ab45ee02b25dd0adced12941aafe8ce37369d19d9c2",
+			"0x4e52da53e23d92d9818908aeb104b007ea24d3cd4a5aa43144d2db1011e314f",
+			"0x6cc05f5ab469a3675acb5885c274d5143dca75dd9835c582f59e85ab0642d39",
+			"0x561ed983d1d9c37c964a96f80ccaf3de772e2b73106d6f49dd7c3f7ed8483d9",
+		}),
 	}
 
+	txHashes := utils.TestHexArrToFelt(t, []string{
+		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
+		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+	})
+	blockHash := utils.TestHexToFelt(t, "0xbeef")
+
 	testSet := map[string][]testSetType{
-		"mock": {{
-			BlockID: BlockID{Tag: "latest"},
-			ExpectedPendingBlockWithTxHashes: &PendingBlock{
-				ParentHash:       &felt.Zero,
-				Timestamp:        123,
-				SequencerAddress: &felt.Zero,
+		"mock": {
+			{
+				BlockID: BlockID{Tag: "latest"},
+				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
+					ParentHash:       &felt.Zero,
+					Timestamp:        123,
+					SequencerAddress: &felt.Zero,
+					Transactions:     txHashes,    
+				},
+			},
+			{
+				BlockID: BlockID{Hash: blockHash},
+				ExpectedBlockWithTxHashes: &BlockTxHashes{
+					BlockHeader: BlockHeader{
+						BlockHash:        blockHash,
+						ParentHash:       &felt.Zero,
+						Timestamp:        124,
+						SequencerAddress: &felt.Zero},
+					Status:       BlockStatus_AcceptedOnL1,
+					Transactions: txHashes,
+				},
 			},
 		},
-			{
-				BlockID: BlockID{Hash: &felt.Zero},
-				ExpectedBlockWithTxHashes: &Block{
-					BlockHeader: BlockHeader{
-						ParentHash:       &felt.Zero,
-						Timestamp:        123,
-						SequencerAddress: &felt.Zero},
-					Status: BlockStatus_AcceptedOnL1,
-				},
-			}},
 		"testnet": {
 			{
 				BlockID:       WithBlockTag("latest"),
@@ -155,7 +166,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"mainnet": {},
 	}[testEnv]
-
+	
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
@@ -163,11 +174,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 		if err != test.ExpectedError {
 			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
-		switch resultBlock := result.(type) {
-		case Block:
-			block, ok := result.(*Block)
+		switch resultType := result.(type) {
+		case *BlockTxHashes:
+			block, ok := result.(*BlockTxHashes)
 			if !ok {
-				t.Fatalf("should return *Block, instead: %T\n", result)
+				t.Fatalf("should return *BlockTxHashes, instead: %T\n", result)
 			}
 			if test.ExpectedError != nil {
 				continue
@@ -179,22 +190,31 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if len(block.Transactions) == 0 {
 				t.Fatal("the number of transaction should not be 0")
 			}
-
 			if test.ExpectedBlockWithTxHashes != nil {
 				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
 					continue
 				}
 
-				if !cmp.Equal(*test.ExpectedBlockWithTxHashes, *block) {
-					t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxHashes, block))
-				}
+				require.Equal(t, block.BlockHeader.BlockHash, test.ExpectedBlockWithTxHashes.BlockHeader.BlockHash, "Error in BlockTxHash BlockHash")
+				require.Equal(t, block.BlockHeader.ParentHash, test.ExpectedBlockWithTxHashes.BlockHeader.ParentHash, "Error in BlockTxHash ParentHash")
+				require.Equal(t, block.BlockHeader.Timestamp, test.ExpectedBlockWithTxHashes.BlockHeader.Timestamp, "Error in BlockTxHash Timestamp")
+				require.Equal(t, block.BlockHeader.SequencerAddress, test.ExpectedBlockWithTxHashes.BlockHeader.SequencerAddress, "Error in BlockTxHash SequencerAddress")
+				require.Equal(t, block.Status, test.ExpectedBlockWithTxHashes.Status, "Error in BlockTxHash Status")
+				require.Equal(t, block.Transactions, test.ExpectedBlockWithTxHashes.Transactions, "Error in BlockTxHash Transactions")
 			}
-		case PendingBlock:
-			require.Equal(t, resultBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlock ParentHash")
-			require.Equal(t, resultBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlock SequencerAddress")
-			require.Equal(t, resultBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlock Timestamp")
+		case *PendingBlockTxHashes:
+			pBlock, ok := result.(*PendingBlockTxHashes)
+			if !ok {
+				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
+			}
+			
+			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
+			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
+			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")
+			require.Equal(t, pBlock.Transactions, test.ExpectedPendingBlockWithTxHashes.Transactions, "Error in PendingBlockTxHashes Transactions")
+		default:
+			t.Fatalf("unexpected block type, found: %T\n", resultType)
 		}
-
 	}
 }
 
@@ -220,34 +240,32 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			InvokeTxnV0{
-				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
-					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-						Type:    "INVOKE",
-						MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
-						Version: TransactionV0,
-						Signature: []*felt.Felt{
-							utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
-							utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
-						},
-						Nonce: nil,
+		Transactions: []BlockTransaction{
+
+			BlockInvokeTxnV0{
+				TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+				InvokeTxnV0: InvokeTxnV0{
+					Type:    "INVOKE",
+					MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
+					Version: TransactionV0,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
+						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
 					},
-				},
-				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
-					EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
-						utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
-						utils.TestHexToFelt(t, "0x0"),
-						utils.TestHexToFelt(t, "0x2"),
-						utils.TestHexToFelt(t, "0x2"),
-						utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
-						utils.TestHexToFelt(t, "0x6307b990"),
-						utils.TestHexToFelt(t, "0x2b81"),
+					FunctionCall: FunctionCall{
+						ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
+						EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+						Calldata: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x1"),
+							utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
+							utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
+							utils.TestHexToFelt(t, "0x0"),
+							utils.TestHexToFelt(t, "0x2"),
+							utils.TestHexToFelt(t, "0x2"),
+							utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
+							utils.TestHexToFelt(t, "0x6307b990"),
+							utils.TestHexToFelt(t, "0x2b81"),
+						},
 					},
 				},
 			},
@@ -306,19 +324,17 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				continue
 			}
 
-			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(InvokeTxnV0)
+			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV0)
 			if !ok {
 				t.Fatal("expected invoke v0 transaction")
 			}
-			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(InvokeTxnV0)
+			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV0)
 			if !ok {
 				t.Fatal("expected invoke v0 transaction")
 			}
-
-			require.Equal(t, invokeV0Want.Hash(), invokeV0Block.Hash(), "expected equal hash")
-			require.Equal(t, invokeV0Want.Nonce, invokeV0Block.Nonce, "expected equal nonce")
-			require.Equal(t, invokeV0Want.MaxFee, invokeV0Block.MaxFee, "expected equal maxfee")
-			require.Equal(t, invokeV0Want.EntryPointSelector, invokeV0Block.EntryPointSelector, "expected equal eps")
+			require.Equal(t, invokeV0Want.TransactionHash, invokeV0Block.TransactionHash, "expected equal TransactionHash")
+			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
+			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
 
 		}
 
@@ -348,11 +364,11 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1661486036,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeployTxn{
+		Transactions: []BlockTransaction{
+			BlockDeployTxn{
 				TransactionHash: utils.TestHexToFelt(t, "0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-				ClassHash:       utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
-				DeployTransactionProperties: DeployTransactionProperties{
+				DeployTxn: DeployTxn{
+					ClassHash: utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
 					ConstructorCalldata: []*felt.Felt{
 						utils.TestHexToFelt(t, "0x31ad196615d50956d98be085eb1774624106a6936c7c38696e730d2a6df735a"),
 						utils.TestHexToFelt(t, "0x736affc32af71f8d361c855b38ffef58ec151bd8361a3b160017b90ada1068e"),
@@ -376,20 +392,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1692416283,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV1{
-				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
-					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-						Type:      TransactionType_Declare,
-						MaxFee:    utils.TestHexToFelt(t, "0x27a64c6e425"),
-						Version:   TransactionV1,
-						Signature: []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
-						Nonce:     utils.TestHexToFelt(t, "0x333"),
-					},
+		Transactions: []BlockTransaction{
+			BlockDeclareTxnV1{
+				TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
+				DeclareTxnV1: DeclareTxnV1{
+					Type:          TransactionType_Declare,
+					MaxFee:        utils.TestHexToFelt(t, "0x27a64c6e425"),
+					Version:       TransactionV1,
+					Signature:     []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
+					Nonce:         utils.TestHexToFelt(t, "0x333"),
+					ClassHash:     utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
+					SenderAddress: utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
 				},
-				ClassHash:     utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
-				SenderAddress: utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
 			},
 		},
 	}
@@ -404,21 +418,19 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1692560305,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []Transaction{
-			DeclareTxnV2{
-				CommonTransaction: CommonTransaction{
-					TransactionHash: utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
-					BroadcastedTxnCommonProperties: BroadcastedTxnCommonProperties{
-						Type:      TransactionType_Declare,
-						MaxFee:    utils.TestHexToFelt(t, "0x50c8f30287c"),
-						Version:   TransactionV2,
-						Signature: []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
-						Nonce:     utils.TestHexToFelt(t, "0xd"),
-					},
+		Transactions: []BlockTransaction{
+			BlockDeclareTxnV2{
+				TransactionHash: utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
+				DeclareTxnV2: DeclareTxnV2{
+					Type:              TransactionType_Declare,
+					MaxFee:            utils.TestHexToFelt(t, "0x50c8f30287c"),
+					Version:           TransactionV2,
+					Signature:         []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
+					Nonce:             utils.TestHexToFelt(t, "0xd"),
+					ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
+					SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
 				},
-				ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
-				CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
-				SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
 			},
 		},
 	}
@@ -588,14 +600,14 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv1 := v.(InvokeTxnV1)
-				_, okv0 := v.(InvokeTxnV0)
-				_, okl1 := v.(L1HandlerTxn)
-				_, okdec0 := v.(DeclareTxnV0)
-				_, okdec1 := v.(DeclareTxnV1)
-				_, okdec2 := v.(DeclareTxnV2)
-				_, okdep := v.(DeployTxn)
-				_, okdepac := v.(DeployAccountTxn)
+				_, okv1 := v.(BlockInvokeTxnV1)
+				_, okv0 := v.(BlockInvokeTxnV0)
+				_, okl1 := v.(BlockL1HandlerTxn)
+				_, okdec0 := v.(BlockDeclareTxnV0)
+				_, okdec1 := v.(BlockDeclareTxnV1)
+				_, okdec2 := v.(BlockDeclareTxnV2)
+				_, okdep := v.(BlockDeployTxn)
+				_, okdepac := v.(BlockDeployAccountTxn)
 				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}

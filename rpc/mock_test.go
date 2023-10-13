@@ -30,46 +30,46 @@ func (r *rpcMock) Close() {
 
 func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	switch method {
-	case "starknet_blockNumber":
-		return mock_starknet_blockNumber(result, method, args...)
-	case "starknet_chainId":
-		return mock_starknet_chainId(result, method, args...)
-	case "starknet_syncing":
-		return mock_starknet_syncing(result, method, args...)
-	case "starknet_getTransactionByHash":
-		return mock_starknet_getTransactionByHash(result, method, args...)
-	case "starknet_getTransactionByBlockIdAndIndex":
-		return mock_starknet_getTransactionByBlockIdAndIndex(result, method, args...)
-	case "starknet_getBlockTransactionCount":
-		return mock_starknet_getBlockTransactionCount(result, method, args...)
-	case "starknet_getTransactionReceipt":
-		return mock_starknet_getTransactionReceipt(result, method, args...)
-	case "starknet_getClassAt":
-		return mock_starknet_getClassAt(result, method, args...)
-	case "starknet_getClassHashAt":
-		return mock_starknet_getClassHashAt(result, method, args...)
-	case "starknet_getClass":
-		return mock_starknet_getClass(result, method, args...)
-	case "starknet_getEvents":
-		return mock_starknet_getEvents(result, method, args...)
-	case "starknet_getNonce":
-		return mock_starknet_getNonce(result, method, args...)
-	case "starknet_getStorageAt":
-		return mock_starknet_getStorageAt(result, method, args...)
-	case "starknet_getStateUpdate":
-		return mock_starknet_getStateUpdate(result, method, args...)
-	case "starknet_call":
-		return mock_starknet_call(result, method, args...)
 	case "starknet_addDeclareTransaction":
 		return mock_starknet_addDeclareTransaction(result, method, args...)
 	case "starknet_addInvokeTransaction":
 		return mock_starknet_addInvokeTransaction(result, method, args...)
+	case "starknet_blockNumber":
+		return mock_starknet_blockNumber(result, method, args...)
+	case "starknet_call":
+		return mock_starknet_call(result, method, args...)
+	case "starknet_chainId":
+		return mock_starknet_chainId(result, method, args...)
 	case "starknet_estimateFee":
 		return mock_starknet_estimateFee(result, method, args...)
 	case "starknet_estimateMessageFee":
 		return mock_starknet_estimateMessageFee(result, method, args...)
+	case "starknet_getBlockTransactionCount":
+		return mock_starknet_getBlockTransactionCount(result, method, args...)
 	case "starknet_getBlockWithTxHashes":
 		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+	case "starknet_getClass":
+		return mock_starknet_getClass(result, method, args...)
+	case "starknet_getClassAt":
+		return mock_starknet_getClassAt(result, method, args...)
+	case "starknet_getClassHashAt":
+		return mock_starknet_getClassHashAt(result, method, args...)
+	case "starknet_getEvents":
+		return mock_starknet_getEvents(result, method, args...)
+	case "starknet_getNonce":
+		return mock_starknet_getNonce(result, method, args...)
+	case "starknet_getStateUpdate":
+		return mock_starknet_getStateUpdate(result, method, args...)
+	case "starknet_getStorageAt":
+		return mock_starknet_getStorageAt(result, method, args...)
+	case "starknet_getTransactionByBlockIdAndIndex":
+		return mock_starknet_getTransactionByBlockIdAndIndex(result, method, args...)
+	case "starknet_getTransactionByHash":
+		return mock_starknet_getTransactionByHash(result, method, args...)
+	case "starknet_getTransactionReceipt":
+		return mock_starknet_getTransactionReceipt(result, method, args...)
+	case "starknet_syncing":
+		return mock_starknet_syncing(result, method, args...)
 	case "starknet_traceBlockTransactions":
 		return mock_starknet_traceBlockTransactions(result, method, args...)
 	case "starknet_traceTransaction":
@@ -95,14 +95,12 @@ func mock_starknet_blockNumber(result interface{}, method string, args ...interf
 func mock_starknet_chainId(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*string)
 	if !ok {
-		fmt.Printf("%T\n", result)
 		return errWrongType
 	}
 	if len(args) != 0 {
-		fmt.Println(args...)
 		return errWrongArgs
 	}
-	value := "0x4d4f434b"
+	value := "0x534e5f474f45524c49"
 	*r = value
 	return nil
 }
@@ -485,11 +483,11 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errWrongType
 	}
 	if len(args) != 1 {
-		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong numbre of args ", len(args)))
+		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
-	invokeTx, ok := args[0].(BroadcastedInvokeV1Transaction)
+	invokeTx, ok := args[0].(InvokeTxnV1)
 	if !ok {
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastedInvokeV1Transaction, got %T\n", args[0]))
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1, got %T\n", args[0]))
 	}
 	if invokeTx.SenderAddress != nil {
 
@@ -626,29 +624,45 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
+
+	txHashes, err := utils.HexArrToFelt([]string{
+		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
+		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+	})
+	if(err != nil){
+		return err
+	}
+
 	if blockId.Tag == "latest" {
-		pBlock, err := json.Marshal(PendingBlock{
+		pBlock, err := json.Marshal(PendingBlockTxHashes{
 			ParentHash:       &felt.Zero,
 			Timestamp:        123,
 			SequencerAddress: &felt.Zero,
+			Transactions:     txHashes,
 		})
 		if err != nil {
 			return err
 		}
 		json.Unmarshal(pBlock, &r)
+	} else {
+		blockHash, err := utils.HexToFelt("0xbeef")
+		if err != nil {
+			return err
+		}
+		block, err := json.Marshal(BlockTxHashes{
+			BlockHeader: BlockHeader{
+				BlockHash:        blockHash,
+				ParentHash:       &felt.Zero,
+				Timestamp:        124,
+				SequencerAddress: &felt.Zero},
+			Status:       BlockStatus_AcceptedOnL1,
+			Transactions: txHashes,
+		})
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(block, &r)
 	}
-	block, err := json.Marshal(Block{
-		BlockHeader: BlockHeader{
-			BlockHash:        &felt.Zero,
-			ParentHash:       &felt.Zero,
-			Timestamp:        124,
-			SequencerAddress: &felt.Zero},
-		Status: BlockStatus_AcceptedOnL1,
-	})
-	if err != nil {
-		return err
-	}
-	json.Unmarshal(block, &r)
 
 	return nil
 }
@@ -670,7 +684,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		var rawBlockTrace struct {
 			Result []Trace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		read, err := os.ReadFile("tests/trace/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
 		if err != nil {
 			return err
 		}
@@ -700,11 +714,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329" :
+	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		read, err := os.ReadFile("tests/trace/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
 		if err != nil {
 			return err
 		}
@@ -716,11 +730,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 			return err
 		}
 		return json.Unmarshal(txnTrace, &r)
-	case "0xf00d" :
+	case "0xf00d":
 		return &RPCError{
-			code: 10,
+			code:    10,
 			message: "No trace available for transaction",
-			data: TransactionRejected,
+			data:    "REJECTED",
 		}
 	default:
 		return ErrInvalidTxnHash

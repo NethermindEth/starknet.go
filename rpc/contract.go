@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // Class gets the contract class definition associated with the given hash.
@@ -68,7 +68,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 // StorageAt gets the value of the storage at the given address and key.
 func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error) {
 	var value string
-	hashKey := fmt.Sprintf("0x%x", types.GetSelectorFromName(key))
+	hashKey := fmt.Sprintf("0x%x", utils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
 		
 		return "", tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
@@ -87,14 +87,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 }
 
 // EstimateFee estimates the fee for a given Starknet transaction.
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastedTransaction, blockID BlockID) ([]FeeEstimate, error) {
-	// tx, ok := request.(*BroadcastedInvokeV1Transaction)
-	// TODO:
-	// NOTE: EntryPointSelector is now just part of Calldata
-	// if ok {
-	// 	tx.EntryPointSelector = fmt.Sprintf("0x%x", types.GetSelectorFromName(tx.EntryPointSelector))
-	// 	request = tx
-	// }
+func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
 		

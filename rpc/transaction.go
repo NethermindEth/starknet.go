@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -81,15 +81,6 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 	return adaptTransaction(tx)
 }
 
-// PendingTransaction returns the transactions in the transaction pool, recognized by this sequencer.
-func (provider *Provider) PendingTransaction(ctx context.Context) ([]Transaction, error) {
-	txs := []Transaction{}
-	if err := do(ctx, provider.c, "starknet_pendingTransactions", &txs, []interface{}{}); err != nil {
-		return nil, err
-	}
-	return txs, nil
-}
-
 // TxnReceipt gets the transaction receipt by the transaction hash.
 func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
 	var receipt UnknownTransactionReceipt
@@ -101,25 +92,4 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 		return nil, err
 	}
 	return receipt.TransactionReceipt, nil
-}
-
-// WaitForTransaction waits for the transaction to succeed or fail
-func (provider *Provider) WaitForTransaction(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (TxnExecutionStatus, error) {
-	t := time.NewTicker(pollInterval)
-	for {
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		case <-t.C:
-			_, err := provider.TransactionByHash(ctx, transactionHash)
-			if err != nil {
-				break
-			}
-			receipt, err := provider.TransactionReceipt(ctx, transactionHash)
-			if err != nil {
-				continue
-			}
-			return receipt.GetExecutionStatus(), nil
-		}
-	}
 }

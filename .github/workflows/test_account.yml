@@ -1,0 +1,42 @@
+name: (all branches) Auto CI - Account tests
+
+on:
+  push:
+    branches-ignore:
+      - 'main'      # excludes main
+    tags-ignore:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet:0.5.5
+        ports:
+          - 5050:5050
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4.1.0
+        with:
+          go-version-file: go.mod
+
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      # Test Account on devnet
+      - name: Test Account on devnet
+        run: cd account && go test -timeout 600s -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://0.0.0.0:5050"
+
+      # Test Account on mock
+      - name: Test Account with mocks
+        run: cd account && go test -v . -env mock
+

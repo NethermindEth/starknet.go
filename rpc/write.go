@@ -4,33 +4,35 @@ import (
 	"context"
 )
 
-type BroadcastedInvokeTransaction interface{}
-
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, broadcastedInvoke BroadcastedInvokeTransaction) (*AddInvokeTransactionResponse, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn InvokeTxnV1) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
-	switch invoke := broadcastedInvoke.(type) {
-	case BroadcastedInvokeV1Transaction:
-		if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invoke); err != nil {
-			if unexpectedErr, ok := isErrUnexpectedError(err); ok {
-				return nil, unexpectedErr
-			}
-			return nil, tryUnwrapToRPCErr(
-				err,
-				ErrInsufficientAccountBalance,
-				ErrInsufficientMaxFee,
-				ErrInvalidTransactionNonce,
-				ErrValidationFailure,
-				ErrNonAccount,
-				ErrDuplicateTx,
-				ErrUnsupportedTxVersion,
-			)
+	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
+		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
+			return nil, unexpectedErr
 		}
-		return &output, nil
+		return nil, tryUnwrapToRPCErr(
+			err,
+			ErrInsufficientAccountBalance,
+			ErrInsufficientMaxFee,
+			ErrInvalidTransactionNonce,
+			ErrValidationFailure,
+			ErrNonAccount,
+			ErrDuplicateTx,
+			ErrUnsupportedTxVersion,
+		)
 	}
-	return nil, Err(InvalidParams, "invalid method parameter(s)")
+	return &output, nil
 }
 
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastedDeclareTransaction) (*AddDeclareTransactionResponse, error) {
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error) {
+
+	switch txn := declareTransaction.(type) {
+	case DeclareTxnV2:
+		// DeclareTxnV2 should not have a populated class hash field. It is only needed for signing.
+		txn.ClassHash = nil
+		declareTransaction = txn
+	}
+
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
 		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
@@ -55,12 +57,14 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 	return &result, nil
 }
 
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastedDeployAccountTransaction) (*AddDeployAccountTransactionResponse, error) {
+// AddDeployAccountTransaction manages the DEPLOY_ACCOUNT syscall
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction DeployAccountTxn) (*AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
 		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
 			return nil, unexpectedErr
 		}
+
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,

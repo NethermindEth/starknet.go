@@ -136,11 +136,11 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	// 	return err
 	// }
 	// s.StartingBlockHash = output["starting_block_hash"].(string)
-	// s.StartingBlockNum = types.NumAsHex(output["starting_block_num"].(string))
+	// s.StartingBlockNum = utils.NumAsHex(output["starting_block_num"].(string))
 	// s.CurrentBlockHash = output["current_block_hash"].(string)
-	// s.CurrentBlockNum = types.NumAsHex(output["current_block_num"].(string))
+	// s.CurrentBlockNum = utils.NumAsHex(output["current_block_num"].(string))
 	// s.HighestBlockHash = output["highest_block_hash"].(string)
-	// s.HighestBlockNum = types.NumAsHex(output["highest_block_num"].(string))
+	// s.HighestBlockNum = utils.NumAsHex(output["highest_block_num"].(string))
 	// return nil
 }
 
@@ -153,10 +153,17 @@ type AddDeclareTransactionOutput struct {
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    *felt.Felt `json:"contract_address"`
-	EntryPointSelector *felt.Felt `json:"entry_point_selector,omitempty"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
 	Calldata []*felt.Felt `json:"calldata"`
+}
+
+// TxDetails contains details needed for computing transaction hashes
+type TxDetails struct {
+	Nonce   *felt.Felt
+	MaxFee  *felt.Felt
+	Version TransactionVersion
 }
 
 type FeeEstimate struct {

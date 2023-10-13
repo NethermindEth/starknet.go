@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -30,38 +31,45 @@ func Err(code int, data any) *RPCError {
 }
 
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
+
+	var nodeErr *RPCError
+	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
+		return err
+	}
+
 	for _, rpcErr := range rpcErrors {
-		if errors.Is(err, rpcErr) {
+		if errors.Is(nodeErr, rpcErr) {
 			return rpcErr
 		}
 	}
-
-	return Err(InternalError, err.Error())
+	return Err(InternalError, err)
 }
 
 func isErrUnexpectedError(err error) (*RPCError, bool) {
-	clientErr, ok := err.(*RPCError)
-	if !ok {
+	var nodeErr *RPCError
+	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
 		return nil, false
 	}
-	switch clientErr.code {
+
+	switch nodeErr.code {
 	case ErrUnexpectedError.code:
 		unexpectedErr := ErrUnexpectedError
-		unexpectedErr.data = clientErr.data
+		unexpectedErr.data = nodeErr.data
 		return unexpectedErr, true
 	}
 	return nil, false
 }
 
 func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
-	clientErr, ok := err.(*RPCError)
-	if !ok {
+	var nodeErr *RPCError
+	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
 		return nil, false
 	}
-	switch clientErr.code {
+
+	switch nodeErr.code {
 	case ErrNoTraceAvailable.code:
 		noTraceAvailableError := ErrNoTraceAvailable
-		noTraceAvailableError.data = clientErr.data
+		noTraceAvailableError.data = nodeErr.data
 		return noTraceAvailableError, true
 	}
 	return nil, false

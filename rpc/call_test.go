@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/test-go/testify/require"
 )
@@ -25,7 +24,7 @@ func TestCall(t *testing.T) {
 				FunctionCall: FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
 					ContractAddress:    utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					EntryPointSelector: types.GetSelectorFromNameFelt("name"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
@@ -36,7 +35,7 @@ func TestCall(t *testing.T) {
 			{
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0xdeadbeef"),
-					EntryPointSelector: types.GetSelectorFromNameFelt("decimals"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
@@ -58,7 +57,7 @@ func TestCall(t *testing.T) {
 			{
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
-					EntryPointSelector: types.GetSelectorFromNameFelt("decimals"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
@@ -82,6 +81,5 @@ func TestCall(t *testing.T) {
 			t.Fatal("should return an output")
 		}
 		require.Equal(t, test.ExpectedPatternResult, output[0])
-
 	}
 }

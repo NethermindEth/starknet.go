@@ -84,8 +84,8 @@ func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 type Block struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
-	// Transactions The hashes of the transactions included in this block
-	Transactions Transactions `json:"transactions"`
+	// Transactions The transactions in this block
+	Transactions BlockTransactions `json:"transactions"`
 }
 
 type PendingBlock struct {
@@ -95,8 +95,26 @@ type PendingBlock struct {
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// Transactions The transactions in this block
+	Transactions BlockTransactions `json:"transactions"`
+}
+
+type BlockTxHashes struct {
+	BlockHeader
+	Status BlockStatus `json:"status"`
 	// Transactions The hashes of the transactions included in this block
-	Transactions Transactions `json:"transactions"`
+	Transactions []*felt.Felt `json:"transactions"`
+}
+
+type PendingBlockTxHashes struct {
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// Transactions The hashes of the transactions included in this block
+	Transactions []*felt.Felt `json:"transactions"`
 }
 
 type BlockHeader struct {

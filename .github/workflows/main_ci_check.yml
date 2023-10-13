@@ -1,0 +1,73 @@
+name: (main) Auto CI run
+
+on:
+  pull_request:
+    branches:
+      - 'main' 
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-22.04
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet:latest
+        ports:
+          - 5050:5050
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      # Test rpc on devnet
+      - name: Test RPC on devnet
+        run: cd rpc && go test -timeout 600s -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050/rpc"
+
+      # Test rpc on mock
+      - name: Test RPC with mocks
+        run: cd rpc && go test -v .
+
+      # Test rpc on testnet
+      - name: Test RPC on testnet
+        run: echo "Skip for now - need public endpoint that follows rpc spec"
+        #run: cd rpc && go test -timeout 1200s -v -env testnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
+
+      # Test rpc on mainnet
+      - name: Test RPC with mainnet
+        run: echo "Skip for now - need public endpoint that follows rpc spec"
+        #run: cd rpc && go test -timeout 600s -v -env mainnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
+
+      # Test Account on devnet
+      - name: Test Account on devnet
+        run: echo "Skip for now - until account tests stable"
+        #run: cd account && go test -timeout 600s -v -env devnet .
+        env:
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          INTEGRATION_BASE: "http://localhost:5050"
+
+      # Test Account on mock
+      - name: Test Account with mocks
+        run: echo "Skip for now - until account tests stable"
+        #run: cd account && go test -v . -env mock
+
+      # Build examples
+      - name: Build examples
+        run: | 
+          cd examples/deployAccount && go build
+          cd ../simpleCall && go build
