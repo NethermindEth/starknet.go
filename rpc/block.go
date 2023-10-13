@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -53,7 +54,8 @@ func WithBlockTag(tag string) BlockID {
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		if errors.Is(err, errNotFound) {
+		fmt.Println("===", err)
+		if errors.Is(err, ErrBlockNotFound) {
 			return nil, ErrBlockNotFound
 		}
 		return nil, err
@@ -66,7 +68,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress},
-			BlockTxHashes{Transactions: result.Transactions},
+			result.Transactions,
 		}, nil
 	}
 

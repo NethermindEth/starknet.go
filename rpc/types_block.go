@@ -102,7 +102,7 @@ type BlockTxHashes struct {
 
 type PendingBlockTxHashes struct {
 	PendingBlockHeader
-	BlockTxHashes
+	Transactions []*felt.Felt `json:"transactions"`
 }
 
 type BlockHeader struct {

@@ -127,13 +127,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID: BlockID{Tag: "latest"},
+				BlockID:       BlockID{Tag: "latest"},
+				ExpectedError: nil,
 				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
 					PendingBlockHeader{
 						ParentHash:       &felt.Zero,
 						Timestamp:        123,
 						SequencerAddress: &felt.Zero},
-					BlockTxHashes{Transactions: txHashes},
+					txHashes,
 				},
 			},
 			{
@@ -172,9 +173,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
-		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
+		require.Equal(t, test.ExpectedError, err, "Error in BlockWithTxHashes")
 		switch resultType := result.(type) {
 		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)

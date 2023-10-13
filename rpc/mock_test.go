@@ -640,12 +640,15 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 					ParentHash:       &felt.Zero,
 					Timestamp:        123,
 					SequencerAddress: &felt.Zero},
-				BlockTxHashes{Transactions: txHashes},
+				txHashes,
 			})
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(pBlock, &r)
+		err = json.Unmarshal(pBlock, &r)
+		if err != nil {
+			return err
+		}
 	} else {
 		blockHash, err := utils.HexToFelt("0xbeef")
 		if err != nil {
