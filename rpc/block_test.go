@@ -129,10 +129,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 			{
 				BlockID: BlockID{Tag: "latest"},
 				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
-					ParentHash:       &felt.Zero,
-					Timestamp:        123,
-					SequencerAddress: &felt.Zero,
-					Transactions:     txHashes,    
+					PendingBlockHeader{
+						ParentHash:       &felt.Zero,
+						Timestamp:        123,
+						SequencerAddress: &felt.Zero},
+					BlockTxHashes{Transactions: txHashes},
 				},
 			},
 			{
@@ -166,7 +167,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"mainnet": {},
 	}[testEnv]
-	
+
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
@@ -207,7 +208,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if !ok {
 				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
 			}
-			
+
 			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
 			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
 			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")

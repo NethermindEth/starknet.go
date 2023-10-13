@@ -89,8 +89,8 @@ type Block struct {
 }
 
 type PendingBlock struct {
-	PendingBlockHeader PendingBlockHeader
-	BlockTransactions  BlockTransactions
+	PendingBlockHeader
+	BlockTransactions
 }
 
 type BlockTxHashes struct {
@@ -101,8 +101,8 @@ type BlockTxHashes struct {
 }
 
 type PendingBlockTxHashes struct {
-	PendingBlockHeader PendingBlockHeader
-	BlockTxHashes      BlockTxHashes
+	PendingBlockHeader
+	BlockTxHashes
 }
 
 type BlockHeader struct {
