@@ -878,20 +878,8 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 // TestAddDeclareTxn is a test function that verifies the behavior of the AddDeclareTransaction method.
 //
-// It checks if the test environment is not "testnet" and skips the test if it is.
-// Then, it initializes the expected transaction hash and class hash using utility functions.
-// Next, it initializes the account address, public key, and private key using utility functions.
-// It creates a memory keystore and puts the private key in it.
-// After that, it creates a new RPC client and provider.
-// Then, it creates a new account using the provider and the account address, public key, and keystore.
-// The function reads the content of the "./tests/hello_starknet_compiled.sierra.json" file and unmarshals it into a ContractClass struct.
-// It calculates the class hash using the hash.ClassHash function.
-// The function then reads the content of the "./tests/hello_starknet_compiled.sierra.json" file again and unmarshals it into a CasmClass struct.
-// It calculates the compiled class hash using the hash.CompiledClassHash function.
-// Next, it retrieves the nonce using the account's Nonce method.
-// The function creates a new DeclareTxnV2 struct and sets its fields.
-// It signs the declare transaction using the SignDeclareTransaction method of the account.
-// Finally, it adds the declare transaction using the AddDeclareTransaction method of the account and checks the response.
+// This function tests the AddDeclareTransaction method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
 //
 // Parameters:
 //  - t: The testing.T instance for running the test
