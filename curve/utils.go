@@ -2,13 +2,14 @@ package curve
 
 import (
 	"crypto/hmac"
+	"fmt"
 	"hash"
 	"math/big"
 )
 
 // Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L50)
 func DivMod(n, m, p *big.Int) *big.Int {
 	q := new(big.Int)
 	gx := new(big.Int)
@@ -17,6 +18,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 
 	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)
+	fmt.Println(r)
 	return r
 }
 
@@ -56,7 +58,6 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 	blen := len(in.Bytes()) * 8
 
 	if blen > qlen {
-
 		return new(big.Int).Rsh(in, uint(blen-qlen))
 	}
 	return in
