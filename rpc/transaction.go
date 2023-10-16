@@ -107,14 +107,13 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 	return adaptTransaction(tx)
 }
 
-// PendingTransaction returns a list of pending transactions in the transaction pool, recognized by this sequencer..
+// PendingTransaction returns a list of pending transactions in the transaction pool, recognized by this sequencer.
 //
 // Parameters:
-// - ctx: The context.Context object for controlling the lifespan of the request.
-// It carries deadlines, cancellation signals, and other request-scoped values.
+// - ctx: the context.Context object for controlling the lifespan of the request
 // Returns:
-// - []Transaction: A list of transactions in the transaction pool
-// - error: An error, if any
+// - []Transaction: a list of transactions in the transaction pool
+// - error: an error if any
 func (provider *Provider) PendingTransaction(ctx context.Context) ([]Transaction, error) {
 	txs := []Transaction{}
 	if err := do(ctx, provider.c, "starknet_pendingTransactions", &txs, []interface{}{}); err != nil {
@@ -126,11 +125,11 @@ func (provider *Provider) PendingTransaction(ctx context.Context) ([]Transaction
 // TransactionReceipt fetches the transaction receipt for a given transaction hash.
 //
 // Parameters:
-// - ctx: The context.Context object for the request
-// - transactionHash: The hash of the transaction as a Felt
+// - ctx: the context.Context object for the request
+// - transactionHash: the hash of the transaction as a Felt
 // Returns:
-// - TransactionReceipt: The transaction receipt
-// - error: An error, if any
+// - TransactionReceipt: the transaction receipt
+// - error: an error if any
 func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
 	var receipt UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
