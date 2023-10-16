@@ -657,6 +657,19 @@ func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*
 	return account.provider.StateUpdate(ctx, blockID)
 }
 
+// SpecVersion returns the spec version of the account.
+//
+// It takes a context as a parameter and returns a string and an error
+//
+// Parameters:
+// - context.Context: The context.Context object
+// Returns:
+// - string: The spec version
+// - error: An error if any
+func (account *Account) SpecVersion(ctx context.Context) (string, error) {
+	return account.provider.SpecVersion(ctx)
+}
+
 // Syncing returns the sync status of the account.
 //
 // Parameters:
