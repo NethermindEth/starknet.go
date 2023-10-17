@@ -2,7 +2,6 @@ package curve
 
 import (
 	"crypto/hmac"
-	"fmt"
 	"hash"
 	"math/big"
 )
@@ -18,7 +17,6 @@ func DivMod(n, m, p *big.Int) *big.Int {
 
 	r := new(big.Int).Mul(n, gx)
 	r = r.Mod(r, p)
-	fmt.Println(r)
 	return r
 }
 
