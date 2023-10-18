@@ -62,11 +62,8 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 	// todo: update to return a custom Transaction type, then use adapt function
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-		if errors.Is(err, ErrHashNotFound) {
-			return nil, ErrHashNotFound
-		}
-		return nil, err
-	}
+			return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)	
+}
 	return adaptTransaction(tx)
 }
 
@@ -86,10 +83,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 	var receipt UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		if errors.Is(err, ErrHashNotFound) {
-			return nil, ErrHashNotFound
-		}
-		return nil, err
+		return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)
 	}
 	return receipt.TransactionReceipt, nil
 }
