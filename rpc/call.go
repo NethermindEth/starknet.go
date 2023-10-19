@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"errors"
+	
 
 	"github.com/NethermindEth/juno/core/felt"
 )
