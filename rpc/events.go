@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"errors"
+	
 )
 
 // Events returns all events matching the given filter
