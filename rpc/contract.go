@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
