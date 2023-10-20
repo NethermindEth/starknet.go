@@ -276,6 +276,21 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetTransactionStatus mocks base method.
+func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionStatus", ctx, transactionHash)
+	ret0, _ := ret[0].(*rpc.TxnStatusResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionStatus indicates an expected call of GetTransactionStatus.
+func (mr *MockRpcProviderMockRecorder) GetTransactionStatus(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetTransactionStatus), ctx, transactionHash)
+}
+
 // Nonce mocks base method.
 func (m *MockRpcProvider) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
 	m.ctrl.T.Helper()
@@ -304,6 +319,21 @@ func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.
 func (mr *MockRpcProviderMockRecorder) SimulateTransactions(ctx, blockID, txns, simulationFlags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimulateTransactions", reflect.TypeOf((*MockRpcProvider)(nil).SimulateTransactions), ctx, blockID, txns, simulationFlags)
+}
+
+// SpecVersion mocks base method.
+func (m *MockRpcProvider) SpecVersion(ctx context.Context) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpecVersion", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SpecVersion indicates an expected call of SpecVersion.
+func (mr *MockRpcProviderMockRecorder) SpecVersion(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpecVersion", reflect.TypeOf((*MockRpcProvider)(nil).SpecVersion), ctx)
 }
 
 // StateUpdate mocks base method.

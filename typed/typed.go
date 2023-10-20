@@ -105,11 +105,11 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 	return td, nil
 }
 
-// (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
+// (ref: https://github.com/starknet-io/starknet.js/blob/d7bfc37ede85448e0a55ee4efe65200ff2c45f91/src/utils/typedData.ts#L249)
 func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
-	elements := []*big.Int{utils.UTF8StrToBig("Starknet Message")}
+	elements := []*big.Int{utils.UTF8StrToBig("StarkNet Message")}
 
-	domEnc, err := td.GetTypedMessageHash("StarknetDomain", td.Domain, sc)
+	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
 	if err != nil {
 		return hash, fmt.Errorf("could not hash domain: %w", err)
 	}
