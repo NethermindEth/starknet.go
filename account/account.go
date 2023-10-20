@@ -416,6 +416,10 @@ func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) 
 	return account.provider.TransactionByHash(ctx, hash)
 }
 
+func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	return account.provider.GetTransactionStatus(ctx, Txnhash)
+}
+
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {
 	switch cairoVersion {
 	case 0:
