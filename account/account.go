@@ -480,3 +480,52 @@ func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 
 	return execCallData
 }
+
+type DeployOptions struct {
+	ClassHash       *felt.Felt
+	MaxFee          *felt.Felt
+	DeploytWaitTime time.Duration
+}
+
+func (account *Account) DeployAccount(options DeployOptions) (*rpc.AddDeployAccountTransactionResponse, error) {
+
+	if options.ClassHash == nil {
+
+	}
+
+	pub, err := utils.HexToFelt(account.publicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create transaction data
+	tx := rpc.DeployAccountTxn{
+		Nonce:               &felt.Zero,
+		MaxFee:              options.MaxFee,
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV1,
+		Signature:           []*felt.Felt{},
+		ClassHash:           options.ClassHash,
+		ContractAddressSalt: pub,
+		ConstructorCalldata: []*felt.Felt{pub},
+	}
+
+	precomputedAddress, err := account.PrecomputeAddress(&felt.Zero, pub, options.ClassHash, tx.ConstructorCalldata)
+	if err != nil {
+		return nil, err
+	}
+
+	err = account.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := account.AddDeployAccountTransaction(context.Background(), tx)
+	if err != nil {
+		return nil, err
+	}
+
+	account.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, options.DeploytWaitTime)
+
+	return resp, nil
+}

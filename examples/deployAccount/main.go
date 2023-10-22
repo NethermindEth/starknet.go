@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
@@ -48,39 +50,30 @@ func main() {
 		panic(err)
 	}
 
-	// Create transaction data
-	tx := rpc.DeployAccountTxn{
-		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
-		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
-		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{},
-		ClassHash:           classHash,
-		ContractAddressSalt: pub,
-		ConstructorCalldata: []*felt.Felt{pub},
-	}
+	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, pub, classHash, []*felt.Felt{pub})
 
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
-	fmt.Println("precomputedAddress:", precomputedAddress)
+	fmt.Printf("\nIn order to deploy your account (address %s), you need to fund the acccount (using a faucet), and then press `enter` to continue : \n", precomputedAddress.String())
 
-	// At this point you need to add funds to precomputed address to use it.
-	var input string
-
-	fmt.Println("The `precomputedAddress` account needs to have enough ETH to perform a transaction.")
-	fmt.Println("Use the starknet faucet to send ETH to your `precomputedAddress`")
-	fmt.Println("When your account has been funded by the faucet, press any key, then `enter` to continue : ")
-	fmt.Scan(&input)
-
-	// Sign the transaction
-	err = acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
+	reader := bufio.NewReader(os.Stdin)
+	_, err = reader.ReadString('\n')
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
-	// Send transaction to the network
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
-	if err != nil {
-		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", err))
+	fmt.Println("Waiting for deployment")
+	deployOptions := account.DeployOptions{
+		ClassHash:       classHash,
+		MaxFee:          new(felt.Felt).SetUint64(4724395326064),
+		DeploytWaitTime: 2 * time.Second,
 	}
-	fmt.Println("AddDeployAccountTransaction response:", resp)
+
+	// Deploy the account
+	resp, err := acnt.DeployAccount(deployOptions)
+
+	if err != nil {
+		panic(fmt.Sprint("Error returned from DeployAccount: ", err))
+	}
+	fmt.Println("Deployed with response response:", resp)
+
 }
