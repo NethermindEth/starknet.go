@@ -389,6 +389,9 @@ func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Fel
 func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
 	return account.provider.StateUpdate(ctx, blockID)
 }
+func (account *Account) SpecVersion(ctx context.Context) (string, error) {
+	return account.provider.SpecVersion(ctx)
+}
 func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
@@ -411,6 +414,10 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
+}
+
+func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	return account.provider.GetTransactionStatus(ctx, Txnhash)
 }
 
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {

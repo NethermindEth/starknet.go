@@ -1,6 +1,6 @@
 module account
 
-go 1.18
+go 1.21
 
 require (
 	github.com/NethermindEth/starknet.go v0.2.1-0.20220620163912-1db2ca279608
