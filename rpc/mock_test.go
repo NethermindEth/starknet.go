@@ -634,16 +634,21 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	}
 
 	if blockId.Tag == "latest" {
-		pBlock, err := json.Marshal(PendingBlockTxHashes{
-			ParentHash:       &felt.Zero,
-			Timestamp:        123,
-			SequencerAddress: &felt.Zero,
-			Transactions:     txHashes,
-		})
+		pBlock, err := json.Marshal(
+			PendingBlockTxHashes{
+				PendingBlockHeader{
+					ParentHash:       &felt.Zero,
+					Timestamp:        123,
+					SequencerAddress: &felt.Zero},
+				txHashes,
+			})
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(pBlock, &r)
+		err = json.Unmarshal(pBlock, &r)
+		if err != nil {
+			return err
+		}
 	} else {
 		blockHash, err := utils.HexToFelt("0xbeef")
 		if err != nil {

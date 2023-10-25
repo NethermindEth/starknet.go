@@ -49,17 +49,18 @@ func WithBlockTag(tag string) BlockID {
 // BlockWithTxHashes gets block information given the block id.
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
-	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {		
-		return nil, tryUnwrapToRPCErr(err,ErrBlockNotFound )
+	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
 		return &PendingBlockTxHashes{
-			ParentHash:       result.ParentHash,
-			Timestamp:        result.Timestamp,
-			SequencerAddress: result.SequencerAddress,
-			Transactions:     result.Transactions,
+			PendingBlockHeader{
+				ParentHash:       result.ParentHash,
+				Timestamp:        result.Timestamp,
+				SequencerAddress: result.SequencerAddress},
+			result.Transactions,
 		}, nil
 	}
 
@@ -96,10 +97,11 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
 		return &PendingBlock{
-			ParentHash:       result.ParentHash,
-			Timestamp:        result.Timestamp,
-			SequencerAddress: result.SequencerAddress,
-			Transactions:     result.Transactions,
+			PendingBlockHeader{
+				ParentHash:       result.ParentHash,
+				Timestamp:        result.Timestamp,
+				SequencerAddress: result.SequencerAddress},
+			result.Transactions,
 		}, nil
 	}
 	return &result, nil

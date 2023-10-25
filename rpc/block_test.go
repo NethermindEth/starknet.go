@@ -127,12 +127,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID: BlockID{Tag: "latest"},
+				BlockID:       BlockID{Tag: "latest"},
+				ExpectedError: nil,
 				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
-					ParentHash:       &felt.Zero,
-					Timestamp:        123,
-					SequencerAddress: &felt.Zero,
-					Transactions:     txHashes,    
+					PendingBlockHeader{
+						ParentHash:       &felt.Zero,
+						Timestamp:        123,
+						SequencerAddress: &felt.Zero},
+					txHashes,
 				},
 			},
 			{
@@ -166,14 +168,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"mainnet": {},
 	}[testEnv]
-	
+
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
-		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
+		require.Equal(t, test.ExpectedError, err, "Error in BlockWithTxHashes")
 		switch resultType := result.(type) {
 		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)
@@ -207,7 +207,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if !ok {
 				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
 			}
-			
+
 			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
 			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
 			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")
