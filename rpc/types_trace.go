@@ -37,7 +37,7 @@ var _ TxnTrace = L1HandlerTxnTrace{}
 type InvokeTxnTrace struct {
 	ValidateInvocation FnInvocation `json:"validate_invocation"`
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	ExecuteInvocation     FnInvocation    `json:"execute_invocation"`
+	ExecuteInvocation     ExecInvocation  `json:"execute_invocation"`
 	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
 	StateDiff             StateDiff       `json:"state_diff"`
 	Type                  TransactionType `json:"type"`
@@ -113,4 +113,9 @@ type FnInvocation struct {
 type Trace struct {
 	TraceRoot TxnTrace   `json:"trace_root,omitempty"`
 	TxnHash   *felt.Felt `json:"transaction_hash,omitempty"`
+}
+
+type ExecInvocation struct {
+	FunctionInvocation FnInvocation `json:"function_invocation,omitempty"`
+	RevertReason       string       `json:"revert_reason,omitempty"`
 }
