@@ -49,7 +49,7 @@ type RpcProvider interface {
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	SpecVersion(ctx context.Context) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
+	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
