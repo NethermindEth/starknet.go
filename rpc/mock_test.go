@@ -629,7 +629,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
 		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
 	})
-	if(err != nil){
+	if err != nil {
 		return err
 	}
 
@@ -675,11 +675,11 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	blockHash, ok := args[0].(*felt.Felt)
+	blockID, ok := args[0].(BlockID)
 	if !ok {
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
-	if blockHash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
+	if blockID.Hash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
 
 		var rawBlockTrace struct {
 			Result []Trace `json:"result"`
