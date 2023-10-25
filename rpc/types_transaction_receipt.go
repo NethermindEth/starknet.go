@@ -135,17 +135,59 @@ func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
 
-type PendingDeployTransactionReceipt struct {
-	CommonTransactionReceipt
-	// The address of the deployed contract
-	ContractAddress *felt.Felt `json:"contract_address"`
+type PendingL1HandlerTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	// The message hash as it appears on the L1 core contract
+	MsgHash NumAsHex `json:"message_hash"`
+	PendingCommonTransactionReceiptProperties
 }
 
-func (tr PendingDeployTransactionReceipt) Hash() *felt.Felt {
+func (tr PendingL1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-func (tr PendingDeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+func (tr PendingL1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingDeclareTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	PendingCommonTransactionReceiptProperties
+}
+
+func (tr PendingDeclareTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+func (tr PendingDeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingDeployAccountTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	// The address of the deployed contract
+	ContractAddress *felt.Felt `json:"contract_address"`
+	PendingCommonTransactionReceiptProperties
+}
+
+func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+func (tr PendingDeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingInvokeTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	PendingCommonTransactionReceiptProperties
+}
+
+func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+func (tr PendingInvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
 
@@ -160,7 +202,29 @@ type PendingCommonTransactionReceiptProperties struct {
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
 	RevertReason    string             `json:"revert_reason"`
 	// Events The events emitted as part of this transaction
-	Events []Event `json:"events"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
+}
+
+type ExecutionResources struct {
+	// The number of Cairo steps used
+	Steps NumAsHex `json:"steps"`
+	// The number of unused memory cells (each cell is roughly equivalent to a step)
+	MemoryHoles NumAsHex `json:"memory_holes,omitempty"`
+	// The number of RANGE_CHECK builtin instances
+	RangeCheckApps NumAsHex `json:"range_check_builtin_applications"`
+	// The number of Pedersen builtin instances
+	PedersenApps NumAsHex `json:"pedersen_builtin_applications"`
+	// The number of Poseidon builtin instances
+	PoseidonApps NumAsHex `json:"poseidon_builtin_applications"`
+	// The number of EC_OP builtin instances
+	ECOPApps NumAsHex `json:"ec_op_builtin_applications"`
+	// The number of ECDSA builtin instances
+	ECDSAApps NumAsHex `json:"ecdsa_builtin_applications"`
+	// The number of BITWISE builtin instances
+	BitwiseApps NumAsHex `json:"bitwise_builtin_applications"`
+	// The number of KECCAK builtin instances
+	KeccakApps NumAsHex `json:"keccak_builtin_applications"`
 }
 
 func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
@@ -174,6 +238,12 @@ func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExec
 type TransactionReceipt interface {
 	Hash() *felt.Felt
 	GetExecutionStatus() TxnExecutionStatus
+}
+
+type OrderedMsg struct {
+	// The order of the message within the transaction
+	Order   int `json:"order"`
+	MsgToL1 MsgToL1
 }
 
 type MsgToL1 struct {
@@ -227,12 +297,20 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 		// Pending doesn't have a block number
 		if casted["block_hash"] == nil {
 			switch TransactionType(typ.(string)) {
-			case TransactionType_Deploy:
-				var txn PendingDeployTransactionReceipt
+			case TransactionType_Invoke:
+				var txn PendingInvokeTransactionReceipt
 				remarshal(casted, &txn)
 				return txn, nil
-			default:
-				var txn PendingCommonTransactionReceiptProperties
+			case TransactionType_DeployAccount:
+				var txn PendingDeployAccountTransactionReceipt
+				remarshal(casted, &txn)
+				return txn, nil
+			case TransactionType_L1Handler:
+				var txn PendingL1HandlerTransactionReceipt
+				remarshal(casted, &txn)
+				return txn, nil
+			case TransactionType_Declare:
+				var txn PendingDeclareTransactionReceipt
 				remarshal(casted, &txn)
 				return txn, nil
 			}
@@ -263,4 +341,19 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	}
 
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
+}
+
+// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+type TxnStatus string
+
+const (
+	TxnStatus_Received       TxnStatus = "RECEIVED"
+	TxnStatus_Rejected       TxnStatus = "REJECTED"
+	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
+)
+
+type TxnStatusResp struct {
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FinalityStatus  TxnStatus          `json:"finality_status"`
 }

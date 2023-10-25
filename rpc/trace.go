@@ -58,10 +58,10 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 }
 
 // Retrieve traces for all transactions in the given block
-func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error) {
+func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error) {
 	var output []Trace
-	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockHash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrInvalidBlockHash)
+	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return output, nil
 
