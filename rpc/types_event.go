@@ -2,6 +2,12 @@ package rpc
 
 import "github.com/NethermindEth/juno/core/felt"
 
+type OrderedEvent struct {
+	// The order of the event within the transaction
+	Order int `json:"order"`
+	Event Event
+}
+
 type Event struct {
 	FromAddress *felt.Felt   `json:"from_address"`
 	Keys        []*felt.Felt `json:"keys"`

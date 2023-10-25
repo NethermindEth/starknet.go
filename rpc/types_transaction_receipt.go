@@ -240,6 +240,12 @@ type TransactionReceipt interface {
 	GetExecutionStatus() TxnExecutionStatus
 }
 
+type OrderedMsg struct {
+	// The order of the message within the transaction
+	Order   int `json:"order"`
+	MsgToL1 MsgToL1
+}
+
 type MsgToL1 struct {
 	// FromAddress The address of the L2 contract sending the message
 	FromAddress *felt.Felt `json:"from_address"`
