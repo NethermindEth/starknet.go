@@ -99,7 +99,7 @@ type FnInvocation struct {
 	InvocationEvents []OrderedEvent `json:"events"`
 
 	// The messages sent by this invocation to L1
-	L1Messages []MsgToL1 `json:"messages"`
+	L1Messages []OrderedMsg `json:"messages"`
 }
 
 // A single pair of transaction hash and corresponding trace
