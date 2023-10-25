@@ -63,7 +63,7 @@ func TestTransactionTrace(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.TransactionTrace(context.Background(), test.TransactionHash)
+		resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
 		if err != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
@@ -136,7 +136,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 	}
 
 	type testSetType struct {
-		BlockHash    *felt.Felt
+		BlockID      BlockID
 		ExpectedResp []Trace
 		ExpectedErr  *RPCError
 	}
@@ -145,19 +145,19 @@ func TestTraceBlockTransactions(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			testSetType{
-				BlockHash:    utils.TestHexToFelt(t, "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2"),
+				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2")},
 				ExpectedResp: expectedResp,
 				ExpectedErr:  nil,
 			},
 			testSetType{
-				BlockHash:    utils.TestHexToFelt(t, "0x0"),
+				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x0")},
 				ExpectedResp: nil,
 				ExpectedErr:  ErrInvalidBlockHash,
 			}},
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockHash)
+		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
 
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)

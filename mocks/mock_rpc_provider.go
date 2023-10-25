@@ -276,6 +276,21 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetTransactionStatus mocks base method.
+func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionStatus", ctx, transactionHash)
+	ret0, _ := ret[0].(*rpc.TxnStatusResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionStatus indicates an expected call of GetTransactionStatus.
+func (mr *MockRpcProviderMockRecorder) GetTransactionStatus(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetTransactionStatus), ctx, transactionHash)
+}
+
 // Nonce mocks base method.
 func (m *MockRpcProvider) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
 	m.ctrl.T.Helper()
@@ -367,18 +382,33 @@ func (mr *MockRpcProviderMockRecorder) Syncing(ctx interface{}) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
+func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockHash)
+	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
 	ret0, _ := ret[0].([]rpc.Trace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TraceBlockTransactions indicates an expected call of TraceBlockTransactions.
-func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockHash interface{}) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockID)
+}
+
+// TraceTransaction mocks base method.
+func (m *MockRpcProvider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TraceTransaction", ctx, transactionHash)
+	ret0, _ := ret[0].(rpc.TxnTrace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TraceTransaction indicates an expected call of TraceTransaction.
+func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceTransaction", reflect.TypeOf((*MockRpcProvider)(nil).TraceTransaction), ctx, transactionHash)
 }
 
 // TransactionByBlockIdAndIndex mocks base method.
@@ -424,19 +454,4 @@ func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHas
 func (mr *MockRpcProviderMockRecorder) TransactionReceipt(ctx, transactionHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockRpcProvider)(nil).TransactionReceipt), ctx, transactionHash)
-}
-
-// TransactionTrace mocks base method.
-func (m *MockRpcProvider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionTrace", ctx, transactionHash)
-	ret0, _ := ret[0].(rpc.TxnTrace)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// TransactionTrace indicates an expected call of TransactionTrace.
-func (mr *MockRpcProviderMockRecorder) TransactionTrace(ctx, transactionHash interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionTrace", reflect.TypeOf((*MockRpcProvider)(nil).TransactionTrace), ctx, transactionHash)
 }

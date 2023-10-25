@@ -22,11 +22,8 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // BlockHashAndNumber gets block information given the block number or its hash.
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
-	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
-		if errors.Is(err, errNotFound) {
-			return nil, ErrNoBlocks
-		}
-		return nil, err
+	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {		
+		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks )
 	}
 	return &block, nil
 }
@@ -73,11 +70,8 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // StateUpdate gets the information about the result of executing the requested block.
 func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
-	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
-		if errors.Is(err, errNotFound) {
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {		
+		return nil,tryUnwrapToRPCErr(err,ErrBlockNotFound )
 	}
 	return &state, nil
 }
@@ -98,10 +92,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		if errors.Is(err, errNotFound) {
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		return nil, tryUnwrapToRPCErr(err,ErrBlockNotFound )
 	}
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
