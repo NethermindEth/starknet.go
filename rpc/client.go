@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
@@ -22,7 +21,6 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 	if len(raw) == 0 {
 		return errNotFound
 	}
-	fmt.Println(string(raw))
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
 	}

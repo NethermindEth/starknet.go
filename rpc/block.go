@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -54,11 +53,7 @@ func WithBlockTag(tag string) BlockID {
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		fmt.Println("===", err)
-		if errors.Is(err, ErrBlockNotFound) {
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	// if header.Hash == nil it's a pending block
