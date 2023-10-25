@@ -309,3 +309,30 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 
 	}
 }
+
+// TestGetTransactionStatus tests starknet_getTransactionStatus
+func TestGetTransactionStatus(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		TxnHash      *felt.Felt
+		ExpectedResp TxnStatusResp
+	}
+
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				TxnHash:      utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
+				ExpectedResp: TxnStatusResp{FinalityStatus: TxnStatus_Accepted_On_L1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		resp, err := testConfig.provider.GetTransactionStatus(context.Background(), test.TxnHash)
+		require.NoError(t, err)
+		require.Equal(t, *resp, test.ExpectedResp)
+	}
+}
