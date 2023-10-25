@@ -63,7 +63,7 @@ func TestTransactionTrace(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.TransactionTrace(context.Background(), test.TransactionHash)
+		resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
 		if err != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {

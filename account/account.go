@@ -404,8 +404,8 @@ func (account *Account) TransactionReceipt(ctx context.Context, transactionHash 
 	return account.provider.TransactionReceipt(ctx, transactionHash)
 }
 
-func (account *Account) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	return account.provider.TransactionTrace(ctx, transactionHash)
+func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	return account.provider.TraceTransaction(ctx, transactionHash)
 }
 
 func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
