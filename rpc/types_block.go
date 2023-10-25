@@ -141,5 +141,5 @@ type ResourcePrice struct {
 	// The price of one unit of the given resource, denominated in strk
 	PriceInStrk NumAsHex `json:"price_in_strk,omitempty"`
 	// The price of one unit of the given resource, denominated in wei
-	PriceInWei string `json:"price_in_wei"`
+	PriceInWei NumAsHex `json:"price_in_wei"`
 }
