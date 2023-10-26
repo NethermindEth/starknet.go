@@ -101,7 +101,7 @@ func init() {
 // Gets two points on an elliptic curve mod p and returns their sum.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L59)
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	yDelta := new(big.Int).Sub(y1, y2)
 	xDelta := new(big.Int).Sub(x1, x2)
@@ -125,7 +125,7 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 // Doubles a point on an elliptic curve with the equation y^2 = x^3 + alpha*x + beta mod p.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L79)
 func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 	xin := new(big.Int).Mul(big.NewInt(3), x1)
 	xin = xin.Mul(xin, x1)
@@ -179,7 +179,7 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 	}
 }
 
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py)
 func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 	return DivMod(big.NewInt(1), x, sc.N)
 }
@@ -188,7 +188,7 @@ func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 // point (x,y) is on the curve.
 // Note: the real y coordinate is either y or -y.
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L84)
 func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 	y := new(big.Int).Mul(starkX, starkX)
 	y = y.Mul(y, starkX)
@@ -205,7 +205,7 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 // Computes m * point + shift_point using the same steps like the AIR and throws an exception if
 // and only if the AIR errors.
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L176)
 func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
 	m := new(big.Int).Set(mout)
 	if m.Cmp(big.NewInt(0)) != 1 || m.Cmp(sc.Max) != -1 {
@@ -233,7 +233,7 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
 //
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L91)
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
 
@@ -282,7 +282,7 @@ Verifies the validity of the stark curve signature
 given the message hash, and public key (x, y) coordinates
 used to sign the message.
 
-(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+(ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L217)
 */
 func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 	w := sc.InvModCurveSize(s)
@@ -416,7 +416,6 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	xFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(x))
 	yFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(y))
 	return xFelt, yFelt, nil
-
 }
 
 /*
@@ -487,7 +486,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 }
 
 /*
-Provides the pedersen hash of given array of felts.
+Provides the poseidon hash of given array of felts.
 NOTE: This function just wraps the Juno implementation
 
 (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
@@ -497,7 +496,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 }
 
 /*
-Provides the starknet keccak hash .
+Provides the starknet keccak hash.
 NOTE: This function just wraps the Juno implementation
 
 (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/keccak.go#L11)
