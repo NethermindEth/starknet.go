@@ -22,8 +22,8 @@ var (
 type BroadcastDeclareTxn interface{}
 
 var (
-	_ BroadcastInvokeTxn = BroadcastDeclareV1Txn{}
-	_ BroadcastInvokeTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastDeclareTxn = BroadcastDeclareV1Txn{}
+	_ BroadcastDeclareTxn = BroadcastDeclareV2Txn{}
 )
 
 type BroadcastInvokev0Txn struct {
