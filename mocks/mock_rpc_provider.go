@@ -37,7 +37,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 }
 
 // AddDeclareTransaction mocks base method.
-func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeclareTransaction", ctx, declareTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -52,7 +52,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeclareTransaction(ctx, declareTransac
 }
 
 // AddDeployAccountTransaction mocks base method.
-func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeployAccountTransaction", ctx, deployAccountTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeployAccountTransactionResponse)
@@ -67,7 +67,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeployAccountTransaction(ctx, deployAc
 }
 
 // AddInvokeTransaction mocks base method.
-func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, invokeTxn)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)

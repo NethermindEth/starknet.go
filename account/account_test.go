@@ -533,7 +533,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
