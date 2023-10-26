@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -14,13 +14,8 @@ import (
 func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
-		switch {
-		case errors.Is(err, ErrClassHashNotFound):
-			return nil, ErrClassHashNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(&rawClass)
@@ -31,13 +26,8 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return typecastClassOutput(&rawClass)
 }
@@ -69,13 +59,8 @@ func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
 func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return result, nil
 }
@@ -85,13 +70,8 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 	var value string
 	hashKey := fmt.Sprintf("0x%x", utils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return "", ErrContractNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return "", ErrBlockNotFound
-		}
-		return "", err
+		
+		return "", tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return value, nil
 }
@@ -100,13 +80,8 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
 	nonce := ""
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return &nonce, nil
 }
@@ -115,15 +90,8 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrContractError):
-			return nil, ErrContractError
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound,ErrContractError, ErrBlockNotFound)
 	}
 	return raw, nil
 }
@@ -132,15 +100,8 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFe
 func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error) {
 	var raw FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrContractError):
-			return nil, ErrContractError
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound,ErrContractError, ErrBlockNotFound)
 	}
 	return &raw, nil
 }
