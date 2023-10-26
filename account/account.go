@@ -396,16 +396,16 @@ func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
 
-func (account *Account) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
-	return account.provider.TraceBlockTransactions(ctx, blockHash)
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+	return account.provider.TraceBlockTransactions(ctx, blockID)
 }
 
 func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, error) {
 	return account.provider.TransactionReceipt(ctx, transactionHash)
 }
 
-func (account *Account) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	return account.provider.TransactionTrace(ctx, transactionHash)
+func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	return account.provider.TraceTransaction(ctx, transactionHash)
 }
 
 func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
@@ -414,6 +414,10 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
+}
+
+func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	return account.provider.GetTransactionStatus(ctx, Txnhash)
 }
 
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {

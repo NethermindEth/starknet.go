@@ -37,23 +37,23 @@ type BroadcastInvokev1Txn struct {
 type BroadcastDeclareV1Txn struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress           *felt.Felt         `json:"sender_address"`
-	MaxFee                  *felt.Felt         `json:"max_fee"`
-	Version                 TransactionVersion `json:"version"`
-	Signature               []*felt.Felt       `json:"signature"`
-	Nonce                   *felt.Felt         `json:"nonce"`
-	DeprecatedContractClass `json:"contract_class"`
+	SenderAddress *felt.Felt              `json:"sender_address"`
+	MaxFee        *felt.Felt              `json:"max_fee"`
+	Version       NumAsHex                `json:"version"`
+	Signature     []*felt.Felt            `json:"signature"`
+	Nonce         *felt.Felt              `json:"nonce"`
+	ContractClass DeprecatedContractClass `json:"contract_class"`
 }
 type BroadcastDeclareV2Txn struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt         `json:"sender_address"`
-	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
-	MaxFee            *felt.Felt         `json:"max_fee"`
-	Version           TransactionVersion `json:"version"`
-	Signature         []*felt.Felt       `json:"signature"`
-	Nonce             *felt.Felt         `json:"nonce"`
-	ContractClass     `json:"contract_class"`
+	SenderAddress     *felt.Felt    `json:"sender_address"`
+	CompiledClassHash *felt.Felt    `json:"compiled_class_hash"`
+	MaxFee            *felt.Felt    `json:"max_fee"`
+	Version           NumAsHex      `json:"version"`
+	Signature         []*felt.Felt  `json:"signature"`
+	Nonce             *felt.Felt    `json:"nonce"`
+	ContractClass     ContractClass `json:"contract_class"`
 }
 
 type BroadcastDeployAccountTxn struct {

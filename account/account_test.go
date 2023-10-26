@@ -776,7 +776,6 @@ func TestAddDeclareTxn(t *testing.T) {
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
 		ClassHash:         classHash,
-		ContractClass:     class,
 	}
 
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
