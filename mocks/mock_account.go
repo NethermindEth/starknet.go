@@ -25,14 +25,25 @@ type MockAccountInterfaceMockRecorder struct {
 	mock *MockAccountInterface
 }
 
-// NewMockAccountInterface creates a new mock instance.
+// NewMockAccountInterface returns a new instance of MockAccountInterface.
+//
+// Parameters:
+// - ctrl: The gomock.Controller used for creating the mock.
+// Returns:
+// - *MockAccountInterface: a pointer to the newly created MockAccountInterface.
 func NewMockAccountInterface(ctrl *gomock.Controller) *MockAccountInterface {
 	mock := &MockAccountInterface{ctrl: ctrl}
 	mock.recorder = &MockAccountInterfaceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use.
+// EXPECT is a function that returns a pointer to a MockAccountInterfaceMockRecorder
+// (allows the caller to indicate expected use).
+//
+// Parameters:
+//  none
+// Returns:
+// - *MockAccountInterfaceMockRecorder: a pointer to a MockAccountInterfaceMockRecorder
 func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 	return m.recorder
 }

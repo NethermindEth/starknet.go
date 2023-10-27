@@ -119,6 +119,12 @@ type DeployAccountTxn struct {
 
 type UnknownTransaction struct{ Transaction }
 
+// UnmarshalJSON unmarshals the JSON data into an UnknownTransaction object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
 func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -134,6 +140,13 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalTxn unmarshals a given interface{} into a Transaction object.
+//
+// Parameters:
+// - t: The interface{} to be unmarshalled
+// Returns:
+// - Transaction: a Transaction object
+// - error: an error if the unmarshaling process fails
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -184,6 +197,14 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
 
+// remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
+// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
+//
+// Parameters:
+// - v: The interface{} value to be marshaled
+// - dst: The interface{} value to be unmarshaled
+// Returns:
+// - error: An error if the marshaling or unmarshaling process fails
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -206,6 +227,13 @@ const (
 	TransactionV2 TransactionVersion = "0x2"
 )
 
+// BigInt returns a big integer corresponding to the transaction version.
+//
+// Parameters:
+//  none
+// Returns:
+// - *big.Int: a pointer to a big.Int
+// - error: an error if the conversion fails
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:

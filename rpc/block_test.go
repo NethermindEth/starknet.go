@@ -11,7 +11,20 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestBlockNumber tests BlockNumber and check the returned value is strictly positive
+// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check the returned value is strictly positive.
+//
+// The function performs the following steps:
+// 1. Sets up the test configuration.
+// 2. Defines a test set.
+// 3. Loops over the test set.
+// 4. Creates a new spy.
+// 5. Calls the BlockNumber function on the test provider.
+// 6. Validates the returned block number.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -40,7 +53,22 @@ func TestBlockNumber(t *testing.T) {
 	}
 }
 
-// TestBlockHashAndNumber tests BlockHashAndNumber and check the returned value is strictly positive
+// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check the returned value is strictly positive.
+//
+// It sets up a test configuration and creates a test set based on the test environment.
+// Then it iterates through the test set and performs the following steps:
+//   - Creates a new spy using the testConfig provider.
+//   - Sets the testConfig provider to the spy.
+//   - Calls the BlockHashAndNumber function of the testConfig provider with a context.
+//   - Checks if there is an error and if it matches the expected error.
+//   - Compares the result with the spy and checks if it matches the expected result.
+//   - Checks if the block number is greater than 3000.
+//   - Checks if the block hash starts with "0x".
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -72,7 +100,32 @@ func TestBlockHashAndNumber(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxHashes tests BlockWithTxHashes
+// TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
+//
+// The function takes a testing.T object as a parameter and initializes a testConfig object.
+// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
+// The function then initializes a blockGoerli310370 variable of type BlockTxHashes with a predefined set of values.
+// It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
+//
+// The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
+// Each key corresponds to a slice of testSetType objects.
+// The "mock" key has two testSetType objects with different field values.
+// The "testnet" key has three testSetType objects with different field values.
+// The "mainnet" key does not have any testSetType objects.
+//
+// The function then iterates over the testSet map and performs the following steps for each testSetType object:
+// - It creates a new Spy object and assigns it to the testConfig.provider.c field.
+// - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
+// - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
+// - It checks the type of the result variable and performs specific assertions based on the type.
+//   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
+//   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
+//   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -218,7 +271,17 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 }
 
-// TestBlockWithTxsAndInvokeTXNV0 tests block with Invoke TXN V0
+// TestBlockWithTxsAndInvokeTXNV0 tests the BlockWithTxsAndInvokeTXNV0 function.
+//
+// The function tests the BlockWithTxsAndInvokeTXNV0 function by setting up a test configuration and a test set type.
+// It then initializes a fullBlockGoerli310370 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
+// The function compares the expected error with the actual error and checks if the BlockWithTxs function returns the correct block data.
+// It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
+//
+// Parameters:
+// - t: The t testing object
+// Returns:
+//  none
 func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -342,6 +405,22 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 }
 
 // TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
+
+// TestBlockWithTxsAndDeployOrDeclare is a test function that tests the functionality of the BlockWithTxs function.
+// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockGoerli310843, fullBlockGoerli848622 and fullBlockGoerli849399).
+// It then defines a testSet map with different test scenarios for the BlockWithTxs function.
+// The function iterates over the testSet and performs the BlockWithTxs operation on each test case.
+// It compares the returned blockWithTxs with the expected result and verifies the correctness of the operation.
+// The function also checks the block hash, the number of transactions, and other properties of the returned blockWithTxs.
+// The function returns an error if the actual result does not match the expected result.
+// It uses the Spy object to compare the blockWithTxs with the expected result and returns an error if they don't match.
+// The function also checks the block hash to ensure it starts with "0x" and verifies that the number of transactions is not zero.
+// Finally, the function compares the transactions of the returned blockWithTxs with the expected transactions and returns an error if they don't match.
+//
+// Parameters:
+// - t: *testing.T - the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -353,7 +432,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		ExpectedBlockWithTxs        *Block
 	}
 
-	// To do : re-add test for deploy account transaction
+	// TODO : re-add test for deploy account transaction
 	var fullBlockGoerli310843 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
@@ -528,7 +607,20 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}
 }
 
-// TestBlockTransactionCount tests BlockTransactionCount
+// TestBlockTransactionCount tests the function that calculates the number of transactions in a block.
+//
+// This function tests the BlockTransactionCount function by running it with different test cases.
+// It verifies that the function returns the expected count of transactions for each test case.
+// The test cases include a mock environment, a testnet environment, and a mainnet environment.
+// For each test case, the function sets up a spy provider and calls BlockTransactionCount with a specific block ID.
+// It then compares the returned count with the expected count and verifies that they match.
+// If the counts do not match, the function reports an error and provides additional information.
+// Finally, the function terminates if all test cases pass.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestBlockTransactionCount(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -572,6 +664,12 @@ func TestBlockTransactionCount(t *testing.T) {
 	}
 }
 
+// TestCaptureUnsupportedBlockTxn tests the functionality of capturing unsupported block transactions.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -616,8 +714,13 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}
 }
 
+// TestBlockWithTxsAndInvokeTXNV1 is a test function that tests the behavior of the BlockWithTxsAndInvokeTXNV1 function.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 // TODO: Find a block with such a Txn
-// TestBlockWithTxsAndInvokeTXNV1 tests BlockWithTxs with Invoke V1
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
 
@@ -640,10 +743,21 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	}
 }
 
-// TestStateUpdate tests StateUpdateByHash
+// TestStateUpdate is a test function for the StateUpdate method.
+//
+// It tests the StateUpdate method by creating a test set and iterating through each test case.
+// For each test case, it creates a spy object and sets it as the provider.
+// Then, it calls the StateUpdate method with the given test block ID.
+// If there is an error, it fails the test.
+// If the returned block hash does not match the expected block hash, it fails the test.
 // TODO: this is not implemented yet with pathfinder as you can see from the
 // [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
 // check when it is and test when it is the case.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestStateUpdate(t *testing.T) {
 	testConfig := beforeEach(t)
 

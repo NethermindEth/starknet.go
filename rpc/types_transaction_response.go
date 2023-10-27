@@ -14,6 +14,7 @@ type AddDeployAccountTransactionResponse struct {
 	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
+// AddInvokeTransactionResponse provides the output for AddInvokeTransaction.
 type AddInvokeTransactionResponse struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 }
