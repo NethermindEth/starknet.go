@@ -698,9 +698,7 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 // - none
 // Returns:
 // - priv: a pointer to a big.Int representing the generated private key
-func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int) {
-	max := new(big.Int).Sub(sc.Max, big.NewInt(1))
-// It returns a pointer to a big.Int representing the generated private key, and an error.
+// - err: an error if any
 func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 	max := new(big.Int).Sub(sc.Max, big.NewInt(1))
 
