@@ -49,10 +49,13 @@ func Err(code int, data any) *RPCError {
 // Returns:
 // - error: the original error
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
-
 	var nodeErr *RPCError
 	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
 		return err
+	}
+
+	if dataErr, ok := isErrorWithData(nodeErr); ok {
+		return dataErr
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -63,46 +66,24 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return Err(InternalError, err)
 }
 
-// isErrUnexpectedError checks if the error is an unexpected error.
+// isErrorWithData checks if the error is the type of error that might contain information in the data field.
+// In the case it is, it adds this information to the returned error.
 //
 // Parameters:
-// - err: The error to be checked
+// - nodeErr: The error to be checked
 // Returns:
-// - *RPCError: a pointer to an RPCError object
-// - bool: a boolean value indicating if the error is an unexpected error
-func isErrUnexpectedError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
+// - *RPCError: a pointer to the RPCError resulting object
+// - bool: a boolean value indicating if the error is of the same error type as `rpcErr`
+func isErrorWithData(nodeErr *RPCError) (*RPCError, bool) {
 	switch nodeErr.code {
 	case ErrUnexpectedError.code:
-		unexpectedErr := ErrUnexpectedError
+		unexpectedErr := *ErrUnexpectedError
 		unexpectedErr.data = nodeErr.data
-		return unexpectedErr, true
-	}
-	return nil, false
-}
-
-// isErrNoTraceAvailableError checks if the given error is an RPCError with code ErrNoTraceAvailable.
-//
-// Parameters:
-// - err: The error to be checked.
-// Returns:
-// - *RPCError: a pointer to an RPCError object
-// - bool: a boolean value indicating if the error is an RPCError with code ErrNoTraceAvailabl
-func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
-	switch nodeErr.code {
+		return &unexpectedErr, true
 	case ErrNoTraceAvailable.code:
-		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError := *ErrNoTraceAvailable
 		noTraceAvailableError.data = nodeErr.data
-		return noTraceAvailableError, true
+		return &noTraceAvailableError, true
 	}
 	return nil, false
 }

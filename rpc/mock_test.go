@@ -669,9 +669,9 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 	if invokeTx.SenderAddress != nil {
 
 		if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
-			unexpErr := ErrUnexpectedError
+			unexpErr := *ErrUnexpectedError
 			unexpErr.data = "Something crazy happened"
-			return unexpErr
+			return &unexpErr
 		}
 	}
 	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
