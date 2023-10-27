@@ -153,8 +153,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
-		
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound,ErrContractError, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return raw, nil
 }
@@ -172,7 +171,7 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 	var raw FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
 		
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound,ErrContractError, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return &raw, nil
 }

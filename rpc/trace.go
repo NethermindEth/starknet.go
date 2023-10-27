@@ -92,7 +92,7 @@ func (provider *Provider) SimulateTransactions(ctx context.Context, blockID Bloc
 
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrContractError, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return output, nil

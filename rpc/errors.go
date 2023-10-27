@@ -84,6 +84,10 @@ func isErrorWithData(nodeErr *RPCError) (*RPCError, bool) {
 		noTraceAvailableError := *ErrNoTraceAvailable
 		noTraceAvailableError.data = nodeErr.data
 		return &noTraceAvailableError, true
+	case ErrContractError.code:
+		contractError := *ErrContractError
+		contractError.data = nodeErr.data
+		return &contractError, true
 	}
 	return nil, false
 }
