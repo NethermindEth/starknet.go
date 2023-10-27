@@ -133,9 +133,9 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 // - hash: A pointer to a big.Int representing the calculated hash.
 // - err: An error object indicating any error that occurred during the calculation.
 func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
-	elements := []*big.Int{utils.UTF8StrToBig("Starknet Message")}
+	elements := []*big.Int{utils.UTF8StrToBig("StarkNet Message")}
 
-	domEnc, err := td.GetTypedMessageHash("StarknetDomain", td.Domain, sc)
+	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
 	if err != nil {
 		return hash, fmt.Errorf("could not hash domain: %w", err)
 	}

@@ -115,14 +115,8 @@ type Block struct {
 }
 
 type PendingBlock struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// Transactions The transactions in this block
-	Transactions BlockTransactions `json:"transactions"`
+	PendingBlockHeader
+	BlockTransactions
 }
 
 type BlockTxHashes struct {
@@ -133,13 +127,7 @@ type BlockTxHashes struct {
 }
 
 type PendingBlockTxHashes struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// Transactions The hashes of the transactions included in this block
+	PendingBlockHeader
 	Transactions []*felt.Felt `json:"transactions"`
 }
 
@@ -156,4 +144,28 @@ type BlockHeader struct {
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+
+type PendingBlockHeader struct {
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+
+type ResourcePrice struct {
+	// The price of one unit of the given resource, denominated in strk
+	PriceInStrk NumAsHex `json:"price_in_strk,omitempty"`
+	// The price of one unit of the given resource, denominated in wei
+	PriceInWei NumAsHex `json:"price_in_wei"`
 }

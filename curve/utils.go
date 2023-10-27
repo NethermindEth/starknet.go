@@ -7,7 +7,7 @@ import (
 )
 
 // DivMod calculates the quotient and remainder of a division operation between two big integers (0 <= x < p such that (m * x) % p == n).
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L50)
 //
 // Parameters:
 // - n: a pointer to a big integer representing the dividend
@@ -94,7 +94,6 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 	blen := len(in.Bytes()) * 8
 
 	if blen > qlen {
-
 		return new(big.Int).Rsh(in, uint(blen-qlen))
 	}
 	return in

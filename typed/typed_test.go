@@ -50,14 +50,14 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 func MockTypedData() (ttd TypedData) {
 	exampleTypes := make(map[string]TypeDef)
 	domDefs := []Definition{{"name", "felt"}, {"version", "felt"}, {"chainId", "felt"}}
-	exampleTypes["StarknetDomain"] = TypeDef{Definitions: domDefs}
+	exampleTypes["StarkNetDomain"] = TypeDef{Definitions: domDefs}
 	mailDefs := []Definition{{"from", "Person"}, {"to", "Person"}, {"contents", "felt"}}
 	exampleTypes["Mail"] = TypeDef{Definitions: mailDefs}
 	persDefs := []Definition{{"name", "felt"}, {"wallet", "felt"}}
 	exampleTypes["Person"] = TypeDef{Definitions: persDefs}
 
 	dm := Domain{
-		Name:    "Starknet Mail",
+		Name:    "StarkNet Mail",
 		Version: "1",
 		ChainId: "1",
 	}
@@ -147,7 +147,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 func TestGeneral_GetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
-	hash, err := ttd.GetTypedMessageHash("StarknetDomain", ttd.Domain, curve.Curve)
+	hash, err := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain, curve.Curve)
 	if err != nil {
 		t.Errorf("Could not hash message: %v\n", err)
 	}
@@ -208,7 +208,7 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 func TestGeneral_GetTypeHash(t *testing.T) {
 	tdd := MockTypedData()
 
-	hash, err := tdd.GetTypeHash("StarknetDomain")
+	hash, err := tdd.GetTypeHash("StarkNetDomain")
 	if err != nil {
 		t.Errorf("error enccoding type %v\n", err)
 	}
@@ -218,7 +218,7 @@ func TestGeneral_GetTypeHash(t *testing.T) {
 		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}
 
-	enc := tdd.Types["StarknetDomain"]
+	enc := tdd.Types["StarkNetDomain"]
 	if utils.BigToHex(enc.Encoding) != exp {
 		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
 	}

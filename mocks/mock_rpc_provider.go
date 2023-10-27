@@ -46,7 +46,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 	return m.recorder
 }
 
-// AddDeclareTransaction description of the Go function (base method).
+// AddDeclareTransaction mocks base method.
 //
 // Parameters:
 // - ctx: the context.
@@ -54,7 +54,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 // Returns:
 // - *rpc.AddDeclareTransactionResponse: a pointer to rpc.AddDeclareTransactionResponse
 // - error: an error if any
-func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeclareTransaction", ctx, declareTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -82,7 +82,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeclareTransaction(ctx, declareTransac
 // Returns:
 // - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
 // - error: an error if any
-func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeployAccountTransaction", ctx, deployAccountTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeployAccountTransactionResponse)
@@ -110,7 +110,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeployAccountTransaction(ctx, deployAc
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: the response
 // - error: the error if any
-func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, invokeTxn)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
@@ -502,6 +502,34 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetTransactionStatus mocks base method.
+//
+// Parameters:
+// - ctx: the context parameter
+// - transactionHash: hash of the transaction as a felt
+// Returns:
+// - *rpc.TxnStatusResp: a pointer to the Txn status
+// - error: the error if any
+func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionStatus", ctx, transactionHash)
+	ret0, _ := ret[0].(*rpc.TxnStatusResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionStatus indicates an expected call of GetTransactionStatus.
+//
+// Parameters:
+// - ctx: the context parameter
+// - transactionHash: hash of the transaction as a felt
+// Returns:
+// - *gomock.Call: a pointer to the call
+func (mr *MockRpcProviderMockRecorder) GetTransactionStatus(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetTransactionStatus), ctx, transactionHash)
+}
+
 // Nonce is a function that retrieves the nonce for a given block ID and contract address.
 //
 // Parameters:
@@ -562,6 +590,32 @@ func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.
 func (mr *MockRpcProviderMockRecorder) SimulateTransactions(ctx, blockID, txns, simulationFlags interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SimulateTransactions", reflect.TypeOf((*MockRpcProvider)(nil).SimulateTransactions), ctx, blockID, txns, simulationFlags)
+}
+
+// SpecVersion mocks base method.
+//
+// Parameters:
+// - ctx: description of the ctx parameter
+// Returns:
+// - string: The storage data as a string
+// - error: An error if any
+func (m *MockRpcProvider) SpecVersion(ctx context.Context) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpecVersion", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SpecVersion indicates an expected call of SpecVersion.
+//
+// Parameters:
+// - ctx: description of the ctx parameter
+// Returns:
+// - *gomock.Call: a pointer to the Call
+func (mr *MockRpcProviderMockRecorder) SpecVersion(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpecVersion", reflect.TypeOf((*MockRpcProvider)(nil).SpecVersion), ctx)
 }
 
 // StateUpdate is a method that updates the state based on the given block ID.
@@ -654,13 +708,13 @@ func (mr *MockRpcProviderMockRecorder) Syncing(ctx interface{}) *gomock.Call {
 //
 // Parameters:
 // - ctx: the context.Context object
-// - blockHash: the hash of the block to trace
+// - blockID: the hash of the block to trace
 // Returns:
 // - []rpc.Trace: an array of rpc.Trace objects representing the traces of the transactions in the block
 // - error: an error object, if any
-func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
+func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockHash)
+	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
 	ret0, _ := ret[0].([]rpc.Trace)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -670,12 +724,27 @@ func (m *MockRpcProvider) TraceBlockTransactions(ctx context.Context, blockHash 
 //
 // Parameters:
 // - ctx: The context
-// - blockHash: description of its parameter(s)
+// - blockID: description of its parameter(s)
 // Returns:
 // - *gomock.Call: The call object
-func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockHash interface{}) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) TraceBlockTransactions(ctx, blockID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRpcProvider)(nil).TraceBlockTransactions), ctx, blockID)
+}
+
+// TraceTransaction mocks base method.
+func (m *MockRpcProvider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TraceTransaction", ctx, transactionHash)
+	ret0, _ := ret[0].(rpc.TxnTrace)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TraceTransaction indicates an expected call of TraceTransaction.
+func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceTransaction", reflect.TypeOf((*MockRpcProvider)(nil).TraceTransaction), ctx, transactionHash)
 }
 
 // TransactionByBlockIdAndIndex returns a transaction by block ID and index.
@@ -764,32 +833,4 @@ func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHas
 func (mr *MockRpcProviderMockRecorder) TransactionReceipt(ctx, transactionHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockRpcProvider)(nil).TransactionReceipt), ctx, transactionHash)
-}
-
-// TransactionTrace is a function that retrieves the transaction trace for a given transaction hash.
-//
-// Parameters:
-// - ctx: The context
-// - transactionHash: The transaction hash
-// Returns:
-// - rpc.TxnTrace: The transaction trace
-// - error: An error if any
-func (m *MockRpcProvider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionTrace", ctx, transactionHash)
-	ret0, _ := ret[0].(rpc.TxnTrace)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// TransactionTrace description of an expected call of TransactionTrace.
-//
-// Parameters:
-// - ctx: The context.
-// - transactionHash: The transaction hash.
-// Returns:
-// - *gomock.Call: a pointer to the Call
-func (mr *MockRpcProviderMockRecorder) TransactionTrace(ctx, transactionHash interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionTrace", reflect.TypeOf((*MockRpcProvider)(nil).TransactionTrace), ctx, transactionHash)
 }

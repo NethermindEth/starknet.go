@@ -56,49 +56,37 @@ type L1HandlerTxn struct {
 }
 
 type DeclareTxnV0 struct {
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
-
+	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt `json:"sender_address"`
-
-	DeprecatedContractClass `json:"contract_class,omitempty"`
-	ClassHash               *felt.Felt `json:"class_hash,omitempty"`
+	SenderAddress *felt.Felt         `json:"sender_address"`
+	MaxFee        *felt.Felt         `json:"max_fee"`
+	Version       TransactionVersion `json:"version"`
+	Signature     []*felt.Felt       `json:"signature"`
+	ClassHash     *felt.Felt         `json:"class_hash"`
 }
 
 type DeclareTxnV1 struct {
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
-
-	// ClassHash the hash of the declared class
-	ClassHash *felt.Felt `json:"class_hash,omitempty"`
-
-	DeprecatedContractClass `json:"contract_class,omitempty"`
-
+	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt `json:"sender_address"`
+	SenderAddress *felt.Felt         `json:"sender_address"`
+	MaxFee        *felt.Felt         `json:"max_fee"`
+	Version       TransactionVersion `json:"version"`
+	Signature     []*felt.Felt       `json:"signature"`
+	Nonce         *felt.Felt         `json:"nonce"`
+	// ClassHash the hash of the declared class
+	ClassHash *felt.Felt `json:"class_hash"`
 }
 
 type DeclareTxnV2 struct {
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
-
+	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt `json:"sender_address"`
-
-	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
-
-	ContractClass `json:"contract_class,omitempty"`
-	ClassHash     *felt.Felt `json:"class_hash,omitempty"`
+	SenderAddress     *felt.Felt         `json:"sender_address"`
+	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
+	MaxFee            *felt.Felt         `json:"max_fee"`
+	Version           TransactionVersion `json:"version"`
+	Signature         []*felt.Felt       `json:"signature"`
+	Nonce             *felt.Felt         `json:"nonce"`
+	ClassHash         *felt.Felt         `json:"class_hash"`
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions

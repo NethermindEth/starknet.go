@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"errors"
+	
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -23,15 +23,8 @@ func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockI
 	}
 	var result []*felt.Felt
 	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
-		switch {
-		case errors.Is(err, ErrContractNotFound):
-			return nil, ErrContractNotFound
-		case errors.Is(err, ErrContractError):
-			return nil, ErrContractError
-		case errors.Is(err, ErrBlockNotFound):
-			return nil, ErrBlockNotFound
-		}
-		return nil, err
+		
+		return nil,  tryUnwrapToRPCErr(err, ErrContractNotFound, ErrContractError, ErrBlockNotFound)
 	}
 	return result, nil
 }

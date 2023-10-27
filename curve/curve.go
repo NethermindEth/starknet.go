@@ -123,8 +123,7 @@ func init() {
 
 // Add computes the sum of two points on the StarkCurve.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
-//
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L59)
 //
 // Parameters:
 // - x1, y1: The coordinates of the first point as pointers to big.Int on the curve
@@ -153,7 +152,7 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 
 // Double calculates the double of a point on a StarkCurve (equation y^2 = x^3 + alpha*x + beta mod p).
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int)
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L79)
 //
 // The function takes two pointers to big.Int values, x1 and y1, which represent the
 // coordinates of the point to be doubled on the StarkCurve. It returns two pointers
@@ -241,7 +240,7 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 }
 
 // InvModCurveSize calculates the inverse modulus of a given big integer 'x' with respect to the StarkCurve 'sc'.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py)
 //
 // Parameters:
 // - x: The big integer to calculate the inverse modulus for
@@ -252,7 +251,9 @@ func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 }
 
 // GetYCoordinate calculates the y-coordinate of a point on the StarkCurve.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L84)
+// point (x,y) is on the curve.
+// Note: the real y coordinate is either y or -y.
 //
 // Parameters:
 // - starkX: The x-coordinate of the point
@@ -275,7 +276,7 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 
 // MimicEcMultAir performs a computation on the StarkCurve struct (m * point + shift_point)
 // using the same steps like the AIR.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L176)
 // AIR : Algebraic Intermediate Representation of computation
 //
 // Parameters:
@@ -311,7 +312,7 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 
 // EcMult multiplies a point (equation y^2 = x^3 + alpha*x + beta mod p) on the StarkCurve by a scalar value.
 // Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L91)
 //
 // Parameters:
 // - m: The scalar value to multiply the point by.
@@ -362,7 +363,7 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 }
 
 // Verify verifies the validity of the signature for a given message hash using the StarkCurve.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/signature.py)
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L217)
 //
 // Parameters:
 // - msgHash: The message hash to be verified
@@ -516,7 +517,6 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	xFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(x))
 	yFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(y))
 	return xFelt, yFelt, nil
-
 }
 
 // HashElements calculates the hash of a list of elements using the StarkCurve struct and a golang Pedersen Hash.

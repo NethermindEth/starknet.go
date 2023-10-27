@@ -3,11 +3,12 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// TransactionTrace returns the transaction trace for the given transaction hash.
+// TraceTransaction returns the transaction trace for the given transaction hash.
 //
 // Parameters:
 //   - ctx: the context.Context object for the request
@@ -15,7 +16,7 @@ import (
 // Returns:
 //   - TxnTrace: the transaction trace
 //   - error: an error if the transaction trace cannot be retrieved
-func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
+func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
 		if noTraceAvailableError, ok := isErrNoTraceAvailableError(err); ok {
@@ -29,28 +30,29 @@ func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash 
 		return nil, err
 	}
 
-	// if execute_invocation exists, then it's an InvokeTxnTrace type
-	if _, exists := rawTxnTrace["execute_invocation"]; exists {
+	switch rawTxnTrace["type"] {
+	case string(TransactionType_Invoke):
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
 			return nil, err
 		}
 		return trace, nil
-	}
-
-	// if constructor_invocation exists, then it's a DeployAccountTxnTrace type
-	if _, exists := rawTxnTrace["constructor_invocation"]; exists {
+	case string(TransactionType_Declare):
+		var trace DeclareTxnTrace
+		err = json.Unmarshal(rawTraceByte, &trace)
+		if err != nil {
+			return nil, err
+		}
+		return trace, nil
+	case string(TransactionType_DeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
 			return nil, err
 		}
 		return trace, nil
-	}
-
-	// if function_invocation exists, then it's an L1HandlerTxnTrace type
-	if _, exists := rawTxnTrace["function_invocation"]; exists {
+	case string(TransactionType_L1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -58,14 +60,8 @@ func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash 
 		}
 		return trace, nil
 	}
+	return nil, errors.New("Unknown transaction type")
 
-	// the other possible choice is for it to be a DeclareTxnTrace type
-	var trace DeclareTxnTrace
-	err = json.Unmarshal(rawTraceByte, &trace)
-	if err != nil {
-		return nil, err
-	}
-	return trace, nil
 }
 
 // TraceBlockTransactions retrieves the traces of transactions in a given block.
@@ -76,10 +72,10 @@ func (provider *Provider) TransactionTrace(ctx context.Context, transactionHash 
 // Returns:
 // - []Trace: a slice of Trace objects representing the traces of transactions in the block
 // - error: an error if there was a problem retrieving the traces.
-func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error) {
+func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error) {
 	var output []Trace
-	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockHash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrInvalidBlockHash)
+	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return output, nil
 

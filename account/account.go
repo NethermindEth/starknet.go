@@ -416,7 +416,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
@@ -428,7 +428,7 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.I
 // Returns:
 // - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
 // - error: an error, if any
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
@@ -440,7 +440,7 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 // Returns:
 // - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
 // - error: an error if any
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
@@ -658,7 +658,6 @@ func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*
 }
 
 // SpecVersion returns the spec version of the account.
-//
 // It takes a context as a parameter and returns a string and an error
 //
 // Parameters:
@@ -673,7 +672,7 @@ func (account *Account) SpecVersion(ctx context.Context) (string, error) {
 // Syncing returns the sync status of the account.
 //
 // Parameters:
-// - context.Context: The context.Context object
+// - ctx: The context.Context object
 // Returns:
 // - *rpc.SyncStatus: *rpc.SyncStatus
 // - error: an error.
@@ -685,12 +684,12 @@ func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 //
 // Parameters:
 // - ctx: The context.Context object.
-// - blockHash: The hash of the block to retrieve trace transactions for.
+// - blockID: The hash of the block to retrieve trace transactions for.
 // Returns
 // - []rpc.Trace: The list of trace transactions for the given block.
 // - error: An error if there was a problem retrieving the trace transactions.
-func (account *Account) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
-	return account.provider.TraceBlockTransactions(ctx, blockHash)
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+	return account.provider.TraceBlockTransactions(ctx, blockID)
 }
 
 // TransactionReceipt retrieves the transaction receipt for the given transaction hash.
@@ -711,8 +710,8 @@ func (account *Account) TransactionReceipt(ctx context.Context, transactionHash 
 // - transactionHash: The transaction hash for which the transaction trace is to be retrieved.
 // Returns: 
 // - rpc.TxnTrace: The rpc.TxnTrace object representing the transaction trace, and an error if any.
-func (account *Account) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	return account.provider.TransactionTrace(ctx, transactionHash)
+func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	return account.provider.TraceTransaction(ctx, transactionHash)
 }
 
 // TransactionByBlockIdAndIndex returns a transaction by block ID and index.
@@ -737,6 +736,18 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 // - error
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
+}
+
+// GetTransactionStatus returns the transaction status.
+//
+// Parameters:
+// - ctx: The context.Context
+// - Txnhash: The *felt.Felt Txn hash.
+// Returns:
+// - *rpc.TxnStatusResp: the transaction status
+// - error: anerror if any
+func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
+	return account.provider.GetTransactionStatus(ctx, Txnhash)
 }
 
 // FmtCalldata generates the formatted calldata for the given function calls and Cairo version.
