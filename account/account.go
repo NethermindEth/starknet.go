@@ -604,17 +604,16 @@ func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc
 	return account.provider.Events(ctx, input)
 }
 
-// Nonce returns the nonce for the specified account and contract address.
+// Nonce retrieves the nonce for a given block ID and contract address.
 //
 // Parameters:
-// - ctx: The context.Context object for the function
-// - blockID: the rpc.BlockID object for the function
-// - contractAddress: the felt.Felt (address of the contract) whose nonce we're seeking
-//
+// - ctx: is the context.Context for the function call
+// - blockID: is the ID of the block
+// - contractAddress: is the address of the contract
 // Returns:
-// - *string: a string pointer
-// - error: an error
-func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+// - *felt.Felt: the contract's nonce at the requested state
+// - error: an error if any
+func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	return account.provider.Nonce(ctx, blockID, contractAddress)
 }
 
