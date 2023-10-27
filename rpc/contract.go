@@ -123,15 +123,15 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 // - blockID: is the ID of the block
 // - contractAddress: is the address of the contract
 // Returns:
-// - *string: the nonce
+// - *felt.Felt: the contract's nonce at the requested state
 // - error: an error if any
-func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
-	nonce := ""
+func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+	var nonce *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
 		
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
-	return &nonce, nil
+	return nonce, nil
 }
 
 // EstimateFee estimates the fee for executing a set of requests on the StarkNet blockchain.
