@@ -24,7 +24,9 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	var expectedResp InvokeTxnTraceå
+	var expectedResp InvokeTxnTrace
+	if testEnv == "mock" {
+		var rawjson struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
 		expectedrespRaw, err := os.ReadFile("./tests/trace/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
