@@ -38,8 +38,6 @@ func Err(code int, data any) *RPCError {
 }
 
 // tryUnwrapToRPCErr unwraps the error and checks if it matches any of the given RPC errors.
-// It attempts to unmarshal the error into an RPCError object. If the unmarshaling fails, the original error is returned.
-// The function then iterates over the given RPC errors and checks if the unwrapped error matches any of them using the errors.Is() function.
 // If a match is found, the corresponding RPC error is returned.
 // If no match is found, the function returns an InternalError with the original error.
 //
@@ -49,10 +47,14 @@ func Err(code int, data any) *RPCError {
 // Returns:
 // - error: the original error
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
-
 	var nodeErr *RPCError
 	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
 		return err
+	}
+
+	dataErr := isErrorWithData(nodeErr)
+	if dataErr != nil {
+		return dataErr
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -63,48 +65,29 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return Err(InternalError, err)
 }
 
-// isErrUnexpectedError checks if the error is an unexpected error.
+// isErrorWithData checks if the error is the type of error that might contain information in the data field.
+// In the case it is, it adds this information to the returned error.
 //
 // Parameters:
-// - err: The error to be checked
+// - nodeErr: The error to be checked
 // Returns:
-// - *RPCError: a pointer to an RPCError object
-// - bool: a boolean value indicating if the error is an unexpected error
-func isErrUnexpectedError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
+// - *RPCError: a pointer to the RPCError resulting object
+func isErrorWithData(nodeErr *RPCError) (*RPCError) {
 	switch nodeErr.code {
 	case ErrUnexpectedError.code:
-		unexpectedErr := ErrUnexpectedError
+		unexpectedErr := *ErrUnexpectedError
 		unexpectedErr.data = nodeErr.data
-		return unexpectedErr, true
-	}
-	return nil, false
-}
-
-// isErrNoTraceAvailableError checks if the given error is an RPCError with code ErrNoTraceAvailable.
-//
-// Parameters:
-// - err: The error to be checked.
-// Returns:
-// - *RPCError: a pointer to an RPCError object
-// - bool: a boolean value indicating if the error is an RPCError with code ErrNoTraceAvailabl
-func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
-	switch nodeErr.code {
+		return &unexpectedErr
 	case ErrNoTraceAvailable.code:
-		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError := *ErrNoTraceAvailable
 		noTraceAvailableError.data = nodeErr.data
-		return noTraceAvailableError, true
+		return &noTraceAvailableError
+	case ErrContractError.code:
+		contractError := *ErrContractError
+		contractError.data = nodeErr.data
+		return &contractError
 	}
-	return nil, false
+	return nil
 }
 
 type RPCError struct {

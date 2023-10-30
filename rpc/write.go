@@ -15,9 +15,6 @@ import (
 func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxn) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
-		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
-			return nil, unexpectedErr
-		}
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
@@ -51,9 +48,6 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
-		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
-			return nil, unexpectedErr
-		}
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrClassAlreadyDeclared,
@@ -83,10 +77,6 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastDeployAccountTxn) (*AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
-		if unexpectedErr, ok := isErrUnexpectedError(err); ok {
-			return nil, unexpectedErr
-		}
-
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,

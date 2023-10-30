@@ -19,9 +19,6 @@ import (
 func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
-		if noTraceAvailableError, ok := isErrNoTraceAvailableError(err); ok {
-			return nil, noTraceAvailableError
-		}
 		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnHash)
 	}
 
@@ -95,7 +92,7 @@ func (provider *Provider) SimulateTransactions(ctx context.Context, blockID Bloc
 
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrContractError, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return output, nil

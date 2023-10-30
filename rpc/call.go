@@ -23,8 +23,7 @@ func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockI
 	}
 	var result []*felt.Felt
 	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
-		
-		return nil,  tryUnwrapToRPCErr(err, ErrContractNotFound, ErrContractError, ErrBlockNotFound)
+		return nil,  tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return result, nil
 }
