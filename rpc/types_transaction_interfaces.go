@@ -5,14 +5,6 @@ type AddDeclareTxnInput interface{}
 var _ AddDeclareTxnInput = DeclareTxnV1{}
 var _ AddDeclareTxnInput = DeclareTxnV2{}
 
-type EstimateFeeInput interface{}
-
-var _ EstimateFeeInput = InvokeTxnV0{}
-var _ EstimateFeeInput = InvokeTxnV1{}
-var _ EstimateFeeInput = DeployAccountTxn{}
-var _ EstimateFeeInput = DeclareTxnV1{}
-var _ EstimateFeeInput = DeclareTxnV2{}
-
 type Transaction interface {
 	GetType() TransactionType
 }

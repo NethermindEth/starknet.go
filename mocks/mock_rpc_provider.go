@@ -232,7 +232,7 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 }
 
 // EstimateFee mocks base method.
-func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, blockID)
 	ret0, _ := ret[0].([]rpc.FeeEstimate)

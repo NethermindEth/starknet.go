@@ -570,12 +570,12 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 //
 // Parameters:
 // - ctx: The context.Context object for the function.
-// - requests: An array of rpc.EstimateFeeInput objects representing the requests to estimate the fee for.
+// - requests: An array of rpc.BroadcastTxn objects representing the requests to estimate the fee for.
 // - blockID: The rpc.BlockID object representing the block ID for which to estimate the fee.
 // Returns:
 // - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
 

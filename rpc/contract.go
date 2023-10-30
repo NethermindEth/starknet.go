@@ -145,12 +145,12 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 //
 // Parameters:
 // - ctx: the context.Context object for cancellation and timeouts
-// - requests: a slice of EstimateFeeInput objects representing the requests to be executed
+// - requests: a slice of BroadcastTxn objects representing the requests to be executed
 // - blockID: the ID of the block on which the requests should be executed
 // Returns:
 // - []FeeEstimate: a slice of FeeEstimate objects representing the estimated fees for executing the requests
 // - error: an error if any occurred during the execution
-func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
 		
