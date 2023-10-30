@@ -292,10 +292,10 @@ func (mr *MockRpcProviderMockRecorder) GetTransactionStatus(ctx, transactionHash
 }
 
 // Nonce mocks base method.
-func (m *MockRpcProvider) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+func (m *MockRpcProvider) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Nonce", ctx, blockID, contractAddress)
-	ret0, _ := ret[0].(*string)
+	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

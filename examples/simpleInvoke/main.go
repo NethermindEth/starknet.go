@@ -66,9 +66,8 @@ func main() {
 		panic(err.Error())
 	}
 
-	//Getting the nonce from the account, and then converting it into felt
-	nonce_string, _ := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
-	nonce, err := utils.HexToFelt(*nonce_string)
+	//Getting the nonce from the account
+	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {
 		panic(err.Error())
 	}

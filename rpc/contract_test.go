@@ -323,16 +323,19 @@ func TestNonce(t *testing.T) {
 
 	type testSetType struct {
 		ContractAddress *felt.Felt
+		ExpectedNonce   *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
 			},
 		},
 		"testnet": {
 			{
 				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
 			},
 		},
 		"mainnet": {},
@@ -341,21 +344,23 @@ func TestNonce(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		value, err := testConfig.provider.Nonce(context.Background(), WithBlockTag("latest"), test.ContractAddress)
+		nonce, err := testConfig.provider.Nonce(context.Background(), WithBlockTag("latest"), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
-		diff, err := spy.Compare(value, false)
+		diff, err := spy.Compare(nonce, false)
 		if err != nil {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(value, true)
+			spy.Compare(nonce, true)
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
-		if *value != "0x0" {
-			t.Fatalf("expecting value %s, got %s", "0x0", *value)
+
+		if nonce == nil {
+			t.Fatalf("should return a nonce, instead %v", nonce)
 		}
+		require.Equal(t, test.ExpectedNonce, nonce)
 	}
 }
 
