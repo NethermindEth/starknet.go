@@ -932,7 +932,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		Nonce:             utils.TestHexToFelt(t, *nonce),
+		Nonce:             nonce,
 		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
 		Type:              rpc.TransactionType_Declare,
 		Version:           rpc.TransactionV2,
