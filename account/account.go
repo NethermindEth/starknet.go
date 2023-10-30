@@ -570,12 +570,12 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 //
 // Parameters:
 // - ctx: The context.Context object for the function.
-// - requests: An array of rpc.EstimateFeeInput objects representing the requests to estimate the fee for.
+// - requests: An array of rpc.BroadcastTxn objects representing the requests to estimate the fee for.
 // - blockID: The rpc.BlockID object representing the block ID for which to estimate the fee.
 // Returns:
 // - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
 
@@ -604,17 +604,16 @@ func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc
 	return account.provider.Events(ctx, input)
 }
 
-// Nonce returns the nonce for the specified account and contract address.
+// Nonce retrieves the nonce for a given block ID and contract address.
 //
 // Parameters:
-// - ctx: The context.Context object for the function
-// - blockID: the rpc.BlockID object for the function
-// - contractAddress: the felt.Felt (address of the contract) whose nonce we're seeking
-//
+// - ctx: is the context.Context for the function call
+// - blockID: is the ID of the block
+// - contractAddress: is the address of the contract
 // Returns:
-// - *string: a string pointer
-// - error: an error
-func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+// - *felt.Felt: the contract's nonce at the requested state
+// - error: an error if any
+func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	return account.provider.Nonce(ctx, blockID, contractAddress)
 }
 

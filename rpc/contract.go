@@ -123,15 +123,15 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 // - blockID: is the ID of the block
 // - contractAddress: is the address of the contract
 // Returns:
-// - *string: the nonce
+// - *felt.Felt: the contract's nonce at the requested state
 // - error: an error if any
-func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error) {
-	nonce := ""
+func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+	var nonce *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
 		
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
-	return &nonce, nil
+	return nonce, nil
 }
 
 // EstimateFee estimates the fee for executing a set of requests on the StarkNet blockchain.
@@ -145,12 +145,12 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 //
 // Parameters:
 // - ctx: the context.Context object for cancellation and timeouts
-// - requests: a slice of EstimateFeeInput objects representing the requests to be executed
+// - requests: a slice of BroadcastTxn objects representing the requests to be executed
 // - blockID: the ID of the block on which the requests should be executed
 // Returns:
 // - []FeeEstimate: a slice of FeeEstimate objects representing the estimated fees for executing the requests
 // - error: an error if any occurred during the execution
-func (provider *Provider) EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
