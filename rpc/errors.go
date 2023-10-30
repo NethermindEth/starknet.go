@@ -38,8 +38,6 @@ func Err(code int, data any) *RPCError {
 }
 
 // tryUnwrapToRPCErr unwraps the error and checks if it matches any of the given RPC errors.
-// It attempts to unmarshal the error into an RPCError object. If the unmarshaling fails, the original error is returned.
-// The function then iterates over the given RPC errors and checks if the unwrapped error matches any of them using the errors.Is() function.
 // If a match is found, the corresponding RPC error is returned.
 // If no match is found, the function returns an InternalError with the original error.
 //
@@ -54,7 +52,8 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 		return err
 	}
 
-	if dataErr, ok := isErrorWithData(nodeErr); ok {
+	dataErr := isErrorWithData(nodeErr)
+	if dataErr != nil {
 		return dataErr
 	}
 
@@ -73,23 +72,22 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 // - nodeErr: The error to be checked
 // Returns:
 // - *RPCError: a pointer to the RPCError resulting object
-// - bool: a boolean value indicating if the error is of the same error type as `rpcErr`
-func isErrorWithData(nodeErr *RPCError) (*RPCError, bool) {
+func isErrorWithData(nodeErr *RPCError) (*RPCError) {
 	switch nodeErr.code {
 	case ErrUnexpectedError.code:
 		unexpectedErr := *ErrUnexpectedError
 		unexpectedErr.data = nodeErr.data
-		return &unexpectedErr, true
+		return &unexpectedErr
 	case ErrNoTraceAvailable.code:
 		noTraceAvailableError := *ErrNoTraceAvailable
 		noTraceAvailableError.data = nodeErr.data
-		return &noTraceAvailableError, true
+		return &noTraceAvailableError
 	case ErrContractError.code:
 		contractError := *ErrContractError
 		contractError.data = nodeErr.data
-		return &contractError, true
+		return &contractError
 	}
-	return nil, false
+	return nil
 }
 
 type RPCError struct {
