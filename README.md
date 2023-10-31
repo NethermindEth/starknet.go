@@ -83,6 +83,16 @@ go run main.go
 
 > Check [here](examples/deployAccount/README.md) for more details
 
+***starknet invokeTransaction***
+
+```sh
+cd examples/simpleInvoke
+go mod tidy
+go run main.go
+```
+
+> Check [here](examples/simpleInvoke/README.md) for more details
+
 
 ### RPC
 

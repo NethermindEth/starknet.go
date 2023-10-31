@@ -24,27 +24,27 @@ var (
 )
 
 func main() {
-	//Loading the env
+	// Loading the env
 	godotenv.Load(fmt.Sprintf(".env.%s", name))
-	base := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with an starknet goerli RPC.
+	base := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
 	fmt.Println("Starting simpleInvoke example")
 
-	//Initialising the connection
+	// Initialising the connection
 	c, err := ethrpc.DialContext(context.Background(), base)
 	if err != nil {
 		fmt.Println("Failed to connect to the client, did you specify the url in the .env.testnet?")
 		panic(err)
 	}
 
-	//Initialising the provider
+	// Initialising the provider
 	clientv02 := rpc.NewProvider(c)
 
-	//Here we are converting the account address to felt
+	// Here we are converting the account address to felt
 	account_address, err := utils.HexToFelt(account_addr)
 	if err != nil {
 		panic(err.Error())
 	}
-	//Initializing the account memkeyStore
+	// Initializing the account memkeyStore
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -54,25 +54,25 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	//Here we are setting the maxFee
+	// Here we are setting the maxFee
 	maxfee, err := utils.HexToFelt("0x9184e72a000")
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//Initializing the account
+	// Initializing the account
 	accnt, err := account.NewAccount(clientv02, account_address, public_key, ks)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//Getting the nonce from the account
+	// Getting the nonce from the account
 	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//Building the InvokeTx struct
+	// Building the InvokeTx struct
 	InvokeTx := rpc.InvokeTxnV1{
 		MaxFee:        maxfee,
 		Version:       rpc.TransactionV1,
@@ -81,39 +81,39 @@ func main() {
 		SenderAddress: accnt.AccountAddress,
 	}
 
-	//Converting the contractaddress from hex to felt
+	// Converting the contractaddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//Building the functioncall struct, where :
+	// Building the functionCall struct, where :
 	FnCall := rpc.FunctionCall{
-		ContractAddress:    contractAddress,                               //contractAddress is the contract that we wanna call
-		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we wanna call
+		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
+		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
 	}
 
-	//Mentioning the contract version
+	// Mentioning the contract version
 	CairoContractVersion := 2
 
-	//Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
+	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
 	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall}, CairoContractVersion)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//Signing of the the transaction that is done by the account
+	// Signing of the transaction that is done by the account
 	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	//After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
+	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
 	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		panic(err.Error())
 	}
-	//This returns us with the transaction hash
-	fmt.Println("Response : ", resp.TransactionHash)
+	// This returns us with the transaction hash
+	fmt.Println("Transaction hash response : ", resp.TransactionHash)
 
 }

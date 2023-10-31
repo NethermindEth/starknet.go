@@ -1,6 +1,6 @@
 Note: To run this example, you need a testnet endpoint.
 
-Steps to run this example on mainnet:
+Steps to run this example on testnet:
 
 1. rename ".env.template" to ".env.testnet"
 2. uncomment, and set INTEGRATION_BASE to the testnet url //You can get it from here www.alchemy.com/starknet
