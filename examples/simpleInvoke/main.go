@@ -13,7 +13,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// NOTE : Please add in your keys only for testing purposes, incase of a leak you would potentially lose your funds.
+// NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
 	name           string = "testnet"                                                            //env."name"
 	account_addr   string = "0x06f36e8a0fc06518125bbb1c63553e8a7d8597d437f9d56d891b8c7d3c977716" //Replace it with your account address
@@ -81,7 +81,7 @@ func main() {
 		SenderAddress: accnt.AccountAddress,
 	}
 
-	// Converting the contractaddress from hex to felt
+	// Converting the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
 	if err != nil {
 		panic(err.Error())

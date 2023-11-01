@@ -57,10 +57,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
 - [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
-<!-- Currently not working
-- [curve example](./examples/curve) initializing the StarkCurve for signing and verification
-- [contract example](./examples/contract) for smart contract deployment and function call
-- [account example](./examples/contract) for Account initialization and invocation call -->
+- [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
 
 ### Run Examples
 
