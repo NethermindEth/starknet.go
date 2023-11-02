@@ -72,3 +72,4 @@ jobs:
         run: | 
           cd examples/deployAccount && go build
           cd ../simpleCall && go build
+          cd ../simpleInvoke && go build
