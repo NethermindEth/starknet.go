@@ -37,28 +37,35 @@ var _ TxnTrace = L1HandlerTxnTrace{}
 type InvokeTxnTrace struct {
 	ValidateInvocation FnInvocation `json:"validate_invocation"`
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	ExecuteInvocation     FnInvocation `json:"execute_invocation"`
-	FeeTransferInvocation FnInvocation `json:"fee_transfer_invocation"`
+	ExecuteInvocation     ExecInvocation  `json:"execute_invocation"`
+	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff       `json:"state_diff"`
+	Type                  TransactionType `json:"type"`
 }
 
 // the execution trace of a declare transaction
 type DeclareTxnTrace struct {
-	ValidateInvocation    FnInvocation `json:"validate_invocation"`
-	FeeTransferInvocation FnInvocation `json:"fee_transfer_invocation"`
+	ValidateInvocation    FnInvocation    `json:"validate_invocation"`
+	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff       `json:"state_diff"`
+	Type                  TransactionType `json:"type"`
 }
 
 // the execution trace of a deploy account transaction
 type DeployAccountTxnTrace struct {
 	ValidateInvocation FnInvocation `json:"validate_invocation"`
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	ConstructorInvocation FnInvocation `json:"constructor_invocation"`
-	FeeTransferInvocation FnInvocation `json:"fee_transfer_invocation"`
+	ConstructorInvocation FnInvocation    `json:"constructor_invocation"`
+	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff       `json:"state_diff"`
+	Type                  TransactionType `json:"type"`
 }
 
 // the execution trace of an L1 handler transaction
 type L1HandlerTxnTrace struct {
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	FunctionInvocation FnInvocation `json:"function_invocation"`
+	FunctionInvocation FnInvocation    `json:"function_invocation"`
+	Type               TransactionType `json:"type"`
 }
 
 type EntryPointType string
@@ -80,30 +87,35 @@ type FnInvocation struct {
 	FunctionCall
 
 	//The address of the invoking contract. 0 for the root invocation
-	CallerAddress *felt.Felt `json:"caller_address,omitempty"`
+	CallerAddress *felt.Felt `json:"caller_address"`
 
 	// The hash of the class being called
-	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+	ClassHash *felt.Felt `json:"class_hash"`
 
-	EntryPointType EntryPointType `json:"entry_point_type,omitempty"`
+	EntryPointType EntryPointType `json:"entry_point_type"`
 
-	CallType CallType `json:"call_type,omitempty"`
+	CallType CallType `json:"call_type"`
 
 	//The value returned from the function invocation
-	Result []*felt.Felt `json:"result,omitempty"`
+	Result []*felt.Felt `json:"result"`
 
 	// The calls made by this invocation
-	NestedCalls []FnInvocation `json:"calls,omitempty"`
+	NestedCalls []FnInvocation `json:"calls"`
 
 	// The events emitted in this invocation
-	InvocationEvents []Event `json:"events,omitempty"`
+	InvocationEvents []OrderedEvent `json:"events"`
 
 	// The messages sent by this invocation to L1
-	L1Messages []MsgToL1 `json:"messages,omitempty"`
+	L1Messages []OrderedMsg `json:"messages"`
 }
 
 // A single pair of transaction hash and corresponding trace
 type Trace struct {
 	TraceRoot TxnTrace   `json:"trace_root,omitempty"`
 	TxnHash   *felt.Felt `json:"transaction_hash,omitempty"`
+}
+
+type ExecInvocation struct {
+	FunctionInvocation FnInvocation `json:"function_invocation,omitempty"`
+	RevertReason       string       `json:"revert_reason,omitempty"`
 }

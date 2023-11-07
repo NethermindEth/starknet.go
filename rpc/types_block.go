@@ -25,6 +25,16 @@ type BlockID struct {
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
+// MarshalJSON marshals the BlockID to JSON format.
+//
+// It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
+// while the error indicates any error that occurred during the marshaling process.
+//
+// Parameters:
+//  none
+// Returns:
+// - []byte: the JSON representation of the BlockID
+// - error: any error that occurred during the marshaling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
@@ -55,6 +65,15 @@ const (
 	BlockStatus_Rejected     BlockStatus = "REJECTED"
 )
 
+// UnmarshalJSON unmarshals the JSON representation of a BlockStatus.
+//
+// It takes in a byte slice containing the JSON data to be unmarshaled.
+// The function returns an error if there is an issue unmarshaling the data.
+//
+// Parameters:
+// - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
+// Returns:
+// - error: an error if the unmarshaling fails
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -77,6 +96,13 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON returns the JSON encoding of BlockStatus.
+//
+// Parameters:
+//  none
+// Returns:
+// - []byte: a byte slice
+// - error: an error if any
 func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(bs))), nil
 }
@@ -89,14 +115,8 @@ type Block struct {
 }
 
 type PendingBlock struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// Transactions The transactions in this block
-	Transactions BlockTransactions `json:"transactions"`
+	PendingBlockHeader
+	BlockTransactions
 }
 
 type BlockTxHashes struct {
@@ -107,13 +127,7 @@ type BlockTxHashes struct {
 }
 
 type PendingBlockTxHashes struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// Transactions The hashes of the transactions included in this block
+	PendingBlockHeader
 	Transactions []*felt.Felt `json:"transactions"`
 }
 
@@ -130,4 +144,28 @@ type BlockHeader struct {
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+
+type PendingBlockHeader struct {
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+
+type ResourcePrice struct {
+	// The price of one unit of the given resource, denominated in strk
+	PriceInStrk NumAsHex `json:"price_in_strk,omitempty"`
+	// The price of one unit of the given resource, denominated in wei
+	PriceInWei NumAsHex `json:"price_in_wei"`
 }

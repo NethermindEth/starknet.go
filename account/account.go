@@ -50,6 +50,16 @@ type Account struct {
 	ks             Keystore
 }
 
+// NewAccount creates a new Account instance.
+//
+// Parameters:
+// - provider: is the provider of type rpc.RpcProvider
+// - accountAddress: is the account address of type *felt.Felt
+// - publicKey: is the public key of type string
+// - keystore: is the keystore of type Keystore
+// It returns:
+// - *Account: a pointer to newly created Account
+// - error: an error if any
 func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore) (*Account, error) {
 	account := &Account{
 		provider:       provider,
@@ -67,6 +77,14 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	return account, nil
 }
 
+// Sign signs the given felt message using the account's private key.
+//
+// Parameters:
+// - ctx: is the context used for the signing operation
+// - msg: is the felt message to be signed
+// Returns:
+// - []*felt.Felt: an array of signed felt messages
+// - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
 
 	msgBig := utils.FeltToBigInt(msg)
@@ -81,6 +99,13 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
 
+// SignInvokeTransaction signs and invokes a transaction.
+//
+// Parameters:
+// - ctx: the context.Context for the function execution.
+// - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
+// Returns:
+// - error: an error if there was an error in the signing or invoking process
 func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
 
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
@@ -95,6 +120,14 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	return nil
 }
 
+// SignDeployAccountTransaction signs a deploy account transaction.
+//
+// Parameters:
+// - ctx: the context.Context for the function execution
+// - tx: the *rpc.DeployAccountTxn struct representing the transaction to be signed
+// - precomputeAddress: the precomputed address for the transaction
+// Returns:
+// - error: an error if any
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error {
 
 	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
@@ -109,6 +142,13 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 	return nil
 }
 
+// SignDeclareTransaction signs a DeclareTxnV2 transaction using the provided Account.
+//
+// Parameters:
+// - ctx: the context.Context
+// - tx: the *rpc.DeclareTxnV2
+// Returns:
+// - error: an error if any
 func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error {
 
 	hash, err := account.TransactionHashDeclare(*tx)
@@ -123,7 +163,14 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.Decl
 	return nil
 }
 
-// TransactionHashDeployAccount computes the transaction hash for deployAccount transactions
+// TransactionHashDeployAccount calculates the transaction hash for a deploy account transaction.
+//
+// Parameters:
+// - tx: The deploy account transaction to calculate the hash for
+// - contractAddress: The contract address as parameters as a *felt.Felt
+// Returns:
+// - *felt.Felt: the calculated transaction hash
+// - error: an error if any
 func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, contractAddress *felt.Felt) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_transaction
@@ -157,6 +204,20 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountTxn, co
 	)
 }
 
+// TransactionHashInvoke calculates the transaction hash for the given invoke transaction.
+//
+// Parameters:
+// - tx: The invoke transaction to calculate the hash for.
+//     The transaction can be of type InvokeTxnV0 or InvokeTxnV1.
+//     For InvokeTxnV0:
+//         the function checks if all the required parameters are set and then computes the transaction hash using the provided data.
+//     For InvokeTxnV1:
+//         the function performs similar checks and computes the transaction hash using the provided data.
+// Returns:
+// - *felt.Felt: The calculated transaction hash as a *felt.Felt
+// - error: an error, if any
+
+// If the transaction type is unsupported, the function returns an error.
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#v0_hash_calculation
@@ -213,6 +274,20 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	return nil, ErrTxnTypeUnSupported
 }
 
+// TransactionHashDeclare calculates the transaction hash for declaring a transaction type.
+//
+// Parameters:
+// - tx: The `tx` parameter of type `rpc.DeclareTxnType`
+// Can be one of the following types:
+//   - `rpc.DeclareTxnV0`
+//   - `rpc.DeclareTxnV1`
+//   - `rpc.DeclareTxnV2`
+//
+// Returns:
+// - *felt.Felt: the calculated transaction hash as `*felt.Felt` value
+// - error: an error, if any
+//
+// If the `tx` parameter is not one of the supported types, the function returns an error `ErrTxnTypeUnSupported`.
 func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
 
 	switch txn := tx.(type) {
@@ -272,8 +347,17 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 	return nil, ErrTxnTypeUnSupported
 }
 
-// precomputeAddress precomputes the accounts address
+// PrecomputeAddress calculates the precomputed address for an account.
 // ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+//
+// Parameters:
+// - deployerAddress: the deployer address
+// - salt: the salt
+// - classHash: the class hash
+// - constructorCalldata: the constructor calldata
+// Returns:
+// - *felt.Felt: the precomputed address as a *felt.Felt
+// - error: an error if any
 func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
 
 	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
@@ -295,7 +379,15 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 
 }
 
-// WaitForTransactionReceipt waits for the transaction to succeed or fail
+// WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
+//
+// Parameters:
+// - ctx: The context
+// - transactionHash: The hash
+// - pollInterval: The poll interval as parameters
+// It returns:
+// - *rpc.TransactionReceipt: the transaction receipt
+// - error: an error
 func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error) {
 	t := time.NewTicker(pollInterval)
 	for {
@@ -316,110 +408,355 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 	}
 }
 
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnV1) (*rpc.AddInvokeTransactionResponse, error) {
+// AddInvokeTransaction generates an invoke transaction and adds it to the account's provider.
+//
+// Parameters:
+// - ctx: the context.Context object for the transaction.
+// - invokeTx: the invoke transaction to be added.
+// Returns:
+// - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
+// - error: an error if any.
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.AddDeclareTxnInput) (*rpc.AddDeclareTransactionResponse, error) {
+// AddDeclareTransaction adds a declare transaction to the account.
+//
+// Parameters:
+// - ctx: The context.Context for the request.
+// - declareTransaction: The input for adding a declare transaction.
+// Returns:
+// - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
+// - error: an error, if any
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.DeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+// AddDeployAccountTransaction adds a deploy account transaction to the account.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - deployAccountTransaction: The rpc.DeployAccountTxn object representing the deploy account transaction.
+// Returns:
+// - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
+// - error: an error if any
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
 	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
+// BlockHashAndNumber returns the block hash and number for the account.
+//
+// Parameters:
+// - ctx: The context in which the function is called.
+// Returns:
+// - rpc.BlockHashAndNumberOutput: the block hash and number as an rpc.BlockHashAndNumberOutput object.
+// - error: an error if there was an issue retrieving the block hash and number.
 func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashAndNumberOutput, error) {
 	return account.provider.BlockHashAndNumber(ctx)
 }
 
+// BlockNumber returns the block number of the account.
+//
+// Parameters:
+// - ctx: The context in which the function is called.
+// Returns:
+// - uint64: the block number as a uint64
+// - error: an error encountered
 func (account *Account) BlockNumber(ctx context.Context) (uint64, error) {
 	return account.provider.BlockNumber(ctx)
 }
 
+// BlockTransactionCount returns the number of transactions in a block.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - blockID: The rpc.BlockID object representing the block.
+// Returns:
+// - uint64: the number of transactions in the block
+//  - error: an error, if any
 func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.BlockID) (uint64, error) {
 	return account.provider.BlockTransactionCount(ctx, blockID)
 }
 
+// BlockWithTxHashes retrieves a block with transaction hashes.
+//
+// Parameters:
+// - ctx: the context.Context object for the request.
+// - blockID: the rpc.BlockID object specifying the block to retrieve.
+// Returns:
+// - interface{}: an interface{} representing the retrieved block
+// - error: an error if there was any issue retrieving the block
 func (account *Account) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
 	return account.provider.BlockWithTxHashes(ctx, blockID)
 }
 
+// BlockWithTxs retrieves the specified block along with its transactions.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - blockID: The rpc.BlockID parameter for the function.
+// Returns:
+// - interface{}: An interface{}
+// - error: An error
 func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
 	return account.provider.BlockWithTxs(ctx, blockID)
 }
 
+// Call is a function that performs a function call on an Account.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - call: The rpc.FunctionCall object representing the function call.
+// - blockID: The rpc.BlockID object representing the block ID.
+// Returns:
+// - []*felt.Felt: a slice of *felt.Felt
+// - error: an error object.
 func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error) {
 	return account.provider.Call(ctx, call, blockId)
 }
 
+// ChainID returns the chain ID associated with the account.
+//
+// Parameters:
+// - ctx: the context.Context object for the function.
+// Returns:
+//   - string: the chain ID.
+//   - error: any error encountered while retrieving the chain ID.
 func (account *Account) ChainID(ctx context.Context) (string, error) {
 	return account.provider.ChainID(ctx)
 }
+
+// Class is a method that calls the `Class` method of the `provider` field of the `account` struct.
+//
+// Parameters:
+// - ctx: The context.Context
+// - blockID: The rpc.BlockID 
+// - classHash: The `*felt.Felt`
+// Returns:
+// - *rpc.ClassOutput: The rpc.ClassOutput (the class output could be a DeprecatedContractClass
+//     or just a Contract class depending on the contract version)
+// -  error: An error if any occurred.
 func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.Class(ctx, blockID, classHash)
 }
+
+// ClassAt retrieves the class at the specified block ID and contract address.
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - blockID: The rpc.BlockID object representing the block ID.
+// - contractAddress: The felt.Felt object representing the contract address.
+// Returns:
+// - *rpc.ClassOutput: The rpc.ClassOutput object (the class output could be a DeprecatedContractClass
+//     or just a Contract class depending on the contract version)
+// - error: An error if any occurred.
 func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.ClassAt(ctx, blockID, contractAddress)
 }
 
+// ClassHashAt returns the class hash at the given block ID for the specified contract address.
+//
+// Parameters:
+// - ctx: The context to use for the function call.
+// - blockID: The ID of the block.
+// contractAddress - The address of the contract to get the class hash for.
+// Returns:
+// - *felt.Felt: the class hash as a *felt.Felt
+// - error: an error if any occurred.
 func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	return account.provider.ClassHashAt(ctx, blockID, contractAddress)
 }
 
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.EstimateFeeInput, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+// EstimateFee estimates the fee for a set of requests in the given block ID.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - requests: An array of rpc.BroadcastTxn objects representing the requests to estimate the fee for.
+// - blockID: The rpc.BlockID object representing the block ID for which to estimate the fee.
+// Returns:
+// - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
+// - error: An error object if any error occurred during the estimation process.
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	return account.provider.EstimateFee(ctx, requests, blockID)
 }
+
+// EstimateMessageFee estimates the fee for a given message in the context of an account.
+//
+// Parameters:
+// - ctx: The context.Context object for the function.
+// - msg: The rpc.MsgFromL1 object representing the message.
+// - blockID: The rpc.BlockID object representing the block ID.
+// Returns:
+// - *rpc.FeeEstimate: a pointer to rpc.FeeEstimate
+// - error: an error if any.
 func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
 	return account.provider.EstimateMessageFee(ctx, msg, blockID)
 }
 
+// Events retrieves events for the account.
+//
+// Parameters:
+// - ctx: the context.Context to use for the request.
+// - input: the input parameters for retrieving events.
+// Returns:
+// - *rpc.EventChunk: the chunk of events retrieved.
+// - error: an error if the retrieval fails.
 func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventChunk, error) {
 	return account.provider.Events(ctx, input)
 }
-func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*string, error) {
+
+// Nonce retrieves the nonce for a given block ID and contract address.
+//
+// Parameters:
+// - ctx: is the context.Context for the function call
+// - blockID: is the ID of the block
+// - contractAddress: is the address of the contract
+// Returns:
+// - *felt.Felt: the contract's nonce at the requested state
+// - error: an error if any
+func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	return account.provider.Nonce(ctx, blockID, contractAddress)
 }
 
+// SimulateTransactions simulates transactions using the provided context
+// Parameters: 
+// - ctx: The context.Context object
+// - blockID: The rpc.BlockID object for the block referencing the state or call the transactions are on
+// - txns: The slice of rpc.Transaction objects representing the transactions to simulate
+// - simulationFlags: The slice of rpc.simulationFlags
+// Returns:
+// - []rpc.SimulatedTransaction: a list of simulated transactions
+// - error: an error, if any.
 func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	return account.provider.SimulateTransactions(ctx, blockID, txns, simulationFlags)
 }
+
+// StorageAt is a function that retrieves the storage value at the given key for a contract address.
+//
+// Parameters:
+// - ctx: The context.Context object for the function
+// - contractAddress: The contract address for which to retrieve the storage value
+// - key: The key of the storage value to retrieve
+// - blockID: The block ID at which to retrieve the storage value
+// Returns:
+// - string: The storage value at the given key.
+// - error: An error if the retrieval fails.
 func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpc.BlockID) (string, error) {
 	return account.provider.StorageAt(ctx, contractAddress, key, blockID)
 }
+
+// StateUpdate updates the state of the Account.
+//
+// Parameters:
+// - context.Context: The context.Context object.
+// - blockID: The rpc.BlockID object representing the block to update the state of.
+// Returns:
+// - *rpc.StateUpdateOutput: a *rpc.StateUpdateOutput
+// - error: an error
 func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
 	return account.provider.StateUpdate(ctx, blockID)
 }
+
+// SpecVersion returns the spec version of the account.
+// It takes a context as a parameter and returns a string and an error
+//
+// Parameters:
+// - context.Context: The context.Context object
+// Returns:
+// - string: The spec version
+// - error: An error if any
 func (account *Account) SpecVersion(ctx context.Context) (string, error) {
 	return account.provider.SpecVersion(ctx)
 }
+
+// Syncing returns the sync status of the account.
+//
+// Parameters:
+// - ctx: The context.Context object
+// Returns:
+// - *rpc.SyncStatus: *rpc.SyncStatus
+// - error: an error.
 func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 	return account.provider.Syncing(ctx)
 }
 
-func (account *Account) TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]rpc.Trace, error) {
-	return account.provider.TraceBlockTransactions(ctx, blockHash)
+// TraceBlockTransactions retrieves a list of trace transactions for a given block hash.
+//
+// Parameters:
+// - ctx: The context.Context object.
+// - blockID: The hash of the block to retrieve trace transactions for.
+// Returns
+// - []rpc.Trace: The list of trace transactions for the given block.
+// - error: An error if there was a problem retrieving the trace transactions.
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+	return account.provider.TraceBlockTransactions(ctx, blockID)
 }
 
+// TransactionReceipt retrieves the transaction receipt for the given transaction hash.
+//
+// Parameters:
+// - ctx: The context to use for the request.
+// - transactionHash: The hash of the transaction.
+// Returns:
+// - rpc.Transactiontype: rpc.TransactionReceipt, error.
 func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, error) {
 	return account.provider.TransactionReceipt(ctx, transactionHash)
 }
 
-func (account *Account) TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
-	return account.provider.TransactionTrace(ctx, transactionHash)
+// TransactionTrace returns the transaction trace for a given transaction hash.
+//
+// Parameters:
+// - ctx: The context.Context object for the request.
+// - transactionHash: The transaction hash for which the transaction trace is to be retrieved.
+// Returns: 
+// - rpc.TxnTrace: The rpc.TxnTrace object representing the transaction trace, and an error if any.
+func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+	return account.provider.TraceTransaction(ctx, transactionHash)
 }
 
+// TransactionByBlockIdAndIndex returns a transaction by block ID and index.
+//
+// Parameters:
+// - ctx: The context for the function.
+// - blockID: The ID of the block.
+// - index: The index of the transaction in the block.
+// Returns:
+// - rpc.Transaction: The transaction and an error, if any.
 func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
 	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
 }
 
+// TransactionByHash returns the transaction with the given hash.
+//
+// Parameters:
+// - ctx: The context.Context
+// - hash: The *felt.Felt hash as parameters.
+// Returns:
+// - rpc.Transaction
+// - error
 func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
 }
 
+// GetTransactionStatus returns the transaction status.
+//
+// Parameters:
+// - ctx: The context.Context
+// - Txnhash: The *felt.Felt Txn hash.
+// Returns:
+// - *rpc.TxnStatusResp: the transaction status
+// - error: anerror if any
 func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
 	return account.provider.GetTransactionStatus(ctx, Txnhash)
 }
 
+// FmtCalldata generates the formatted calldata for the given function calls and Cairo version.
+//
+// Parameters:
+// - fnCalls: a slice of rpc.FunctionCall representing the function calls.
+// - cairoVersion: an integer representing the Cairo version.
+// Returns:
+// - a slice of *felt.Felt representing the formatted calldata.
+// - an error if Cairo version is not supported.
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {
 	switch cairoVersion {
 	case 0:
@@ -431,9 +768,13 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int
 	}
 }
 
-/*
-Formats the call data for Cairo0 contracts
-*/
+// FmtCalldataCairo0 generates a slice of *felt.Felt that represents the calldata for the given function calls in Cairo 0 format.
+//
+// Parameters:
+// - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//
+// Returns:
+// - a slice of *felt.Felt representing the generated calldata.
 func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	execCallData := []*felt.Felt{}
 	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))
@@ -457,9 +798,12 @@ func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	return execCallData
 }
 
-/*
-Formats the call data for Cairo 2 contracs
-*/
+// FmtCalldataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
+//
+// Parameters:
+// - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+// Returns:
+// - a slice of *felt.Felt representing the generated calldata.
 func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 	execCallData := []*felt.Felt{}
 	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))

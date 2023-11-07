@@ -170,6 +170,7 @@
                             "calls": [],
                             "events": [
                                 {
+                                    "order": 0,
                                     "keys": [
                                         "0x134692b230b9e1ffa39098904722134159652b09c5bc41d88d6698779d228ff"
                                     ],
@@ -287,6 +288,7 @@
                                             "calls": [],
                                             "events": [
                                                 {
+                                                    "order": 1,
                                                     "keys": [
                                                         "0x134692b230b9e1ffa39098904722134159652b09c5bc41d88d6698779d228ff"
                                                     ],
@@ -298,6 +300,7 @@
                                                     ]
                                                 },
                                                 {
+                                                    "order": 2,
                                                     "keys": [
                                                         "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
                                                     ],
@@ -345,6 +348,7 @@
                                                     "calls": [],
                                                     "events": [
                                                         {
+                                                            "order": 3,
                                                             "keys": [
                                                                 "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
                                                             ],
@@ -396,6 +400,7 @@
                                                     "calls": [],
                                                     "events": [
                                                         {
+                                                            "order": 4,
                                                             "keys": [
                                                                 "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
                                                             ],
@@ -424,6 +429,7 @@
                     ],
                     "events": [
                         {
+                            "order": 5,
                             "keys": [
                                 "0x5ad857f66a5b55f1301ff1ed7e098ac6d4433148f0b72ebc4a2945ab85ad53"
                             ],
@@ -482,6 +488,7 @@
                     "calls": [],
                     "events": [
                         {
+                            "order": 0,
                             "keys": [
                                 "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
                             ],
@@ -498,6 +505,77 @@
             ],
             "events": [],
             "messages": []
+        },
+        "type": "INVOKE",
+        "state_diff": {
+            "storage_diffs": [
+                {
+                    "address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    "storage_entries": [
+                        {
+                            "key": "0x49a8ef79cab313360767015d427d0307368eff5c2c81b019aff018ec638eef2",
+                            "value": "0x763b821506b19086e9"
+                        },
+                        {
+                            "key": "0x625da4622cb73a56b1f10ac489e48b4e8af830a368fb3e21db8b7868c315ff0",
+                            "value": "0x19094ba60d592b"
+                        },
+                        {
+                            "key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+                            "value": "0x11e93b002a1d5c717d"
+                        }
+                    ]
+                },
+                {
+                    "address": "0x10884171baf1914edc28d7afb619b40a4051cfae78a094a55d230f19e944a28",
+                    "storage_entries": [
+                        {
+                            "key": "0x2487f67598912d31ab84d8fa97c9e78332d00795ecdad092ea09f9c9c14a9a3",
+                            "value": "0x1e226129b7e"
+                        },
+                        {
+                            "key": "0x2487f67598912d31ab84d8fa97c9e78332d00795ecdad092ea09f9c9c14a9a0",
+                            "value": "0x4477606da4ac2b7bef"
+                        }
+                    ]
+                },
+                {
+                    "address": "0x22b05f9396d2c48183f6deaf138a57522bcc8b35b67dee919f76403d1783136",
+                    "storage_entries": [
+                        {
+                            "key": "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a",
+                            "value": "0x7743be9a9d8fae"
+                        },
+                        {
+                            "key": "0x625da4622cb73a56b1f10ac489e48b4e8af830a368fb3e21db8b7868c315ff0",
+                            "value": "0x631cb839"
+                        }
+                    ]
+                },
+                {
+                    "address": "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+                    "storage_entries": [
+                        {
+                            "key": "0x625da4622cb73a56b1f10ac489e48b4e8af830a368fb3e21db8b7868c315ff0",
+                            "value": "0x17fc5"
+                        },
+                        {
+                            "key": "0x49a8ef79cab313360767015d427d0307368eff5c2c81b019aff018ec638eef2",
+                            "value": "0x257875e1c11"
+                        }
+                    ]
+                }
+            ],
+            "nonces": [
+                {
+                    "contract_address": "0x61d862eb8baf0dc8e14159d0dd16abcff933c798ecf252ce81685d74c237516",
+                    "nonce": "0x58"
+                }
+            ],
+            "deployed_contracts": [],
+            "deprecated_declared_classes": [],
+            "declared_classes": [],
+            "replaced_classes": []
         }
     },
     "id": 1

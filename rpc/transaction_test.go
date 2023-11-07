@@ -12,6 +12,11 @@ import (
 )
 
 // TestTransactionByHash tests transaction by hash
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+// none
 func TestTransactionByHash(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -92,6 +97,19 @@ func TestTransactionByHash(t *testing.T) {
 	}
 }
 
+// TestTransactionByBlockIdAndIndex tests the TransactionByBlockIdAndIndex function.
+//
+// It sets up a test environment and defines a test set. For each test in the set,
+// it creates a spy object and assigns it to the provider's c field. It then calls
+// the TransactionByBlockIdAndIndex function with the specified block ID and index.
+// If there is an error, it fails the test. If the transaction is nil, it fails the test.
+// If the transaction is not of type InvokeTxnV1, it fails the test. Finally, it asserts
+// that the transaction type is TransactionType_Invoke and that the transaction is equal to the expected transaction.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -146,7 +164,12 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt tests transaction receipt
+// TestTransactionReceipt_MatchesCapturedTransaction tests if the transaction receipt matches the captured transaction.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -217,7 +240,19 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt tests transaction receipt
+// TestTransactionReceipt_MatchesStatus tests if the transaction receipt matches the given execution status.
+//
+// It initializes a test configuration and defines a test set containing transaction hash and execution status pairs.
+// For each test in the test set, it creates a spy and sets the provider of the test configuration to the spy.
+// Then, it retrieves the transaction receipt for the given transaction hash using the provider.
+// If the transaction receipt does not exist, it fails the test.
+// It asserts that the transaction receipt is of type InvokeTransactionReceipt.
+// Finally, it checks if the execution status of the transaction receipt matches the expected execution status using a regular expression.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//  none
 func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -256,7 +291,18 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	}
 }
 
-// TestDeployOrDeclareReceipt tests deploy or declare receipt
+// TestDeployOrDeclareReceipt is a test function that verifies the functionality of the DeployOrDeclareReceipt method.
+//
+// It tests the behavior of the DeployOrDeclareReceipt method by creating a test configuration, defining a test set,
+// and executing the test set for the specified test environment. It makes assertions to ensure that the expected
+// transaction receipt matches the actual transaction receipt returned by the method.
+//
+// The function takes no parameters and does not return any values.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//   none
 func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
