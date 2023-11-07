@@ -791,6 +791,49 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
+func TestDeployAccountDevnet(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	devnet, acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+	fakeUser := acnts[0]
+	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
+	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+	// Set up ks
+	ks := account.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+	require.True(t, ok)
+	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
+	require.NoError(t, err)
+
+	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
+	require.NoError(t, err)
+
+	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, []*felt.Felt{fakeUserPub})
+
+	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
+
+	require.NoError(t, err)
+
+	deployOptions := account.DeployOptions{
+		ClassHash:           classHash,
+		MaxFee:              new(felt.Felt).SetUint64(0),
+		DeploytWaitTime:     2 * time.Second,
+		ConstructorCalldata: []*felt.Felt{},
+	}
+	resp, err := acnt.DeployAccount(deployOptions)
+	require.NoError(t, err, "DeployAccount gave an Error")
+	require.NotNil(t, resp, "DeployAccount resp not nil")
+}
+
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()

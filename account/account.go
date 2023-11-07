@@ -482,16 +482,13 @@ func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 }
 
 type DeployOptions struct {
-	ClassHash       *felt.Felt
-	MaxFee          *felt.Felt
-	DeploytWaitTime time.Duration
+	ClassHash           *felt.Felt
+	MaxFee              *felt.Felt
+	DeploytWaitTime     time.Duration
+	ConstructorCalldata []*felt.Felt
 }
 
 func (account *Account) DeployAccount(options DeployOptions) (*rpc.AddDeployAccountTransactionResponse, error) {
-
-	if options.ClassHash == nil {
-
-	}
 
 	pub, err := utils.HexToFelt(account.publicKey)
 	if err != nil {
@@ -507,7 +504,7 @@ func (account *Account) DeployAccount(options DeployOptions) (*rpc.AddDeployAcco
 		Signature:           []*felt.Felt{},
 		ClassHash:           options.ClassHash,
 		ContractAddressSalt: pub,
-		ConstructorCalldata: []*felt.Felt{pub},
+		ConstructorCalldata: options.ConstructorCalldata,
 	}
 
 	precomputedAddress, err := account.PrecomputeAddress(&felt.Zero, pub, options.ClassHash, tx.ConstructorCalldata)

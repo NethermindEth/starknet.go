@@ -1,4 +1,3 @@
-
 This example uses a pre-existing contract on the goerli network to deploy a new account contract. To successfully run this example, you will need: 1) a goerli endpoint, and 2) to fund the precomputed address.
 
 Steps:
