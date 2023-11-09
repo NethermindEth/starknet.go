@@ -11,7 +11,8 @@ import (
 // - t: a pointer to the testing.T object
 // - proofs: a slice of pointers to big.Int objects representing the proofs
 // Returns:
-//   none
+//
+//	none
 func debugProof(t *testing.T, proofs []*big.Int) {
 	t.Log("...proof")
 	for k, v := range proofs {
@@ -26,7 +27,8 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
 // Returns:
-//   none
+//
+//	none
 func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(7)}
 	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
@@ -60,4 +62,57 @@ func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 		t.Logf("MerkleTree Root, 0x%s\n", merkleTree.Root.Text(16))
 		t.Fatal("root should match proof. it does not")
 	}
+}
+
+// TestRecursiveProofFixedSizeMerkleTree is a Go function that tests the correctness of the recursive proof generation in the FixedSizeMerkleTree.
+//
+// It creates a Merkle tree with multiple leaves, selects a specific leaf, and generates a Merkle proof using the recursiveProof method.
+// The test then reconstructs the Merkle root using the generated proof and verifies that it matches the original root of the Merkle tree.
+//
+// Parameters:
+// - t: A testing.T object used for reporting test failures and logging.
+// Returns:
+//
+//	none
+func TestRecursiveProofFixedSizeMerkleTree(t *testing.T) {
+	// Create a Merkle tree with multiple leaves
+	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)}
+	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
+	if err != nil {
+		t.Fatalf("Error creating a Merkle tree: %v", err)
+	}
+
+	// Choose a leaf for which to generate the Merkle proof
+	targetLeaf := leaves[2] // Replace with the desired leaf
+
+	// Generate the Merkle proof using the recursiveProof method
+	proof, err := merkleTree.recursiveProof(targetLeaf, 0, []*big.Int{})
+	if err != nil {
+		t.Fatalf("Error generating Merkle proof: %v", err)
+	}
+
+	// Verify the correctness of the generated proof
+	reconstructedRoot, err := reconstructRootFromProof(targetLeaf, proof)
+	if err != nil {
+		t.Fatalf("Error reconstructing Merkle root from proof: %v", err)
+	}
+
+	// Verify that the reconstructed root matches the original root
+	if merkleTree.Root.Cmp(reconstructedRoot) != 0 {
+		t.Fatalf("Reconstructed Merkle root does not match the original root. Expected: 0x%s, Got: 0x%s", merkleTree.Root.Text(16), reconstructedRoot.Text(16))
+	}
+}
+
+// reconstructRootFromProof is a helper function that reconstructs the Merkle
+// root from a given root, leaf, and Merkle proof.
+func reconstructRootFromProof(leaf *big.Int, proof []*big.Int) (*big.Int, error) {
+	currentHash := leaf
+	for _, sibling := range proof {
+		var err error
+		currentHash, err = MerkleHash(currentHash, sibling)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return currentHash, nil
 }
