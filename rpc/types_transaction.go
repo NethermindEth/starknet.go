@@ -45,6 +45,20 @@ type InvokeTxnV1 struct {
 	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
+type InvokeTxnV3 struct {
+	Type          TransactionType    `json:"type"`
+	SenderAddress *felt.Felt         `json:"sender_address"`
+	Calldata      []*felt.Felt       `json:"calldata"`
+	Version       TransactionVersion `json:"version"`
+	Signature     []*felt.Felt       `json:"signature"`
+	Nonce         *felt.Felt         `json:"nonce"`
+	L1Gas         *ResourceLimits    `json:"l1_gas"`
+}
+
+type ResourceLimits struct {
+	MaxAmount       *NumAsHex `json:"max_amount"`         // The max amount of the resource that can be used in the tx
+	MaxPricePerUnit *NumAsHex `json:"max_price_per_unit"` // The max price per unit of this resource for this tx
+}
 
 type L1HandlerTxn struct {
 	Type TransactionType `json:"type,omitempty"`
@@ -89,6 +103,17 @@ type DeclareTxnV2 struct {
 	ClassHash         *felt.Felt         `json:"class_hash"`
 }
 
+type DeclareTxnV3 struct {
+	Type              TransactionType    `json:"type"`
+	SenderAddress     *felt.Felt         `json:"sender_address"`
+	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
+	Version           TransactionVersion `json:"version"`
+	Signature         []*felt.Felt       `json:"signature"`
+	Nonce             *felt.Felt         `json:"nonce"`
+	ClassHash         *felt.Felt         `json:"class_hash"`
+	L1Gas             *ResourceLimits    `json:"l1_gas"`
+}
+
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
@@ -115,6 +140,17 @@ type DeployAccountTxn struct {
 
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
+}
+
+type DeployAccountTxnV3 struct {
+	Type                TransactionType    `json:"type"`
+	Version             TransactionVersion `json:"version"`
+	Signature           []*felt.Felt       `json:"signature"`
+	Nonce               *felt.Felt         `json:"nonce"`
+	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
+	ClassHash           *felt.Felt         `json:"class_hash"`
+	L1Gas               *ResourceLimits    `json:"l1_gas"`
 }
 
 type UnknownTransaction struct{ Transaction }
@@ -222,15 +258,22 @@ func remarshal(v interface{}, dst interface{}) error {
 type TransactionVersion string
 
 const (
-	TransactionV0 TransactionVersion = "0x0"
-	TransactionV1 TransactionVersion = "0x1"
-	TransactionV2 TransactionVersion = "0x2"
+	TransactionV0        TransactionVersion = "0x0"
+	TransactionV0Variant TransactionVersion = "0x100000000000000000000000000000000"
+	TransactionV1        TransactionVersion = "0x1"
+	TransactionV1Variant TransactionVersion = "0x100000000000000000000000000000001"
+	TransactionV2        TransactionVersion = "0x2"
+	TransactionV2Variant TransactionVersion = "0x100000000000000000000000000000002"
+	TransactionV3        TransactionVersion = "0x2"
+	TransactionV3Variant TransactionVersion = "0x100000000000000000000000000000003"
 )
 
 // BigInt returns a big integer corresponding to the transaction version.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *big.Int: a pointer to a big.Int
 // - error: an error if the conversion fails

@@ -9,6 +9,7 @@ var (
 	_ BroadcastTxn = BroadcastInvokev1Txn{}
 	_ BroadcastTxn = BroadcastDeclareV1Txn{}
 	_ BroadcastTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastTxn = BroadcastDeclareTxnV3{}
 	_ BroadcastTxn = BroadcastDeployAccountTxn{}
 )
 
@@ -54,6 +55,17 @@ type BroadcastDeclareV2Txn struct {
 	Signature         []*felt.Felt  `json:"signature"`
 	Nonce             *felt.Felt    `json:"nonce"`
 	ContractClass     ContractClass `json:"contract_class"`
+}
+
+type BroadcastDeclareTxnV3 struct {
+	Type              TransactionType `json:"type"`
+	SenderAddress     *felt.Felt      `json:"sender_address"`
+	CompiledClassHash *felt.Felt      `json:"compiled_class_hash"`
+	Version           NumAsHex        `json:"version"`
+	Signature         []*felt.Felt    `json:"signature"`
+	Nonce             *felt.Felt      `json:"nonce"`
+	ContractClass     *ContractClass  `json:"contract_class"`
+	L1Gas             *ResourceLimits `json:"l1_gas"`
 }
 
 type BroadcastDeployAccountTxn struct {
