@@ -109,7 +109,8 @@ func TestTransactionByHash(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -169,7 +170,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -179,7 +181,7 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 	}
 	var receiptTxn310370_0 = InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
-		ActualFee:       utils.TestHexToFelt(t, "0x1709a2f3a2"),
+		ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x1709a2f3a2")},
 		Type:            "INVOKE",
 		ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -252,7 +254,8 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -302,7 +305,8 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestDeployOrDeclareReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -314,7 +318,7 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 	var receiptTxn300114_3 = DeclareTransactionReceipt(
 		CommonTransactionReceipt{
 			TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-			ActualFee:       utils.TestHexToFelt(t, "0x0"),
+			ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x0")},
 			FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 			BlockHash:       utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),

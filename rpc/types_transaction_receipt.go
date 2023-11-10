@@ -8,12 +8,24 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+type FeePayment struct {
+	Amount *felt.Felt     `json:"amount"`
+	Unit   FeePaymentUnit `json:"unit"`
+}
+
+type FeePaymentUnit string
+
+const (
+	_ FeePaymentUnit = "WEI"
+	_ FeePaymentUnit = "STRK"
+)
+
 // CommonTransactionReceipt Common properties for a transaction receipt
 type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee       *felt.Felt         `json:"actual_fee"`
+	ActualFee       FeePayment         `json:"actual_fee"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
 	BlockHash       *felt.Felt         `json:"block_hash"`
@@ -28,7 +40,9 @@ type CommonTransactionReceipt struct {
 // Hash returns the transaction hash associated with the CommonTransactionReceipt.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
@@ -38,7 +52,9 @@ func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the CommonTransactionReceipt.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -65,8 +81,10 @@ const (
 //   - "DEPLOY" maps to TransactionType_Deploy
 //   - "INVOKE" maps to TransactionType_Invoke
 //   - "L1_HANDLER" maps to TransactionType_L1Handler
+//
 // If none of the supported values match the input data, the function returns an error.
-//  nil if the unmarshaling is successful.
+//
+//	nil if the unmarshaling is successful.
 //
 // Parameters:
 // - data: It takes a byte slice as input representing the JSON data to be unmarshaled
@@ -99,7 +117,9 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -113,7 +133,9 @@ type InvokeTransactionReceipt CommonTransactionReceipt
 // Hash returns the hash of the invoke transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
@@ -123,7 +145,9 @@ func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -136,7 +160,9 @@ type DeclareTransactionReceipt CommonTransactionReceipt
 // Hash returns the transaction hash.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
@@ -146,7 +172,9 @@ func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeclareTransactionReceipt function.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -163,7 +191,9 @@ type DeployTransactionReceipt struct {
 // Hash returns the transaction hash of the DeployTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeployTransactionReceipt) Hash() *felt.Felt {
@@ -173,7 +203,9 @@ func (tr DeployTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeployTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -190,7 +222,9 @@ type DeployAccountTransactionReceipt struct {
 // Hash returns the transaction hash for the given DeployAccountTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
@@ -200,7 +234,9 @@ func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeployAccountTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *TxnExecutionStatus: the execution status
 func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -213,7 +249,9 @@ type L1HandlerTransactionReceipt CommonTransactionReceipt
 // Hash returns the transaction hash.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
@@ -223,7 +261,9 @@ func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the L1HandlerTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -268,7 +308,9 @@ type PendingDeployAccountTransactionReceipt struct {
 // Hash returns the transaction hash of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
@@ -278,7 +320,9 @@ func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingDeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -293,7 +337,9 @@ type PendingInvokeTransactionReceipt struct {
 // Hash returns the transaction hash of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
@@ -303,7 +349,9 @@ func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingInvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -314,7 +362,7 @@ type PendingCommonTransactionReceiptProperties struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee       *felt.Felt         `json:"actual_fee"`
+	ActualFee       FeePayment         `json:"actual_fee"`
 	Type            TransactionType    `json:"type,omitempty"`
 	MessagesSent    []MsgToL1          `json:"messages_sent"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
@@ -349,7 +397,9 @@ type ExecutionResources struct {
 // Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
@@ -359,7 +409,9 @@ func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending common transaction receipt properties.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExecutionStatus {
