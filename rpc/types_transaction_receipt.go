@@ -16,8 +16,8 @@ type FeePayment struct {
 type FeePaymentUnit string
 
 const (
-	_ FeePaymentUnit = "WEI"
-	_ FeePaymentUnit = "STRK"
+	UnitWei  FeePaymentUnit = "WEI"
+	UnitStrk FeePaymentUnit = "STRK"
 )
 
 // CommonTransactionReceipt Common properties for a transaction receipt
