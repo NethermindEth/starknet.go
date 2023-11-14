@@ -2,6 +2,7 @@ package hash
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
+	junoUtils "github.com/NethermindEth/juno/utils"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -132,14 +133,15 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 // Returns:
 // - *felt.Felt: a pointer to a Felt type
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
-	flattened := make([]*felt.Felt, 0, len(entryPoint))
-	for _, elt := range entryPoint {
-		builtInFlat := []*felt.Felt{}
-		for _, builtIn := range elt.Builtins {
-			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
-		}
+	mapper := func(elt contracts.CasmClassEntryPoint) []*felt.Felt {
+		builtInFlat := junoUtils.Map(elt.Builtins, func(builtIn string) *felt.Felt {
+			return new(felt.Felt).SetBytes([]byte(builtIn))
+		})
 		builtInHash := curve.Curve.PoseidonArray(builtInFlat...)
-		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
+
+		return []*felt.Felt{elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash}
 	}
+
+	flattened := junoUtils.Flatten(junoUtils.Map(entryPoint, mapper)...)
 	return curve.Curve.PoseidonArray(flattened...)
 }

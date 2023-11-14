@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
+	junoUtils "github.com/NethermindEth/juno/utils"
 )
 
 // Uint64ToFelt generates a new *felt.Felt from a given uint64 number.
@@ -40,13 +41,18 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 // - []*felt.Felt: an array of *felt.Felt objects, or nil if there was
 // - error: an error if any
 func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
-	var feltArr []*felt.Felt
-	for _, hex := range hexArr {
-		felt, err := HexToFelt(hex)
+	var err error
+
+	feltArr := junoUtils.Map(hexArr, func(hex string) *felt.Felt {
 		if err != nil {
-			return nil, err
+			return nil
 		}
-		feltArr = append(feltArr, felt)
+		var feltResult *felt.Felt
+		feltResult, err = HexToFelt(hex)
+		return feltResult
+	})
+	if err != nil {
+		return nil, err
 	}
 	return feltArr, nil
 }
@@ -79,9 +85,7 @@ func BigIntToFelt(big *big.Int) *felt.Felt {
 // Returns:
 // - []*big.Int: the array of big.Int objects
 func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
-	var bigArr []*big.Int
-	for _, felt := range f {
-		bigArr = append(bigArr, FeltToBigInt(felt))
-	}
-	return bigArr
+	return junoUtils.Map(f,
+		func(felt *felt.Felt) *big.Int { return FeltToBigInt(felt) },
+	)
 }
