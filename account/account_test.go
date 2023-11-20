@@ -826,10 +826,10 @@ func TestDeployAccountDevnet(t *testing.T) {
 	deployOptions := account.DeployOptions{
 		ClassHash:           classHash,
 		MaxFee:              new(felt.Felt).SetUint64(0),
-		DeploytWaitTime:     2 * time.Second,
+		DeployWaitTime:      2 * time.Second,
 		ConstructorCalldata: []*felt.Felt{},
 	}
-	resp, err := acnt.DeployAccount(deployOptions)
+	resp, err := acnt.CreateAndExecuteAddDeployAccount(deployOptions)
 	require.NoError(t, err, "DeployAccount gave an Error")
 	require.NotNil(t, resp, "DeployAccount resp not nil")
 }

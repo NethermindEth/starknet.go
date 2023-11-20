@@ -482,13 +482,13 @@ func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
 }
 
 type DeployOptions struct {
-	ClassHash           *felt.Felt
-	MaxFee              *felt.Felt
-	DeploytWaitTime     time.Duration
-	ConstructorCalldata []*felt.Felt
+	ClassHash           *felt.Felt    // ClassHash is the unique identifier of the account class in the network.
+	MaxFee              *felt.Felt    // MaxFee represents the maximum fee the user is willing to pay for the deployment transaction.
+	DeployWaitTime      time.Duration // DeployWaitTime specifies the duration to wait for the deployment transaction to be processed.
+	ConstructorCalldata []*felt.Felt  // ConstructorCalldata contains the calldata to be passed to the constructor of the account contract upon deployment.
 }
 
-func (account *Account) DeployAccount(options DeployOptions) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) CreateAndExecuteAddDeployAccount(options DeployOptions) (*rpc.AddDeployAccountTransactionResponse, error) {
 
 	pub, err := utils.HexToFelt(account.publicKey)
 	if err != nil {
@@ -522,7 +522,10 @@ func (account *Account) DeployAccount(options DeployOptions) (*rpc.AddDeployAcco
 		return nil, err
 	}
 
-	account.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, options.DeploytWaitTime)
+	_, err = account.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, options.DeployWaitTime)
+	if err != nil {
+		return nil, err
+	}
 
 	return resp, nil
 }
