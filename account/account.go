@@ -473,7 +473,7 @@ func (account *Account) BlockNumber(ctx context.Context) (uint64, error) {
 // - blockID: The rpc.BlockID object representing the block.
 // Returns:
 // - uint64: the number of transactions in the block
-//  - error: an error, if any
+//   - error: an error, if any
 func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.BlockID) (uint64, error) {
 	return account.provider.BlockTransactionCount(ctx, blockID)
 }
@@ -530,12 +530,12 @@ func (account *Account) ChainID(ctx context.Context) (string, error) {
 //
 // Parameters:
 // - ctx: The context.Context
-// - blockID: The rpc.BlockID 
+// - blockID: The rpc.BlockID
 // - classHash: The `*felt.Felt`
 // Returns:
-// - *rpc.ClassOutput: The rpc.ClassOutput (the class output could be a DeprecatedContractClass
+//   - *rpc.ClassOutput: The rpc.ClassOutput (the class output could be a DeprecatedContractClass
 //     or just a Contract class depending on the contract version)
-// -  error: An error if any occurred.
+//   - error: An error if any occurred.
 func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.Class(ctx, blockID, classHash)
 }
@@ -546,9 +546,9 @@ func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHas
 // - blockID: The rpc.BlockID object representing the block ID.
 // - contractAddress: The felt.Felt object representing the contract address.
 // Returns:
-// - *rpc.ClassOutput: The rpc.ClassOutput object (the class output could be a DeprecatedContractClass
+//   - *rpc.ClassOutput: The rpc.ClassOutput object (the class output could be a DeprecatedContractClass
 //     or just a Contract class depending on the contract version)
-// - error: An error if any occurred.
+//   - error: An error if any occurred.
 func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (rpc.ClassOutput, error) {
 	return account.provider.ClassAt(ctx, blockID, contractAddress)
 }
@@ -618,7 +618,7 @@ func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contract
 }
 
 // SimulateTransactions simulates transactions using the provided context
-// Parameters: 
+// Parameters:
 // - ctx: The context.Context object
 // - blockID: The rpc.BlockID object for the block referencing the state or call the transactions are on
 // - txns: The slice of rpc.Transaction objects representing the transactions to simulate
@@ -707,7 +707,7 @@ func (account *Account) TransactionReceipt(ctx context.Context, transactionHash 
 // Parameters:
 // - ctx: The context.Context object for the request.
 // - transactionHash: The transaction hash for which the transaction trace is to be retrieved.
-// Returns: 
+// Returns:
 // - rpc.TxnTrace: The rpc.TxnTrace object representing the transaction trace, and an error if any.
 func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
 	return account.provider.TraceTransaction(ctx, transactionHash)
@@ -861,7 +861,10 @@ func (account *Account) CreateAndExecuteAddDeployAccount(options DeployOptions) 
 		return nil, err
 	}
 
-	resp, err := account.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := account.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{
+		DeployAccountTxn: tx,
+	})
+
 	if err != nil {
 		return nil, err
 	}
