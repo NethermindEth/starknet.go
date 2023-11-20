@@ -19,16 +19,18 @@ type Provider struct {
 	chainID string
 }
 
-// NewProvider creates a *Provider from an existing `go-ethereum/rpc` *Client.
+// NewProvider creates a new Provider instance with the given RPC (`go-ethereum/rpc`) client.
+//
+// It takes a *rpc.Client as a parameter and returns a pointer to a Provider struct.
 func NewProvider(c *rpc.Client) *Provider {
 	return &Provider{c: c}
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
 type RpcProvider interface {
-	AddInvokeTransaction(ctx context.Context, invokeTxn InvokeTxnV1) (*AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction AddDeclareTxnInput) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction DeployAccountTxn) (*AddDeployAccountTransactionResponse, error)
+	AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxn) (*AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxn) (*AddDeclareTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastDeployAccountTxn) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -39,21 +41,21 @@ type RpcProvider interface {
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
-	EstimateFee(ctx context.Context, requests []EstimateFeeInput, blockID BlockID) ([]FeeEstimate, error)
+	EstimateFee(ctx context.Context, requests []BroadcastTxn, blockID BlockID) ([]FeeEstimate, error)
 	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error)
-	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*string, error)
+	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	SpecVersion(ctx context.Context) (string, error)
 	Syncing(ctx context.Context) (*SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockHash *felt.Felt) ([]Trace, error)
+	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error)
-	TransactionTrace(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }
 
 var _ RpcProvider = &Provider{}

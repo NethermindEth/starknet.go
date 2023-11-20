@@ -16,12 +16,13 @@ jobs:
           - 5050:5050
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout branch
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.18
+          go-version-file: go.mod
 
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
@@ -71,3 +72,4 @@ jobs:
         run: | 
           cd examples/deployAccount && go build
           cd ../simpleCall && go build
+          cd ../simpleInvoke && go build

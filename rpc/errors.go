@@ -15,6 +15,13 @@ const (
 	InternalError  = -32603 // Internal JSON-RPC error.
 )
 
+// Err returns an RPCError based on the given code and data.
+//
+// Parameters:
+// - code: an integer representing the error code.
+// - data: any data associated with the error.
+// Returns
+// - *RPCError: a pointer to an RPCError object.
 func Err(code int, data any) *RPCError {
 	switch code {
 	case InvalidJSON:
@@ -30,11 +37,24 @@ func Err(code int, data any) *RPCError {
 	}
 }
 
+// tryUnwrapToRPCErr unwraps the error and checks if it matches any of the given RPC errors.
+// If a match is found, the corresponding RPC error is returned.
+// If no match is found, the function returns an InternalError with the original error.
+//
+// Parameters:
+// - err: The error to be unwrapped
+// - rpcErrors: variadic list of *RPCError objects to be checked
+// Returns:
+// - error: the original error
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
-
 	var nodeErr *RPCError
 	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
 		return err
+	}
+
+	dataErr := isErrorWithData(nodeErr)
+	if dataErr != nil {
+		return dataErr
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -45,34 +65,29 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 	return Err(InternalError, err)
 }
 
-func isErrUnexpectedError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
+// isErrorWithData checks if the error is the type of error that might contain information in the data field.
+// In the case it is, it adds this information to the returned error.
+//
+// Parameters:
+// - nodeErr: The error to be checked
+// Returns:
+// - *RPCError: a pointer to the RPCError resulting object
+func isErrorWithData(nodeErr *RPCError) (*RPCError) {
 	switch nodeErr.code {
 	case ErrUnexpectedError.code:
-		unexpectedErr := ErrUnexpectedError
+		unexpectedErr := *ErrUnexpectedError
 		unexpectedErr.data = nodeErr.data
-		return unexpectedErr, true
-	}
-	return nil, false
-}
-
-func isErrNoTraceAvailableError(err error) (*RPCError, bool) {
-	var nodeErr *RPCError
-	if json.Unmarshal([]byte(err.Error()), nodeErr) != nil {
-		return nil, false
-	}
-
-	switch nodeErr.code {
+		return &unexpectedErr
 	case ErrNoTraceAvailable.code:
-		noTraceAvailableError := ErrNoTraceAvailable
+		noTraceAvailableError := *ErrNoTraceAvailable
 		noTraceAvailableError.data = nodeErr.data
-		return noTraceAvailableError, true
+		return &noTraceAvailableError
+	case ErrContractError.code:
+		contractError := *ErrContractError
+		contractError.data = nodeErr.data
+		return &contractError
 	}
-	return nil, false
+	return nil
 }
 
 type RPCError struct {
@@ -81,14 +96,32 @@ type RPCError struct {
 	data    any
 }
 
+// Error returns the error message associated with the RPCError.
+//
+// Parameters:
+// - none
+// Returns:
+// - string: the error message
 func (e *RPCError) Error() string {
 	return e.message
 }
 
+// Code returns the code of the RPCError.
+//
+// Parameters:
+//  none
+// Returns:
+//  - int: the code
 func (e *RPCError) Code() int {
 	return e.code
 }
 
+// Data returns the data associated with the RPCError.
+//
+// Parameters:
+//  none
+// Returns:
+//  - any: the data
 func (e *RPCError) Data() any {
 	return e.data
 }

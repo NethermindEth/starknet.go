@@ -31,6 +31,17 @@ var (
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
+//
+// It sets up the test environment by parsing command line flags and loading environment variables.
+// The test environment can be set using the "env" flag.
+// It then sets the base path for integration tests by reading the value from the "INTEGRATION_BASE" environment variable.
+// If the base path is not set and the test environment is not "mock", it panics.
+// Finally, it exits with the return value of the test suite
+//
+// Parameters:
+// - m: is the test main
+// Returns:
+//  none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -42,6 +53,18 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// TestTransactionHashInvoke tests the TransactionHashInvoke function.
+//
+// This function tests the TransactionHashInvoke method of the Account struct.
+// It generates a set of test cases and iterates over them to verify the correctness
+// of the transaction hash. Each test case consists of the expected hash, a flag
+// indicating whether the KeyStore should be set, account address, public key,
+// private key, chain ID, function call, and transaction details.
+// 
+// Parameters:
+//   - t: The testing.T object for running the test
+// Returns:
+//   none
 func TestTransactionHashInvoke(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -157,6 +180,15 @@ func TestTransactionHashInvoke(t *testing.T) {
 
 }
 
+// TestFmtCallData tests the FmtCallData function.
+//
+// It tests the FmtCallData function by providing different test sets
+// and comparing the output with the expected call data.
+// 
+// Parameters:
+// - t: The testing.T instance for running the test
+// Return:
+//   none
 func TestFmtCallData(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -209,6 +241,19 @@ func TestFmtCallData(t *testing.T) {
 	}
 }
 
+// TestChainIdMOCK is a test function that tests the behavior of the ChainId function.
+//
+// It creates a mock controller and a mock RpcProvider. It defines a test set
+// consisting of different ChainID and ExpectedID pairs. It then iterates over
+// the test set and sets the expected behavior for the ChainID method of the
+// mockRpcProvider. It creates a new account using the mockRpcProvider,
+// Zero value, "pubkey", and a new in-memory keystore. It asserts that the
+// account's ChainId matches the expected ID for each test case in the test set.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Return:
+//   none
 func TestChainIdMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -242,6 +287,16 @@ func TestChainIdMOCK(t *testing.T) {
 	}
 }
 
+// TestChainId tests the ChainId function.
+//
+// This function tests the ChainId function by setting up a mock controller, defining a test set,
+// and running a series of assertions on the expected results.
+// It checks if the ChainId function returns the correct ChainID and ExpectedID values
+// for different test environments.
+// Parameters:
+// - t: The testing.T instance for running the test
+// Return:
+//   none
 func TestChainId(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -274,6 +329,22 @@ func TestChainId(t *testing.T) {
 
 }
 
+// TestSignMOCK is a test function that tests the Sign method of the Account struct using mock objects.
+//
+// It sets up a mock controller and a mock RPC provider, and defines a test set containing different scenarios.
+// Each scenario includes an address, private key, chain ID, a felt to sign, and the expected signatures.
+// The function iterates over the test set and performs the following steps for each test case:
+// - Converts the private key to a big.Int object and stores it in a memory keystore.
+// - Mocks the ChainID method of the RPC provider to return the specified chain ID.
+// - Creates an account using the mock RPC provider, the test address, the address string, and the keystore.
+// - Converts the felt to sign to a big.Int object.
+// - Calls the Sign method of the account with the felt to sign and retrieves the signature.
+// - Verifies that the obtained signature matches the expected signature.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//  none
 func TestSignMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -325,6 +396,15 @@ func TestSignMOCK(t *testing.T) {
 
 }
 
+// TestAddInvoke is a test function that verifies the behavior of the AddInvokeTransaction method.
+//
+// This function tests the AddInvokeTransaction method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//   none
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
@@ -490,6 +570,21 @@ func TestAddInvoke(t *testing.T) {
 	}
 }
 
+// TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
+//
+// The test checks if the environment is set to "devnet" and skips the test if not. It then initializes a new RPC client
+// and provider using the base URL. After that, it sets up a devnet environment and creates a fake user account. The
+// fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
+// and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
+// user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
+// constructs a deploy account transaction and precomputes the address. It then signs the transaction and mints coins to
+// the precomputed address. Finally, it adds the deploy account transaction and verifies that no errors occurred and the
+// response is not nil.
+//
+// Parameters:
+//  - t: is the testing framework
+// Returns:
+//  none
 func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -533,11 +628,21 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
+// TestTransactionHashDeployAccountTestnet tests the TransactionHashDeployAccount function when using the testnet environment.
+//
+// It creates a client and provider, initializes the required addresses and keys, and sets up the transaction parameters.
+// It then precomputes the address and calculates the hash of the transaction.
+// Finally, it verifies that the calculated hash matches the expected hash.
+//
+// Parameters:
+//  - t: is the testing framework
+// Returns:
+//  none
 func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	if testEnv != "testnet" {
@@ -587,6 +692,24 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	require.Equal(t, hash.String(), ExpectedHash.String(), "Error with calulcating TransactionHashDeployAccount")
 }
 
+// TestTransactionHashDeclare tests the TransactionHashDeclare function.
+//
+// This function verifies that the TransactionHashDeclare function returns the
+// expected hash value for a given transaction.
+// The function requires a testnet environment to run.
+// It creates a new client using the provided base URL and verifies that no
+// error occurs.
+// It then creates a new account using the provider and verifies that no error
+// occurs.
+// It constructs a DeclareTxnV2 struct with test hex values for the nonce,
+// max fee, signature, sender address, compiled class hash, and class hash.
+// Finally, it calls the TransactionHashDeclare function and compares the
+// returned hash with the expected hash, ensuring they match.
+//
+// Parameters:
+// - t: reference to the testing.T object
+// Returns:
+//  none
 func TestTransactionHashDeclare(t *testing.T) {
 	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
 	if testEnv != "testnet" {
@@ -617,6 +740,18 @@ func TestTransactionHashDeclare(t *testing.T) {
 	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
 }
 
+// TestWaitForTransactionReceiptMOCK is a unit test for the WaitForTransactionReceipt function.
+//
+// It tests the functionality of WaitForTransactionReceipt by mocking the RpcProvider and simulating different test scenarios.
+// It creates a test set with different parameters and expectations, and iterates over the test set to run the test cases.
+// For each test case, it sets up the necessary mocks, creates a context with a timeout, and calls the WaitForTransactionReceipt function.
+// It then asserts the expected result against the actual result.
+// The function uses the testify package for assertions and the gomock package for creating mocks.
+//
+// Parameters:
+// - t: The testing.T object for test assertions and logging
+// Returns:
+//  none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -679,6 +814,26 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	}
 }
 
+// TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
+//
+// It checks if the test environment is "devnet" and skips the test if it's not.
+// It creates a new RPC client using the base URL and "/rpc" endpoint.
+// It creates a new RPC provider using the client.
+// It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
+// It defines a testSet variable that contains an array of testSetType structs.
+// Each testSetType struct contains a Timeout integer, a Hash object, an ExpectedErr error, and an ExpectedReceipt TransactionReceipt object.
+// It retrieves the testSet based on the testEnv variable.
+// It iterates over each test in the testSet.
+// For each test, it creates a new context with a timeout based on the test's Timeout value.
+// It calls the WaitForTransactionReceipt method on the account object, passing the context, the test's Hash value, and a 1-second timeout.
+// If the test's ExpectedErr is not nil, it asserts that the returned error matches the test's ExpectedErr error.
+// Otherwise, it asserts that the ExecutionStatus of the returned receipt matches the ExecutionStatus of the test's ExpectedReceipt.
+// It then cleans up the test environment.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//  none
 func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -721,6 +876,15 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	}
 }
 
+// TestAddDeclareTxn is a test function that verifies the behavior of the AddDeclareTransaction method.
+//
+// This function tests the AddDeclareTransaction method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+//
+// Parameters:
+//  - t: The testing.T instance for running the test
+// Returns:
+//  none
 func TestAddDeclareTxn(t *testing.T) {
 	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
 	if testEnv != "testnet" {
@@ -768,7 +932,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		Nonce:             utils.TestHexToFelt(t, *nonce),
+		Nonce:             nonce,
 		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
 		Type:              rpc.TransactionType_Declare,
 		Version:           rpc.TransactionV2,
@@ -833,6 +997,17 @@ func TestDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err, "DeployAccount gave an Error")
 	require.NotNil(t, resp, "DeployAccount resp not nil")
 }
+
+
+// newDevnet creates a new devnet with the given URL.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// - url: The URL of the devnet to be created
+// Returns:
+// - *devnet.DevNet: a pointer to a devnet object
+// - []devnet.TestAccount: a slice of test accounts
+// - error: an error, if any
 
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)

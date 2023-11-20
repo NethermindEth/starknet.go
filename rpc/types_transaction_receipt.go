@@ -25,10 +25,22 @@ type CommonTransactionReceipt struct {
 	Events []Event `json:"events"`
 }
 
+// Hash returns the transaction hash associated with the CommonTransactionReceipt.
+//
+// Parameters:
+//   none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the CommonTransactionReceipt.
+//
+// Parameters:
+//   none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -44,6 +56,22 @@ const (
 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
 )
 
+// UnmarshalJSON unmarshals the JSON data into a TransactionType.
+//
+// The function modifies the value of the TransactionType pointer tt based on the unmarshaled data.
+// The supported JSON values and their corresponding TransactionType values are:
+//   - "DECLARE" maps to TransactionType_Declare
+//   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
+//   - "DEPLOY" maps to TransactionType_Deploy
+//   - "INVOKE" maps to TransactionType_Invoke
+//   - "L1_HANDLER" maps to TransactionType_L1Handler
+// If none of the supported values match the input data, the function returns an error.
+//  nil if the unmarshaling is successful.
+//
+// Parameters:
+// - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+// Returns:
+// - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -68,6 +96,13 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON marshals the TransactionType to JSON.
+//
+// Parameters:
+//  none
+// Returns:
+// - []byte: a byte slice
+// - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }
@@ -75,10 +110,22 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 // InvokeTransactionReceipt Invoke Transaction Receipt
 type InvokeTransactionReceipt CommonTransactionReceipt
 
+// Hash returns the hash of the invoke transaction receipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -86,10 +133,22 @@ func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 // DeclareTransactionReceipt Declare Transaction Receipt
 type DeclareTransactionReceipt CommonTransactionReceipt
 
+// Hash returns the transaction hash.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the DeclareTransactionReceipt function.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -101,10 +160,22 @@ type DeployTransactionReceipt struct {
 	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
+// Hash returns the transaction hash of the DeployTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr DeployTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the DeployTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -116,10 +187,22 @@ type DeployAccountTransactionReceipt struct {
 	ContractAddress *felt.Felt `json:"contract_address"`
 }
 
+// Hash returns the transaction hash for the given DeployAccountTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the DeployAccountTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *TxnExecutionStatus: the execution status
 func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -127,25 +210,103 @@ func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatu
 // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
 type L1HandlerTransactionReceipt CommonTransactionReceipt
 
+// Hash returns the transaction hash.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the L1HandlerTransactionReceipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
 
-type PendingDeployTransactionReceipt struct {
-	CommonTransactionReceipt
-	// The address of the deployed contract
-	ContractAddress *felt.Felt `json:"contract_address"`
+type PendingL1HandlerTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	// The message hash as it appears on the L1 core contract
+	MsgHash NumAsHex `json:"message_hash"`
+	PendingCommonTransactionReceiptProperties
 }
 
-func (tr PendingDeployTransactionReceipt) Hash() *felt.Felt {
+func (tr PendingL1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-func (tr PendingDeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+func (tr PendingL1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingDeclareTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	PendingCommonTransactionReceiptProperties
+}
+
+func (tr PendingDeclareTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+func (tr PendingDeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingDeployAccountTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	// The address of the deployed contract
+	ContractAddress *felt.Felt `json:"contract_address"`
+	PendingCommonTransactionReceiptProperties
+}
+
+// Hash returns the transaction hash of the pending deploy transaction receipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
+func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+// GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
+func (tr PendingDeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
+
+type PendingInvokeTransactionReceipt struct {
+	Type TransactionType `json:"type"`
+	PendingCommonTransactionReceiptProperties
+}
+
+// Hash returns the transaction hash of the pending deploy transaction receipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
+func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
+
+// GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
+func (tr PendingInvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
 
@@ -160,13 +321,47 @@ type PendingCommonTransactionReceiptProperties struct {
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
 	RevertReason    string             `json:"revert_reason"`
 	// Events The events emitted as part of this transaction
-	Events []Event `json:"events"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
+type ExecutionResources struct {
+	// The number of Cairo steps used
+	Steps NumAsHex `json:"steps"`
+	// The number of unused memory cells (each cell is roughly equivalent to a step)
+	MemoryHoles NumAsHex `json:"memory_holes,omitempty"`
+	// The number of RANGE_CHECK builtin instances
+	RangeCheckApps NumAsHex `json:"range_check_builtin_applications"`
+	// The number of Pedersen builtin instances
+	PedersenApps NumAsHex `json:"pedersen_builtin_applications"`
+	// The number of Poseidon builtin instances
+	PoseidonApps NumAsHex `json:"poseidon_builtin_applications"`
+	// The number of EC_OP builtin instances
+	ECOPApps NumAsHex `json:"ec_op_builtin_applications"`
+	// The number of ECDSA builtin instances
+	ECDSAApps NumAsHex `json:"ecdsa_builtin_applications"`
+	// The number of BITWISE builtin instances
+	BitwiseApps NumAsHex `json:"bitwise_builtin_applications"`
+	// The number of KECCAK builtin instances
+	KeccakApps NumAsHex `json:"keccak_builtin_applications"`
+}
+
+// Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the pending common transaction receipt properties.
+//
+// Parameters:
+//  none
+// Returns:
+// - TxnExecutionStatus: the execution status
 func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -174,6 +369,12 @@ func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExec
 type TransactionReceipt interface {
 	Hash() *felt.Felt
 	GetExecutionStatus() TxnExecutionStatus
+}
+
+type OrderedMsg struct {
+	// The order of the message within the transaction
+	Order   int `json:"order"`
+	MsgToL1 MsgToL1
 }
 
 type MsgToL1 struct {
@@ -198,6 +399,12 @@ type MsgFromL1 struct {
 
 type UnknownTransactionReceipt struct{ TransactionReceipt }
 
+// UnmarshalJSON unmarshals the given JSON data into an UnknownTransactionReceipt.
+//
+// Parameters:
+// - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+// Returns:
+// - error: an error if the unmarshaling fails
 func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -212,6 +419,13 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalTransactionReceipt unmarshals a transaction receipt from a generic interface.
+//
+// Parameters:
+// - t: The interface{} to be unmarshalled
+// Returns:
+// - TransactionReceipt: a TransactionReceipt
+// - error: an error if the unmarshaling fails
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -227,12 +441,20 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 		// Pending doesn't have a block number
 		if casted["block_hash"] == nil {
 			switch TransactionType(typ.(string)) {
-			case TransactionType_Deploy:
-				var txn PendingDeployTransactionReceipt
+			case TransactionType_Invoke:
+				var txn PendingInvokeTransactionReceipt
 				remarshal(casted, &txn)
 				return txn, nil
-			default:
-				var txn PendingCommonTransactionReceiptProperties
+			case TransactionType_DeployAccount:
+				var txn PendingDeployAccountTransactionReceipt
+				remarshal(casted, &txn)
+				return txn, nil
+			case TransactionType_L1Handler:
+				var txn PendingL1HandlerTransactionReceipt
+				remarshal(casted, &txn)
+				return txn, nil
+			case TransactionType_Declare:
+				var txn PendingDeclareTransactionReceipt
 				remarshal(casted, &txn)
 				return txn, nil
 			}

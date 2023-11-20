@@ -27,6 +27,10 @@ type CasmClassEntryPoint struct {
 	Builtins []string   `json:"builtins"`
 }
 
+// UnmarshalCasmClass is a function that unmarshals a CasmClass object from a file.
+// CASM = Cairo instructions 
+//
+// It takes a file path as a parameter and returns a pointer to the unmarshaled CasmClass object and an error.
 func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 
 	content, err := os.ReadFile(filePath)

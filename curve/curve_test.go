@@ -9,6 +9,15 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
+// BenchmarkPedersenHash benchmarks the performance of the PedersenHash function.
+//
+// The function takes a 2D slice of big.Int values as input and measures the time
+// it takes to execute the PedersenHash function for each test case.
+//
+// Parameters:
+// - b: a *testing.B value representing the testing context
+// Returns:
+//  none
 func BenchmarkPedersenHash(b *testing.B) {
 	suite := [][]*big.Int{
 		{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")},
@@ -27,6 +36,12 @@ func BenchmarkPedersenHash(b *testing.B) {
 	}
 }
 
+// BenchmarkCurveSign benchmarks the Curve.Sign function.
+//
+// Parameters:
+// - b: a *testing.B value representing the testing context
+// Returns:
+//  none
 func BenchmarkCurveSign(b *testing.B) {
 	type data struct {
 		MessageHash *big.Int
@@ -51,6 +66,20 @@ func BenchmarkCurveSign(b *testing.B) {
 	}
 }
 
+// BenchmarkSignatureVerify benchmarks the SignatureVerify function.
+//
+// The function takes a testing.B object as a parameter and performs a series
+// of operations to benchmark the SignatureVerify function. It generates a
+// random private key, computes the corresponding public key, computes a hash
+// using the PedersenHash function, signs the hash using the private key, and
+// finally verifies the signature. The function runs two benchmarks: one for
+// signing and one for verification. Each benchmark measures the time taken to
+// perform the respective operation.
+//
+// Parameters:
+// - b: a *testing.B value representing the testing context
+// Returns:
+//  none
 func BenchmarkSignatureVerify(b *testing.B) {
 	private, _ := Curve.GetRandomPrivateKey()
 	x, y, _ := Curve.PrivateToPoint(private)
@@ -71,6 +100,12 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	})
 }
 
+// TestGeneral_PrivateToPoint tests the PrivateToPoint function.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_PrivateToPoint(t *testing.T) {
 	x, _, err := Curve.PrivateToPoint(big.NewInt(2))
 	if err != nil {
@@ -82,6 +117,15 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	}
 }
 
+// TestGeneral_PedersenHash is a test function for the PedersenHash method in the General struct.
+//
+// The function tests the PedersenHash method by providing different test cases and comparing the computed hash with the expected hash.
+// It uses the testing.T type from the testing package to report any errors encountered during the tests.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_PedersenHash(t *testing.T) {
 	testPedersen := []struct {
 		elements []*big.Int
@@ -112,6 +156,18 @@ func TestGeneral_PedersenHash(t *testing.T) {
 	}
 }
 
+// TestGeneral_DivMod tests the DivMod function.
+//
+// The function takes in a list of test cases which consist of inputs x, y, and the expected output.
+// The inputs x and y are of type *big.Int and the expected output is also of type *big.Int.
+// The function iterates through each test case and calls the DivMod function with the inputs x, y, and the prime number Curve.P.
+// It then compares the output of DivMod with the expected output and throws an error if they are not equal.
+// The function is used to test the correctness of the DivMod function.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_DivMod(t *testing.T) {
 	testDivmod := []struct {
 		x        *big.Int
@@ -139,6 +195,17 @@ func TestGeneral_DivMod(t *testing.T) {
 	}
 }
 
+// TestGeneral_Add tests the Add function in the General package.
+//
+// It tests the addition of two big integers and compares the result with the expected values.
+// The function takes a slice of test cases, each containing two big integers and their expected sum.
+// It iterates over the test cases, computes the sum using the Add function, and checks if it matches the expected sum.
+// If the computed sum does not match the expected sum, an error is reported using the t.Errorf function.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_Add(t *testing.T) {
 	testAdd := []struct {
 		x         *big.Int
@@ -172,6 +239,19 @@ func TestGeneral_Add(t *testing.T) {
 	}
 }
 
+// TestGeneral_MultAir is a test function that tests the MultAir function in the General package.
+//
+// It tests the behavior of the MultAir function with different input values and checks if the
+// returned values match the expected values.
+// The MultAir function takes a big.Int value 'r', and two other big.Int values 'x' and 'y', and
+// performs a mathematical operation on them to calculate new big.Int values 'x' and 'y'.
+// The function then compares the calculated values with the expected values and reports any
+// mismatches as test failures.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_MultAir(t *testing.T) {
 	testMult := []struct {
 		r         *big.Int
@@ -205,6 +285,16 @@ func TestGeneral_MultAir(t *testing.T) {
 	}
 }
 
+// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements function in the General package.
+//
+// This function tests the ComputeHashOnElements function by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
+// It checks the behavior of the ComputeHashOnElements function when an empty array is passed as input, as well as when an array with multiple elements is passed.
+// The expected hashes are precalculated using the utils.HexToBN function.
+//
+// Parameters:
+// - t: a *testing.T value representing the testing context
+// Returns:
+//  none
 func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	hashEmptyArray, err := Curve.ComputeHashOnElements([]*big.Int{})
 	expectedHashEmmptyArray := utils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
@@ -230,6 +320,12 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	}
 }
 
+// TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
+//
+// Parameters:
+// - t: The testing.T object for running the test.
+// Returns:
+//   none
 func TestGeneral_HashAndSign(t *testing.T) {
 	hashy, err := Curve.HashElements([]*big.Int{
 		big.NewInt(1953658213),
@@ -256,6 +352,17 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	}
 }
 
+// TestGeneral_ComputeFact tests the ComputeFact function.
+//
+// It tests the ComputeFact function by providing a set of test cases
+// and comparing the computed hash with the expected hash.
+// The test cases consist of program hashes, program outputs,
+// and expected hash values.
+//
+// Parameters:
+// - t: The testing.T object for running the test
+// Returns:
+//   none
 func TestGeneral_ComputeFact(t *testing.T) {
 	testFacts := []struct {
 		programHash   *big.Int
@@ -282,6 +389,12 @@ func TestGeneral_ComputeFact(t *testing.T) {
 	}
 }
 
+// TestGeneral_BadSignature tests the behavior of the function that checks for bad signatures.
+//
+// Parameters:
+// - t: The testing.T object for running the test
+// Returns:
+//   none
 func TestGeneral_BadSignature(t *testing.T) {
 	hash, err := Curve.PedersenHash([]*big.Int{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")})
 	if err != nil {
@@ -315,6 +428,18 @@ func TestGeneral_BadSignature(t *testing.T) {
 	}
 }
 
+// TestGeneral_Signature tests the Signature function.
+//
+// testSignature is a test struct containing private, publicX, publicY,
+// hash, rIn, sIn, and raw fields.
+// The function iterates over the testSignature slice and performs various
+// operations including signing, verifying, converting, and initializing
+// variables.
+//
+// Parameters:
+// - t: The testing.T object for running the test
+// Returns:
+//   none
 func TestGeneral_Signature(t *testing.T) {
 	testSignature := []struct {
 		private *big.Int
@@ -374,6 +499,15 @@ func TestGeneral_Signature(t *testing.T) {
 	}
 }
 
+// TestGeneral_SplitFactStr is a test function that tests the SplitFactStr function.
+//
+// It verifies the behavior of the SplitFactStr function by providing different inputs and checking the output.
+// The function takes no parameters and returns no values.
+//
+// Parameters:
+// - t: The testing.T object for running the test
+// Returns:
+//   none
 func TestGeneral_SplitFactStr(t *testing.T) {
 	data := []map[string]string{
 		{"input": "0x3", "h": "0x0", "l": "0x3"},
