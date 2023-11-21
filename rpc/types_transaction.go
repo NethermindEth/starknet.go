@@ -1,12 +1,14 @@
 package rpc
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // https://github.com/starkware-libs/starknet-specs/blob/a789ccc3432c57777beceaa53a34a7ae2f25fda0/api/starknet_api_openrpc.json#L1252
@@ -46,16 +48,16 @@ type InvokeTxnV1 struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 type InvokeTxnV3 struct {
-	Type           TransactionType       `json:"type"`
-	SenderAddress  *felt.Felt            `json:"sender_address"`
-	Calldata       []*felt.Felt          `json:"calldata"`
-	Version        TransactionVersion    `json:"version"`
-	Signature      []*felt.Felt          `json:"signature"`
-	Nonce          *felt.Felt            `json:"nonce"`
-	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            *felt.Felt            `json:"tip"`
+	Type           TransactionType             `json:"type"`
+	SenderAddress  *felt.Felt                  `json:"sender_address"`
+	Calldata       []*felt.Felt                `json:"calldata"`
+	Version        TransactionVersion          `json:"version"`
+	Signature      []*felt.Felt                `json:"signature"`
+	Nonce          *felt.Felt                  `json:"nonce"`
+	ResourceBounds map[Resource]ResourceBounds `json:"resource_bounds"`
+	Tip            *felt.Felt                  `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData *felt.Felt `json:"paymaster_data"`
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData *felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
@@ -108,17 +110,17 @@ type DeclareTxnV2 struct {
 }
 
 type DeclareTxnV3 struct {
-	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
-	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           TransactionVersion    `json:"version"`
-	Signature         []*felt.Felt          `json:"signature"`
-	Nonce             *felt.Felt            `json:"nonce"`
-	ClassHash         *felt.Felt            `json:"class_hash"`
-	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               *felt.Felt            `json:"tip"`
+	Type              TransactionType             `json:"type"`
+	SenderAddress     *felt.Felt                  `json:"sender_address"`
+	CompiledClassHash *felt.Felt                  `json:"compiled_class_hash"`
+	Version           TransactionVersion          `json:"version"`
+	Signature         []*felt.Felt                `json:"signature"`
+	Nonce             *felt.Felt                  `json:"nonce"`
+	ClassHash         *felt.Felt                  `json:"class_hash"`
+	ResourceBounds    map[Resource]ResourceBounds `json:"resource_bounds"`
+	Tip               *felt.Felt                  `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData *felt.Felt `json:"paymaster_data"`
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData *felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
@@ -127,12 +129,13 @@ type DeclareTxnV3 struct {
 	FeeMode DAMode `json:"fee_data_availability_mode"`
 }
 
-type ResourceBoundsMapping struct {
-	// The max amount and max price per unit of L1 gas used in this tx
-	L1Gas ResourceBounds `json:"l1_gas"`
-	// The max amount and max price per unit of L2 gas used in this tx
-	L2Gas ResourceBounds `json:"l2_gas"`
-}
+// todo: remove if not in rpc-v06 spec
+// type ResourceBoundsMapping struct {
+// 	// The max amount and max price per unit of L1 gas used in this tx
+// 	L1Gas ResourceBounds `json:"l1_gas"`
+// 	// The max amount and max price per unit of L2 gas used in this tx
+// 	L2Gas ResourceBounds `json:"l2_gas"`
+// }
 
 type DAMode string
 
@@ -141,11 +144,52 @@ const (
 	DAModeL2 DAMode = "L2"
 )
 
+func (da *DAMode) UInt64() (uint64, error) {
+	switch *da {
+	case DAModeL1:
+		return uint64(1), nil
+	case DAModeL2:
+		return uint64(1), nil
+	}
+	return 0, errors.New("Unknown DAMode")
+}
+
+type Resource uint32
+
+const (
+	ResourceL1Gas Resource = iota + 1
+	ResourceL2Gas
+)
+
+func (r Resource) String() string {
+	switch r {
+	case ResourceL1Gas:
+		return "L1_GAS"
+	case ResourceL2Gas:
+		return "L2_GAS"
+	default:
+		return ""
+	}
+}
+
 type ResourceBounds struct {
 	// The max amount of the resource that can be used in the tx
 	MaxAmount *felt.Felt `json:"max_amount"`
 	// The max price per unit of this resource for this tx
 	MaxPricePerUnit *felt.Felt `json:"max_price_per_unit"`
+}
+
+func (rb ResourceBounds) Bytes(resource Resource) []byte {
+	const eight = 8
+	maxAmountBytes := make([]byte, eight)
+	binary.BigEndian.PutUint64(maxAmountBytes, rb.MaxAmount.Impl().Uint64())
+	maxPriceBytes := rb.MaxPricePerUnit.Bytes()
+	return utils.Flatten(
+		[]byte{0},
+		[]byte(resource.String()),
+		maxAmountBytes,
+		maxPriceBytes[16:], // Last 16 bytes of the uint128.
+	)
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
@@ -174,27 +218,26 @@ type DeployAccountTxn struct {
 
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
+}
 
-	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            *felt.Felt            `json:"tip"`
+type DeployAccountTxnV3 struct {
+	Type                TransactionType             `json:"type"`
+	Version             TransactionVersion          `json:"version"`
+	Signature           []*felt.Felt                `json:"signature"`
+	Nonce               *felt.Felt                  `json:"nonce"`
+	ContractAddressSalt *felt.Felt                  `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt                `json:"constructor_calldata"`
+	ClassHash           *felt.Felt                  `json:"class_hash"`
+	ResourceBounds      map[Resource]ResourceBounds `json:"resource_bounds"`
+	Tip                 *felt.Felt                  `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData *felt.Felt `json:"paymaster_data"`
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData *felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
 	NonceDataMode DAMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DAMode `json:"fee_data_availability_mode"`
-}
-
-type DeployAccountTxnV3 struct {
-	Type                TransactionType    `json:"type"`
-	Version             TransactionVersion `json:"version"`
-	Signature           []*felt.Felt       `json:"signature"`
-	Nonce               *felt.Felt         `json:"nonce"`
-	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
-	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
-	ClassHash           *felt.Felt         `json:"class_hash"`
 }
 
 type UnknownTransaction struct{ Transaction }
