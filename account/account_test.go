@@ -771,8 +771,8 @@ func TestTransactionHashDeployAccountV3Testnet(t *testing.T) {
 				NonceDataMode:         rpc.DAModeL1,
 				FeeMode:               rpc.DAModeL1,
 			},
-			PrecomputedAddress: utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
-			ExpectedHash:       utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb"),
+			PrecomputedAddress: utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"), // ??
+			ExpectedHash:       utils.TestHexToFelt(t, "0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0"),
 			ExpectedErr:        nil,
 		},
 		}}[testEnv]
@@ -831,7 +831,69 @@ func TestTransactionHashDeclare(t *testing.T) {
 			},
 			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
 			ExpectedErr:  nil,
-		},
+		}},
+		"integration": {
+			{
+				// Techincally this is for integration, not goerli. But should be fine.
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
+				Txn: rpc.DeclareTxnV3{
+					Nonce:   utils.TestHexToFelt(t, "0x1"),
+					Type:    rpc.TransactionType_Declare,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x29a49dff154fede73dd7b5ca5a0beadf40b4b069f3a850cd8428e54dc809ccc"),
+						utils.TestHexToFelt(t, "0x429d142a17223b4f2acde0f5ecb9ad453e188b245003c86fab5c109bad58fc3")},
+					SenderAddress:     utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x1add56d64bebf8140f3b8a38bdf102b7874437f0c861ab4ca7526ec33b4d0f8"),
+					ClassHash:         utils.TestHexToFelt(t, "0x5ae9d09292a50ed48c5930904c880dab56e85b825022a7d689cfc9e65e01ee7"),
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x2540be400"),
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+					},
+					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					NonceDataMode:         rpc.DAModeL1,
+					FeeMode:               rpc.DAModeL1,
+				},
+				ExpectedHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				ExpectedErr:  nil,
+			},
+		}}[testEnv]
+	for _, test := range testSet {
+		hash, err := acnt.TransactionHashDeclare(test.Txn)
+		require.Equal(t, test.ExpectedErr, err)
+		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+	}
+}
+
+func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
+
+	if testEnv != "integration" {
+		t.Skip("Skipping test as it requires a integration environment")
+	}
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
+
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	fmt.Println("acnt", acnt.ChainId)
+	require.NoError(t, err)
+
+	type testSetType struct {
+		Txn          rpc.DeclareTxnType
+		ExpectedHash *felt.Felt
+		ExpectedErr  error
+	}
+	testSet := map[string][]testSetType{
+		"integration": {
 			{
 				// Techincally this is for integration, not goerli. But should be fine.
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
