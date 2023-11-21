@@ -41,7 +41,8 @@ var (
 // Parameters:
 // - m: is the test main
 // Returns:
-//  none
+//
+//	none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -60,11 +61,13 @@ func TestMain(m *testing.M) {
 // of the transaction hash. Each test case consists of the expected hash, a flag
 // indicating whether the KeyStore should be set, account address, public key,
 // private key, chain ID, function call, and transaction details.
-// 
+//
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
-//   none
+//
+//	none
 func TestTransactionHashInvoke(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -184,11 +187,12 @@ func TestTransactionHashInvoke(t *testing.T) {
 //
 // It tests the FmtCallData function by providing different test sets
 // and comparing the output with the expected call data.
-// 
+//
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestFmtCallData(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -253,7 +257,8 @@ func TestFmtCallData(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestChainIdMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -296,7 +301,8 @@ func TestChainIdMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestChainId(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -344,7 +350,8 @@ func TestChainId(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//  none
+//
+//	none
 func TestSignMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -404,7 +411,8 @@ func TestSignMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//   none
+//
+//	none
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
@@ -582,9 +590,11 @@ func TestAddInvoke(t *testing.T) {
 // response is not nil.
 //
 // Parameters:
-//  - t: is the testing framework
+//   - t: is the testing framework
+//
 // Returns:
-//  none
+//
+//	none
 func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -640,9 +650,11 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 // Finally, it verifies that the calculated hash matches the expected hash.
 //
 // Parameters:
-//  - t: is the testing framework
+//   - t: is the testing framework
+//
 // Returns:
-//  none
+//
+//	none
 func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	if testEnv != "testnet" {
@@ -709,13 +721,9 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 // Parameters:
 // - t: reference to the testing.T object
 // Returns:
-//  none
+//
+//	none
 func TestTransactionHashDeclare(t *testing.T) {
-	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-	expectedHash := utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92")
 
 	client, err := rpc.NewClient(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
@@ -724,20 +732,64 @@ func TestTransactionHashDeclare(t *testing.T) {
 	acnt, err := account.NewAccount(provider, &felt.Zero, "", account.NewMemKeystore())
 	require.NoError(t, err)
 
-	tx := rpc.DeclareTxnV2{
-		Nonce:             utils.TestHexToFelt(t, "0xb"),
-		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-		Type:              rpc.TransactionType_Declare,
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{},
-		SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-		CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-		ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+	type testSetType struct {
+		Txn          rpc.DeclareTxnType
+		ExpectedHash *felt.Felt
+		ExpectedErr  error
 	}
-
-	hash, err := acnt.TransactionHashDeclare(tx)
-	require.NoError(t, err)
-	require.Equal(t, expectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+	testSet := map[string][]testSetType{
+		"testnet": {{
+			Txn: rpc.DeclareTxnV2{
+				Nonce:             utils.TestHexToFelt(t, "0xb"),
+				MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+				Type:              rpc.TransactionType_Declare,
+				Version:           rpc.TransactionV2,
+				Signature:         []*felt.Felt{},
+				SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+				CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+				ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+			},
+			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
+			ExpectedErr:  nil,
+		},
+			{
+				// Techincally this is for integration, not goerli. But should be fine.
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
+				Txn: rpc.DeclareTxnV3{
+					Nonce:   utils.TestHexToFelt(t, "0x1"),
+					Type:    rpc.TransactionType_Declare,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x29a49dff154fede73dd7b5ca5a0beadf40b4b069f3a850cd8428e54dc809ccc"),
+						utils.TestHexToFelt(t, "0x429d142a17223b4f2acde0f5ecb9ad453e188b245003c86fab5c109bad58fc3")},
+					SenderAddress:     utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x1add56d64bebf8140f3b8a38bdf102b7874437f0c861ab4ca7526ec33b4d0f8"),
+					ClassHash:         utils.TestHexToFelt(t, "0x5ae9d09292a50ed48c5930904c880dab56e85b825022a7d689cfc9e65e01ee7"),
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x2540be400"),
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+					},
+					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					NonceDataMode:         rpc.DAModeL1,
+					FeeMode:               rpc.DAModeL1,
+				},
+				ExpectedHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				ExpectedErr:  nil,
+			},
+		}}[testEnv]
+	for _, test := range testSet {
+		hash, err := acnt.TransactionHashDeclare(test.Txn)
+		require.Equal(t, test.ExpectedErr, err)
+		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+	}
 }
 
 // TestWaitForTransactionReceiptMOCK is a unit test for the WaitForTransactionReceipt function.
@@ -751,7 +803,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 // Parameters:
 // - t: The testing.T object for test assertions and logging
 // Returns:
-//  none
+//
+//	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -833,7 +886,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//  none
+//
+//	none
 func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -882,9 +936,11 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // It asserts that the expected hash and error values are returned for each test set.
 //
 // Parameters:
-//  - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
-//  none
+//
+//	none
 func TestAddDeclareTxn(t *testing.T) {
 	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
 	if testEnv != "testnet" {

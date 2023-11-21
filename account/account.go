@@ -201,6 +201,9 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			[]*felt.Felt{txn.Nonce},
 		)
 	case rpc.DeployAccountTxnV3:
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
+			return nil, ErrNotAllParametersSet
+		}
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 		calldata = append(calldata, txn.ConstructorCalldata...)
 
@@ -300,7 +303,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		)
 	case rpc.InvokeTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.ResourceBounds == nil || txn.AccountDeploymentData == nil {
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
@@ -323,7 +326,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			txn.Nonce,
 			[]*felt.Felt{
 				new(felt.Felt).SetUint64(DAUint64),
-				crypto.PoseidonArray(txn.AccountDeploymentData),
+				crypto.PoseidonArray(txn.AccountDeploymentData...),
 				crypto.PoseidonArray(txn.Calldata...),
 			},
 		)
@@ -331,9 +334,9 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	return nil, ErrTxnTypeUnSupported
 }
 
-func tipAndResourcesHash(tip uint64, resourceBounds map[rpc.Resource]rpc.ResourceBounds) *felt.Felt {
-	l1Bounds := new(felt.Felt).SetBytes(resourceBounds[rpc.ResourceL1Gas].Bytes(rpc.ResourceL1Gas))
-	l2Bounds := new(felt.Felt).SetBytes(resourceBounds[rpc.ResourceL2Gas].Bytes(rpc.ResourceL2Gas))
+func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) *felt.Felt {
+	l1Bounds := new(felt.Felt).SetBytes(resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas))
+	l2Bounds := new(felt.Felt).SetBytes(resourceBounds.L2Gas.Bytes(rpc.ResourceL2Gas))
 	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds)
 }
 
@@ -420,7 +423,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		)
 	case rpc.DeclareTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-		if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 			txn.ClassHash == nil || txn.CompiledClassHash == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -444,7 +447,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			txn.Nonce,
 			[]*felt.Felt{
 				new(felt.Felt).SetUint64(DAUint64),
-				crypto.PoseidonArray(txn.AccountDeploymentData),
+				crypto.PoseidonArray(txn.AccountDeploymentData...),
 				crypto.PoseidonArray(txn.ClassHash),
 				crypto.PoseidonArray(txn.CompiledClassHash),
 			},
