@@ -669,8 +669,6 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
 	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
 
-	ExpectedHash := utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb")
-	ExpectedPrecomputeAddr := utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
@@ -681,27 +679,43 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	classHash := utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e")
 
-	tx := rpc.DeployAccountTxn{
-		Nonce:               &felt.Zero,
-		MaxFee:              utils.TestHexToFelt(t, "0x105ef39b2000"),
-		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{},
-		ClassHash:           classHash,
-		ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
-		ConstructorCalldata: []*felt.Felt{
-			utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
-			utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
-			utils.TestHexToFelt(t, "0x1"),
-			utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
-		},
+	type testSetType struct {
+		Txn                        rpc.DeployAccountTxn
+		ExpectedPrecomputedAddress *felt.Felt
+		ExpectedHash               *felt.Felt
+		ExpectedErr                error
 	}
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, tx.ContractAddressSalt, classHash, tx.ConstructorCalldata)
-	require.Equal(t, ExpectedPrecomputeAddr.String(), precomputedAddress.String(), "Error with calulcating PrecomputeAddress")
+	testSet := map[string][]testSetType{
+		"testnet": {{
+			Txn: rpc.DeployAccountTxn{
+				Nonce:               &felt.Zero,
+				MaxFee:              utils.TestHexToFelt(t, "0x105ef39b2000"),
+				Type:                rpc.TransactionType_DeployAccount,
+				Version:             rpc.TransactionV1,
+				Signature:           []*felt.Felt{},
+				ClassHash:           classHash,
+				ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				ConstructorCalldata: []*felt.Felt{
+					utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
+					utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
+					utils.TestHexToFelt(t, "0x1"),
+					utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+				},
+			},
+			ExpectedPrecomputedAddress: utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+			ExpectedHash:               utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb"),
+			ExpectedErr:                nil,
+		},
+		}}[testEnv]
+	for _, test := range testSet {
+		precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, test.Txn.ContractAddressSalt, classHash, test.Txn.ConstructorCalldata)
+		require.Equal(t, test.ExpectedPrecomputedAddress.String(), precomputedAddress.String(), "Error with calulcating PrecomputeAddress")
 
-	hash, err := acnt.TransactionHashDeployAccount(tx, precomputedAddress)
-	require.NoError(t, err, "TransactionHashDeployAccount gave an Error")
-	require.Equal(t, hash.String(), ExpectedHash.String(), "Error with calulcating TransactionHashDeployAccount")
+		hash, err := acnt.TransactionHashDeployAccount(test.Txn, precomputedAddress)
+		require.NoError(t, err, "TransactionHashDeployAccount gave an Error")
+		require.Equal(t, test.ExpectedHash.String(), hash.String(), "Error with calulcating TransactionHashDeployAccount")
+
+	}
 }
 
 // TestTransactionHashDeclare tests the TransactionHashDeclare function.
