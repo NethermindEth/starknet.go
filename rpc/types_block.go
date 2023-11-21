@@ -31,7 +31,9 @@ type BlockID struct {
 // while the error indicates any error that occurred during the marshaling process.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: the JSON representation of the BlockID
 // - error: any error that occurred during the marshaling process
@@ -99,7 +101,9 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 // MarshalJSON returns the JSON encoding of BlockStatus.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -165,7 +169,7 @@ type PendingBlockHeader struct {
 
 type ResourcePrice struct {
 	// The price of one unit of the given resource, denominated in strk
-	PriceInStrk NumAsHex `json:"price_in_strk,omitempty"`
+	PriceInStrk *felt.Felt `json:"price_in_strk,omitempty"`
 	// The price of one unit of the given resource, denominated in wei
-	PriceInWei NumAsHex `json:"price_in_wei"`
+	PriceInWei *felt.Felt `json:"price_in_wei"`
 }
