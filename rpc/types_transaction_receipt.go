@@ -374,23 +374,34 @@ type PendingCommonTransactionReceiptProperties struct {
 
 type ExecutionResources struct {
 	// The number of Cairo steps used
-	Steps NumAsHex `json:"steps"`
+	Steps int `json:"steps"`
 	// The number of unused memory cells (each cell is roughly equivalent to a step)
-	MemoryHoles NumAsHex `json:"memory_holes,omitempty"`
+	MemoryHoles int `json:"memory_holes,omitempty"`
 	// The number of RANGE_CHECK builtin instances
-	RangeCheckApps NumAsHex `json:"range_check_builtin_applications"`
+	RangeCheckApps int `json:"range_check_builtin_applications,omitempty"`
 	// The number of Pedersen builtin instances
-	PedersenApps NumAsHex `json:"pedersen_builtin_applications"`
+	PedersenApps int `json:"pedersen_builtin_applications,omitempty"`
 	// The number of Poseidon builtin instances
-	PoseidonApps NumAsHex `json:"poseidon_builtin_applications"`
+	PoseidonApps int `json:"poseidon_builtin_applications,omitempty"`
 	// The number of EC_OP builtin instances
-	ECOPApps NumAsHex `json:"ec_op_builtin_applications"`
+	ECOPApps int `json:"ec_op_builtin_applications,omitempty"`
 	// The number of ECDSA builtin instances
-	ECDSAApps NumAsHex `json:"ecdsa_builtin_applications"`
+	ECDSAApps int `json:"ecdsa_builtin_applications,omitempty"`
 	// The number of BITWISE builtin instances
-	BitwiseApps NumAsHex `json:"bitwise_builtin_applications"`
+	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
 	// The number of KECCAK builtin instances
-	KeccakApps NumAsHex `json:"keccak_builtin_applications"`
+	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
+	// The  number of accesses to the segment arena
+	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
+}
+
+func (er *ExecutionResources) Validation() bool {
+	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
+		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
+		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
+		return false
+	}
+	return true
 }
 
 // Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
