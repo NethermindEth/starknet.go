@@ -831,40 +831,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 			},
 			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
 			ExpectedErr:  nil,
-		}},
-		"integration": {
-			{
-				// Techincally this is for integration, not goerli. But should be fine.
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
-				Txn: rpc.DeclareTxnV3{
-					Nonce:   utils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionType_Declare,
-					Version: rpc.TransactionV3,
-					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x29a49dff154fede73dd7b5ca5a0beadf40b4b069f3a850cd8428e54dc809ccc"),
-						utils.TestHexToFelt(t, "0x429d142a17223b4f2acde0f5ecb9ad453e188b245003c86fab5c109bad58fc3")},
-					SenderAddress:     utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
-					CompiledClassHash: utils.TestHexToFelt(t, "0x1add56d64bebf8140f3b8a38bdf102b7874437f0c861ab4ca7526ec33b4d0f8"),
-					ClassHash:         utils.TestHexToFelt(t, "0x5ae9d09292a50ed48c5930904c880dab56e85b825022a7d689cfc9e65e01ee7"),
-					ResourceBounds: rpc.ResourceBoundsMapping{
-						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x2540be400"),
-						},
-						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
-						},
-					},
-					Tip:                   utils.TestHexToFelt(t, "0x0"),
-					PayMasterData:         []*felt.Felt{},
-					AccountDeploymentData: []*felt.Felt{},
-					NonceDataMode:         rpc.DAModeL1,
-					FeeMode:               rpc.DAModeL1,
-				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
-				ExpectedErr:  nil,
-			},
+		},
 		}}[testEnv]
 	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeclare(test.Txn)
@@ -926,6 +893,79 @@ func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
 		}}[testEnv]
 	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeclare(test.Txn)
+		require.Equal(t, test.ExpectedErr, err)
+		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+	}
+}
+
+func TestTransactionHashInvokeINTEGRATION(t *testing.T) {
+	if testEnv != "integration" {
+		t.Skip("Skipping test as it requires a integration environment")
+	}
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	require.NoError(t, err)
+
+	type testSetType struct {
+		Txn          rpc.DeclareTxnType
+		ExpectedHash *felt.Felt
+		ExpectedErr  error
+	}
+	testSet := map[string][]testSetType{
+		"integration": {
+			{
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd
+				Txn: rpc.InvokeTxnV3{
+					Nonce:   utils.TestHexToFelt(t, "0xe97"),
+					Type:    rpc.TransactionType_Invoke,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
+						utils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5")},
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+					},
+					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					SenderAddress:         utils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
+					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x2",
+						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
+						"0x27c3334165536f239cfd400ed956eabff55fc60de4fb56728b6a4f6b87db01c",
+						"0x0",
+						"0x4",
+						"0x4c312760dfd17a954cdd09e76aa9f149f806d88ec3e402ffaf5c4926f568a42",
+						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
+						"0x4",
+						"0x1",
+						"0x5",
+						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
+						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
+						"0x1",
+						"0x7fe4fd616c7fece1244b3616bb516562e230be8c9f29668b46ce0369d5ca829",
+						"0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587",
+					}),
+					NonceDataMode: rpc.DAModeL1,
+					FeeMode:       rpc.DAModeL1,
+				},
+				ExpectedHash: utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"),
+				ExpectedErr:  nil,
+			},
+		}}[testEnv]
+	for _, test := range testSet {
+		hash, err := acnt.TransactionHashInvoke(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
 	}
