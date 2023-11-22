@@ -201,7 +201,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			[]*felt.Felt{txn.Nonce},
 		)
 	case rpc.DeployAccountTxnV3:
-		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
 			return nil, ErrNotAllParametersSet
 		}
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
