@@ -28,7 +28,9 @@ type CommonTransactionReceipt struct {
 // Hash returns the transaction hash associated with the CommonTransactionReceipt.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
@@ -38,7 +40,9 @@ func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the CommonTransactionReceipt.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -65,8 +69,10 @@ const (
 //   - "DEPLOY" maps to TransactionType_Deploy
 //   - "INVOKE" maps to TransactionType_Invoke
 //   - "L1_HANDLER" maps to TransactionType_L1Handler
+//
 // If none of the supported values match the input data, the function returns an error.
-//  nil if the unmarshaling is successful.
+//
+//	nil if the unmarshaling is successful.
 //
 // Parameters:
 // - data: It takes a byte slice as input representing the JSON data to be unmarshaled
@@ -99,7 +105,9 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -113,7 +121,9 @@ type InvokeTransactionReceipt CommonTransactionReceipt
 // Hash returns the hash of the invoke transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
@@ -123,7 +133,9 @@ func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -136,7 +148,9 @@ type DeclareTransactionReceipt CommonTransactionReceipt
 // Hash returns the transaction hash.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
@@ -146,7 +160,9 @@ func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeclareTransactionReceipt function.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -163,7 +179,9 @@ type DeployTransactionReceipt struct {
 // Hash returns the transaction hash of the DeployTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeployTransactionReceipt) Hash() *felt.Felt {
@@ -173,7 +191,9 @@ func (tr DeployTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeployTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -190,7 +210,9 @@ type DeployAccountTransactionReceipt struct {
 // Hash returns the transaction hash for the given DeployAccountTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
@@ -200,7 +222,9 @@ func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the DeployAccountTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *TxnExecutionStatus: the execution status
 func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -213,7 +237,9 @@ type L1HandlerTransactionReceipt CommonTransactionReceipt
 // Hash returns the transaction hash.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
@@ -223,7 +249,9 @@ func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the L1HandlerTransactionReceipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -268,7 +296,9 @@ type PendingDeployAccountTransactionReceipt struct {
 // Hash returns the transaction hash of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
@@ -278,7 +308,9 @@ func (tr PendingDeployAccountTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingDeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -293,7 +325,9 @@ type PendingInvokeTransactionReceipt struct {
 // Hash returns the transaction hash of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
@@ -303,7 +337,9 @@ func (tr PendingInvokeTransactionReceipt) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending deploy transaction receipt.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingInvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
@@ -327,29 +363,42 @@ type PendingCommonTransactionReceiptProperties struct {
 
 type ExecutionResources struct {
 	// The number of Cairo steps used
-	Steps NumAsHex `json:"steps"`
+	Steps int `json:"steps"`
 	// The number of unused memory cells (each cell is roughly equivalent to a step)
-	MemoryHoles NumAsHex `json:"memory_holes,omitempty"`
+	MemoryHoles int `json:"memory_holes,omitempty"`
 	// The number of RANGE_CHECK builtin instances
-	RangeCheckApps NumAsHex `json:"range_check_builtin_applications"`
+	RangeCheckApps int `json:"range_check_builtin_applications,omitempty"`
 	// The number of Pedersen builtin instances
-	PedersenApps NumAsHex `json:"pedersen_builtin_applications"`
+	PedersenApps int `json:"pedersen_builtin_applications,omitempty"`
 	// The number of Poseidon builtin instances
-	PoseidonApps NumAsHex `json:"poseidon_builtin_applications"`
+	PoseidonApps int `json:"poseidon_builtin_applications,omitempty"`
 	// The number of EC_OP builtin instances
-	ECOPApps NumAsHex `json:"ec_op_builtin_applications"`
+	ECOPApps int `json:"ec_op_builtin_applications,omitempty"`
 	// The number of ECDSA builtin instances
-	ECDSAApps NumAsHex `json:"ecdsa_builtin_applications"`
+	ECDSAApps int `json:"ecdsa_builtin_applications,omitempty"`
 	// The number of BITWISE builtin instances
-	BitwiseApps NumAsHex `json:"bitwise_builtin_applications"`
+	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
 	// The number of KECCAK builtin instances
-	KeccakApps NumAsHex `json:"keccak_builtin_applications"`
+	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
+	// The  number of accesses to the segment arena
+	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
+}
+
+func (er *ExecutionResources) Validation() bool {
+	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
+		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
+		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
+		return false
+	}
+	return true
 }
 
 // Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *felt.Felt: the transaction hash
 func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
@@ -359,7 +408,9 @@ func (tr PendingCommonTransactionReceiptProperties) Hash() *felt.Felt {
 // GetExecutionStatus returns the execution status of the pending common transaction receipt properties.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - TxnExecutionStatus: the execution status
 func (tr PendingCommonTransactionReceiptProperties) GetExecutionStatus() TxnExecutionStatus {
