@@ -80,8 +80,9 @@ const (
 type CallType string
 
 const (
-	LibraryCall CallType = "LIBRARY_CALL"
-	Call        CallType = "CALL"
+	CallTypeLibraryCall CallType = "LIBRARY_CALL"
+	CallTypeCall        CallType = "CALL"
+	CallTypeDelegate    CallType = "DELEGATE"
 )
 
 type FnInvocation struct {
