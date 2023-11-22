@@ -437,7 +437,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, err
 		}
 
-		return hash.CalculateTransactionHashCommon(
+		return crypto.PoseidonArray(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -445,13 +445,11 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			crypto.PoseidonArray(txn.PayMasterData...),
 			account.ChainId,
 			txn.Nonce,
-			[]*felt.Felt{
-				new(felt.Felt).SetUint64(DAUint64),
-				crypto.PoseidonArray(txn.AccountDeploymentData...),
-				crypto.PoseidonArray(txn.ClassHash),
-				crypto.PoseidonArray(txn.CompiledClassHash),
-			},
-		)
+			new(felt.Felt).SetUint64(DAUint64),
+			crypto.PoseidonArray(txn.AccountDeploymentData...),
+			txn.ClassHash,
+			txn.CompiledClassHash,
+		), nil
 	}
 
 	return nil, ErrTxnTypeUnSupported

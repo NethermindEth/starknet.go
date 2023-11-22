@@ -874,17 +874,15 @@ func TestTransactionHashDeclare(t *testing.T) {
 }
 
 func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
-
 	if testEnv != "integration" {
 		t.Skip("Skipping test as it requires a integration environment")
 	}
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_MAIN", nil)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
-	fmt.Println("acnt", acnt.ChainId)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -895,7 +893,6 @@ func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"integration": {
 			{
-				// Techincally this is for integration, not goerli. But should be fine.
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
 				Txn: rpc.DeclareTxnV3{
 					Nonce:   utils.TestHexToFelt(t, "0x1"),

@@ -156,8 +156,8 @@ func (da *DAMode) UInt64() (uint64, error) {
 type Resource string
 
 const (
-	ResourceL1Gas Resource = "L1_Gas"
-	ResourceL2Gas Resource = "L2_Gas"
+	ResourceL1Gas Resource = "L1_GAS"
+	ResourceL2Gas Resource = "L2_GAS"
 )
 
 type ResourceBounds struct {
@@ -339,7 +339,7 @@ const (
 	TransactionV1Variant TransactionVersion = "0x100000000000000000000000000000001"
 	TransactionV2        TransactionVersion = "0x2"
 	TransactionV2Variant TransactionVersion = "0x100000000000000000000000000000002"
-	TransactionV3        TransactionVersion = "0x2"
+	TransactionV3        TransactionVersion = "0x3"
 	TransactionV3Variant TransactionVersion = "0x100000000000000000000000000000003"
 )
 
