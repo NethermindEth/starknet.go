@@ -971,6 +971,68 @@ func TestTransactionHashInvokeINTEGRATION(t *testing.T) {
 	}
 }
 
+func TestTransactionHashdeployAccountINTEGRATION(t *testing.T) {
+	if testEnv != "integration" {
+		t.Skip("Skipping test as it requires a integration environment")
+	}
+	mockCtrl := gomock.NewController(t)
+	t.Cleanup(mockCtrl.Finish)
+	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	require.NoError(t, err)
+
+	type testSetType struct {
+		Txn           rpc.DeployAccountTxnV3
+		SenderAddress *felt.Felt
+		ExpectedHash  *felt.Felt
+		ExpectedErr   error
+	}
+	testSet := map[string][]testSetType{
+		"integration": {
+			{
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0
+				Txn: rpc.DeployAccountTxnV3{
+					Nonce:   utils.TestHexToFelt(t, "0x0"),
+					Type:    rpc.TransactionType_DeployAccount,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
+						utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3")},
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+					},
+					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					NonceDataMode:         rpc.DAModeL1,
+					FeeMode:               rpc.DAModeL1,
+					ClassHash:             utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
+					ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
+						"0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c",
+					}),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x0"),
+				},
+				SenderAddress: utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0"),
+				ExpectedErr:   nil,
+			},
+		}}[testEnv]
+	for _, test := range testSet {
+		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
+		require.Equal(t, test.ExpectedErr, err)
+		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+	}
+}
+
 // TestWaitForTransactionReceiptMOCK is a unit test for the WaitForTransactionReceipt function.
 //
 // It tests the functionality of WaitForTransactionReceipt by mocking the RpcProvider and simulating different test scenarios.

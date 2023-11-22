@@ -216,7 +216,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			return nil, err
 		}
 		// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-		return hash.CalculateTransactionHashCommon(
+		return crypto.PoseidonArray(
 			PREFIX_DEPLOY_ACCOUNT,
 			txnVersionFelt,
 			contractAddress,
@@ -224,13 +224,11 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			crypto.PoseidonArray(txn.PayMasterData...),
 			account.ChainId,
 			txn.Nonce,
-			[]*felt.Felt{
-				new(felt.Felt).SetUint64(DAUint64),
-				crypto.PoseidonArray(txn.ConstructorCalldata...),
-				crypto.PoseidonArray(txn.ClassHash),
-				crypto.PoseidonArray(txn.ContractAddressSalt),
-			},
-		)
+			new(felt.Felt).SetUint64(DAUint64),
+			crypto.PoseidonArray(txn.ConstructorCalldata...),
+			txn.ClassHash,
+			txn.ContractAddressSalt,
+		), nil
 	}
 	return nil, ErrTxnTypeUnSupported
 }
