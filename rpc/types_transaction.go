@@ -220,8 +220,6 @@ type DeployAccountTxnV3 struct {
 	Tip                 *felt.Felt            `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
-	// The data needed to deploy the account contract from which this tx will be initiated
-	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
 	NonceDataMode DAMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged

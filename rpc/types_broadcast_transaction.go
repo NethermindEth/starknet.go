@@ -58,15 +58,15 @@ type BroadcastDeclareV2Txn struct {
 }
 
 type BroadcastDeclareTxnV3 struct {
-	Type              TransactionType             `json:"type"`
-	SenderAddress     *felt.Felt                  `json:"sender_address"`
-	CompiledClassHash *felt.Felt                  `json:"compiled_class_hash"`
-	Version           NumAsHex                    `json:"version"`
-	Signature         []*felt.Felt                `json:"signature"`
-	Nonce             *felt.Felt                  `json:"nonce"`
-	ContractClass     *ContractClass              `json:"contract_class"`
-	ResourceBounds    map[Resource]ResourceBounds `json:"resource_bounds"`
-	Tip               *felt.Felt                  `json:"tip"`
+	Type              TransactionType       `json:"type"`
+	SenderAddress     *felt.Felt            `json:"sender_address"`
+	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
+	Version           NumAsHex              `json:"version"`
+	Signature         []*felt.Felt          `json:"signature"`
+	Nonce             *felt.Felt            `json:"nonce"`
+	ContractClass     *ContractClass        `json:"contract_class"`
+	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
+	Tip               *felt.Felt            `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
