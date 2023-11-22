@@ -65,6 +65,7 @@ type DeployAccountTxnTrace struct {
 type L1HandlerTxnTrace struct {
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
 	FunctionInvocation FnInvocation    `json:"function_invocation"`
+	StateDiff          StateDiff       `json:"state_diff"`
 	Type               TransactionType `json:"type"`
 }
 
@@ -79,8 +80,9 @@ const (
 type CallType string
 
 const (
-	LibraryCall CallType = "LIBRARY_CALL"
-	Call        CallType = "CALL"
+	CallTypeLibraryCall CallType = "LIBRARY_CALL"
+	CallTypeCall        CallType = "CALL"
+	CallTypeDelegate    CallType = "DELEGATE"
 )
 
 type FnInvocation struct {
@@ -107,6 +109,9 @@ type FnInvocation struct {
 
 	// The messages sent by this invocation to L1
 	L1Messages []OrderedMsg `json:"messages"`
+
+	// Resources consumed by the internal call
+	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
 // A single pair of transaction hash and corresponding trace
