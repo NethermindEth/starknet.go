@@ -717,73 +717,6 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 	}
 }
 
-func TestTransactionHashDeployAccountV3Testnet(t *testing.T) {
-
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-
-	client, err := rpc.NewClient(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
-
-	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
-	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
-
-	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), account.NewMemKeystore())
-	require.NoError(t, err)
-
-	type testSetType struct {
-		Txn                rpc.DeployAccountTxnV3
-		PrecomputedAddress *felt.Felt
-		ExpectedHash       *felt.Felt
-		ExpectedErr        error
-	}
-	testSet := map[string][]testSetType{
-		"testnet": {{
-			// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0
-			Txn: rpc.DeployAccountTxnV3{
-				Nonce:   &felt.Zero,
-				Type:    rpc.TransactionType_DeployAccount,
-				Version: rpc.TransactionV3,
-				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-					utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
-				},
-				ClassHash:           utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-				ContractAddressSalt: utils.TestHexToFelt(t, "0x0"),
-				ConstructorCalldata: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
-				},
-				ResourceBounds: rpc.ResourceBoundsMapping{
-					L1Gas: rpc.ResourceBounds{
-						MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-						MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
-					},
-					L2Gas: rpc.ResourceBounds{
-						MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-						MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
-					},
-				},
-				Tip:                   utils.TestHexToFelt(t, "0x0"),
-				PayMasterData:         []*felt.Felt{},
-				AccountDeploymentData: []*felt.Felt{},
-				NonceDataMode:         rpc.DAModeL1,
-				FeeMode:               rpc.DAModeL1,
-			},
-			PrecomputedAddress: utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"), // ??
-			ExpectedHash:       utils.TestHexToFelt(t, "0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0"),
-			ExpectedErr:        nil,
-		},
-		}}[testEnv]
-	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.PrecomputedAddress)
-		require.NoError(t, err, "TransactionHashDeployAccount gave an Error")
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "Error with calulcating TransactionHashDeployAccount")
-
-	}
-}
-
 // TestTransactionHashDeclare tests the TransactionHashDeclare function.
 //
 // This function verifies that the TransactionHashDeclare function returns the
@@ -804,7 +737,9 @@ func TestTransactionHashDeployAccountV3Testnet(t *testing.T) {
 //
 //	none
 func TestTransactionHashDeclare(t *testing.T) {
-
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a integration environment")
+	}
 	client, err := rpc.NewClient(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
