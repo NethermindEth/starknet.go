@@ -61,9 +61,9 @@ type InvokeTxnV3 struct {
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DAMode `json:"nonce_data_availability_mode"`
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DAMode `json:"fee_data_availability_mode"`
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 type L1HandlerTxn struct {
@@ -124,9 +124,9 @@ type DeclareTxnV3 struct {
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DAMode `json:"nonce_data_availability_mode"`
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DAMode `json:"fee_data_availability_mode"`
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 type ResourceBoundsMapping struct {
@@ -136,14 +136,14 @@ type ResourceBoundsMapping struct {
 	L2Gas ResourceBounds `json:"l2_gas"`
 }
 
-type DAMode string
+type DataAvailabilityMode string
 
 const (
-	DAModeL1 DAMode = "L1"
-	DAModeL2 DAMode = "L2"
+	DAModeL1 DataAvailabilityMode = "L1"
+	DAModeL2 DataAvailabilityMode = "L2"
 )
 
-func (da *DAMode) UInt64() (uint64, error) {
+func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 	switch *da {
 	case DAModeL1:
 		return uint64(0), nil
@@ -221,9 +221,9 @@ type DeployAccountTxnV3 struct {
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DAMode `json:"nonce_data_availability_mode"`
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DAMode `json:"fee_data_availability_mode"`
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 type UnknownTransaction struct{ Transaction }
@@ -331,14 +331,14 @@ func remarshal(v interface{}, dst interface{}) error {
 type TransactionVersion string
 
 const (
-	TransactionV0        TransactionVersion = "0x0"
-	TransactionV0Variant TransactionVersion = "0x100000000000000000000000000000000"
-	TransactionV1        TransactionVersion = "0x1"
-	TransactionV1Variant TransactionVersion = "0x100000000000000000000000000000001"
-	TransactionV2        TransactionVersion = "0x2"
-	TransactionV2Variant TransactionVersion = "0x100000000000000000000000000000002"
-	TransactionV3        TransactionVersion = "0x3"
-	TransactionV3Variant TransactionVersion = "0x100000000000000000000000000000003"
+	TransactionV0             TransactionVersion = "0x0"
+	TransactionV0WithQueryBit TransactionVersion = "0x100000000000000000000000000000000"
+	TransactionV1             TransactionVersion = "0x1"
+	TransactionV1WithQueryBit TransactionVersion = "0x100000000000000000000000000000001"
+	TransactionV2             TransactionVersion = "0x2"
+	TransactionV2WithQueryBit TransactionVersion = "0x100000000000000000000000000000002"
+	TransactionV3             TransactionVersion = "0x3"
+	TransactionV3WithQueryBit TransactionVersion = "0x100000000000000000000000000000003"
 )
 
 // BigInt returns a big integer corresponding to the transaction version.

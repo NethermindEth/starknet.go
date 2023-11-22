@@ -336,7 +336,7 @@ func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) *
 	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds)
 }
 
-func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DAMode) (uint64, error) {
+func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
 	const dataAvailabilityModeBits = 32
 	fee64, err := feeDAMode.UInt64()
 	if err != nil {
