@@ -176,7 +176,7 @@ func (rb ResourceBounds) Bytes(resource Resource) []byte {
 		[]byte{0},
 		[]byte(resource),
 		maxAmountBytes,
-		maxPriceBytes[16:], // Last 16 bytes of the uint128.
+		maxPriceBytes[16:], // uint128.
 	)
 }
 
