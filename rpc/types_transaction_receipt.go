@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -382,41 +381,17 @@ type ExecutionResources struct {
 	// The number of KECCAK builtin instances
 	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
 	// The number of accesses to the segment arena
-	SegmentArena int `json:"segment_arena_builtin,omitempty"`
+	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
 }
 
-func (er *ExecutionResources) Validate() error {
-	if er.Steps == 0 {
-		return errors.New("steps cannot be zero")
+// Validate checks if the fields are non-zero (to match the starknet-specs)
+func (er *ExecutionResources) Validate() bool {
+	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
+		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
+		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
+		return false
 	}
-	if er.MemoryHoles == 0 {
-		return errors.New("MemoryHoles cannot be zero")
-	}
-	if er.RangeCheckApps == 0 {
-		return errors.New("RangeCheckApps cannot be zero")
-	}
-	if er.PedersenApps == 0 {
-		return errors.New("PedersenApps cannot be zero")
-	}
-	if er.PoseidonApps == 0 {
-		return errors.New("PoseidonApps cannot be zero")
-	}
-	if er.ECOPApps == 0 {
-		return errors.New("ECOPApps cannot be zero")
-	}
-	if er.ECOPApps == 0 {
-		return errors.New("ECOPApps cannot be zero")
-	}
-	if er.BitwiseApps == 0 {
-		return errors.New("BitwiseApps cannot be zero")
-	}
-	if er.KeccakApps == 0 {
-		return errors.New("KeccakApps cannot be zero")
-	}
-	if er.SegmentArena == 0 {
-		return errors.New("KeccakApps cannot be zero")
-	}
-	return nil
+	return true
 }
 
 // Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
