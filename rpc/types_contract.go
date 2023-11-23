@@ -6,11 +6,32 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+// An integer number in hex format (0x...)
 type NumAsHex string
+
+// 64 bit integers, represented by hex string of length at most 16
+type U64 string
+
+// ToUint64 converts the U64 type to a uint64.
+func (u U64) ToUint64() (uint64, error) {
+	hexStr := strings.TrimPrefix(string(u), "0x")
+
+	val, err := strconv.ParseUint(hexStr, 16, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse hex string: %v", err)
+	}
+
+	return val, nil
+}
+
+// 64 bit integers, represented by hex string of length at most 32
+type U128 string
 
 type DeprecatedCairoEntryPoint struct {
 	// The offset of the entry point in the program
@@ -227,7 +248,9 @@ type FunctionABIEntry struct {
 // IsType returns the ABIType of the StructABIEntry.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - ABIType: the ABIType
 func (s *StructABIEntry) IsType() ABIType {
@@ -237,7 +260,9 @@ func (s *StructABIEntry) IsType() ABIType {
 // IsType returns the ABIType of the EventABIEntry.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - ABIType: the ABIType
 func (e *EventABIEntry) IsType() ABIType {
@@ -247,7 +272,9 @@ func (e *EventABIEntry) IsType() ABIType {
 // IsType returns the ABIType of the FunctionABIEntry.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - ABIType: the ABIType
 func (f *FunctionABIEntry) IsType() ABIType {

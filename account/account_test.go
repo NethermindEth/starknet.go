@@ -780,15 +780,15 @@ func TestTransactionHashDeclare(t *testing.T) {
 					ClassHash:         utils.TestHexToFelt(t, "0x5ae9d09292a50ed48c5930904c880dab56e85b825022a7d689cfc9e65e01ee7"),
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x2540be400"),
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x2540be400",
 						},
 						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 					},
-					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
 					NonceDataMode:         rpc.DAModeL1,
@@ -833,15 +833,15 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 						utils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5")},
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x5af3107a4000",
 						},
 						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 					},
-					Tip:                   utils.TestHexToFelt(t, "0x0"),
+					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
 					SenderAddress:         utils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
@@ -905,15 +905,15 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 						utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3")},
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x5af3107a4000",
 						},
 						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 					},
-					Tip:           utils.TestHexToFelt(t, "0x0"),
+					Tip:           "0x0",
 					PayMasterData: []*felt.Felt{},
 					NonceDataMode: rpc.DAModeL1,
 					FeeMode:       rpc.DAModeL1,
