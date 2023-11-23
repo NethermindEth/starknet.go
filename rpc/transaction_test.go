@@ -369,15 +369,16 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 
 	var receiptTxn300114_3 = DeclareTransactionReceipt(
 		CommonTransactionReceipt{
-			TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-			ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x0")},
-			FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-			BlockHash:       utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
-			BlockNumber:     300114,
-			Type:            "DECLARE",
-			MessagesSent:    []MsgToL1{},
-			Events:          []Event{},
+			TransactionHash:    utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
+			ActualFee:          FeePayment{Amount: utils.TestHexToFelt(t, "0x0"), Unit: UnitWei},
+			FinalityStatus:     TxnFinalityStatusAcceptedOnL1,
+			ExecutionStatus:    TxnExecutionStatusSUCCEEDED,
+			BlockHash:          utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
+			BlockNumber:        300114,
+			Type:               "DECLARE",
+			MessagesSent:       []MsgToL1{},
+			Events:             []Event{},
+			ExecutionResources: ExecutionResources{Steps: 0},
 		})
 
 	testSet := map[string][]testSetType{
