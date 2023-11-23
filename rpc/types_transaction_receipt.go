@@ -8,12 +8,24 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+type FeePayment struct {
+	Amount *felt.Felt     `json:"amount"`
+	Unit   FeePaymentUnit `json:"unit"`
+}
+
+type FeePaymentUnit string
+
+const (
+	UnitWei  FeePaymentUnit = "WEI"
+	UnitStrk FeePaymentUnit = "STRK"
+)
+
 // CommonTransactionReceipt Common properties for a transaction receipt
 type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee       *felt.Felt         `json:"actual_fee"`
+	ActualFee       FeePayment         `json:"actual_fee"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
 	BlockHash       *felt.Felt         `json:"block_hash"`
@@ -22,7 +34,8 @@ type CommonTransactionReceipt struct {
 	MessagesSent    []MsgToL1          `json:"messages_sent"`
 	RevertReason    string             `json:"revert_reason,omitempty"`
 	// Events The events emitted as part of this transaction
-	Events []Event `json:"events"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
 // Hash returns the transaction hash associated with the CommonTransactionReceipt.
@@ -350,8 +363,7 @@ type PendingCommonTransactionReceiptProperties struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// ActualFee The fee that was charged by the sequencer
-	ActualFee       *felt.Felt         `json:"actual_fee"`
-	Type            TransactionType    `json:"type,omitempty"`
+	ActualFee       FeePayment         `json:"actual_fee"`
 	MessagesSent    []MsgToL1          `json:"messages_sent"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
