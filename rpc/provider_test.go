@@ -52,7 +52,8 @@ var (
 			base: "http://localhost:5050/rpc",
 		},
 		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
+		"mock":        {},
+		"integration": {},
 	}
 )
 
@@ -67,7 +68,8 @@ var (
 // Parameters:
 // - m: the testing.M struct
 // Returns:
-//   none
+//
+//	none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -86,7 +88,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
-		t.Fatal("env supports mock, testnet, mainnet or devnet")
+		t.Fatal("env supports mock, testnet, mainnet, devnet, integration")
 	}
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{
@@ -122,7 +124,8 @@ func beforeEach(t *testing.T) *testConfiguration {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -166,7 +169,8 @@ func TestChainID(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 
