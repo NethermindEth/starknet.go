@@ -34,7 +34,8 @@ type CommonTransactionReceipt struct {
 	MessagesSent    []MsgToL1          `json:"messages_sent"`
 	RevertReason    string             `json:"revert_reason,omitempty"`
 	// Events The events emitted as part of this transaction
-	Events []Event `json:"events"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
 // Hash returns the transaction hash associated with the CommonTransactionReceipt.
