@@ -737,48 +737,6 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 //
 //	none
 func TestTransactionHashDeclare(t *testing.T) {
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a integration environment")
-	}
-	client, err := rpc.NewClient(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
-
-	acnt, err := account.NewAccount(provider, &felt.Zero, "", account.NewMemKeystore())
-	require.NoError(t, err)
-
-	type testSetType struct {
-		Txn          rpc.DeclareTxnType
-		ExpectedHash *felt.Felt
-		ExpectedErr  error
-	}
-	testSet := map[string][]testSetType{
-		"testnet": {{
-			Txn: rpc.DeclareTxnV2{
-				Nonce:             utils.TestHexToFelt(t, "0xb"),
-				MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-				Type:              rpc.TransactionType_Declare,
-				Version:           rpc.TransactionV2,
-				Signature:         []*felt.Felt{},
-				SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-				CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-				ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
-			},
-			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
-			ExpectedErr:  nil,
-		},
-		}}[testEnv]
-	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeclare(test.Txn)
-		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
-	}
-}
-
-func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
-	if testEnv != "integration" {
-		t.Skip("Skipping test as it requires a integration environment")
-	}
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -793,7 +751,21 @@ func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
 		ExpectedErr  error
 	}
 	testSet := map[string][]testSetType{
-		"integration": {
+		"mock": {{
+			// Note this is a testnet / goerli transaction
+			Txn: rpc.DeclareTxnV2{
+				Nonce:             utils.TestHexToFelt(t, "0xb"),
+				MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+				Type:              rpc.TransactionType_Declare,
+				Version:           rpc.TransactionV2,
+				Signature:         []*felt.Felt{},
+				SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+				CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+				ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+			},
+			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
+			ExpectedErr:  nil,
+		},
 			{
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
 				Txn: rpc.DeclareTxnV3{
@@ -833,10 +805,8 @@ func TestTransactionHashDeclareINTEGRATION(t *testing.T) {
 	}
 }
 
-func TestTransactionHashInvokeINTEGRATION(t *testing.T) {
-	if testEnv != "integration" {
-		t.Skip("Skipping test as it requires a integration environment")
-	}
+func TestTransactionHashInvokeV3(t *testing.T) {
+
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -851,7 +821,7 @@ func TestTransactionHashInvokeINTEGRATION(t *testing.T) {
 		ExpectedErr  error
 	}
 	testSet := map[string][]testSetType{
-		"integration": {
+		"mock": {
 			{
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd
 				Txn: rpc.InvokeTxnV3{
@@ -906,10 +876,8 @@ func TestTransactionHashInvokeINTEGRATION(t *testing.T) {
 	}
 }
 
-func TestTransactionHashdeployAccountINTEGRATION(t *testing.T) {
-	if testEnv != "integration" {
-		t.Skip("Skipping test as it requires a integration environment")
-	}
+func TestTransactionHashdeployAccount(t *testing.T) {
+
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -925,7 +893,7 @@ func TestTransactionHashdeployAccountINTEGRATION(t *testing.T) {
 		ExpectedErr   error
 	}
 	testSet := map[string][]testSetType{
-		"integration": {
+		"mock": {
 			{
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0
 				Txn: rpc.DeployAccountTxnV3{
