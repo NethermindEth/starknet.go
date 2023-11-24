@@ -11,6 +11,15 @@ import (
 	"github.com/test-go/testify/require"
 )
 
+// TestUnmarshalContractClass is a test function to unmarshal a contract class.
+//
+// It reads the content of a file and unmarshals it into a ContractClass struct.
+// Then it asserts the equality of certain values within the struct.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//   none
 func TestUnmarshalContractClass(t *testing.T) {
 	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
 	require.NoError(t, err)
@@ -22,6 +31,16 @@ func TestUnmarshalContractClass(t *testing.T) {
 	assert.Equal(t, class.SierraProgram[1].String(), "0x3")
 }
 
+// TestUnmarshalCasmClass tests the UnmarshalCasmClass function.
+//
+// It reads the content of a file and unmarshals it into a CasmClass struct.
+// The function uses the require.NoError and assert.Equal functions from the github.com/stretchr/testify/assert package to perform the assertions.
+// It is a test function and is meant to be used with the Go testing framework.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//   none
 func TestUnmarshalCasmClass(t *testing.T) {
 	casmClass, err := contracts.UnmarshalCasmClass("./tests/hello_starknet_compiled.casm.json")
 	require.NoError(t, err)

@@ -47,8 +47,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 # 🌟 Features
 
 - Seamless interaction with the Starknet RPC
-- Tight integration with Juno (uses the RPC types, resulting in updates and
-  breaking changes landing quickly)
+- Tight integration with Juno
 - Account management: Deploy accounts easily
 - Good concurrency support
 
@@ -57,10 +56,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
 - [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
-<!-- Currently not working
-- [curve example](./examples/curve) initializing the StarkCurve for signing and verification
-- [contract example](./examples/contract) for smart contract deployment and function call
-- [account example](./examples/contract) for Account initialization and invocation call -->
+- [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
 
 ### Run Examples
 
@@ -83,6 +79,16 @@ go run main.go
 
 > Check [here](examples/deployAccount/README.md) for more details
 
+***starknet invokeTransaction***
+
+```sh
+cd examples/simpleInvoke
+go mod tidy
+go run main.go
+```
+
+> Check [here](examples/simpleInvoke/README.md) for more details
+
 
 ### RPC
 
@@ -97,6 +103,7 @@ go run main.go
 | `starknet_getTransactionByHash`            | :heavy_check_mark: |
 | `starknet_getTransactionByBlockIdAndIndex` | :heavy_check_mark: |
 | `starknet_getTransactionReceipt`           | :heavy_check_mark: |
+| `starknet_getTransactionStatus`            | :heavy_check_mark: |
 | `starknet_getClass`                        | :heavy_check_mark: |
 | `starknet_getClassHashAt`                  | :heavy_check_mark: |
 | `starknet_getClassAt`                      | :heavy_check_mark: |
@@ -184,6 +191,17 @@ Thanks goes to these wonderful people
       <td align="center" valign="top" width="14.28%"><a href="https://runningbeta.io"><img src="https://avatars.githubusercontent.com/u/615877?v=4?s=100" width="100px;" alt="Kristijan Rebernisak"/><br /><sub><b>Kristijan Rebernisak</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=krebernisak" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rianhughes"><img src="https://avatars.githubusercontent.com/u/45943600?v=4?s=100" width="100px;" alt="rianhughes"/><br /><sub><b>Rian Hughes</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=rianhughes" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cicr99"><img src="https://avatars.githubusercontent.com/u/49727740?v=4?s=100" width="100px;" alt="Carmen"/><br /><sub><b>Carmen Irene Cabrera Rodríguez</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=cicr99" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/joshklop"><img src="https://avatars.githubusercontent.com/u/31332481?v=4?s=100" width="100px;" alt="Josh"/><br /><sub><b>Josh Klopfenstein</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=joshklop" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/aquental"><img src="https://avatars.githubusercontent.com/u/952444?v=4?s=100" width="100px;" alt="Antonio"/><br /><sub><b>Antonio Quental</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=aquental" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jelilat"><img src="https://avatars.githubusercontent.com/u/23613565?v=4?s=100" width="100px;" alt="Jelilat"/><br /><sub><b>Jelilat Anofiu</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=jelilat" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JorikSchellekens"><img src="https://avatars.githubusercontent.com/u/23084468?v=4?s=100" width="100px;" alt="JorikSchellekens"/><br /><sub><b>Jorik Schellekens</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=JorikSchellekens" title="Documentation">📖</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Akashneelesh"><img src="https://avatars.githubusercontent.com/u/66639153?v=4?s=100" width="100px;" alt="Akashneelesh"/><br /><sub><b>Akashneelesh</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=Akashneelesh" title="Examples">💡</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/fico308"><img src="https://avatars.githubusercontent.com/u/71938200?v=4?s=100" width="100px;" alt="fico"/><br /><sub><b>Fico</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=fico308" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Bitcoinnoobie"><img src="https://avatars.githubusercontent.com/u/109748565?v=4?s=100" width="100px;" alt="Bitcoinnoobie"/><br /><sub><b>Bitcoinnoobie</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=Bitcoinnoobie" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/stranger80"><img src="https://avatars.githubusercontent.com/u/12142580?v=4?s=100" width="100px;" alt="stranger80"/><br /><sub><b>stranger80</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=stranger80" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/omahs"><img src="https://avatars.githubusercontent.com/u/73983677?v=4?s=100" width="100px;" alt="omahs"/><br /><sub><b>omahs</b></sub></a><br /><a href="https://github.com/NethermindEth/starknet.go/commits?author=omahs" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

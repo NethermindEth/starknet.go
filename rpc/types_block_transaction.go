@@ -23,29 +23,81 @@ var _ BlockTransaction = BlockDeployTxn{}
 var _ BlockTransaction = BlockDeployAccountTxn{}
 var _ BlockTransaction = BlockL1HandlerTxn{}
 
+// Hash returns the transaction hash of the BlockInvokeTxnV0.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
+// Hash returns the hash of the BlockInvokeTxnV1 transaction.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+// Hash returns the transaction hash of the BlockDeclareTxnV0.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
+// Hash returns the transaction hash of the BlockDeclareTxnV1.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+
+// Hash returns the transaction hash of the BlockDeclareTxnV2.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+
+// Hash returns the hash of the BlockDeployTxn.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+
+// Hash returns the Felt hash of the BlockDeployAccountTxn.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+
+// Hash returns the hash of the BlockL1HandlerTxn.
+//
+// Parameters:
+//  none
+// Returns:
+// - *felt.Felt: the transaction hash
 func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
@@ -90,6 +142,15 @@ type BlockDeployAccountTxn struct {
 	DeployAccountTxn
 }
 
+// UnmarshalJSON unmarshals the data into a BlockTransactions object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
 func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	var dec []interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -109,6 +170,13 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// unmarshalBlockTxn unmarshals a given interface and returns a BlockTransaction.
+//
+// Parameter:
+// - t: The interface{} to be unmarshalled
+// Returns:
+// - BlockTransaction: a BlockTransaction
+// - error: an error if the unmarshaling process fails
 func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:

@@ -19,6 +19,17 @@ var (
 	accountAddress              = "0xdeadbeef"
 )
 
+// main initializes the client, sets up the account, deploys a contract, and sends a transaction to the network.
+//
+// It loads environment variables, dials the Ethereum RPC, creates a new account, casts the account address to a felt type,
+// sets up the account using the client, converts the predeployed class hash to a felt type, creates transaction data,
+// precomputes an address, prompts the user to add funds to the precomputed address, signs the transaction,
+// and finally sends the transaction to the network.
+//
+// Parameters:
+//   none
+// Returns:
+//  none
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))
@@ -78,7 +89,7 @@ func main() {
 	}
 
 	// Send transaction to the network
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	if err != nil {
 		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", err))
 	}

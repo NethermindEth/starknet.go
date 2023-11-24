@@ -52,11 +52,24 @@ var (
 			base: "http://localhost:5050/rpc",
 		},
 		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
+		"mock":        {},
+		"integration": {},
 	}
 )
 
-// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+// TestMain is a Go function that serves as the entry point for running tests.
+//
+// It takes a pointer to the testing.M struct as its parameter and returns nothing.
+// The purpose of this function is to set up any necessary test environment
+// variables before running the tests and to clean up any resources afterwards.
+// It also parses command line flags and exits with the exit code returned by
+// the testing.M.Run() function.
+//
+// Parameters:
+// - m: the testing.M struct
+// Returns:
+//
+//	none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -64,13 +77,18 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// beforeEach checks the configuration and initializes it before running the script
+// beforeEach initializes the test environment configuration before running the script.
+//
+// Parameters:
+// - t: The testing.T object for testing purposes
+// Returns:
+// - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T) *testConfiguration {
 	t.Helper()
 	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
-		t.Fatal("env supports mock, testnet, mainnet or devnet")
+		t.Fatal("env supports mock, testnet, mainnet, devnet, integration")
 	}
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{
@@ -96,7 +114,18 @@ func beforeEach(t *testing.T) *testConfiguration {
 	return &testConfig
 }
 
-// TestChainID checks the chainId matches the one for the environment
+// TestChainID is a function that tests the ChainID function in the Go test file.
+//
+// The function initializes a test configuration and defines a test set with different chain IDs for different environments.
+// It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
+// The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
+// If there is a mismatch or an error occurs, the function logs a fatal error.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//
+//	none
 func TestChainID(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -126,7 +155,22 @@ func TestChainID(t *testing.T) {
 	}
 }
 
-// TestSyncing checks the values returned are consistent
+// TestSyncing tests the syncing functionality.
+//
+// It initializes a test configuration and sets up a test set. Then it loops
+// through the test set and creates a spy object. It calls the Syncing function
+// of the provider using the test configuration. It checks if there is any
+// error during syncing, and if so, it fails the test. If the starting block
+// hash is not nil, it compares the sync object with the spy object. It checks
+// if the current block number is a positive number and if the current block
+// hash starts with "0x". If the starting block hash is nil, it compares the
+// sync object with the spy object and checks if the current block hash is nil.
+//
+// Parameters:
+// - t: the testing object for running the test cases
+// Returns:
+//
+//	none
 func TestSyncing(t *testing.T) {
 	testConfig := beforeEach(t)
 
