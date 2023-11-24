@@ -27,9 +27,12 @@ var (
 // and finally sends the transaction to the network.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
-//  none
+//
+//	none
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))

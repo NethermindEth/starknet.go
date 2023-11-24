@@ -41,7 +41,8 @@ var (
 // Parameters:
 // - m: is the test main
 // Returns:
-//  none
+//
+//	none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
@@ -60,11 +61,13 @@ func TestMain(m *testing.M) {
 // of the transaction hash. Each test case consists of the expected hash, a flag
 // indicating whether the KeyStore should be set, account address, public key,
 // private key, chain ID, function call, and transaction details.
-// 
+//
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
-//   none
+//
+//	none
 func TestTransactionHashInvoke(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -184,11 +187,12 @@ func TestTransactionHashInvoke(t *testing.T) {
 //
 // It tests the FmtCallData function by providing different test sets
 // and comparing the output with the expected call data.
-// 
+//
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestFmtCallData(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -253,7 +257,8 @@ func TestFmtCallData(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestChainIdMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -296,7 +301,8 @@ func TestChainIdMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Return:
-//   none
+//
+//	none
 func TestChainId(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -344,7 +350,8 @@ func TestChainId(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//  none
+//
+//	none
 func TestSignMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -404,7 +411,8 @@ func TestSignMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//   none
+//
+//	none
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
@@ -582,9 +590,11 @@ func TestAddInvoke(t *testing.T) {
 // response is not nil.
 //
 // Parameters:
-//  - t: is the testing framework
+//   - t: is the testing framework
+//
 // Returns:
-//  none
+//
+//	none
 func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -640,9 +650,11 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 // Finally, it verifies that the calculated hash matches the expected hash.
 //
 // Parameters:
-//  - t: is the testing framework
+//   - t: is the testing framework
+//
 // Returns:
-//  none
+//
+//	none
 func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 
 	if testEnv != "testnet" {
@@ -709,7 +721,8 @@ func TestTransactionHashDeployAccountTestnet(t *testing.T) {
 // Parameters:
 // - t: reference to the testing.T object
 // Returns:
-//  none
+//
+//	none
 func TestTransactionHashDeclare(t *testing.T) {
 	// https://goerli.voyager.online/tx/0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92
 	if testEnv != "testnet" {
@@ -751,7 +764,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 // Parameters:
 // - t: The testing.T object for test assertions and logging
 // Returns:
-//  none
+//
+//	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
@@ -833,7 +847,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // Parameters:
 // - t: The testing.T instance for running the test
 // Returns:
-//  none
+//
+//	none
 func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -882,9 +897,11 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // It asserts that the expected hash and error values are returned for each test set.
 //
 // Parameters:
-//  - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
-//  none
+//
+//	none
 func TestAddDeclareTxn(t *testing.T) {
 	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
 	if testEnv != "testnet" {
@@ -955,6 +972,49 @@ func TestAddDeclareTxn(t *testing.T) {
 	}
 }
 
+func TestCreateAndExecuteAddDeployAccount(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewClient(base + "/rpc")
+	require.NoError(t, err, "Error in rpc.NewClient")
+	provider := rpc.NewProvider(client)
+
+	devnet, acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+	fakeUser := acnts[0]
+	fakeUserAddr := utils.TestHexToFelt(t, fakeUser.Address)
+	fakeUserPub := utils.TestHexToFelt(t, fakeUser.PublicKey)
+
+	// Set up ks
+	ks := account.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
+	require.True(t, ok)
+	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
+
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
+	require.NoError(t, err)
+
+	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
+	require.NoError(t, err)
+
+	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, []*felt.Felt{fakeUserPub})
+
+	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
+
+	require.NoError(t, err)
+
+	deployOptions := account.DeployOptions{
+		ClassHash:           classHash,
+		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
+		DeployWaitTime:      2 * time.Second,
+		ConstructorCalldata: []*felt.Felt{fakeUserPub},
+	}
+	resp, err := acnt.CreateAndExecuteAddDeployAccount(deployOptions)
+	require.NoError(t, err, "DeployAccount gave an Error")
+	require.NotNil(t, resp, "DeployAccount resp not nil")
+}
+
 // newDevnet creates a new devnet with the given URL.
 //
 // Parameters:
@@ -964,6 +1024,7 @@ func TestAddDeclareTxn(t *testing.T) {
 // - *devnet.DevNet: a pointer to a devnet object
 // - []devnet.TestAccount: a slice of test accounts
 // - error: an error, if any
+
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
