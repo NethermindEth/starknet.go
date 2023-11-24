@@ -582,10 +582,13 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
+	gasCons, _ := new(felt.Felt).SetString("0x01a4")
+	gasPrice, _ := new(felt.Felt).SetString("0x45")
+	overallFee, _ := new(felt.Felt).SetString("0x7134")
 	output := FeeEstimate{
-		GasConsumed: NumAsHex("0x01a4"),
-		GasPrice:    NumAsHex("0x45"),
-		OverallFee:  NumAsHex("0x7134"),
+		GasConsumed: gasCons,
+		GasPrice:    gasPrice,
+		OverallFee:  overallFee,
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -621,9 +624,9 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 	}
 
 	output := FeeEstimate{
-		GasConsumed: NumAsHex("0x1"),
-		GasPrice:    NumAsHex("0x2"),
-		OverallFee:  NumAsHex("0x3"),
+		GasConsumed: new(felt.Felt).SetUint64(1),
+		GasPrice:    new(felt.Felt).SetUint64(2),
+		OverallFee:  new(felt.Felt).SetUint64(3),
 	}
 	outputContent, _ := json.Marshal(output)
 	json.Unmarshal(outputContent, r)
@@ -789,10 +792,10 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 // - args: optional arguments for the method
 // Returns:
 // - error: an error if
-// 		- The result parameter is not of type *json.RawMessage
-// 		- The number of arguments is not equal to 2
-// 		- The first argument is not of type BlockID
-// 		- The second argument is not of type *felt.Felt
+//   - The result parameter is not of type *json.RawMessage
+//   - The number of arguments is not equal to 2
+//   - The first argument is not of type BlockID
+//   - The second argument is not of type *felt.Felt
 func mock_starknet_getNonce(result interface{}, method string, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {

@@ -392,11 +392,12 @@ type ExecutionResources struct {
 	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
 	// The number of KECCAK builtin instances
 	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
-	// The  number of accesses to the segment arena
+	// The number of accesses to the segment arena
 	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
 }
 
-func (er *ExecutionResources) Validation() bool {
+// Validate checks if the fields are non-zero (to match the starknet-specs)
+func (er *ExecutionResources) Validate() bool {
 	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
 		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
 		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {

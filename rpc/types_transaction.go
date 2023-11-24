@@ -1,12 +1,14 @@
 package rpc
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // https://github.com/starkware-libs/starknet-specs/blob/a789ccc3432c57777beceaa53a34a7ae2f25fda0/api/starknet_api_openrpc.json#L1252
@@ -45,11 +47,29 @@ type InvokeTxnV1 struct {
 	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
+type InvokeTxnV3 struct {
+	Type           TransactionType       `json:"type"`
+	SenderAddress  *felt.Felt            `json:"sender_address"`
+	Calldata       []*felt.Felt          `json:"calldata"`
+	Version        TransactionVersion    `json:"version"`
+	Signature      []*felt.Felt          `json:"signature"`
+	Nonce          *felt.Felt            `json:"nonce"`
+	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            *felt.Felt            `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The data needed to deploy the account contract from which this tx will be initiated
+	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
 
 type L1HandlerTxn struct {
 	Type TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
-	Version NumAsHex `json:"version"`
+	Version *felt.Felt `json:"version"`
 	// Nonce
 	Nonce string `json:"nonce,omitempty"`
 	FunctionCall
@@ -89,6 +109,77 @@ type DeclareTxnV2 struct {
 	ClassHash         *felt.Felt         `json:"class_hash"`
 }
 
+type DeclareTxnV3 struct {
+	Type              TransactionType       `json:"type"`
+	SenderAddress     *felt.Felt            `json:"sender_address"`
+	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
+	Version           TransactionVersion    `json:"version"`
+	Signature         []*felt.Felt          `json:"signature"`
+	Nonce             *felt.Felt            `json:"nonce"`
+	ClassHash         *felt.Felt            `json:"class_hash"`
+	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
+	Tip               *felt.Felt            `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The data needed to deploy the account contract from which this tx will be initiated
+	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+
+type ResourceBoundsMapping struct {
+	// The max amount and max price per unit of L1 gas used in this tx
+	L1Gas ResourceBounds `json:"l1_gas"`
+	// The max amount and max price per unit of L2 gas used in this tx
+	L2Gas ResourceBounds `json:"l2_gas"`
+}
+
+type DataAvailabilityMode string
+
+const (
+	DAModeL1 DataAvailabilityMode = "L1"
+	DAModeL2 DataAvailabilityMode = "L2"
+)
+
+func (da *DataAvailabilityMode) UInt64() (uint64, error) {
+	switch *da {
+	case DAModeL1:
+		return uint64(0), nil
+	case DAModeL2:
+		return uint64(1), nil
+	}
+	return 0, errors.New("Unknown DAMode")
+}
+
+type Resource string
+
+const (
+	ResourceL1Gas Resource = "L1_GAS"
+	ResourceL2Gas Resource = "L2_GAS"
+)
+
+type ResourceBounds struct {
+	// The max amount of the resource that can be used in the tx
+	MaxAmount *felt.Felt `json:"max_amount"`
+	// The max price per unit of this resource for this tx
+	MaxPricePerUnit *felt.Felt `json:"max_price_per_unit"`
+}
+
+func (rb ResourceBounds) Bytes(resource Resource) []byte {
+	const eight = 8
+	maxAmountBytes := make([]byte, eight)
+	binary.BigEndian.PutUint64(maxAmountBytes, rb.MaxAmount.Impl().Uint64())
+	maxPriceBytes := rb.MaxPricePerUnit.Bytes()
+	return utils.Flatten(
+		[]byte{0},
+		[]byte(resource),
+		maxAmountBytes,
+		maxPriceBytes[16:], // uint128.
+	)
+}
+
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
@@ -115,6 +206,24 @@ type DeployAccountTxn struct {
 
 	// ConstructorCalldata The parameters passed to the constructor
 	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
+}
+
+type DeployAccountTxnV3 struct {
+	Type                TransactionType       `json:"type"`
+	Version             TransactionVersion    `json:"version"`
+	Signature           []*felt.Felt          `json:"signature"`
+	Nonce               *felt.Felt            `json:"nonce"`
+	ContractAddressSalt *felt.Felt            `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt          `json:"constructor_calldata"`
+	ClassHash           *felt.Felt            `json:"class_hash"`
+	ResourceBounds      ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 *felt.Felt            `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 type UnknownTransaction struct{ Transaction }
@@ -222,15 +331,22 @@ func remarshal(v interface{}, dst interface{}) error {
 type TransactionVersion string
 
 const (
-	TransactionV0 TransactionVersion = "0x0"
-	TransactionV1 TransactionVersion = "0x1"
-	TransactionV2 TransactionVersion = "0x2"
+	TransactionV0             TransactionVersion = "0x0"
+	TransactionV0WithQueryBit TransactionVersion = "0x100000000000000000000000000000000"
+	TransactionV1             TransactionVersion = "0x1"
+	TransactionV1WithQueryBit TransactionVersion = "0x100000000000000000000000000000001"
+	TransactionV2             TransactionVersion = "0x2"
+	TransactionV2WithQueryBit TransactionVersion = "0x100000000000000000000000000000002"
+	TransactionV3             TransactionVersion = "0x3"
+	TransactionV3WithQueryBit TransactionVersion = "0x100000000000000000000000000000003"
 )
 
 // BigInt returns a big integer corresponding to the transaction version.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *big.Int: a pointer to a big.Int
 // - error: an error if the conversion fails

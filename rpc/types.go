@@ -115,7 +115,9 @@ type SyncStatus struct {
 // occurred during the marshaling process.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: the JSON encoding of the SyncStatus struct
 // - error: any error that occurred during the marshaling process
@@ -136,7 +138,9 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals the JSON data into the SyncStatus struct.
 //
 // Parameters:
-//  -data: It takes a byte slice as input representing the JSON data to be unmarshaled.
+//
+//	-data: It takes a byte slice as input representing the JSON data to be unmarshaled.
+//
 // Returns:
 // - error: an error if the unmarshaling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
@@ -185,13 +189,13 @@ type TxDetails struct {
 
 type FeeEstimate struct {
 	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
-	GasConsumed NumAsHex `json:"gas_consumed"`
+	GasConsumed *felt.Felt `json:"gas_consumed"`
 
 	// GasPrice the gas price (in gwei) that was used in the cost estimation
-	GasPrice NumAsHex `json:"gas_price"`
+	GasPrice *felt.Felt `json:"gas_price"`
 
 	// OverallFee the estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
-	OverallFee NumAsHex `json:"overall_fee"`
+	OverallFee *felt.Felt `json:"overall_fee"`
 }
 
 type TxnExecutionStatus string
@@ -229,7 +233,9 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 // The function returns the marshaled byte slice and a nil error.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: the JSON encoding of the TxnExecutionStatus
 // - error: the error if there was an issue marshaling
@@ -240,7 +246,9 @@ func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 // String returns the string representation of the TxnExecutionStatus.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - string: the string representation of the TxnExecutionStatus
 func (s TxnExecutionStatus) String() string {
@@ -279,7 +287,9 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TxnFinalityStatus into JSON.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -290,7 +300,9 @@ func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 // String returns the string representation of the TxnFinalityStatus.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - string: the string representation of the TxnFinalityStatus
 func (s TxnFinalityStatus) String() string {
