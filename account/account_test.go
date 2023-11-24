@@ -813,13 +813,33 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	type testSetType struct {
-		Txn           rpc.DeployAccountTxnV3
+		Txn           rpc.DeployAccountType
 		SenderAddress *felt.Felt
 		ExpectedHash  *felt.Felt
 		ExpectedErr   error
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
+			{
+				Txn: rpc.DeployAccountTxn{
+					Nonce:               &felt.Zero,
+					MaxFee:              utils.TestHexToFelt(t, "0x105ef39b2000"),
+					Type:                rpc.TransactionType_DeployAccount,
+					Version:             rpc.TransactionV1,
+					Signature:           []*felt.Felt{},
+					ClassHash:           utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e"),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
+						utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
+					},
+				},
+				SenderAddress: utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb"),
+				ExpectedErr:   nil,
+			},
 			{
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0
 				Txn: rpc.DeployAccountTxnV3{
