@@ -15,16 +15,20 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 }
 
 func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
-	var feltArr []*felt.Felt
-	for _, hex := range hexArr {
-		felt, err := HexToFelt(hex)
-		if err != nil {
-			return nil, err
-		}
-		feltArr = append(feltArr, felt)
-	}
-	return feltArr, nil
+
+ feltArr := make([]*felt.Felt, len(hexArr))
+ for i, e := range hexArr {
+  felt, err := HexToFelt(e)
+  if err != nil {
+   return nil, err
+  }
+  feltArr[i] = felt
+ }
+ return feltArr, nil
+
 }
+
+
 
 func FeltToBigInt(f *felt.Felt) *big.Int {
 	tmp := f.Bytes()
