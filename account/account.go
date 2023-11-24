@@ -460,15 +460,6 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, err
 		}
 
-		_, err = txn.ResourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas)
-		if err != nil {
-			return nil, err
-		}
-		_, err = txn.ResourceBounds.L2Gas.Bytes(rpc.ResourceL2Gas)
-		if err != nil {
-			return nil, err
-		}
-
 		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
 		if err != nil {
 			return nil, err
