@@ -12,36 +12,24 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestDeclareTransaction is a test function for declaring a transaction.
-//
-// It sets up different test sets based on the test environment and runs the tests accordingly.
-// Each test set contains a transaction hash, class hash, and an expected error.
-// The function reads a JSON file, unmarshals it into an `AddDeclareTxnInput` struct,
-// and performs various tests using the `AddDeclareTransaction` function.
-// It checks if the error matches the expected error and if the transaction hash matches the expected hash.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
 func TestDeclareTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		DeclareTx               DeclareTxnType
-		ExpectedTransactionHash *felt.Felt
-		ExpectedError           error
+		DeclareTx     DeclareTxnType
+		ExpectedResp  AddDeclareTransactionResponse
+		ExpectedError error
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
 		"mainnet": {},
 		"mock": {
 			{
-				DeclareTx:               DeclareTxnV2{},
-				ExpectedTransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
-				ExpectedError:           nil,
+				DeclareTx: DeclareTxnV2{},
+				ExpectedResp: AddDeclareTransactionResponse{
+					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+				ExpectedError: nil,
 			},
 			{
 				DeclareTx: DeclareTxnV3{
@@ -68,14 +56,16 @@ func TestDeclareTransaction(t *testing.T) {
 					ClassHash:             utils.TestHexToFelt(t, "0x0"),
 					AccountDeploymentData: []*felt.Felt{},
 				},
-				ExpectedTransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
-				ExpectedError:           nil,
+				ExpectedResp: AddDeclareTransactionResponse{
+					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+				ExpectedError: nil,
 			},
 		},
 		"testnet": {{
-			DeclareTx:               DeclareTxnV1{},
-			ExpectedTransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9"),
-			ExpectedError:           errors.New("Invalid Params"),
+			DeclareTx: DeclareTxnV1{},
+			ExpectedResp: AddDeclareTransactionResponse{
+				TransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9")},
+			ExpectedError: errors.New("Invalid Params"),
 		},
 		},
 	}[testEnv]
@@ -95,23 +85,12 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedTransactionHash).String())
+			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 		}
 
 	}
 }
 
-// TestAddInvokeTransaction is a test function that checks the AddInvokeTransaction functionality.
-//
-// It initializes a test configuration and defines sets of test cases for different environments.
-// Each test case includes an InvokeTxnV1 object, an expected AddInvokeTransactionResponse, and an expected RPCError.
-// The function iterates through the test cases, invokes AddInvokeTransaction, and compares the response and error with the expected values.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
 func TestAddInvokeTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
