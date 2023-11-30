@@ -47,6 +47,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_addDeclareTransaction(result, method, args...)
 	case "starknet_addInvokeTransaction":
 		return mock_starknet_addInvokeTransaction(result, method, args...)
+	case "starknet_addDeployAccountTransaction":
+		return mock_starknet_addDeployAccountTransaction(result, method, args...)
 	case "starknet_blockNumber":
 		return mock_starknet_blockNumber(result, method, args...)
 	case "starknet_call":
@@ -625,23 +627,7 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 }
 
 // mock_starknet_addInvokeTransaction is a mock function that simulates the behavior of the
-// starknet_addInvokeTransaction function. It takes a result interface{}, a method string,
-// and variadic args ...interface{} as parameters. The result parameter is expected to be of
-// type *json.RawMessage. The method parameter represents the name of the method being invoked.
-// The args parameter is a variadic argument, where the first argument is expected to be of
-// type InvokeTxnV1.
-//
-// The function performs several checks and operations on the input parameters. It checks if the
-// result parameter is of the correct type, and returns an error if it is not. It also checks if
-// the number of arguments passed in the args parameter is exactly 1, and returns an error if it
-// is not. The function then attempts to type cast the first argument in args to InvokeTxnV1 and
-// returns an error if the type cast fails. It further checks if the SenderAddress field of the
-// invokeTx object is not nil, and if it is equal to a predefined value. If it is, an unexpected
-// error with a custom message is returned. The function then converts a hexadecimal value to a
-// felt.Felt type and checks for any errors during the conversion. Finally, the function creates
-// an AddInvokeTransactionResponse object, marshals it into JSON format, and unmarshals it into
-// the result parameter.
-//
+// starknet_addInvokeTransaction function.
 // Parameters:
 // - result: The result of the transaction
 // - method: The method to be called
@@ -649,8 +635,6 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 // Returns:
 // - error: an error if any
 func mock_starknet_addInvokeTransaction(result interface{}, method string, args ...interface{}) error {
-	fmt.Println("mock_starknet_addInvokeTransaction")
-
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -690,6 +674,32 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return nil
 	default:
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1 or InvokeTxnV3, got %T\n", args[0]))
+	}
+}
+func mock_starknet_addDeployAccountTransaction(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
+	}
+	switch args[0].(type) {
+	case DeployAccountTxn, DeployAccountTxnV3:
+
+		deadbeefFelt, err := utils.HexToFelt("0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e")
+		if err != nil {
+			return err
+		}
+		output := AddDeployAccountTransactionResponse{
+			TransactionHash: deadbeefFelt,
+			ContractAddress: new(felt.Felt).SetUint64(0),
+		}
+		outputContent, _ := json.Marshal(output)
+		json.Unmarshal(outputContent, r)
+		return nil
+	default:
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxn or DeployAccountTxnV3, got %T\n", args[0]))
 	}
 
 }

@@ -17,7 +17,7 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		DeclareTx     DeclareTxnType
+		DeclareTx     BroadcastAddDeployTxnType
 		ExpectedResp  AddDeclareTransactionResponse
 		ExpectedError error
 	}
@@ -96,7 +96,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		InvokeTx      InvokeTxnType
+		InvokeTx      BroadcastInvokeTxnType
 		ExpectedResp  AddInvokeTransactionResponse
 		ExpectedError RPCError
 	}
@@ -173,6 +173,76 @@ func TestAddInvokeTransaction(t *testing.T) {
 			require.Equal(t, err, &test.ExpectedError, "AddInvokeTransaction did not give expected error")
 		} else {
 			require.Equal(t, *resp, test.ExpectedResp)
+		}
+
+	}
+}
+
+func TestAddDeployAccountTansaction(t *testing.T) {
+
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		DeployTx      BroadcastAddDeployTxnType
+		ExpectedResp  AddDeployAccountTransactionResponse
+		ExpectedError error
+	}
+	testSet := map[string][]testSetType{
+		"devnet":  {},
+		"mainnet": {},
+		"mock": {
+			{
+				DeployTx: DeployAccountTxn{},
+				ExpectedResp: AddDeployAccountTransactionResponse{
+					TransactionHash: utils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
+					ContractAddress: utils.TestHexToFelt(t, "0x0"),
+				},
+				ExpectedError: nil,
+			},
+			{
+				DeployTx: DeployAccountTxnV3{
+					Type:      TransactionType_DeployAccount,
+					Version:   TransactionV3,
+					ClassHash: utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
+						utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
+					},
+					Nonce:         new(felt.Felt),
+					NonceDataMode: DAModeL1,
+					FeeMode:       DAModeL1,
+					ResourceBounds: ResourceBoundsMapping{
+						L1Gas: ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+						},
+						L2Gas: ResourceBounds{
+							MaxAmount:       new(felt.Felt),
+							MaxPricePerUnit: new(felt.Felt),
+						},
+					},
+					Tip:                 new(felt.Felt),
+					PayMasterData:       []*felt.Felt{},
+					ContractAddressSalt: new(felt.Felt),
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
+					},
+				},
+				ExpectedResp: AddDeployAccountTransactionResponse{
+					TransactionHash: utils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
+					ContractAddress: utils.TestHexToFelt(t, "0x0")},
+				ExpectedError: nil,
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+
+		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), test.DeployTx)
+		if err != nil {
+			require.Equal(t, err.Error(), test.ExpectedError)
+		} else {
+			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 		}
 
 	}
