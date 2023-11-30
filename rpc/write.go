@@ -12,7 +12,7 @@ import (
 // Returns:
 // - *AddInvokeTransactionResponse: the response of adding the invoke transaction
 // - error: an error if any
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxn) (*AddInvokeTransactionResponse, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxnType) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
 		return nil, tryUnwrapToRPCErr(

@@ -520,7 +520,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 

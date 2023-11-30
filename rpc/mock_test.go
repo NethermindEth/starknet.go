@@ -658,6 +658,8 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 // Returns:
 // - error: an error if any
 func mock_starknet_addInvokeTransaction(result interface{}, method string, args ...interface{}) error {
+	fmt.Println("mock_starknet_addInvokeTransaction")
+
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -665,28 +667,40 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
-	invokeTx, ok := args[0].(InvokeTxnV1)
-	if !ok {
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1, got %T\n", args[0]))
-	}
-	if invokeTx.SenderAddress != nil {
-
-		if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
-			unexpErr := *ErrUnexpectedError
-			unexpErr.data = "Something crazy happened"
-			return &unexpErr
+	switch invokeTx := args[0].(type) {
+	case InvokeTxnV1:
+		if invokeTx.SenderAddress != nil {
+			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
+				unexpErr := *ErrUnexpectedError
+				unexpErr.data = "Something crazy happened"
+				return &unexpErr
+			}
 		}
+		deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+		if err != nil {
+			return err
+		}
+		output := AddInvokeTransactionResponse{
+			TransactionHash: deadbeefFelt,
+		}
+		outputContent, _ := json.Marshal(output)
+		json.Unmarshal(outputContent, r)
+		return nil
+	case InvokeTxnV3:
+		deadbeefFelt, err := utils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
+		if err != nil {
+			return err
+		}
+		output := AddInvokeTransactionResponse{
+			TransactionHash: deadbeefFelt,
+		}
+		outputContent, _ := json.Marshal(output)
+		json.Unmarshal(outputContent, r)
+		return nil
+	default:
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1 or InvokeTxnV3, got %T\n", args[0]))
 	}
-	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
-	if err != nil {
-		return err
-	}
-	output := AddInvokeTransactionResponse{
-		TransactionHash: deadbeefFelt,
-	}
-	outputContent, _ := json.Marshal(output)
-	json.Unmarshal(outputContent, r)
-	return nil
+
 }
 
 // mock_starknet_getStorageAt mocks the behavior of the StarkNet getStorageAt function.

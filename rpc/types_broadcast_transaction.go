@@ -13,11 +13,12 @@ var (
 	_ BroadcastTxn = BroadcastDeployAccountTxn{}
 )
 
-type BroadcastInvokeTxn interface{}
+type BroadcastInvokeTxnType interface{}
 
 var (
-	_ BroadcastInvokeTxn = BroadcastInvokev0Txn{}
-	_ BroadcastInvokeTxn = BroadcastInvokev1Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev0Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev1Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev3Txn{}
 )
 
 type BroadcastDeclareTxn interface{}
@@ -33,6 +34,10 @@ type BroadcastInvokev0Txn struct {
 
 type BroadcastInvokev1Txn struct {
 	InvokeTxnV1
+}
+
+type BroadcastInvokev3Txn struct {
+	InvokeTxnV3
 }
 
 type BroadcastDeclareV1Txn struct {
