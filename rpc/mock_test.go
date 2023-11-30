@@ -527,31 +527,22 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 	if !ok {
 		return errWrongType
 	}
-	if len(args) != 2 {
-		fmt.Printf("args: %d\n", len(args))
-		return errWrongArgs
+
+	switch args[0].(type) {
+	case DeclareTxnV2, DeclareTxnV3:
+		deadbeefFelt, err := utils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
+		if err != nil {
+			return err
+		}
+		output := AddDeclareTransactionOutput{
+			TransactionHash: deadbeefFelt,
+			ClassHash:       deadbeefFelt,
+		}
+		outputContent, _ := json.Marshal(output)
+		json.Unmarshal(outputContent, r)
+		return nil
 	}
-	_, ok = args[0].(DeprecatedContractClass)
-	if !ok {
-		fmt.Printf("args[2] should be ContractClass, got %T\n", args[0])
-		return errWrongArgs
-	}
-	_, ok = args[1].(string)
-	if !ok {
-		fmt.Printf("args[1] should be string, got %T\n", args[1])
-		return errWrongArgs
-	}
-	deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
-	if err != nil {
-		return err
-	}
-	output := AddDeclareTransactionOutput{
-		TransactionHash: deadbeefFelt,
-		ClassHash:       deadbeefFelt,
-	}
-	outputContent, _ := json.Marshal(output)
-	json.Unmarshal(outputContent, r)
-	return nil
+	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeclareTxnV2 or DeclareTxnV3, got %T\n", args[0]))
 }
 
 // mock_starknet_estimateFee simulates the estimation of a fee in the StarkNet network.

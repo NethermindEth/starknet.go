@@ -7,8 +7,8 @@ type BroadcastTxn interface{}
 var (
 	_ BroadcastTxn = BroadcastInvokev0Txn{}
 	_ BroadcastTxn = BroadcastInvokev1Txn{}
-	_ BroadcastTxn = BroadcastDeclareV1Txn{}
-	_ BroadcastTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastTxn = BroadcastDeclareTxnV1{}
+	_ BroadcastTxn = BroadcastDeclareTxnV2{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}
 	_ BroadcastTxn = BroadcastDeployAccountTxn{}
 )
@@ -24,8 +24,9 @@ var (
 type BroadcastDeclareTxn interface{}
 
 var (
-	_ BroadcastDeclareTxn = BroadcastDeclareV1Txn{}
-	_ BroadcastDeclareTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastDeclareTxn = BroadcastDeclareTxnV1{}
+	_ BroadcastDeclareTxn = BroadcastDeclareTxnV2{}
+	_ BroadcastDeclareTxn = BroadcastDeclareTxnV3{}
 )
 
 type BroadcastInvokev0Txn struct {
@@ -40,7 +41,7 @@ type BroadcastInvokev3Txn struct {
 	InvokeTxnV3
 }
 
-type BroadcastDeclareV1Txn struct {
+type BroadcastDeclareTxnV1 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt              `json:"sender_address"`
@@ -50,7 +51,7 @@ type BroadcastDeclareV1Txn struct {
 	Nonce         *felt.Felt              `json:"nonce"`
 	ContractClass DeprecatedContractClass `json:"contract_class"`
 }
-type BroadcastDeclareV2Txn struct {
+type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress     *felt.Felt    `json:"sender_address"`

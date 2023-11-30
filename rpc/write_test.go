@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
 
@@ -29,44 +30,72 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TransactionHash *felt.Felt
-		ClassHash       *felt.Felt
-		ExpectedError   string
+		DeclareTx               DeclareTxnType
+		ExpectedTransactionHash *felt.Felt
+		ExpectedError           error
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
 		"mainnet": {},
-		"mock":    {},
+		"mock": {
+			{
+				DeclareTx:               DeclareTxnV2{},
+				ExpectedTransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				ExpectedError:           nil,
+			},
+			{
+				DeclareTx: DeclareTxnV3{
+					Type:          TransactionType_Declare,
+					Version:       TransactionV3,
+					Signature:     []*felt.Felt{},
+					Nonce:         utils.TestHexToFelt(t, "0x0"),
+					NonceDataMode: DAModeL1,
+					FeeMode:       DAModeL1,
+					ResourceBounds: ResourceBoundsMapping{
+						L1Gas: ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+						L2Gas: ResourceBounds{
+							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
+							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+						},
+					},
+					Tip:                   new(felt.Felt),
+					PayMasterData:         []*felt.Felt{},
+					SenderAddress:         utils.TestHexToFelt(t, "0x0"),
+					CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
+					ClassHash:             utils.TestHexToFelt(t, "0x0"),
+					AccountDeploymentData: []*felt.Felt{},
+				},
+				ExpectedTransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				ExpectedError:           nil,
+			},
+		},
 		"testnet": {{
-			TransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9"),
-			ClassHash:       utils.TestHexToFelt(t, "0xdeadbeef"),
-			ExpectedError:   "Invalid Params",
-		}},
+			DeclareTx:               DeclareTxnV1{},
+			ExpectedTransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9"),
+			ExpectedError:           errors.New("Invalid Params"),
+		},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
-
-		declareTxJSON, err := os.ReadFile("./tests/write/declareTx.json")
-		if err != nil {
-			t.Fatal("should be able to read file", err)
+		if test.DeclareTx == nil && testEnv == "testnet" {
+			declareTxJSON, err := os.ReadFile("./tests/write/declareTx.json")
+			if err != nil {
+				t.Fatal("should be able to read file", err)
+			}
+			var declareTx AddDeclareTxnInput
+			require.Nil(t, json.Unmarshal(declareTxJSON, &declareTx), "Error unmarshalling decalreTx")
+			test.DeclareTx = declareTx
 		}
 
-		var declareTx AddDeclareTxnInput
-		err = json.Unmarshal(declareTxJSON, &declareTx)
-		require.Nil(t, err, "Error unmarshalling decalreTx")
-
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-
-		// TODO: test transaction against client that supports RPC method (currently Sequencer uses
-		// "sierra_program" instead of "program"
-		dec, err := testConfig.provider.AddDeclareTransaction(context.Background(), declareTx)
+		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), test.DeclareTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
-			continue
-		}
-		if dec.TransactionHash != test.TransactionHash {
-			t.Fatalf("classHash does not match expected, current: %s", dec.ClassHash)
+		} else {
+			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedTransactionHash).String())
 		}
 
 	}
