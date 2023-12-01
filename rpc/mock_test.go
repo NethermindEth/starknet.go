@@ -233,7 +233,10 @@ func mock_starknet_getBlockTransactionCount(result interface{}, method string, a
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	outputContent, _ := json.Marshal(uint64(10))
+	outputContent, err := json.Marshal(uint64(10))
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -336,7 +339,10 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 			FromAddress: fromAddressFelt,
 		}},
 	})
-	outputContent, _ := json.Marshal(transaction)
+	outputContent, err := json.Marshal(transaction)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -364,7 +370,10 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	var class = DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 	}
-	outputContent, _ := json.Marshal(class)
+	outputContent, err := json.Marshal(class)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -391,7 +400,10 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	if err != nil {
 		return err
 	}
-	outputContent, _ := json.Marshal(classHash)
+	outputContent, err := json.Marshal(classHash)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -438,7 +450,10 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 	var class = DeprecatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
-	outputContent, _ := json.Marshal(class)
+	outputContent, err := json.Marshal(class)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -469,7 +484,7 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if err != nil {
 		return err
 	}
-	txHash, _ := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	txHash, err := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
 	if err != nil {
 		return err
 	}
@@ -485,7 +500,10 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 			},
 		}
 
-	outputContent, _ := json.Marshal(events)
+	outputContent, err := json.Marshal(events)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -511,7 +529,10 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 	if err != nil {
 		return err
 	}
-	outputContent, _ := json.Marshal([]*felt.Felt{out})
+	outputContent, err := json.Marshal([]*felt.Felt{out})
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -540,7 +561,10 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 			TransactionHash: deadbeefFelt,
 			ClassHash:       deadbeefFelt,
 		}
-		outputContent, _ := json.Marshal(output)
+		outputContent, err := json.Marshal(output)
+		if err != nil {
+			return err
+		}
 		json.Unmarshal(outputContent, r)
 		return nil
 	}
@@ -575,15 +599,27 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 		return errWrongArgs
 	}
 
-	gasCons, _ := new(felt.Felt).SetString("0x01a4")
-	gasPrice, _ := new(felt.Felt).SetString("0x45")
-	overallFee, _ := new(felt.Felt).SetString("0x7134")
+	gasCons, err := new(felt.Felt).SetString("0x01a4")
+	if err != nil {
+		return err
+	}
+	gasPrice, err := new(felt.Felt).SetString("0x45")
+	if err != nil {
+		return err
+	}
+	overallFee, err := new(felt.Felt).SetString("0x7134")
+	if err != nil {
+		return err
+	}
 	output := FeeEstimate{
 		GasConsumed: gasCons,
 		GasPrice:    gasPrice,
 		OverallFee:  overallFee,
 	}
-	outputContent, _ := json.Marshal(output)
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -621,7 +657,10 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 		GasPrice:    new(felt.Felt).SetUint64(2),
 		OverallFee:  new(felt.Felt).SetUint64(3),
 	}
-	outputContent, _ := json.Marshal(output)
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -658,7 +697,10 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		output := AddInvokeTransactionResponse{
 			TransactionHash: deadbeefFelt,
 		}
-		outputContent, _ := json.Marshal(output)
+		outputContent, err := json.Marshal(output)
+		if err != nil {
+			return err
+		}
 		json.Unmarshal(outputContent, r)
 		return nil
 	case InvokeTxnV3:
@@ -669,7 +711,10 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		output := AddInvokeTransactionResponse{
 			TransactionHash: deadbeefFelt,
 		}
-		outputContent, _ := json.Marshal(output)
+		outputContent, err := json.Marshal(output)
+		if err != nil {
+			return err
+		}
 		json.Unmarshal(outputContent, r)
 		return nil
 	default:
@@ -695,7 +740,10 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, method string
 			TransactionHash: deadbeefFelt,
 			ContractAddress: new(felt.Felt).SetUint64(0),
 		}
-		outputContent, _ := json.Marshal(output)
+		outputContent, err := json.Marshal(output)
+		if err != nil {
+			return err
+		}
 		json.Unmarshal(outputContent, r)
 		return nil
 	default:
@@ -735,7 +783,10 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 	}
 
 	output := "0xdeadbeef"
-	outputContent, _ := json.Marshal(output)
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -794,7 +845,10 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 			},
 		},
 	}
-	outputContent, _ := json.Marshal(output)
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }
@@ -832,7 +886,10 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	if err != nil {
 		return err
 	}
-	outputContent, _ := json.Marshal(output)
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	json.Unmarshal(outputContent, r)
 	return nil
 }

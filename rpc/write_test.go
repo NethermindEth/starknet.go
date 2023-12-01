@@ -85,7 +85,7 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+			require.Equal(t, (*resp.TransactionHash).String(), test.ExpectedResp.TransactionHash.String())
 		}
 
 	}
