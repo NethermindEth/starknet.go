@@ -168,8 +168,8 @@ type PendingBlockHeader struct {
 }
 
 type ResourcePrice struct {
-	// The price of one unit of the given resource, denominated in strk
-	PriceInStrk *felt.Felt `json:"price_in_strk,omitempty"`
+	// the price of one unit of the given resource, denominated in fri (10^-18 strk)
+	PriceInFRI *felt.Felt `json:"price_in_strk,omitempty"`
 	// The price of one unit of the given resource, denominated in wei
 	PriceInWei *felt.Felt `json:"price_in_wei"`
 }

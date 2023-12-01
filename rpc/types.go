@@ -191,11 +191,14 @@ type FeeEstimate struct {
 	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
 	GasConsumed *felt.Felt `json:"gas_consumed"`
 
-	// GasPrice the gas price (in gwei) that was used in the cost estimation
+	// The gas price (in gwei or fri, depending on the tx version) that was used in the cost estimation
 	GasPrice *felt.Felt `json:"gas_price"`
 
-	// OverallFee the estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
+	// The estimated fee for the transaction (in gwei or fri, depending on the tx version), product of gas_consumed and gas_price
 	OverallFee *felt.Felt `json:"overall_fee"`
+
+	// Units in which the fee is given
+	FeeUnit FeePaymentUnit `json:"fee_unit"`
 }
 
 type TxnExecutionStatus string
