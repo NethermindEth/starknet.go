@@ -41,15 +41,15 @@ func TestDeclareTransaction(t *testing.T) {
 					FeeMode:       DAModeL1,
 					ResourceBounds: ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 						L2Gas: ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 					},
-					Tip:                   new(felt.Felt),
+					Tip:                   "",
 					PayMasterData:         []*felt.Felt{},
 					SenderAddress:         utils.TestHexToFelt(t, "0x0"),
 					CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
@@ -85,7 +85,7 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), test.ExpectedResp.TransactionHash.String())
+			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 		}
 
 	}
@@ -130,15 +130,15 @@ func TestAddInvokeTransaction(t *testing.T) {
 					FeeMode:       DAModeL1,
 					ResourceBounds: ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x5af3107a4000",
 						},
 						L2Gas: ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x0"),
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
 					},
-					Tip:           new(felt.Felt),
+					Tip:           "",
 					PayMasterData: []*felt.Felt{},
 					SenderAddress: utils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
 					Calldata: []*felt.Felt{
@@ -213,15 +213,15 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 					FeeMode:       DAModeL1,
 					ResourceBounds: ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
-							MaxAmount:       utils.TestHexToFelt(t, "0x186a0"),
-							MaxPricePerUnit: utils.TestHexToFelt(t, "0x5af3107a4000"),
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x5af3107a4000",
 						},
 						L2Gas: ResourceBounds{
-							MaxAmount:       new(felt.Felt),
-							MaxPricePerUnit: new(felt.Felt),
+							MaxAmount:       "",
+							MaxPricePerUnit: "",
 						},
 					},
-					Tip:                 new(felt.Felt),
+					Tip:                 "",
 					PayMasterData:       []*felt.Felt{},
 					ContractAddressSalt: new(felt.Felt),
 					ConstructorCalldata: []*felt.Felt{
