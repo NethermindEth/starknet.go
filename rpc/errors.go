@@ -72,7 +72,7 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) error {
 // - nodeErr: The error to be checked
 // Returns:
 // - *RPCError: a pointer to the RPCError resulting object
-func isErrorWithData(nodeErr *RPCError) (*RPCError) {
+func isErrorWithData(nodeErr *RPCError) *RPCError {
 	switch nodeErr.code {
 	case ErrUnexpectedError.code:
 		unexpectedErr := *ErrUnexpectedError
@@ -109,9 +109,11 @@ func (e *RPCError) Error() string {
 // Code returns the code of the RPCError.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
-//  - int: the code
+//   - int: the code
 func (e *RPCError) Code() int {
 	return e.code
 }
@@ -119,9 +121,11 @@ func (e *RPCError) Code() int {
 // Data returns the data associated with the RPCError.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
-//  - any: the data
+//   - any: the data
 func (e *RPCError) Data() any {
 	return e.data
 }
@@ -182,6 +186,10 @@ var (
 	ErrContractError = &RPCError{
 		code:    40,
 		message: "Contract error",
+	}
+	ErrTxnExec = &RPCError{
+		code:    41,
+		message: "Transaction execution error",
 	}
 	ErrInvalidContractClass = &RPCError{
 		code:    50,

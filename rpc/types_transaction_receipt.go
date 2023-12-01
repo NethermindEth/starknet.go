@@ -17,7 +17,7 @@ type FeePaymentUnit string
 
 const (
 	UnitWei  FeePaymentUnit = "WEI"
-	UnitStrk FeePaymentUnit = "STRK"
+	UnitStrk FeePaymentUnit = "FRI"
 )
 
 // CommonTransactionReceipt Common properties for a transaction receipt
