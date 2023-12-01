@@ -14,6 +14,8 @@ type SimulationFlag string
 const (
 	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
 	SKIP_EXECUTE    SimulationFlag = "SKIP_EXECUTE"
+	// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is replicated locally
+	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
 )
 
 // The execution trace and consumed resources of the required transactions

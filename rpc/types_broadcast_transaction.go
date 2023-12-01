@@ -79,7 +79,7 @@ type BroadcastDeclareTxnV3 struct {
 	Nonce             *felt.Felt            `json:"nonce"`
 	ContractClass     *ContractClass        `json:"contract_class"`
 	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               *felt.Felt            `json:"tip"`
+	Tip               U64                   `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
