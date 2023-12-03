@@ -222,7 +222,7 @@ func TestFmtCallData(t *testing.T) {
 					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
 					"0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
 					"0x0",
-					"0x3",
+					"0x2",
 					"0x3",
 					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
 					"0x1",

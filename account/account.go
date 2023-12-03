@@ -922,7 +922,7 @@ func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
 			fnCall.ContractAddress,
 			fnCall.EntryPointSelector,
 			new(felt.Felt).SetUint64(uint64(len(concatCallData))),
-			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))+1),
+			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))),
 		)
 		concatCallData = append(concatCallData, fnCall.Calldata...)
 	}
