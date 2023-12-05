@@ -7,24 +7,33 @@ type BroadcastTxn interface{}
 var (
 	_ BroadcastTxn = BroadcastInvokev0Txn{}
 	_ BroadcastTxn = BroadcastInvokev1Txn{}
-	_ BroadcastTxn = BroadcastDeclareV1Txn{}
-	_ BroadcastTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastTxn = BroadcastDeclareTxnV1{}
+	_ BroadcastTxn = BroadcastDeclareTxnV2{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}
 	_ BroadcastTxn = BroadcastDeployAccountTxn{}
 )
 
-type BroadcastInvokeTxn interface{}
+type BroadcastInvokeTxnType interface{}
 
 var (
-	_ BroadcastInvokeTxn = BroadcastInvokev0Txn{}
-	_ BroadcastInvokeTxn = BroadcastInvokev1Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev0Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev1Txn{}
+	_ BroadcastInvokeTxnType = BroadcastInvokev3Txn{}
 )
 
-type BroadcastDeclareTxn interface{}
+type BroadcastDeclareTxnType interface{}
 
 var (
-	_ BroadcastDeclareTxn = BroadcastDeclareV1Txn{}
-	_ BroadcastDeclareTxn = BroadcastDeclareV2Txn{}
+	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV1{}
+	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV2{}
+	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV3{}
+)
+
+type BroadcastAddDeployTxnType interface{}
+
+var (
+	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxn{}
+	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxnV3{}
 )
 
 type BroadcastInvokev0Txn struct {
@@ -35,7 +44,11 @@ type BroadcastInvokev1Txn struct {
 	InvokeTxnV1
 }
 
-type BroadcastDeclareV1Txn struct {
+type BroadcastInvokev3Txn struct {
+	InvokeTxnV3
+}
+
+type BroadcastDeclareTxnV1 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt              `json:"sender_address"`
@@ -45,7 +58,7 @@ type BroadcastDeclareV1Txn struct {
 	Nonce         *felt.Felt              `json:"nonce"`
 	ContractClass DeprecatedContractClass `json:"contract_class"`
 }
-type BroadcastDeclareV2Txn struct {
+type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress     *felt.Felt    `json:"sender_address"`
@@ -79,4 +92,7 @@ type BroadcastDeclareTxnV3 struct {
 
 type BroadcastDeployAccountTxn struct {
 	DeployAccountTxn
+}
+type BroadcastDeployAccountTxnV3 struct {
+	DeployAccountTxnV3
 }

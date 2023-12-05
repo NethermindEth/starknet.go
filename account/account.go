@@ -551,7 +551,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
@@ -563,7 +563,7 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.B
 // Returns:
 // - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
 // - error: an error, if any
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
@@ -575,7 +575,7 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 // Returns:
 // - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
 // - error: an error if any
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
 	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
