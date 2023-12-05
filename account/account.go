@@ -215,12 +215,20 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 		if err != nil {
 			return nil, err
 		}
+		tipUint64, err := txn.Tip.ToUint64()
+		if err != nil {
+			return nil, err
+		}
+		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+		if err != nil {
+			return nil, err
+		}
 		// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
 		return crypto.PoseidonArray(
 			PREFIX_DEPLOY_ACCOUNT,
 			txnVersionFelt,
 			contractAddress,
-			tipAndResourcesHash(txn.Tip.Impl().Uint64(), txn.ResourceBounds),
+			tipAndResourceHash,
 			crypto.PoseidonArray(txn.PayMasterData...),
 			account.ChainId,
 			txn.Nonce,
@@ -313,12 +321,19 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-
+		tipUint64, err := txn.Tip.ToUint64()
+		if err != nil {
+			return nil, err
+		}
+		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+		if err != nil {
+			return nil, err
+		}
 		return crypto.PoseidonArray(
 			PREFIX_TRANSACTION,
 			txnVersionFelt,
 			txn.SenderAddress,
-			tipAndResourcesHash(txn.Tip.Impl().Uint64(), txn.ResourceBounds),
+			tipAndResourceHash,
 			crypto.PoseidonArray(txn.PayMasterData...),
 			account.ChainId,
 			txn.Nonce,
@@ -330,10 +345,18 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	return nil, ErrTxnTypeUnSupported
 }
 
-func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) *felt.Felt {
-	l1Bounds := new(felt.Felt).SetBytes(resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas))
-	l2Bounds := new(felt.Felt).SetBytes(resourceBounds.L2Gas.Bytes(rpc.ResourceL2Gas))
-	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds)
+func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (*felt.Felt, error) {
+	l1Bytes, err := resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas)
+	if err != nil {
+		return nil, err
+	}
+	l2Bytes, err := resourceBounds.L2Gas.Bytes(rpc.ResourceL2Gas)
+	if err != nil {
+		return nil, err
+	}
+	l1Bounds := new(felt.Felt).SetBytes(l1Bytes)
+	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
+	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds), nil
 }
 
 func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
@@ -432,12 +455,20 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
+		tipUint64, err := txn.Tip.ToUint64()
+		if err != nil {
+			return nil, err
+		}
 
+		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+		if err != nil {
+			return nil, err
+		}
 		return crypto.PoseidonArray(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
-			tipAndResourcesHash(txn.Tip.Impl().Uint64(), txn.ResourceBounds),
+			tipAndResourceHash,
 			crypto.PoseidonArray(txn.PayMasterData...),
 			account.ChainId,
 			txn.Nonce,
@@ -520,7 +551,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxn) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
@@ -532,7 +563,7 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.B
 // Returns:
 // - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
 // - error: an error, if any
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxn) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
@@ -544,7 +575,7 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 // Returns:
 // - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
 // - error: an error if any
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastDeployAccountTxn) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
 	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
@@ -679,8 +710,8 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 // Returns:
 // - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
-	return account.provider.EstimateFee(ctx, requests, blockID)
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlag rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+	return account.provider.EstimateFee(ctx, requests, simulationFlag, blockID)
 }
 
 // EstimateMessageFee estimates the fee for a given message in the context of an account.

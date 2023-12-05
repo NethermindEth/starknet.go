@@ -55,7 +55,7 @@ type InvokeTxnV3 struct {
 	Signature      []*felt.Felt          `json:"signature"`
 	Nonce          *felt.Felt            `json:"nonce"`
 	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            *felt.Felt            `json:"tip"`
+	Tip            U64                   `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -118,7 +118,7 @@ type DeclareTxnV3 struct {
 	Nonce             *felt.Felt            `json:"nonce"`
 	ClassHash         *felt.Felt            `json:"class_hash"`
 	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               *felt.Felt            `json:"tip"`
+	Tip               U64                   `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -162,22 +162,30 @@ const (
 
 type ResourceBounds struct {
 	// The max amount of the resource that can be used in the tx
-	MaxAmount *felt.Felt `json:"max_amount"`
+	MaxAmount U64 `json:"max_amount"`
 	// The max price per unit of this resource for this tx
-	MaxPricePerUnit *felt.Felt `json:"max_price_per_unit"`
+	MaxPricePerUnit U128 `json:"max_price_per_unit"`
 }
 
-func (rb ResourceBounds) Bytes(resource Resource) []byte {
+func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 	const eight = 8
 	maxAmountBytes := make([]byte, eight)
-	binary.BigEndian.PutUint64(maxAmountBytes, rb.MaxAmount.Impl().Uint64())
-	maxPriceBytes := rb.MaxPricePerUnit.Bytes()
+	maxAmountUint64, err := rb.MaxAmount.ToUint64()
+	if err != nil {
+		return nil, err
+	}
+	binary.BigEndian.PutUint64(maxAmountBytes, maxAmountUint64)
+	maxPricePerUnitFelt, err := new(felt.Felt).SetString(string(rb.MaxPricePerUnit))
+	if err != nil {
+		return nil, err
+	}
+	maxPriceBytes := maxPricePerUnitFelt.Bytes()
 	return utils.Flatten(
 		[]byte{0},
 		[]byte(resource),
 		maxAmountBytes,
 		maxPriceBytes[16:], // uint128.
-	)
+	), nil
 }
 
 // DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
@@ -217,7 +225,7 @@ type DeployAccountTxnV3 struct {
 	ConstructorCalldata []*felt.Felt          `json:"constructor_calldata"`
 	ClassHash           *felt.Felt            `json:"class_hash"`
 	ResourceBounds      ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                 *felt.Felt            `json:"tip"`
+	Tip                 U64                   `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
