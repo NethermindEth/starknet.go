@@ -415,18 +415,6 @@ func TestEstimateMessageFee(t *testing.T) {
 func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	testCallData, err := utils.HexArrToFelt([]string{
-		"0x1",
-		"0x4a3621276a83251b557a8140e915599ae8e7b6207b067ea701635c0d509801e",
-		"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-		"0x0",
-		"0x3",
-		"0x3",
-		"0x697066733a2f2f516d57554c7a475135556a52616953514776717765347931",
-		"0x4731796f4757324e6a5a76564e77776a66514577756a",
-		"0x0",
-		"0x2"})
-	require.NoError(t, err)
 	testBlockNumber := uint64(15643)
 	type testSetType struct {
 		txs           []BroadcastTxn
@@ -446,7 +434,17 @@ func TestEstimateFee(t *testing.T) {
 						FunctionCall: FunctionCall{
 							ContractAddress:    utils.TestHexToFelt(t, "0x45e92c365ba0908382bc346159f896e528214470c60ae2cd4038a0fff747b1e"),
 							EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-							Calldata:           testCallData,
+							Calldata: utils.TestHexArrToFelt(t, []string{
+								"0x1",
+								"0x4a3621276a83251b557a8140e915599ae8e7b6207b067ea701635c0d509801e",
+								"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+								"0x0",
+								"0x3",
+								"0x3",
+								"0x697066733a2f2f516d57554c7a475135556a52616953514776717765347931",
+								"0x4731796f4757324e6a5a76564e77776a66514577756a",
+								"0x0",
+								"0x2"}),
 						},
 						Signature: []*felt.Felt{
 							utils.TestHexToFelt(t, "0x63e4618ca2e323a45b9f860f12a4f5c4984648f1d110aa393e79d596d82abcc"),
