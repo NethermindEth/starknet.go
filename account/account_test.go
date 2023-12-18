@@ -166,7 +166,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks)
+			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
@@ -211,21 +211,65 @@ func TestFmtCallData(t *testing.T) {
 				CairoVersion: 0,
 				ChainID:      "SN_GOERLI",
 				FnCall: rpc.FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
-					Calldata: utils.TestHexArrToFelt(t, []string{
-						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-						"0x1"}),
+					ContractAddress:    utils.TestHexToFelt(t, "0x05f7cd1fd465baff2ba9d2d1501ad0a2eb5337d9a885be319366b5205a414fdd"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_balance"),
+					Calldata:           []*felt.Felt{new(felt.Felt).SetUint64(2), new(felt.Felt).SetUint64(2)},
 				},
 				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
 					"0x1",
-					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-					"0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+					"0x05f7cd1fd465baff2ba9d2d1501ad0a2eb5337d9a885be319366b5205a414fdd",
+					"0x0362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
 					"0x0",
-					"0x3",
-					"0x3",
-					"0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"0x2",
+					"0x2",
+					"0x2",
+					"0x2",
+				}),
+			},
+			{
+				CairoVersion: 0,
+				ChainID:      "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
+					Calldata:           []*felt.Felt{},
+				},
+				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
 					"0x1",
+					"0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d",
+					"0x034c4c150632e67baf44fc50e9a685184d72a822510a26a66f72058b5e7b2892",
+					"0x0",
+					"0x0",
+					"0x0",
+				}),
+			},
+			{
+				CairoVersion: 2,
+				ChainID:      "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
+					Calldata:           []*felt.Felt{},
+				},
+				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
+					"0x1",
+					"0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d",
+					"0x034c4c150632e67baf44fc50e9a685184d72a822510a26a66f72058b5e7b2892",
+					"0x0",
+				}),
+			},
+			{
+				CairoVersion: 2,
+				ChainID:      "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
+					Calldata:           []*felt.Felt{},
+				},
+				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
+					"0x1",
+					"0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d",
+					"0x034c4c150632e67baf44fc50e9a685184d72a822510a26a66f72058b5e7b2892",
 					"0x0",
 				}),
 			},
@@ -236,10 +280,10 @@ func TestFmtCallData(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 		require.NoError(t, err)
 
-		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoVersion)
+		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 		require.Equal(t, fmtCallData, test.ExpectedCallData)
 	}
@@ -286,7 +330,7 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -328,7 +372,7 @@ func TestChainId(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -390,7 +434,7 @@ func TestSignMOCK(t *testing.T) {
 		ks.Put(test.Address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
-		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks)
+		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		msg := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
@@ -560,10 +604,10 @@ func TestAddInvoke(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks)
+		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks, 0)
 		require.NoError(t, err)
 
-		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoContractVersion)
+		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -615,7 +659,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -668,7 +712,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -738,7 +782,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -809,7 +853,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -900,7 +944,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -985,7 +1029,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -1051,7 +1095,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks, 0)
 	require.NoError(t, err)
 
 	// Class Hash

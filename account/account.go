@@ -48,6 +48,7 @@ type Account struct {
 	ChainId        *felt.Felt
 	AccountAddress *felt.Felt
 	publicKey      string
+	CairoVersion   int
 	ks             Keystore
 }
 
@@ -61,12 +62,13 @@ type Account struct {
 // It returns:
 // - *Account: a pointer to newly created Account
 // - error: an error if any
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
 		publicKey:      publicKey,
 		ks:             keystore,
+		CairoVersion:   cairoVersion,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
@@ -892,70 +894,72 @@ func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.
 // Returns:
 // - a slice of *felt.Felt representing the formatted calldata.
 // - an error if Cairo version is not supported.
-func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {
-	switch cairoVersion {
+func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error) {
+	switch account.CairoVersion {
 	case 0:
-		return FmtCalldataCairo0(fnCalls), nil
+		return FmtCallDataCairo0(fnCalls), nil
 	case 2:
-		return FmtCalldataCairo2(fnCalls), nil
+		return FmtCallDataCairo2(fnCalls), nil
 	default:
 		return nil, errors.New("Cairo version not supported")
 	}
 }
 
-// FmtCalldataCairo0 generates a slice of *felt.Felt that represents the calldata for the given function calls in Cairo 0 format.
+// FmtCallDataCairo0 generates a slice of *felt.Felt that represents the calldata for the given function calls in Cairo 0 format.
 //
 // Parameters:
 // - fnCalls: a slice of rpc.FunctionCall containing the function calls.
 //
 // Returns:
 // - a slice of *felt.Felt representing the generated calldata.
-func FmtCalldataCairo0(fnCalls []rpc.FunctionCall) []*felt.Felt {
-	execCallData := []*felt.Felt{}
-	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))
+// https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L27
+func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
+	var calldata []*felt.Felt
+	var calls []*felt.Felt
 
-	// Legacy : Cairo 0
-	concatCallData := []*felt.Felt{}
-	for _, fnCall := range fnCalls {
-		execCallData = append(
-			execCallData,
-			fnCall.ContractAddress,
-			fnCall.EntryPointSelector,
-			new(felt.Felt).SetUint64(uint64(len(concatCallData))),
-			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))+1),
-		)
-		concatCallData = append(concatCallData, fnCall.Calldata...)
+	calldata = append(calldata, new(felt.Felt).SetUint64(uint64(len(callArray))))
+
+	offset := uint64(0)
+	for _, call := range callArray {
+		calldata = append(calldata, call.ContractAddress)
+		calldata = append(calldata, call.EntryPointSelector)
+		calldata = append(calldata, new(felt.Felt).SetUint64(uint64(offset)))
+		callDataLen := uint64(len(call.Calldata))
+		calldata = append(calldata, new(felt.Felt).SetUint64(callDataLen))
+		offset += callDataLen
+
+		for _, data := range call.Calldata {
+			calls = append(calls, data)
+		}
 	}
-	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(concatCallData))+1))
-	execCallData = append(execCallData, concatCallData...)
-	execCallData = append(execCallData, new(felt.Felt).SetUint64(0))
 
-	return execCallData
+	calldata = append(calldata, new(felt.Felt).SetUint64(offset))
+	calldata = append(calldata, calls...)
+
+	return calldata
 }
 
-// FmtCalldataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
+// FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
 //
 // Parameters:
 // - fnCalls: a slice of rpc.FunctionCall containing the function calls.
 // Returns:
 // - a slice of *felt.Felt representing the generated calldata.
-func FmtCalldataCairo2(fnCalls []rpc.FunctionCall) []*felt.Felt {
-	execCallData := []*felt.Felt{}
-	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(fnCalls))))
+// https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L22
+func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
+	var result []*felt.Felt
 
-	concatCallData := []*felt.Felt{}
-	for _, fnCall := range fnCalls {
-		execCallData = append(
-			execCallData,
-			fnCall.ContractAddress,
-			fnCall.EntryPointSelector,
-			new(felt.Felt).SetUint64(uint64(len(concatCallData))),
-			new(felt.Felt).SetUint64(uint64(len(fnCall.Calldata))),
-		)
-		concatCallData = append(concatCallData, fnCall.Calldata...)
+	result = append(result, new(felt.Felt).SetUint64(uint64(len(callArray))))
+
+	for _, call := range callArray {
+		result = append(result, call.ContractAddress)
+		result = append(result, call.EntryPointSelector)
+
+		callDataLen := uint64(len(call.Calldata))
+		result = append(result, new(felt.Felt).SetUint64(callDataLen))
+
+		result = append(result, call.Calldata...)
 	}
-	execCallData = append(execCallData, new(felt.Felt).SetUint64(uint64(len(concatCallData))))
-	execCallData = append(execCallData, concatCallData...)
 
-	return execCallData
+	return result
 }

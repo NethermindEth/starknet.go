@@ -15,12 +15,13 @@ import (
 
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
-	name           string = "testnet"                                                            //env."name"
-	account_addr   string = "0x06f36e8a0fc06518125bbb1c63553e8a7d8597d437f9d56d891b8c7d3c977716" //Replace it with your account address
-	privateKey     string = "0x0687bf84896ee63f52d69e6de1b41492abeadc0dc3cb7bd351d0a52116915937" //Replace it with your account private key
-	public_key     string = "0x58b0824ee8480133cad03533c8930eda6888b3c5170db2f6e4f51b519141963"  //Replace it with your account public key
-	someContract   string = "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"   //Replace it with the contract that you want to invoke
-	contractMethod string = "increase_value"                                                     //Replace it with the function name that you want to invoke
+	name                  string = "testnet"                                                            //env."name"
+	account_addr          string = "0x06f36e8a0fc06518125bbb1c63553e8a7d8597d437f9d56d891b8c7d3c977716" //Replace it with your account address
+	account_cairo_version        = 0                                                                    //Replace  with the cairo version of your account
+	privateKey            string = "0x0687bf84896ee63f52d69e6de1b41492abeadc0dc3cb7bd351d0a52116915937" //Replace it with your account private key
+	public_key            string = "0x58b0824ee8480133cad03533c8930eda6888b3c5170db2f6e4f51b519141963"  //Replace it with your account public key
+	someContract          string = "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"   //Replace it with the contract that you want to invoke
+	contractMethod        string = "increase_value"                                                     //Replace it with the function name that you want to invoke
 )
 
 func main() {
@@ -61,7 +62,7 @@ func main() {
 	}
 
 	// Initializing the account
-	accnt, err := account.NewAccount(clientv02, account_address, public_key, ks)
+	accnt, err := account.NewAccount(clientv02, account_address, public_key, ks, account_cairo_version)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -93,11 +94,8 @@ func main() {
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
 	}
 
-	// Mentioning the contract version
-	CairoContractVersion := 2
-
 	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
-	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall}, CairoContractVersion)
+	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
 	if err != nil {
 		panic(err.Error())
 	}
