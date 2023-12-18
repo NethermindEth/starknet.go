@@ -41,7 +41,7 @@ type RpcProvider interface {
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
-	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlag SimulationFlag, blockID BlockID) ([]FeeEstimate, error)
+	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, error)
 	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error)

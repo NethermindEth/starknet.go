@@ -712,8 +712,8 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 // Returns:
 // - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlag rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
-	return account.provider.EstimateFee(ctx, requests, simulationFlag, blockID)
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+	return account.provider.EstimateFee(ctx, requests, simulationFlags, blockID)
 }
 
 // EstimateMessageFee estimates the fee for a given message in the context of an account.

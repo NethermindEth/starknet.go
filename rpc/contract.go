@@ -137,9 +137,9 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 // Estimates the resources required by a given sequence of transactions when applied on a given state.
 // If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error),
 // a TRANSACTION_EXECUTION_ERROR is returned. For v0-2 transactions the estimate is given in wei, and for v3 transactions it is given in fri.
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlag SimulationFlag, blockID BlockID) ([]FeeEstimate, error) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
-	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlag, blockID); err != nil {
+	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 	return raw, nil
