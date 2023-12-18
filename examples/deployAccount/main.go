@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	network              string = "testnet"
-	predeployedClassHash        = "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a"
-	accountAddress              = "0xdeadbeef"
+	network                string = "testnet"
+	predeployedClassHash          = "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a"
+	accountAddress                = "0xdeadbeef"
+	accountContractVersion        = 0 //Replace with the cairo version of your account contract
 )
 
 // main initializes the client, sets up the account, deploys a contract, and sends a transaction to the network.
@@ -27,9 +28,12 @@ var (
 // and finally sends the transaction to the network.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
-//  none
+//
+//	none
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))
@@ -49,7 +53,7 @@ func main() {
 	}
 
 	// Set up account
-	acnt, err := account.NewAccount(clientv02, accountAddressFelt, pub.String(), ks)
+	acnt, err := account.NewAccount(clientv02, accountAddressFelt, pub.String(), ks, accountContractVersion)
 	if err != nil {
 		panic(err)
 	}
