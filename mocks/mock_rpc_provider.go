@@ -236,18 +236,18 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 }
 
 // EstimateFee mocks base method.
-func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlag rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlag, blockID)
+	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
 	ret0, _ := ret[0].([]rpc.FeeEstimate)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EstimateFee indicates an expected call of EstimateFee.
-func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag, blockID any) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlags, blockID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateFee", reflect.TypeOf((*MockRpcProvider)(nil).EstimateFee), ctx, requests, simulationFlag, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateFee", reflect.TypeOf((*MockRpcProvider)(nil).EstimateFee), ctx, requests, simulationFlags, blockID)
 }
 
 // EstimateMessageFee mocks base method.
