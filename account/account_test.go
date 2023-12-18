@@ -166,7 +166,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks)
+			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
@@ -280,10 +280,10 @@ func TestFmtCallData(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 		require.NoError(t, err)
 
-		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoVersion)
+		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 		require.Equal(t, fmtCallData, test.ExpectedCallData)
 	}
@@ -330,7 +330,7 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -372,7 +372,7 @@ func TestChainId(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewClient")
 		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore())
+		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -434,7 +434,7 @@ func TestSignMOCK(t *testing.T) {
 		ks.Put(test.Address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
-		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks)
+		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
 		msg := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
@@ -604,10 +604,10 @@ func TestAddInvoke(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks)
+		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks, 0)
 		require.NoError(t, err)
 
-		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall}, test.CairoContractVersion)
+		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -659,7 +659,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks)
+	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -712,7 +712,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -782,7 +782,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -853,7 +853,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -944,7 +944,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore())
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -1029,7 +1029,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore())
+	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -1095,7 +1095,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in rpc.NewClient")
 	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks)
+	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks, 0)
 	require.NoError(t, err)
 
 	// Class Hash

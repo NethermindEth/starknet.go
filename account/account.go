@@ -48,6 +48,7 @@ type Account struct {
 	ChainId        *felt.Felt
 	AccountAddress *felt.Felt
 	publicKey      string
+	CairoVersion   int
 	ks             Keystore
 }
 
@@ -61,12 +62,13 @@ type Account struct {
 // It returns:
 // - *Account: a pointer to newly created Account
 // - error: an error if any
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore) (*Account, error) {
+func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
 	account := &Account{
 		provider:       provider,
 		AccountAddress: accountAddress,
 		publicKey:      publicKey,
 		ks:             keystore,
+		CairoVersion:   cairoVersion,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
@@ -892,8 +894,8 @@ func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.
 // Returns:
 // - a slice of *felt.Felt representing the formatted calldata.
 // - an error if Cairo version is not supported.
-func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall, cairoVersion int) ([]*felt.Felt, error) {
-	switch cairoVersion {
+func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error) {
+	switch account.CairoVersion {
 	case 0:
 		return FmtCallDataCairo0(fnCalls), nil
 	case 2:
