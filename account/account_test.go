@@ -273,6 +273,31 @@ func TestFmtCallData(t *testing.T) {
 					"0x0",
 				}),
 			},
+			{
+				// Note: This test fails.
+				// https://goerli.voyager.online/tx/0x6fdae8a037508ececc5684406cdd66101d56004bf461c9ee7a3b7f5cf5bb799
+				CairoVersion: 0,
+				ChainID:      "SN_GOERLI",
+				FnCall: rpc.FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("approve"),
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+						utils.TestHexToFelt(t, "0x21"),
+					},
+				},
+				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
+					"0x1",
+					"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"0x0219209e083275171774dab1df80982e9df2096516f06319c5c6d71ae0a8480c",
+					"0x0",
+					"0x03",
+					"0x03",
+					"0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e",
+					"0x21",
+					"0x0",
+				}),
+			},
 		},
 		"testnet": {},
 		"mainnet": {},
@@ -284,8 +309,9 @@ func TestFmtCallData(t *testing.T) {
 		require.NoError(t, err)
 
 		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		errMsg := fmt.Sprintf("Expected call data : %v, \n Computed call data : %v", test.ExpectedCallData, fmtCallData)
 		require.NoError(t, err)
-		require.Equal(t, fmtCallData, test.ExpectedCallData)
+		require.Equal(t, fmtCallData, test.ExpectedCallData, errMsg)
 	}
 }
 
