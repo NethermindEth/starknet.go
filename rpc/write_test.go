@@ -77,7 +77,7 @@ func TestDeclareTransaction(t *testing.T) {
 				t.Fatal("should be able to read file", err)
 			}
 			var declareTx AddDeclareTxnInput
-			require.Nil(t, json.Unmarshal(declareTxJSON, &declareTx), "Error unmarshalling decalreTx")
+			require.Nil(t, json.Unmarshal(declareTxJSON, &declareTx), "Error unmarshalling declareTx")
 			test.DeclareTx = declareTx
 		}
 
@@ -178,7 +178,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	}
 }
 
-func TestAddDeployAccountTansaction(t *testing.T) {
+func TestAddDeployAccountTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t)
 

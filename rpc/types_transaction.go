@@ -263,7 +263,7 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 // - t: The interface{} to be unmarshalled
 // Returns:
 // - Transaction: a Transaction object
-// - error: an error if the unmarshaling process fails
+// - error: an error if the unmarshalling process fails
 func unmarshalTxn(t interface{}) (Transaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
@@ -321,7 +321,7 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 // - v: The interface{} value to be marshaled
 // - dst: The interface{} value to be unmarshaled
 // Returns:
-// - error: An error if the marshaling or unmarshaling process fails
+// - error: An error if the marshaling or unmarshalling process fails
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {

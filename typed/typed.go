@@ -77,7 +77,7 @@ func strToFelt(str string) *felt.Felt {
 		f.SetBytes(b.Bytes())
 		return f
 	}
-	// TODO: revisit conversation on seperate 'ShortString' conversion
+	// TODO: revisit conversation on separate 'ShortString' conversion
 	if asciiRegexp.MatchString(str) {
 		hexStr := hex.EncodeToString([]byte(str))
 		if b, ok := new(big.Int).SetString(hexStr, 16); ok {

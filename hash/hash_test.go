@@ -11,10 +11,10 @@ import (
 	"github.com/test-go/testify/require"
 )
 
-// TestUnmarshalCasmClassHash is a test function that tests the unmarshaling of a CasmClass hash.
+// TestUnmarshalCasmClassHash is a test function that tests the unmarshalling of a CasmClass hash.
 //
 // It reads the content of the "./tests/hello_starknet_compiled.casm.json" file and unmarshals it into a contracts.CasmClass variable.
-// The function returns an assertion error if there is an error reading the file or unmarshaling the content.
+// The function returns an assertion error if there is an error reading the file or unmarshalling the content.
 // Parameters:
 // - t: A testing.T object used for running the test and reporting any failures.
 // Returns:

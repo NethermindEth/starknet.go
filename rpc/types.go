@@ -142,7 +142,7 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 //	-data: It takes a byte slice as input representing the JSON data to be unmarshaled.
 //
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, s)
 
@@ -213,7 +213,7 @@ const (
 // Parameters:
 // - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -270,7 +270,7 @@ const (
 // Parameters:
 // - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {

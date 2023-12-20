@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	ErrNotAllParametersSet   = errors.New("Not all neccessary parameters have been set")
-	ErrTxnTypeUnSupported    = errors.New("Unsupported transction type")
-	ErrTxnVersionUnSupported = errors.New("Unsupported transction version")
+	ErrNotAllParametersSet   = errors.New("Not all necessary parameters have been set")
+	ErrTxnTypeUnSupported    = errors.New("Unsupported transaction type")
+	ErrTxnVersionUnSupported = errors.New("Unsupported transaction version")
 	ErrFeltToBigInt          = errors.New("Felt to BigInt error")
 )
 
@@ -939,7 +939,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 	return calldata
 }
 
-// FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
+// FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracts.
 //
 // Parameters:
 // - fnCalls: a slice of rpc.FunctionCall containing the function calls.

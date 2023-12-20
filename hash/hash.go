@@ -69,7 +69,7 @@ func CalculateTransactionHashCommon(
 // The hash is calculated using the PoseidonArray function from the Curve package.
 // The elements used in the hash calculation include the contract class version, constructor entry point, external entry point, L1 handler entry point, ABI, and Sierra program.
 // The ABI is converted to bytes and then hashed using the StarknetKeccak function from the Curve package.
-// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgamHash are combined using the PoseidonArray function from the Curve package.
+// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgramHash are combined using the PoseidonArray function from the Curve package.
 //
 // Parameters:
 // - contract: A contract class object of type rpc.ContractClass.
@@ -84,14 +84,14 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	ConstructorHash := hashEntryPointByType(contract.EntryPointsByType.Constructor)
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
-	SierraProgamHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
+	SierraProgramHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
 	ABIHash, err := curve.Curve.StarknetKeccak([]byte(contract.ABI))
 	if err != nil {
 		return nil, err
 	}
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
+	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgramHash), nil
 }
 
 // hashEntryPointByType calculates the hash of an entry point by type.

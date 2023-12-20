@@ -2,7 +2,7 @@ package curve
 
 /*
 	Although the library adheres to the 'elliptic/curve' interface.
-	All testing has been done against library function explicity.
+	All testing has been done against library function explicitly.
 	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
 */
 import (

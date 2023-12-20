@@ -333,7 +333,7 @@ func TestGeneral_HashAndSign(t *testing.T) {
 		big.NewInt(1953658213),
 	})
 	if err != nil {
-		t.Errorf("Hasing elements: %v\n", err)
+		t.Errorf("Hashing elements: %v\n", err)
 	}
 
 	priv, _ := Curve.GetRandomPrivateKey()

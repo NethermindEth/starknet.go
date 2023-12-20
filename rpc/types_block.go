@@ -70,12 +70,12 @@ const (
 // UnmarshalJSON unmarshals the JSON representation of a BlockStatus.
 //
 // It takes in a byte slice containing the JSON data to be unmarshaled.
-// The function returns an error if there is an issue unmarshaling the data.
+// The function returns an error if there is an issue unmarshalling the data.
 //
 // Parameters:
 // - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {

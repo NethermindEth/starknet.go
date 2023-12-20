@@ -85,12 +85,12 @@ const (
 //
 // If none of the supported values match the input data, the function returns an error.
 //
-//	nil if the unmarshaling is successful.
+//	nil if the unmarshalling is successful.
 //
 // Parameters:
 // - data: It takes a byte slice as input representing the JSON data to be unmarshaled
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -468,7 +468,7 @@ type UnknownTransactionReceipt struct{ TransactionReceipt }
 // Parameters:
 // - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
 // Returns:
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -489,7 +489,7 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 // - t: The interface{} to be unmarshalled
 // Returns:
 // - TransactionReceipt: a TransactionReceipt
-// - error: an error if the unmarshaling fails
+// - error: an error if the unmarshalling fails
 func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:

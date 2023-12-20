@@ -73,7 +73,7 @@ func TestJSONMultiTypeArrayWithDuck(t *testing.T) {
 	}
 }
 
-// TestJSONMixingStructWithMap tests the JSON unmarshaling of a struct that mixes fields and a map.
+// TestJSONMixingStructWithMap tests the JSON unmarshalling of a struct that mixes fields and a map.
 //
 // This function checks if the JSON content can be successfully unmarshaled into a struct that contains
 // a mixture of fields and a map (map[string]interface{}).

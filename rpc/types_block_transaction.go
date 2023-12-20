@@ -176,7 +176,7 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 // - t: The interface{} to be unmarshalled
 // Returns:
 // - BlockTransaction: a BlockTransaction
-// - error: an error if the unmarshaling process fails
+// - error: an error if the unmarshalling process fails
 func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
