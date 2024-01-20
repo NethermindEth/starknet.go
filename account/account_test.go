@@ -1109,7 +1109,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	content2, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
 	require.NoError(t, err)
 
 	var casmClass contracts.CasmClass
