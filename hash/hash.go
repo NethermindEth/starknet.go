@@ -85,7 +85,11 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
 	SierraProgamHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
-	ABIHash, err := curve.Curve.StarknetKeccak([]byte(contract.ABI))
+	abiBytes, err := contract.AbiBytes()
+	if err != nil {
+		return nil, err
+	}
+	ABIHash, err := curve.Curve.StarknetKeccak(abiBytes)
 	if err != nil {
 		return nil, err
 	}

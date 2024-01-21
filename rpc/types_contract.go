@@ -71,7 +71,93 @@ type ContractClass struct {
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
-	ABI string `json:"abi,omitempty"`
+	ABI *ABI `json:"abi,omitempty"`
+}
+
+func (c *ContractClass) UnmarshalJSON(content []byte) error {
+	v := map[string]json.RawMessage{}
+	if err := json.Unmarshal(content, &v); err != nil {
+		return err
+	}
+
+	// process 'sierra_program'. If it is a string, keep it, otherwise encode it.
+	data, ok := v["sierra_program"]
+	if !ok {
+		return fmt.Errorf("missing sierra_program in json object")
+	}
+	sierraFelts := make([]*felt.Felt, 0)
+	for _, datum := range data {
+		sierraFelts = append(sierraFelts, new(felt.Felt).SetBytes([]byte{datum}))
+	}
+	c.SierraProgram = sierraFelts
+
+	// process 'contract_class_version'. If it is a string, keep it, otherwise encode it.
+	data, ok = v["contract_class_version"]
+	if !ok {
+		return fmt.Errorf("missing contract_class_version in json object")
+	}
+	c.ContractClassVersion = string(data)
+
+	// process 'entry_points_by_type'
+	data, ok = v["entry_points_by_type"]
+	if !ok {
+		return fmt.Errorf("missing entry_points_by_type in json object")
+	}
+
+	entryPointsByType := EntryPointsByType{}
+	if err := json.Unmarshal(data, &entryPointsByType); err != nil {
+		return err
+	}
+	c.EntryPointsByType = entryPointsByType
+
+	// process 'abi'
+	data, ok = v["abi"]
+	if !ok {
+		// contractClass can have an empty ABI for instance with ClassAt
+		return nil
+	}
+
+	abis := []interface{}{}
+	if err := json.Unmarshal(data, &abis); err != nil {
+		return err
+	}
+
+	abiPointer := ABI{}
+	for _, abi := range abis {
+		if checkABI, ok := abi.(map[string]interface{}); ok {
+			var ab ABIEntry
+			abiType, ok := checkABI["type"].(string)
+			if !ok {
+				return fmt.Errorf("unknown abi type %v", checkABI["type"])
+			}
+			switch abiType {
+			case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
+				ab = &FunctionABIEntry{}
+			case string(ABITypeStruct):
+				ab = &StructABIEntry{}
+			case string(ABITypeEvent):
+				ab = &EventABIEntry{}
+			default:
+				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
+			}
+			data, err := json.Marshal(checkABI)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(data, ab)
+			if err != nil {
+				return err
+			}
+			abiPointer = append(abiPointer, ab)
+		}
+	}
+
+	c.ABI = &abiPointer
+	return nil
+}
+
+func (c *ContractClass) AbiBytes() ([]byte, error) {
+	return json.Marshal(c.ABI)
 }
 
 // UnmarshalJSON unmarshals the JSON content into the DeprecatedContractClass struct.
