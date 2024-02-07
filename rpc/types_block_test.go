@@ -1,12 +1,14 @@
 package rpc
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/test-go/testify/require"
 )
 
 // TestBlockID_Marshal tests the MarshalJSON method of the BlockID struct.
@@ -22,7 +24,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestBlockID_Marshal(t *testing.T) {
 	blockNumber := uint64(420)
 	for _, tc := range []struct {
@@ -78,7 +81,8 @@ func TestBlockID_Marshal(t *testing.T) {
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
 // Returns:
-//  none
+//
+//	none
 func TestBlockStatus(t *testing.T) {
 	for _, tc := range []struct {
 		status string
@@ -115,10 +119,32 @@ var rawBlock []byte
 // Parameters:
 // - t: the testing object for running the test
 // Returns:
-//  none
+//
+//	none
 func TestBlock_Unmarshal(t *testing.T) {
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {
 		t.Fatalf("Unmarshalling block: %v", err)
 	}
+}
+
+func TestBlockWithReceipts(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	ctx := context.Background()
+
+	t.Run("BlockWithReceipts - block", func(t *testing.T) {
+		blockID := BlockID{Tag: "greatest block"}
+		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
+		require.Nil(t, err)
+		require.NotNil(t, block)
+	})
+
+	t.Run("BlockWithReceipts - pending", func(t *testing.T) {
+		blockID := BlockID{Tag: "pending"}
+		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
+		require.Nil(t, err)
+		require.NotNil(t, block)
+	})
+
 }

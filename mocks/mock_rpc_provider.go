@@ -130,6 +130,21 @@ func (mr *MockRpcProviderMockRecorder) BlockTransactionCount(ctx, blockID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockTransactionCount", reflect.TypeOf((*MockRpcProvider)(nil).BlockTransactionCount), ctx, blockID)
 }
 
+// BlockWithReceipts mocks base method.
+func (m *MockRpcProvider) BlockWithReceipts(ctx context.Context, blockID rpc.BlockID) (any, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockWithReceipts", ctx, blockID)
+	ret0, _ := ret[0].(any)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BlockWithReceipts indicates an expected call of BlockWithReceipts.
+func (mr *MockRpcProviderMockRecorder) BlockWithReceipts(ctx, blockID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWithReceipts", reflect.TypeOf((*MockRpcProvider)(nil).BlockWithReceipts), ctx, blockID)
+}
+
 // BlockWithTxHashes mocks base method.
 func (m *MockRpcProvider) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (any, error) {
 	m.ctrl.T.Helper()

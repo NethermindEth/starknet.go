@@ -123,6 +123,27 @@ type PendingBlock struct {
 	BlockTransactions
 }
 
+type BlockWithReceipts struct {
+	BlockStatus `json:"status"`
+	BlockHeader
+	BlockBodyWithReceipts
+}
+
+type BlockBodyWithReceipts struct {
+	Transactions []TransactionWithReceipt `json:"transactions"`
+}
+
+type TransactionWithReceipt struct {
+	Transaction Transaction        `json:"transaction,omitempty"`
+	Receipt     TransactionReceipt `json:"receipt"`
+}
+
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+type PendingBlockWithReceipts struct {
+	PendingBlockHeader
+	BlockBodyWithReceipts
+}
+
 type BlockTxHashes struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`

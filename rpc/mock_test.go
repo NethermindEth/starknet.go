@@ -63,6 +63,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockTransactionCount(result, method, args...)
 	case "starknet_getBlockWithTxHashes":
 		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+	case "starknet_getBlockWithReceipts":
+		return mock_starknet_getBlockWithReceipts(result, method, args...)
 	case "starknet_getClass":
 		return mock_starknet_getClass(result, method, args...)
 	case "starknet_getClassAt":
@@ -959,6 +961,71 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 			return err
 		}
 		json.Unmarshal(block, &r)
+	}
+
+	return nil
+}
+
+func mock_starknet_getBlockWithReceipts(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockId, ok := args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+
+	if blockId.Tag == "pending" {
+		fmt.Println("MOCK IN PENDING")
+		pBlock, err := json.Marshal(
+			PendingBlockWithReceipts{
+				PendingBlockHeader{
+					ParentHash:       &felt.Zero,
+					Timestamp:        123,
+					SequencerAddress: &felt.Zero,
+				},
+				BlockBodyWithReceipts{},
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(pBlock, &r)
+	} else {
+		fmt.Println("MOCK IN REAL")
+		block, err := json.Marshal(
+			BlockWithReceipts{
+				BlockStatus: BlockStatus_AcceptedOnL1,
+				BlockHeader: BlockHeader{
+					BlockHash:        new(felt.Felt).SetUint64(1),
+					ParentHash:       new(felt.Felt).SetUint64(0),
+					Timestamp:        124,
+					SequencerAddress: new(felt.Felt).SetUint64(42)},
+				BlockBodyWithReceipts: BlockBodyWithReceipts{
+					Transactions: []TransactionWithReceipt{
+						{
+							Transaction: InvokeTxnV0{
+								Type: TransactionType_Invoke,
+							},
+							Receipt: InvokeTransactionReceipt{
+								TransactionHash: new(felt.Felt).SetUint64(1),
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(block, &r)
 	}
 
 	return nil

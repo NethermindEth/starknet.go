@@ -36,6 +36,7 @@ type RpcProvider interface {
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
 	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
 	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)

@@ -2,7 +2,9 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -34,8 +36,8 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // - error: An error if any
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
-	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {		
-		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks )
+	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
 	}
 	return &block, nil
 }
@@ -44,6 +46,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 //
 // Parameters:
 //   - n: The block number to use for the BlockID.
+//
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
@@ -115,8 +118,8 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // - error: An error, if any
 func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
-	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {		
-		return nil,tryUnwrapToRPCErr(err,ErrBlockNotFound )
+	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return &state, nil
 }
@@ -151,7 +154,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err,ErrBlockNotFound )
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
@@ -164,4 +167,40 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 		}, nil
 	}
 	return &result, nil
+}
+
+// Get block information with full transactions and receipts given the block id
+func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
+	var result BlockWithReceipts
+	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+	}
+
+	resultBytes, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(result)
+
+	resultMap, ok := result.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("result is not a map[string]interface{}")
+	}
+
+	// if result.Status == nil it's a pending block
+	if resultMap["BlockStatus"] == nil {
+		var pendingBlock PendingBlockWithReceipts
+		err := json.Unmarshal(resultBytes, &pendingBlock)
+		if err != nil {
+			return nil, err
+		}
+		return &pendingBlock, nil
+	}
+
+	var block BlockWithReceipts
+	err = json.Unmarshal(resultBytes, &block)
+	if err != nil {
+		return nil, err
+	}
+	return &block, nil
 }

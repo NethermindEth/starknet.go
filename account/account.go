@@ -639,6 +639,10 @@ func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (
 	return account.provider.BlockWithTxs(ctx, blockID)
 }
 
+func (account *Account) BlockWithReceipts(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
+	return account.provider.BlockWithReceipts(ctx, blockID)
+}
+
 // Call is a function that performs a function call on an Account.
 //
 // Parameters:
