@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -176,13 +175,9 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
-	fmt.Println(string(result))
-
 	var block BlockWithReceipts
 	err := json.Unmarshal(result, &block)
-	fmt.Println(block)
 	if err == nil && block.BlockStatus != "" {
-		// If unmarshalling was successful and the block status is not empty, return the block
 		return &block, nil
 	}
 
@@ -190,10 +185,8 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 	var pendingBlock PendingBlockWithReceipts
 	err = json.Unmarshal(result, &pendingBlock)
 	if err != nil {
-		// If unmarshalling failed, return the error
 		return nil, err
 	}
 
-	// If unmarshalling was successful, return the pending block
 	return &pendingBlock, nil
 }
