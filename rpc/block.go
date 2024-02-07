@@ -171,36 +171,29 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 
 // Get block information with full transactions and receipts given the block id
 func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
-	var result BlockWithReceipts
+	var result json.RawMessage
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
-	resultBytes, err := json.Marshal(result)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(result)
+	fmt.Println(string(result))
 
-	resultMap, ok := result.(map[string]interface{})
-	if !ok {
-		return nil, errors.New("result is not a map[string]interface{}")
+	var block BlockWithReceipts
+	err := json.Unmarshal(result, &block)
+	fmt.Println(block)
+	if err == nil && block.BlockStatus != "" {
+		// If unmarshalling was successful and the block status is not empty, return the block
+		return &block, nil
 	}
 
 	// if result.Status == nil it's a pending block
-	if resultMap["BlockStatus"] == nil {
-		var pendingBlock PendingBlockWithReceipts
-		err := json.Unmarshal(resultBytes, &pendingBlock)
-		if err != nil {
-			return nil, err
-		}
-		return &pendingBlock, nil
-	}
-
-	var block BlockWithReceipts
-	err = json.Unmarshal(resultBytes, &block)
+	var pendingBlock PendingBlockWithReceipts
+	err = json.Unmarshal(result, &pendingBlock)
 	if err != nil {
+		// If unmarshalling failed, return the error
 		return nil, err
 	}
-	return &block, nil
+
+	// If unmarshalling was successful, return the pending block
+	return &pendingBlock, nil
 }

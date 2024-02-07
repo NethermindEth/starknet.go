@@ -981,51 +981,38 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 	}
 
 	if blockId.Tag == "pending" {
-		fmt.Println("MOCK IN PENDING")
-		pBlock, err := json.Marshal(
-			PendingBlockWithReceipts{
-				PendingBlockHeader{
-					ParentHash:       &felt.Zero,
-					Timestamp:        123,
-					SequencerAddress: &felt.Zero,
-				},
-				BlockBodyWithReceipts{},
+		pBlock := `{
+			"parent_hash": "1234567890abcdef",
+			"timestamp": 1633020442,
+			"sequencer_address": "0123456789abcdef",
+			"l1_gas_price": {
+			  "price": 0,
+			  "currency": "WEI"
 			},
-		)
-		if err != nil {
-			return err
-		}
-
-		return json.Unmarshal(pBlock, &r)
+			"starknet_version": "1.0.0",
+			"transactions": [			]
+		  }`
+		*r = json.RawMessage(pBlock)
 	} else {
-		fmt.Println("MOCK IN REAL")
-		block, err := json.Marshal(
-			BlockWithReceipts{
-				BlockStatus: BlockStatus_AcceptedOnL1,
-				BlockHeader: BlockHeader{
-					BlockHash:        new(felt.Felt).SetUint64(1),
-					ParentHash:       new(felt.Felt).SetUint64(0),
-					Timestamp:        124,
-					SequencerAddress: new(felt.Felt).SetUint64(42)},
-				BlockBodyWithReceipts: BlockBodyWithReceipts{
-					Transactions: []TransactionWithReceipt{
-						{
-							Transaction: InvokeTxnV0{
-								Type: TransactionType_Invoke,
-							},
-							Receipt: InvokeTransactionReceipt{
-								TransactionHash: new(felt.Felt).SetUint64(1),
-							},
-						},
-					},
-				},
+		block := `{
+			"status": "ACCEPTED_ON_L1",
+			"block_hash": "1234567890abcdef",
+			"parent_hash": "abcdef1234567890",
+			"block_number": 42,
+			"new_root": "fedcba0987654321",
+			"timestamp": 1633020442,
+			"sequencer_address": "0123456789abcdef",
+			"l1_gas_price": {
+			  "price": 0,
+			  "currency": "WEI"
 			},
-		)
-		if err != nil {
-			return err
-		}
+			"starknet_version": "1.0.0",
+			"transactions": [
+				
+			]
+		  }`
 
-		return json.Unmarshal(block, &r)
+		*r = json.RawMessage(block)
 	}
 
 	return nil

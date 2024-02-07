@@ -137,14 +137,19 @@ func TestBlockWithReceipts(t *testing.T) {
 		blockID := BlockID{Tag: "greatest block"}
 		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
 		require.Nil(t, err)
-		require.NotNil(t, block)
+		blockCasted := block.(*BlockWithReceipts)
+		require.NotNil(t, blockCasted.BlockStatus)
+		require.NotNil(t, blockCasted.BlockNumber)
+		require.Equal(t, len(blockCasted.Transactions), 0)
 	})
 
 	t.Run("BlockWithReceipts - pending", func(t *testing.T) {
 		blockID := BlockID{Tag: "pending"}
 		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
 		require.Nil(t, err)
-		require.NotNil(t, block)
+		blockCasted := block.(*PendingBlockWithReceipts)
+		require.NotNil(t, blockCasted.ParentHash)
+		require.Equal(t, len(blockCasted.Transactions), 0)
 	})
 
 }
