@@ -129,13 +129,13 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
-	testConfig := beforeEach(t)
+	provider := &Provider{c: &rpcMock{}}
 
 	ctx := context.Background()
 
 	t.Run("BlockWithReceipts - block", func(t *testing.T) {
 		blockID := BlockID{Tag: "greatest block"}
-		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
+		block, err := provider.BlockWithReceipts(ctx, blockID)
 		require.Nil(t, err)
 		blockCasted := block.(*BlockWithReceipts)
 		require.NotNil(t, blockCasted.BlockStatus)
@@ -145,7 +145,7 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	t.Run("BlockWithReceipts - pending", func(t *testing.T) {
 		blockID := BlockID{Tag: "pending"}
-		block, err := testConfig.provider.BlockWithReceipts(ctx, blockID)
+		block, err := provider.BlockWithReceipts(ctx, blockID)
 		require.Nil(t, err)
 		blockCasted := block.(*PendingBlockWithReceipts)
 		require.NotNil(t, blockCasted.ParentHash)
