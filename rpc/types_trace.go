@@ -116,7 +116,8 @@ type FnInvocation struct {
 	L1Messages []OrderedMsg `json:"messages"`
 
 	// Resources consumed by the internal call
-	ComputationResources ComputationResources `json:"computation_resources"`
+	// https://github.com/starkware-libs/starknet-specs/blob/v0.7.0-rc0/api/starknet_trace_api_openrpc.json#L374C1-L374C29
+	ComputationResources ComputationResources `json:"execution_resources"`
 }
 
 // A single pair of transaction hash and corresponding trace
