@@ -39,28 +39,31 @@ var _ TxnTrace = L1HandlerTxnTrace{}
 type InvokeTxnTrace struct {
 	ValidateInvocation FnInvocation `json:"validate_invocation"`
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	ExecuteInvocation     ExecInvocation  `json:"execute_invocation"`
-	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
-	StateDiff             StateDiff       `json:"state_diff"`
-	Type                  TransactionType `json:"type"`
+	ExecuteInvocation     ExecInvocation     `json:"execute_invocation"`
+	FeeTransferInvocation FnInvocation       `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff          `json:"state_diff"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a declare transaction
 type DeclareTxnTrace struct {
-	ValidateInvocation    FnInvocation    `json:"validate_invocation"`
-	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
-	StateDiff             StateDiff       `json:"state_diff"`
-	Type                  TransactionType `json:"type"`
+	ValidateInvocation    FnInvocation       `json:"validate_invocation"`
+	FeeTransferInvocation FnInvocation       `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff          `json:"state_diff"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a deploy account transaction
 type DeployAccountTxnTrace struct {
 	ValidateInvocation FnInvocation `json:"validate_invocation"`
 	//the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-	ConstructorInvocation FnInvocation    `json:"constructor_invocation"`
-	FeeTransferInvocation FnInvocation    `json:"fee_transfer_invocation"`
-	StateDiff             StateDiff       `json:"state_diff"`
-	Type                  TransactionType `json:"type"`
+	ConstructorInvocation FnInvocation       `json:"constructor_invocation"`
+	FeeTransferInvocation FnInvocation       `json:"fee_transfer_invocation"`
+	StateDiff             StateDiff          `json:"state_diff"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of an L1 handler transaction
@@ -113,7 +116,7 @@ type FnInvocation struct {
 	L1Messages []OrderedMsg `json:"messages"`
 
 	// Resources consumed by the internal call
-	ExecutionResources ExecutionResources `json:"execution_resources"`
+	ComputationResources ComputationResources `json:"computation_resources"`
 }
 
 // A single pair of transaction hash and corresponding trace
