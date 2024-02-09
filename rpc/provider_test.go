@@ -2,9 +2,12 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -210,4 +213,45 @@ func TestSyncing(t *testing.T) {
 		}
 
 	}
+}
+
+func TestCookieManagement(t *testing.T) {
+	// Don't return anything unless cookie is set.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := r.Cookie("session_id"); err == http.ErrNoCookie {
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session_id",
+				Value: "12345",
+				Path:  "/",
+			})
+		} else {
+			var result string
+			err := mock_starknet_chainId(&result, "")
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"result":  result,
+			})
+		}
+	}))
+	defer server.Close()
+
+	client, err := NewProvider(server.URL)
+	require.Nil(t, err)
+
+	resp, err := client.ChainID(context.Background())
+	require.NotNil(t, err)
+	require.Equal(t, resp, "")
+
+	resp, err = client.ChainID(context.Background())
+	require.Nil(t, err)
+	require.Equal(t, resp, "SN_GOERLI")
+
+	resp, err = client.ChainID(context.Background())
+	require.Nil(t, err)
+	require.Equal(t, resp, "SN_GOERLI")
 }
