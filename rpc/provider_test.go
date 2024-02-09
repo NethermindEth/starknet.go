@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 	"github.com/test-go/testify/require"
 )
@@ -102,12 +101,12 @@ func beforeEach(t *testing.T) *testConfiguration {
 	if base != "" {
 		testConfig.base = base
 	}
-	c, err := ethrpc.DialContext(context.Background(), testConfig.base)
+	c, err := NewProvider(testConfig.base)
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-	client := NewProvider(c)
-	testConfig.provider = client
+
+	testConfig.provider = c
 	t.Cleanup(func() {
 		testConfig.provider.c.Close()
 	})
