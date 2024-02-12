@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -27,18 +27,14 @@ var (
 func main() {
 	// Loading the env
 	godotenv.Load(fmt.Sprintf(".env.%s", name))
-	base := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
+	url := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
 	fmt.Println("Starting simpleInvoke example")
 
 	// Initialising the connection
-	c, err := ethrpc.DialContext(context.Background(), base)
+	clientv02, err := rpc.NewProvider(url)
 	if err != nil {
-		fmt.Println("Failed to connect to the client, did you specify the url in the .env.testnet?")
-		panic(err)
+		log.Fatal(fmt.Sprintf("Error dialing the RPC provider: %s", err))
 	}
-
-	// Initialising the provider
-	clientv02 := rpc.NewProvider(c)
 
 	// Here we are converting the account address to felt
 	account_address, err := utils.HexToFelt(account_addr)
