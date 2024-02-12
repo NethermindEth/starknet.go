@@ -368,11 +368,10 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base + "/rpc")
+		client, err := rpc.NewProvider(base + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		account, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -592,9 +591,8 @@ func TestAddInvoke(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base)
+		client, err := rpc.NewProvider(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
 
 		// Set up ks
 		ks := account.NewMemKeystore()
@@ -604,7 +602,7 @@ func TestAddInvoke(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks, 0)
+		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 0)
 		require.NoError(t, err)
 
 		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
@@ -643,9 +641,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewClient(base + "/rpc")
+	client, err := rpc.NewProvider(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
 	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
@@ -659,7 +656,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks, 0)
+	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -1025,11 +1022,10 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewClient(base + "/rpc")
+	client, err := rpc.NewProvider(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -1091,11 +1087,10 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewClient(base)
+	client, err := rpc.NewProvider(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks, 0)
+	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
 	require.NoError(t, err)
 
 	// Class Hash

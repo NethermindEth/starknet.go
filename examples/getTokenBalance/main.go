@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"math/big"
@@ -10,7 +11,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -39,13 +39,13 @@ var (
 func main() {
 	fmt.Println("Starting getTokenBalance example")
 	godotenv.Load(fmt.Sprintf(".env.%s", name))
-	base := os.Getenv("INTEGRATION_BASE")
-	c, err := ethrpc.DialContext(context.Background(), base)
+	url := os.Getenv("INTEGRATION_BASE")
+
+	clientv02, err := rpc.NewProvider(url)
 	if err != nil {
-		fmt.Println("Failed to connect to the client, did you specify the url in the .env.mainnet?")
-		panic(err)
+		log.Fatal(fmt.Sprintf("Error dialing the RPC provider: %s", err))
 	}
-	clientv02 := rpc.NewProvider(c)
+
 	fmt.Println("Established connection with the client")
 
 	tokenAddressInFelt, err := utils.HexToFelt(ethMainnetContract)

@@ -3,9 +3,12 @@ package rpc
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/cookiejar"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
+	"golang.org/x/net/publicsuffix"
 )
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
@@ -19,11 +22,20 @@ type Provider struct {
 	chainID string
 }
 
-// NewProvider creates a new Provider instance with the given RPC (`go-ethereum/rpc`) client.
-//
-// It takes a *rpc.Client as a parameter and returns a pointer to a Provider struct.
-func NewProvider(c *rpc.Client) *Provider {
-	return &Provider{c: c}
+// NewProvider creates a new rpc Provider instance.
+func NewProvider(url string) (*Provider, error) {
+
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{Jar: jar}
+	c, err := ethrpc.DialHTTPWithClient(url, client)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Provider{c: c}, nil
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
