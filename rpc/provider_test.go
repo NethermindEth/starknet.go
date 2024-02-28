@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 	"github.com/test-go/testify/require"
@@ -211,4 +212,16 @@ func TestSyncing(t *testing.T) {
 		}
 
 	}
+}
+
+func TestGetBlock(t *testing.T) {
+	testConfig := beforeEach(t)
+	block, err := testConfig.provider.BlockWithTxHashes(context.Background(), BlockID{Tag: "latest"})
+	require.Nil(t, err)
+	blockCasted := block.(*BlockTxHashes)
+	require.Equal(t, blockCasted.L1DAMode, L1DAModeBlob)
+	require.Equal(t, blockCasted.L1DataGasPrice.PriceInWei, new(felt.Felt).SetUint64(1))
+	require.Equal(t, blockCasted.L1DataGasPrice.PriceInFRI, new(felt.Felt).SetUint64(1))
+	require.Equal(t, blockCasted.L1GasPrice.PriceInWei, new(felt.Felt).SetUint64(1))
+	require.Equal(t, blockCasted.L1GasPrice.PriceInFRI, new(felt.Felt).SetUint64(1))
 }
