@@ -218,14 +218,50 @@ func TestSyncing(t *testing.T) {
 
 func TestGetBlock(t *testing.T) {
 	testConfig := beforeEach(t)
-	block, err := testConfig.provider.BlockWithTxHashes(context.Background(), BlockID{Tag: "latest"})
-	require.Nil(t, err)
-	blockCasted := block.(*BlockTxHashes)
-	require.Equal(t, blockCasted.L1DAMode, L1DAModeBlob)
-	require.Equal(t, blockCasted.L1DataGasPrice.PriceInWei, new(felt.Felt).SetUint64(1))
-	require.Equal(t, blockCasted.L1DataGasPrice.PriceInFRI, new(felt.Felt).SetUint64(1))
-	require.Equal(t, blockCasted.L1GasPrice.PriceInWei, new(felt.Felt).SetUint64(1))
-	require.Equal(t, blockCasted.L1GasPrice.PriceInFRI, new(felt.Felt).SetUint64(1))
+	type testSetType struct {
+		BlockID      BlockID
+		ExpectedResp *Block
+		ExpectedErr  *RPCError
+	}
+
+	testSet := map[string][]testSetType{
+		"devnet": {},
+		"mock": {
+			{
+				BlockID: BlockID{Tag: "latest"},
+				ExpectedResp: &Block{
+					BlockHeader: BlockHeader{
+						L1DAMode: L1DAModeBlob,
+						L1DataGasPrice: ResourcePrice{
+							PriceInWei: new(felt.Felt).SetUint64(1),
+							PriceInFRI: new(felt.Felt).SetUint64(1),
+						},
+						L1GasPrice: ResourcePrice{
+							PriceInWei: new(felt.Felt).SetUint64(1),
+							PriceInFRI: new(felt.Felt).SetUint64(1),
+						},
+					},
+				},
+				ExpectedErr: nil,
+			},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		block, err := testConfig.provider.BlockWithTxHashes(context.Background(), BlockID{Tag: "latest"})
+		if test.ExpectedErr != nil {
+			require.Equal(t, test.ExpectedErr, err)
+		} else {
+			blockCasted := block.(*BlockTxHashes)
+			expectdBlockHeader := test.ExpectedResp.BlockHeader
+			require.Equal(t, blockCasted.L1DAMode, expectdBlockHeader.L1DAMode)
+			require.Equal(t, blockCasted.L1DataGasPrice.PriceInWei, expectdBlockHeader.L1DataGasPrice.PriceInWei)
+			require.Equal(t, blockCasted.L1DataGasPrice.PriceInFRI, expectdBlockHeader.L1DataGasPrice.PriceInFRI)
+			require.Equal(t, blockCasted.L1GasPrice.PriceInWei, expectdBlockHeader.L1GasPrice.PriceInWei)
+			require.Equal(t, blockCasted.L1GasPrice.PriceInFRI, expectdBlockHeader.L1GasPrice.PriceInFRI)
+		}
+
+	}
 }
 func TestCookieManagement(t *testing.T) {
 	// Don't return anything unless cookie is set.
