@@ -108,9 +108,9 @@ func TestAddInvokeTransaction(t *testing.T) {
 				InvokeTx:     InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)},
 				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
 				ExpectedError: RPCError{
-					code:    ErrUnexpectedError.code,
-					message: ErrUnexpectedError.message,
-					data:    "Something crazy happened"},
+					Code:    ErrUnexpectedError.Code,
+					Message: ErrUnexpectedError.Message,
+					Data:    "Something crazy happened"},
 			},
 			{
 				InvokeTx:      InvokeTxnV1{},
