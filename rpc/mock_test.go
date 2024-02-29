@@ -1009,7 +1009,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		return json.Unmarshal(BlockTrace, &r)
 	}
 
-	return ErrInvalidBlockHash
+	return ErrBlockNotFound
 }
 
 // mock_starknet_traceTransaction is a Go function that traces a transaction in the StarkNet network.
@@ -1069,6 +1069,6 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 			Data:    "REJECTED",
 		}
 	default:
-		return ErrInvalidTxnHash
+		return ErrHashNotFound
 	}
 }

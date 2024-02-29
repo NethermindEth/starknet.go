@@ -38,7 +38,7 @@ func TestTransactionTrace(t *testing.T) {
 
 		txnTrace, err := json.Marshal(rawjson.Result)
 		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
-		err = json.Unmarshal(txnTrace, &expectedResp)
+		require.NoError(t, json.Unmarshal(txnTrace, &expectedResp))
 	}
 
 	type testSetType struct {
@@ -56,7 +56,7 @@ func TestTransactionTrace(t *testing.T) {
 			testSetType{
 				TransactionHash: utils.TestHexToFelt(t, "0xc0ffee"),
 				ExpectedResp:    nil,
-				ExpectedError:   ErrInvalidTxnHash,
+				ExpectedError:   ErrHashNotFound,
 			},
 			testSetType{
 				TransactionHash: utils.TestHexToFelt(t, "0xf00d"),
@@ -184,7 +184,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			testSetType{
 				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x0")},
 				ExpectedResp: nil,
-				ExpectedErr:  ErrInvalidBlockHash,
+				ExpectedErr:  ErrBlockNotFound,
 			}},
 	}[testEnv]
 

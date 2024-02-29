@@ -37,7 +37,7 @@ type AccountInterface interface {
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
-	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error)
+	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError)
 }
 
 var _ AccountInterface = &Account{}
@@ -525,19 +525,19 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 // It returns:
 // - *rpc.TransactionReceipt: the transaction receipt
 // - error: an error
-func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error) {
+func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, rpc.Err(rpc.InternalError, ctx.Err())
 		case <-t.C:
-			receipt, err := account.TransactionReceipt(ctx, transactionHash)
-			if err != nil {
-				if err.Error() == rpc.ErrHashNotFound.Error() {
+			receipt, rpcErr := account.TransactionReceipt(ctx, transactionHash)
+			if rpcErr != nil {
+				if rpcErr.Message == rpc.ErrHashNotFound.Message {
 					continue
 				} else {
-					return nil, err
+					return nil, rpcErr
 				}
 			}
 			return &receipt, nil

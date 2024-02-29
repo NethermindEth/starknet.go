@@ -24,6 +24,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn Br
 			ErrNonAccount,
 			ErrDuplicateTx,
 			ErrUnsupportedTxVersion,
+			ErrUnexpectedError,
 		)
 	}
 	return &output, nil

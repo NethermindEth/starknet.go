@@ -3,7 +3,6 @@ package account_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"math/big"
@@ -674,13 +673,14 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	}
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+	require.Nil(t, err)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
-	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
@@ -948,7 +948,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		Timeout                      time.Duration
 		ShouldCallTransactionReceipt bool
 		Hash                         *felt.Felt
-		ExpectedErr                  error
+		ExpectedErr                  *rpc.RPCError
 		ExpectedReceipt              rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -958,7 +958,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  errors.New("UnExpectedErr"),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, "UnExpectedErr"),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -975,7 +975,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  context.DeadlineExceeded,
+				ExpectedErr:                  rpc.Err(rpc.InternalError, context.DeadlineExceeded),
 			},
 		},
 	}[testEnv]
@@ -1031,7 +1031,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     error
+		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -1040,7 +1040,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: nil,
-				ExpectedErr:     errors.New("Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
 			},
 		},
 	}[testEnv]

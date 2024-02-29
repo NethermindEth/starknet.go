@@ -50,9 +50,8 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	if !ok {
 		return Err(InternalError, err)
 	}
-
 	for _, rpcErr := range rpcErrors {
-		if errors.Is(nodeErr, rpcErr) {
+		if nodeErr.Code == rpcErr.Code && nodeErr.Message == rpcErr.Message {
 			return nodeErr
 		}
 	}
