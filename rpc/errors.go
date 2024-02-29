@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -46,22 +47,29 @@ func Err(code int, data any) *RPCError {
 // Returns:
 // - error: the original error
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
-	nodeErr, ok := err.(*RPCError)
-	if !ok {
-		return Err(InternalError, err)
+	errBytes, errIn := json.Marshal(err)
+	if errIn != nil {
+		return Err(InternalError, errIn)
 	}
+
+	var nodeErr RPCError
+	errIn = json.Unmarshal(errBytes, &nodeErr)
+	if errIn != nil {
+		return Err(InternalError, errIn)
+	}
+
 	for _, rpcErr := range rpcErrors {
 		if nodeErr.Code == rpcErr.Code && nodeErr.Message == rpcErr.Message {
-			return nodeErr
+			return &nodeErr
 		}
 	}
 	return Err(InternalError, err)
 }
 
 type RPCError struct {
-	Code    int
-	Message string
-	Data    any
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 func (e *RPCError) Error() string {
