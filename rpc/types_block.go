@@ -158,12 +158,23 @@ type BlockHeader struct {
 	StarknetVersion string `json:"starknet_version"`
 }
 
-type L1DAMode string
+type L1DAMode int
 
 const (
-	L1DAModeBlob     L1DAMode = "BLOB"
-	L1DAModeCalldata L1DAMode = "CALLDATA"
+	L1DAModeBlob L1DAMode = iota
+	L1DAModeCalldata
 )
+
+func (mode L1DAMode) String() string {
+	switch mode {
+	case L1DAModeBlob:
+		return "BLOB"
+	case L1DAModeCalldata:
+		return "CALLDATA"
+	default:
+		return "Unknown L1DAMode"
+	}
+}
 
 type PendingBlockHeader struct {
 	// ParentHash The hash of this block's parent
