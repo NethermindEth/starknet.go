@@ -208,6 +208,16 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 				Keys: []*felt.Felt{utils.TestHexToFelt(t, "0xf806f71b19e4744968b37e3fb288e61309ab33a782ea9d11e18f67a1fbb110")},
 			},
 		},
+		ExecutionResources: ExecutionResources{
+			ComputationResources: ComputationResources{
+				Steps:          217182,
+				MemoryHoles:    6644,
+				PedersenApps:   2142,
+				RangeCheckApps: 8867,
+				BitwiseApps:    900,
+				ECDSAApps:      1,
+			},
+		},
 	})
 
 	var receiptTxnIntegration = InvokeTransactionReceipt(CommonTransactionReceipt{
@@ -240,6 +250,13 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 					utils.TestHexToFelt(t, "0x0"),
 				},
 				Keys: []*felt.Felt{utils.TestHexToFelt(t, "0xa9fa878c35cd3d0191318f89033ca3e5501a3d90e21e3cc9256bdd5cd17fdd")},
+			},
+		},
+		ExecutionResources: ExecutionResources{
+			ComputationResources: ComputationResources{
+				Steps:          615,
+				MemoryHoles:    4,
+				RangeCheckApps: 19,
 			},
 		},
 	})
@@ -365,6 +382,11 @@ func TestDeployOrDeclareReceipt(t *testing.T) {
 			Type:            "DECLARE",
 			MessagesSent:    []MsgToL1{},
 			Events:          []Event{},
+			ExecutionResources: ExecutionResources{
+				ComputationResources: ComputationResources{
+					Steps: 0,
+				},
+			},
 		})
 
 	testSet := map[string][]testSetType{
