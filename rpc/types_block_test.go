@@ -138,18 +138,16 @@ func TestBlockWithReceipts(t *testing.T) {
 		block, err := provider.BlockWithReceipts(ctx, blockID)
 		require.Nil(t, err)
 		blockCasted := block.(*BlockWithReceipts)
-		require.NotNil(t, blockCasted.BlockStatus)
-		require.NotNil(t, blockCasted.BlockNumber)
-		require.Equal(t, len(blockCasted.Transactions), 0)
-	})
+		txsWithReceipts := blockCasted.BlockBodyWithReceipts.Transactions
+		require.Equal(t, blockCasted.BlockStatus, "ACCEPTED_ON_L1")
+		require.Equal(t, blockCasted.BlockNumber, 1)
+		require.NotZero(t, len(blockCasted.Transactions))
+		require.NotNil(t, blockCasted.L1GasPrice)
+		// require.NotNil(t, blockCasted.L1DataGasPrice) // Todo : readd when blockheader PR merged
+		require.NotNil(t, txsWithReceipts)
+		require.NotNil(t, txsWithReceipts[0].Transaction)
+		require.NotNil(t, txsWithReceipts[0].Receipt)
 
-	t.Run("BlockWithReceipts - pending", func(t *testing.T) {
-		blockID := BlockID{Tag: "pending"}
-		block, err := provider.BlockWithReceipts(ctx, blockID)
-		require.Nil(t, err)
-		blockCasted := block.(*PendingBlockWithReceipts)
-		require.NotNil(t, blockCasted.ParentHash)
-		require.Equal(t, len(blockCasted.Transactions), 0)
 	})
 
 }

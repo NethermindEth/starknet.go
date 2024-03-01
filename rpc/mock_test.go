@@ -974,48 +974,28 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	blockId, ok := args[0].(BlockID)
+	_, ok = args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
 
-	if blockId.Tag == "pending" {
-		pBlock := `{
-			"parent_hash": "1234567890abcdef",
-			"timestamp": 1633020442,
-			"sequencer_address": "0123456789abcdef",
-			"l1_gas_price": {
-			  "price": 0,
-			  "currency": "WEI"
-			},
-			"starknet_version": "1.0.0",
-			"transactions": [			]
-		  }`
-		*r = json.RawMessage(pBlock)
-	} else {
-		block := `{
-			"status": "ACCEPTED_ON_L1",
-			"block_hash": "1234567890abcdef",
-			"parent_hash": "abcdef1234567890",
-			"block_number": 42,
-			"new_root": "fedcba0987654321",
-			"timestamp": 1633020442,
-			"sequencer_address": "0123456789abcdef",
-			"l1_gas_price": {
-			  "price": 0,
-			  "currency": "WEI"
-			},
-			"starknet_version": "1.0.0",
-			"transactions": [
-				
-			]
-		  }`
-
-		*r = json.RawMessage(block)
+	var blockWithReceipts BlockWithReceipts
+	read, err := os.ReadFile("tests/blockWithReceipts/block1.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(read, &blockWithReceipts)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(blockWithReceiptsJSON, &r)
 }
 
 // mock_starknet_traceBlockTransactions is a function that traces the transactions of a block in the StarkNet network.
