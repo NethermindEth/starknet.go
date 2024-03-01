@@ -414,9 +414,9 @@ type ExecutionResources struct {
 
 type DataAvailability struct {
 	// the gas consumed by this transaction's data, 0 if it uses data gas for DA
-	L1Gas int `json:"l1_gas"`
+	L1Gas uint `json:"l1_gas"`
 	// the data gas consumed by this transaction's data, 0 if it uses gas for DA
-	L1DataGas int `json:"l1_data_gas"`
+	L1DataGas uint `json:"l1_data_gas"`
 }
 
 // Hash returns the transaction hash of the PendingCommonTransactionReceiptProperties.
