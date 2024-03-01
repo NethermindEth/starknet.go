@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -37,12 +37,12 @@ var (
 func main() {
 	// Initialise the client.
 	godotenv.Load(fmt.Sprintf(".env.%s", network))
-	base := os.Getenv("INTEGRATION_BASE")
-	c, err := ethrpc.DialContext(context.Background(), base)
+	url := os.Getenv("INTEGRATION_BASE")
+
+	clientv02, err := rpc.NewProvider(url)
 	if err != nil {
-		panic("You need to specify the testnet url in .env.testnet")
+		log.Fatal(fmt.Sprintf("Error dialing the RPC provider: %s", err))
 	}
-	clientv02 := rpc.NewProvider(c)
 
 	// Get random keys for test purposes
 	ks, pub, _ := account.GetRandomKeys()

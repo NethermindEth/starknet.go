@@ -188,13 +188,19 @@ type TxDetails struct {
 }
 
 type FeeEstimate struct {
-	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
+	// The Ethereum gas consumption of the transaction
 	GasConsumed *felt.Felt `json:"gas_consumed"`
 
-	// The gas price (in gwei or fri, depending on the tx version) that was used in the cost estimation
+	// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
 	GasPrice *felt.Felt `json:"gas_price"`
 
-	// The estimated fee for the transaction (in gwei or fri, depending on the tx version), product of gas_consumed and gas_price
+	// The Ethereum data gas consumption of the transaction.
+	DataGasConsumed *felt.Felt `json:"data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	DataGasPrice *felt.Felt `json:"data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 
 	// Units in which the fee is given

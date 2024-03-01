@@ -69,11 +69,17 @@ type InvokeTxnV3 struct {
 type L1HandlerTxn struct {
 	Type TransactionType `json:"type,omitempty"`
 	// Version of the transaction scheme
-	Version *felt.Felt `json:"version"`
+	Version L1HandlerTxnVersion `json:"version"`
 	// Nonce
 	Nonce string `json:"nonce,omitempty"`
 	FunctionCall
 }
+
+type L1HandlerTxnVersion string
+
+const (
+	L1HandlerTxnVersionV0 L1HandlerTxnVersion = "0x0"
+)
 
 type DeclareTxnV0 struct {
 	Type TransactionType `json:"type"`
