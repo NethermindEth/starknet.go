@@ -5,8 +5,8 @@ import "context"
 // SpecVersion returns the version of the Starknet JSON-RPC specification being used
 // Parameters: None
 // Returns: String of the Starknet JSON-RPC specification
-func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
+func (provider *Provider) SpecVersion(ctx context.Context) (string, *RPCError) {
 	var result string
 	err := do(ctx, provider.c, "starknet_specVersion", &result)
-	return result, err
+	return result, Err(InternalError, err)
 }

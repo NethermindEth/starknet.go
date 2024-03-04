@@ -20,7 +20,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -37,7 +38,7 @@ func TestTransactionTrace(t *testing.T) {
 
 		txnTrace, err := json.Marshal(rawjson.Result)
 		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
-		err = json.Unmarshal(txnTrace, &expectedResp)
+		require.NoError(t, json.Unmarshal(txnTrace, &expectedResp))
 	}
 
 	type testSetType struct {
@@ -55,15 +56,15 @@ func TestTransactionTrace(t *testing.T) {
 			testSetType{
 				TransactionHash: utils.TestHexToFelt(t, "0xc0ffee"),
 				ExpectedResp:    nil,
-				ExpectedError:   ErrInvalidTxnHash,
+				ExpectedError:   ErrHashNotFound,
 			},
 			testSetType{
 				TransactionHash: utils.TestHexToFelt(t, "0xf00d"),
 				ExpectedResp:    nil,
 				ExpectedError: &RPCError{
-					code:    10,
-					message: "No trace available for transaction",
-					data:    "REJECTED",
+					Code:    10,
+					Message: "No trace available for transaction",
+					Data:    "REJECTED",
 				},
 			},
 		},
@@ -91,7 +92,8 @@ func TestTransactionTrace(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -147,7 +149,8 @@ func TestSimulateTransaction(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -181,7 +184,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			testSetType{
 				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x0")},
 				ExpectedResp: nil,
-				ExpectedErr:  ErrInvalidBlockHash,
+				ExpectedErr:  ErrBlockNotFound,
 			}},
 	}[testEnv]
 

@@ -686,7 +686,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
-				unexpErr.data = "Something crazy happened"
+				unexpErr.Data = "Something crazy happened"
 				return &unexpErr
 			}
 		}
@@ -925,7 +925,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		return err
 	}
 
-	if blockId.Tag == "latest" {
+	if blockId.Tag == "pending" {
 		pBlock, err := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
@@ -946,15 +946,26 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		if err != nil {
 			return err
 		}
-		block, err := json.Marshal(BlockTxHashes{
-			BlockHeader: BlockHeader{
-				BlockHash:        blockHash,
-				ParentHash:       &felt.Zero,
-				Timestamp:        124,
-				SequencerAddress: &felt.Zero},
-			Status:       BlockStatus_AcceptedOnL1,
-			Transactions: txHashes,
-		})
+		block, err := json.Marshal(
+			BlockTxHashes{
+				BlockHeader: BlockHeader{
+					BlockHash:        blockHash,
+					ParentHash:       &felt.Zero,
+					Timestamp:        124,
+					SequencerAddress: &felt.Zero,
+					L1DAMode:         L1DAModeBlob,
+					L1GasPrice: ResourcePrice{
+						PriceInWei: new(felt.Felt).SetUint64(1),
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+					},
+					L1DataGasPrice: ResourcePrice{
+						PriceInWei: new(felt.Felt).SetUint64(1),
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+					},
+				},
+				Status:       BlockStatus_AcceptedOnL1,
+				Transactions: txHashes,
+			})
 		if err != nil {
 			return err
 		}
@@ -1009,7 +1020,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		return json.Unmarshal(BlockTrace, &r)
 	}
 
-	return ErrInvalidBlockHash
+	return ErrBlockNotFound
 }
 
 // mock_starknet_traceTransaction is a Go function that traces a transaction in the StarkNet network.
@@ -1064,11 +1075,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return json.Unmarshal(txnTrace, &r)
 	case "0xf00d":
 		return &RPCError{
-			code:    10,
-			message: "No trace available for transaction",
-			data:    "REJECTED",
+			Code:    10,
+			Message: "No trace available for transaction",
+			Data:    "REJECTED",
 		}
 	default:
-		return ErrInvalidTxnHash
+		return ErrHashNotFound
 	}
 }
