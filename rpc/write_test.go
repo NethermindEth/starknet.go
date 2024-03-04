@@ -98,7 +98,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	type testSetType struct {
 		InvokeTx      BroadcastInvokeTxnType
 		ExpectedResp  AddInvokeTransactionResponse
-		ExpectedError RPCError
+		ExpectedError *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
@@ -107,15 +107,15 @@ func TestAddInvokeTransaction(t *testing.T) {
 			{
 				InvokeTx:     InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)},
 				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
-				ExpectedError: RPCError{
-					code:    ErrUnexpectedError.code,
-					message: ErrUnexpectedError.message,
-					data:    "Something crazy happened"},
+				ExpectedError: &RPCError{
+					Code:    ErrUnexpectedError.Code,
+					Message: ErrUnexpectedError.Message,
+					Data:    "Something crazy happened"},
 			},
 			{
 				InvokeTx:      InvokeTxnV1{},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
-				ExpectedError: RPCError{},
+				ExpectedError: nil,
 			},
 			{
 				InvokeTx: InvokeTxnV3{
@@ -161,7 +161,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 					AccountDeploymentData: []*felt.Felt{},
 				},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")},
-				ExpectedError: RPCError{},
+				ExpectedError: nil,
 			},
 		},
 		"testnet": {},
@@ -169,8 +169,9 @@ func TestAddInvokeTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
-		if err != nil {
-			require.Equal(t, err, &test.ExpectedError, "AddInvokeTransaction did not give expected error")
+		if test.ExpectedError != nil {
+			require.Equal(t, test.ExpectedError, err)
+			require.NotNil(t, err.Data)
 		} else {
 			require.Equal(t, *resp, test.ExpectedResp)
 		}

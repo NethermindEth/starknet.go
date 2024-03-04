@@ -22,7 +22,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestBlockID_Marshal(t *testing.T) {
 	blockNumber := uint64(420)
 	for _, tc := range []struct {
@@ -78,7 +79,8 @@ func TestBlockID_Marshal(t *testing.T) {
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
 // Returns:
-//  none
+//
+//	none
 func TestBlockStatus(t *testing.T) {
 	for _, tc := range []struct {
 		status string
@@ -115,7 +117,8 @@ var rawBlock []byte
 // Parameters:
 // - t: the testing object for running the test
 // Returns:
-//  none
+//
+//	none
 func TestBlock_Unmarshal(t *testing.T) {
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {
