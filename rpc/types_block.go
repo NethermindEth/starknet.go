@@ -172,8 +172,30 @@ type BlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
+}
+
+type L1DAMode int
+
+const (
+	L1DAModeBlob L1DAMode = iota
+	L1DAModeCalldata
+)
+
+func (mode L1DAMode) String() string {
+	switch mode {
+	case L1DAModeBlob:
+		return "BLOB"
+	case L1DAModeCalldata:
+		return "CALLDATA"
+	default:
+		return "Unknown L1DAMode"
+	}
 }
 
 type PendingBlockHeader struct {

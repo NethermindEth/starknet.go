@@ -3,7 +3,6 @@ package account_test
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"math/big"
@@ -368,11 +367,10 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base + "/rpc")
+		client, err := rpc.NewProvider(base + "/rpc")
 		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
 
-		account, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		account, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, account.ChainId.String(), test.ExpectedID)
 	}
@@ -592,9 +590,8 @@ func TestAddInvoke(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewClient(base)
+		client, err := rpc.NewProvider(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		provider := rpc.NewProvider(client)
 
 		// Set up ks
 		ks := account.NewMemKeystore()
@@ -604,7 +601,7 @@ func TestAddInvoke(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(provider, test.AccountAddress, test.PubKey.String(), ks, 0)
+		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 0)
 		require.NoError(t, err)
 
 		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
@@ -643,9 +640,8 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewClient(base + "/rpc")
+	client, err := rpc.NewProvider(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
 	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
@@ -659,7 +655,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, fakeUser.PublicKey, ks, 0)
+	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
 	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
@@ -677,13 +673,14 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	}
 
 	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+	require.Nil(t, err)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
 	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
-	require.NoError(t, err, "AddDeployAccountTransaction gave an Error")
+	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
@@ -951,7 +948,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		Timeout                      time.Duration
 		ShouldCallTransactionReceipt bool
 		Hash                         *felt.Felt
-		ExpectedErr                  error
+		ExpectedErr                  *rpc.RPCError
 		ExpectedReceipt              rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -961,7 +958,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  errors.New("UnExpectedErr"),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, "UnExpectedErr"),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -978,7 +975,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  context.DeadlineExceeded,
+				ExpectedErr:                  rpc.Err(rpc.InternalError, context.DeadlineExceeded),
 			},
 		},
 	}[testEnv]
@@ -1025,17 +1022,16 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewClient(base + "/rpc")
+	client, err := rpc.NewProvider(base + "/rpc")
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     error
+		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -1044,7 +1040,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: nil,
-				ExpectedErr:     errors.New("Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
 			},
 		},
 	}[testEnv]
@@ -1091,11 +1087,10 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewClient(base)
+	client, err := rpc.NewProvider(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
-	provider := rpc.NewProvider(client)
 
-	acnt, err := account.NewAccount(provider, AccountAddress, PubKey.String(), ks, 0)
+	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
 	require.NoError(t, err)
 
 	// Class Hash

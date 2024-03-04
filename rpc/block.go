@@ -15,13 +15,13 @@ import (
 // Returns:
 // - uint64: The block number
 // - error: An error if any
-func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
+func (provider *Provider) BlockNumber(ctx context.Context) (uint64, *RPCError) {
 	var blockNumber uint64
 	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
-		return 0, err
+		return 0, Err(InternalError, err)
 	}
 	return blockNumber, nil
 }
@@ -33,7 +33,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // Returns:
 // - *BlockHashAndNumberOutput: The hash and number of the current block
 // - error: An error if any
-func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
+func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, *RPCError) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
@@ -86,7 +86,7 @@ func WithBlockTag(tag string) BlockID {
 // Returns:
 // - interface{}: The retrieved block
 // - error: An error, if any
-func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -115,7 +115,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // Returns:
 // - *StateUpdateOutput: The retrieved state update
 // - error: An error, if any
-func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
+func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, *RPCError) {
 	var state StateUpdateOutput
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -131,13 +131,13 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 // Returns:
 // - uint64: The number of transactions in the block
 // - error: An error, if any
-func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
+func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, *RPCError) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrBlockNotFound
 		}
-		return 0, err
+		return 0, Err(InternalError, err)
 	}
 	return result, nil
 }
@@ -150,7 +150,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // Returns:
 // - interface{}: The retrieved block
 // - error: An error, if any
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -169,7 +169,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 }
 
 // Get block information with full transactions and receipts given the block id
-func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
 	var result json.RawMessage
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -185,7 +185,7 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 	var pendingBlock PendingBlockWithReceipts
 	err = json.Unmarshal(result, &pendingBlock)
 	if err != nil {
-		return nil, err
+		return nil, Err(InternalError, err)
 	}
 
 	return &pendingBlock, nil
