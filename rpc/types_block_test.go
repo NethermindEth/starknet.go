@@ -133,21 +133,42 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	ctx := context.Background()
 
-	t.Run("BlockWithReceipts - block", func(t *testing.T) {
-		blockID := BlockID{Tag: "greatest block"}
-		block, err := provider.BlockWithReceipts(ctx, blockID)
-		require.Nil(t, err)
-		blockCasted := block.(*BlockWithReceipts)
-		txsWithReceipts := blockCasted.BlockBodyWithReceipts.Transactions
-		require.Equal(t, blockCasted.BlockStatus, "ACCEPTED_ON_L1")
-		require.Equal(t, blockCasted.BlockNumber, 1)
-		require.NotZero(t, len(blockCasted.Transactions))
-		require.NotNil(t, blockCasted.L1GasPrice)
-		// require.NotNil(t, blockCasted.L1DataGasPrice) // Todo : readd when blockheader PR merged
-		require.NotNil(t, txsWithReceipts)
-		require.NotNil(t, txsWithReceipts[0].Transaction)
-		require.NotNil(t, txsWithReceipts[0].Receipt)
+	type testSetType struct {
+		BlockID       BlockID
+		ExpectedBlock Block
+		ExpectedErr   *RPCError
+	}
 
-	})
+	testSet := map[string][]testSetType{
+		"mock": {testSetType{
+			BlockID: BlockID{Tag: "greatest block"},
+			ExpectedBlock: Block{
+				Status: BlockStatus_AcceptedOnL1,
+				BlockHeader: BlockHeader{
+					BlockNumber: 1,
+				},
+			},
+			ExpectedErr: nil,
+		},
+		},
+	}[testEnv]
 
+	for _, test := range testSet {
+		t.Run("BlockWithReceipts - block", func(t *testing.T) {
+
+			block, err := provider.BlockWithReceipts(ctx, test.BlockID)
+			require.Nil(t, err)
+			blockCasted := block.(*BlockWithReceipts)
+			txsWithReceipts := blockCasted.BlockBodyWithReceipts.Transactions
+			require.Equal(t, blockCasted.BlockStatus, test.ExpectedBlock.Status)
+			require.Equal(t, blockCasted.BlockNumber, test.ExpectedBlock.BlockNumber)
+			require.NotZero(t, len(blockCasted.Transactions))
+			require.NotNil(t, blockCasted.L1GasPrice)
+			// require.NotNil(t, blockCasted.L1DataGasPrice) // Todo : readd when blockheader PR merged
+			require.NotNil(t, txsWithReceipts)
+			require.NotNil(t, txsWithReceipts[0].Transaction)
+			require.NotNil(t, txsWithReceipts[0].Receipt)
+
+		})
+	}
 }

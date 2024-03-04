@@ -993,9 +993,11 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 
 	var blockWithReceipts BlockWithReceipts
 	read, err := os.ReadFile("tests/blockWithReceipts/block1.json")
+
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal(read, &blockWithReceipts)
 	if err != nil {
 		return err
