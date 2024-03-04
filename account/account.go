@@ -37,7 +37,7 @@ type AccountInterface interface {
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
-	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error)
+	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError)
 }
 
 var _ AccountInterface = &Account{}
@@ -525,19 +525,19 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 // It returns:
 // - *rpc.TransactionReceipt: the transaction receipt
 // - error: an error
-func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error) {
+func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, rpc.Err(rpc.InternalError, ctx.Err())
 		case <-t.C:
-			receipt, err := account.TransactionReceipt(ctx, transactionHash)
-			if err != nil {
-				if err.Error() == rpc.ErrHashNotFound.Error() {
+			receipt, rpcErr := account.TransactionReceipt(ctx, transactionHash)
+			if rpcErr != nil {
+				if rpcErr.Message == rpc.ErrHashNotFound.Message {
 					continue
 				} else {
-					return nil, err
+					return nil, rpcErr
 				}
 			}
 			return &receipt, nil
@@ -553,7 +553,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, *rpc.RPCError) {
 	return account.provider.AddInvokeTransaction(ctx, invokeTx)
 }
 
@@ -565,7 +565,7 @@ func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.B
 // Returns:
 // - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
 // - error: an error, if any
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
+func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, *rpc.RPCError) {
 	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
 }
 
@@ -577,7 +577,7 @@ func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransa
 // Returns:
 // - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
 // - error: an error if any
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, *rpc.RPCError) {
 	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
 }
 
@@ -588,7 +588,7 @@ func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployA
 // Returns:
 // - rpc.BlockHashAndNumberOutput: the block hash and number as an rpc.BlockHashAndNumberOutput object.
 // - error: an error if there was an issue retrieving the block hash and number.
-func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashAndNumberOutput, error) {
+func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashAndNumberOutput, *rpc.RPCError) {
 	return account.provider.BlockHashAndNumber(ctx)
 }
 
@@ -599,7 +599,7 @@ func (account *Account) BlockHashAndNumber(ctx context.Context) (*rpc.BlockHashA
 // Returns:
 // - uint64: the block number as a uint64
 // - error: an error encountered
-func (account *Account) BlockNumber(ctx context.Context) (uint64, error) {
+func (account *Account) BlockNumber(ctx context.Context) (uint64, *rpc.RPCError) {
 	return account.provider.BlockNumber(ctx)
 }
 
@@ -611,7 +611,7 @@ func (account *Account) BlockNumber(ctx context.Context) (uint64, error) {
 // Returns:
 // - uint64: the number of transactions in the block
 //   - error: an error, if any
-func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.BlockID) (uint64, error) {
+func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.BlockID) (uint64, *rpc.RPCError) {
 	return account.provider.BlockTransactionCount(ctx, blockID)
 }
 
@@ -623,7 +623,7 @@ func (account *Account) BlockTransactionCount(ctx context.Context, blockID rpc.B
 // Returns:
 // - interface{}: an interface{} representing the retrieved block
 // - error: an error if there was any issue retrieving the block
-func (account *Account) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
+func (account *Account) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (interface{}, *rpc.RPCError) {
 	return account.provider.BlockWithTxHashes(ctx, blockID)
 }
 
@@ -635,7 +635,7 @@ func (account *Account) BlockWithTxHashes(ctx context.Context, blockID rpc.Block
 // Returns:
 // - interface{}: An interface{}
 // - error: An error
-func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (interface{}, error) {
+func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (interface{}, *rpc.RPCError) {
 	return account.provider.BlockWithTxs(ctx, blockID)
 }
 
@@ -648,7 +648,7 @@ func (account *Account) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (
 // Returns:
 // - []*felt.Felt: a slice of *felt.Felt
 // - error: an error object.
-func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, error) {
+func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId rpc.BlockID) ([]*felt.Felt, *rpc.RPCError) {
 	return account.provider.Call(ctx, call, blockId)
 }
 
@@ -659,7 +659,7 @@ func (account *Account) Call(ctx context.Context, call rpc.FunctionCall, blockId
 // Returns:
 //   - string: the chain ID.
 //   - error: any error encountered while retrieving the chain ID.
-func (account *Account) ChainID(ctx context.Context) (string, error) {
+func (account *Account) ChainID(ctx context.Context) (string, *rpc.RPCError) {
 	return account.provider.ChainID(ctx)
 }
 
@@ -673,7 +673,7 @@ func (account *Account) ChainID(ctx context.Context) (string, error) {
 //   - *rpc.ClassOutput: The rpc.ClassOutput (the class output could be a DeprecatedContractClass
 //     or just a Contract class depending on the contract version)
 //   - error: An error if any occurred.
-func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash *felt.Felt) (rpc.ClassOutput, error) {
+func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHash *felt.Felt) (rpc.ClassOutput, *rpc.RPCError) {
 	return account.provider.Class(ctx, blockID, classHash)
 }
 
@@ -686,7 +686,7 @@ func (account *Account) Class(ctx context.Context, blockID rpc.BlockID, classHas
 //   - *rpc.ClassOutput: The rpc.ClassOutput object (the class output could be a DeprecatedContractClass
 //     or just a Contract class depending on the contract version)
 //   - error: An error if any occurred.
-func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (rpc.ClassOutput, error) {
+func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (rpc.ClassOutput, *rpc.RPCError) {
 	return account.provider.ClassAt(ctx, blockID, contractAddress)
 }
 
@@ -699,7 +699,7 @@ func (account *Account) ClassAt(ctx context.Context, blockID rpc.BlockID, contra
 // Returns:
 // - *felt.Felt: the class hash as a *felt.Felt
 // - error: an error if any occurred.
-func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, *rpc.RPCError) {
 	return account.provider.ClassHashAt(ctx, blockID, contractAddress)
 }
 
@@ -712,7 +712,7 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 // Returns:
 // - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, *rpc.RPCError) {
 	return account.provider.EstimateFee(ctx, requests, simulationFlags, blockID)
 }
 
@@ -725,7 +725,7 @@ func (account *Account) EstimateFee(ctx context.Context, requests []rpc.Broadcas
 // Returns:
 // - *rpc.FeeEstimate: a pointer to rpc.FeeEstimate
 // - error: an error if any.
-func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
+func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, *rpc.RPCError) {
 	return account.provider.EstimateMessageFee(ctx, msg, blockID)
 }
 
@@ -737,7 +737,7 @@ func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL
 // Returns:
 // - *rpc.EventChunk: the chunk of events retrieved.
 // - error: an error if the retrieval fails.
-func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventChunk, error) {
+func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc.EventChunk, *rpc.RPCError) {
 	return account.provider.Events(ctx, input)
 }
 
@@ -750,7 +750,7 @@ func (account *Account) Events(ctx context.Context, input rpc.EventsInput) (*rpc
 // Returns:
 // - *felt.Felt: the contract's nonce at the requested state
 // - error: an error if any
-func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contractAddress *felt.Felt) (*felt.Felt, *rpc.RPCError) {
 	return account.provider.Nonce(ctx, blockID, contractAddress)
 }
 
@@ -763,7 +763,7 @@ func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contract
 // Returns:
 // - []rpc.SimulatedTransaction: a list of simulated transactions
 // - error: an error, if any.
-func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, *rpc.RPCError) {
 	return account.provider.SimulateTransactions(ctx, blockID, txns, simulationFlags)
 }
 
@@ -777,7 +777,7 @@ func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.Bl
 // Returns:
 // - string: The storage value at the given key.
 // - error: An error if the retrieval fails.
-func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpc.BlockID) (string, error) {
+func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpc.BlockID) (string, *rpc.RPCError) {
 	return account.provider.StorageAt(ctx, contractAddress, key, blockID)
 }
 
@@ -789,7 +789,7 @@ func (account *Account) StorageAt(ctx context.Context, contractAddress *felt.Fel
 // Returns:
 // - *rpc.StateUpdateOutput: a *rpc.StateUpdateOutput
 // - error: an error
-func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, error) {
+func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*rpc.StateUpdateOutput, *rpc.RPCError) {
 	return account.provider.StateUpdate(ctx, blockID)
 }
 
@@ -801,7 +801,7 @@ func (account *Account) StateUpdate(ctx context.Context, blockID rpc.BlockID) (*
 // Returns:
 // - string: The spec version
 // - error: An error if any
-func (account *Account) SpecVersion(ctx context.Context) (string, error) {
+func (account *Account) SpecVersion(ctx context.Context) (string, *rpc.RPCError) {
 	return account.provider.SpecVersion(ctx)
 }
 
@@ -812,7 +812,7 @@ func (account *Account) SpecVersion(ctx context.Context) (string, error) {
 // Returns:
 // - *rpc.SyncStatus: *rpc.SyncStatus
 // - error: an error.
-func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
+func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, *rpc.RPCError) {
 	return account.provider.Syncing(ctx)
 }
 
@@ -824,7 +824,7 @@ func (account *Account) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
 // Returns
 // - []rpc.Trace: The list of trace transactions for the given block.
 // - error: An error if there was a problem retrieving the trace transactions.
-func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, *rpc.RPCError) {
 	return account.provider.TraceBlockTransactions(ctx, blockID)
 }
 
@@ -835,7 +835,7 @@ func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.
 // - transactionHash: The hash of the transaction.
 // Returns:
 // - rpc.Transactiontype: rpc.TransactionReceipt, error.
-func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, error) {
+func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, *rpc.RPCError) {
 	return account.provider.TransactionReceipt(ctx, transactionHash)
 }
 
@@ -846,7 +846,7 @@ func (account *Account) TransactionReceipt(ctx context.Context, transactionHash 
 // - transactionHash: The transaction hash for which the transaction trace is to be retrieved.
 // Returns:
 // - rpc.TxnTrace: The rpc.TxnTrace object representing the transaction trace, and an error if any.
-func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, error) {
+func (account *Account) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (rpc.TxnTrace, *rpc.RPCError) {
 	return account.provider.TraceTransaction(ctx, transactionHash)
 }
 
@@ -858,7 +858,7 @@ func (account *Account) TraceTransaction(ctx context.Context, transactionHash *f
 // - index: The index of the transaction in the block.
 // Returns:
 // - rpc.Transaction: The transaction and an error, if any.
-func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, *rpc.RPCError) {
 	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
 }
 
@@ -870,7 +870,7 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 // Returns:
 // - rpc.Transaction
 // - error
-func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, *rpc.RPCError) {
 	return account.provider.TransactionByHash(ctx, hash)
 }
 
@@ -882,7 +882,7 @@ func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) 
 // Returns:
 // - *rpc.TxnStatusResp: the transaction status
 // - error: anerror if any
-func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, error) {
+func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.Felt) (*rpc.TxnStatusResp, *rpc.RPCError) {
 	return account.provider.GetTransactionStatus(ctx, Txnhash)
 }
 
