@@ -949,7 +949,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		ShouldCallTransactionReceipt bool
 		Hash                         *felt.Felt
 		ExpectedErr                  *rpc.RPCError
-		ExpectedReceipt              rpc.TransactionReceipt
+		ExpectedReceipt              *rpc.TransactionReceiptWithBlockInfo
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -964,10 +964,13 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Timeout:                      time.Duration(1000),
 				Hash:                         new(felt.Felt).SetUint64(2),
 				ShouldCallTransactionReceipt: true,
-				ExpectedReceipt: rpc.InvokeTransactionReceipt{
-					TransactionHash: new(felt.Felt).SetUint64(2),
-					ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
+				ExpectedReceipt: &rpc.TransactionReceiptWithBlockInfo{
+					TransactionReceipt: rpc.InvokeTransactionReceipt{
+						TransactionHash: new(felt.Felt).SetUint64(2),
+						ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
+					},
 				},
+
 				ExpectedErr: nil,
 			},
 			{
@@ -991,7 +994,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr, err)
 		} else {
-			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (resp.TransactionReceipt).GetExecutionStatus())
 		}
 
 	}
