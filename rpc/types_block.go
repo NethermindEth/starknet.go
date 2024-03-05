@@ -135,7 +135,7 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction Transaction        `json:"transaction,omitempty"`
+	Transaction Transaction        `json:"transaction"`
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
