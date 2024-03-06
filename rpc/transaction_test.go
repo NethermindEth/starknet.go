@@ -350,73 +350,59 @@ func TestTransactionReceipt_MatchesStatus(t *testing.T) {
 	}
 }
 
-// TestDeployOrDeclareReceipt is a test function that verifies the functionality of the DeployOrDeclareReceipt method.
-//
-// It tests the behavior of the DeployOrDeclareReceipt method by creating a test configuration, defining a test set,
-// and executing the test set for the specified test environment. It makes assertions to ensure that the expected
-// transaction receipt matches the actual transaction receipt returned by the method.
-//
-// The function takes no parameters and does not return any values.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestDeployOrDeclareReceipt(t *testing.T) {
+func TestInvokReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
 		TxnHash            *felt.Felt
-		ExpectedTxnReceipt TransactionReceipt
+		ExpectedTxnReceipt InvokeTransactionReceipt
 	}
 
-	var receiptTxn300114_3 = DeclareTransactionReceipt(
+	var receiptTxn332275 = InvokeTransactionReceipt(
 		CommonTransactionReceipt{
-			TransactionHash: utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-			ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x0"), Unit: UnitWei},
-			FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+			TransactionHash: utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
+			ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x30df144f446a59"), Unit: UnitStrk},
+			FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-			BlockHash:       utils.TestHexToFelt(t, "0x184268bfbce24766fa53b65c9c8b30b295e145e8281d543a015b46308e27fdf"),
-			BlockNumber:     300114,
-			Type:            "DECLARE",
+			BlockHash:       utils.TestHexToFelt(t, "0x76c781a6a9d7f4a75205cd282fadf63f0c41d5c585a6cc384a7e726ac483316"),
+			BlockNumber:     332275,
+			Type:            TransactionType_Invoke,
 			MessagesSent:    []MsgToL1{},
 			Events:          []Event{},
 			ExecutionResources: ExecutionResources{
 				ComputationResources: ComputationResources{
-					Steps: 0,
+					Steps:          7754,
+					PedersenApps:   20,
+					RangeCheckApps: 185,
+					ECOPApps:       3,
+				},
+				DataAvailability: DataAvailability{
+					L1Gas:     0,
+					L1DataGas: 384,
 				},
 			},
 		})
 
 	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
+		"mock": {
 			{
-				TxnHash:            utils.TestHexToFelt(t, "0x46a9f52a96b2d226407929e04cb02507e531f7c78b9196fc8c910351d8c33f3"),
-				ExpectedTxnReceipt: receiptTxn300114_3,
+				TxnHash:            utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
+				ExpectedTxnReceipt: receiptTxn332275,
 			},
 		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if txReceiptInterface == nil {
-			t.Fatal("transaction receipt should exist")
-		}
-		txnDeclareReceipt, ok := txReceiptInterface.(DeclareTransactionReceipt)
-		if !ok {
-			t.Fatalf("transaction receipt should be Deploy or Declare, instead %T", txReceiptInterface)
-		}
-		if !cmp.Equal(test.ExpectedTxnReceipt, txnDeclareReceipt) {
-			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnDeclareReceipt))
-		}
+		txReceipt, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
+
+		require.Nil(t, err)
+		require.Equal(t, txReceipt.Hash(), test.ExpectedTxnReceipt.Hash())
+		require.Equal(t, txReceipt.GetExecutionStatus(), test.ExpectedTxnReceipt.GetExecutionStatus())
+		txReceiptInvoke, ok := txReceipt.(InvokeTransactionReceipt)
+		require.True(t, ok)
+		require.Equal(t, txReceiptInvoke.ActualFee, test.ExpectedTxnReceipt.ActualFee)
+		require.Equal(t, txReceiptInvoke.ExecutionResources, test.ExpectedTxnReceipt.ExecutionResources)
 
 	}
 }

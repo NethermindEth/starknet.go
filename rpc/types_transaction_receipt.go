@@ -408,8 +408,8 @@ func (er *ComputationResources) Validate() bool {
 
 // The resources consumed by the transaction, includes both computation and data.
 type ExecutionResources struct {
-	ComputationResources ComputationResources `json:"computation_resources"`
-	DataAvailability     DataAvailability     `json:"data_availability"`
+	ComputationResources
+	DataAvailability `json:"data_availability"`
 }
 
 type DataAvailability struct {

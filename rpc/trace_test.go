@@ -20,7 +20,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -91,7 +92,8 @@ func TestTransactionTrace(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -147,7 +149,8 @@ func TestSimulateTransaction(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//   none
+//
+//	none
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 
