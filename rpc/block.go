@@ -174,7 +174,6 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
-
 	var block BlockWithReceipts
 	err := json.Unmarshal(result, &block)
 	if err == nil && block.BlockStatus != "" {
@@ -185,7 +184,7 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 	var pendingBlock PendingBlockWithReceipts
 	err = json.Unmarshal(result, &pendingBlock)
 	if err != nil {
-		return nil, Err(InternalError, err)
+		return nil, Err(InternalError, err.Error())
 	}
 
 	return &pendingBlock, nil

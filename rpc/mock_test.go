@@ -991,8 +991,10 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	var blockWithReceipts BlockWithReceipts
-	read, err := os.ReadFile("tests/blockWithReceipts/block1.json")
+	var blockWithReceipts struct {
+		Result BlockWithReceipts `json:"result"`
+	}
+	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
 
 	if err != nil {
 		return err
@@ -1003,7 +1005,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 		return err
 	}
 
-	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts)
+	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts.Result)
 	if err != nil {
 		return err
 	}

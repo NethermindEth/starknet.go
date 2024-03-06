@@ -475,6 +475,19 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// BlockWithReceipts wrap receipts in the TransactionReceipt field.
+	if dec["TransactionReceipt"] != nil {
+		var decInner map[string]interface{}
+		recInner, err := json.Marshal(dec["TransactionReceipt"])
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(recInner, &decInner); err != nil {
+			return err
+		}
+		dec = decInner
+	}
+
 	t, err := unmarshalTransactionReceipt(dec)
 	if err != nil {
 		return err

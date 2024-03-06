@@ -143,9 +143,9 @@ func TestBlockWithReceipts(t *testing.T) {
 		"mock": {testSetType{
 			BlockID: BlockID{Tag: "greatest block"},
 			ExpectedBlock: Block{
-				Status: BlockStatus_AcceptedOnL1,
+				Status: BlockStatus_AcceptedOnL2,
 				BlockHeader: BlockHeader{
-					BlockNumber: 1,
+					BlockNumber: 332275,
 				},
 			},
 			ExpectedErr: nil,
@@ -164,7 +164,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			require.Equal(t, blockCasted.BlockNumber, test.ExpectedBlock.BlockNumber)
 			require.NotZero(t, len(blockCasted.Transactions))
 			require.NotNil(t, blockCasted.L1GasPrice)
-			// require.NotNil(t, blockCasted.L1DataGasPrice) // Todo : readd when blockheader PR merged
+			require.NotNil(t, blockCasted.L1DataGasPrice)
 			require.NotNil(t, txsWithReceipts)
 			require.NotNil(t, txsWithReceipts[0].Transaction)
 			require.NotNil(t, txsWithReceipts[0].Receipt)
