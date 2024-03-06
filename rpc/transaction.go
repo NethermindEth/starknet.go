@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -22,10 +21,10 @@ var (
 // Returns:
 // - Transaction: a Transaction
 // - error: an error if the adaptation failed.
-func adaptTransaction(t TXN) (Transaction, error) {
+func adaptTransaction(t TXN) (Transaction, *RPCError) {
 	txMarshalled, err := json.Marshal(t)
 	if err != nil {
-		return nil, err
+		return nil, Err(InternalError, err)
 	}
 	switch t.Type {
 	case TransactionType_Invoke:
@@ -60,7 +59,7 @@ func adaptTransaction(t TXN) (Transaction, error) {
 		json.Unmarshal(txMarshalled, &tx)
 		return tx, nil
 	}
-	return nil, errors.New(fmt.Sprint("internal error with adaptTransaction() : unknown transaction type ", t.Type))
+	return nil, Err(InternalError, fmt.Sprint("internal error with adaptTransaction() : unknown transaction type ", t.Type))
 
 }
 
@@ -72,12 +71,12 @@ func adaptTransaction(t TXN) (Transaction, error) {
 // Returns:
 // - Transaction: The retrieved Transaction
 // - error: An error if any
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, *RPCError) {
 	// todo: update to return a custom Transaction type, then use adapt function
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-			return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)	
-}
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+	}
 	return adaptTransaction(tx)
 }
 
@@ -90,11 +89,11 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 // Returns:
 // - Transaction: The retrieved Transaction object
 // - error: An error, if any
-func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error) {
+func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, *RPCError) {
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
-		
-		return nil,tryUnwrapToRPCErr(err,  ErrInvalidTxnIndex ,ErrBlockNotFound)
+
+		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 
 	}
 	return adaptTransaction(tx)
@@ -108,11 +107,11 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 // Returns:
 // - TransactionReceipt: the transaction receipt
 // - error: an error if any
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, *RPCError) {
 	var receipt UnknownTransactionReceipt
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
 	return receipt.TransactionReceipt, nil
 }
@@ -124,7 +123,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 // Returns:
 // - *GetTxnStatusResp: The transaction status
 // - error, if one arose.
-func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error) {
+func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, *RPCError) {
 	var receipt TxnStatusResp
 	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {

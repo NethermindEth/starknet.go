@@ -14,13 +14,13 @@ import (
 // Returns:
 // - uint64: The block number
 // - error: An error if any
-func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
+func (provider *Provider) BlockNumber(ctx context.Context) (uint64, *RPCError) {
 	var blockNumber uint64
 	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
-		return 0, err
+		return 0, Err(InternalError, err)
 	}
 	return blockNumber, nil
 }
@@ -32,10 +32,10 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // Returns:
 // - *BlockHashAndNumberOutput: The hash and number of the current block
 // - error: An error if any
-func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
+func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, *RPCError) {
 	var block BlockHashAndNumberOutput
-	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {		
-		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks )
+	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
 	}
 	return &block, nil
 }
@@ -44,6 +44,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 //
 // Parameters:
 //   - n: The block number to use for the BlockID.
+//
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
@@ -84,7 +85,7 @@ func WithBlockTag(tag string) BlockID {
 // Returns:
 // - interface{}: The retrieved block
 // - error: An error, if any
-func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -113,10 +114,10 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // Returns:
 // - *StateUpdateOutput: The retrieved state update
 // - error: An error, if any
-func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
+func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, *RPCError) {
 	var state StateUpdateOutput
-	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {		
-		return nil,tryUnwrapToRPCErr(err,ErrBlockNotFound )
+	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return &state, nil
 }
@@ -129,13 +130,13 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 // Returns:
 // - uint64: The number of transactions in the block
 // - error: An error, if any
-func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
+func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, *RPCError) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrBlockNotFound
 		}
-		return 0, err
+		return 0, Err(InternalError, err)
 	}
 	return result, nil
 }
@@ -148,10 +149,10 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // Returns:
 // - interface{}: The retrieved block
 // - error: An error, if any
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err,ErrBlockNotFound )
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
