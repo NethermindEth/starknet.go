@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -17,7 +16,7 @@ import (
 // Returns:
 //   - TxnTrace: the transaction trace
 //   - error: an error if the transaction trace cannot be retrieved
-func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
+func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, *RPCError) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
@@ -25,7 +24,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, err
+		return nil, Err(InternalError, err)
 	}
 
 	switch rawTxnTrace["type"] {
@@ -33,32 +32,32 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, err
+			return nil, Err(InternalError, err)
 		}
 		return trace, nil
 	case string(TransactionType_Declare):
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, err
+			return nil, Err(InternalError, err)
 		}
 		return trace, nil
 	case string(TransactionType_DeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, err
+			return nil, Err(InternalError, err)
 		}
 		return trace, nil
 	case string(TransactionType_L1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, err
+			return nil, Err(InternalError, err)
 		}
 		return trace, nil
 	}
-	return nil, errors.New("Unknown transaction type")
+	return nil, Err(InternalError, "Unknown transaction type")
 
 }
 
@@ -70,7 +69,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 // Returns:
 // - []Trace: a slice of Trace objects representing the traces of transactions in the block
 // - error: an error if there was a problem retrieving the traces.
-func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error) {
+func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, *RPCError) {
 	var output []Trace
 	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
@@ -83,7 +82,7 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 // Simulate a given sequence of transactions on the requested state, and generate the execution traces.
 // Note that some of the transactions may revert, in which case no error is thrown, but revert details can be seen on the returned trace object.
 // Note that some of the transactions may revert, this will be reflected by the revert_error property in the trace. Other types of failures (e.g. unexpected error or failure in the validation phase) will result in TRANSACTION_EXECUTION_ERROR.
-func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
+func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, *RPCError) {
 
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {

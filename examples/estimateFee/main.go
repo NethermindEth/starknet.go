@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
 	"os"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -25,23 +26,20 @@ var (
 )
 
 func main() {
-	// Loading the env
+	// Loading the env and initialising the connection with the provider
 	godotenv.Load(fmt.Sprintf(".env.%s", name))
-	url := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
-	fmt.Println("Starting simpleInvoke example")
+	base := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
+	clientv02, err := rpc.NewProvider(base)
 
-	// Initialising the connection
-	clientv02, err := rpc.NewProvider(url)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error dialing the RPC provider: %s", err))
-	}
+	fmt.Println("Starting estimateFee example")
 
-	// Here we are converting the account address to felt
+	// Here we are converting the account address string to felt
 	account_address, err := utils.HexToFelt(account_addr)
 	if err != nil {
 		panic(err.Error())
 	}
-	// Initializing the account memkeyStore
+
+	// Initialize the account memkeyStore
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -51,64 +49,61 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	// Here we are setting the maxFee
-
-	maxfee, err := utils.HexToFelt("0x9184e72a000")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Initializing the account
+	// Initialize the account
 	accnt, err := account.NewAccount(clientv02, account_address, public_key, ks, account_cairo_version)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// Getting the nonce from the account
+	fmt.Println("Building transaction")
+
+	// Get the nonce from the account
 	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// Building the InvokeTx struct
+	// Build the InvokeTx struct
 	InvokeTx := rpc.InvokeTxnV1{
-		MaxFee:        maxfee,
+		MaxFee:        new(felt.Felt).SetUint64(0), // placeholder needed to sign transaction
 		Version:       rpc.TransactionV1,
 		Nonce:         nonce,
 		Type:          rpc.TransactionType_Invoke,
 		SenderAddress: accnt.AccountAddress,
 	}
 
-	// Converting the contractAddress from hex to felt
+	// Convert the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// Building the functionCall struct, where :
+	// Build the functionCall struct, where :
 	FnCall := rpc.FunctionCall{
 		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
 	}
 
-	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
+	// Build the Calldata
 	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// Signing of the transaction that is done by the account
+	// Sign the transaction
 	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
+	fmt.Println("Calling EstimateFee")
+	resp, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.BlockID{Tag: "latest"})
 	if err != nil {
-		panic(err.Error())
+		panic(fmt.Sprintf("Failed to estimate fee: %v", err))
 	}
-	// This returns us with the transaction hash
-	fmt.Println("Transaction hash response : ", resp.TransactionHash)
+	fmt.Println("Fee estimated successfully")
+
+	respPretty, _ := json.MarshalIndent(resp, "", "")
+	fmt.Println("Estimate Fee response:\n ", string(respPretty))
 
 }

@@ -24,7 +24,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -68,7 +69,8 @@ func TestBlockNumber(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -125,13 +127,14 @@ func TestBlockHashAndNumber(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
 		BlockID                          BlockID
-		ExpectedError                    error
+		ExpectedError                    *RPCError
 		ExpectedBlockWithTxHashes        *BlockTxHashes
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
@@ -281,7 +284,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 // Parameters:
 // - t: The t testing object
 // Returns:
-//  none
+//
+//	none
 func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -420,7 +424,8 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 // Parameters:
 // - t: *testing.T - the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -620,7 +625,8 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestBlockTransactionCount(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -669,7 +675,8 @@ func TestBlockTransactionCount(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -719,7 +726,9 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
+//
 // TODO: Find a block with such a Txn
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	_ = beforeEach(t)
@@ -757,7 +766,8 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestStateUpdate(t *testing.T) {
 	testConfig := beforeEach(t)
 

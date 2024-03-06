@@ -708,7 +708,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
-				unexpErr.data = "Something crazy happened"
+				unexpErr.Data = "Something crazy happened"
 				return &unexpErr
 			}
 		}
@@ -1042,7 +1042,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 		return json.Unmarshal(BlockTrace, &r)
 	}
 
-	return ErrInvalidBlockHash
+	return ErrBlockNotFound
 }
 
 // mock_starknet_traceTransaction is a Go function that traces a transaction in the StarkNet network.
@@ -1097,11 +1097,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return json.Unmarshal(txnTrace, &r)
 	case "0xf00d":
 		return &RPCError{
-			code:    10,
-			message: "No trace available for transaction",
-			data:    "REJECTED",
+			Code:    10,
+			Message: "No trace available for transaction",
+			Data:    "REJECTED",
 		}
 	default:
-		return ErrInvalidTxnHash
+		return ErrHashNotFound
 	}
 }
