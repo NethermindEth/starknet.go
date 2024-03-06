@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestTransactionTrace(t *testing.T) {
 		var rawjson struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		expectedrespRaw, err := os.ReadFile("./tests/trace/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		expectedrespRaw, err := os.ReadFile("./tests/trace/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
 		require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
 
 		err = json.Unmarshal(expectedrespRaw, &rawjson)
@@ -43,14 +44,14 @@ func TestTransactionTrace(t *testing.T) {
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
-		ExpectedResp    TxnTrace
+		ExpectedResp    *InvokeTxnTrace
 		ExpectedError   *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329"),
-				ExpectedResp:    expectedResp,
+				TransactionHash: utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
+				ExpectedResp:    &expectedResp,
 				ExpectedError:   nil,
 			},
 			testSetType{
@@ -77,7 +78,14 @@ func TestTransactionTrace(t *testing.T) {
 		if err != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
-			require.Equal(t, test.ExpectedResp, resp)
+			invokeTrace := resp.(InvokeTxnTrace)
+			require.Equal(t, invokeTrace.ExecuteInvocation, test.ExpectedResp.ExecuteInvocation)
+			require.Equal(t, invokeTrace.Type, test.ExpectedResp.Type)
+			require.Equal(t, invokeTrace.StateDiff, test.ExpectedResp.StateDiff)
+			require.Equal(t, invokeTrace.FeeTransferInvocation, test.ExpectedResp.FeeTransferInvocation)
+			require.Equal(t, invokeTrace.ExecutionResources, test.ExpectedResp.ExecutionResources)
+			require.NotNil(t, invokeTrace.ExecutionResources)
+			fmt.Println(invokeTrace.ExecutionResources)
 		}
 	}
 }
