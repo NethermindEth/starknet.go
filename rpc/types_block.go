@@ -187,6 +187,10 @@ type PendingBlockHeader struct {
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
 }
 
 type ResourcePrice struct {
