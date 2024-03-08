@@ -326,14 +326,36 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return errWrongArgs
 	}
 
-	arg0Felt, err := utils.HexToFelt(args[0].(string))
+	arg0Felt := args[0].(*felt.Felt)
+
+	testTxnHash, err := utils.HexToFelt("0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e")
 	if err != nil {
 		return err
 	}
+	if arg0Felt.Equal(testTxnHash) {
+		var txnRec struct {
+			Result UnknownTransactionReceipt `json:"result"`
+		}
+		read, err := os.ReadFile("tests/receipt/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(read, &txnRec)
+		if err != nil {
+			return err
+		}
+		txnReceipt, err := json.Marshal(txnRec.Result.TransactionReceipt)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(txnReceipt, &r)
+	}
+
 	fromAddressFelt, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
+
 	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: arg0Felt,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -1095,11 +1117,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329":
+	case "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/trace/0xff66e14fc6a96f3289203690f5f876cb4b608868e8549b5f6a90a21d4d6329.json")
+		read, err := os.ReadFile("tests/trace/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
 		if err != nil {
 			return err
 		}

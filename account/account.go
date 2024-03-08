@@ -37,7 +37,7 @@ type AccountInterface interface {
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
-	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError)
+	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, *rpc.RPCError)
 }
 
 var _ AccountInterface = &Account{}
@@ -525,14 +525,14 @@ func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt
 // It returns:
 // - *rpc.TransactionReceipt: the transaction receipt
 // - error: an error
-func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, *rpc.RPCError) {
+func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, *rpc.RPCError) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, rpc.Err(rpc.InternalError, ctx.Err())
 		case <-t.C:
-			receipt, rpcErr := account.TransactionReceipt(ctx, transactionHash)
+			receiptWithBlockInfo, rpcErr := account.TransactionReceipt(ctx, transactionHash)
 			if rpcErr != nil {
 				if rpcErr.Message == rpc.ErrHashNotFound.Message {
 					continue
@@ -540,7 +540,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 					return nil, rpcErr
 				}
 			}
-			return &receipt, nil
+			return receiptWithBlockInfo, nil
 		}
 	}
 }
@@ -839,7 +839,7 @@ func (account *Account) TraceBlockTransactions(ctx context.Context, blockID rpc.
 // - transactionHash: The hash of the transaction.
 // Returns:
 // - rpc.Transactiontype: rpc.TransactionReceipt, error.
-func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, *rpc.RPCError) {
+func (account *Account) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, *rpc.RPCError) {
 	return account.provider.TransactionReceipt(ctx, transactionHash)
 }
 

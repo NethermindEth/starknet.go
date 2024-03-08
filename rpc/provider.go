@@ -67,7 +67,7 @@ type RpcProvider interface {
 	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, *RPCError)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, *RPCError)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, *RPCError)
-	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, *RPCError)
+	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, *RPCError)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, *RPCError)
 }
 
