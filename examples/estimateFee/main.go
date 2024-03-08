@@ -58,9 +58,9 @@ func main() {
 	fmt.Println("Building transaction")
 
 	// Get the nonce from the account
-	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
-	if err != nil {
-		panic(err.Error())
+	nonce, rpcErr := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
+	if rpcErr != nil {
+		panic(rpcErr)
 	}
 
 	// Build the InvokeTx struct
@@ -97,9 +97,9 @@ func main() {
 	}
 
 	fmt.Println("Calling EstimateFee")
-	resp, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.BlockID{Tag: "latest"})
-	if err != nil {
-		panic(fmt.Sprintf("Failed to estimate fee: %v", err))
+	resp, rpcErr := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.BlockID{Tag: "latest"})
+	if rpcErr != nil {
+		panic(fmt.Sprintf("Failed to estimate fee: %v", rpcErr))
 	}
 	fmt.Println("Fee estimated successfully")
 

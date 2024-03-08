@@ -53,9 +53,9 @@ func main() {
 	}
 
 	fmt.Println("Making Call() request")
-	callResp, err := clientv02.Call(context.Background(), tx, rpc.BlockID{Tag: "latest"})
-	if err != nil {
-		panic(err.Error())
+	callResp, rpcErr := clientv02.Call(context.Background(), tx, rpc.BlockID{Tag: "latest"})
+	if rpcErr != nil {
+		panic(rpcErr)
 	}
 
 	fmt.Println(fmt.Sprintf("Response to %s():%s ", contractMethod, callResp[0]))

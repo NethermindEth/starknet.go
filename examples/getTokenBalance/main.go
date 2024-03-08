@@ -69,9 +69,9 @@ func main() {
 	}
 
 	fmt.Println("Making balanceOf() request")
-	callResp, err := clientv02.Call(context.Background(), tx, rpc.BlockID{Tag: "latest"})
-	if err != nil {
-		panic(err.Error())
+	callResp, rpcErr := clientv02.Call(context.Background(), tx, rpc.BlockID{Tag: "latest"})
+	if rpcErr != nil {
+		panic(rpcErr)
 	}
 
 	// Get token's decimals
@@ -79,9 +79,9 @@ func main() {
 		ContractAddress:    tokenAddressInFelt,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(getDecimalsMethod),
 	}
-	getDecimalsResp, err := clientv02.Call(context.Background(), getDecimalsTx, rpc.BlockID{Tag: "latest"})
-	if err != nil {
-		panic(err)
+	getDecimalsResp, rpcErr := clientv02.Call(context.Background(), getDecimalsTx, rpc.BlockID{Tag: "latest"})
+	if rpcErr != nil {
+		panic(rpcErr)
 	}
 
 	floatValue := new(big.Float).SetInt(utils.FeltToBigInt(callResp[0]))
