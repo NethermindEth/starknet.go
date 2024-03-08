@@ -63,7 +63,7 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 			return &nodeErr
 		}
 	}
-	return Err(InternalError, err)
+	return Err(InternalError, err.Error())
 }
 
 type RPCError struct {

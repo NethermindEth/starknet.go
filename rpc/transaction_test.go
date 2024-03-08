@@ -198,12 +198,14 @@ func TestTransactionReceipt(t *testing.T) {
 			},
 		},
 		ExecutionResources: ExecutionResources{
-			Steps:          217182,
-			MemoryHoles:    6644,
-			PedersenApps:   2142,
-			RangeCheckApps: 8867,
-			BitwiseApps:    900,
-			ECDSAApps:      1,
+			ComputationResources: ComputationResources{
+				Steps:          217182,
+				MemoryHoles:    6644,
+				PedersenApps:   2142,
+				RangeCheckApps: 8867,
+				BitwiseApps:    900,
+				ECDSAApps:      1,
+			},
 		},
 	})
 
@@ -238,9 +240,11 @@ func TestTransactionReceipt(t *testing.T) {
 			},
 		},
 		ExecutionResources: ExecutionResources{
-			Steps:          615,
-			MemoryHoles:    4,
-			RangeCheckApps: 19,
+			ComputationResources: ComputationResources{
+				Steps:          615,
+				MemoryHoles:    4,
+				RangeCheckApps: 19,
+			},
 		},
 	})
 

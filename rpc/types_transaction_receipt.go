@@ -269,7 +269,7 @@ func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
 
-type ExecutionResources struct {
+type ComputationResources struct {
 	// The number of Cairo steps used
 	Steps int `json:"steps"`
 	// The number of unused memory cells (each cell is roughly equivalent to a step)
@@ -293,13 +293,26 @@ type ExecutionResources struct {
 }
 
 // Validate checks if the fields are non-zero (to match the starknet-specs)
-func (er *ExecutionResources) Validate() bool {
+func (er *ComputationResources) Validate() bool {
 	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
 		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
 		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
 		return false
 	}
 	return true
+}
+
+// The resources consumed by the transaction, includes both computation and data.
+type ExecutionResources struct {
+	ComputationResources
+	DataAvailability `json:"data_availability"`
+}
+
+type DataAvailability struct {
+	// the gas consumed by this transaction's data, 0 if it uses data gas for DA
+	L1Gas uint `json:"l1_gas"`
+	// the data gas consumed by this transaction's data, 0 if it uses gas for DA
+	L1DataGas uint `json:"l1_data_gas"`
 }
 
 type TransactionReceipt interface {
