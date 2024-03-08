@@ -93,9 +93,9 @@ func main() {
 	}
 
 	// Send transaction to the network
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
-	if err != nil {
-		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", err))
+	resp, rpcErr := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	if rpcErr != nil {
+		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", rpcErr))
 	}
 	fmt.Println("AddDeployAccountTransaction response:", resp)
 }
