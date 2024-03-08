@@ -107,13 +107,13 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 // Returns:
 // - TransactionReceipt: the transaction receipt
 // - error: an error if any
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, *RPCError) {
-	var receipt UnknownTransactionReceipt
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, *RPCError) {
+	var receipt TransactionReceiptWithBlockInfo
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
-	return receipt.TransactionReceipt, nil
+	return &receipt, nil
 }
 
 // GetTransactionStatus gets the transaction status (possibly reflecting that the tx is still in the mempool, or dropped from it)
