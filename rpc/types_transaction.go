@@ -255,16 +255,9 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	// BlockWithReceipts swrap transaction in the Transaction field.
-	if dec["Transaction"] != nil {
-		var decInner map[string]interface{}
-		txnInner, err := json.Marshal(dec["Transaction"])
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(txnInner, &decInner); err != nil {
-			return err
-		}
-		dec = decInner
+	dec, err := utils.UnwrapJSON(dec, "Transaction")
+	if err != nil {
+		return err
 	}
 
 	t, err := unmarshalTxn(dec)

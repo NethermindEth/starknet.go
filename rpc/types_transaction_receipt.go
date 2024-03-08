@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 type FeePayment struct {
@@ -361,16 +362,9 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 	}
 
 	// BlockWithReceipts wrap receipts in the TransactionReceipt field.
-	if dec["TransactionReceipt"] != nil {
-		var decInner map[string]interface{}
-		recInner, err := json.Marshal(dec["TransactionReceipt"])
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(recInner, &decInner); err != nil {
-			return err
-		}
-		dec = decInner
+	dec, err := utils.UnwrapJSON(dec, "TransactionReceipt")
+	if err != nil {
+		return err
 	}
 
 	t, err := unmarshalTransactionReceipt(dec)
