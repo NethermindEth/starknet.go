@@ -174,18 +174,25 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
-	var block BlockWithReceipts
-	err := json.Unmarshal(result, &block)
-	if err == nil && block.BlockStatus != "" {
-		return &block, nil
-	}
 
-	// if result.Status == nil it's a pending block
-	var pendingBlock PendingBlockWithReceipts
-	err = json.Unmarshal(result, &pendingBlock)
-	if err != nil {
+	var m map[string]interface{}
+	if err := json.Unmarshal(result, &m); err != nil {
 		return nil, Err(InternalError, err.Error())
 	}
 
-	return &pendingBlock, nil
+	// PendingBlockWithReceipts doesn't contain a "status" field
+	if _, ok := m["status"]; ok {
+		var block BlockWithReceipts
+		if err := json.Unmarshal(result, &block); err != nil {
+			return nil, Err(InternalError, err.Error())
+		}
+		return &block, nil
+	} else {
+		var pendingBlock PendingBlockWithReceipts
+		if err := json.Unmarshal(result, &pendingBlock); err != nil {
+			return nil, Err(InternalError, err.Error())
+		}
+		return &pendingBlock, nil
+	}
+
 }
