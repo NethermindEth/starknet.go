@@ -1,12 +1,15 @@
 package rpc
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/test-go/testify/require"
 )
 
 // TestBlockID_Marshal tests the MarshalJSON method of the BlockID struct.
@@ -123,5 +126,44 @@ func TestBlock_Unmarshal(t *testing.T) {
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {
 		t.Fatalf("Unmarshalling block: %v", err)
+	}
+}
+
+func TestBlockWithReceipts(t *testing.T) {
+	provider := &Provider{c: &rpcMock{}}
+
+	ctx := context.Background()
+
+	type testSetType struct {
+		BlockID                   BlockID
+		ExpectedBlockWithReceipts BlockWithReceipts
+		ExpectedErr               *RPCError
+	}
+
+	var expectedBlockWithReceipts struct {
+		Result BlockWithReceipts `json:"result"`
+	}
+	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
+	require.Nil(t, err)
+	require.Nil(t, json.Unmarshal(read, &expectedBlockWithReceipts))
+
+	testSet := map[string][]testSetType{
+		"mock": {testSetType{
+			BlockID:                   BlockID{Tag: "tests/blockWithReceipts/integration332275.json"},
+			ExpectedBlockWithReceipts: expectedBlockWithReceipts.Result,
+			ExpectedErr:               nil,
+		},
+		},
+	}[testEnv]
+
+	for _, test := range testSet {
+		t.Run("BlockWithReceipts - block", func(t *testing.T) {
+
+			block, err := provider.BlockWithReceipts(ctx, test.BlockID)
+			require.Nil(t, err)
+			blockCasted := block.(*BlockWithReceipts)
+			require.Equal(t, test.ExpectedBlockWithReceipts, *blockCasted)
+
+		})
 	}
 }

@@ -63,6 +63,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getBlockTransactionCount(result, method, args...)
 	case "starknet_getBlockWithTxHashes":
 		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+	case "starknet_getBlockWithReceipts":
+		return mock_starknet_getBlockWithReceipts(result, method, args...)
 	case "starknet_getClass":
 		return mock_starknet_getClass(result, method, args...)
 	case "starknet_getClassAt":
@@ -995,6 +997,42 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	}
 
 	return nil
+}
+
+func mock_starknet_getBlockWithReceipts(result interface{}, method string, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	_, ok = args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+
+	var blockWithReceipts struct {
+		Result BlockWithReceipts `json:"result"`
+	}
+	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
+
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(read, &blockWithReceipts)
+	if err != nil {
+		return err
+	}
+
+	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts.Result)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(blockWithReceiptsJSON, &r)
 }
 
 // mock_starknet_traceBlockTransactions is a function that traces the transactions of a block in the StarkNet network.

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -165,4 +166,33 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 		}, nil
 	}
 	return &result, nil
+}
+
+// Get block information with full transactions and receipts given the block id
+func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, *RPCError) {
+	var result json.RawMessage
+	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+	}
+
+	var m map[string]interface{}
+	if err := json.Unmarshal(result, &m); err != nil {
+		return nil, Err(InternalError, err.Error())
+	}
+
+	// PendingBlockWithReceipts doesn't contain a "status" field
+	if _, ok := m["status"]; ok {
+		var block BlockWithReceipts
+		if err := json.Unmarshal(result, &block); err != nil {
+			return nil, Err(InternalError, err.Error())
+		}
+		return &block, nil
+	} else {
+		var pendingBlock PendingBlockWithReceipts
+		if err := json.Unmarshal(result, &pendingBlock); err != nil {
+			return nil, Err(InternalError, err.Error())
+		}
+		return &pendingBlock, nil
+	}
+
 }

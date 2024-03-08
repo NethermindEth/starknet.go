@@ -49,13 +49,13 @@ func Err(code int, data any) *RPCError {
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, errIn := json.Marshal(err)
 	if errIn != nil {
-		return Err(InternalError, errIn)
+		return Err(InternalError, errIn.Error())
 	}
 
 	var nodeErr RPCError
 	errIn = json.Unmarshal(errBytes, &nodeErr)
 	if errIn != nil {
-		return Err(InternalError, errIn)
+		return Err(InternalError, errIn.Error())
 	}
 
 	for _, rpcErr := range rpcErrors {

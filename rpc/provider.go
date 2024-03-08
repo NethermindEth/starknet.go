@@ -56,6 +56,7 @@ type RpcProvider interface {
 	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, *RPCError)
 	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, *RPCError)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, *RPCError)
+	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, *RPCError)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, *RPCError)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, *RPCError)
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, *RPCError)

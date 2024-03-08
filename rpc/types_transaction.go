@@ -249,8 +249,14 @@ type UnknownTransaction struct{ Transaction }
 // Returns:
 // - error: An error if the unmarshalling process fails
 func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
+
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+	// BlockWithReceipts swrap transaction in the Transaction field.
+	dec, err := utils.UnwrapJSON(dec, "Transaction")
+	if err != nil {
 		return err
 	}
 
@@ -289,8 +295,12 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 				var txn DeclareTxnV2
 				remarshal(casted, &txn)
 				return txn, nil
+			case "0x3":
+				var txn DeclareTxnV3
+				remarshal(casted, &txn)
+				return txn, nil
 			default:
-				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+				return nil, errors.New("internal unmarshalTxn() error, unknown Declare transaction version")
 			}
 		case TransactionType_Deploy:
 			var txn DeployTxn
@@ -301,14 +311,21 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 			remarshal(casted, &txn)
 			return txn, nil
 		case TransactionType_Invoke:
-			if casted["version"].(string) == "0x0" {
+			switch TransactionType(casted["version"].(string)) {
+			case "0x0":
 				var txn InvokeTxnV0
 				remarshal(casted, &txn)
 				return txn, nil
-			} else {
+			case "0x1":
 				var txn InvokeTxnV1
 				remarshal(casted, &txn)
 				return txn, nil
+			case "0x3":
+				var txn InvokeTxnV3
+				remarshal(casted, &txn)
+				return txn, nil
+			default:
+				return nil, errors.New("internal unmarshalTxn() error, unknown Invoke transaction version")
 			}
 		case TransactionType_L1Handler:
 			var txn L1HandlerTxn

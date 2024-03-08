@@ -1,10 +1,12 @@
 package rpc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -123,6 +125,28 @@ type PendingBlock struct {
 	BlockTransactions
 }
 
+// encoding/json doesn't support inlining fields
+type BlockWithReceipts struct {
+	BlockStatus BlockStatus `json:"status"`
+	BlockHeader
+	BlockBodyWithReceipts
+}
+
+type BlockBodyWithReceipts struct {
+	Transactions []TransactionWithReceipt `json:"transactions"`
+}
+
+type TransactionWithReceipt struct {
+	Transaction UnknownTransaction        `json:"transaction"`
+	Receipt     UnknownTransactionReceipt `json:"receipt"`
+}
+
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+type PendingBlockWithReceipts struct {
+	PendingBlockHeader
+	BlockBodyWithReceipts
+}
+
 type BlockTxHashes struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
@@ -174,6 +198,22 @@ func (mode L1DAMode) String() string {
 	default:
 		return "Unknown L1DAMode"
 	}
+}
+
+func (mode *L1DAMode) UnmarshalJSON(b []byte) error {
+	str := strings.Trim(string(b), "\"")
+	switch str {
+	case "BLOB":
+		*mode = L1DAModeBlob
+	case "CALLDATA":
+		*mode = L1DAModeCalldata
+	default:
+		return fmt.Errorf("unknown L1DAMode: %s", str)
+	}
+	return nil
+}
+func (mode L1DAMode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mode.String())
 }
 
 type PendingBlockHeader struct {
