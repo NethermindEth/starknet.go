@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -134,21 +135,23 @@ func TestBlockWithReceipts(t *testing.T) {
 	ctx := context.Background()
 
 	type testSetType struct {
-		BlockID       BlockID
-		ExpectedBlock Block
-		ExpectedErr   *RPCError
+		BlockID                   BlockID
+		ExpectedBlockWithReceipts BlockWithReceipts
+		ExpectedErr               *RPCError
 	}
+
+	var expectedBlockWithReceipts struct {
+		Result BlockWithReceipts `json:"result"`
+	}
+	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
+	require.Nil(t, err)
+	require.Nil(t, json.Unmarshal(read, &expectedBlockWithReceipts))
 
 	testSet := map[string][]testSetType{
 		"mock": {testSetType{
-			BlockID: BlockID{Tag: "greatest block"},
-			ExpectedBlock: Block{
-				Status: BlockStatus_AcceptedOnL2,
-				BlockHeader: BlockHeader{
-					BlockNumber: 332275,
-				},
-			},
-			ExpectedErr: nil,
+			BlockID:                   BlockID{Tag: "tests/blockWithReceipts/integration332275.json"},
+			ExpectedBlockWithReceipts: expectedBlockWithReceipts.Result,
+			ExpectedErr:               nil,
 		},
 		},
 	}[testEnv]
@@ -159,15 +162,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			block, err := provider.BlockWithReceipts(ctx, test.BlockID)
 			require.Nil(t, err)
 			blockCasted := block.(*BlockWithReceipts)
-			txsWithReceipts := blockCasted.BlockBodyWithReceipts.Transactions
-			require.Equal(t, blockCasted.BlockStatus, test.ExpectedBlock.Status)
-			require.Equal(t, blockCasted.BlockNumber, test.ExpectedBlock.BlockNumber)
-			require.NotZero(t, len(blockCasted.Transactions))
-			require.NotNil(t, blockCasted.L1GasPrice)
-			require.NotNil(t, blockCasted.L1DataGasPrice)
-			require.NotNil(t, txsWithReceipts)
-			require.NotNil(t, txsWithReceipts[0].Transaction)
-			require.NotNil(t, txsWithReceipts[0].Receipt)
+			require.Equal(t, test.ExpectedBlockWithReceipts, *blockCasted)
 
 		})
 	}
