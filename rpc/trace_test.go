@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -79,13 +78,7 @@ func TestTransactionTrace(t *testing.T) {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
 			invokeTrace := resp.(InvokeTxnTrace)
-			require.Equal(t, invokeTrace.ExecuteInvocation, test.ExpectedResp.ExecuteInvocation)
-			require.Equal(t, invokeTrace.Type, test.ExpectedResp.Type)
-			require.Equal(t, invokeTrace.StateDiff, test.ExpectedResp.StateDiff)
-			require.Equal(t, invokeTrace.FeeTransferInvocation, test.ExpectedResp.FeeTransferInvocation)
-			require.Equal(t, invokeTrace.ExecutionResources, test.ExpectedResp.ExecutionResources)
-			require.NotNil(t, invokeTrace.ExecutionResources)
-			fmt.Println(invokeTrace.ExecutionResources)
+			require.Equal(t, invokeTrace, *test.ExpectedResp)
 		}
 	}
 }

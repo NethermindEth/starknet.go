@@ -368,7 +368,32 @@ func TestInvokReceipt(t *testing.T) {
 			BlockNumber:     332275,
 			Type:            TransactionType_Invoke,
 			MessagesSent:    []MsgToL1{},
-			Events:          []Event{},
+			Events: []Event{
+				{
+					FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+					Keys: utils.TestHexArrToFelt(t, []string{
+						"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+						"0x14c5c28581c68f64c9a3d86b919094a5209fe0ccb454f776b3be2c3968cd91d",
+						"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+					}),
+					Data: utils.TestHexArrToFelt(t, []string{
+						"0x30df144f446a59",
+						"0x0",
+					}),
+				},
+				{
+					FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+					Keys: utils.TestHexArrToFelt(t, []string{
+						"0xa9fa878c35cd3d0191318f89033ca3e5501a3d90e21e3cc9256bdd5cd17fdd",
+					}),
+					Data: utils.TestHexArrToFelt(t, []string{
+						"0xca46d96b37266650e0a8b79938d9300037337cad82ea4f45a921ad68b6a5f9",
+						"0x477bd3017f2b1cec6",
+						"0x0",
+						"0x477ee0f2c41f6391f",
+						"0x0",
+					})},
+			},
 			ExecutionResources: ExecutionResources{
 				ComputationResources: ComputationResources{
 					Steps:          7754,
@@ -395,14 +420,10 @@ func TestInvokReceipt(t *testing.T) {
 
 	for _, test := range testSet {
 		txReceipt, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-
 		require.Nil(t, err)
-		require.Equal(t, txReceipt.Hash(), test.ExpectedTxnReceipt.Hash())
-		require.Equal(t, txReceipt.GetExecutionStatus(), test.ExpectedTxnReceipt.GetExecutionStatus())
 		txReceiptInvoke, ok := txReceipt.(InvokeTransactionReceipt)
 		require.True(t, ok)
-		require.Equal(t, txReceiptInvoke.ActualFee, test.ExpectedTxnReceipt.ActualFee)
-		require.Equal(t, txReceiptInvoke.ExecutionResources, test.ExpectedTxnReceipt.ExecutionResources)
+		require.Equal(t, txReceiptInvoke, test.ExpectedTxnReceipt)
 
 	}
 }
