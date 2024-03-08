@@ -447,10 +447,10 @@ func (mr *MockRpcProviderMockRecorder) TransactionByHash(ctx, hash any) *gomock.
 }
 
 // TransactionReceipt mocks base method.
-func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (rpc.TransactionReceipt, *rpc.RPCError) {
+func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, *rpc.RPCError) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionReceipt", ctx, transactionHash)
-	ret0, _ := ret[0].(rpc.TransactionReceipt)
+	ret0, _ := ret[0].(*rpc.TransactionReceiptWithBlockInfo)
 	ret1, _ := ret[1].(*rpc.RPCError)
 	return ret0, ret1
 }

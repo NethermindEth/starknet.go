@@ -92,10 +92,11 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the [Starknet RPC v0.6.0 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.6.0):
+`starknet.go` RPC implements the Starknet [RPC v0.7.0 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.0-rc2)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |
+| `starknet_getBlockWithReceipts`            | :heavy_check_mark: |
 | `starknet_getBlockWithTxHashes`            | :heavy_check_mark: |
 | `starknet_getBlockWithTxs`                 | :heavy_check_mark: |
 | `starknet_getStateUpdate`                  | :heavy_check_mark: |

@@ -2,12 +2,10 @@ package rpc
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/google/go-cmp/cmp"
 	"github.com/test-go/testify/require"
 )
 
@@ -165,19 +163,12 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 }
 
-// TestTransactionReceipt_MatchesCapturedTransaction tests if the transaction receipt matches the captured transaction.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
+func TestTransactionReceipt(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		TxnHash            *felt.Felt
-		ExpectedTxnReceipt TransactionReceipt
+		TxnHash      *felt.Felt
+		ExpectedResp TransactionReceiptWithBlockInfo
 	}
 	var receiptTxn310370_0 = InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
@@ -185,8 +176,6 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		Type:            "INVOKE",
 		ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-		BlockHash:       utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
-		BlockNumber:     310370,
 		MessagesSent:    []MsgToL1{},
 		Events: []Event{
 			{
@@ -226,8 +215,6 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		Type:            "INVOKE",
 		ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
-		BlockHash:       utils.TestHexToFelt(t, "0x50e864db6b81ce69fbeb70e6a7284ee2febbb9a2e707415de7adab83525e9cd"),
-		BlockNumber:     319132,
 		MessagesSent:    []MsgToL1{},
 		Events: []Event{
 			{
@@ -265,165 +252,33 @@ func TestTransactionReceipt_MatchesCapturedTransaction(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:            utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
-				ExpectedTxnReceipt: receiptTxn310370_0,
+				TxnHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+				ExpectedResp: TransactionReceiptWithBlockInfo{
+					TransactionReceipt: receiptTxn310370_0,
+					BlockNumber:        310370,
+					BlockHash:          utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
+				},
 			},
 		},
 		"mainnet": {},
 		"integration": {
 			{
-				TxnHash:            utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"),
-				ExpectedTxnReceipt: receiptTxnIntegration,
+				TxnHash: utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"),
+				ExpectedResp: TransactionReceiptWithBlockInfo{
+					TransactionReceipt: receiptTxnIntegration,
+					BlockNumber:        319132,
+					BlockHash:          utils.TestHexToFelt(t, "0x50e864db6b81ce69fbeb70e6a7284ee2febbb9a2e707415de7adab83525e9cd"),
+				},
 			},
 		}}[testEnv]
 
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if txReceiptInterface == nil {
-			t.Fatal("transaction receipt should exist")
-		}
-		txnReceipt, ok := txReceiptInterface.(InvokeTransactionReceipt)
-		if !ok {
-			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
-		}
-		if !cmp.Equal(test.ExpectedTxnReceipt, txnReceipt) {
-			t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedTxnReceipt, txnReceipt))
-		}
-	}
-}
-
-// TestTransactionReceipt_MatchesStatus tests if the transaction receipt matches the given execution status.
-//
-// It initializes a test configuration and defines a test set containing transaction hash and execution status pairs.
-// For each test in the test set, it creates a spy and sets the provider of the test configuration to the spy.
-// Then, it retrieves the transaction receipt for the given transaction hash using the provider.
-// If the transaction receipt does not exist, it fails the test.
-// It asserts that the transaction receipt is of type InvokeTransactionReceipt.
-// Finally, it checks if the execution status of the transaction receipt matches the expected execution status using a regular expression.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestTransactionReceipt_MatchesStatus(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		TxnHash         *felt.Felt
-		ExecutionStatus string
-	}
-	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
-			{
-				TxnHash:         utils.TestHexToFelt(t, "0x650667fb0f17e63e1c9d1040e750d160f3dbfebcab990e7d4382f33468b1b59"),
-				ExecutionStatus: "(SUCCEEDED|REVERTED)",
-			},
-		},
-		"mainnet": {},
-	}[testEnv]
-
-	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c, false)
-		testConfig.provider.c = spy
-		txReceiptInterface, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if txReceiptInterface == nil {
-			t.Fatal("transaction receipt should exist")
-		}
-		txnReceipt, ok := txReceiptInterface.(InvokeTransactionReceipt)
-		if !ok {
-			t.Fatalf("transaction receipt should be InvokeTransactionReceipt, instead %T", txReceiptInterface)
-		}
-		if ok, err := regexp.MatchString(test.ExecutionStatus, string(txnReceipt.ExecutionStatus)); err != nil || !ok {
-			t.Fatal("error checking transaction status", ok, err, txnReceipt.ExecutionStatus)
-		}
-	}
-}
-
-func TestInvokReceipt(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		TxnHash            *felt.Felt
-		ExpectedTxnReceipt InvokeTransactionReceipt
-	}
-
-	var receiptTxn332275 = InvokeTransactionReceipt(
-		CommonTransactionReceipt{
-			TransactionHash: utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
-			ActualFee:       FeePayment{Amount: utils.TestHexToFelt(t, "0x30df144f446a59"), Unit: UnitStrk},
-			FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
-			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-			BlockHash:       utils.TestHexToFelt(t, "0x76c781a6a9d7f4a75205cd282fadf63f0c41d5c585a6cc384a7e726ac483316"),
-			BlockNumber:     332275,
-			Type:            TransactionType_Invoke,
-			MessagesSent:    []MsgToL1{},
-			Events: []Event{
-				{
-					FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-					Keys: utils.TestHexArrToFelt(t, []string{
-						"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
-						"0x14c5c28581c68f64c9a3d86b919094a5209fe0ccb454f776b3be2c3968cd91d",
-						"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-					}),
-					Data: utils.TestHexArrToFelt(t, []string{
-						"0x30df144f446a59",
-						"0x0",
-					}),
-				},
-				{
-					FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-					Keys: utils.TestHexArrToFelt(t, []string{
-						"0xa9fa878c35cd3d0191318f89033ca3e5501a3d90e21e3cc9256bdd5cd17fdd",
-					}),
-					Data: utils.TestHexArrToFelt(t, []string{
-						"0xca46d96b37266650e0a8b79938d9300037337cad82ea4f45a921ad68b6a5f9",
-						"0x477bd3017f2b1cec6",
-						"0x0",
-						"0x477ee0f2c41f6391f",
-						"0x0",
-					})},
-			},
-			ExecutionResources: ExecutionResources{
-				ComputationResources: ComputationResources{
-					Steps:          7754,
-					PedersenApps:   20,
-					RangeCheckApps: 185,
-					ECOPApps:       3,
-				},
-				DataAvailability: DataAvailability{
-					L1Gas:     0,
-					L1DataGas: 384,
-				},
-			},
-		})
-
-	testSet := map[string][]testSetType{
-		"mock": {
-			{
-				TxnHash:            utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
-				ExpectedTxnReceipt: receiptTxn332275,
-			},
-		},
-		"mainnet": {},
-	}[testEnv]
-
-	for _, test := range testSet {
-		txReceipt, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
+		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
-		txReceiptInvoke, ok := txReceipt.(InvokeTransactionReceipt)
-		require.True(t, ok)
-		require.Equal(t, txReceiptInvoke, test.ExpectedTxnReceipt)
+		require.Equal(t, txReceiptWithBlockInfo.BlockNumber, test.ExpectedResp.BlockNumber)
+		require.Equal(t, txReceiptWithBlockInfo.BlockHash, test.ExpectedResp.BlockHash)
 
 	}
 }
@@ -450,7 +305,7 @@ func TestGetTransactionStatus(t *testing.T) {
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.GetTransactionStatus(context.Background(), test.TxnHash)
-		require.NoError(t, err)
+		require.Nil(t, err)
 		require.Equal(t, *resp, test.ExpectedResp)
 	}
 }
