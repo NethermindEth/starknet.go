@@ -15,7 +15,7 @@ import (
 // Returns
 // - []*felt.Felt: the result of the function call
 // - error: an error if any occurred during the execution
-func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockID BlockID) ([]*felt.Felt, *RPCError) {
+func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockID BlockID) ([]*felt.Felt, error) {
 
 	if len(request.Calldata) == 0 {
 		request.Calldata = make([]*felt.Felt, 0)

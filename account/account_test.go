@@ -458,7 +458,7 @@ func TestSignMOCK(t *testing.T) {
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
-		ExpectedError        *rpc.RPCError
+		ExpectedError        error
 		CairoContractVersion int
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -948,7 +948,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		Timeout                      time.Duration
 		ShouldCallTransactionReceipt bool
 		Hash                         *felt.Felt
-		ExpectedErr                  *rpc.RPCError
+		ExpectedErr                  error
 		ExpectedReceipt              *rpc.TransactionReceiptWithBlockInfo
 	}
 	testSet := map[string][]testSetType{
@@ -1034,7 +1034,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     *rpc.RPCError
+		ExpectedErr     error
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{

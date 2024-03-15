@@ -21,7 +21,7 @@ var (
 // Returns:
 // - Transaction: a Transaction
 // - error: an error if the adaptation failed.
-func adaptTransaction(t TXN) (Transaction, *RPCError) {
+func adaptTransaction(t TXN) (Transaction, error) {
 	txMarshalled, err := json.Marshal(t)
 	if err != nil {
 		return nil, Err(InternalError, err)
@@ -71,7 +71,7 @@ func adaptTransaction(t TXN) (Transaction, *RPCError) {
 // Returns:
 // - Transaction: The retrieved Transaction
 // - error: An error if any
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, *RPCError) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error) {
 	// todo: update to return a custom Transaction type, then use adapt function
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
@@ -89,7 +89,7 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 // Returns:
 // - Transaction: The retrieved Transaction object
 // - error: An error, if any
-func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, *RPCError) {
+func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error) {
 	var tx TXN
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
 
@@ -107,7 +107,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 // Returns:
 // - TransactionReceipt: the transaction receipt
 // - error: an error if any
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, *RPCError) {
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error) {
 	var receipt TransactionReceiptWithBlockInfo
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
@@ -123,7 +123,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 // Returns:
 // - *GetTxnStatusResp: The transaction status
 // - error, if one arose.
-func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, *RPCError) {
+func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error) {
 	var receipt TxnStatusResp
 	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {

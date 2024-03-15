@@ -12,7 +12,7 @@ import (
 // Returns:
 // - *AddInvokeTransactionResponse: the response of adding the invoke transaction
 // - error: an error if any
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxnType) (*AddInvokeTransactionResponse, *RPCError) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxnType) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
 		return nil, tryUnwrapToRPCErr(
@@ -38,7 +38,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn Br
 // Returns:
 // - *AddDeclareTransactionResponse: The response of submitting the declare transaction
 // - error: an error if any
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxnType) (*AddDeclareTransactionResponse, *RPCError) {
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxnType) (*AddDeclareTransactionResponse, error) {
 
 	switch txn := declareTransaction.(type) {
 	case DeclareTxnV2:
@@ -75,7 +75,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 // - deployAccountTransaction: The deploy account transaction to be added
 // Returns:
 // - *AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastAddDeployTxnType) (*AddDeployAccountTransactionResponse, *RPCError) {
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastAddDeployTxnType) (*AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
 		return nil, tryUnwrapToRPCErr(

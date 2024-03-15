@@ -134,7 +134,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 
 	type testSetType struct {
 		BlockID                          BlockID
-		ExpectedError                    *RPCError
+		ExpectedError                    error
 		ExpectedBlockWithTxHashes        *BlockTxHashes
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}

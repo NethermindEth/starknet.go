@@ -72,7 +72,7 @@ type RPCError struct {
 	Data    any    `json:"data,omitempty"`
 }
 
-func (e *RPCError) Error() string {
+func (e RPCError) Error() string {
 	return e.Message
 }
 

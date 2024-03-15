@@ -92,7 +92,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 // Returns:
 // - string: the difference between the spy object and the given object
 // - error: an error if any occurred during the comparison
-func (s *spy) Compare(o interface{}, debug bool) (string, *RPCError) {
+func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	if s.mock {
 		if debug {
 			fmt.Println("**************************")
