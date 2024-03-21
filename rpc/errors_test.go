@@ -12,7 +12,6 @@ func TestRPCError(t *testing.T) {
 		testConfig := beforeEach(t)
 		_, err := testConfig.provider.ChainID(context.Background())
 		require.NoError(t, err)
-		require.Nil(t, err)
 
 		_, err = testConfig.provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
 		require.Error(t, err)

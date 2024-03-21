@@ -534,7 +534,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 		case <-t.C:
 			receiptWithBlockInfo, err := account.TransactionReceipt(ctx, transactionHash)
 			if err != nil {
-				if err.Error() == rpc.ErrHashNotFound.Message {
+				if errors.Is(err, rpc.ErrHashNotFound) {
 					continue
 				} else {
 					return nil, err

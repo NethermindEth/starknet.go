@@ -26,7 +26,7 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
-	return typecastClassOutput(&rawClass)
+	return typecastClassOutput(rawClass)
 
 }
 
@@ -45,7 +45,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
-	return typecastClassOutput(&rawClass)
+	return typecastClassOutput(rawClass)
 }
 
 // typecastClassOutput typecasts the rawClass output to the appropriate ClassOutput type.
@@ -55,14 +55,14 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 // Returns:
 // - ClassOutput: a ClassOutput interface
 // - error: an error if any
-func typecastClassOutput(rawClass *map[string]any) (ClassOutput, error) {
+func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
 		return nil, Err(InternalError, err)
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
-	if _, exists := (*rawClass)["contract_class_version"]; exists {
+	if _, exists := (rawClass)["contract_class_version"]; exists {
 		var contractClass ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {

@@ -503,7 +503,7 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if !ok {
 		return errWrongArgs
 	}
-	if ei.ChunkSize ==0{
+	if ei.ChunkSize == 0 {
 		return fmt.Errorf("-ChuckSize error message-")
 	}
 
