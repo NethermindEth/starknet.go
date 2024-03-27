@@ -5,7 +5,6 @@ on:
       - v*
     branches:
       - main
-      - 545-add-linter-workflow
   pull_request:
 permissions:
   contents: read
