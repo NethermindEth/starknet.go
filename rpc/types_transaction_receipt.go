@@ -397,24 +397,24 @@ func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
 		switch TransactionType(typ.(string)) {
 		case TransactionType_Invoke:
 			var txn InvokeTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_L1Handler:
 			var txn L1HandlerTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_Declare:
 			var txn DeclareTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_Deploy:
 			var txn DeployTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_DeployAccount:
 			var txn DeployAccountTransactionReceipt
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		}
 	}
 

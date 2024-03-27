@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"log"
 	"strings"
 	"testing"
 
@@ -72,7 +73,9 @@ func TestClassAt(t *testing.T) {
 				t.Fatal("expecting to match", err)
 			}
 			if diff != "FullMatch" {
-				spy.Compare(class, true)
+				if _, err := spy.Compare(class, true); err != nil {
+					log.Fatal(err)
+				}
 				t.Fatal("structure expecting to be FullMatch, instead", diff)
 			}
 			if class.Program == "" {
@@ -140,7 +143,9 @@ func TestClassHashAt(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(classhash, true)
+			if _, err := spy.Compare(classhash, true); err != nil {
+				log.Fatal(err)
+			}
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if classhash == nil {
@@ -227,7 +232,9 @@ func TestClass(t *testing.T) {
 				t.Fatal("expecting to match", err)
 			}
 			if diff != "FullMatch" {
-				spy.Compare(class, true)
+				if _, err := spy.Compare(class, true); err != nil {
+					log.Fatal(err)
+				}
 				t.Fatal("structure expecting to be FullMatch, instead", diff)
 			}
 
@@ -302,7 +309,9 @@ func TestStorageAt(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(value, true)
+			if _, err := spy.Compare(value, true); err != nil {
+				log.Fatal(err)
+			}
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if value != test.ExpectedValue {
@@ -358,7 +367,9 @@ func TestNonce(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(nonce, true)
+			if _, err := spy.Compare(nonce, true); err != nil {
+				log.Fatal(err)
+			}
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 
