@@ -71,11 +71,14 @@ type StarkCurvePayload struct {
 //
 // Note: Not all operations require a stark curve initialization including the provided constant points.
 // This function can be used to initialize the curve without the constant points.
-// 
+//
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
-//  none
+//
+//	none
 func init() {
 	if err := json.Unmarshal(PedersenParamsRaw, &PedersenParams); err != nil {
 		log.Fatalf("unmarshalling pedersen params: %v", err)
@@ -200,7 +203,7 @@ func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
 	return x, y
 }
 
-// ScalarBaseMult returns the result of multiplying the base point of the StarkCurve 
+// ScalarBaseMult returns the result of multiplying the base point of the StarkCurve
 // by the given scalar value.
 //
 // Parameters:
@@ -493,8 +496,6 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 		s := sc.InvModCurveSize(w)
 		return r, s, nil
 	}
-
-	return x, y, nil
 }
 
 // SignFelt signs a message hash with a private key using the StarkCurve.
@@ -721,8 +722,8 @@ func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 
 // PrivateToPoint generates a point on the StarkCurve from a private key.
 //
-// It takes a private key as a parameter and returns the x and y coordinates of 
-// the generated point on the curve. If the private key is not within the range 
+// It takes a private key as a parameter and returns the x and y coordinates of
+// the generated point on the curve. If the private key is not within the range
 // of the curve, it returns an error.
 //
 // Parameters:

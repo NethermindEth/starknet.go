@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"log"
 	"math/big"
 	"strings"
 
@@ -73,7 +74,7 @@ func HexToBN(hexString string) *big.Int {
 }
 
 // HexToBytes converts a hexadecimal string to a byte slice.
-// trim "0x" prefix(if exists) 
+// trim "0x" prefix(if exists)
 //
 // Parameters:
 // - hexString: the hexadecimal string to be converted
@@ -151,7 +152,10 @@ func Keccak256(data ...[]byte) []byte {
 	for _, b := range data {
 		d.Write(b)
 	}
-	d.Read(b)
+
+	if _, err := d.Read(b); err != nil {
+		log.Fatal(err)
+	}
 	return b
 }
 
@@ -159,7 +163,9 @@ func Keccak256(data ...[]byte) []byte {
 // (ref: https://github.com/ethereum/go-ethereum/blob/master/crypto/crypto.go)
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - KeccakState: a new instance of KeccakState
 func NewKeccakState() KeccakState {

@@ -11,7 +11,7 @@ const (
 )
 
 // testConfiguration is a type that is used to configure tests
-type testConfiguration struct {
+type testConfiguration struct { //nolint:golint,unused
 	base string
 }
 
@@ -27,7 +27,8 @@ var (
 // Parameters:
 // - m: is the testing.M parameter
 // Returns:
-//   none
+//
+//	none
 func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
 	flag.Parse()

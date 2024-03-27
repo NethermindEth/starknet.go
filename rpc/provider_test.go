@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -88,7 +89,7 @@ func TestMain(m *testing.M) {
 // - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T) *testConfiguration {
 	t.Helper()
-	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
+	_ = godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
 		t.Fatal("env supports mock, testnet, mainnet, devnet, integration")
@@ -197,7 +198,9 @@ func TestSyncing(t *testing.T) {
 		}
 		if sync.StartingBlockHash != nil {
 			if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
-				spy.Compare(sync, true)
+				if _, err := spy.Compare(sync, true); err != nil {
+					log.Fatal(err)
+				}
 				t.Fatal("expecting to match", err)
 			}
 			i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
@@ -208,7 +211,9 @@ func TestSyncing(t *testing.T) {
 				t.Fatal("current block hash should return a string starting with 0x")
 			}
 		} else {
-			spy.Compare(sync, false)
+			if _, err := spy.Compare(sync, false); err != nil {
+				log.Fatal(err)
+			}
 			require.Nil(t, sync.CurrentBlockHash)
 
 		}
@@ -279,11 +284,14 @@ func TestCookieManagement(t *testing.T) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			json.NewEncoder(w).Encode(map[string]interface{}{
+			data := map[string]interface{}{
 				"jsonrpc": "2.0",
 				"id":      1,
 				"result":  result,
-			})
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
+			}
 		}
 	}))
 	defer server.Close()
