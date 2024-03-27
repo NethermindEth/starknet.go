@@ -458,7 +458,7 @@ func TestSignMOCK(t *testing.T) {
 func TestAddInvoke(t *testing.T) {
 
 	type testSetType struct {
-		ExpectedError        error
+		ExpectedErr          error
 		CairoContractVersion int
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -474,7 +474,7 @@ func TestAddInvoke(t *testing.T) {
 		"testnet": {
 			{
 				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
-				ExpectedError:        rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
 				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 				SetKS:                true,
@@ -498,7 +498,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
-				ExpectedError:        rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
 				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
 				SetKS:                true,
@@ -522,7 +522,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9
-				ExpectedError:        rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
 				SetKS:                true,
@@ -545,7 +545,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0xe8cdb03ddc6b65c2c268eb8084bef41ef63009c10a38f8d1e167652a721588
-				ExpectedError:        rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
 				SetKS:                true,
@@ -566,7 +566,7 @@ func TestAddInvoke(t *testing.T) {
 			},
 			{
 				// https://goerli.voyager.online/tx/0xdcec9fdd48440243fa8fdb8bf87cc40d5ef91181d5a4a0304140df5701c238
-				ExpectedError:        rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
 				SetKS:                true,
@@ -612,7 +612,7 @@ func TestAddInvoke(t *testing.T) {
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, err.Error(), test.ExpectedError.Error())
+			require.Equal(t, err.Error(), test.ExpectedErr.Error())
 			require.Nil(t, resp)
 		}
 
