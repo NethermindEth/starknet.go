@@ -70,9 +70,9 @@ func main() {
 	}
 
 	// Get the accounts nonce
-	nonce, rpcErr := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
-	if rpcErr != nil {
-		panic(rpcErr)
+	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
+	if err != nil {
+		panic(err)
 	}
 
 	// Build the InvokeTx struct
@@ -110,9 +110,9 @@ func main() {
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, rpcErr := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
-	if rpcErr != nil {
-		panic(rpcErr)
+	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
+	if err != nil {
+		panic(err)
 	}
 	// This returns us with the transaction hash
 	fmt.Println("Transaction hash response : ", resp.TransactionHash)

@@ -26,7 +26,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestEvents(t *testing.T) {
 	testConfig := beforeEach(t)
 

@@ -134,7 +134,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 
 	type testSetType struct {
 		BlockID                          BlockID
-		ExpectedError                    *RPCError
+		ExpectedErr                      error
 		ExpectedBlockWithTxHashes        *BlockTxHashes
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
@@ -183,8 +183,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:       BlockID{Tag: "latest"},
-				ExpectedError: nil,
+				BlockID:     BlockID{Tag: "latest"},
+				ExpectedErr: nil,
 				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
 					PendingBlockHeader{
 						ParentHash:       &felt.Zero,
@@ -208,17 +208,17 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID:       WithBlockTag("latest"),
-				ExpectedError: nil,
+				BlockID:     WithBlockTag("latest"),
+				ExpectedErr: nil,
 			},
 			{
 				BlockID:                   WithBlockHash(utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
-				ExpectedError:             nil,
+				ExpectedErr:               nil,
 				ExpectedBlockWithTxHashes: &blockGoerli310370,
 			},
 			{
 				BlockID:                   WithBlockNumber(310370),
-				ExpectedError:             nil,
+				ExpectedErr:               nil,
 				ExpectedBlockWithTxHashes: &blockGoerli310370,
 			},
 		},
@@ -229,14 +229,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
-		require.Equal(t, test.ExpectedError, err, "Error in BlockWithTxHashes")
+		require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
 		switch resultType := result.(type) {
 		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)
 			if !ok {
 				t.Fatalf("should return *BlockTxHashes, instead: %T\n", result)
 			}
-			if test.ExpectedError != nil {
+			if test.ExpectedErr != nil {
 				continue
 			}
 			if !strings.HasPrefix(block.BlockHash.String(), "0x") {

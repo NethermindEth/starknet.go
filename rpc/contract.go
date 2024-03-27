@@ -19,14 +19,14 @@ import (
 // Returns:
 // - ClassOutput: The output of the class.
 // - error: An error if any occurred during the execution.
-func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, *RPCError) {
+func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 
 		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
-	return typecastClassOutput(&rawClass)
+	return typecastClassOutput(rawClass)
 
 }
 
@@ -39,13 +39,13 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 // Returns:
 // - ClassOutput: The output of the class
 // - error: An error if any occurred during the execution
-func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, *RPCError) {
+func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
 
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
-	return typecastClassOutput(&rawClass)
+	return typecastClassOutput(rawClass)
 }
 
 // typecastClassOutput typecasts the rawClass output to the appropriate ClassOutput type.
@@ -55,14 +55,14 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 // Returns:
 // - ClassOutput: a ClassOutput interface
 // - error: an error if any
-func typecastClassOutput(rawClass *map[string]any) (ClassOutput, *RPCError) {
+func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
 		return nil, Err(InternalError, err)
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
-	if _, exists := (*rawClass)["contract_class_version"]; exists {
+	if _, exists := (rawClass)["contract_class_version"]; exists {
 		var contractClass ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
@@ -87,7 +87,7 @@ func typecastClassOutput(rawClass *map[string]any) (ClassOutput, *RPCError) {
 // Returns:
 // - *felt.Felt: The class hash
 // - error: An error if any occurred during the execution
-func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, *RPCError) {
+func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
 
@@ -106,7 +106,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 // Returns:
 // - string: The value of the storage
 // - error: An error if any occurred during the execution
-func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, *RPCError) {
+func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%x", utils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
@@ -125,7 +125,7 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 // Returns:
 // - *felt.Felt: the contract's nonce at the requested state
 // - error: an error if any
-func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, *RPCError) {
+func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var nonce *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
 
@@ -137,7 +137,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 // Estimates the resources required by a given sequence of transactions when applied on a given state.
 // If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error),
 // a TRANSACTION_EXECUTION_ERROR is returned. For v0-2 transactions the estimate is given in wei, and for v3 transactions it is given in fri.
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, *RPCError) {
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, error) {
 	var raw []FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
@@ -154,7 +154,7 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastT
 // Returns:
 // - *FeeEstimate: the fee estimated for the message
 // - error: an error if any occurred during the execution
-func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, *RPCError) {
+func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error) {
 	var raw FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
 

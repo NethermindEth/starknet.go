@@ -499,9 +499,12 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	_, ok = args[0].(EventsInput)
+	ei, ok := args[0].(EventsInput)
 	if !ok {
 		return errWrongArgs
+	}
+	if ei.ChunkSize == 0 {
+		return fmt.Errorf("-ChuckSize error message-")
 	}
 
 	blockHash, err := utils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")

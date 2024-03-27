@@ -13,7 +13,7 @@ import (
 // Returns:
 // - string: The chain ID
 // - error: An error if any occurred during the execution
-func (provider *Provider) ChainID(ctx context.Context) (string, *RPCError) {
+func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if provider.chainID != "" {
 		return provider.chainID, nil
 	}
@@ -33,7 +33,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, *RPCError) {
 // Returns:
 // - *SyncStatus: The synchronization status
 // - error: An error if any occurred during the execution
-func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, *RPCError) {
+func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
 	if err := provider.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
