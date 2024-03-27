@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"log"
 	"strings"
 	"testing"
 
@@ -591,7 +592,9 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(blockWithTxs, false)
+			if _, err := spy.Compare(blockWithTxs, false); err != nil {
+				log.Fatal(err)
+			}
 		}
 		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
@@ -661,7 +664,9 @@ func TestBlockTransactionCount(t *testing.T) {
 			t.Fatal("expecting to match", err)
 		}
 		if diff != "FullMatch" {
-			spy.Compare(count, true)
+			if _, err := spy.Compare(count, true); err != nil {
+				log.Fatal(err)
+			}
 			t.Fatal("structure expecting to be FullMatch, instead", diff)
 		}
 		if count != test.ExpectedCount {

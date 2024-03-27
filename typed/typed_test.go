@@ -2,6 +2,7 @@ package typed
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 	"testing"
 
@@ -44,7 +45,9 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 // The function returns the generated TypedData object.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - ttd: the generated TypedData object
 func MockTypedData() (ttd TypedData) {
@@ -114,7 +117,8 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 // Parameters:
 // - b: a testing.B object that provides methods for benchmarking the function
 // Returns:
-//   none
+//
+//	none
 func BenchmarkGetMessageHash(b *testing.B) {
 	ttd := MockTypedData()
 
@@ -131,7 +135,9 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	}
 	addr := utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
-		ttd.GetMessageHash(addr, mail, curve.Curve)
+		if _, err := ttd.GetMessageHash(addr, mail, curve.Curve); err != nil {
+			log.Fatal(err)
+		}
 	})
 }
 
@@ -143,7 +149,8 @@ func BenchmarkGetMessageHash(b *testing.B) {
 // Parameters:
 // - t: a testing.T object that provides methods for testing functions
 // Returns:
-//  none
+//
+//	none
 func TestGeneral_GetDomainHash(t *testing.T) {
 	ttd := MockTypedData()
 
@@ -168,7 +175,8 @@ func TestGeneral_GetDomainHash(t *testing.T) {
 // Parameters:
 // - t: a testing.T object that provides methods for testing functions
 // Returns:
-//  none
+//
+//	none
 func TestGeneral_GetTypedMessageHash(t *testing.T) {
 	ttd := MockTypedData()
 
@@ -200,11 +208,12 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 // It tests the GetTypeHash function by calling it with different input values
 // and comparing the result with expected values. It also checks that the
 // encoding of the types matches the expected values.
-// 
+//
 // Parameters:
 // - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
-//   none
+//
+//	none
 func TestGeneral_GetTypeHash(t *testing.T) {
 	tdd := MockTypedData()
 
@@ -250,7 +259,8 @@ func TestGeneral_GetTypeHash(t *testing.T) {
 // Parameters:
 // - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
-//   none
+//
+//	none
 func TestGeneral_GetSelectorFromName(t *testing.T) {
 	sel1 := utils.BigToHex(utils.GetSelectorFromName("initialize"))
 	sel2 := utils.BigToHex(utils.GetSelectorFromName("mint"))
@@ -275,7 +285,8 @@ func TestGeneral_GetSelectorFromName(t *testing.T) {
 // Parameters:
 // - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
-//   none
+//
+//	none
 func TestGeneral_EncodeType(t *testing.T) {
 	tdd := MockTypedData()
 

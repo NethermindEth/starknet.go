@@ -29,35 +29,35 @@ func adaptTransaction(t TXN) (Transaction, error) {
 	switch t.Type {
 	case TransactionType_Invoke:
 		var tx InvokeTxnV1
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
+		err := json.Unmarshal(txMarshalled, &tx)
+		return tx, err
 	case TransactionType_Declare:
 		switch {
 		case t.Version.Equal(feltZero):
 			var tx DeclareTxnV0
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
 		case t.Version.Equal(feltOne):
 			var tx DeclareTxnV1
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
 		case t.Version.Equal(feltTwo):
 			var tx DeclareTxnV2
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
 		}
 	case TransactionType_Deploy:
 		var tx DeployTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
+		err := json.Unmarshal(txMarshalled, &tx)
+		return tx, err
 	case TransactionType_DeployAccount:
 		var tx DeployAccountTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
+		err := json.Unmarshal(txMarshalled, &tx)
+		return tx, err
 	case TransactionType_L1Handler:
 		var tx L1HandlerTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
+		err := json.Unmarshal(txMarshalled, &tx)
+		return tx, err
 	}
 	return nil, Err(InternalError, fmt.Sprint("internal error with adaptTransaction() : unknown transaction type ", t.Type))
 
