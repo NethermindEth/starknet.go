@@ -23,14 +23,16 @@ type Provider struct {
 }
 
 // NewProvider creates a new rpc Provider instance.
-func NewProvider(url string) (*Provider, error) {
-
+func NewProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
 	}
 	client := &http.Client{Jar: jar}
-	c, err := ethrpc.DialHTTPWithClient(url, client)
+	// prepend the custom client to allow users to override
+	options = append([]ethrpc.ClientOption{ethrpc.WithHTTPClient(client)}, options...)
+	c, err := ethrpc.DialOptions(context.Background(), url, options...)
+
 	if err != nil {
 		return nil, err
 	}
