@@ -214,7 +214,7 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 				err := remarshal(casted, &txn)
 				return txn, err
 			default:
-				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+				return nil, errors.New("internal error with Declare transaction version and unmarshalTxn()")
 			}
 		case TransactionType_Deploy:
 			var txn BlockDeployTxn

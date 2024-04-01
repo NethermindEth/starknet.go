@@ -156,7 +156,7 @@ func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 	case DAModeL2:
 		return uint64(1), nil
 	}
-	return 0, errors.New("Unknown DAMode")
+	return 0, errors.New("unknown DAMode")
 }
 
 type Resource string

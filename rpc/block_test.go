@@ -106,7 +106,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 // The function takes a testing.T object as a parameter and initializes a testConfig object.
 // It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
-// The function then initializes a blockGoerli310370 variable of type BlockTxHashes with a predefined set of values.
+// The function then initializes a blockSepolia310370 variable of type BlockTxHashes with a predefined set of values.
 // It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
 // The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
@@ -139,7 +139,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockGoerli310370 = BlockTxHashes{
+	var blockSepolia310370 = BlockTxHashes{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
@@ -214,12 +214,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 			{
 				BlockID:                   WithBlockHash(utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockGoerli310370,
+				ExpectedBlockWithTxHashes: &blockSepolia310370,
 			},
 			{
 				BlockID:                   WithBlockNumber(310370),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockGoerli310370,
+				ExpectedBlockWithTxHashes: &blockSepolia310370,
 			},
 		},
 		"mainnet": {},
@@ -277,7 +277,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 // TestBlockWithTxsAndInvokeTXNV0 tests the BlockWithTxsAndInvokeTXNV0 function.
 //
 // The function tests the BlockWithTxsAndInvokeTXNV0 function by setting up a test configuration and a test set type.
-// It then initializes a fullBlockGoerli310370 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
+// It then initializes a fullBlockSepolia310370 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
 // The function compares the expected error with the actual error and checks if the BlockWithTxs function returns the correct block data.
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
 //
@@ -297,7 +297,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		want                        *Block
 	}
 
-	var fullBlockGoerli310370 = Block{
+	var fullBlockSepolia310370 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
 			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
@@ -349,12 +349,12 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			{
 				BlockID:       WithBlockHash(utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
 				ExpectedError: nil,
-				want:          &fullBlockGoerli310370,
+				want:          &fullBlockSepolia310370,
 			},
 			{
 				BlockID:       WithBlockNumber(310370),
 				ExpectedError: nil,
-				want:          &fullBlockGoerli310370,
+				want:          &fullBlockSepolia310370,
 			},
 		},
 		"mainnet": {},
@@ -411,7 +411,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 // TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
 
 // TestBlockWithTxsAndDeployOrDeclare is a test function that tests the functionality of the BlockWithTxs function.
-// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockGoerli310843, fullBlockGoerli848622 and fullBlockGoerli849399).
+// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockSepolia310843, fullBlockSepolia848622 and fullBlockSepolia849399).
 // It then defines a testSet map with different test scenarios for the BlockWithTxs function.
 // The function iterates over the testSet and performs the BlockWithTxs operation on each test case.
 // It compares the returned blockWithTxs with the expected result and verifies the correctness of the operation.
@@ -438,7 +438,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 	}
 
 	// TODO : re-add test for deploy account transaction
-	var fullBlockGoerli310843 = Block{
+	var fullBlockSepolia310843 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
 			ParentHash:       utils.TestHexToFelt(t, "0x30e34dedf00bb35a9076b2b0f50a5a74fd2501f62094b6e687277be6ef3d444"),
@@ -466,7 +466,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		},
 	}
 
-	var fullBlockGoerli848622 = Block{
+	var fullBlockSepolia848622 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x32964e2e407bb9e71b2de8d9d9829b0537df7c4624e1816e6cece80781ab9cc"),
 			ParentHash:       utils.TestHexToFelt(t, "0xecbed6cfe85c77f2f8acefe2effbda817f71ca7457f7ece8262d65cc87a9f7"),
@@ -492,7 +492,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		},
 	}
 
-	var fullBlockGoerli849399 = Block{
+	var fullBlockSepolia849399 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x6e5b26127400bac0cd1f3c2ab6e76850ec457c71b1f2fc7cda755bee8a1102a"),
 			ParentHash:       utils.TestHexToFelt(t, "0x7cd085d4ab95b3307303cb836ab49c0fbc8d1f9befdcfdc65292d99c9466d05"),
@@ -531,42 +531,42 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli310843,
+				ExpectedBlockWithTxs:        &fullBlockSepolia310843,
 			},
 			{
 				BlockID:                     WithBlockNumber(310843),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 14,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli310843,
+				ExpectedBlockWithTxs:        &fullBlockSepolia310843,
 			},
 			{
 				BlockID:                     WithBlockNumber(849399),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 71,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli849399,
+				ExpectedBlockWithTxs:        &fullBlockSepolia849399,
 			},
 			{
 				BlockID:                     WithBlockNumber(848622),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 6,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
+				ExpectedBlockWithTxs:        &fullBlockSepolia848622,
 			},
 			{
 				BlockID:                     WithBlockNumber(849399),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 71,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli849399,
+				ExpectedBlockWithTxs:        &fullBlockSepolia849399,
 			},
 			{
 				BlockID:                     WithBlockNumber(848622),
 				ExpectedError:               nil,
 				LookupTxnPositionInOriginal: 6,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockGoerli848622,
+				ExpectedBlockWithTxs:        &fullBlockSepolia848622,
 			},
 		},
 		"mainnet": {},

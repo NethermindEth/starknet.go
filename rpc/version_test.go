@@ -26,7 +26,7 @@ func TestSpecVersion(t *testing.T) {
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.SpecVersion(context.Background())
-		require.NoError(t, err)
-		require.Equal(t, test.ExpectedResp, resp)
+		require.Nil(t, err)
+		require.Equal(t, test.ExpectedResp, resp, "Expected spec version mismatch")
 	}
 }

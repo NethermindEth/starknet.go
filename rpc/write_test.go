@@ -72,7 +72,7 @@ func TestDeclareTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		if test.DeclareTx == nil && testEnv == "testnet" {
-			declareTxJSON, err := os.ReadFile("./tests/write/declareTx.json")
+			declareTxJSON, err := os.ReadFile("./tests/write/git.json")
 			if err != nil {
 				t.Fatal("should be able to read file", err)
 			}
@@ -85,7 +85,7 @@ func TestDeclareTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+			require.Equal(t, (*test.ExpectedResp.TransactionHash).String(), (*resp.TransactionHash).String())
 		}
 
 	}

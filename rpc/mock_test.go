@@ -533,7 +533,7 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	events :=
 		EventChunk{
 			Events: []EmittedEvent{
-				EmittedEvent{
+				{
 					BlockHash:       blockHash,
 					BlockNumber:     1472,
 					TransactionHash: txHash,

@@ -1,6 +1,8 @@
 package rpc
 
-import "context"
+import (
+	"context"
+)
 
 // SpecVersion returns the version of the Starknet JSON-RPC specification being used
 // Parameters: None

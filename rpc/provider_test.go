@@ -101,7 +101,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	testConfig.base = "https://starknet-goerli.cartridge.gg"
+	testConfig.base = "https://starknet-sepolia.cartridge.gg"
 	base := os.Getenv("INTEGRATION_BASE")
 	if base != "" {
 		testConfig.base = base
@@ -137,10 +137,10 @@ func TestChainID(t *testing.T) {
 		ChainID string
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "SN_GOERLI"}},
+		"devnet":  {{ChainID: "SN_SEPOLIA"}},
 		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "SN_GOERLI"}},
-		"testnet": {{ChainID: "SN_GOERLI"}},
+		"mock":    {{ChainID: "SN_SEPOLIA"}},
+		"testnet": {{ChainID: "SN_SEPOLIA"}},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -186,7 +186,7 @@ func TestSyncing(t *testing.T) {
 		"devnet":  {},
 		"mainnet": {{ChainID: "SN_MAIN"}},
 		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_GOERLI"}},
+		"testnet": {{ChainID: "SN_SEPOLIA"}},
 	}[testEnv]
 
 	for range testSet {
@@ -305,9 +305,9 @@ func TestCookieManagement(t *testing.T) {
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_GOERLI")
+	require.Equal(t, resp, "SN_SEPOLIA")
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_GOERLI")
+	require.Equal(t, resp, "SN_SEPOLIA")
 }
