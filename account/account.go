@@ -207,7 +207,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			return nil, ErrNotAllParametersSet
 		}
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
-		calldata = append(calldata, txn.ConstructorCalldata...)
+		calldata = append(calldata, txn.ConstructorCalldata...) //nolint:all
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -932,9 +932,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 		calldata = append(calldata, new(felt.Felt).SetUint64(callDataLen))
 		offset += callDataLen
 
-		for _, data := range call.Calldata {
-			calls = append(calls, data)
-		}
+		calls = append(calls, call.Calldata...)
 	}
 
 	calldata = append(calldata, new(felt.Felt).SetUint64(offset))

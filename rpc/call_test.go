@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -22,7 +23,8 @@ import (
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
-//  none
+//
+//	none
 func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -87,7 +89,9 @@ func TestCall(t *testing.T) {
 			t.Fatal(err)
 		}
 		if diff, err := spy.Compare(output, false); err != nil || diff != "FullMatch" {
-			spy.Compare(output, true)
+			if _, err := spy.Compare(output, true); err != nil {
+				log.Fatal(err)
+			}
 			t.Fatal("expecting to match", err)
 		}
 		if len(output) == 0 {

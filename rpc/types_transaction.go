@@ -285,52 +285,52 @@ func unmarshalTxn(t interface{}) (Transaction, error) {
 			switch TransactionType(casted["version"].(string)) {
 			case "0x0":
 				var txn DeclareTxnV0
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x1":
 				var txn DeclareTxnV1
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x2":
 				var txn DeclareTxnV2
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x3":
 				var txn DeclareTxnV3
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			default:
 				return nil, errors.New("internal unmarshalTxn() error, unknown Declare transaction version")
 			}
 		case TransactionType_Deploy:
 			var txn DeployTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_DeployAccount:
 			var txn DeployAccountTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_Invoke:
 			switch TransactionType(casted["version"].(string)) {
 			case "0x0":
 				var txn InvokeTxnV0
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x1":
 				var txn InvokeTxnV1
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x3":
 				var txn InvokeTxnV3
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			default:
 				return nil, errors.New("internal unmarshalTxn() error, unknown Invoke transaction version")
 			}
 		case TransactionType_L1Handler:
 			var txn L1HandlerTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		}
 	}
 

@@ -214,7 +214,9 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 		]
 		}`
 
-	json.Unmarshal([]byte(InvokeTxnV1example), r)
+	if err := json.Unmarshal([]byte(InvokeTxnV1example), r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -239,7 +241,9 @@ func mock_starknet_getBlockTransactionCount(result interface{}, method string, a
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -303,7 +307,9 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		"type": "INVOKE"
 	  }`
 
-	json.Unmarshal([]byte(InvokeTxnV1example), r)
+	if err := json.Unmarshal([]byte(InvokeTxnV1example), r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -367,7 +373,9 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -398,7 +406,9 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -428,7 +438,9 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -478,7 +490,9 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -531,7 +545,9 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -560,7 +576,9 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -592,7 +610,9 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(outputContent, r)
+		if err := json.Unmarshal(outputContent, r); err != nil {
+			return err
+		}
 		return nil
 	}
 	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeclareTxnV2 or DeclareTxnV3, got %T\n", args[0]))
@@ -647,7 +667,9 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -688,7 +710,9 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -728,7 +752,9 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(outputContent, r)
+		if err := json.Unmarshal(outputContent, r); err != nil {
+			return err
+		}
 		return nil
 	case InvokeTxnV3:
 		deadbeefFelt, err := utils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
@@ -742,7 +768,9 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(outputContent, r)
+		if err := json.Unmarshal(outputContent, r); err != nil {
+			return err
+		}
 		return nil
 	default:
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1 or InvokeTxnV3, got %T\n", args[0]))
@@ -771,7 +799,9 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, method string
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(outputContent, r)
+		if err := json.Unmarshal(outputContent, r); err != nil {
+			return err
+		}
 		return nil
 	default:
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxn or DeployAccountTxnV3, got %T\n", args[0]))
@@ -814,7 +844,9 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -876,7 +908,9 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -917,7 +951,9 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(outputContent, r)
+	if err := json.Unmarshal(outputContent, r); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -996,7 +1032,9 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 		if err != nil {
 			return err
 		}
-		json.Unmarshal(block, &r)
+		if err := json.Unmarshal(block, &r); err != nil {
+			return err
+		}
 	}
 
 	return nil
