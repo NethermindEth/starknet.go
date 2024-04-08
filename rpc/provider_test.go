@@ -101,7 +101,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	testConfig.base = "https://starknet-sepolia.cartridge.gg"
 	base := os.Getenv("INTEGRATION_BASE")
 	if base != "" {
 		testConfig.base = base
@@ -305,9 +304,9 @@ func TestCookieManagement(t *testing.T) {
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_SEPOLIA")
+	require.Equal(t, "SN_SEPOLIA", resp)
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_SEPOLIA")
+	require.Equal(t, "SN_SEPOLIA", resp)
 }
