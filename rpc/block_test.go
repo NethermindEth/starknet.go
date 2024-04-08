@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -106,7 +107,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 // The function takes a testing.T object as a parameter and initializes a testConfig object.
 // It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
-// The function then initializes a blockSepolia310370 variable of type BlockTxHashes with a predefined set of values.
+// The function then initializes a blockSepolia30436 variable of type BlockTxHashes with a predefined set of values.
 // It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
 // The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
@@ -139,44 +140,28 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockSepolia310370 = BlockTxHashes{
+	var blockSepolia30436 = BlockTxHashes{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
-			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b"),
-			BlockNumber:      310370,
-			NewRoot:          utils.TestHexToFelt(t, "0x5cd7a08312635206c0210b8c90e61ceac27cb09629064e12266fd79e4c05a3d"),
-			Timestamp:        1661450764,
+			BlockHash:        utils.TestHexToFelt(t, "0x2488a7149327b4dcd200f05a131911bd44f946021539648642eaa7d6e82f289"),
+			ParentHash:       utils.TestHexToFelt(t, "0x2adc07a26d70e72a16775e26c45074f0216bc2e86e35bfe53743968480e4c1b"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      30436,
+			NewRoot:          utils.TestHexToFelt(t, "0x4bbb6bec9488d70d9c9e96862cf50e22331a5e8d7b33a56712f56cd04c16e06"),
+			Timestamp:        1707158969,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: utils.TestHexArrToFelt(t, []string{
-			"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
-			"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
-			"0x41176c650076712f1618a141fc1cf9a8c39f0d9548a3458f29cf363310a1e72",
-			"0x43cd66f3ddbfbf681ab99bb57bf9d94c83d6e9b586bdbde78ab2deb0328ebd5",
-			"0x7602cfebe4f3cb3ef4c8b8c6d7dda2efaf4a500723020066f5db50acd5095cd",
-			"0x2612f3f870ee7e7617d4f9efdc41fa8fd571f9720b059b1aa14c1bf15d3a92a",
-			"0x1a7810a6c68adf0621ed384d915409c936efa0c9d436683ea0cf7ea171719b",
-			"0x26683aeef3e9d9bcc1f0d45a5f0b67d0aa1919726524b2a8dc59504dacfd1f4",
-			"0x1d374aa073435cdde1ec1caf972f7c175fd23438bb220848e71720e00fd7474",
-			"0xfc13eabaa2f38981e68bb010370cad7a7d0b65a59101ec816042adca0d6841",
-			"0x672d007224128b99bcc145cd3dbd8930a944b6a5fff5c27e3b158a6ff701509",
-			"0x24795cbca6d2eba941082cea3f686bc86ef27dd46fdf84b32f9ba25bbeddb28",
-			"0x69281a4dd58c260a06b3266554c0cf1a4f19b79d8488efef2a1f003d67506ed",
-			"0x62211cc3c94d612b580eb729410e52277f838f962d91af91fb2b0526704c04d",
-			"0x5e4128b7680db32de4dff7bc57cb11c9f222752b1f875e84b29785b4c284e2a",
-			"0xdb8ad2b7d008fd2ad7fba4315b193032dee85e17346c80276a2e08c7f09f80",
-			"0x67b9541ca879abc29fa24a0fa070285d1899fc044159521c827f6b6aa09bbd6",
-			"0x5d9c0ab1d4ed6e9376c8ab45ee02b25dd0adced12941aafe8ce37369d19d9c2",
-			"0x4e52da53e23d92d9818908aeb104b007ea24d3cd4a5aa43144d2db1011e314f",
-			"0x6cc05f5ab469a3675acb5885c274d5143dca75dd9835c582f59e85ab0642d39",
-			"0x561ed983d1d9c37c964a96f80ccaf3de772e2b73106d6f49dd7c3f7ed8483d9",
+			"0x10d2059db6d261fee740b515ed8b9c50955f03dd43c4729b24dc63278641926",
+			"0x50d39b3fd4931343aeb6bf325493f7b8c05d8bf2819e4dad465e42751e2412",
+			"0x3761dfe1ce22d16eab6339d8ba2ab4c56008182d979979f8e68217920193996",
+			"0x7e3f4756d90b1f6f8249185857b4beab0c0dd3d3b207ad73fd249c6267ecea5",
 		}),
 	}
 
 	txHashes := utils.TestHexArrToFelt(t, []string{
-		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
-		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+		"0x10d2059db6d261fee740b515ed8b9c50955f03dd43c4729b24dc63278641926",
+		"0x50d39b3fd4931343aeb6bf325493f7b8c05d8bf2819e4dad465e42751e2412",
+		"0x3761dfe1ce22d16eab6339d8ba2ab4c56008182d979979f8e68217920193996",
 	})
 	blockHash := utils.TestHexToFelt(t, "0xbeef")
 
@@ -212,14 +197,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:                   WithBlockHash(utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:                   WithBlockHash(utils.TestHexToFelt(t, "0x2488a7149327b4dcd200f05a131911bd44f946021539648642eaa7d6e82f289")),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockSepolia310370,
+				ExpectedBlockWithTxHashes: &blockSepolia30436,
 			},
 			{
-				BlockID:                   WithBlockNumber(310370),
+				BlockID:                   WithBlockNumber(30436),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockSepolia310370,
+				ExpectedBlockWithTxHashes: &blockSepolia30436,
 			},
 		},
 		"mainnet": {},
@@ -277,7 +262,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 // TestBlockWithTxsAndInvokeTXNV0 tests the BlockWithTxsAndInvokeTXNV0 function.
 //
 // The function tests the BlockWithTxsAndInvokeTXNV0 function by setting up a test configuration and a test set type.
-// It then initializes a fullBlockSepolia310370 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
+// It then initializes a fullBlockSepolia30436 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
 // The function compares the expected error with the actual error and checks if the BlockWithTxs function returns the correct block data.
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
 //
@@ -297,41 +282,36 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		want                        *Block
 	}
 
-	var fullBlockSepolia310370 = Block{
+	var fullBlockSepolia30436 = Block{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72"),
-			ParentHash:       utils.TestHexToFelt(t, "0x1ce6fa8ef59dfa1ad8f7ce7c3a4e6752e2d8ae6274f8257345f680e6ae0b5b5"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b"),
-			BlockNumber:      310370,
-			NewRoot:          utils.TestHexToFelt(t, "0x5cd7a08312635206c0210b8c90e61ceac27cb09629064e12266fd79e4c05a3d"),
+			BlockHash:        utils.TestHexToFelt(t, "0x2488a7149327b4dcd200f05a131911bd44f946021539648642eaa7d6e82f289"),
+			ParentHash:       utils.TestHexToFelt(t, "0x2adc07a26d70e72a16775e26c45074f0216bc2e86e35bfe53743968480e4c1b"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      30436,
+			NewRoot:          utils.TestHexToFelt(t, "0x4bbb6bec9488d70d9c9e96862cf50e22331a5e8d7b33a56712f56cd04c16e06"),
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 
 			BlockInvokeTxnV0{
-				TransactionHash: utils.TestHexToFelt(t, "0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99"),
+				TransactionHash: utils.TestHexToFelt(t, "0x10d2059db6d261fee740b515ed8b9c50955f03dd43c4729b24dc63278641926"),
 				InvokeTxnV0: InvokeTxnV0{
 					Type:    "INVOKE",
-					MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
+					MaxFee:  utils.TestHexToFelt(t, "0x470de4df820000"),
 					Version: TransactionV0,
 					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
+						utils.TestHexToFelt(t, "0x7fb440b1dee35c5259bf10d55782bc973434d195bb5c8b95ac7d3d8e2a8a0e4"),
 						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
 					},
 					FunctionCall: FunctionCall{
-						ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
-						EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+						ContractAddress:    nil,
+						EntryPointSelector: nil,
 						Calldata: []*felt.Felt{
 							utils.TestHexToFelt(t, "0x1"),
-							utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
-							utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
+							utils.TestHexToFelt(t, "0x3fe8e4571772bbe0065e271686bd655efd1365a5d6858981e582f82f2c10313"),
+							utils.TestHexToFelt(t, "0x2468d193cd15b621b24c2a602b8dbcfa5eaa14f88416c40c09d7fd12592cb4b"),
 							utils.TestHexToFelt(t, "0x0"),
-							utils.TestHexToFelt(t, "0x2"),
-							utils.TestHexToFelt(t, "0x2"),
-							utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
-							utils.TestHexToFelt(t, "0x6307b990"),
-							utils.TestHexToFelt(t, "0x2b81"),
 						},
 					},
 				},
@@ -347,20 +327,23 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:       WithBlockHash(utils.TestHexToFelt(t, "0x6c2fe3db009a2e008c2d65fca14204f3405cb74742fcf685f02473acaf70c72")),
+				BlockID:       WithBlockHash(utils.TestHexToFelt(t, "0x2488a7149327b4dcd200f05a131911bd44f946021539648642eaa7d6e82f289")),
 				ExpectedError: nil,
-				want:          &fullBlockSepolia310370,
+				want:          &fullBlockSepolia30436,
 			},
 			{
-				BlockID:       WithBlockNumber(310370),
+				BlockID:       WithBlockNumber(30436),
 				ExpectedError: nil,
-				want:          &fullBlockSepolia310370,
+				want:          &fullBlockSepolia30436,
 			},
 		},
 		"mainnet": {},
 	}[testEnv]
 
-	for _, test := range testSet {
+	for i, test := range testSet {
+		fmt.Println("Test case", i)
+		fmt.Println("BlockID is", test.BlockID)
+		fmt.Println("LookuptxnPositionInOriginal is", test.LookupTxnPositionInOriginal)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
