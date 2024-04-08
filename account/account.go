@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	ErrNotAllParametersSet   = errors.New("Not all neccessary parameters have been set")
-	ErrTxnTypeUnSupported    = errors.New("Unsupported transction type")
-	ErrTxnVersionUnSupported = errors.New("Unsupported transction version")
-	ErrFeltToBigInt          = errors.New("Felt to BigInt error")
+	ErrNotAllParametersSet   = errors.New("not all neccessary parameters have been set")
+	ErrTxnTypeUnSupported    = errors.New("unsupported transction type")
+	ErrTxnVersionUnSupported = errors.New("unsupported transction version")
+	ErrFeltToBigInt          = errors.New("felt to BigInt error")
 )
 
 var (
@@ -905,7 +905,7 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 	case 2:
 		return FmtCallDataCairo2(fnCalls), nil
 	default:
-		return nil, errors.New("Cairo version not supported")
+		return nil, errors.New("cairo version not supported")
 	}
 }
 
