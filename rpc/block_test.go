@@ -668,7 +668,7 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 // TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
 
 // TestBlockWithTxsAndDeployOrDeclare is a test function that tests the functionality of the BlockWithTxs function.
-// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockSepolia310843, fullBlockSepolia848622 and fullBlockSepolia849399).
+// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockSepolia52959, fullBlockSepolia848622 and fullBlockSepolia849399).
 // It then defines a testSet map with different test scenarios for the BlockWithTxs function.
 // The function iterates over the testSet and performs the BlockWithTxs operation on each test case.
 // It compares the returned blockWithTxs with the expected result and verifies the correctness of the operation.
@@ -683,7 +683,7 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 // Returns:
 //
 //	none
-func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
+func TestBlockWithTxsAndDeployAccountOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -694,83 +694,93 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		ExpectedBlockWithTxs        *Block
 	}
 
-	// TODO : re-add test for deploy account transaction
-	var fullBlockSepolia310843 = Block{
+	var fullBlockSepolia52959 = Block{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9"),
-			ParentHash:       utils.TestHexToFelt(t, "0x30e34dedf00bb35a9076b2b0f50a5a74fd2501f62094b6e687277be6ef3d444"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x46a89ae102987331d369645031b49c27738ed096f2789c24449966da4c6de6b"),
-			BlockNumber:      310843,
-			NewRoot:          utils.TestHexToFelt(t, "0x32bd4ff21288c898d4d3b6a7aea4ebdb3f1c7089cd52bde98316b4ecb8a50be"),
-			Timestamp:        1661486036,
+			BlockHash:        utils.TestHexToFelt(t, "0x5e4c92970bb2bc51a3824a8357078ef00e0c089313c4ac1d9004166d9adc6aa"),
+			ParentHash:       utils.TestHexToFelt(t, "0x469f2b163bd62e042e77390ae3d1fa278212e279408163e14624d39d6529bd5"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      52959,
+			NewRoot:          utils.TestHexToFelt(t, "0x5aebb84ffae11caa645da6ade011df2e5d60a1943d9533fcd8326ff5ca000b2"),
+			Timestamp:        1711378335,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
-			BlockDeployTxn{
-				TransactionHash: utils.TestHexToFelt(t, "0x35bd2978d2061b3463498f83c09322ed6a82e4b2a188506525e272a7adcdf6a"),
-				DeployTxn: DeployTxn{
-					ClassHash: utils.TestHexToFelt(t, "0x1ca349f9721a2bf05012bb475b404313c497ca7d6d5f80c03e98ff31e9867f5"),
-					ConstructorCalldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x31ad196615d50956d98be085eb1774624106a6936c7c38696e730d2a6df735a"),
-						utils.TestHexToFelt(t, "0x736affc32af71f8d361c855b38ffef58ec151bd8361a3b160017b90ada1068e"),
+			BlockDeployAccountTxn{
+				TransactionHash: utils.TestHexToFelt(t, "0x38d17f7aaa320f43a638a0097a43332614d3306d91036cab258a07441a14a10"),
+				DeployAccountTxn: DeployAccountTxn{
+					ClassHash: utils.TestHexToFelt(t, "0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x20b878ad13672908aadeb500348d3c172a9d2534474d5f87788de5268b29c4e"),
+						utils.TestHexToFelt(t, "0xd4b95c47f5234c220e2c9bc96b15677aad0cc47d74ed647c53ab121f632e95"),
 					},
-					ContractAddressSalt: utils.TestHexToFelt(t, "0x4241e90ee6a33a1e2e70b088f7e4acfb3d6630964c1a85e96fa96acd56dcfcf"),
-
-					Type:    "DEPLOY",
-					Version: TransactionV0,
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x7e02fa1096a3292b92f28167a180dc6b0944f1d0cc1b4919c88cc2ca961848"),
+						utils.TestHexToFelt(t, "0x0"),
+					},
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x7e02fa1096a3292b92f28167a180dc6b0944f1d0cc1b4919c88cc2ca961848"),
+					MaxFee:              utils.TestHexToFelt(t, "0x12aff9cd5fac"),
+					Type:                "DEPLOY_ACCOUNT",
+					Nonce:               utils.TestHexToFelt(t, "0x0"),
+					Version:             TransactionV1,
 				},
 			},
 		},
 	}
 
-	var fullBlockSepolia848622 = Block{
+	var fullBlockSepolia53617 = Block{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x32964e2e407bb9e71b2de8d9d9829b0537df7c4624e1816e6cece80781ab9cc"),
-			ParentHash:       utils.TestHexToFelt(t, "0xecbed6cfe85c77f2f8acefe2effbda817f71ca7457f7ece8262d65cc87a9f7"),
+			BlockHash:        utils.TestHexToFelt(t, "0x526355d90ef6118d4f871ccdb3a3d0ea27d10b0a02b3005e7697dd321b52ada"),
+			ParentHash:       utils.TestHexToFelt(t, "0x645b998412c408e979577b357f4afc0902652fed85bdd7f9d81b7fa2ffc9506"),
 			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-			BlockNumber:      848622,
-			NewRoot:          utils.TestHexToFelt(t, "07c4302f09f6a72129679378e9b8d6c67774c5c4e80b1fc186da114f71637b2e"),
-			Timestamp:        1692416283,
+			BlockNumber:      53617,
+			NewRoot:          utils.TestHexToFelt(t, "0x703f5a9be28fc4e57f3dd84abd05acb5bbdc957b77ce9e134b0d5d08d04d9ec"),
+			Timestamp:        1711538993,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 			BlockDeclareTxnV1{
-				TransactionHash: utils.TestHexToFelt(t, "0x5ad2f85499ea92d33d4a44c8cd4640d1ee4e25c3ee6df0bdf0a76c12c052f0a"),
+				TransactionHash: utils.TestHexToFelt(t, "0x7ff4942928fb6383514fd18d8b4ddc8a154b496d2204f60ee47e6272305172c"),
 				DeclareTxnV1: DeclareTxnV1{
-					Type:          TransactionType_Declare,
-					MaxFee:        utils.TestHexToFelt(t, "0x27a64c6e425"),
-					Version:       TransactionV1,
-					Signature:     []*felt.Felt{utils.TestHexToFelt(t, "0x1454ab28f0bf18f0fd8002bc92169e6443feba6c605728c86850c0dcc9f6f9a"), utils.TestHexToFelt(t, "0xf545949c899ff1d16c61629996e898db2697a2e3e7fa9071b016500ca5c1d1")},
-					Nonce:         utils.TestHexToFelt(t, "0x333"),
-					ClassHash:     utils.TestHexToFelt(t, "0x681076f783aa2b3faec6ce80bb5485a260ed1672007925e1d502b003aff2232"),
-					SenderAddress: utils.TestHexToFelt(t, "0x45dba6ce6a4dc3d2f31aa6da5f51007f1e43e84a1e62c4481bac5454dea4e6d"),
+					Type:    TransactionType_Declare,
+					MaxFee:  utils.TestHexToFelt(t, "0x3365d77ce5000"),
+					Version: TransactionV1,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x106b85d29dfe14af94d46e8758491c468f0812227c8969de7f7c382355bd72c"),
+						utils.TestHexToFelt(t, "0x28a8bdedf588daa657057240e952fb93070290b6d906bc80c9e9e3f3e3be6da"),
+					},
+					Nonce:         utils.TestHexToFelt(t, "0x128"),
+					ClassHash:     utils.TestHexToFelt(t, "0x6b433af0dff031b3578de26217fa7cd2a8ac0d70c25f8fbf332fc603a5dcf2d"),
+					SenderAddress: utils.TestHexToFelt(t, "0x2cc631ca0c544639f6e4403b8f3611696a3d831e8157ea1c946e35429c7ac31"),
 				},
 			},
 		},
 	}
 
-	var fullBlockSepolia849399 = Block{
+	var fullBlockSepolia53794 = Block{
 		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x6e5b26127400bac0cd1f3c2ab6e76850ec457c71b1f2fc7cda755bee8a1102a"),
-			ParentHash:       utils.TestHexToFelt(t, "0x7cd085d4ab95b3307303cb836ab49c0fbc8d1f9befdcfdc65292d99c9466d05"),
+			BlockHash:        utils.TestHexToFelt(t, "0x5d216dd9e394a088330b5d77a4a282618b7f0796a2ef8f081c5aa01e3ace6f0"),
+			ParentHash:       utils.TestHexToFelt(t, "0x6e31bf89281805f949a0ab5d7bf6fa44becf7c4cff4d426626a1647376e461f"),
 			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-			BlockNumber:      849399,
-			NewRoot:          utils.TestHexToFelt(t, "0x239a44410e78665f41f7a65ef3b5ed244ce411965498a83f80f904e22df1045"),
-			Timestamp:        1692560305,
+			BlockNumber:      53794,
+			NewRoot:          utils.TestHexToFelt(t, "0x1c6f8a85528d03dcf88a4087bb191bd608f301a7eb3e05d236b0c441fc30174"),
+			Timestamp:        1711582037,
 		},
 		Status: "ACCEPTED_ON_L1",
 		Transactions: []BlockTransaction{
 			BlockDeclareTxnV2{
-				TransactionHash: utils.TestHexToFelt(t, "0x45d04652ba51685b7b82fc17b3d5741a7c43992369c0b0aebd60916fa23b9b2"),
+				TransactionHash: utils.TestHexToFelt(t, "0x7c0108477e9ece3dbd421f74e73bd4e15c7fcb496784e99d4b6f6710463b6f3"),
 				DeclareTxnV2: DeclareTxnV2{
-					Type:              TransactionType_Declare,
-					MaxFee:            utils.TestHexToFelt(t, "0x50c8f30287c"),
-					Version:           TransactionV2,
-					Signature:         []*felt.Felt{utils.TestHexToFelt(t, "0x6be01a56087382337a29fd4577dd20fd82cc9f38f69b8d19e07fc101c3c5ad9"), utils.TestHexToFelt(t, "0x4c633a5582d3932fbfcea8abd45c7453e88a562f1a38877b9575d6a6b926ea2")},
-					Nonce:             utils.TestHexToFelt(t, "0xd"),
-					ClassHash:         utils.TestHexToFelt(t, "0x6fda8f6630f44571cd6b398795351b37daf27adacbf6fe9357bd23ad19b22f3"),
-					CompiledClassHash: utils.TestHexToFelt(t, "0x4380d7c6511f81668530570a8b07bd2148808f90e681bb769549ec4faafef65"),
-					SenderAddress:     utils.TestHexToFelt(t, "0x6ef69146f56205e27624a9933f31d6009198c1ea480070a790f16a5d928be92"),
+					Type:    TransactionType_Declare,
+					MaxFee:  utils.TestHexToFelt(t, "0xde0b6b3a7640000"),
+					Version: TransactionV2,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x2dd7cf8724045aa56edce10f96d1ec62a89492dc69e43d4b21c62a3708f3eb6"),
+						utils.TestHexToFelt(t, "0x4918acc659aa5e4e4b4b8a7ffdc3686fefd219c556ef7582904675cae6b1028"),
+					},
+					Nonce:             utils.TestHexToFelt(t, "0x353"),
+					ClassHash:         utils.TestHexToFelt(t, "0x36f7463a30a3ff34ecdcfeea4aa880b97c366523925b1ba069faadddbef0e02"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x5047109bf7eb550c5e6b0c37714f6e0db4bb8b5b227869e0797ecfc39240aa7"),
+					SenderAddress:     utils.TestHexToFelt(t, "0xaf46a3d75c1abc204cbe7e08f220680958bd8aca2c3cfc2ef34c686148ecf7"),
 				},
 			},
 		},
@@ -784,46 +794,46 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x424fba26a7760b63895abe0c366c2d254cb47090c6f9e91ba2b3fa0824d4fc9")),
+				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x5e4c92970bb2bc51a3824a8357078ef00e0c089313c4ac1d9004166d9adc6aa")),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 14,
+				LookupTxnPositionInOriginal: 4,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia310843,
+				ExpectedBlockWithTxs:        &fullBlockSepolia52959,
 			},
 			{
-				BlockID:                     WithBlockNumber(310843),
+				BlockID:                     WithBlockNumber(52959),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 14,
+				LookupTxnPositionInOriginal: 4,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia310843,
+				ExpectedBlockWithTxs:        &fullBlockSepolia52959,
 			},
 			{
-				BlockID:                     WithBlockNumber(849399),
+				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x5d216dd9e394a088330b5d77a4a282618b7f0796a2ef8f081c5aa01e3ace6f0")),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 71,
+				LookupTxnPositionInOriginal: 72,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia849399,
+				ExpectedBlockWithTxs:        &fullBlockSepolia53794,
 			},
 			{
-				BlockID:                     WithBlockNumber(848622),
+				BlockID:                     WithBlockNumber(53794),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 6,
+				LookupTxnPositionInOriginal: 72,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia848622,
+				ExpectedBlockWithTxs:        &fullBlockSepolia53794,
 			},
 			{
-				BlockID:                     WithBlockNumber(849399),
+				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x526355d90ef6118d4f871ccdb3a3d0ea27d10b0a02b3005e7697dd321b52ada")),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 71,
+				LookupTxnPositionInOriginal: 72,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia849399,
+				ExpectedBlockWithTxs:        &fullBlockSepolia53617,
 			},
 			{
-				BlockID:                     WithBlockNumber(848622),
+				BlockID:                     WithBlockNumber(53617),
 				ExpectedError:               nil,
-				LookupTxnPositionInOriginal: 6,
+				LookupTxnPositionInOriginal: 72,
 				LookupTxnPositionInExpected: 0,
-				ExpectedBlockWithTxs:        &fullBlockSepolia848622,
+				ExpectedBlockWithTxs:        &fullBlockSepolia53617,
 			},
 		},
 		"mainnet": {},
