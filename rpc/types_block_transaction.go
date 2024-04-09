@@ -20,6 +20,7 @@ var _ BlockTransaction = BlockInvokeTxnV3{}
 var _ BlockTransaction = BlockDeclareTxnV0{}
 var _ BlockTransaction = BlockDeclareTxnV1{}
 var _ BlockTransaction = BlockDeclareTxnV2{}
+var _ BlockTransaction = BlockDeclareTxnV3{}
 var _ BlockTransaction = BlockDeployTxn{}
 var _ BlockTransaction = BlockDeployAccountTxn{}
 var _ BlockTransaction = BlockL1HandlerTxn{}
@@ -96,6 +97,18 @@ func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
+// Hash returns the transaction hash of the BlockDeclareTxnV3.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+// - *felt.Felt: the transaction hash
+func (tx BlockDeclareTxnV3) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
 // Hash returns the hash of the BlockDeployTxn.
 //
 // Parameters:
@@ -167,6 +180,11 @@ type BlockDeclareTxnV2 struct {
 	DeclareTxnV2
 }
 
+type BlockDeclareTxnV3 struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	DeclareTxnV3
+}
+
 type BlockDeployTxn struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	DeployTxn
@@ -229,6 +247,10 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 				return txn, err
 			case "0x2":
 				var txn BlockDeclareTxnV2
+				err := remarshal(casted, &txn)
+				return txn, err
+			case "0x3":
+				var txn BlockDeclareTxnV3
 				err := remarshal(casted, &txn)
 				return txn, err
 			default:

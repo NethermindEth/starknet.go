@@ -959,8 +959,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 381000,
-				EndBlock:   381001,
+				StartBlock: 52959,
+				EndBlock:   52960,
 			},
 		},
 		"mainnet": {},
@@ -976,15 +976,17 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv1 := v.(BlockInvokeTxnV1)
 				_, okv0 := v.(BlockInvokeTxnV0)
+				_, okv1 := v.(BlockInvokeTxnV1)
+				_, okv3 := v.(BlockInvokeTxnV3)
 				_, okl1 := v.(BlockL1HandlerTxn)
 				_, okdec0 := v.(BlockDeclareTxnV0)
 				_, okdec1 := v.(BlockDeclareTxnV1)
 				_, okdec2 := v.(BlockDeclareTxnV2)
+				_, okdec3 := v.(BlockDeclareTxnV3)
 				_, okdep := v.(BlockDeployTxn)
 				_, okdepac := v.(BlockDeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
@@ -999,9 +1001,6 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // Then, it calls the StateUpdate method with the given test block ID.
 // If there is an error, it fails the test.
 // If the returned block hash does not match the expected block hash, it fails the test.
-// TODO: this is not implemented yet with pathfinder as you can see from the
-// [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
-// check when it is and test when it is the case.
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -1044,7 +1043,7 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithBlockNumber(300000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: utils.TestHexToFelt(t, "0x03b6d94b246815960f38b7dffc53cda192e7d1dcfff61e1bc042fb57e95f8349"),
+					BlockHash: utils.TestHexToFelt(t, "0x5e4c92970bb2bc51a3824a8357078ef00e0c089313c4ac1d9004166d9adc6aa"),
 					NewRoot:   utils.TestHexToFelt(t, "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b"),
 					PendingStateUpdate: PendingStateUpdate{
 						OldRoot: utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
