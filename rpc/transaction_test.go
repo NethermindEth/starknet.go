@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -78,7 +79,7 @@ func TestTransactionByHash(t *testing.T) {
 // it creates a spy object and assigns it to the provider's c field. It then calls
 // the TransactionByBlockIdAndIndex function with the specified block ID and index.
 // If there is an error, it fails the test. If the transaction is nil, it fails the test.
-// If the transaction is not of type InvokeTxnV1, it fails the test. Finally, it asserts
+// If the transaction is not of type InvokeTxn3, it fails the test. Finally, it asserts
 // that the transaction type is TransactionType_Invoke and that the transaction is equal to the expected transaction.
 //
 // Parameters:
@@ -95,20 +96,53 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn Transaction
 	}
 
-	var InvokeTxnV1example = InvokeTxnV1{
+	var InvokeTxnV3example = InvokeTxnV3{
 		Type:    TransactionType_Invoke,
-		MaxFee:  utils.TestHexToFelt(t, "0x53685de02fa5"),
-		Version: TransactionV1,
-		Nonce:   &felt.Zero,
+		Version: TransactionV3,
+		Nonce:   utils.TestHexToFelt(t, "0x359d"),
 		Signature: []*felt.Felt{
-			utils.TestHexToFelt(t, "0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4"),
-			utils.TestHexToFelt(t, "0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"),
+			utils.TestHexToFelt(t, "0x665f0c67ed4d9565f63857b1a55974b98b2411f579c53c9f903fd21a3edb3d1"),
+			utils.TestHexToFelt(t, "0x549c4480aba4753c58f757c92b5a1d3d67b2ced4bf06076825af3f52f738d6d"),
 		},
-		SenderAddress: utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
+		SenderAddress: utils.TestHexToFelt(t, "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6"),
+		NonceDataMode: DAModeL1,
+		FeeMode:       DAModeL1,
+		PayMasterData: []*felt.Felt{},
+		ResourceBounds: ResourceBoundsMapping{
+			L1Gas: ResourceBounds{
+				MaxAmount:       "0x3bb2",
+				MaxPricePerUnit: "0x2ba7def30000",
+			},
+			L2Gas: ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+		},
 		Calldata: []*felt.Felt{
 			utils.TestHexToFelt(t, "0x1"),
-			utils.TestHexToFelt(t, "0x13befe6eda920ce4af05a50a67bd808d67eee6ba47bb0892bef2d630eaf1bba"),
+			utils.TestHexToFelt(t, "0x6b74c515944ef1ef630ee1cf08a22e110c39e217fa15554a089182a11f78ed"),
+			utils.TestHexToFelt(t, "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8"),
+			utils.TestHexToFelt(t, "0x13"),
+			utils.TestHexToFelt(t, "0x41bbf1eff2ac123d9e01004a385329369cbc1c309838562f030b3faa2caa4"),
+			utils.TestHexToFelt(t, "0x54103"),
+			utils.TestHexToFelt(t, "0x7e430a7a59836b5969859b25379c640a8ccb66fb142606d7acb1a5563c2ad9"),
+			utils.TestHexToFelt(t, "0x6600d829"),
+			utils.TestHexToFelt(t, "0x103020400000000000000000000000000000000000000000000000000000000"),
+			utils.TestHexToFelt(t, "0x4"),
+			utils.TestHexToFelt(t, "0x5f5e100"),
+			utils.TestHexToFelt(t, "0x5f60fc2"),
+			utils.TestHexToFelt(t, "0x5f6570d"),
+			utils.TestHexToFelt(t, "0xa07695b6574c60c37"),
+			utils.TestHexToFelt(t, "0x1"),
+			utils.TestHexToFelt(t, "0x2"),
+			utils.TestHexToFelt(t, "0x7afe11c6cdf846e8e33ff55c6e8310293b81aa58da4618af0c2fb29db2515c7"),
+			utils.TestHexToFelt(t, "0x1200966b0f9a5cd1bf7217b202c3a4073a1ff583e4779a3a3ffb97a532fe0c"),
+			utils.TestHexToFelt(t, "0x2cb74dff29a13dd5d855159349ec92f943bacf0547ff3734e7d84a15d08cbc5"),
+			utils.TestHexToFelt(t, "0x460769330eab4b3269a5c07369382fcc09fbfc92458c63f77292425c72272f9"),
+			utils.TestHexToFelt(t, "0x10ebdb197fd1017254b927b01073c64a368db45534413b539895768e57b72ba"),
+			utils.TestHexToFelt(t, "0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962"),
 		},
+		Tip: "0x0",
 	}
 
 	testSet := map[string][]testSetType{
@@ -116,10 +150,16 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			{
 				BlockID:     WithBlockNumber(300000),
 				Index:       0,
-				ExpectedTxn: InvokeTxnV1example,
+				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-
+		"testnet": {
+			{
+				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				Index:       15,
+				ExpectedTxn: InvokeTxnV3example,
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
@@ -132,10 +172,12 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		if tx == nil {
 			t.Fatal("transaction should exist")
 		}
-		txCasted, ok := (tx).(InvokeTxnV1)
+		fmt.Println(tx)
+		txCasted, ok := (tx).(InvokeTxnV3)
 		if !ok {
-			t.Fatalf("transaction should be InvokeTxnV1, instead %T", tx)
+			t.Fatalf("transaction should be InvokeTxnV3, instead %T", tx)
 		}
+
 		require.Equal(t, txCasted.Type, TransactionType_Invoke)
 		require.Equal(t, txCasted, test.ExpectedTxn)
 	}
