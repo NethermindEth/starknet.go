@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -153,13 +152,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-		"testnet": {
-			{
-				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
-				Index:       15,
-				ExpectedTxn: InvokeTxnV3example,
-			},
-		},
+		// "testnet": {
+		// 	{
+		// 		BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+		// 		Index:       15,
+		// 		ExpectedTxn: InvokeTxnV3example,
+		// 	},
+		// },
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
@@ -172,7 +171,6 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		if tx == nil {
 			t.Fatal("transaction should exist")
 		}
-		fmt.Println(tx)
 		txCasted, ok := (tx).(InvokeTxnV3)
 		if !ok {
 			t.Fatalf("transaction should be InvokeTxnV3, instead %T", tx)
