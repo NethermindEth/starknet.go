@@ -1041,19 +1041,45 @@ func TestStateUpdate(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID: WithBlockNumber(300000),
+				BlockID: WithBlockNumber(52767),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: utils.TestHexToFelt(t, "0x5e4c92970bb2bc51a3824a8357078ef00e0c089313c4ac1d9004166d9adc6aa"),
-					NewRoot:   utils.TestHexToFelt(t, "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b"),
+					BlockHash: utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
+					NewRoot:   utils.TestHexToFelt(t, "0x3d86be8765b9b6ab724fb8c10a64c4e1705bcc6d39032fe9973037abedc113a"),
 					PendingStateUpdate: PendingStateUpdate{
-						OldRoot: utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
+						OldRoot: utils.TestHexToFelt(t, "0x53798359cae2b3c7f11afdf82d115f57699200452f0f8f0f7fbc272792e363c"),
 						StateDiff: StateDiff{
+							DeclaredClasses:           []DeclaredClassesItem{},
+							DeprecatedDeclaredClasses: []*felt.Felt{},
+							ReplacedClasses:           []ReplacedClassesItem{},
+							DeployedContracts: []DeployedContractItem{
+								{
+									Address:   utils.TestHexToFelt(t, "0x6c48aac405091db3c23cafd25766a59aa41280ecc28c8c65f060a1db3c55c4d"),
+									ClassHash: utils.TestHexToFelt(t, "0x11cc8ea386ce27c8308bb0bb87e84ef9e3b83d6a86dda980f9efe275c4f45e6"),
+								},
+							},
+							Nonces: []ContractNonce{
+								{
+									ContractAddress: utils.TestHexToFelt(t, "0x23a4d7f2cdf202ea916bbb07814f5bc32ae50e9cdf1fde114d8e6e808b1e965"),
+									Nonce:           utils.TestHexToFelt(t, "0x2dc7"),
+								},
+							},
 							StorageDiffs: []ContractStorageDiffItem{{
-								Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
+								// Address: utils.TestHexToFelt(t, "0x710851e5f08a67ef2f7ea6814bfa4dc8976505c20e05519d7694d2c3aca433b"),
+								// StorageEntries: []StorageEntry{
+								// 	{
+								// 		Key:   utils.TestHexToFelt(t, "0x75eced5eac353d176ff0873f7742d97dd0ca449ce865ef19eaf5be4a057761c"),
+								// 		Value: utils.TestHexToFelt(t, "0x45e64583ec6d31caeb064865366b9742687a0c7892219ed0596b00928257ef"),
+								// 	},
+								// 	{
+								// 		Key:   utils.TestHexToFelt(t, "0x75eced5eac353d176ff0873f7742d97dd0ca449ce865ef19eaf5be4a057761b"),
+								// 		Value: utils.TestHexToFelt(t, "0x129b9752d317c583dd5ad8578d8be879eab2b2f5a4b4e70f80fbcdf653c418d"),
+								// 	},
+								// },
+								Address: utils.TestHexToFelt(t, "0x1"),
 								StorageEntries: []StorageEntry{
 									{
-										Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-										Value: utils.TestHexToFelt(t, "0x630b4197"),
+										Key:   utils.TestHexToFelt(t, "0xce15"),
+										Value: utils.TestHexToFelt(t, "0x399c6ae71bb87c1cef573f98d14530f39f2b40fc95b2396f379930969700895"),
 									},
 								},
 							}},
@@ -1071,8 +1097,11 @@ func TestStateUpdate(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if stateUpdate.BlockHash.String() != test.ExpectedStateUpdateOutput.BlockHash.String() {
-			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String())
-		}
+		require.Equal(t, test.ExpectedStateUpdateOutput.BlockHash, stateUpdate.BlockHash, "expected equal BlockHash")
+		require.Equal(t, test.ExpectedStateUpdateOutput.OldRoot, stateUpdate.OldRoot, "expected equal OldRoot")
+		require.Equal(t, test.ExpectedStateUpdateOutput.NewRoot, stateUpdate.NewRoot, "expected equal NewRoot")
+		require.Equal(t, test.ExpectedStateUpdateOutput.StateDiff.DeployedContracts, stateUpdate.StateDiff.DeployedContracts, "expected equal DeployedContracts")
+		require.Contains(t, stateUpdate.StateDiff.Nonces, test.ExpectedStateUpdateOutput.StateDiff.Nonces[0], "expected equal Nonces")
+		require.Contains(t, stateUpdate.StateDiff.StorageDiffs, test.ExpectedStateUpdateOutput.StateDiff.StorageDiffs[0], "expected equal StorageDiffs")
 	}
 }
