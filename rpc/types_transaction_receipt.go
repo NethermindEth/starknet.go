@@ -25,6 +25,8 @@ const (
 type CommonTransactionReceipt struct {
 	// TransactionHash The hash identifying the transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
+	BlockHash       *felt.Felt `json:"block_hash,omitempty"`
+	BlockNumber     uint       `json:"block_number,omitempty"`
 	// ActualFee The fee that was charged by the sequencer
 	ActualFee       FeePayment         `json:"actual_fee"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
