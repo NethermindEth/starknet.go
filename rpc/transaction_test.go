@@ -103,10 +103,11 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			utils.TestHexToFelt(t, "0x665f0c67ed4d9565f63857b1a55974b98b2411f579c53c9f903fd21a3edb3d1"),
 			utils.TestHexToFelt(t, "0x549c4480aba4753c58f757c92b5a1d3d67b2ced4bf06076825af3f52f738d6d"),
 		},
-		SenderAddress: utils.TestHexToFelt(t, "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6"),
-		NonceDataMode: DAModeL1,
-		FeeMode:       DAModeL1,
-		PayMasterData: []*felt.Felt{},
+		SenderAddress:         utils.TestHexToFelt(t, "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6"),
+		NonceDataMode:         DAModeL1,
+		FeeMode:               DAModeL1,
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
 		ResourceBounds: ResourceBoundsMapping{
 			L1Gas: ResourceBounds{
 				MaxAmount:       "0x3bb2",
@@ -130,6 +131,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			utils.TestHexToFelt(t, "0x4"),
 			utils.TestHexToFelt(t, "0x5f5e100"),
 			utils.TestHexToFelt(t, "0x5f60fc2"),
+			utils.TestHexToFelt(t, "0x5f60fc2"),
 			utils.TestHexToFelt(t, "0x5f6570d"),
 			utils.TestHexToFelt(t, "0xa07695b6574c60c37"),
 			utils.TestHexToFelt(t, "0x1"),
@@ -152,13 +154,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-		// "testnet": {
-		// 	{
-		// 		BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
-		// 		Index:       15,
-		// 		ExpectedTxn: InvokeTxnV3example,
-		// 	},
-		// },
+		"testnet": {
+			{
+				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				Index:       15,
+				ExpectedTxn: InvokeTxnV3example,
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
