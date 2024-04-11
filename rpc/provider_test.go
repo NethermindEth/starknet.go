@@ -304,9 +304,9 @@ func TestCookieManagement(t *testing.T) {
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_SEPOLIA")
+	require.Equal(t, "SN_SEPOLIA", resp)
 
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, resp, "SN_SEPOLIA")
+	require.Equal(t, "SN_SEPOLIA", resp)
 }
