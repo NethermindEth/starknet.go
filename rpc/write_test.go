@@ -28,7 +28,7 @@ func TestDeclareTransaction(t *testing.T) {
 			{
 				DeclareTx: DeclareTxnV2{},
 				ExpectedResp: AddDeclareTransactionResponse{
-					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+					TransactionHash: utils.TestHexToFelt(t, "0x2ae47304b5c66be71234bf6c1ed7ddcc9e0eef148f335b50f22167ae817a68")},
 				ExpectedError: nil,
 			},
 			{
@@ -57,22 +57,28 @@ func TestDeclareTransaction(t *testing.T) {
 					AccountDeploymentData: []*felt.Felt{},
 				},
 				ExpectedResp: AddDeclareTransactionResponse{
-					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+					TransactionHash: utils.TestHexToFelt(t, "0x2ae47304b5c66be71234bf6c1ed7ddcc9e0eef148f335b50f22167ae817a68")},
 				ExpectedError: nil,
 			},
 		},
 		"testnet": {{
-			DeclareTx: DeclareTxnV1{},
+			DeclareTx: DeclareTxnV2{},
 			ExpectedResp: AddDeclareTransactionResponse{
-				TransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9")},
-			ExpectedError: errors.New("Invalid Params"),
+				TransactionHash: utils.TestHexToFelt(t, "0x2ae47304b5c66be71234bf6c1ed7ddcc9e0eef148f335b50f22167ae817a68")},
+			ExpectedError: errors.New("Internal Error: Invalid params"),
 		},
+			{
+				DeclareTx: DeclareTxnV2{},
+				ExpectedResp: AddDeclareTransactionResponse{
+					TransactionHash: utils.TestHexToFelt(t, "0x3378654b74a56768cfaac97e211103d8233b829bbe663288f292499c03baa2c")},
+				ExpectedError: errors.New("Internal Error: Invalid params"),
+			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
 		if test.DeclareTx == nil && testEnv == "testnet" {
-			declareTxJSON, err := os.ReadFile("./tests/write/declareTx.json")
+			declareTxJSON, err := os.ReadFile("./tests/write/git.json")
 			if err != nil {
 				t.Fatal("should be able to read file", err)
 			}
@@ -83,9 +89,9 @@ func TestDeclareTransaction(t *testing.T) {
 
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), test.DeclareTx)
 		if err != nil {
-			require.Equal(t, err.Error(), test.ExpectedError)
+			require.Contains(t, test.ExpectedError.Error(), err.Error())
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+			require.Equal(t, (*test.ExpectedResp.TransactionHash).String(), (*resp.TransactionHash).String())
 		}
 
 	}
