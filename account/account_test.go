@@ -90,37 +90,39 @@ func TestTransactionHashInvoke(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
-				ExpectedHash:   utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
+				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
+				ExpectedHash:   utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
 				SetKS:          true,
-				AccountAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				AccountAddress: utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				PrivKey:        utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
-				PubKey:         "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e",
-				ChainID:        "SN_GOERLI",
+				PubKey:         "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d",
+				ChainID:        "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					Calldata: utils.TestHexArrToFelt(t, []string{
 						"0x1",
-						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-						"0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
-						"0x0",
-						"0x3",
-						"0x3",
-						"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+						"0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e",
+						"0xcaffbd1bd76bd7f24a3fa1d69d1b2588a86d1f9d2359b13f6a84b7e1cbd126",
+						"0x7",
+						"0x457874726163745265736f7572636546696e697368",
+						"0x5",
+						"0x5",
+						"0xb82",
 						"0x1",
-						"0x0",
+						"0x1",
+						"0x35c",
 					}),
 				},
 				TxDetails: rpc.TxDetails{
-					Nonce:   utils.TestHexToFelt(t, "0x2"),
-					MaxFee:  utils.TestHexToFelt(t, "0x574fbde6000"),
+					Nonce:   utils.TestHexToFelt(t, "0x3cf"),
+					MaxFee:  utils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
 					Version: rpc.TransactionV1,
 				},
 			},
 			{
-				ExpectedHash:   utils.TestHexToFelt(t, "0x135c34f53f8b7f59efd450eb689fccd9dd4cfe7f9d9dc4d09954c5653138698"),
+				ExpectedHash:   utils.TestHexToFelt(t, "0x585419091c2f819470e30437d284b7507cb794c695fa92f801cd0a14f75483a"),
 				SetKS:          false,
 				AccountAddress: &felt.Zero,
-				ChainID:        "SN_GOERLI",
+				ChainID:        "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    &felt.Zero,
 					EntryPointSelector: &felt.Zero,
@@ -213,7 +215,7 @@ func TestFmtCallData(t *testing.T) {
 		"mock": {
 			{
 				CairoVersion: 0,
-				ChainID:      "SN_GOERLI",
+				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x05f7cd1fd465baff2ba9d2d1501ad0a2eb5337d9a885be319366b5205a414fdd"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_balance"),
@@ -232,7 +234,7 @@ func TestFmtCallData(t *testing.T) {
 			},
 			{
 				CairoVersion: 0,
-				ChainID:      "SN_GOERLI",
+				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
@@ -249,7 +251,7 @@ func TestFmtCallData(t *testing.T) {
 			},
 			{
 				CairoVersion: 2,
-				ChainID:      "SN_GOERLI",
+				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
@@ -264,7 +266,7 @@ func TestFmtCallData(t *testing.T) {
 			},
 			{
 				CairoVersion: 2,
-				ChainID:      "SN_GOERLI",
+				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_value"),
@@ -324,8 +326,8 @@ func TestChainIdMOCK(t *testing.T) {
 				ExpectedID: "0x534e5f4d41494e",
 			},
 			{
-				ChainID:    "SN_GOERLI",
-				ExpectedID: "0x534e5f474f45524c49",
+				ChainID:    "SN_SEPOLIA",
+				ExpectedID: "0x534e5f5345504f4c4941",
 			},
 		},
 		"testnet": {},
@@ -336,7 +338,7 @@ func TestChainIdMOCK(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
-		require.Equal(t, account.ChainId.String(), test.ExpectedID)
+		require.Equal(t, test.ExpectedID, account.ChainId.String())
 	}
 }
 
@@ -362,7 +364,7 @@ func TestChainId(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				ChainID:    "SN_GOERLI",
+				ChainID:    "SN_SEPOLIA",
 				ExpectedID: "0x534e5f474f45524c49",
 			},
 		},
@@ -413,15 +415,15 @@ func TestSignMOCK(t *testing.T) {
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
-			// Accepted on testnet https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8
+			// Accepted on testnet https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
 			{
-				Address:    utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				Address:    utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				PrivKey:    utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
-				ChainId:    "SN_GOERLI",
-				FeltToSign: utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8"),
+				ChainId:    "SN_SEPOLIA",
+				FeltToSign: utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
 				ExpectedSig: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x10d405427040655f118bc8b897e2f2f8147858bbcb0e3d6bc6dfbc6d0205e8"),
-					utils.TestHexToFelt(t, "0x5cdfe4a3d5b63002e9011ec0ba59ae2b75a43cb2a3bc1699b35aa64cb9ca3cf"),
+					utils.TestHexToFelt(t, "0x18efb47edd79bc20e35bdc07f71c49d1d6dc5983034e31dd111f164dfaa315d"),
+					utils.TestHexToFelt(t, "0x631c0c9f5958b2c7b7ef23f6bd27bf78f879afecd02086cce3bf4a3c66dd910"),
 				},
 			},
 		},
@@ -440,7 +442,7 @@ func TestSignMOCK(t *testing.T) {
 		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
-		msg := utils.TestHexToFelt(t, "0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8")
+		msg := utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406")
 		sig, err := account.Sign(context.Background(), msg)
 
 		require.NoError(t, err, "error returned from account.Sign()")
@@ -478,10 +480,10 @@ func TestAddInvoke(t *testing.T) {
 		"devnet": {},
 		"testnet": {
 			{
-				// https://goerli.voyager.online/tx/0x73cf79c4bfa0c7a41f473c07e1be5ac25faa7c2fdf9edcbd12c1438f40f13d8#overview
+				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406#overview
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
-				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				AccountAddress:       utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				SetKS:                true,
 				PubKey:               utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
 				PrivKey:              utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
@@ -490,7 +492,7 @@ func TestAddInvoke(t *testing.T) {
 					MaxFee:        utils.TestHexToFelt(t, "0x574fbde6000"),
 					Version:       rpc.TransactionV1,
 					Type:          rpc.TransactionType_Invoke,
-					SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+					SenderAddress: utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				},
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -502,10 +504,10 @@ func TestAddInvoke(t *testing.T) {
 				},
 			},
 			{
-				// https://goerli.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
+				// https://sepolia.voyager.online/tx/0x171537c58b16db45aeec3d3f493617cd3dd571561b856c115dc425b85212c86#overview
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 0,
-				AccountAddress:       utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+				AccountAddress:       utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				SetKS:                true,
 				PubKey:               utils.TestHexToFelt(t, "0x049f060d2dffd3bf6f2c103b710baf519530df44529045f92c3903097e8d861f"),
 				PrivKey:              utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
@@ -514,19 +516,19 @@ func TestAddInvoke(t *testing.T) {
 					MaxFee:        utils.TestHexToFelt(t, "0x9184e72a000"),
 					Version:       rpc.TransactionV1,
 					Type:          rpc.TransactionType_Invoke,
-					SenderAddress: utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+					SenderAddress: utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				},
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x03E85bFbb8E2A42B7BeaD9E88e9A1B19dbCcf661471061807292120462396ec9"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("burn"),
 					Calldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x043784df59268c02b716e20bf77797bd96c68c2f100b2a634e448c35e3ad363e"),
+						utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 						utils.TestHexToFelt(t, "0x1"),
 					},
 				},
 			},
 			{
-				// https://goerli.voyager.online/tx/0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9
+				// https://sepolia.voyager.online/tx/0x1bc0f8c04584735ea9e4485f927c25a6e025bda3117beb508cd1bb5e41f08d9
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
@@ -549,7 +551,7 @@ func TestAddInvoke(t *testing.T) {
 				},
 			},
 			{
-				// https://goerli.voyager.online/tx/0xe8cdb03ddc6b65c2c268eb8084bef41ef63009c10a38f8d1e167652a721588
+				// https://sepolia.voyager.online/tx/0xe8cdb03ddc6b65c2c268eb8084bef41ef63009c10a38f8d1e167652a721588
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
@@ -570,7 +572,7 @@ func TestAddInvoke(t *testing.T) {
 				},
 			},
 			{
-				// https://goerli.voyager.online/tx/0xdcec9fdd48440243fa8fdb8bf87cc40d5ef91181d5a4a0304140df5701c238
+				// https://sepolia.voyager.online/tx/0xdcec9fdd48440243fa8fdb8bf87cc40d5ef91181d5a4a0304140df5701c238
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
@@ -712,7 +714,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
@@ -723,21 +725,22 @@ func TestTransactionHashDeclare(t *testing.T) {
 		ExpectedErr  error
 	}
 	testSet := map[string][]testSetType{
-		"mock": {{
-			// Note this is a testnet / goerli transaction
-			Txn: rpc.DeclareTxnV2{
-				Nonce:             utils.TestHexToFelt(t, "0xb"),
-				MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-				Type:              rpc.TransactionType_Declare,
-				Version:           rpc.TransactionV2,
-				Signature:         []*felt.Felt{},
-				SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-				CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-				ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+		"mock": {
+			{
+				// Note this is a testnet / sepolia transaction
+				Txn: rpc.DeclareTxnV2{
+					Nonce:             utils.TestHexToFelt(t, "0xb"),
+					MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
+					Type:              rpc.TransactionType_Declare,
+					Version:           rpc.TransactionV2,
+					Signature:         []*felt.Felt{},
+					SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
+					ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+				},
+				ExpectedHash: utils.TestHexToFelt(t, "0x31e1897656b75c64997a6c2e1a6b23d46866656ceff671f4a947a09b08fcb43"),
+				ExpectedErr:  nil,
 			},
-			ExpectedHash: utils.TestHexToFelt(t, "0x4e0519272438a3ae0d0fca776136e2bb6fcd5d3b2af47e53575c5874ccfce92"),
-			ExpectedErr:  nil,
-		},
 			{
 				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3
 				Txn: rpc.DeclareTxnV3{
@@ -766,10 +769,11 @@ func TestTransactionHashDeclare(t *testing.T) {
 					NonceDataMode:         rpc.DAModeL1,
 					FeeMode:               rpc.DAModeL1,
 				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				ExpectedHash: utils.TestHexToFelt(t, "0x61bfaf480ac824971ad1bdc316fa821f58afd6b47e037242ef265d0aaea7c78"),
 				ExpectedErr:  nil,
 			},
-		}}[testEnv]
+		},
+	}[testEnv]
 	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
@@ -782,7 +786,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
@@ -795,7 +799,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7
 				Txn: rpc.InvokeTxnV3{
 					Nonce:   utils.TestHexToFelt(t, "0xe97"),
 					Type:    rpc.TransactionType_Invoke,
@@ -837,7 +841,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					NonceDataMode: rpc.DAModeL1,
 					FeeMode:       rpc.DAModeL1,
 				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"),
+				ExpectedHash: utils.TestHexToFelt(t, "0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7"),
 				ExpectedErr:  nil,
 			},
 		}}[testEnv]
@@ -853,7 +857,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err)
@@ -883,11 +887,11 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					},
 				},
 				SenderAddress: utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
-				ExpectedHash:  utils.TestHexToFelt(t, "0x5b6b5927cd70ad7a80efdbe898244525871875c76540b239f6730118598b9cb"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x41ffcaa2f472e58b496f58aabae0590d4b2cf6117201c988d51c3f040e489e6"),
 				ExpectedErr:   nil,
 			},
 			{
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0
+				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x3018236df5779c1f28caba0e64febcb78f5bc69aa3538be54f4e27def9de1b3
 				Txn: rpc.DeployAccountTxnV3{
 					Nonce:   utils.TestHexToFelt(t, "0x0"),
 					Type:    rpc.TransactionType_DeployAccount,
@@ -916,7 +920,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					ContractAddressSalt: utils.TestHexToFelt(t, "0x0"),
 				},
 				SenderAddress: utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
-				ExpectedHash:  utils.TestHexToFelt(t, "0x29fd7881f14380842414cdfdd8d6c0b1f2174f8916edcfeb1ede1eb26ac3ef0"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x3018236df5779c1f28caba0e64febcb78f5bc69aa3538be54f4e27def9de1b3"),
 				ExpectedErr:   nil,
 			},
 		}}[testEnv]
@@ -945,7 +949,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_GOERLI", nil)
+	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
@@ -1079,7 +1083,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 //
 //	none
 func TestAddDeclareTxn(t *testing.T) {
-	// https://goerli.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
+	// https://sepolia.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
