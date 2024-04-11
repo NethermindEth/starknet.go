@@ -609,7 +609,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 
 	switch args[0].(type) {
 	case DeclareTxnV2, DeclareTxnV3:
-		deadbeefFelt, err := utils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
+		deadbeefFelt, err := utils.HexToFelt("0x2ae47304b5c66be71234bf6c1ed7ddcc9e0eef148f335b50f22167ae817a68")
 		if err != nil {
 			return err
 		}

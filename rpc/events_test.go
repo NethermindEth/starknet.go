@@ -47,7 +47,7 @@ func TestEvents(t *testing.T) {
 			},
 			expectedResp: EventChunk{
 				Events: []EmittedEvent{
-					EmittedEvent{
+					{
 						BlockHash:       utils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 						BlockNumber:     1472,
 						TransactionHash: utils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
@@ -61,7 +61,7 @@ func TestEvents(t *testing.T) {
 					FromBlock: BlockID{Number: &fromNum},
 					ToBlock:   BlockID{Number: &toNum},
 					Address:   utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-					Keys: [][]*felt.Felt{[]*felt.Felt{
+					Keys: [][]*felt.Felt{{
 						utils.TestHexToFelt(t, "0x3774b0545aabb37c45c1eddc6a7dae57de498aae6d5e3589e362d4b4323a533"),
 						utils.TestHexToFelt(t, "0x714ae72367a39c17df987cf00f7cbb69c8cdcfa611e69e3511b5d16a23e2ec5"),
 					}},
@@ -71,7 +71,7 @@ func TestEvents(t *testing.T) {
 				},
 				expectedResp: EventChunk{
 					Events: []EmittedEvent{
-						EmittedEvent{
+						{
 							BlockHash:       utils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 							BlockNumber:     1472,
 							TransactionHash: utils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),

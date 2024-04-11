@@ -60,11 +60,11 @@ func TestCall(t *testing.T) {
 		"testnet": {
 			{
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x029260ce936efafa6d0042bc59757a653e3f992b97960c1c4f8ccd63b7a90136"),
+					ContractAddress:    utils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 					EntryPointSelector: utils.TestHexToFelt(t, "0x004c4fb1ab068f6039d5780c68dd0fa2f8742cceb3426d19667778ca7f3518a9"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
+				BlockID:               WithBlockNumber(57885),
 				ExpectedPatternResult: utils.TestHexToFelt(t, "0x12"),
 			},
 		},

@@ -30,6 +30,8 @@ import (
 // - t: the testing object for running the test cases
 // Returns:
 //
+// Todo: Is not yet implemented completely
+//
 //	none
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
@@ -47,7 +49,7 @@ func TestClassAt(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
+				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
 				ExpectedOperation: "0x480680017fff8000",
 			},
 		},
@@ -62,7 +64,7 @@ func TestClassAt(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
+		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockHash(utils.TestHexToFelt(t, "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249")), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -118,8 +120,8 @@ func TestClassHashAt(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
+				ContractHash:      utils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
 			},
 		},
 		"mainnet": {
@@ -203,13 +205,13 @@ func TestClass(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID:         WithBlockTag("pending"),
-				ClassHash:       utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
+				BlockID:         WithBlockNumber(15329),
+				ClassHash:       utils.TestHexToFelt(t, "0x079b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 			{
-				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x464fc8c86a6452536a2e27cb301815e5f8b16a2f6872ba4f3d83701fbe99fb3")),
-				ClassHash:                     utils.TestHexToFelt(t, "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571"),
+				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x258dc3bf21fbefb29b5dfd782c9d9472f73075213e9b63a0421ff7d2d3106d2")),
+				ClassHash:                     utils.TestHexToFelt(t, "0x079b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
 				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
@@ -219,7 +221,7 @@ func TestClass(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		resp, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
+		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -281,10 +283,10 @@ func TestStorageAt(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
+				ContractHash:  utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
 				StorageKey:    "balance",
-				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x1e240",
+				Block:         WithBlockHash(utils.TestHexToFelt(t, "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249")),
+				ExpectedValue: "0x0",
 			},
 		},
 		"mainnet": {
@@ -348,7 +350,7 @@ func TestNonce(t *testing.T) {
 		},
 		"testnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ContractAddress: utils.TestHexToFelt(t, "0x00a3d19d9e80d74dd6140fed379e2c10a21609374811b244cc9d7d1f6d9e0037"),
 				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
 			},
 		},
