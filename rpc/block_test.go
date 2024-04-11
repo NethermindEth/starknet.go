@@ -106,7 +106,11 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 // The function takes a testing.T object as a parameter and initializes a testConfig object.
 // It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
+<<<<<<< HEAD
 // The function then initializes a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
+=======
+// The function then initializes a blockSepolia30436 variable of type BlockTxHashes with a predefined set of values.
+>>>>>>> 3238e42 (fix block tests, add InvokeV3 to adaptTransaction)
 // It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
 // The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
@@ -336,20 +340,162 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 				continue
 			}
 
-			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV0)
+			invokeV1Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV1)
 			if !ok {
-				t.Fatal("expected invoke v0 transaction")
+				t.Fatal("expected invoke v1 transaction")
 			}
-			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV0)
+			invokeV1Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV1)
 			if !ok {
-				t.Fatal("expected invoke v0 transaction")
+				t.Fatal("expected invoke v1 transaction")
 			}
-			require.Equal(t, invokeV0Want.TransactionHash, invokeV0Block.TransactionHash, "expected equal TransactionHash")
-			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
-			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
+			require.Equal(t, invokeV1Want.TransactionHash, invokeV1Block.TransactionHash, "expected equal TransactionHash")
+			require.Equal(t, invokeV1Want.InvokeTxnV1.MaxFee, invokeV1Block.InvokeTxnV1.MaxFee, "expected equal maxfee")
+			require.Equal(t, invokeV1Want.InvokeTxnV1.SenderAddress, invokeV1Block.InvokeTxnV1.SenderAddress, "expected equal senders addresses")
+		}
+	}
+}
 
+// TestBlockWithTxsAndInvokeTXNV3 tests the BlockWithTxsAndInvokeTXNV3 function.
+//
+// The function tests the BlockWithTxsAndInvokeTXNV3 function by setting up a test configuration and a test set type.
+// It then initializes a fullBlockSepolia52767 variable with a Block struct and invokes the BlockWithTxs function with different test scenarios.
+// The function compares the expected error with the actual error and checks if the BlockWithTxs function returns the correct block data.
+// It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
+//
+// Parameters:
+// - t: The t testing object
+// Returns:
+//
+//	none
+func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		BlockID                     BlockID
+		ExpectedError               error
+		LookupTxnPositionInOriginal int
+		LookupTxnPositionInExpected int
+		want                        *Block
+	}
+
+	var fullBlockSepolia52767 = Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
+			ParentHash:       utils.TestHexToFelt(t, "0x7d3a1bc98e49c197b38538fbc351dae6ed4f0ff4e718db119ddacef3088b928"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      52767,
+			NewRoot:          utils.TestHexToFelt(t, "0x3d86be8765b9b6ab724fb8c10a64c4e1705bcc6d39032fe9973037abedc113a"),
+			Timestamp:        1661450764,
+		},
+		Status: "ACCEPTED_ON_L1",
+		Transactions: []BlockTransaction{
+			BlockInvokeTxnV3{
+				TransactionHash: utils.TestHexToFelt(t, "0xb91eada292de46f4ec663bac57699c7b8f8fa454a8efad91fde7f35d941199"),
+				InvokeTxnV3: InvokeTxnV3{
+					Type:          "INVOKE",
+					SenderAddress: utils.TestHexToFelt(t, "0x573ea9a8602e03417a4a31d55d115748f37a08bbb23adf6347cb699743a998d"),
+					Nonce:         utils.TestHexToFelt(t, "0x470de4df820000"),
+					Version:       TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x7f14bb280b602d0c0e22e91ea5d987371554664f68c57c0acd16bf9f8be36b4"),
+						utils.TestHexToFelt(t, "0x22c57ce8eb211c7fe0f04e7da338f579fcbc9e8997ec432fac7738c80fd56ad"),
+					},
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x3fe8e4571772bbe0065e271686bd655efd1365a5d6858981e582f82f2c10313"),
+						utils.TestHexToFelt(t, "0x2468d193cd15b621b24c2a602b8dbcfa5eaa14f88416c40c09d7fd12592cb4b"),
+						utils.TestHexToFelt(t, "0x0"),
+					},
+					ResourceBounds: ResourceBoundsMapping{
+						L1Gas: ResourceBounds{
+							MaxAmount:       "0x3bb2",
+							MaxPricePerUnit: "0x2ba7def30000",
+						},
+						L2Gas: ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
+						},
+					},
+					Tip:                   "0x0",
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					NonceDataMode:         DAModeL1,
+					FeeMode:               DAModeL1,
+				},
+			},
+		},
+	}
+
+	testSet := map[string][]testSetType{
+		"mock": {},
+		"testnet": {
+			{
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: nil,
+			},
+			{
+				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				ExpectedError:               nil,
+				LookupTxnPositionInExpected: 0,
+				LookupTxnPositionInOriginal: 25,
+				want:                        &fullBlockSepolia52767,
+			},
+			{
+				BlockID:                     WithBlockNumber(52767),
+				ExpectedError:               nil,
+				LookupTxnPositionInExpected: 0,
+				LookupTxnPositionInOriginal: 25,
+				want:                        &fullBlockSepolia52767,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
+		if err != test.ExpectedError {
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
+		}
+		if test.ExpectedError != nil && blockWithTxsInterface == nil {
+			continue
+		}
+		blockWithTxs, ok := blockWithTxsInterface.(*Block)
+		if !ok {
+			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
+		}
+		_, err = spy.Compare(blockWithTxs, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
 		}
 
+		if len(blockWithTxs.Transactions) == 0 {
+			t.Fatal("the number of transaction should not be 0")
+		}
+
+		if test.want != nil {
+			if (*test.want).BlockHash == &felt.Zero {
+				continue
+			}
+
+			invokeV3Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV3)
+			if !ok {
+				t.Fatal("expected invoke v3 transaction")
+			}
+
+			invokeV3Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV3)
+			if !ok {
+				t.Fatal("expected invoke v3 transaction")
+			}
+
+			require.Equal(t, invokeV3Want.TransactionHash, invokeV3Block.TransactionHash, "expected equal TransactionHash")
+			require.Equal(t, invokeV3Want.InvokeTxnV3.NonceDataMode, invokeV3Block.InvokeTxnV3.NonceDataMode, "expected equal nonceDataMode")
+			require.Equal(t, invokeV3Want.InvokeTxnV3.FeeMode, invokeV3Block.InvokeTxnV3.FeeMode, "expected equal feeMode")
+		}
 	}
 }
 
@@ -371,7 +517,7 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 // Returns:
 //
 //	none
-func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
+func TestBlockWithTxsAndDeployAccountOrDeclare(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -677,15 +823,17 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
 			}
 			for k, v := range blockWithTxs.Transactions {
-				_, okv1 := v.(BlockInvokeTxnV1)
 				_, okv0 := v.(BlockInvokeTxnV0)
+				_, okv1 := v.(BlockInvokeTxnV1)
+				_, okv3 := v.(BlockInvokeTxnV3)
 				_, okl1 := v.(BlockL1HandlerTxn)
 				_, okdec0 := v.(BlockDeclareTxnV0)
 				_, okdec1 := v.(BlockDeclareTxnV1)
 				_, okdec2 := v.(BlockDeclareTxnV2)
+				_, okdec3 := v.(BlockDeclareTxnV3)
 				_, okdep := v.(BlockDeployTxn)
 				_, okdepac := v.(BlockDeployAccountTxn)
-				if !okv0 && !okv1 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
@@ -798,9 +946,6 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 // Then, it calls the StateUpdate method with the given test block ID.
 // If there is an error, it fails the test.
 // If the returned block hash does not match the expected block hash, it fails the test.
-// TODO: this is not implemented yet with pathfinder as you can see from the
-// [code](https://github.com/eqlabs/pathfinder/blob/927183552dad6dcdfebac16c8c1d2baf019127b1/crates/pathfinder/rpc_examples.sh#L37)
-// check when it is and test when it is the case.
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -970,8 +1115,11 @@ func TestStateUpdate(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if stateUpdate.BlockHash.String() != test.ExpectedStateUpdateOutput.BlockHash.String() {
-			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String())
-		}
+		require.Equal(t, test.ExpectedStateUpdateOutput.BlockHash, stateUpdate.BlockHash, "expected equal BlockHash")
+		require.Equal(t, test.ExpectedStateUpdateOutput.OldRoot, stateUpdate.OldRoot, "expected equal OldRoot")
+		require.Equal(t, test.ExpectedStateUpdateOutput.NewRoot, stateUpdate.NewRoot, "expected equal NewRoot")
+		require.Equal(t, test.ExpectedStateUpdateOutput.StateDiff.DeployedContracts, stateUpdate.StateDiff.DeployedContracts, "expected equal DeployedContracts")
+		require.Contains(t, stateUpdate.StateDiff.Nonces, test.ExpectedStateUpdateOutput.StateDiff.Nonces[0], "expected equal Nonces")
+		require.Contains(t, stateUpdate.StateDiff.StorageDiffs, test.ExpectedStateUpdateOutput.StateDiff.StorageDiffs[0], "expected equal StorageDiffs")
 	}
 }
