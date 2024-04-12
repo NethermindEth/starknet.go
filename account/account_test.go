@@ -46,8 +46,8 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 	if testEnv != "mock" {
-		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env"); err != nil {
-			panic(fmt.Sprint("Failed to load env for ", testEnv))
+		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
+			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
 		}
 	}
 	base = os.Getenv("INTEGRATION_BASE")
