@@ -53,6 +53,7 @@ func TestMain(m *testing.M) {
 		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
 			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
 		}
+		base = os.Getenv("INTEGRATION_BASE")
 	}
 	os.Exit(m.Run())
 }
