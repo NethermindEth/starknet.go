@@ -197,24 +197,58 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 		return errWrongArgs
 	}
 
-	var InvokeTxnV1example = `{
-		"transaction_hash": "0x705547f8f2f8fdfb10ed533d909f76482bb293c5a32648d476774516a0bebd0",
+	var InvokeTxnV3Example = `{
 		"type": "INVOKE",
-		"nonce": "0x0",
-		"max_fee": "0x53685de02fa5",
-		"version": "0x1",
-		"signature": [
-		"0x4a7849de7b91e52cd0cdaf4f40aa67f54a58e25a15c60e034d2be819c1ecda4",
-		"0x227fcad2a0007348e64384649365e06d41287b1887999b406389ee73c1d8c4c"
-		],
-		"sender_address": "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313",
+		"sender_address": "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6",
 		"calldata": [
-				   "0x1",
-				   "0x13befe6eda920ce4af05a50a67bd808d67eee6ba47bb0892bef2d630eaf1bba"
-		]
-		}`
+			"0x1",
+			"0x6b74c515944ef1ef630ee1cf08a22e110c39e217fa15554a089182a11f78ed",
+			"0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+			"0x13",
+			"0x41bbf1eff2ac123d9e01004a385329369cbc1c309838562f030b3faa2caa4",
+			"0x54103",
+			"0x7e430a7a59836b5969859b25379c640a8ccb66fb142606d7acb1a5563c2ad9",
+			"0x6600d829",
+			"0x103020400000000000000000000000000000000000000000000000000000000",
+			"0x4",
+			"0x5f5e100",
+			"0x5f60fc2",
+			"0x5f60fc2",
+			"0x5f6570d",
+			"0xa07695b6574c60c37",
+			"0x1",
+			"0x2",
+			"0x7afe11c6cdf846e8e33ff55c6e8310293b81aa58da4618af0c2fb29db2515c7",
+			"0x1200966b0f9a5cd1bf7217b202c3a4073a1ff583e4779a3a3ffb97a532fe0c",
+			"0x2cb74dff29a13dd5d855159349ec92f943bacf0547ff3734e7d84a15d08cbc5",
+			"0x460769330eab4b3269a5c07369382fcc09fbfc92458c63f77292425c72272f9",
+			"0x10ebdb197fd1017254b927b01073c64a368db45534413b539895768e57b72ba",
+			"0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962"
+		],
+		"version": "0x3",
+		"signature": [
+			"0x665f0c67ed4d9565f63857b1a55974b98b2411f579c53c9f903fd21a3edb3d1",
+			"0x549c4480aba4753c58f757c92b5a1d3d67b2ced4bf06076825af3f52f738d6d"
+		],
+		"nonce": "0x359d",
+		"resource_bounds": {
+			"l1_gas": {
+				"max_amount": "0x3bb2",
+				"max_price_per_unit": "0x2ba7def30000"
+			},
+			"l2_gas": {
+				"max_amount": "0x0",
+				"max_price_per_unit": "0x0"
+			}
+		},
+		"tip": "0x0",
+		"paymaster_data": [],
+		"account_deployment_data": [],
+		"nonce_data_availability_mode": "L1",
+		"fee_data_availability_mode": "L1"
+	}`
 
-	if err := json.Unmarshal([]byte(InvokeTxnV1example), r); err != nil {
+	if err := json.Unmarshal([]byte(InvokeTxnV3Example), r); err != nil {
 		return err
 	}
 	return nil
@@ -269,45 +303,21 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	var InvokeTxnV1example = `    {
-		"transaction_hash": "0x1779df1c6de5136ad2620f704b645e9cbd554b57d37f08a06ea60142269c5a5",
-		"version": "0x1",
-		"max_fee": "0x17970b794f000",
+	var DeclareTnxV2Example = `{
+		"type": "DECLARE",
+		"sender_address": "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
+		"compiled_class_hash": "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252",
+		"max_fee": "0x4a0fbb2d7a43",
+		"version": "0x2",
 		"signature": [
-		  "0xe500c4014c055c3304d8a125cfef44638ffa5b0f6840916049667a4c38aa1c",
-		  "0x45ac538bfce5d8c5741b4421bbdc99f5849451acae75d2048d7cc4bb029ca77"
+		   "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0",
+		   "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"
 		],
-		"nonce": "0x2d",
-		"sender_address": "0x66dd340c03b6b7866fa7bb4bb91cc9e9c2a8eedc321985f334fd55de5e4e071",
-		"calldata": [
-		  "0x3",
-		  "0x39a04b968d794fb076b0fbb146c12b48a23aa785e3d2e5be1982161f7536218",
-		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-		  "0x0",
-		  "0x3",
-		  "0x3207980cd08767c9310d197c38b1a58b2a9bceb61dd9a99f51b407798702991",
-		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-		  "0x3",
-		  "0x3",
-		  "0x42969068f9e84e9bf1c7bb6eb627455287e58f866ba39e45b123f9656aed5e9",
-		  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-		  "0x6",
-		  "0x3",
-		  "0x9",
-		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
-		  "0xde0b6b3a7640000",
-		  "0x0",
-		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
-		  "0x10f0cf064dd59200000",
-		  "0x0",
-		  "0x47487560da4c5c5755897e527a5fda37422b5ba02a2aba1ca3ce2b24dfd142e",
-		  "0x21e19e0c9bab2400000",
-		  "0x0"
-		],
-		"type": "INVOKE"
-	  }`
+		"nonce": "0x16e",
+		"class_hash": "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"
+	}`
 
-	if err := json.Unmarshal([]byte(InvokeTxnV1example), r); err != nil {
+	if err := json.Unmarshal([]byte(DeclareTnxV2Example), r); err != nil {
 		return err
 	}
 	return nil
@@ -334,15 +344,16 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 
 	arg0Felt := args[0].(*felt.Felt)
 
-	testTxnHash, err := utils.HexToFelt("0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e")
+	testTxnHash, err := utils.HexToFelt("0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b")
 	if err != nil {
 		return err
 	}
 	if arg0Felt.Equal(testTxnHash) {
+
 		var txnRec struct {
 			Result UnknownTransactionReceipt `json:"result"`
 		}
-		read, err := os.ReadFile("tests/receipt/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
+		read, err := os.ReadFile("tests/receipt/0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
 		if err != nil {
 			return err
 		}
@@ -354,6 +365,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(txnReceipt, &r)
 	}
 

@@ -149,7 +149,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:     WithBlockNumber(300000),
+				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
 				Index:       0,
 				ExpectedTxn: InvokeTxnV3example,
 			},
@@ -192,8 +192,6 @@ func TestTransactionReceipt(t *testing.T) {
 	}
 	var receiptTxn52767_16 = InvokeTransactionReceipt(CommonTransactionReceipt{
 		TransactionHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
-		BlockHash:       utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
-		BlockNumber:     52767,
 		ActualFee: FeePayment{
 			Amount: utils.TestHexToFelt(t, "0x16409a78a10b00"),
 			Unit:   UnitStrk,
@@ -217,7 +215,7 @@ func TestTransactionReceipt(t *testing.T) {
 				},
 			},
 			{
-				FromAddress: utils.TestHexToFelt(t, "0x243d436e1f7cea085aaa42834975488029b1ebf67cea1d2e86f7de58e7d34a3"),
+				FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				Data: []*felt.Felt{
 					utils.TestHexToFelt(t, "0x6016d919abf2ddefe03dacc2ff5c8f42eb80cf65add1e90dd73c5c5e06ef3e2"),
 					utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
@@ -225,7 +223,7 @@ func TestTransactionReceipt(t *testing.T) {
 					utils.TestHexToFelt(t, "0x0"),
 				},
 				Keys: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x15bd0500dc9d7e69ab9577f73a8d753e8761bed10f25ba0f124254dc4edb8b4"),
+					utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 				},
 			},
 		},
@@ -235,6 +233,10 @@ func TestTransactionReceipt(t *testing.T) {
 				PedersenApps:   24,
 				ECOPApps:       3,
 				RangeCheckApps: 152,
+			},
+			DataAvailability: DataAvailability{
+				L1Gas:     0,
+				L1DataGas: 128,
 			},
 		},
 	})
@@ -279,7 +281,16 @@ func TestTransactionReceipt(t *testing.T) {
 	})
 
 	testSet := map[string][]testSetType{
-		"mock": {},
+		"mock": {
+			{
+				TxnHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
+				ExpectedResp: TransactionReceiptWithBlockInfo{
+					TransactionReceipt: receiptTxn52767_16,
+					BlockNumber:        52767,
+					BlockHash:          utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
+				},
+			},
+		},
 		"testnet": {
 			{
 				TxnHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
@@ -307,9 +318,7 @@ func TestTransactionReceipt(t *testing.T) {
 		testConfig.provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
-		require.Equal(t, txReceiptWithBlockInfo.BlockNumber, test.ExpectedResp.BlockNumber)
-		require.Equal(t, txReceiptWithBlockInfo.BlockHash, test.ExpectedResp.BlockHash)
-
+		require.Equal(t, test.ExpectedResp, txReceiptWithBlockInfo)
 	}
 }
 
