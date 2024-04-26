@@ -1,6 +1,4 @@
 {
-    "jsonrpc": "2.0",
-    "result": {
         "actual_fee": {
             "amount": "0x16409a78a10b00",
             "unit": "FRI"
@@ -45,5 +43,4 @@
         "messages_sent": [],
         "transaction_hash": "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b",
         "type": "INVOKE"
-    }
 }

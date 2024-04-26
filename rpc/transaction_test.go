@@ -285,9 +285,9 @@ func TestTransactionReceipt(t *testing.T) {
 			{
 				TxnHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: TransactionReceiptWithBlockInfo{
-					TransactionReceipt: receiptTxn52767_16,
-					BlockNumber:        52767,
-					BlockHash:          utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
+					UnknownTransactionReceipt: UnknownTransactionReceipt{receiptTxn52767_16},
+					BlockNumber:               52767,
+					BlockHash:                 utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
 				},
 			},
 		},
@@ -295,9 +295,9 @@ func TestTransactionReceipt(t *testing.T) {
 			{
 				TxnHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: TransactionReceiptWithBlockInfo{
-					TransactionReceipt: receiptTxn52767_16,
-					BlockNumber:        52767,
-					BlockHash:          utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
+					UnknownTransactionReceipt: UnknownTransactionReceipt{receiptTxn52767_16},
+					BlockNumber:               52767,
+					BlockHash:                 utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
 				},
 			},
 		},
@@ -306,9 +306,9 @@ func TestTransactionReceipt(t *testing.T) {
 			{
 				TxnHash: utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"),
 				ExpectedResp: TransactionReceiptWithBlockInfo{
-					TransactionReceipt: receiptTxnIntegration,
-					BlockNumber:        319132,
-					BlockHash:          utils.TestHexToFelt(t, "0x50e864db6b81ce69fbeb70e6a7284ee2febbb9a2e707415de7adab83525e9cd"),
+					UnknownTransactionReceipt: UnknownTransactionReceipt{receiptTxnIntegration},
+					BlockNumber:               319132,
+					BlockHash:                 utils.TestHexToFelt(t, "0x50e864db6b81ce69fbeb70e6a7284ee2febbb9a2e707415de7adab83525e9cd"),
 				},
 			},
 		}}[testEnv]
@@ -317,8 +317,13 @@ func TestTransactionReceipt(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
+		// To inspect the data
+		// qwe, _ := json.MarshalIndent(txReceiptWithBlockInfo, "", "")
+		// fmt.Println(string(qwe))
+		// wer, _ := json.MarshalIndent(test.ExpectedResp, "", "")
+		// fmt.Println(string(wer))
 		require.Nil(t, err)
-		require.Equal(t, test.ExpectedResp, txReceiptWithBlockInfo)
+		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
 }
 

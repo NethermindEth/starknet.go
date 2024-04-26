@@ -337,7 +337,6 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if !ok || r == nil {
 		return errWrongType
 	}
-	fmt.Printf("%T, %d", result, len(args))
 	if len(args) != 1 {
 		return errWrongArgs
 	}
@@ -350,18 +349,18 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 	if arg0Felt.Equal(testTxnHash) {
 
-		var txnRec struct {
-			Result UnknownTransactionReceipt `json:"result"`
-		}
+		var txnRec TransactionReceiptWithBlockInfo
 		read, err := os.ReadFile("tests/receipt/0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
 		if err != nil {
 			return err
 		}
+
 		err = json.Unmarshal(read, &txnRec)
 		if err != nil {
 			return err
 		}
-		txnReceipt, err := json.Marshal(txnRec.Result.TransactionReceipt)
+
+		txnReceipt, err := json.Marshal(txnRec)
 		if err != nil {
 			return err
 		}

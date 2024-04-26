@@ -37,26 +37,10 @@ type CommonTransactionReceipt struct {
 	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
-// Hash returns the transaction hash associated with the CommonTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// GetExecutionStatus returns the execution status of the CommonTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - TxnExecutionStatus: the execution status
 func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -130,26 +114,10 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 // InvokeTransactionReceipt Invoke Transaction Receipt
 type InvokeTransactionReceipt CommonTransactionReceipt
 
-// Hash returns the hash of the invoke transaction receipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
-// GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - TxnExecutionStatus: the execution status
 func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -366,8 +334,11 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-
-	t, err := unmarshalTransactionReceipt(dec)
+	bytes, err := json.Marshal(dec)
+	if err != nil {
+		return err
+	}
+	t, err := unmarshalTransactionReceipt(bytes)
 	if err != nil {
 		return err
 	}
@@ -382,43 +353,47 @@ func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
 // Returns:
 // - TransactionReceipt: a TransactionReceipt
 // - error: an error if the unmarshaling fails
-func unmarshalTransactionReceipt(t interface{}) (TransactionReceipt, error) {
-	switch casted := t.(type) {
-	case map[string]interface{}:
-		// NOTE(tvanas): Pathfinder 0.3.3 does not return
-		// transaction receipt types. We handle this by
-		// naively marshalling into an invoke type. Once it
-		// is supported, this condition can be removed.
-		typ, ok := casted["type"]
-		if !ok {
-			return nil, fmt.Errorf("unknown transaction type: %v", t)
-		}
+func unmarshalTransactionReceipt(data []byte) (TransactionReceipt, error) {
 
-		switch TransactionType(typ.(string)) {
-		case TransactionType_Invoke:
-			var txn InvokeTransactionReceipt
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_L1Handler:
-			var txn L1HandlerTransactionReceipt
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_Declare:
-			var txn DeclareTransactionReceipt
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_Deploy:
-			var txn DeployTransactionReceipt
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_DeployAccount:
-			var txn DeployAccountTransactionReceipt
-			err := remarshal(casted, &txn)
-			return txn, err
-		}
+	var dec map[string]interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("unknown transaction type: %v", t)
+	typ, ok := dec["type"]
+	if !ok {
+		return nil, fmt.Errorf("unknown transaction type: %v", typ)
+	}
+
+	jsonData, err := json.Marshal(dec)
+	if err != nil {
+		return nil, err
+	}
+
+	switch TransactionType(typ.(string)) {
+	case TransactionType_Invoke:
+		var txn InvokeTransactionReceipt
+		err := json.Unmarshal(jsonData, &txn)
+		return txn, err
+	case TransactionType_L1Handler:
+		var txn L1HandlerTransactionReceipt
+		err := json.Unmarshal(jsonData, &txn)
+		return txn, err
+	case TransactionType_Declare:
+		var txn DeclareTransactionReceipt
+		err := json.Unmarshal(jsonData, &txn)
+		return txn, err
+	case TransactionType_Deploy:
+		var txn DeployTransactionReceipt
+		err := json.Unmarshal(jsonData, &txn)
+		return txn, err
+	case TransactionType_DeployAccount:
+		var txn DeployAccountTransactionReceipt
+		err := json.Unmarshal(jsonData, &txn)
+		return txn, err
+	}
+
+	return nil, fmt.Errorf("unknown transaction type: %v", typ)
 }
 
 // The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
@@ -437,7 +412,48 @@ type TxnStatusResp struct {
 }
 
 type TransactionReceiptWithBlockInfo struct {
-	TransactionReceipt
+	UnknownTransactionReceipt
 	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
 	BlockNumber uint       `json:"block_number,omitempty"`
+}
+
+func (t *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
+	var uTxnRec UnknownTransactionReceipt
+	err := uTxnRec.UnmarshalJSON(data)
+	if err != nil {
+		return err
+	}
+	t.UnknownTransactionReceipt = uTxnRec
+
+	aux := &struct {
+		BlockHash   string `json:"block_hash,omitempty"`
+		BlockNumber uint   `json:"block_number,omitempty"`
+	}{}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
+	if err != nil {
+		return err
+	}
+
+	t.BlockHash = blockHash
+	t.BlockNumber = aux.BlockNumber
+
+	return nil
+}
+
+func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
+	aux := &struct {
+		TransactionReceipt
+		BlockHash   string `json:"block_hash,omitempty"`
+		BlockNumber uint   `json:"block_number,omitempty"`
+	}{
+		TransactionReceipt: t.UnknownTransactionReceipt.TransactionReceipt,
+		BlockHash:          t.BlockHash.String(),
+		BlockNumber:        t.BlockNumber,
+	}
+
+	return json.Marshal(aux)
 }
