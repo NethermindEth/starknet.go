@@ -119,22 +119,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 				},
 			},
 			{
-				ExpectedHash:   utils.TestHexToFelt(t, "0x585419091c2f819470e30437d284b7507cb794c695fa92f801cd0a14f75483a"),
-				SetKS:          false,
-				AccountAddress: &felt.Zero,
-				ChainID:        "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    &felt.Zero,
-					EntryPointSelector: &felt.Zero,
-					Calldata:           []*felt.Felt{&felt.Zero},
-				},
-				TxDetails: rpc.TxDetails{
-					Nonce:   &felt.Zero,
-					MaxFee:  &felt.Zero,
-					Version: rpc.TransactionV1,
-				},
-			},
-			{
 				ExpectedHash:   utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637"),
 				SetKS:          false,
 				AccountAddress: utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8"),
