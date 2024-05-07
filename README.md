@@ -46,9 +46,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 
 # 🌟 Features
 
-- Seamless interaction with the Starknet RPC
-- Tight integration with Juno
-- Account management: Deploy accounts easily
+- Seamless intera: Deploy accounts easily
 - Good concurrency support
 
 # Getting Started
