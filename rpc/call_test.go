@@ -38,12 +38,12 @@ func TestCall(t *testing.T) {
 			{
 				FunctionCall: FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
-					ContractAddress:    utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					ContractAddress:    utils.TestHexToFelt(t, DevNetETHAddress),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: utils.TestHexToFelt(t, "0x6574686572"),
+				ExpectedPatternResult: utils.TestHexToFelt(t, "0x4574686572"),
 			},
 		},
 		"mock": {
