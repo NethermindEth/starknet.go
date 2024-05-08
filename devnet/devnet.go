@@ -60,7 +60,9 @@ func (devnet *DevNet) api(uri string) string {
 // the list of accounts and any error that occurred during the process.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 // - []TestAccount: a slice of TestAccount structs
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
@@ -87,9 +89,12 @@ func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 // and false otherwise.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
-//  bool: true if the DevNet is alive, false otherwise
+//
+//	bool: true if the DevNet is alive, false otherwise
 func (devnet *DevNet) IsAlive() bool {
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/is_alive"), nil)
 	if err != nil {
@@ -107,8 +112,9 @@ func (devnet *DevNet) IsAlive() bool {
 }
 
 type MintResponse struct {
-	NewBalance *big.Int `json:"new_balance"`
-	Unit       string   `json:"unit"`
+	NewBalance      string `json:"new_balance"`
+	Unit            string `json:"unit"`
+	TransactionHash string `json:"tx_hash"`
 }
 
 // Mint mints a certain amount of tokens for a given address.
@@ -160,7 +166,9 @@ type FeeToken struct {
 // to retrieve the fee token.
 //
 // Parameters:
-//   none
+//
+//	none
+//
 // Returns:
 //   - *FeeToken: a pointer to a FeeToken object
 //   - error: an error, if any

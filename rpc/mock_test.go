@@ -133,7 +133,7 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 	if len(args) != 0 {
 		return errWrongArgs
 	}
-	value := "0x534e5f474f45524c49"
+	value := "0x534e5f5345504f4c4941"
 	*r = value
 	return nil
 }
@@ -533,7 +533,7 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 	events :=
 		EventChunk{
 			Events: []EmittedEvent{
-				EmittedEvent{
+				{
 					BlockHash:       blockHash,
 					BlockNumber:     1472,
 					TransactionHash: txHash,
