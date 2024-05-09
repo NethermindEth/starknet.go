@@ -399,20 +399,32 @@ func TestSignMOCK(t *testing.T) {
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
-			// Accepted on testnet https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
+			// Accepted on testnet https://sepolia.voyager.online/tx/0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b
 			{
-				Address:    utils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
-				PrivKey:    utils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
+				Address:    utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
+				PrivKey:    utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
 				ChainId:    "SN_SEPOLIA",
-				FeltToSign: utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
+				FeltToSign: utils.TestHexToFelt(t, "0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b"),
 				ExpectedSig: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x18efb47edd79bc20e35bdc07f71c49d1d6dc5983034e31dd111f164dfaa315d"),
-					utils.TestHexToFelt(t, "0x631c0c9f5958b2c7b7ef23f6bd27bf78f879afecd02086cce3bf4a3c66dd910"),
+					utils.TestHexToFelt(t, "0xfa671736285eb70057579532f0efb6fde09ecefe323755ffd126537234e9c5"),
+					utils.TestHexToFelt(t, "0x27bf55daa78a3ccfb7a4ee6576a13adfc44af707c28588be8292b8476bb27ef"),
 				},
 			},
 		},
-		"devnet":  {},
-		"testnet": {},
+		"devnet": {},
+		"testnet": {
+			// Accepted on testnet https://sepolia.voyager.online/tx/0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b
+			{
+				Address:    utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
+				PrivKey:    utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
+				ChainId:    "SN_SEPOLIA",
+				FeltToSign: utils.TestHexToFelt(t, "0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b"),
+				ExpectedSig: []*felt.Felt{
+					utils.TestHexToFelt(t, "0xfa671736285eb70057579532f0efb6fde09ecefe323755ffd126537234e9c5"),
+					utils.TestHexToFelt(t, "0x27bf55daa78a3ccfb7a4ee6576a13adfc44af707c28588be8292b8476bb27ef"),
+				},
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 
@@ -426,8 +438,8 @@ func TestSignMOCK(t *testing.T) {
 		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
-		msg := utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406")
-		sig, err := account.Sign(context.Background(), msg)
+		// msg := utils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406")
+		sig, err := account.Sign(context.Background(), test.FeltToSign)
 
 		require.NoError(t, err, "error returned from account.Sign()")
 		require.Equal(t, test.ExpectedSig[0].String(), sig[0].String(), "s1 does not match expected")

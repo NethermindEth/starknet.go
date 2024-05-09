@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/crypto"
@@ -91,6 +92,7 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
 
 	msgBig := utils.FeltToBigInt(msg)
+	fmt.Println("Inside Sign(), msgBig = ", msgBig)
 
 	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
 	if err != nil {
@@ -98,6 +100,11 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 	}
 	s1Felt := utils.BigIntToFelt(s1)
 	s2Felt := utils.BigIntToFelt(s2)
+
+	fmt.Println("For Signature: ")
+	fmt.Println("s1 = ", s1Felt)
+	fmt.Println("s2 = ", s2Felt)
+	fmt.Println("Leaving func back to test func")
 
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
