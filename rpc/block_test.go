@@ -286,6 +286,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 // Returns:
 //
 //	none
+//
+// TODO: implement on mainnet (v0 is deprecated)
 func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -297,66 +299,9 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		want                        *Block
 	}
 
-	var fullBlockSepolia64159 = Block{
-		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964"),
-			ParentHash:       utils.TestHexToFelt(t, "0x1406ec9385293905d6c20e9c5aa0bbf9f63f87d39cf12fcdfef3ed0d056c0f5"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-			BlockNumber:      64159,
-			NewRoot:          utils.TestHexToFelt(t, "0x310be818a18de0d6f6c1391f467d0dbd1a2753e6dde876449448465f8e617f0"),
-			Timestamp:        1714901729,
-		},
-		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
-
-			BlockInvokeTxnV0{
-				TransactionHash: utils.TestHexToFelt(t, "0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73"),
-				InvokeTxnV0: InvokeTxnV0{
-					Type:    "INVOKE",
-					MaxFee:  utils.TestHexToFelt(t, "0x16345785d8a0000"),
-					Version: TransactionV0,
-					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
-						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
-					},
-					FunctionCall: FunctionCall{
-						ContractAddress:    utils.TestHexToFelt(t, "0x2e28403d7ee5e337b7d456327433f003aa875c29631906908900058c83d8cb6"),
-						EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-						Calldata: []*felt.Felt{
-							utils.TestHexToFelt(t, "0x1"),
-							utils.TestHexToFelt(t, "0x33830ce413e4c096eef81b5e6ffa9b9f5d963f57b8cd63c9ae4c839c383c1a6"),
-							utils.TestHexToFelt(t, "0x2db698626ed7f60212e1ce6e99afb796b6b423d239c3f0ecef23e840685e866"),
-							utils.TestHexToFelt(t, "0x0"),
-							utils.TestHexToFelt(t, "0x2"),
-							utils.TestHexToFelt(t, "0x2"),
-							utils.TestHexToFelt(t, "0x61c6e7484657e5dc8b21677ffa33e4406c0600bba06d12cf1048fdaa55bdbc3"),
-							utils.TestHexToFelt(t, "0x6307b990"),
-							utils.TestHexToFelt(t, "0x2b81"),
-						},
-					},
-				},
-			},
-		},
-	}
-
 	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
-			{
-				BlockID:       WithBlockTag("latest"),
-				ExpectedError: nil,
-			},
-			{
-				BlockID:       WithBlockHash(utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964")),
-				ExpectedError: nil,
-				want:          &fullBlockSepolia64159,
-			},
-			{
-				BlockID:       WithBlockNumber(64159),
-				ExpectedError: nil,
-				want:          &fullBlockSepolia64159,
-			},
-		},
+		"mock":    {},
+		"testnet": {},
 		"mainnet": {},
 	}[testEnv]
 
