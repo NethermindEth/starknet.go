@@ -645,8 +645,8 @@ func TestBlockTransactionCount(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID:       WithBlockNumber(300000),
-				ExpectedCount: 23,
+				BlockID:       WithBlockNumber(30000),
+				ExpectedCount: 4,
 			},
 		},
 		"mainnet": {},
