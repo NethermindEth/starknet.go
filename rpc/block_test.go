@@ -692,8 +692,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				StartBlock: 381000,
-				EndBlock:   381001,
+				StartBlock: 38100,
+				EndBlock:   38101,
 			},
 		},
 		"mainnet": {},
