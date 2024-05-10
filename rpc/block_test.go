@@ -735,24 +735,128 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 // TODO: Find a block with such a Txn
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
-	_ = beforeEach(t)
+	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		check bool
+		BlockID                     BlockID
+		ExpectedError               error
+		LookupTxnPositionInOriginal int
+		LookupTxnPositionInExpected int
+		want                        *Block
 	}
+
+	var fullBlockSepolia64159 = Block{
+		BlockHeader: BlockHeader{
+			BlockHash:        utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964"),
+			ParentHash:       utils.TestHexToFelt(t, "0x1406ec9385293905d6c20e9c5aa0bbf9f63f87d39cf12fcdfef3ed0d056c0f5"),
+			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+			BlockNumber:      64159,
+			NewRoot:          utils.TestHexToFelt(t, "0x310be818a18de0d6f6c1391f467d0dbd1a2753e6dde876449448465f8e617f0"),
+			Timestamp:        1714901729,
+		},
+		Status: "ACCEPTED_ON_L1",
+		Transactions: []BlockTransaction{
+
+			BlockInvokeTxnV1{
+				TransactionHash: utils.TestHexToFelt(t, "0x5f14364b746abcfdfc0280877ff6d18c311d363e62264d7f218c5da2d396acc"),
+				InvokeTxnV1: InvokeTxnV1{
+					Type:          "INVOKE",
+					Version:       TransactionV1,
+					Nonce:         utils.TestHexToFelt(t, "0x33"),
+					MaxFee:        utils.TestHexToFelt(t, "0x1bad55a98e1c1"),
+					SenderAddress: utils.TestHexToFelt(t, "0x3543d2f0290e39a08cfdf2245f14aec7dca60672b7c7458375f3cb3834e1067"),
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x7bc0a22005a54ec6a005c1e89ab0201cbd0819621edd9fe4d5ef177a4ff33dd"),
+						utils.TestHexToFelt(t, "0x13089e5f38de4ea98e9275be7fadc915946be15c14a8fed7c55202818527bea"),
+					},
+					Calldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e"),
+						utils.TestHexToFelt(t, "0xcaffbd1bd76bd7f24a3fa1d69d1b2588a86d1f9d2359b13f6a84b7e1cbd126"),
+						utils.TestHexToFelt(t, "0x6"),
+						utils.TestHexToFelt(t, "0x5265706f73736573734275696c64696e67"),
+						utils.TestHexToFelt(t, "0x4"),
+						utils.TestHexToFelt(t, "0x5"),
+						utils.TestHexToFelt(t, "0x1b48"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0xe52"),
+					},
+				},
+			},
+		},
+	}
+
 	testSet := map[string][]testSetType{
 		"mock": {},
 		"testnet": {
 			{
-				check: false,
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: nil,
+			},
+			{
+				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964")),
+				ExpectedError:               nil,
+				want:                        &fullBlockSepolia64159,
+				LookupTxnPositionInExpected: 0,
+				LookupTxnPositionInOriginal: 4,
+			},
+			{
+				BlockID:                     WithBlockNumber(64159),
+				ExpectedError:               nil,
+				want:                        &fullBlockSepolia64159,
+				LookupTxnPositionInExpected: 0,
+				LookupTxnPositionInOriginal: 4,
 			},
 		},
 		"mainnet": {},
 	}[testEnv]
+
 	for _, test := range testSet {
-		if test.check {
-			t.Fatalf("error running test: %v", ErrNotImplemented)
+		spy := NewSpy(testConfig.provider.c)
+		testConfig.provider.c = spy
+		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
+		if err != test.ExpectedError {
+			t.Fatal("BlockWithTxHashes match the expected error:", err)
 		}
+		if test.ExpectedError != nil && blockWithTxsInterface == nil {
+			continue
+		}
+		blockWithTxs, ok := blockWithTxsInterface.(*Block)
+		if !ok {
+			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
+		}
+		_, err = spy.Compare(blockWithTxs, false)
+		if err != nil {
+			t.Fatal("expecting to match", err)
+		}
+		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
+			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
+		}
+
+		if len(blockWithTxs.Transactions) == 0 {
+			t.Fatal("the number of transaction should not be 0")
+		}
+
+		if test.want != nil {
+			if (*test.want).BlockHash == &felt.Zero {
+				continue
+			}
+
+			invokeV1Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV1)
+			if !ok {
+				t.Fatal("expected invoke v1 transaction")
+			}
+			invokeV1Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV1)
+			if !ok {
+				t.Fatal("expected invoke v1 transaction")
+			}
+			require.Equal(t, invokeV1Want.TransactionHash.String(), invokeV1Block.TransactionHash.String(), "expected equal TransactionHash")
+			require.Equal(t, invokeV1Want.InvokeTxnV1.MaxFee.String(), invokeV1Block.InvokeTxnV1.MaxFee.String(), "expected equal maxfee")
+			require.Equal(t, invokeV1Want.InvokeTxnV1.Calldata[1].String(), invokeV1Block.InvokeTxnV1.Calldata[1].String(), "expected equal calldatas")
+
+		}
+
 	}
 }
 
