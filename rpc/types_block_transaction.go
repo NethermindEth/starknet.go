@@ -267,15 +267,15 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 		case TransactionType_Invoke:
 			if casted["version"].(string) == "0x0" {
 				var txn BlockInvokeTxnV0
-				remarshal(casted, &txn)
+				_ = remarshal(casted, &txn)
 				return txn, nil
 			} else if casted["version"].(string) == "0x1" {
 				var txn BlockInvokeTxnV1
-				remarshal(casted, &txn)
+				_ = remarshal(casted, &txn)
 				return txn, nil
 			} else {
 				var txn BlockInvokeTxnV3
-				remarshal(casted, &txn)
+				_ = remarshal(casted, &txn)
 				return txn, nil
 			}
 		case TransactionType_L1Handler:
