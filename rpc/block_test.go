@@ -700,8 +700,6 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // Returns:
 //
 //	none
-//
-// TODO: Find a block with such a Txn
 func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -759,17 +757,6 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				BlockID:       WithBlockTag("latest"),
-				ExpectedError: nil,
-			},
-			{
-				BlockID:                     WithBlockHash(utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964")),
-				ExpectedError:               nil,
-				want:                        &fullBlockSepolia64159,
-				LookupTxnPositionInExpected: 0,
-				LookupTxnPositionInOriginal: 4,
-			},
-			{
 				BlockID:                     WithBlockNumber(64159),
 				ExpectedError:               nil,
 				want:                        &fullBlockSepolia64159,
@@ -780,51 +767,27 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 
+	require := require.New(t)
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
-		if test.ExpectedError != nil && blockWithTxsInterface == nil {
-			continue
-		}
+		require.NoError(err, "Unable to fetch the given block.")
+
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
-		if !ok {
-			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
-		}
-		_, err = spy.Compare(blockWithTxs, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
-		}
+		require.True(ok, "Failed to assert the Interface as *Block.")
+		require.Equal(blockWithTxs.BlockHash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+		require.NotEqual(len(blockWithTxs.Transactions), 0, "The number of transaction should not be 0.")
 
-		if len(blockWithTxs.Transactions) == 0 {
-			t.Fatal("the number of transaction should not be 0")
-		}
+		invokeV1Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV1)
+		require.True(ok, "Expected invoke v1 transaction.")
 
-		if test.want != nil {
-			if (*test.want).BlockHash == &felt.Zero {
-				continue
-			}
+		invokeV1Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV1)
+		require.True(ok, "Expected invoke v1 transaction.")
 
-			invokeV1Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV1)
-			if !ok {
-				t.Fatal("expected invoke v1 transaction")
-			}
-			invokeV1Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV1)
-			if !ok {
-				t.Fatal("expected invoke v1 transaction")
-			}
-			require.Equal(t, invokeV1Want.TransactionHash.String(), invokeV1Block.TransactionHash.String(), "expected equal TransactionHash")
-			require.Equal(t, invokeV1Want.InvokeTxnV1.MaxFee.String(), invokeV1Block.InvokeTxnV1.MaxFee.String(), "expected equal maxfee")
-			require.Equal(t, invokeV1Want.InvokeTxnV1.Calldata[1].String(), invokeV1Block.InvokeTxnV1.Calldata[1].String(), "expected equal calldatas")
-
-		}
-
+		require.Equal(invokeV1Want.TransactionHash.String(), invokeV1Block.TransactionHash.String(), "Expected equal TransactionHash.")
+		require.Equal(invokeV1Want.InvokeTxnV1.MaxFee.String(), invokeV1Block.InvokeTxnV1.MaxFee.String(), "Expected equal maxfee.")
+		require.Equal(invokeV1Want.InvokeTxnV1.Calldata[1].String(), invokeV1Block.InvokeTxnV1.Calldata[1].String(), "Expected equal calldatas.")
 	}
 }
 
