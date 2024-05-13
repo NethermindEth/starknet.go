@@ -202,7 +202,6 @@ func TestTransactionReceipt(t *testing.T) {
 		MessagesSent:    []MsgToL1{},
 		Events: []Event{
 			{
-				FromAddress: utils.TestHexToFelt(t, "0x243d436e1f7cea085aaa42834975488029b1ebf67cea1d2e86f7de58e7d34a3"),
 				Data: []*felt.Felt{
 					utils.TestHexToFelt(t, "0x3028044a4c4df95c0b0a907307c6feffa76b9c38e83088ade29b186a250eb13"),
 					utils.TestHexToFelt(t, "0x3"),
@@ -210,18 +209,19 @@ func TestTransactionReceipt(t *testing.T) {
 					utils.TestHexToFelt(t, "0x776731d30bd922ac0390edfc664ed31b232aa7c7ce389c333e34c6b32957532"),
 					utils.TestHexToFelt(t, "0x40851db0ebaebb9f8a18eda25005c050793f2a69e9e7d1f44bc133752898918"),
 				},
+				FromAddress: utils.TestHexToFelt(t, "0x243d436e1f7cea085aaa42834975488029b1ebf67cea1d2e86f7de58e7d34a3"),
 				Keys: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x243d436e1f7cea085aaa42834975488029b1ebf67cea1d2e86f7de58e7d34a3"),
+					utils.TestHexToFelt(t, "0x15bd0500dc9d7e69ab9577f73a8d753e8761bed10f25ba0f124254dc4edb8b4"),
 				},
 			},
 			{
-				FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				Data: []*felt.Felt{
 					utils.TestHexToFelt(t, "0x6016d919abf2ddefe03dacc2ff5c8f42eb80cf65add1e90dd73c5c5e06ef3e2"),
 					utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
 					utils.TestHexToFelt(t, "0x16409a78a10b00"),
 					utils.TestHexToFelt(t, "0x0"),
 				},
+				FromAddress: utils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				Keys: []*felt.Felt{
 					utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 				},
@@ -236,7 +236,7 @@ func TestTransactionReceipt(t *testing.T) {
 			},
 			DataAvailability: DataAvailability{
 				L1Gas:     0,
-				L1DataGas: 128,
+				L1DataGas: 0,
 			},
 		},
 	})
@@ -317,11 +317,6 @@ func TestTransactionReceipt(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-		// To inspect the data
-		// qwe, _ := json.MarshalIndent(txReceiptWithBlockInfo, "", "")
-		// fmt.Println(string(qwe))
-		// wer, _ := json.MarshalIndent(test.ExpectedResp, "", "")
-		// fmt.Println(string(wer))
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
