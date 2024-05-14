@@ -981,8 +981,8 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	}
 
 	txHashes, err := utils.HexArrToFelt([]string{
-		"0x40c82f79dd2bc1953fc9b347a3e7ab40fe218ed5740bf4e120f74e8a3c9ac99",
-		"0x28981b14353a28bc46758dff412ac544d16f2ffc8dde31867855592ea054ab1",
+		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
+		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
 	if err != nil {
 		return err

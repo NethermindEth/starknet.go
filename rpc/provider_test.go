@@ -48,10 +48,10 @@ var (
 		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"testnet": {
-			base: "http://localhost:9545/v0.2/rpc",
+			base: "https://free-rpc.nethermind.io/sepolia-juno",
 		},
 		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
+		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
 		"devnet": {
 			base: "http://localhost:5050/rpc",
 		},
@@ -101,7 +101,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	testConfig.base = "https://free-rpc.nethermind.io/sepolia-juno"
 	base := os.Getenv("INTEGRATION_BASE")
 	if base != "" {
 		testConfig.base = base
