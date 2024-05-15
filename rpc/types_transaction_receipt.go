@@ -37,6 +37,7 @@ type CommonTransactionReceipt struct {
 	ExecutionResources ExecutionResources `json:"execution_resources"`
 }
 
+// Hash returns the transaction hash associated with the CommonTransactionReceipt.
 func (tr CommonTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
@@ -100,10 +101,6 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON marshals the TransactionType to JSON.
 //
-// Parameters:
-//
-//	none
-//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -114,10 +111,12 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 // InvokeTransactionReceipt Invoke Transaction Receipt
 type InvokeTransactionReceipt CommonTransactionReceipt
 
+// Hash returns the hash of the invoke transaction receipt.
 func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
+// GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
 func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -126,25 +125,11 @@ func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 type DeclareTransactionReceipt CommonTransactionReceipt
 
 // Hash returns the transaction hash.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
 // GetExecutionStatus returns the execution status of the DeclareTransactionReceipt function.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - TxnExecutionStatus: the execution status
 func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -157,25 +142,11 @@ type DeployTransactionReceipt struct {
 }
 
 // Hash returns the transaction hash of the DeployTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr DeployTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
 // GetExecutionStatus returns the execution status of the DeployTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - TxnExecutionStatus: the execution status
 func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -188,25 +159,11 @@ type DeployAccountTransactionReceipt struct {
 }
 
 // Hash returns the transaction hash for the given DeployAccountTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
 // GetExecutionStatus returns the execution status of the DeployAccountTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *TxnExecutionStatus: the execution status
 func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }
@@ -215,25 +172,11 @@ func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatu
 type L1HandlerTransactionReceipt CommonTransactionReceipt
 
 // Hash returns the transaction hash.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
 	return tr.TransactionHash
 }
 
 // GetExecutionStatus returns the execution status of the L1HandlerTransactionReceipt.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - TxnExecutionStatus: the execution status
 func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
 	return tr.ExecutionStatus
 }

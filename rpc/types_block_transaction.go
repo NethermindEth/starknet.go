@@ -26,121 +26,51 @@ var _ BlockTransaction = BlockDeployAccountTxn{}
 var _ BlockTransaction = BlockL1HandlerTxn{}
 
 // Hash returns the transaction hash of the BlockInvokeTxnV0.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockInvokeTxnV1 transaction.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockInvokeTxnV3 transaction.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV3) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV0.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV1.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV2.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV3.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV3) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockDeployTxn.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the Felt hash of the BlockDeployAccountTxn.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockL1HandlerTxn.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
