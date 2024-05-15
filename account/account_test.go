@@ -656,18 +656,20 @@ func TestTransactionHashDeclare(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				// Note this is a testnet / sepolia transaction
+				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
 				Txn: rpc.DeclareTxnV2{
-					Nonce:             utils.TestHexToFelt(t, "0xb"),
-					MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-					Type:              rpc.TransactionType_Declare,
-					Version:           rpc.TransactionV2,
-					Signature:         []*felt.Felt{},
-					SenderAddress:     utils.TestHexToFelt(t, "0x36437dffa1b0bf630f04690a3b302adbabb942deb488ea430660c895ff25acf"),
-					CompiledClassHash: utils.TestHexToFelt(t, "0x615a5260d3d47d79fba87898da95cb5394b181c7d5097bc8ced4ed06ac24ac5"),
-					ClassHash:         utils.TestHexToFelt(t, "0x639cdc0c42c8c4d3d805e56294fa0e6bf5a584ad0fcd538b843cc294913b982"),
+					Nonce:   utils.TestHexToFelt(t, "0x1"),
+					Type:    rpc.TransactionType_Declare,
+					Version: rpc.TransactionV2,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
+						utils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
+					SenderAddress:     utils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
+					CompiledClassHash: utils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
+					ClassHash:         utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+					MaxFee:            utils.TestHexToFelt(t, "0x177e06ff6cab2"),
 				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x31e1897656b75c64997a6c2e1a6b23d46866656ceff671f4a947a09b08fcb43"),
+				ExpectedHash: utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3"),
 				ExpectedErr:  nil,
 			},
 			{
@@ -747,18 +749,18 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7
+				// https://sepolia.voyager.online/tx/0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9
 				Txn: rpc.InvokeTxnV3{
-					Nonce:   utils.TestHexToFelt(t, "0xe97"),
+					Nonce:   utils.TestHexToFelt(t, "0x12eaa"),
 					Type:    rpc.TransactionType_Invoke,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
-						utils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5")},
+						utils.TestHexToFelt(t, "0x7121c34d7073fd21b73801000278883b332a6f8cdf90d7a84358748de811480"),
+						utils.TestHexToFelt(t, "0x3df8c38724b89e9baa8dc0d0cb8fd14a8ca65308d7ca831793cc67394803b6c")},
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
+							MaxAmount:       "0x2b",
+							MaxPricePerUnit: "0x2eb31cc948ef",
 						},
 						L2Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
@@ -768,45 +770,53 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
-					SenderAddress:         utils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
+					SenderAddress:         utils.TestHexToFelt(t, "0x1d091b30a2d20ca2509579f8beae26934bfdc3725c0b497f50b353b7a3c636f"),
 					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x132303a40ae2f271f4e1b707596a63f6f2921c4d400b38822548ed1bb0cbe0",
+						"0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+						"0x13",
+						"0x46f1db039a8aa6edb473195b98421579517d79bbe026e74bbc3f172af0798",
+						"0x1c4104",
+						"0xde9f47f476fed1e72a6159aba4f458ac74cbbbf88a951758a1fc0276e27211",
+						"0x66417c6a",
+						"0x104030200000000000000000000000000000000000000000000000000000000",
+						"0x4",
+						"0x431d563dc0",
+						"0x4329326f60",
+						"0x432cdda6a2",
+						"0x433403bcd6",
+						"0xbc2ee78d0e41b9dd1",
+						"0x1",
 						"0x2",
-						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
-						"0x27c3334165536f239cfd400ed956eabff55fc60de4fb56728b6a4f6b87db01c",
-						"0x0",
-						"0x4",
-						"0x4c312760dfd17a954cdd09e76aa9f149f806d88ec3e402ffaf5c4926f568a42",
-						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
-						"0x4",
-						"0x1",
-						"0x5",
-						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
-						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
-						"0x1",
-						"0x7fe4fd616c7fece1244b3616bb516562e230be8c9f29668b46ce0369d5ca829",
-						"0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587",
+						"0x75a8626edb90cc9983ae1dfca05c485c8ca6ca507f925ac8f28366aa8d7c211",
+						"0x83b812e83b07feb3e898aa55db8552138580d63e4f827e28e2531bd308db29",
+						"0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962",
+						"0x49e384b4c21fbb10318f461c7804432e068c7ff196647b4f3b470b4431c40e6",
+						"0x2389f278922589f5f5d39b17339dc7ef80f13c8eb20b173c9eba52503c60874",
+						"0x4225d1c8ee8e451a25e30c10689ef898e11ccf5c0f68d0fc7876c47b318e946",
 					}),
 					NonceDataMode: rpc.DAModeL1,
 					FeeMode:       rpc.DAModeL1,
 				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7"),
+				ExpectedHash: utils.TestHexToFelt(t, "0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9"),
 				ExpectedErr:  nil,
 			},
 		},
 		"testnet": {
 			{
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7
+				// https://sepolia.voyager.online/tx/0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9
 				Txn: rpc.InvokeTxnV3{
-					Nonce:   utils.TestHexToFelt(t, "0xe97"),
+					Nonce:   utils.TestHexToFelt(t, "0x12eaa"),
 					Type:    rpc.TransactionType_Invoke,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
-						utils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5")},
+						utils.TestHexToFelt(t, "0x7121c34d7073fd21b73801000278883b332a6f8cdf90d7a84358748de811480"),
+						utils.TestHexToFelt(t, "0x3df8c38724b89e9baa8dc0d0cb8fd14a8ca65308d7ca831793cc67394803b6c")},
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
+							MaxAmount:       "0x2b",
+							MaxPricePerUnit: "0x2eb31cc948ef",
 						},
 						L2Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
@@ -816,28 +826,36 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
-					SenderAddress:         utils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
+					SenderAddress:         utils.TestHexToFelt(t, "0x1d091b30a2d20ca2509579f8beae26934bfdc3725c0b497f50b353b7a3c636f"),
 					Calldata: utils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x132303a40ae2f271f4e1b707596a63f6f2921c4d400b38822548ed1bb0cbe0",
+						"0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+						"0x13",
+						"0x46f1db039a8aa6edb473195b98421579517d79bbe026e74bbc3f172af0798",
+						"0x1c4104",
+						"0xde9f47f476fed1e72a6159aba4f458ac74cbbbf88a951758a1fc0276e27211",
+						"0x66417c6a",
+						"0x104030200000000000000000000000000000000000000000000000000000000",
+						"0x4",
+						"0x431d563dc0",
+						"0x4329326f60",
+						"0x432cdda6a2",
+						"0x433403bcd6",
+						"0xbc2ee78d0e41b9dd1",
+						"0x1",
 						"0x2",
-						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
-						"0x27c3334165536f239cfd400ed956eabff55fc60de4fb56728b6a4f6b87db01c",
-						"0x0",
-						"0x4",
-						"0x4c312760dfd17a954cdd09e76aa9f149f806d88ec3e402ffaf5c4926f568a42",
-						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
-						"0x4",
-						"0x1",
-						"0x5",
-						"0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684",
-						"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
-						"0x1",
-						"0x7fe4fd616c7fece1244b3616bb516562e230be8c9f29668b46ce0369d5ca829",
-						"0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587",
+						"0x75a8626edb90cc9983ae1dfca05c485c8ca6ca507f925ac8f28366aa8d7c211",
+						"0x83b812e83b07feb3e898aa55db8552138580d63e4f827e28e2531bd308db29",
+						"0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962",
+						"0x49e384b4c21fbb10318f461c7804432e068c7ff196647b4f3b470b4431c40e6",
+						"0x2389f278922589f5f5d39b17339dc7ef80f13c8eb20b173c9eba52503c60874",
+						"0x4225d1c8ee8e451a25e30c10689ef898e11ccf5c0f68d0fc7876c47b318e946",
 					}),
 					NonceDataMode: rpc.DAModeL1,
 					FeeMode:       rpc.DAModeL1,
 				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x473e7d9dcaf02b5bbc2f89486fb2e23241f645cd55f70ff02576b79541befe7"),
+				ExpectedHash: utils.TestHexToFelt(t, "0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9"),
 				ExpectedErr:  nil,
 			},
 		},
@@ -868,81 +886,26 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
+				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
 				Txn: rpc.DeployAccountTxn{
-					Nonce:               &felt.Zero,
-					MaxFee:              utils.TestHexToFelt(t, "0x105ef39b2000"),
-					Type:                rpc.TransactionType_DeployAccount,
-					Version:             rpc.TransactionV1,
-					Signature:           []*felt.Felt{},
-					ClassHash:           utils.TestHexToFelt(t, "0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e"),
-					ContractAddressSalt: utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
-					ConstructorCalldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x5aa23d5bb71ddaa783da7ea79d405315bafa7cf0387a74f4593578c3e9e6570"),
-						utils.TestHexToFelt(t, "0x2dd76e7ad84dbed81c314ffe5e7a7cacfb8f4836f01af4e913f275f89a3de1a"),
-						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883"),
-					},
-				},
-				SenderAddress: utils.TestHexToFelt(t, "0x88d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1"),
-				ExpectedHash:  utils.TestHexToFelt(t, "0x41ffcaa2f472e58b496f58aabae0590d4b2cf6117201c988d51c3f040e489e6"),
-				ExpectedErr:   nil,
-			},
-			{
-				// https://external.integration.starknet.io/feeder_gateway/get_transaction?transactionHash=0x3018236df5779c1f28caba0e64febcb78f5bc69aa3538be54f4e27def9de1b3
-				Txn: rpc.DeployAccountTxnV3{
 					Nonce:   utils.TestHexToFelt(t, "0x0"),
 					Type:    rpc.TransactionType_DeployAccount,
-					Version: rpc.TransactionV3,
+					MaxFee:  utils.TestHexToFelt(t, "0x1d2109b99cf94"),
+					Version: rpc.TransactionV1,
 					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-						utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
-						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
-						},
-						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
-						},
+						utils.TestHexToFelt(t, "0x427df9a1a4a0b7b9011a758524b8a6c2595aac9140608fe24c66efe04b340d7"),
+						utils.TestHexToFelt(t, "0x4edc73cd97dab7458a08fec6d7c0e1638c3f1111646fc8a91508b4f94b36310"),
 					},
-					Tip:           "0x0",
-					PayMasterData: []*felt.Felt{},
-					NonceDataMode: rpc.DAModeL1,
-					FeeMode:       rpc.DAModeL1,
-					ClassHash:     utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-					ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
-						"0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c",
-					}),
-					ContractAddressSalt: utils.TestHexToFelt(t, "0x0"),
+					ClassHash:           utils.TestHexToFelt(t, "0x1e60c8722677cfb7dd8dbea5be86c09265db02cdfe77113e77da7d44c017388"),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x15d621f9515c6197d3117eb1a25c7a4a669317be8f49831e03fcc00d855352e"),
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e"),
+					},
 				},
-				SenderAddress: utils.TestHexToFelt(t, "0x2fab82e4aef1d8664874e1f194951856d48463c3e6bf9a8c68e234a629a6f50"),
-				ExpectedHash:  utils.TestHexToFelt(t, "0x3018236df5779c1f28caba0e64febcb78f5bc69aa3538be54f4e27def9de1b3"),
+				SenderAddress: utils.TestHexToFelt(t, "0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188"),
 				ExpectedErr:   nil,
 			},
-		},
-		"testnet": {
-			// {
-			// 	// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
-			// 	Txn: rpc.DeployAccountTxn{
-			// 		Nonce:   &felt.Zero,
-			// 		MaxFee:  utils.TestHexToFelt(t, "0x1d2109b99cf94"),
-			// 		Type:    rpc.TransactionType_DeployAccount,
-			// 		Version: rpc.TransactionV1,
-			// 		Signature: []*felt.Felt{
-			// 			utils.TestHexToFelt(t, "0x427df9a1a4a0b7b9011a758524b8a6c2595aac9140608fe24c66efe04b340d7"),
-			// 			utils.TestHexToFelt(t, "0x4edc73cd97dab7458a08fec6d7c0e1638c3f1111646fc8a91508b4f94b36310"),
-			// 		},
-			// 		ClassHash:           utils.TestHexToFelt(t, "0x01e60c8722677cfb7dd8dbea5be86c09265db02cdfe77113e77da7d44c017388"),
-			// 		ContractAddressSalt: utils.TestHexToFelt(t, "0x9abae11e641793df36d5cd45326d3358bda311a5edd2afe6a1ed42885fffc1e9"),
-			// 		ConstructorCalldata: []*felt.Felt{
-			// 			utils.TestHexToFelt(t, "0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e"),
-			// 		},
-			// 	},
-			// 	SenderAddress: utils.TestHexToFelt(t, "0x00c0aac0e4b6ae8de15e7ce645273c8617aec92e7b5042b307b824808cb6a162"),
-			// 	ExpectedHash:  utils.TestHexToFelt(t, "0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188"),
-			// 	ExpectedErr:   nil,
-			// },
 			{
 				// https://sepolia.voyager.online/tx/0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875
 				Txn: rpc.DeployAccountTxnV3{
@@ -950,12 +913,12 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					Type:    rpc.TransactionType_DeployAccount,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x01a09f0001cc46f82b1a805d07c13e235248a44ed13d87f170d7d925e3c86082"),
-						utils.TestHexToFelt(t, "0x00")},
+						utils.TestHexToFelt(t, "0xaa580d6fd4bc056d6a9a49833e7fc966fe5f20cc283e05854e44a5d4516958"),
+						utils.TestHexToFelt(t, "0x41a57fcb19908321f8e44c425ea419a1de272efd99888503ee0cdc0ddb6aee4")},
 					ResourceBounds: rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
+							MaxAmount:       "0x38",
+							MaxPricePerUnit: "0x7cd9b6080b35",
 						},
 						L2Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
@@ -966,20 +929,77 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					PayMasterData: []*felt.Felt{},
 					NonceDataMode: rpc.DAModeL1,
 					FeeMode:       rpc.DAModeL1,
-					ClassHash:     utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
+					ClassHash:     utils.TestHexToFelt(t, "0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 					ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
-						"0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e",
+						"0x1a09f0001cc46f82b1a805d07c13e235248a44ed13d87f170d7d925e3c86082",
+						"0x0",
 					}),
-					ContractAddressSalt: utils.TestHexToFelt(t, "0x0"),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x1a09f0001cc46f82b1a805d07c13e235248a44ed13d87f170d7d925e3c86082"),
 				},
-				SenderAddress: utils.TestHexToFelt(t, "0x365633b6c2ca24b461747d2fe8e0c19a3637a954ee703a7ed0e5d1d9644ad1a"),
+				SenderAddress: utils.TestHexToFelt(t, "0x0365633b6c2ca24b461747d2fe8e0c19a3637a954ee703a7ed0e5d1d9644ad1a"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875"),
+				ExpectedErr:   nil,
+			},
+		},
+		"testnet": {
+			{
+				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
+				Txn: rpc.DeployAccountTxn{
+					Nonce:   utils.TestHexToFelt(t, "0x0"),
+					Type:    rpc.TransactionType_DeployAccount,
+					MaxFee:  utils.TestHexToFelt(t, "0x1d2109b99cf94"),
+					Version: rpc.TransactionV1,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x427df9a1a4a0b7b9011a758524b8a6c2595aac9140608fe24c66efe04b340d7"),
+						utils.TestHexToFelt(t, "0x4edc73cd97dab7458a08fec6d7c0e1638c3f1111646fc8a91508b4f94b36310"),
+					},
+					ClassHash:           utils.TestHexToFelt(t, "0x1e60c8722677cfb7dd8dbea5be86c09265db02cdfe77113e77da7d44c017388"),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x15d621f9515c6197d3117eb1a25c7a4a669317be8f49831e03fcc00d855352e"),
+					ConstructorCalldata: []*felt.Felt{
+						utils.TestHexToFelt(t, "0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e"),
+					},
+				},
+				SenderAddress: utils.TestHexToFelt(t, "0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff"),
+				ExpectedHash:  utils.TestHexToFelt(t, "0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188"),
+				ExpectedErr:   nil,
+			},
+			{
+				// https://sepolia.voyager.online/tx/0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875
+				Txn: rpc.DeployAccountTxnV3{
+					Nonce:   utils.TestHexToFelt(t, "0x0"),
+					Type:    rpc.TransactionType_DeployAccount,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						utils.TestHexToFelt(t, "0xaa580d6fd4bc056d6a9a49833e7fc966fe5f20cc283e05854e44a5d4516958"),
+						utils.TestHexToFelt(t, "0x41a57fcb19908321f8e44c425ea419a1de272efd99888503ee0cdc0ddb6aee4")},
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x38",
+							MaxPricePerUnit: "0x7cd9b6080b35",
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
+						},
+					},
+					Tip:           "0x0",
+					PayMasterData: []*felt.Felt{},
+					NonceDataMode: rpc.DAModeL1,
+					FeeMode:       rpc.DAModeL1,
+					ClassHash:     utils.TestHexToFelt(t, "0x29927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+					ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
+						"0x1a09f0001cc46f82b1a805d07c13e235248a44ed13d87f170d7d925e3c86082",
+						"0x0",
+					}),
+					ContractAddressSalt: utils.TestHexToFelt(t, "0x1a09f0001cc46f82b1a805d07c13e235248a44ed13d87f170d7d925e3c86082"),
+				},
+				SenderAddress: utils.TestHexToFelt(t, "0x0365633b6c2ca24b461747d2fe8e0c19a3637a954ee703a7ed0e5d1d9644ad1a"),
 				ExpectedHash:  utils.TestHexToFelt(t, "0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875"),
 				ExpectedErr:   nil,
 			},
 		},
 	}[testEnv]
-	for i, test := range testSet {
-		fmt.Println("test case: ", i)
+	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
