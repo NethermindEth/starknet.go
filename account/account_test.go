@@ -1154,12 +1154,12 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 //
 //	none
 func TestAddDeclareTxn(t *testing.T) {
-	// https://sepolia.voyager.online/tx/0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d
+	// https://sepolia.voyager.online/tx/0x272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
-	expectedTxHash := utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3")
-	expectedClassHash := utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855")
+	expectedTxHash := utils.TestHexToFelt(t, "0x0272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255")
+	expectedClassHash := utils.TestHexToFelt(t, "0x05e507b062836a3d73e71686ee62bca69026df94e72a657cbe0b954e6d3a0ce6")
 
 	AccountAddress := utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
 	PubKey := utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
@@ -1187,7 +1187,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	content2, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
 	require.NoError(t, err)
 
 	var casmClass contracts.CasmClass
@@ -1195,15 +1195,18 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 	compClassHash := hash.CompiledClassHash(casmClass)
 
-	nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
-	require.NoError(t, err)
+	// nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
+	// require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		Nonce:             nonce,
-		MaxFee:            utils.TestHexToFelt(t, "0x50c8f3053db"),
-		Type:              rpc.TransactionType_Declare,
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{},
+		Nonce:   utils.TestHexToFelt(t, "0x9"),
+		MaxFee:  utils.TestHexToFelt(t, "0xc5cb22092551"),
+		Type:    rpc.TransactionType_Declare,
+		Version: rpc.TransactionV2,
+		Signature: []*felt.Felt{
+			utils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
+			utils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
+		},
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
 		ClassHash:         classHash,
@@ -1215,7 +1218,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
 
 	if err != nil {
-		require.Equal(t, err.Error(), rpc.ErrDuplicateTx.Error())
+		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
