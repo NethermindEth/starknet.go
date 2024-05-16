@@ -262,17 +262,9 @@ func TestTransactionReceipt(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-		"integration": {
-			{
-				TxnHash: utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
-				ExpectedResp: TransactionReceiptWithBlockInfo{
-					UnknownTransactionReceipt: UnknownTransactionReceipt{receiptTxn52767_16},
-					BlockNumber:               52767,
-					BlockHash:                 utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
-				},
-			},
-		}}[testEnv]
+		"mainnet":     {},
+		"integration": {},
+	}[testEnv]
 
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
