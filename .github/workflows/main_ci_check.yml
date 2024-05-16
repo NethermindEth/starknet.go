@@ -56,16 +56,14 @@ jobs:
 
       # Test Account on devnet
       - name: Test Account on devnet
-        run: echo "Skip for now - until account tests stable"
-        #run: cd account && go test -timeout 600s -v -env devnet .
+        run: cd account && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "http://localhost:5050"
 
       # Test Account on mock
       - name: Test Account with mocks
-        run: echo "Skip for now - until account tests stable"
-        #run: cd account && go test -v . -env mock
+        run: cd account && go test -v . -env mock
 
       # Build examples
       - name: Build examples
