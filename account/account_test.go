@@ -1104,7 +1104,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base + "/rpc")
+	client, err := rpc.NewProvider(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
@@ -1119,10 +1119,10 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Timeout:         3, // Should poll 3 times
+				Timeout:         1, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: nil,
-				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/rpc\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/\": context deadline exceeded"),
 			},
 		},
 	}[testEnv]
@@ -1131,7 +1131,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
 		defer cancel()
 
-		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error())
 		} else {

@@ -32,7 +32,7 @@ jobs:
         run: cd rpc && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050/rpc"
+          INTEGRATION_BASE: "http://localhost:5050/"
 
       # Test rpc on mock
       - name: Test RPC with mocks
