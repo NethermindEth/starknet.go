@@ -572,7 +572,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base + "/rpc")
+	client, err := rpc.NewProvider(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	devnet, acnts, err := newDevnet(t, base)
@@ -590,12 +590,12 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
-	classHash := utils.TestHexToFelt(t, "0x7b3e05f48f0c69e4a65ce5e076a66271a527aff2c34ce1083ec6e1526997a69") // preDeployed classhash
+	classHash := utils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
 	require.NoError(t, err)
 
 	tx := rpc.DeployAccountTxn{
 		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
-		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
+		MaxFee:              utils.TestHexToFelt(t, "0xc5cb22092551"),
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             rpc.TransactionV1,
 		Signature:           []*felt.Felt{},
