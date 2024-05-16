@@ -803,39 +803,5 @@
       }
     ]
   },
-  "abi": [
-    {
-      "type": "impl",
-      "name": "HelloWorld",
-      "interface_name": "hello_world::HelloWorldInterface"
-    },
-    {
-      "type": "interface",
-      "name": "hello_world::HelloWorldInterface",
-      "items": [
-        {
-          "type": "function",
-          "name": "get_message",
-          "inputs": [],
-          "outputs": [
-            {
-              "type": "core::felt252"
-            }
-          ],
-          "state_mutability": "view"
-        }
-      ]
-    },
-    {
-      "type": "constructor",
-      "name": "constructor",
-      "inputs": []
-    },
-    {
-      "type": "event",
-      "name": "hello_world::hello_world_contract::Event",
-      "kind": "enum",
-      "variants": []
-    }
-  ]
+  "abi": "[{\"type\":\"impl\",\"name\":\"HelloWorld\",\"interface_name\":\"hello_world::HelloWorldInterface\"},{\"type\":\"interface\",\"name\":\"hello_world::HelloWorldInterface\",\"items\":[{\"type\":\"function\",\"name\":\"get_message\",\"inputs\":[],\"outputs\":[{\"type\":\"core::felt252\"}],\"state_mutability\":\"view\"}]},{\"type\":\"constructor\",\"name\":\"constructor\",\"inputs\":[]},{\"type\":\"event\",\"name\":\"hello_world::hello_world_contract::Event\",\"kind\":\"enum\",\"variants\":[]}]"
 }

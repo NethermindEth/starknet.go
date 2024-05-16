@@ -1153,7 +1153,6 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 //
 //	none
 func TestAddDeclareTxn(t *testing.T) {
-	// https://sepolia.voyager.online/tx/0x272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -1176,7 +1175,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+	content, err := os.ReadFile("./tests/hello_world_compiled.sierra.json")
 	require.NoError(t, err)
 
 	var class rpc.ContractClass
@@ -1186,7 +1185,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
+	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
 	require.NoError(t, err)
 
 	var casmClass contracts.CasmClass
@@ -1198,7 +1197,7 @@ func TestAddDeclareTxn(t *testing.T) {
 	// require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
-		Nonce:   utils.TestHexToFelt(t, "0x9"),
+		Nonce:   utils.TestHexToFelt(t, "0xd"),
 		MaxFee:  utils.TestHexToFelt(t, "0xc5cb22092551"),
 		Type:    rpc.TransactionType_Declare,
 		Version: rpc.TransactionV2,
@@ -1214,7 +1213,18 @@ func TestAddDeclareTxn(t *testing.T) {
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeclareTransaction(context.Background(), tx)
+	broadcastTx := rpc.BroadcastDeclareTxnV2{
+		Nonce:             tx.Nonce,
+		MaxFee:            tx.MaxFee,
+		Type:              tx.Type,
+		Version:           tx.Version,
+		Signature:         tx.Signature,
+		SenderAddress:     tx.SenderAddress,
+		CompiledClassHash: tx.CompiledClassHash,
+		ContractClass:     class,
+	}
+
+	resp, err := acnt.AddDeclareTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
