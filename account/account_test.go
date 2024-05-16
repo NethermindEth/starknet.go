@@ -346,7 +346,7 @@ func TestChainId(t *testing.T) {
 		"devnet": {
 			{
 				ChainID:    "SN_SEPOLIA",
-				ExpectedID: "0x534e5f474f45524c49",
+				ExpectedID: "0x534e5f5345504f4c4941",
 			},
 		},
 		"mock":    {},
@@ -355,7 +355,7 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(base + "/rpc")
+		client, err := rpc.NewProvider(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
 		account, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
