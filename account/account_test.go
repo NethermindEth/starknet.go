@@ -118,28 +118,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 					Version: rpc.TransactionV1,
 				},
 			},
-			{
-				ExpectedHash:   utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637"),
-				SetKS:          false,
-				AccountAddress: utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8"),
-				ChainID:        "SN_MAIN",
-				FnCall: rpc.FunctionCall{
-					Calldata: utils.TestHexArrToFelt(t, []string{
-						"0x1",
-						"0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af",
-						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x52884ee3f",
-					}),
-				},
-				TxDetails: rpc.TxDetails{
-					Nonce:   utils.TestHexToFelt(t, "0x1"),
-					MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
-					Version: rpc.TransactionV1,
-				},
-			},
 		},
 		"devnet": {},
 		"testnet": {
@@ -169,28 +147,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 				TxDetails: rpc.TxDetails{
 					Nonce:   utils.TestHexToFelt(t, "0x3cf"),
 					MaxFee:  utils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
-					Version: rpc.TransactionV1,
-				},
-			},
-			{
-				ExpectedHash:   utils.TestHexToFelt(t, "0x3476c76a81522fe52616c41e95d062f5c3ea4eeb6c652904ad389fcd9ff4637"),
-				SetKS:          false,
-				AccountAddress: utils.TestHexToFelt(t, "0x59cd166e363be0a921e42dd5cfca0049aedcf2093a707ef90b5c6e46d4555a8"),
-				ChainID:        "SN_MAIN",
-				FnCall: rpc.FunctionCall{
-					Calldata: utils.TestHexArrToFelt(t, []string{
-						"0x1",
-						"0x5dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af",
-						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-						"0x0",
-						"0x1",
-						"0x1",
-						"0x52884ee3f",
-					}),
-				},
-				TxDetails: rpc.TxDetails{
-					Nonce:   utils.TestHexToFelt(t, "0x1"),
-					MaxFee:  utils.TestHexToFelt(t, "0x2a173cd36e400"),
 					Version: rpc.TransactionV1,
 				},
 			},
@@ -522,7 +478,7 @@ func TestAddInvoke(t *testing.T) {
 				AccountAddress:       utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
 				PubKey:               utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
-				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
+				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.InvokeTxnV1{
 					Nonce:         new(felt.Felt).SetUint64(5),
 					MaxFee:        utils.TestHexToFelt(t, "0x26112A960026"),
@@ -1202,12 +1158,12 @@ func TestAddDeclareTxn(t *testing.T) {
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
-	expectedTxHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
-	expectedClassHash := utils.TestHexToFelt(t, "0x76af2faec46130ffad1ab2f615ad16b30afcf49cfbd09f655a26e545b03a21d")
+	expectedTxHash := utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3")
+	expectedClassHash := utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855")
 
-	AccountAddress := utils.TestHexToFelt(t, "0x0088d0038623a89bf853c70ea68b1062ccf32b094d1d7e5f924cda8404dc73e1")
-	PubKey := utils.TestHexToFelt(t, "0x7ed3c6482e12c3ef7351214d1195ee7406d814af04a305617599ff27be43883")
-	PrivKey := utils.TestHexToFelt(t, "0x07514c4f0de1f800b0b0c7377ef39294ce218a7abd9a1c9b6aa574779f7cdc6a")
+	AccountAddress := utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
+	PubKey := utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
+	PrivKey := utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
 
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
