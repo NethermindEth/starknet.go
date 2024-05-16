@@ -1045,10 +1045,9 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(2),
 				ShouldCallTransactionReceipt: true,
 				ExpectedReceipt: &rpc.TransactionReceiptWithBlockInfo{
-					TransactionReceipt: rpc.InvokeTransactionReceipt{
-						TransactionHash: new(felt.Felt).SetUint64(2),
-						ExecutionStatus: rpc.TxnExecutionStatusSUCCEEDED,
-					},
+					UnknownTransactionReceipt: rpc.UnknownTransactionReceipt{},
+					BlockHash:                 new(felt.Felt).SetUint64(2),
+					BlockNumber:               2,
 				},
 
 				ExpectedErr: nil,

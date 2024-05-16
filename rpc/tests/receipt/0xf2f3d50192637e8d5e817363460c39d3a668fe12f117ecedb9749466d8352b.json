@@ -1,0 +1,46 @@
+{
+        "actual_fee": {
+            "amount": "0x16409a78a10b00",
+            "unit": "FRI"
+        },
+        "block_hash": "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564",
+        "block_number": 52767,
+        "events": [
+            {
+                "data": [
+                    "0x3028044a4c4df95c0b0a907307c6feffa76b9c38e83088ade29b186a250eb13",
+                    "0x3",
+                    "0x17a393a5e943cec833c8a8f4cbbf7c58361fb2fdd9caa0c36d901eedec4938e",
+                    "0x776731d30bd922ac0390edfc664ed31b232aa7c7ce389c333e34c6b32957532",
+                    "0x40851db0ebaebb9f8a18eda25005c050793f2a69e9e7d1f44bc133752898918"
+                ],
+                "from_address": "0x243d436e1f7cea085aaa42834975488029b1ebf67cea1d2e86f7de58e7d34a3",
+                "keys": [
+                    "0x15bd0500dc9d7e69ab9577f73a8d753e8761bed10f25ba0f124254dc4edb8b4"
+                ]
+            },
+            {
+                "data": [
+                    "0x6016d919abf2ddefe03dacc2ff5c8f42eb80cf65add1e90dd73c5c5e06ef3e2",
+                    "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+                    "0x16409a78a10b00",
+                    "0x0"
+                ],
+                "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+                "keys": [
+                    "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+                ]
+            }
+        ],
+        "execution_resources": {
+            "ec_op_builtin_applications": 3,
+            "pedersen_builtin_applications": 24,
+            "range_check_builtin_applications": 152,
+            "steps": 5774
+        },
+        "execution_status": "SUCCEEDED",
+        "finality_status": "ACCEPTED_ON_L1",
+        "messages_sent": [],
+        "transaction_hash": "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b",
+        "type": "INVOKE"
+}

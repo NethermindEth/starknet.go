@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	feltZero = new(felt.Felt).SetUint64(0)
-	feltOne  = new(felt.Felt).SetUint64(1)
-	feltTwo  = new(felt.Felt).SetUint64(2)
+	feltZero  = new(felt.Felt).SetUint64(0)
+	feltOne   = new(felt.Felt).SetUint64(1)
+	feltTwo   = new(felt.Felt).SetUint64(2)
+	feltThree = new(felt.Felt).SetUint64(3)
 )
 
 // adaptTransaction adapts a TXN to a Transaction and returns it, along with any error encountered.
@@ -28,9 +29,20 @@ func adaptTransaction(t TXN) (Transaction, error) {
 	}
 	switch t.Type {
 	case TransactionType_Invoke:
-		var tx InvokeTxnV1
-		err := json.Unmarshal(txMarshalled, &tx)
-		return tx, err
+		switch {
+		case t.Version.Equal(feltZero):
+			var tx InvokeTxnV0
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
+		case t.Version.Equal(feltOne):
+			var tx InvokeTxnV1
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
+		case t.Version.Equal(feltThree):
+			var tx InvokeTxnV3
+			err := json.Unmarshal(txMarshalled, &tx)
+			return tx, err
+		}
 	case TransactionType_Declare:
 		switch {
 		case t.Version.Equal(feltZero):
