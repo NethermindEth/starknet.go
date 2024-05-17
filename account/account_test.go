@@ -1119,7 +1119,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
-				Timeout:         1, // Should poll 3 times
+				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: nil,
 				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/\": context deadline exceeded"),
@@ -1131,7 +1131,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
 		defer cancel()
 
-		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
+		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
 		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error())
 		} else {
