@@ -22,7 +22,6 @@ import (
 func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
@@ -42,7 +41,6 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 	return typecastClassOutput(rawClass)

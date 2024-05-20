@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"log"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -39,24 +40,35 @@ func TestClassAt(t *testing.T) {
 	type testSetType struct {
 		ContractAddress   *felt.Felt
 		ExpectedOperation string
+		BlockHash         string
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
+				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
 			},
 		},
 		"testnet": {
+			// v0 contract
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
 				ExpectedOperation: "0x480680017fff8000",
+				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
+			},
+			// v2 contract
+			{
+				ContractAddress:   utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: "0x0293c9b0657d7591853c62ddc495b09ff833e04ad61f066dd7c8cc3a5b6b303d", // name_get
+				BlockHash:         "0x6d49f7047818b6e002ab2ae7ee0376fe1632fb4fe4c80775ec7ed728fa99ecc",
 			},
 		},
 		"mainnet": {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
 				ExpectedOperation: "0x20780017fff7ffd",
+				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
 			},
 		},
 	}[testEnv]
@@ -64,7 +76,7 @@ func TestClassAt(t *testing.T) {
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockHash(utils.TestHexToFelt(t, "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249")), test.ContractAddress)
+		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockHash(utils.TestHexToFelt(t, test.BlockHash)), test.ContractAddress)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -85,8 +97,9 @@ func TestClassAt(t *testing.T) {
 			}
 		case ContractClass:
 			panic("Not covered")
+		default:
+			log.Fatalln("Received unknown response type:", reflect.TypeOf(resp))
 		}
-
 	}
 }
 
@@ -119,9 +132,19 @@ func TestClassHashAt(t *testing.T) {
 			},
 		},
 		"testnet": {
+			// v0 contracts
 			{
 				ContractHash:      utils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 				ExpectedClassHash: utils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+			},
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x073ad76dcf68168cbf68ea3ec0382a3605f3deaf24dc076c355e275769b3c561"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+			},
+			// v2 contract
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 		},
 		"mainnet": {
@@ -204,15 +227,27 @@ func TestClass(t *testing.T) {
 			},
 		},
 		"testnet": {
+			// v0 class
+			{
+				BlockID:         WithBlockNumber(15329),
+				ClassHash:       utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+				ExpectedProgram: "H4sIAAAAAAAA",
+			},
+			{
+				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x258dc3bf21fbefb29b5dfd782c9d9472f73075213e9b63a0421ff7d2d3106d2")),
+				ClassHash:                     utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+			// v2 class
 			{
 				BlockID:         WithBlockNumber(15329),
 				ClassHash:       utils.TestHexToFelt(t, "0x079b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 			{
-				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x258dc3bf21fbefb29b5dfd782c9d9472f73075213e9b63a0421ff7d2d3106d2")),
-				ClassHash:                     utils.TestHexToFelt(t, "0x079b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:   WithBlockHash(utils.TestHexToFelt(t, "0x7b7f2d9b2e4502326eac1615e754d414df22b8266e7206f0cc90380e8052ee3")),
+				ClassHash: utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				// ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 		"mainnet": {},
@@ -228,7 +263,6 @@ func TestClass(t *testing.T) {
 
 		switch class := resp.(type) {
 		case DeprecatedContractClass:
-
 			diff, err := spy.Compare(class, false)
 			if err != nil {
 				t.Fatal("expecting to match", err)
@@ -245,6 +279,8 @@ func TestClass(t *testing.T) {
 			}
 		case ContractClass:
 			require.Equal(t, class.EntryPointsByType.Constructor, test.ExpectedEntryPointConstructor)
+		default:
+			log.Fatalln("Received unknown response type:", reflect.TypeOf(resp))
 		}
 	}
 }
