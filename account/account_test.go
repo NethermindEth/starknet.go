@@ -680,21 +680,6 @@ func TestTransactionHashDeclare(t *testing.T) {
 					SenderAddress:     utils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
 					CompiledClassHash: utils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-					// ResourceBounds: rpc.ResourceBoundsMapping{
-					// 	L1Gas: rpc.ResourceBounds{
-					// 		MaxAmount:       "0x186a0",
-					// 		MaxPricePerUnit: "0x2540be400",
-					// 	},
-					// 	L2Gas: rpc.ResourceBounds{
-					// 		MaxAmount:       "0x0",
-					// 		MaxPricePerUnit: "0x0",
-					// 	},
-					// },
-					// Tip:                   "0x0",
-					// PayMasterData:         []*felt.Felt{},
-					// AccountDeploymentData: []*felt.Felt{},
-					// NonceDataMode:         rpc.DAModeL1,
-					// FeeMode:               rpc.DAModeL1,
 				},
 				ExpectedHash: utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3"),
 				ExpectedErr:  nil,
