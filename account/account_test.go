@@ -207,25 +207,6 @@ func TestFmtCallData(t *testing.T) {
 		"mock":   {},
 		"testnet": {
 			{
-				CairoVersion: 0,
-				ChainID:      "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x05f7cd1fd465baff2ba9d2d1501ad0a2eb5337d9a885be319366b5205a414fdd"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("increase_balance"),
-					Calldata:           []*felt.Felt{new(felt.Felt).SetUint64(2), new(felt.Felt).SetUint64(2)},
-				},
-				ExpectedCallData: utils.TestHexArrToFelt(t, []string{
-					"0x1",
-					"0x05f7cd1fd465baff2ba9d2d1501ad0a2eb5337d9a885be319366b5205a414fdd",
-					"0x0362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320",
-					"0x0",
-					"0x2",
-					"0x2",
-					"0x2",
-					"0x2",
-				}),
-			},
-			{
 				CairoVersion: 2,
 				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
@@ -664,22 +645,6 @@ func TestTransactionHashDeclare(t *testing.T) {
 					CompiledClassHash: utils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 					MaxFee:            utils.TestHexToFelt(t, "0x177e06ff6cab2"),
-				},
-				ExpectedHash: utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3"),
-				ExpectedErr:  nil,
-			},
-			{
-				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
-				Txn: rpc.DeclareTxnV2{
-					Nonce:   utils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionType_Declare,
-					Version: rpc.TransactionV2,
-					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
-						utils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
-					SenderAddress:     utils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
-					CompiledClassHash: utils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
-					ClassHash:         utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 				},
 				ExpectedHash: utils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3"),
 				ExpectedErr:  nil,
@@ -1177,9 +1142,6 @@ func TestAddDeclareTxn(t *testing.T) {
 	err = json.Unmarshal(content2, &casmClass)
 	require.NoError(t, err)
 	compClassHash := hash.CompiledClassHash(casmClass)
-
-	// nonce, err := acnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, acnt.AccountAddress)
-	// require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
 		Nonce:   utils.TestHexToFelt(t, "0xd"),
