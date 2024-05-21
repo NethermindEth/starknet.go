@@ -53,7 +53,7 @@ var (
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
 		"devnet": {
-			base: "http://localhost:5050/rpc",
+			base: "http://localhost:5050/",
 		},
 		// Used with a mock as a standard configuration, see `mock_test.go``
 		"mock":        {},
