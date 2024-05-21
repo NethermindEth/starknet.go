@@ -106,7 +106,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 // The function takes a testing.T object as a parameter and initializes a testConfig object.
 // It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
-// The function then initializes a blockSepolia30436 variable of type BlockTxHashes with a predefined set of values.
+// The function then initializes a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
 // It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
 // The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
@@ -627,7 +627,7 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 // TestBlockWithTxsAndDeployOrDeclare tests BlockWithTxs with Deploy or Declare TXN
 
 // TestBlockWithTxsAndDeployOrDeclare is a test function that tests the functionality of the BlockWithTxs function.
-// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockSepolia52959, fullBlockSepolia848622 and fullBlockSepolia849399).
+// It creates a test configuration, defines a testSetType struct, and initializes three Blocks (fullBlockSepolia65204, fullBlockSepolia65083 and fullBlockSepoliai65212).
 // It then defines a testSet map with different test scenarios for the BlockWithTxs function.
 // The function iterates over the testSet and performs the BlockWithTxs operation on each test case.
 // It compares the returned blockWithTxs with the expected result and verifies the correctness of the operation.
