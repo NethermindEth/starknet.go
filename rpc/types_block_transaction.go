@@ -36,16 +36,6 @@ func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
 }
 
 // Hash returns the hash of the BlockInvokeTxnV3 transaction.
-<<<<<<< HEAD
-=======
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
->>>>>>> b858597 (update block_tests)
 func (tx BlockInvokeTxnV3) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
@@ -66,16 +56,6 @@ func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV3.
-<<<<<<< HEAD
-=======
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - *felt.Felt: the transaction hash
->>>>>>> b858597 (update block_tests)
 func (tx BlockDeclareTxnV3) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
@@ -217,7 +197,6 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 		case TransactionType_Invoke:
 			if casted["version"].(string) == "0x0" {
 				var txn BlockInvokeTxnV0
-<<<<<<< HEAD
 				err := remarshal(casted, &txn)
 				return txn, err
 			} else if casted["version"].(string) == "0x1" {
@@ -228,18 +207,6 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 				var txn BlockInvokeTxnV3
 				err := remarshal(casted, &txn)
 				return txn, err
-=======
-				remarshal(casted, &txn)
-				return txn, nil
-			} else if casted["version"].(string) == "0x1" {
-				var txn BlockInvokeTxnV1
-				remarshal(casted, &txn)
-				return txn, nil
-			} else {
-				var txn BlockInvokeTxnV3
-				remarshal(casted, &txn)
-				return txn, nil
->>>>>>> b858597 (update block_tests)
 			}
 		case TransactionType_L1Handler:
 			var txn BlockL1HandlerTxn
