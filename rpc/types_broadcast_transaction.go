@@ -53,7 +53,7 @@ type BroadcastDeclareTxnV1 struct {
 	// SenderAddress the address of the account contract sending the declaration transaction
 	SenderAddress *felt.Felt              `json:"sender_address"`
 	MaxFee        *felt.Felt              `json:"max_fee"`
-	Version       NumAsHex                `json:"version"`
+	Version       TransactionVersion      `json:"version"`
 	Signature     []*felt.Felt            `json:"signature"`
 	Nonce         *felt.Felt              `json:"nonce"`
 	ContractClass DeprecatedContractClass `json:"contract_class"`
@@ -61,20 +61,20 @@ type BroadcastDeclareTxnV1 struct {
 type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt    `json:"sender_address"`
-	CompiledClassHash *felt.Felt    `json:"compiled_class_hash"`
-	MaxFee            *felt.Felt    `json:"max_fee"`
-	Version           NumAsHex      `json:"version"`
-	Signature         []*felt.Felt  `json:"signature"`
-	Nonce             *felt.Felt    `json:"nonce"`
-	ContractClass     ContractClass `json:"contract_class"`
+	SenderAddress     *felt.Felt         `json:"sender_address"`
+	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
+	MaxFee            *felt.Felt         `json:"max_fee"`
+	Version           TransactionVersion `json:"version"`
+	Signature         []*felt.Felt       `json:"signature"`
+	Nonce             *felt.Felt         `json:"nonce"`
+	ContractClass     ContractClass      `json:"contract_class"`
 }
 
 type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType       `json:"type"`
 	SenderAddress     *felt.Felt            `json:"sender_address"`
 	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           NumAsHex              `json:"version"`
+	Version           TransactionVersion    `json:"version"`
 	Signature         []*felt.Felt          `json:"signature"`
 	Nonce             *felt.Felt            `json:"nonce"`
 	ContractClass     *ContractClass        `json:"contract_class"`

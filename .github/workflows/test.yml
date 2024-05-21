@@ -37,4 +37,4 @@ jobs:
         run: go test -timeout 600s -v -env devnet -run "^(TestRPC|TestGeneral)" .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050/rpc"
+          INTEGRATION_BASE: "http://localhost:5050/"
