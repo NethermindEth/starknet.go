@@ -500,7 +500,7 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 				InvokeTxnV3: InvokeTxnV3{
 					Type:          "INVOKE",
 					SenderAddress: utils.TestHexToFelt(t, "0x573ea9a8602e03417a4a31d55d115748f37a08bbb23adf6347cb699743a998d"),
-					Nonce:         utils.TestHexToFelt(t, "0x470de4df820000"),
+					Nonce:         utils.TestHexToFelt(t, "0x49f6"),
 					Version:       TransactionV3,
 					Signature: []*felt.Felt{
 						utils.TestHexToFelt(t, "0x7f14bb280b602d0c0e22e91ea5d987371554664f68c57c0acd16bf9f8be36b4"),
@@ -508,9 +508,28 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 					},
 					Calldata: []*felt.Felt{
 						utils.TestHexToFelt(t, "0x1"),
-						utils.TestHexToFelt(t, "0x3fe8e4571772bbe0065e271686bd655efd1365a5d6858981e582f82f2c10313"),
-						utils.TestHexToFelt(t, "0x2468d193cd15b621b24c2a602b8dbcfa5eaa14f88416c40c09d7fd12592cb4b"),
-						utils.TestHexToFelt(t, "0x0"),
+						utils.TestHexToFelt(t, "0x3b4a36565470dadabb8db607d894c2c5c74c97c1da2a02e68f7b2c1e816c546"),
+						utils.TestHexToFelt(t, "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8"),
+						utils.TestHexToFelt(t, "0x13"),
+						utils.TestHexToFelt(t, "0x4e8ccea93954c392e93c650e4203c4bbb14bbd49172cf11ab344f3307ad8c"),
+						utils.TestHexToFelt(t, "0x54c04"),
+						utils.TestHexToFelt(t, "0x65c358022a33f92065dbc77f4ead316ca6140b77d3b9c85aeb533f3c6f0016"),
+						utils.TestHexToFelt(t, "0x6600d885"),
+						utils.TestHexToFelt(t, "0x304010200000000000000000000000000000000000000000000000000000000"),
+						utils.TestHexToFelt(t, "0x4"),
+						utils.TestHexToFelt(t, "0x4fdfb0a7f6"),
+						utils.TestHexToFelt(t, "0x4fdfb0a7f6"),
+						utils.TestHexToFelt(t, "0x4fe0bd9fe0"),
+						utils.TestHexToFelt(t, "0x4fe0bd9fe0"),
+						utils.TestHexToFelt(t, "0xa0663181cca796872"),
+						utils.TestHexToFelt(t, "0x1"),
+						utils.TestHexToFelt(t, "0x2"),
+						utils.TestHexToFelt(t, "0x6b34b2fe5d97c7d5dde2bd56b8344cb40b984d88fa7b0d9cabec6bcf882e072"),
+						utils.TestHexToFelt(t, "0x379c65ebd06927d01ab023e275bb4e45fb9ff9da8d27bf70bea6c2e5d51839b"),
+						utils.TestHexToFelt(t, "0x2cb74dff29a13dd5d855159349ec92f943bacf0547ff3734e7d84a15d08cbc5"),
+						utils.TestHexToFelt(t, "0xf9c67a4272ebcfcd527c103c7ee33946645e4df836a1c8c6f95c24d1e0ff94"),
+						utils.TestHexToFelt(t, "0x3deb1e9016f2a77b97802dfc4f39824cbe08cafaca8adc29d0467fc119a6673"),
+						utils.TestHexToFelt(t, "0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962"),
 					},
 					ResourceBounds: ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
@@ -571,8 +590,8 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 		require.True(t, ok, "Expected invoke v3 transaction.")
 
 		require.Equal(t, invokeV3Want.TransactionHash.String(), invokeV3Block.TransactionHash.String(), "Expected equal TransactionHash.")
-		// require.Equal(t, invokeV3Want.InvokeTxnV3.Nonce, invokeV3Block.InvokeTxnV3.Nonce, "Expected equal nonce.")
-		// require.Equal(t, invokeV3Want.InvokeTxnV3.Calldata[1].String(), invokeV3Block.InvokeTxnV3.Calldata[1].String(), "Expected equal calldatas.")
+		require.Equal(t, invokeV3Want.InvokeTxnV3.Nonce, invokeV3Block.InvokeTxnV3.Nonce, "Expected equal nonce.")
+		require.Equal(t, invokeV3Want.InvokeTxnV3.Calldata[1].String(), invokeV3Block.InvokeTxnV3.Calldata[1].String(), "Expected equal calldatas.")
 	}
 }
 
