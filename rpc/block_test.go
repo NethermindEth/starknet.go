@@ -2,12 +2,14 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/google/go-cmp/cmp"
+	"github.com/test-go/testify/assert"
 	"github.com/test-go/testify/require"
 )
 
@@ -42,9 +44,8 @@ func TestBlockNumber(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockNumber, err := testConfig.provider.BlockNumber(context.Background())
-		if err != nil {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
+		require.NoError(t, err, "BlockNumber should not return an error")
+
 		if diff, err := spy.Compare(blockNumber, false); err != nil || diff != "FullMatch" {
 			t.Fatal("expecting to match", err)
 		}
@@ -87,9 +88,8 @@ func TestBlockHashAndNumber(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
-		if err != nil {
-			t.Fatal("BlockHashAndNumber match the expected error:", err)
-		}
+		require.NoError(t, err, "BlockHashAndNumber should not return an error")
+
 		if diff, err := spy.Compare(blockHashAndNumber, false); err != nil || diff != "FullMatch" {
 			t.Fatal("expecting to match", err)
 		}
@@ -233,9 +233,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 		switch resultType := result.(type) {
 		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)
-			if !ok {
-				t.Fatalf("should return *BlockTxHashes, instead: %T\n", result)
-			}
+			require.True(t, ok, fmt.Sprintf("should return *BlockTxHashes, instead: %T\n", result))
+
 			if test.ExpectedErr != nil {
 				continue
 			}
@@ -260,9 +259,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			}
 		case *PendingBlockTxHashes:
 			pBlock, ok := result.(*PendingBlockTxHashes)
-			if !ok {
-				t.Fatalf("should return *PendingBlockTxHashes, instead: %T\n", result)
-			}
+			require.True(t, ok, fmt.Sprintf("should return *PendingBlockTxHashes, instead: %T\n", result))
 
 			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
 			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
@@ -307,20 +304,17 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
+		require.Equal(t, test.ExpectedError, err, "Error in BlockWithTxHashes doesn't match the expected error")
+
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
-		if !ok {
-			t.Fatalf("expecting *rpv02.Block, instead %T", blockWithTxsInterface)
-		}
+		require.True(t, ok, fmt.Sprintf("expecting *rpv02.Block, instead %T", blockWithTxsInterface))
+
 		_, err = spy.Compare(blockWithTxs, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
+		require.NoError(t, err, "expecting to match")
+
 		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
 			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
 		}
@@ -335,13 +329,11 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 			}
 
 			invokeV0Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV0)
-			if !ok {
-				t.Fatal("expected invoke v0 transaction")
-			}
+			require.True(t, ok, "expected invoke v0 transaction")
+
 			invokeV0Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV0)
-			if !ok {
-				t.Fatal("expected invoke v0 transaction")
-			}
+			require.True(t, ok, "expected invoke v0 transaction")
+
 			require.Equal(t, invokeV0Want.TransactionHash, invokeV0Block.TransactionHash, "expected equal TransactionHash")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.MaxFee, invokeV0Block.InvokeTxnV0.MaxFee, "expected equal maxfee")
 			require.Equal(t, invokeV0Want.InvokeTxnV0.EntryPointSelector, invokeV0Block.InvokeTxnV0.EntryPointSelector, "expected equal eps")
@@ -437,27 +429,26 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 
-	require := require.New(t)
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		require.NoError(err, "Unable to fetch the given block.")
+		require.NoError(t, err, "Unable to fetch the given block.")
 
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
-		require.True(ok, "Failed to assert the Interface as *Block.")
-		require.Equal(blockWithTxs.BlockHash.String()[:2], "0x", "Block Hash should start with \"0x\".")
-		require.NotEqual(len(blockWithTxs.Transactions), 0, "The number of transaction should not be 0.")
+		require.True(t, ok, "Failed to assert the Interface as *Block.")
+		require.Equal(t, blockWithTxs.BlockHash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+		require.NotEqual(t, len(blockWithTxs.Transactions), 0, "The number of transaction should not be 0.")
 
 		invokeV1Want, ok := (*test.want).Transactions[test.LookupTxnPositionInExpected].(BlockInvokeTxnV1)
-		require.True(ok, "Expected invoke v1 transaction.")
+		require.True(t, ok, "Expected invoke v1 transaction.")
 
 		invokeV1Block, ok := blockWithTxs.Transactions[test.LookupTxnPositionInOriginal].(BlockInvokeTxnV1)
-		require.True(ok, "Expected invoke v1 transaction.")
+		require.True(t, ok, "Expected invoke v1 transaction.")
 
-		require.Equal(invokeV1Want.TransactionHash.String(), invokeV1Block.TransactionHash.String(), "Expected equal TransactionHash.")
-		require.Equal(invokeV1Want.InvokeTxnV1.MaxFee.String(), invokeV1Block.InvokeTxnV1.MaxFee.String(), "Expected equal maxfee.")
-		require.Equal(invokeV1Want.InvokeTxnV1.Calldata[1].String(), invokeV1Block.InvokeTxnV1.Calldata[1].String(), "Expected equal calldatas.")
+		require.Equal(t, invokeV1Want.TransactionHash.String(), invokeV1Block.TransactionHash.String(), "Expected equal TransactionHash.")
+		require.Equal(t, invokeV1Want.InvokeTxnV1.MaxFee.String(), invokeV1Block.InvokeTxnV1.MaxFee.String(), "Expected equal maxfee.")
+		require.Equal(t, invokeV1Want.InvokeTxnV1.Calldata[1].String(), invokeV1Block.InvokeTxnV1.Calldata[1].String(), "Expected equal calldatas.")
 	}
 }
 
@@ -624,7 +615,6 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		ExpectedBlockWithTxs        *Block
 	}
 
-	// TODO : re-add test for deploy account transaction
 	var fullBlockSepolia65204 = Block{
 		BlockHeader: BlockHeader{
 			BlockHash:        utils.TestHexToFelt(t, "0x2b0d32dbe49e0ffdc6d5cb36896198c242276ec63a60106a17963427f7cf10e"),
@@ -786,20 +776,18 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		if err != test.ExpectedError {
-			t.Fatal("BlockWithTxHashes match the expected error:", err)
-		}
+		assert.Equal(t, test.ExpectedError, err, "BlockWithTxHashes doesn't match the expected error.")
+
 		if test.ExpectedError != nil && blockWithTxsInterface == nil {
 			continue
 		}
+
 		blockWithTxs, ok := blockWithTxsInterface.(*Block)
-		if !ok {
-			t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
-		}
+		require.True(t, ok, fmt.Sprintf("Expecting *rpc.Block, instead %T", blockWithTxsInterface))
+
 		diff, err := spy.Compare(blockWithTxs, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
+		require.NoError(t, err, "Expected to compare the BlockWithTxs.")
+
 		if diff != "FullMatch" {
 			if _, err := spy.Compare(blockWithTxs, false); err != nil {
 				t.Fatal(err)
@@ -869,22 +857,17 @@ func TestBlockTransactionCount(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err, "Unable to fetch the given block.")
+
 		diff, err := spy.Compare(count, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(count, true); err != nil {
-				t.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if count != test.ExpectedCount {
-			t.Fatalf("structure expecting %d, instead: %d", test.ExpectedCount, count)
-		}
+		require.NoError(t, err, "Unable to compare the count.")
+
+		_, err = spy.Compare(count, true)
+		require.NoError(t, err, "Unable to compare the count.")
+
+		require.Equal(t, "FullMatch", diff, "structure expecting to be FullMatch, instead %s", diff)
+
+		require.Equal(t, test.ExpectedCount, count, fmt.Sprintf("structure expecting %d, instead: %d", test.ExpectedCount, count))
 	}
 }
 
@@ -967,20 +950,22 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithBlockNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: utils.TestHexToFelt(t, "0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4"),
-					NewRoot:   utils.TestHexToFelt(t, "0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b"),
+					BlockHash: utils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
+					NewRoot:   utils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
 					PendingStateUpdate: PendingStateUpdate{
 						OldRoot: utils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
 						StateDiff: StateDiff{
-							StorageDiffs: []ContractStorageDiffItem{{
-								Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
-								StorageEntries: []StorageEntry{
-									{
-										Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-										Value: utils.TestHexToFelt(t, "0x630b4197"),
+							StorageDiffs: []ContractStorageDiffItem{
+								{
+									Address: utils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   utils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
+											Value: utils.TestHexToFelt(t, "0x630b4197"),
+										},
 									},
 								},
-							}},
+							},
 						},
 					},
 				},
@@ -1114,11 +1099,12 @@ func TestStateUpdate(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if stateUpdate.BlockHash.String() != test.ExpectedStateUpdateOutput.BlockHash.String() {
-			t.Fatalf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String())
-		}
+		require.NoError(t, err, "Unable to fetch the given block.")
+
+		require.Equal(t,
+			test.ExpectedStateUpdateOutput.BlockHash.String(),
+			stateUpdate.BlockHash.String(),
+			fmt.Sprintf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String()),
+		)
 	}
 }

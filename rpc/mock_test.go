@@ -886,13 +886,13 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 	}
 
 	stateFeltArr, err := utils.HexArrToFelt([]string{
-		"0x4f1cee281edb6cb31b9ba5a8530694b5527cf05c5ac6502decf3acb1d0cec4",
-		"0x70677cda9269d47da3ff63bc87cf1c87d0ce167b05da295dc7fc68242b250b",
+		"0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938",
+		"0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec",
 		"0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
 		"0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
 		"0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
-		"0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
-		"0x630b4197"})
+		"0x630b4197",
+	})
 	if err != nil {
 		return err
 	}
