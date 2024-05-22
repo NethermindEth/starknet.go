@@ -46,12 +46,11 @@ func TestBlockNumber(t *testing.T) {
 		blockNumber, err := testConfig.provider.BlockNumber(context.Background())
 		require.NoError(t, err, "BlockNumber should not return an error")
 
-		if diff, err := spy.Compare(blockNumber, false); err != nil || diff != "FullMatch" {
-			t.Fatal("expecting to match", err)
-		}
-		if blockNumber <= 3000 {
-			t.Fatal("Block number should be > 3000, instead: ", blockNumber)
-		}
+		diff, err := spy.Compare(blockNumber, false)
+		require.NoError(t, err, "expecting to match")
+		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
+
+		require.False(t, blockNumber <= 3000, fmt.Sprintf("Block number should be > 3000, instead: %d", blockNumber))
 	}
 }
 
@@ -90,15 +89,13 @@ func TestBlockHashAndNumber(t *testing.T) {
 		blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 		require.NoError(t, err, "BlockHashAndNumber should not return an error")
 
-		if diff, err := spy.Compare(blockHashAndNumber, false); err != nil || diff != "FullMatch" {
-			t.Fatal("expecting to match", err)
-		}
-		if blockHashAndNumber.BlockNumber < 3000 {
-			t.Fatal("Block number should be > 3000, instead: ", blockHashAndNumber.BlockNumber)
-		}
-		if !strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x") {
-			t.Fatal("current block hash should return a string starting with 0x")
-		}
+		diff, err := spy.Compare(blockHashAndNumber, false)
+		require.NoError(t, err, "expecting to match")
+		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
+
+		require.False(t, blockHashAndNumber.BlockNumber <= 3000, "Block number should be > 3000, instead: %d", blockHashAndNumber.BlockNumber)
+
+		require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
 	}
 }
 
@@ -238,13 +235,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if test.ExpectedErr != nil {
 				continue
 			}
-			if !strings.HasPrefix(block.BlockHash.String(), "0x") {
-				t.Fatal("Block Hash should start with \"0x\", instead", block.BlockHash)
-			}
 
-			if len(block.Transactions) == 0 {
-				t.Fatal("the number of transaction should not be 0")
-			}
+			require.True(t, strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
+
 			if test.ExpectedBlockWithTxHashes != nil {
 				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
 					continue
@@ -315,13 +309,8 @@ func TestBlockWithTxsAndInvokeTXNV0(t *testing.T) {
 		_, err = spy.Compare(blockWithTxs, false)
 		require.NoError(t, err, "expecting to match")
 
-		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
-		}
-
-		if len(blockWithTxs.Transactions) == 0 {
-			t.Fatal("the number of transaction should not be 0")
-		}
+		require.True(t, strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", blockWithTxs.BlockHash)
+		require.NotEmpty(t, blockWithTxs.Transactions, "the number of transactions should not be 0")
 
 		if test.want != nil {
 			if (*test.want).BlockHash == &felt.Zero {
@@ -789,26 +778,20 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 		require.NoError(t, err, "Expected to compare the BlockWithTxs.")
 
 		if diff != "FullMatch" {
-			if _, err := spy.Compare(blockWithTxs, false); err != nil {
-				t.Fatal(err)
-			}
-		}
-		if !strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x") {
-			t.Fatal("Block Hash should start with \"0x\", instead", blockWithTxs.BlockHash)
+			_, err = spy.Compare(blockWithTxs, false)
+			require.NoError(t, err, "Unable to compare the count.")
 		}
 
-		if len(blockWithTxs.Transactions) == 0 {
-			t.Fatal("the number of transaction should not be 0")
-		}
+		require.True(t, strings.HasPrefix(blockWithTxs.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", blockWithTxs.BlockHash)
+		require.NotEmpty(t, blockWithTxs.Transactions, "the number of transactions should not be 0")
+
 		if test.ExpectedBlockWithTxs != nil {
 			if test.ExpectedBlockWithTxs.BlockHash == &felt.Zero {
 				continue
 			}
-			if !cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]) {
-				t.Fatalf("the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
-			}
+			require.True(t, cmp.Equal(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]),
+				"the expected transaction blocks to match, instead: %s", cmp.Diff(test.ExpectedBlockWithTxs.Transactions[test.LookupTxnPositionInExpected], blockWithTxs.Transactions[test.LookupTxnPositionInOriginal]))
 		}
-
 	}
 }
 
