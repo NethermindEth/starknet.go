@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -82,21 +81,18 @@ func TestCall(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		require := require.New(t)
+
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if diff, err := spy.Compare(output, false); err != nil || diff != "FullMatch" {
-			if _, err := spy.Compare(output, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("expecting to match", err)
-		}
-		if len(output) == 0 {
-			t.Fatal("should return an output")
-		}
-		require.Equal(t, test.ExpectedPatternResult, output[0])
+		require.NoError(err)
+		require.NotEmpty(output, "should return an output")
+
+		diff, err := spy.Compare(output, false)
+		require.NoError(err)
+		require.Equal(diff, "FullMatch", "expecting to match")
+
+		require.Equal(test.ExpectedPatternResult, output[0])
 	}
 }
