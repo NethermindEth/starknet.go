@@ -89,7 +89,6 @@ func TestClassAt(t *testing.T) {
 
 			require.Condition(func() bool {
 				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
-					t.Log(deprecatedCairoEntryPoint)
 					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
 						return true
 					}
@@ -104,7 +103,6 @@ func TestClassAt(t *testing.T) {
 
 			require.Condition(func() bool {
 				for _, entryPointsByType := range class.EntryPointsByType.External {
-					t.Log(entryPointsByType)
 					if test.ExpectedOperation == entryPointsByType.Selector.String() {
 						return true
 					}

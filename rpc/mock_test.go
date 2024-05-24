@@ -410,8 +410,22 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 	if len(args) != 2 {
 		return errWrongArgs
 	}
+	fakeSelector, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
 	var class = DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
+		DeprecatedEntryPointsByType: DeprecatedEntryPointsByType{
+			Constructor: []DeprecatedCairoEntryPoint{},
+			External: []DeprecatedCairoEntryPoint{
+				{
+					Offset:   "0x0xdeadbeef",
+					Selector: fakeSelector,
+				},
+			},
+			L1Handler: []DeprecatedCairoEntryPoint{},
+		},
 	}
 	outputContent, err := json.Marshal(class)
 	if err != nil {
