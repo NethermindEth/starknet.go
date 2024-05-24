@@ -54,51 +54,65 @@ func TestClassAt(t *testing.T) {
 			// v0 contract
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
-				ExpectedOperation: "0x480680017fff8000",
+				ExpectedOperation: utils.GetSelectorFromNameFelt("getPublicKey").String(),
 				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
 			},
 			// v2 contract
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedOperation: "0x0293c9b0657d7591853c62ddc495b09ff833e04ad61f066dd7c8cc3a5b6b303d", // name_get
+				ExpectedOperation: utils.GetSelectorFromNameFelt("name_get").String(),
 				BlockHash:         "0x6d49f7047818b6e002ab2ae7ee0376fe1632fb4fe4c80775ec7ed728fa99ecc",
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
-				ExpectedOperation: "0x20780017fff7ffd",
-				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
+				ContractAddress:   utils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
+				ExpectedOperation: utils.GetSelectorFromNameFelt("get_name").String(),
+				BlockHash:         "0x05b277fbda1ca1a24dcfe7d9b45e3083d44dd1bb873349b7183dbbf63db74acf",
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
+		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockHash(utils.TestHexToFelt(t, test.BlockHash)), test.ContractAddress)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
+
 		switch class := resp.(type) {
-		case DeprecatedContractClass:
+		case *DeprecatedContractClass:
 			diff, err := spy.Compare(class, false)
-			if err != nil {
-				t.Fatal("expecting to match", err)
-			}
-			if diff != "FullMatch" {
-				if _, err := spy.Compare(class, true); err != nil {
-					log.Fatal(err)
+			require.NoError(err, "expecting to match")
+			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
+			require.NotEmpty(class.Program, "code should exist")
+
+			require.Condition(func() bool {
+				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
+					t.Log(deprecatedCairoEntryPoint)
+					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
+						return true
+					}
 				}
-				t.Fatal("structure expecting to be FullMatch, instead", diff)
-			}
-			if class.Program == "" {
-				t.Fatal("code should exist")
-			}
-		case ContractClass:
-			panic("Not covered")
+				return false
+			}, "operation not found in the class")
+		case *ContractClass:
+			diff, err := spy.Compare(class, false)
+			require.NoError(err, "expecting to match")
+			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
+			require.NotEmpty(class.SierraProgram, "code should exist")
+
+			require.Condition(func() bool {
+				for _, entryPointsByType := range class.EntryPointsByType.External {
+					t.Log(entryPointsByType)
+					if test.ExpectedOperation == entryPointsByType.Selector.String() {
+						return true
+					}
+				}
+				return false
+			}, "operation not found in the class")
 		default:
-			log.Fatalln("Received unknown response type:", reflect.TypeOf(resp))
+			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
 	}
 }
