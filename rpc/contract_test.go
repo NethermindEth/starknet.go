@@ -31,8 +31,6 @@ import (
 // - t: the testing object for running the test cases
 // Returns:
 //
-// Todo: Is not yet implemented completely
-//
 //	none
 func TestClassAt(t *testing.T) {
 	testConfig := beforeEach(t)
@@ -143,6 +141,12 @@ func TestClassHashAt(t *testing.T) {
 				ExpectedClassHash: utils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
+		"devnet": {
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
+			},
+		},
 		"testnet": {
 			// v0 contracts
 			{
@@ -168,27 +172,17 @@ func TestClassHashAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-
+		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
+		require.NotEmpty(classhash, "should return a class")
+		require.Equal(test.ExpectedClassHash, classhash)
+
 		diff, err := spy.Compare(classhash, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(classhash, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if classhash == nil {
-			t.Fatalf("should return a class, instead %v", classhash)
-		}
-		require.Equal(t, test.ExpectedClassHash, classhash)
+		require.NoError(err, "expecting to match")
+		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 	}
 }
 
