@@ -235,58 +235,59 @@ func TestClass(t *testing.T) {
 		"testnet": {
 			// v0 class
 			{
-				BlockID:         WithBlockNumber(15329),
+				BlockID:         WithBlockTag("latest"),
 				ClassHash:       utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
+			// v2 classes
 			{
-				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x258dc3bf21fbefb29b5dfd782c9d9472f73075213e9b63a0421ff7d2d3106d2")),
-				ClassHash:                     utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
-			},
-			// v2 class
-			{
-				BlockID:         WithBlockNumber(15329),
-				ClassHash:       utils.TestHexToFelt(t, "0x079b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-				ExpectedProgram: "H4sIAAAAAAAA",
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 34, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 			{
-				BlockID:   WithBlockHash(utils.TestHexToFelt(t, "0x7b7f2d9b2e4502326eac1615e754d414df22b8266e7206f0cc90380e8052ee3")),
-				ClassHash: utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				// ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 2, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
-		"mainnet": {},
+		"mainnet": {
+			// v2 class
+			{
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 32, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
+		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
 
 		switch class := resp.(type) {
-		case DeprecatedContractClass:
+		case *DeprecatedContractClass:
 			diff, err := spy.Compare(class, false)
-			if err != nil {
-				t.Fatal("expecting to match", err)
-			}
-			if diff != "FullMatch" {
-				if _, err := spy.Compare(class, true); err != nil {
-					log.Fatal(err)
-				}
-				t.Fatal("structure expecting to be FullMatch, instead", diff)
-			}
+			require.NoError(err, "expecting to match")
+			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 
 			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 				t.Fatal("code should exist")
 			}
-		case ContractClass:
-			require.Equal(t, class.EntryPointsByType.Constructor, test.ExpectedEntryPointConstructor)
+		case *ContractClass:
+			diff, err := spy.Compare(class, false)
+			require.NoError(err, "expecting to match")
+			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
+			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:
-			log.Fatalln("Received unknown response type:", reflect.TypeOf(resp))
+			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
 	}
 }
