@@ -968,7 +968,7 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 		fmt.Printf("args[0] should be *felt.Felt, got %T\n", args[1])
 		return errWrongArgs
 	}
-	output, err := utils.HexToFelt("0x0")
+	output, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}

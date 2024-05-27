@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 	"reflect"
 	"strings"
 	"testing"
@@ -381,46 +380,53 @@ func TestNonce(t *testing.T) {
 
 	type testSetType struct {
 		ContractAddress *felt.Felt
+		Block           BlockID
 		ExpectedNonce   *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				Block:           WithBlockTag("latest"),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0xdeadbeef"),
+			},
+		},
+		"devnet": {
+			{
+				ContractAddress: utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				Block:           WithBlockTag("latest"),
 				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x00a3d19d9e80d74dd6140fed379e2c10a21609374811b244cc9d7d1f6d9e0037"),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
+				ContractAddress: utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				Block:           WithBlockNumber(69399),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x1"),
 			},
 		},
-		"mainnet": {},
+		"mainnet": {
+			{
+				ContractAddress: utils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
+				Block:           WithBlockNumber(644060),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x2"),
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
+		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		nonce, err := testConfig.provider.Nonce(context.Background(), WithBlockTag("latest"), test.ContractAddress)
-		if err != nil {
-			t.Fatal(err)
-		}
-		diff, err := spy.Compare(nonce, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(nonce, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
+		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
+		require.NoError(err)
+		require.NotNil(nonce, "should return a nonce")
 
-		if nonce == nil {
-			t.Fatalf("should return a nonce, instead %v", nonce)
-		}
-		require.Equal(t, test.ExpectedNonce, nonce)
+		diff, err := spy.Compare(nonce, false)
+		require.NoError(err, "expecting to match")
+		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
+
+		require.Equal(test.ExpectedNonce, nonce)
 	}
 }
 
