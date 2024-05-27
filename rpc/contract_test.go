@@ -324,12 +324,20 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0xdeadbeef",
 			},
 		},
+		"devnet": {
+			{
+				ContractHash:  utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:    "ERC20_name",
+				Block:         WithBlockTag("latest"),
+				ExpectedValue: "0x2eaf7fd2f670d4dc46d0e1fce1fa5e29b6549b10c0d2ff2a4f8188767327f5d",
+			},
+		},
 		"testnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
-				StorageKey:    "balance",
-				Block:         WithBlockHash(utils.TestHexToFelt(t, "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249")),
-				ExpectedValue: "0x0",
+				ContractHash:  utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:    "_signer",
+				Block:         WithBlockNumber(69399),
+				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 		},
 		"mainnet": {
@@ -343,25 +351,16 @@ func TestStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
+
 		diff, err := spy.Compare(value, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(value, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if value != test.ExpectedValue {
-			t.Fatalf("expecting value %s, got %s", test.ExpectedValue, value)
-		}
+		require.NoError(err, "expecting to match")
+		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
+		require.EqualValues(test.ExpectedValue, value)
 	}
 }
 
