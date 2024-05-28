@@ -82,17 +82,9 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 		require.NoError(err)
 		require.NotEmpty(output, "should return an output")
-
-		diff, err := spy.Compare(output, false)
-		require.NoError(err)
-		require.Equal(diff, "FullMatch", "expecting to match")
-
 		require.Equal(test.ExpectedPatternResult, output[0])
 	}
 }

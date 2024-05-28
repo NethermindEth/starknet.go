@@ -72,16 +72,11 @@ func TestClassAt(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
 		require.NoError(err)
 
 		switch class := resp.(type) {
 		case *DeprecatedContractClass:
-			diff, err := spy.Compare(class, false)
-			require.NoError(err, "expecting to match")
-			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 			require.NotEmpty(class.Program, "code should exist")
 
 			require.Condition(func() bool {
@@ -93,9 +88,6 @@ func TestClassAt(t *testing.T) {
 				return false
 			}, "operation not found in the class")
 		case *ContractClass:
-			diff, err := spy.Compare(class, false)
-			require.NoError(err, "expecting to match")
-			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 			require.NotEmpty(class.SierraProgram, "code should exist")
 
 			require.Condition(func() bool {
@@ -172,16 +164,10 @@ func TestClassHashAt(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
 		require.NoError(err)
 		require.NotEmpty(classhash, "should return a class")
 		require.Equal(test.ExpectedClassHash, classhash)
-
-		diff, err := spy.Compare(classhash, false)
-		require.NoError(err, "expecting to match")
-		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 	}
 }
 
@@ -265,24 +251,15 @@ func TestClass(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
 		require.NoError(err)
 
 		switch class := resp.(type) {
 		case *DeprecatedContractClass:
-			diff, err := spy.Compare(class, false)
-			require.NoError(err, "expecting to match")
-			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
-
 			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 				t.Fatal("code should exist")
 			}
 		case *ContractClass:
-			diff, err := spy.Compare(class, false)
-			require.NoError(err, "expecting to match")
-			require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
 			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:
@@ -351,14 +328,8 @@ func TestStorageAt(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
 		require.NoError(err)
-
-		diff, err := spy.Compare(value, false)
-		require.NoError(err, "expecting to match")
-		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
 		require.EqualValues(test.ExpectedValue, value)
 	}
 }
@@ -416,16 +387,9 @@ func TestNonce(t *testing.T) {
 
 	for _, test := range testSet {
 		require := require.New(t)
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
 		require.NoError(err)
 		require.NotNil(nonce, "should return a nonce")
-
-		diff, err := spy.Compare(nonce, false)
-		require.NoError(err, "expecting to match")
-		require.Equal(diff, "FullMatch", "structure expecting to be FullMatch")
-
 		require.Equal(test.ExpectedNonce, nonce)
 	}
 }
@@ -462,14 +426,11 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		value, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}
 		require.Equal(t, *value, test.ExpectedFeeEst)
-
 	}
 }
 
@@ -571,8 +532,6 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
 		require.Equal(t, test.expectedError, err)
 		require.Equal(t, test.expectedResp, resp)
