@@ -37,14 +37,14 @@ func TestClassAt(t *testing.T) {
 	type testSetType struct {
 		ContractAddress   *felt.Felt
 		ExpectedOperation string
-		BlockHash         string
+		Block             BlockID
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
-				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
+				Block:             WithBlockNumber(58344),
 			},
 		},
 		"testnet": {
@@ -52,20 +52,20 @@ func TestClassAt(t *testing.T) {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
 				ExpectedOperation: utils.GetSelectorFromNameFelt("getPublicKey").String(),
-				BlockHash:         "0x561eeb100ad42aedc8810cce883caccc77eda75a9af58b24aabb770c027d249",
+				Block:             WithBlockNumber(58344),
 			},
 			// v2 contract
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedOperation: utils.GetSelectorFromNameFelt("name_get").String(),
-				BlockHash:         "0x6d49f7047818b6e002ab2ae7ee0376fe1632fb4fe4c80775ec7ed728fa99ecc",
+				Block:             WithBlockNumber(65168),
 			},
 		},
 		"mainnet": {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
 				ExpectedOperation: utils.GetSelectorFromNameFelt("get_name").String(),
-				BlockHash:         "0x05b277fbda1ca1a24dcfe7d9b45e3083d44dd1bb873349b7183dbbf63db74acf",
+				Block:             WithBlockNumber(643360),
 			},
 		},
 	}[testEnv]
@@ -74,7 +74,7 @@ func TestClassAt(t *testing.T) {
 		require := require.New(t)
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
-		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockHash(utils.TestHexToFelt(t, test.BlockHash)), test.ContractAddress)
+		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
 		require.NoError(err)
 
 		switch class := resp.(type) {
@@ -518,10 +518,12 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimate{
 					{
-						GasConsumed: utils.TestHexToFelt(t, "0x39b8"),
-						GasPrice:    utils.TestHexToFelt(t, "0x350da9915"),
-						OverallFee:  utils.TestHexToFelt(t, "0xbf62c933b418"),
-						FeeUnit:     UnitWei,
+						GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
+						GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    &felt.Zero,
+						OverallFee:      utils.TestHexToFelt(t, "0xa0a99fc14d84"),
+						FeeUnit:         UnitWei,
 					},
 				},
 			},
@@ -554,10 +556,12 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimate{
 					{
-						GasConsumed: utils.TestHexToFelt(t, "0x15be"),
-						GasPrice:    utils.TestHexToFelt(t, "0x378f962c4"),
-						OverallFee:  utils.TestHexToFelt(t, "0x4b803e316178"),
-						FeeUnit:     UnitWei,
+						GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
+						GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    &felt.Zero,
+						OverallFee:      utils.TestHexToFelt(t, "0x3c2c41636c50"),
+						FeeUnit:         UnitWei,
 					},
 				},
 			},
