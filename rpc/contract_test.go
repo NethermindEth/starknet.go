@@ -15,16 +15,12 @@ import (
 //
 // The function tests the ClassAt function by creating different test sets for different environments
 // (mock, testnet, and mainnet). It then iterates over each test set and performs the following steps:
-//   - Creates a spy object to intercept calls to the provider.
-//   - Sets the provider of the test configuration to the spy object.
 //   - Calls the ClassAt function with the specified block tag and contract address.
 //   - Checks the response type and performs the following actions based on the type:
-//   - If the response type is DeprecatedContractClass:
-//   - Compares the response object with the spy object and checks for a full match.
-//   - If the objects do not match, compares them again and logs an error if the match is still not achieved.
+//   - If the response type is DeprecatedContractClass or ContractClass:
 //   - Checks if the program code exists in the response object.
-//   - If the response type is ContractClass:
-//   - Throws an error indicating that the case is not covered.
+//   - Checks if the expected operation exist in the provided contract address
+//   - If the response type is of unknown type: log and fail the test
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -180,16 +176,13 @@ func TestClassHashAt(t *testing.T) {
 // ClassHash, ExpectedProgram, and ExpectedEntryPointConstructor.
 //
 // The function iterates over each test case in the testSet and performs the following steps:
-// - Creates a new spy object to spy on the provider.
-// - Sets the provider of the test configuration to the spy object.
 // - Calls the Class function with the appropriate parameters.
 // - Handles the response based on its type:
 //   - If the response is of type DeprecatedContractClass:
-//   - Compares the response with the spy object to check for any differences.
-//   - If there is a difference, it reports an error and prints the difference.
 //   - Checks if the class program starts with the expected program.
 //   - If not, it reports an error.
 //   - If the response is of type ContractClass:
+//   - Checks if the class program ends with the expected program.
 //   - Compares the constructor entry point with the expected entry point constructor.
 //   - If they are not equal, it reports an error.
 //
@@ -337,8 +330,8 @@ func TestStorageAt(t *testing.T) {
 // TestNonce is a test function for testing the Nonce functionality.
 //
 // It initializes a test configuration, sets up a test data set, and then performs a series of tests.
-// The tests involve creating a spy object, modifying the test configuration provider, and calling the Nonce function.
-// The expected result is a successful response from the Nonce function and a matching value from the spy object.
+// The tests involve calling the Nonce function.
+// The expected result is a successful response from the Nonce function and a matching value with the expected nonce.
 // If any errors occur during the tests, the function will fail and display an error message.
 //
 // Parameters:
