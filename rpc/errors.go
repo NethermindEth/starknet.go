@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -64,7 +63,6 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 			return &nodeErr
 		}
 	}
-
 	return Err(InternalError, err.Error())
 }
 
@@ -75,10 +73,6 @@ type RPCError struct {
 }
 
 func (e RPCError) Error() string {
-	if _, ok := e.Data.(string); !ok {
-		return fmt.Sprintf("%s: %v", e.Message, e.Data)
-	}
-
 	return e.Message
 }
 
