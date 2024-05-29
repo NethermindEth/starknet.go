@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"log"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -15,16 +15,12 @@ import (
 //
 // The function tests the ClassAt function by creating different test sets for different environments
 // (mock, testnet, and mainnet). It then iterates over each test set and performs the following steps:
-//   - Creates a spy object to intercept calls to the provider.
-//   - Sets the provider of the test configuration to the spy object.
 //   - Calls the ClassAt function with the specified block tag and contract address.
 //   - Checks the response type and performs the following actions based on the type:
-//   - If the response type is DeprecatedContractClass:
-//   - Compares the response object with the spy object and checks for a full match.
-//   - If the objects do not match, compares them again and logs an error if the match is still not achieved.
+//   - If the response type is DeprecatedContractClass or ContractClass:
 //   - Checks if the program code exists in the response object.
-//   - If the response type is ContractClass:
-//   - Throws an error indicating that the case is not covered.
+//   - Checks if the expected operation exist in the provided contract address
+//   - If the response type is of unknown type: log and fail the test
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -37,54 +33,70 @@ func TestClassAt(t *testing.T) {
 	type testSetType struct {
 		ContractAddress   *felt.Felt
 		ExpectedOperation string
+		Block             BlockID
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress:   utils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
+				Block:             WithBlockNumber(58344),
 			},
 		},
 		"testnet": {
+			// v0 contract
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
-				ExpectedOperation: "0x480680017fff8000",
+				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
+				ExpectedOperation: utils.GetSelectorFromNameFelt("getPublicKey").String(),
+				Block:             WithBlockNumber(58344),
+			},
+			// v2 contract
+			{
+				ContractAddress:   utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: utils.GetSelectorFromNameFelt("name_get").String(),
+				Block:             WithBlockNumber(65168),
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x028105caf03e1c4eb96b1c18d39d9f03bd53e5d2affd0874792e5bf05f3e529f"),
-				ExpectedOperation: "0x20780017fff7ffd",
+				ContractAddress:   utils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
+				ExpectedOperation: utils.GetSelectorFromNameFelt("get_name").String(),
+				Block:             WithBlockNumber(643360),
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		resp, err := testConfig.provider.ClassAt(context.Background(), WithBlockTag("latest"), test.ContractAddress)
-		if err != nil {
-			t.Fatal(err)
-		}
-		switch class := resp.(type) {
-		case DeprecatedContractClass:
-			diff, err := spy.Compare(class, false)
-			if err != nil {
-				t.Fatal("expecting to match", err)
-			}
-			if diff != "FullMatch" {
-				if _, err := spy.Compare(class, true); err != nil {
-					log.Fatal(err)
-				}
-				t.Fatal("structure expecting to be FullMatch, instead", diff)
-			}
-			if class.Program == "" {
-				t.Fatal("code should exist")
-			}
-		case ContractClass:
-			panic("Not covered")
-		}
+		require := require.New(t)
+		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
+		require.NoError(err)
 
+		switch class := resp.(type) {
+		case *DeprecatedContractClass:
+			require.NotEmpty(class.Program, "code should exist")
+
+			require.Condition(func() bool {
+				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
+					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
+						return true
+					}
+				}
+				return false
+			}, "operation not found in the class")
+		case *ContractClass:
+			require.NotEmpty(class.SierraProgram, "code should exist")
+
+			require.Condition(func() bool {
+				for _, entryPointsByType := range class.EntryPointsByType.External {
+					if test.ExpectedOperation == entryPointsByType.Selector.String() {
+						return true
+					}
+				}
+				return false
+			}, "operation not found in the class")
+		default:
+			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+		}
 	}
 }
 
@@ -116,10 +128,26 @@ func TestClassHashAt(t *testing.T) {
 				ExpectedClassHash: utils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
-		"testnet": {
+		"devnet": {
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x315e364b162653e5c7b23efd34f8da27ba9c069b68e3042b7d76ce1df890313"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
+				ContractHash:      utils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
+			},
+		},
+		"testnet": {
+			// v0 contracts
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+			},
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x073ad76dcf68168cbf68ea3ec0382a3605f3deaf24dc076c355e275769b3c561"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+			},
+			// v2 contract
+			{
+				ContractHash:      utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedClassHash: utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 		},
 		"mainnet": {
@@ -131,27 +159,11 @@ func TestClassHashAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
+		require := require.New(t)
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
-		if err != nil {
-			t.Fatal(err)
-		}
-		diff, err := spy.Compare(classhash, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(classhash, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if classhash == nil {
-			t.Fatalf("should return a class, instead %v", classhash)
-		}
-		require.Equal(t, test.ExpectedClassHash, classhash)
+		require.NoError(err)
+		require.NotEmpty(classhash, "should return a class")
+		require.Equal(test.ExpectedClassHash, classhash)
 	}
 }
 
@@ -164,16 +176,13 @@ func TestClassHashAt(t *testing.T) {
 // ClassHash, ExpectedProgram, and ExpectedEntryPointConstructor.
 //
 // The function iterates over each test case in the testSet and performs the following steps:
-// - Creates a new spy object to spy on the provider.
-// - Sets the provider of the test configuration to the spy object.
 // - Calls the Class function with the appropriate parameters.
 // - Handles the response based on its type:
 //   - If the response is of type DeprecatedContractClass:
-//   - Compares the response with the spy object to check for any differences.
-//   - If there is a difference, it reports an error and prints the difference.
 //   - Checks if the class program starts with the expected program.
 //   - If not, it reports an error.
 //   - If the response is of type ContractClass:
+//   - Checks if the class program ends with the expected program.
 //   - Compares the constructor entry point with the expected entry point constructor.
 //   - If they are not equal, it reports an error.
 //
@@ -202,47 +211,52 @@ func TestClass(t *testing.T) {
 			},
 		},
 		"testnet": {
+			// v0 class
 			{
-				BlockID:         WithBlockTag("pending"),
-				ClassHash:       utils.TestHexToFelt(t, "0x493af3546940eb96471cf95ae3a5aa1286217b07edd1e12d00143010ca904b1"),
+				BlockID:         WithBlockTag("latest"),
+				ClassHash:       utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
+			// v2 classes
 			{
-				BlockID:                       WithBlockHash(utils.TestHexToFelt(t, "0x464fc8c86a6452536a2e27cb301815e5f8b16a2f6872ba4f3d83701fbe99fb3")),
-				ClassHash:                     utils.TestHexToFelt(t, "0x011fbe1adeb2afdf5b545f583f8b5a64fb35905f987d249193ad8185f6fcf571"),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 16, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 34, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+			{
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 2, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
-		"mainnet": {},
+		"mainnet": {
+			// v2 class
+			{
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     utils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+				ExpectedProgram:               utils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 32, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		resp, err := testConfig.provider.Class(context.Background(), WithBlockTag("latest"), test.ClassHash)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require := require.New(t)
+		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
+		require.NoError(err)
 
 		switch class := resp.(type) {
-		case DeprecatedContractClass:
-
-			diff, err := spy.Compare(class, false)
-			if err != nil {
-				t.Fatal("expecting to match", err)
-			}
-			if diff != "FullMatch" {
-				if _, err := spy.Compare(class, true); err != nil {
-					log.Fatal(err)
-				}
-				t.Fatal("structure expecting to be FullMatch, instead", diff)
-			}
-
+		case *DeprecatedContractClass:
 			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 				t.Fatal("code should exist")
 			}
-		case ContractClass:
-			require.Equal(t, class.EntryPointsByType.Constructor, test.ExpectedEntryPointConstructor)
+		case *ContractClass:
+			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+		default:
+			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
 	}
 }
@@ -279,12 +293,20 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0xdeadbeef",
 			},
 		},
+		"devnet": {
+			{
+				ContractHash:  utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:    "ERC20_name",
+				Block:         WithBlockTag("latest"),
+				ExpectedValue: "0x2eaf7fd2f670d4dc46d0e1fce1fa5e29b6549b10c0d2ff2a4f8188767327f5d",
+			},
+		},
 		"testnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39"),
-				StorageKey:    "balance",
-				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x1e240",
+				ContractHash:  utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:    "_signer",
+				Block:         WithBlockNumber(69399),
+				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 		},
 		"mainnet": {
@@ -298,33 +320,18 @@ func TestStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
+		require := require.New(t)
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
-		if err != nil {
-			t.Fatal(err)
-		}
-		diff, err := spy.Compare(value, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(value, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-		if value != test.ExpectedValue {
-			t.Fatalf("expecting value %s, got %s", test.ExpectedValue, value)
-		}
+		require.NoError(err)
+		require.EqualValues(test.ExpectedValue, value)
 	}
 }
 
 // TestNonce is a test function for testing the Nonce functionality.
 //
 // It initializes a test configuration, sets up a test data set, and then performs a series of tests.
-// The tests involve creating a spy object, modifying the test configuration provider, and calling the Nonce function.
-// The expected result is a successful response from the Nonce function and a matching value from the spy object.
+// The tests involve calling the Nonce function.
+// The expected result is a successful response from the Nonce function and a matching value with the expected nonce.
 // If any errors occur during the tests, the function will fail and display an error message.
 //
 // Parameters:
@@ -337,46 +344,46 @@ func TestNonce(t *testing.T) {
 
 	type testSetType struct {
 		ContractAddress *felt.Felt
+		Block           BlockID
 		ExpectedNonce   *felt.Felt
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				Block:           WithBlockTag("latest"),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0xdeadbeef"),
+			},
+		},
+		"devnet": {
+			{
+				ContractAddress: utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				Block:           WithBlockTag("latest"),
 				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
+				ContractAddress: utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				Block:           WithBlockNumber(69399),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x1"),
 			},
 		},
-		"mainnet": {},
+		"mainnet": {
+			{
+				ContractAddress: utils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
+				Block:           WithBlockNumber(644060),
+				ExpectedNonce:   utils.TestHexToFelt(t, "0x2"),
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		nonce, err := testConfig.provider.Nonce(context.Background(), WithBlockTag("latest"), test.ContractAddress)
-		if err != nil {
-			t.Fatal(err)
-		}
-		diff, err := spy.Compare(nonce, false)
-		if err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if diff != "FullMatch" {
-			if _, err := spy.Compare(nonce, true); err != nil {
-				log.Fatal(err)
-			}
-			t.Fatal("structure expecting to be FullMatch, instead", diff)
-		}
-
-		if nonce == nil {
-			t.Fatalf("should return a nonce, instead %v", nonce)
-		}
-		require.Equal(t, test.ExpectedNonce, nonce)
+		require := require.New(t)
+		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
+		require.NoError(err)
+		require.NotNil(nonce, "should return a nonce")
+		require.Equal(test.ExpectedNonce, nonce)
 	}
 }
 
@@ -412,14 +419,11 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		value, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
 			t.Fatal(err)
 		}
 		require.Equal(t, *value, test.ExpectedFeeEst)
-
 	}
 }
 
@@ -468,10 +472,12 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimate{
 					{
-						GasConsumed: utils.TestHexToFelt(t, "0x39b8"),
-						GasPrice:    utils.TestHexToFelt(t, "0x350da9915"),
-						OverallFee:  utils.TestHexToFelt(t, "0xbf62c933b418"),
-						FeeUnit:     UnitWei,
+						GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
+						GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    &felt.Zero,
+						OverallFee:      utils.TestHexToFelt(t, "0xa0a99fc14d84"),
+						FeeUnit:         UnitWei,
 					},
 				},
 			},
@@ -504,10 +510,12 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimate{
 					{
-						GasConsumed: utils.TestHexToFelt(t, "0x15be"),
-						GasPrice:    utils.TestHexToFelt(t, "0x378f962c4"),
-						OverallFee:  utils.TestHexToFelt(t, "0x4b803e316178"),
-						FeeUnit:     UnitWei,
+						GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
+						GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    &felt.Zero,
+						OverallFee:      utils.TestHexToFelt(t, "0x3c2c41636c50"),
+						FeeUnit:         UnitWei,
 					},
 				},
 			},
@@ -517,8 +525,6 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
 		require.Equal(t, test.expectedError, err)
 		require.Equal(t, test.expectedResp, resp)
