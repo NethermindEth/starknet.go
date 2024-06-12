@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -21,10 +21,9 @@ var (
 )
 
 var (
-	PREFIX_TRANSACTION      = new(felt.Felt).SetBytes([]byte("invoke"))
-	PREFIX_DECLARE          = new(felt.Felt).SetBytes([]byte("declare"))
-	PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
-	PREFIX_DEPLOY_ACCOUNT   = new(felt.Felt).SetBytes([]byte("deploy_account"))
+	PREFIX_TRANSACTION    = new(felt.Felt).SetBytes([]byte("invoke"))
+	PREFIX_DECLARE        = new(felt.Felt).SetBytes([]byte("declare"))
+	PREFIX_DEPLOY_ACCOUNT = new(felt.Felt).SetBytes([]byte("deploy_account"))
 )
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
@@ -36,7 +35,7 @@ type AccountInterface interface {
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
-	PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
+	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
@@ -484,8 +483,8 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 	return nil, ErrTxnTypeUnSupported
 }
 
-// PrecomputeAddress calculates the precomputed address for an account.
-// ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+// PrecomputeAccountAddress calculates the precomputed address for an account.
+// ref: https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-address/
 //
 // Parameters:
 // - deployerAddress: the deployer address
@@ -495,25 +494,13 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // Returns:
 // - *felt.Felt: the precomputed address as a *felt.Felt
 // - error: an error if any
-func (account *Account) PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-
-	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
-		PREFIX_CONTRACT_ADDRESS,
-		deployerAddress,
-		salt,
-		classHash,
-	})
-
-	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
-	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
-
-	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
+func (account *Account) PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+	result, err := contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 	if err != nil {
 		return nil, err
 	}
-	return utils.BigIntToFelt(preBigInt), nil
 
+	return result, nil
 }
 
 // WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
