@@ -5,6 +5,7 @@
 //
 //	mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 //
+
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -15,7 +16,7 @@ import (
 
 	felt "github.com/NethermindEth/juno/core/felt"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockAccountInterface is a mock of AccountInterface interface.
@@ -41,19 +42,19 @@ func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 	return m.recorder
 }
 
-// PrecomputeAddress mocks base method.
-func (m *MockAccountInterface) PrecomputeAddress(deployerAddress, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+// PrecomputeAccountAddress mocks base method.
+func (m *MockAccountInterface) PrecomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrecomputeAddress", deployerAddress, salt, classHash, constructorCalldata)
+	ret := m.ctrl.Call(m, "PrecomputeAccountAddress", salt, classHash, constructorCalldata)
 	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PrecomputeAddress indicates an expected call of PrecomputeAddress.
-func (mr *MockAccountInterfaceMockRecorder) PrecomputeAddress(deployerAddress, salt, classHash, constructorCalldata any) *gomock.Call {
+// PrecomputeAccountAddress indicates an expected call of PrecomputeAccountAddress.
+func (mr *MockAccountInterfaceMockRecorder) PrecomputeAccountAddress(salt, classHash, constructorCalldata any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrecomputeAddress", reflect.TypeOf((*MockAccountInterface)(nil).PrecomputeAddress), deployerAddress, salt, classHash, constructorCalldata)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrecomputeAccountAddress", reflect.TypeOf((*MockAccountInterface)(nil).PrecomputeAccountAddress), salt, classHash, constructorCalldata)
 }
 
 // Sign mocks base method.
@@ -159,10 +160,10 @@ func (mr *MockAccountInterfaceMockRecorder) TransactionHashInvoke(invokeTxn any)
 }
 
 // WaitForTransactionReceipt mocks base method.
-func (m *MockAccountInterface) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceipt, error) {
+func (m *MockAccountInterface) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WaitForTransactionReceipt", ctx, transactionHash, pollInterval)
-	ret0, _ := ret[0].(*rpc.TransactionReceipt)
+	ret0, _ := ret[0].(*rpc.TransactionReceiptWithBlockInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
