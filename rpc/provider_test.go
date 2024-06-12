@@ -43,7 +43,7 @@ var (
 		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)
 		"mainnet": {
-			base: "http://localhost:9545/v0.2/rpc",
+			base: "https://free-rpc.nethermind.io/mainnet-juno",
 		},
 		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
 		// (ref: https://github.com/eqlabs/pathfinder)

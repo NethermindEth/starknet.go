@@ -46,7 +46,7 @@ jobs:
         #run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet-goerli.cartridge.gg/"
+          INTEGRATION_BASE: "https://free-rpc.nethermind.io/sepolia-juno"
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
@@ -54,4 +54,4 @@ jobs:
         #run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://starknet.cartridge.gg/"
+          INTEGRATION_BASE: "https://free-rpc.nethermind.io/mainnet-juno"
