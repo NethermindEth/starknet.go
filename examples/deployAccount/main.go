@@ -75,7 +75,7 @@ func main() {
 		ConstructorCalldata: []*felt.Felt{pub},
 	}
 
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
+	precomputedAddress, err := acnt.PrecomputeAccountAddress(pub, classHash, tx.ConstructorCalldata)
 	fmt.Println("precomputedAddress:", precomputedAddress)
 
 	// At this point you need to add funds to precomputed address to use it.
