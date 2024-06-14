@@ -1,0 +1,49 @@
+{
+    "type": "L1_HANDLER",
+    "transaction_hash": "0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519",
+    "actual_fee": {
+        "amount": "0x0",
+        "unit": "WEI"
+    },
+    "execution_status": "SUCCEEDED",
+    "finality_status": "ACCEPTED_ON_L2",
+    "block_hash": "0x3c9cd4649a5dfed63db676f6f7fd181975f8e85f10197a6665fd393d1c9c1a0",
+    "block_number": 648615,
+    "messages_sent": [],
+    "events": [
+        {
+            "from_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            "keys": [
+                "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+            ],
+            "data": [
+                "0x0",
+                "0x3580a65260563b5511ddf2eafb83d6b309dce7fc25271df8c040a437f09a399",
+                "0xdfd54233d96e4b",
+                "0x0"
+            ]
+        },
+        {
+            "from_address": "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
+            "keys": [
+                "0x374396cb322ab5ffd35ddb8627514609289d22c07d039ead5327782f61bb833",
+                "0x455448",
+                "0x3580a65260563b5511ddf2eafb83d6b309dce7fc25271df8c040a437f09a399"
+            ],
+            "data": [
+                "0xdfd54233d96e4b",
+                "0x0"
+            ]
+        }
+    ],
+    "execution_resources": {
+        "steps": 4230,
+        "pedersen_builtin_applications": 19,
+        "range_check_builtin_applications": 94,
+        "data_availability": {
+            "l1_gas": 0,
+            "l1_data_gas": 128
+        }
+    },
+    "message_hash": "0xf93cd5994e1da0cea88f2310735746d049be9fa55f4a38d5545bc325bcaa49af"
+}
