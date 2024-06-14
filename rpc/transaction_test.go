@@ -189,7 +189,6 @@ func TestTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		TxnHash         *felt.Felt
 		ExpectedResp    TransactionReceiptWithBlockInfo
-		ExpectedTxnType TransactionType
 	}
 	var receiptTxn52767_16 = InvokeTransactionReceipt(
 		CommonTransactionReceipt{
@@ -271,14 +270,14 @@ func TestTransactionReceipt(t *testing.T) {
 				},
 				{
 					Data: utils.TestHexArrToFelt(t, []string{
-						"0x374396cb322ab5ffd35ddb8627514609289d22c07d039ead5327782f61bb833",
-						"0x455448",
-						"0x3580a65260563b5511ddf2eafb83d6b309dce7fc25271df8c040a437f09a399",
+						"0xdfd54233d96e4b",
+						"0x0",
 					}),
 					FromAddress: utils.TestHexToFelt(t, "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82"),
 					Keys: utils.TestHexArrToFelt(t, []string{
-						"0xdfd54233d96e4b",
-						"0x0",
+						"0x374396cb322ab5ffd35ddb8627514609289d22c07d039ead5327782f61bb833",
+						"0x455448",
+						"0x3580a65260563b5511ddf2eafb83d6b309dce7fc25271df8c040a437f09a399",
 					}),
 				},
 			},
@@ -304,8 +303,7 @@ func TestTransactionReceipt(t *testing.T) {
 					UnknownTransactionReceipt: UnknownTransactionReceipt{receiptTxn52767_16},
 					BlockNumber:               52767,
 					BlockHash:                 utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
-				},
-				ExpectedTxnType: TransactionType_Invoke,
+				},			
 			},
 			{
 				TxnHash: utils.TestHexToFelt(t, "0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519"),
@@ -314,7 +312,6 @@ func TestTransactionReceipt(t *testing.T) {
 					BlockNumber:               648615,
 					BlockHash:                 utils.TestHexToFelt(t, "0x3c9cd4649a5dfed63db676f6f7fd181975f8e85f10197a6665fd393d1c9c1a0"),
 				},
-				ExpectedTxnType: TransactionType_L1Handler,
 			},
 		},
 		"testnet": {
@@ -325,7 +322,6 @@ func TestTransactionReceipt(t *testing.T) {
 					BlockNumber:               52767,
 					BlockHash:                 utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564"),
 				},
-				ExpectedTxnType: TransactionType_Invoke,
 			},
 		},
 		"mainnet":     {},
@@ -336,26 +332,8 @@ func TestTransactionReceipt(t *testing.T) {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
-		switch test.ExpectedTxnType {
-		case TransactionType_Invoke:
-			require.Nil(t, err)
-			rec, ok := (txReceiptWithBlockInfo.TransactionReceipt).(InvokeTransactionReceipt)
-			require.True(t, ok)
-			rec2, ok := (txReceiptWithBlockInfo.TransactionReceipt).(InvokeTransactionReceipt)
-			require.True(t, ok)
-			require.Equal(t, rec2, rec)
-		case TransactionType_L1Handler:
-			require.Nil(t, err)
-			rec, ok := (txReceiptWithBlockInfo.TransactionReceipt).(L1HandlerTransactionReceipt)
-			require.True(t, ok)
-			rec2, ok := (txReceiptWithBlockInfo.TransactionReceipt).(L1HandlerTransactionReceipt)
-			require.True(t, ok)
-			require.Equal(t, rec2.CommonTransactionReceipt, rec.CommonTransactionReceipt)
-			require.Equal(t, rec2.MessageHash, rec.MessageHash)
-		default:
-			panic("un-tested transaction type")
-		}
-
+		require.Nil(t, err)
+		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
 }
 
