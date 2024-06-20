@@ -3,65 +3,63 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/big"
-	"os"
+	"time"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/joho/godotenv"
+
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
-	name                  string = "testnet"                                                            //env."name"
-	account_addr          string = "0x06f36e8a0fc06518125bbb1c63553e8a7d8597d437f9d56d891b8c7d3c977716" //Replace it with your account address
-	account_cairo_version        = 0                                                                    //Replace  with the cairo version of your account
-	privateKey            string = "0x0687bf84896ee63f52d69e6de1b41492abeadc0dc3cb7bd351d0a52116915937" //Replace it with your account private key
-	public_key            string = "0x58b0824ee8480133cad03533c8930eda6888b3c5170db2f6e4f51b519141963"  //Replace it with your account public key
-	someContract          string = "0x4c1337d55351eac9a0b74f3b8f0d3928e2bb781e5084686a892e66d49d510d"   //Replace it with the contract that you want to invoke
-	contractMethod        string = "increase_value"                                                     //Replace it with the function name that you want to invoke
+	someContract   string = "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54" //Replace it with the contract that you want to invoke. In this case, an ERC20
+	contractMethod string = "mint"                                                               //Replace it with the function name that you want to invoke
 )
 
 func main() {
-	// Loading the env
-	godotenv.Load(fmt.Sprintf(".env.%s", name))
-	url := os.Getenv("INTEGRATION_BASE") //please modify the .env.testnet and replace the INTEGRATION_BASE with a starknet goerli RPC.
-	fmt.Println("Starting simpleInvoke example")
+	// Load variables from '.env' file
+	rpcProviderUrl := setup.GetRpcProviderUrl()
+	account_addr := setup.GetAccountAddress()
+	account_cairo_version := setup.GetAccountCairoVersion()
+	privateKey := setup.GetPrivateKey()
+	public_key := setup.GetPublicKey()
 
-	// Initialising the connection
-	clientv02, err := rpc.NewProvider(url)
+	// Initialize connection to RPC provider
+	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
 	}
+
+	// Initialize the account memkeyStore (set public and private keys)
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		panic("Fail to convert privKey to bitInt")
+	}
+	ks.Put(public_key, privKeyBI)
 
 	// Here we are converting the account address to felt
-	account_address, err := utils.HexToFelt(account_addr)
+	accountAddressInFelt, err := utils.HexToFelt(account_addr)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("Failed to transform the account address, did you give the hex address?")
+		panic(err)
 	}
-	// Initializing the account memkeyStore
-	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(privateKey, 0)
-	if !ok {
-		panic(err.Error())
+	// Initialize the account
+	accnt, err := account.NewAccount(client, accountAddressInFelt, public_key, ks, account_cairo_version)
+	if err != nil {
+		panic(err)
 	}
-	ks.Put(public_key, fakePrivKeyBI)
 
 	fmt.Println("Established connection with the client")
 
 	// Here we are setting the maxFee
-
 	maxfee, err := utils.HexToFelt("0x9184e72a000")
 	if err != nil {
-		panic(err.Error())
-	}
-
-	// Initializing the account
-	accnt, err := account.NewAccount(clientv02, account_address, public_key, ks, account_cairo_version)
-	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	// Getting the nonce from the account
@@ -82,33 +80,46 @@ func main() {
 	// Converting the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
+	amount, _ := utils.HexToFelt("0xffffffff")
 	// Building the functionCall struct, where :
 	FnCall := rpc.FunctionCall{
 		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
+		Calldata:           []*felt.Felt{amount, &felt.Zero},              //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
 	}
 
 	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
 	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	// Signing of the transaction that is done by the account
 	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
 	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
 	if err != nil {
-		panic(err)
+		setup.PanicRPC(err)
 	}
-	// This returns us with the transaction hash
+
+	time.Sleep(time.Second * 3) // Waiting 3 seconds
+
+	//Getting the transaction status
+	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	if err != nil {
+		setup.PanicRPC(err)
+	}
+
+	// This returns us with the transaction hash and status
 	fmt.Println("Transaction hash response : ", resp.TransactionHash)
+	fmt.Println("Transaction execution status : ", txStatus.ExecutionStatus)
+	fmt.Println("Transaction status : ", txStatus.FinalityStatus)
 
 }

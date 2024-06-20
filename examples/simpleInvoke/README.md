@@ -1,9 +1,12 @@
-Note: To run this example, you need a testnet endpoint.
+This example sends an invoke transaction with calldata. It uses an ERC20 token, but it can be any smart contract.
 
-Steps to run this example on testnet:
+Steps:
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+1. Uncomment, and assign your testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
+1. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+1. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+1. Make sure you are in the "simpleInvoke" directory
+1. Execute `go run main.go`
 
-1. rename ".env.template" to ".env.testnet"
-2. uncomment, and set INTEGRATION_BASE to the testnet url //You can get it from here www.alchemy.com/starknet
-3. make sure you are in the "simpleInvoke" directory
-4. execute `go mod tidy`
-5. execute `go run main.go`
+The transaction hash and status will be returned at the end of the execution.
