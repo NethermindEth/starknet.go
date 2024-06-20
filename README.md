@@ -36,10 +36,9 @@
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
  height="50" />
 </a>
+<br><br>
 
-#### :warning: `starknet.go` is currently under active development and is experiencing a rearchitecture. It will undergo breaking changes.
-
-`starknet.go` will get your golang backends and WASM frontends to Starknet easily.
+**starknet.go** will get your golang backends and WASM frontends to Starknet easily.
 With simple abstractions for the Starknet RPC, account management and common
 operations on the wallets. The package has excellent documentation for a smooth
 0 to 1 experience.
