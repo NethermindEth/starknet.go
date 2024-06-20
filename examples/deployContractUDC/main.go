@@ -18,14 +18,15 @@ import (
 )
 
 // More info: https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/
+// NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
 	someContractHash string = "0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0" // The contract hash to be deployed (in this example, it's an ERC20 contract)
 	UDCAddress       string = "0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf" // UDC contract address
 	contractMethod   string = "deployContract"                                                     // UDC method to deploy a contract (from pre-declared contracts)
 )
 
-// Example succesful transaction created from this example on Goerli
-// https://goerli.voyager.online/tx/0x9576bad061e1790ea1785cb3a950a5724390ea3d0bbb65fc09cc300d801b22
+// Example succesful transaction created from this example on Sepolia
+// https://sepolia.voyager.online/tx/0x9bc6f6352663aafd71a9ebe1bde9c042590d8f3c8c265e5826274708cf0133
 
 func main() {
 	fmt.Println("Starting deployContractUDC example")
