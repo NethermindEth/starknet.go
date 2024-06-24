@@ -342,7 +342,10 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 
 	arg0Felt := args[0].(*felt.Felt)
-
+	l1BlockHash,err:=new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
+	if err != nil {
+		return err
+	}
 	testTxnHash, err := utils.HexToFelt("0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b")
 	if err != nil {
 		return err
@@ -351,6 +354,24 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 
 		var txnRec TransactionReceiptWithBlockInfo
 		read, err := os.ReadFile("tests/receipt/0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(read, &txnRec)
+		if err != nil {
+			return err
+		}
+
+		txnReceipt, err := json.Marshal(txnRec)
+		if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(txnReceipt, &r)
+	} else if arg0Felt.Equal(l1BlockHash){
+		var txnRec TransactionReceiptWithBlockInfo
+		read, err := os.ReadFile("tests/receipt/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
 		if err != nil {
 			return err
 		}

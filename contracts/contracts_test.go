@@ -94,7 +94,7 @@ func TestPrecomputeAddress(t *testing.T) {
 			},
 			ExpectedPrecomputedAddress: "0x28771beb7a2522a07d2ae6fc1fa5af942e8e863f70e6d7d74f9600ea3d5c242",
 		},
-		{ //https://sepolia.voyager.online/tx/0x2fd8282cbf6cd496b0bd896722c92b5118cae13fdcb96250c9a2e188adb7c86
+		{ //https://sepolia.voyager.online/tx/0x2419a80d80045dd08cdb2606850c4eaf0ed8e705ee07bb1837d8daf12263bc0
 			DeployerAddress: "0",
 			Salt:            "0x0702e82f1ec15656ad4502268dad530197141f3b59f5529835af9318ef399da5",
 			ClassHash:       "0xf6f44afb3cacbcc01a371aff62c86ca9a45feba065424c99f7cd8637514d8f",
