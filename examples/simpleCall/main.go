@@ -35,7 +35,7 @@ func main() {
 
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
-	account_addr := setup.GetAccountAddress()
+	accountAddress := setup.GetAccountAddress()
 
 	// Initialize connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
@@ -52,7 +52,7 @@ func main() {
 	}
 
 	// Here we are converting the account address to felt
-	accountAddressInFelt, err := utils.HexToFelt(account_addr)
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
 		fmt.Println("Failed to transform the account address, did you give the hex address?")
 		panic(err)
@@ -85,5 +85,5 @@ func main() {
 
 	// Getting result
 	balance = balance / (math.Pow(10, decimals))
-	fmt.Printf("Token balance of %s is %f ETH \n", account_addr, balance)
+	fmt.Printf("Token balance of %s is %f ETH \n", accountAddress, balance)
 }

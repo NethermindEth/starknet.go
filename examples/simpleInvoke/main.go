@@ -23,10 +23,10 @@ var (
 func main() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
-	account_addr := setup.GetAccountAddress()
-	account_cairo_version := setup.GetAccountCairoVersion()
+	accountAddress := setup.GetAccountAddress()
+	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
-	public_key := setup.GetPublicKey()
+	publicKey := setup.GetPublicKey()
 
 	// Initialize connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
@@ -40,16 +40,16 @@ func main() {
 	if !ok {
 		panic("Fail to convert privKey to bitInt")
 	}
-	ks.Put(public_key, privKeyBI)
+	ks.Put(publicKey, privKeyBI)
 
 	// Here we are converting the account address to felt
-	accountAddressInFelt, err := utils.HexToFelt(account_addr)
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
 		fmt.Println("Failed to transform the account address, did you give the hex address?")
 		panic(err)
 	}
 	// Initialize the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, public_key, ks, account_cairo_version)
+	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)
 	}

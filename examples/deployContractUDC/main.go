@@ -33,10 +33,10 @@ func main() {
 
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
-	account_addr := setup.GetAccountAddress()
-	account_cairo_version := setup.GetAccountCairoVersion()
+	accountAddress := setup.GetAccountAddress()
+	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
-	public_key := setup.GetPublicKey()
+	publicKey := setup.GetPublicKey()
 
 	// Initialize connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Here we are converting the account address to felt
-	account_address, err := utils.HexToFelt(account_addr)
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 	if !ok {
 		panic("Fail to convert privKey to bitInt")
 	}
-	ks.Put(public_key, privKeyBI)
+	ks.Put(publicKey, privKeyBI)
 
 	fmt.Println("Established connection with the client")
 
@@ -67,7 +67,7 @@ func main() {
 	}
 
 	// Initialize the account
-	accnt, err := account.NewAccount(client, account_address, public_key, ks, account_cairo_version)
+	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)
 	}
@@ -97,7 +97,7 @@ func main() {
 	FnCall := rpc.FunctionCall{
 		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
-		Calldata:           getUDCCalldata(account_addr),                  //change this function content to your use case
+		Calldata:           getUDCCalldata(accountAddress),                //change this function content to your use case
 	}
 
 	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
@@ -118,6 +118,7 @@ func main() {
 		setup.PanicRPC(err)
 	}
 
+	fmt.Println("Waiting for the transaction status...")
 	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
 	//Getting the transaction status
