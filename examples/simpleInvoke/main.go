@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -56,12 +57,6 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	// Here we are setting the maxFee
-	maxfee, err := utils.HexToFelt("0x9184e72a000")
-	if err != nil {
-		panic(err)
-	}
-
 	// Getting the nonce from the account
 	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {
@@ -70,7 +65,7 @@ func main() {
 
 	// Building the InvokeTx struct
 	InvokeTx := rpc.InvokeTxnV1{
-		MaxFee:        maxfee,
+		MaxFee:        new(felt.Felt).SetUint64(100000000000000),
 		Version:       rpc.TransactionV1,
 		Nonce:         nonce,
 		Type:          rpc.TransactionType_Invoke,
@@ -103,12 +98,33 @@ func main() {
 		panic(err)
 	}
 
+	// Estimate the transaction fee
+	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	if err != nil {
+		setup.PanicRPC(err)
+	}
+	estimatedFee := feeRes[0].OverallFee
+	// If the estimated fee is higher than the current fee, let's override it and sign again
+	if estimatedFee.Cmp(InvokeTx.MaxFee) == 1 {
+		newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
+		if err != nil {
+			panic(err)
+		}
+		InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
+		// Signing the transaction again
+		err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
 	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
+	fmt.Println("Waiting for the transaction status...")
 	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
 	//Getting the transaction status
@@ -118,8 +134,8 @@ func main() {
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Println("Transaction hash response : ", resp.TransactionHash)
-	fmt.Println("Transaction execution status : ", txStatus.ExecutionStatus)
-	fmt.Println("Transaction status : ", txStatus.FinalityStatus)
+	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
+	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
 
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
@@ -48,7 +49,7 @@ func main() {
 
 	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
 	// as for this case we only need the 'ks' to sign the deploy transaction.
-	acnt, err := account.NewAccount(client, pub, pub.String(), ks, 2)
+	accnt, err := account.NewAccount(client, pub, pub.String(), ks, 2)
 	if err != nil {
 		panic(err)
 	}
@@ -72,37 +73,55 @@ func main() {
 		},
 	}
 
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
+	precomputedAddress, err := accnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("PrecomputedAddress:", precomputedAddress)
 
 	// Sign the transaction
-	err = acnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
+	err = accnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
-	//estimate the transaction fee
-	feeRes, err := acnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{tx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	// Estimate the transaction fee
+	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{tx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
 	if err != nil {
 		setup.PanicRPC(err)
 	}
+	estimatedFee := feeRes[0].OverallFee
+	var feeInETH float64
+	// If the estimated fee is higher than the current fee, let's override it and sign again
+	if estimatedFee.Cmp(tx.MaxFee) == 1 {
+		newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
+		if err != nil {
+			panic(err)
+		}
+		tx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
+		// Signing the transaction again
+		err = accnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
+		if err != nil {
+			panic(err)
+		}
+		feeInETH, _ = utils.FeltToBigInt(tx.MaxFee).Float64()
+	} else {
+		feeInETH, _ = utils.FeltToBigInt(estimatedFee).Float64()
+		feeInETH += feeInETH / 5 // fee + 20% to be sure
+	}
 	//converts fee value from WEI to ETH
-	fee, _ := utils.FeltToBigInt(feeRes[0].OverallFee).Float64()
-	fee = fee / (math.Pow(10, 18))
+	feeInETH = feeInETH / (math.Pow(10, 18))
 
 	// At this point you need to add funds to precomputed address to use it.
 	var input string
 
 	fmt.Println("The `precomputedAddress` account needs to have enough ETH to perform a transaction.")
-	fmt.Printf("Use the starknet faucet to send ETH to your `precomputedAddress`. You need aproximately %f ETH. \n", fee+fee/5)
+	fmt.Printf("Use the starknet faucet to send ETH to your `precomputedAddress`. You need aproximately %f ETH. \n", feeInETH)
 	fmt.Println("When your account has been funded by the faucet, press any key, then `enter` to continue : ")
 	fmt.Scan(&input)
 
 	// Send transaction to the network
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := accnt.AddDeployAccountTransaction(context.Background(), tx)
 	if err != nil {
 		fmt.Println("Error returned from AddDeployAccountTransaction: ")
 		setup.PanicRPC(err)

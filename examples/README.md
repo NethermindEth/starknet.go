@@ -17,19 +17,19 @@ To run an example:
 1. How to deploy an account via `DEPLOY_TRANSACTION`?  
   R: See [deployAccount](./deployAccount/main.go)
 1. How to estimate fees?  
-  R: See [deployAccount](./deployAccount/main.go), line 87.
+  R: See [deployAccount](./deployAccount/main.go), line 89.
 1. How to generate random public and private keys?  
-  R: See [deployAccount](./deployAccount/main.go), line 45.
+  R: See [deployAccount](./deployAccount/main.go), line 46.
 1. How to use my existing account importing my account address, and public and private keys?  
-  R: See [deployContractUDC](./deployContractUDC/main.go), lines 53 and 69.
+  R: See [deployContractUDC](./deployContractUDC/main.go), lines 54 and 64.
 1. How to get my nonce?  
-  R: See [deployContractUDC](./deployContractUDC/main.go), line 75.
+  R: See [deployContractUDC](./deployContractUDC/main.go), line 70.
 1. How to deploy a smart contract using UDC?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to send an invoke transaction?  
   R: See [simpleInvoke](./simpleInvoke/main.go).
 1. How to get the transaction status?  
-  R: See [simpleInvoke](./simpleInvoke/main.go), line 115.
+  R: See [simpleInvoke](./simpleInvoke/main.go), line 131.
 1. How to deploy an ERC20 token?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to get the balance of a ERC20 token?  
