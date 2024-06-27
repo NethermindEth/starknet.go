@@ -73,7 +73,7 @@ func main() {
 		},
 	}
 
-	precomputedAddress, err := accnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
+	precomputedAddress, err := accnt.PrecomputeAccountAddress(pub, classHash, tx.ConstructorCalldata)
 	if err != nil {
 		panic(err)
 	}
