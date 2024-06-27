@@ -2,10 +2,8 @@ package rpc
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 )
-
-var ErrNotImplemented = errors.New("not implemented")
 
 const (
 	InvalidJSON    = -32700 // Invalid JSON was received by the server.
@@ -63,7 +61,7 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 			return &nodeErr
 		}
 	}
-	return Err(InternalError, err.Error())
+	return Err(InternalError, fmt.Sprintln(nodeErr.Code, nodeErr.Message, nodeErr.Data))
 }
 
 type RPCError struct {
