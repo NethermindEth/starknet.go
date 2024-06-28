@@ -93,6 +93,13 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 
 const SHORT_LENGTH = 31
 
+// ByteArrToFelt converts ByteArray to array of Felt objects.
+//
+// Parameters:
+// - s: string/bytearray to convert
+// Returns:
+// - []*felt.Felt: the array of felt.Felt objects
+// - error: an error, if any
 func ByteArrToFelt(s string) ([]*felt.Felt, error) {
 	arr, err := splitLongString(s)
 	if err != nil {
