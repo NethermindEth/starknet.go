@@ -9,8 +9,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/google/go-cmp/cmp"
-	"github.com/test-go/testify/assert"
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestBlockNumber is a test function to check the behavior of the BlockNumber function and check the returned value is strictly positive.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRPCError(t *testing.T) {
