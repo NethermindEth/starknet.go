@@ -20,7 +20,7 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/joho/godotenv"
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 var (

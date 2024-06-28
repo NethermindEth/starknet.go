@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 // TestHexToFelt generates a felt.Felt from a hexadecimal string.
