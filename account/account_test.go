@@ -585,7 +585,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 	}
 
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, fakeUserPub, classHash, tx.ConstructorCalldata)
+	precomputedAddress, err := acnt.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.Nil(t, err)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 

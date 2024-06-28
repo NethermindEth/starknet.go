@@ -5,7 +5,11 @@ import (
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/utils"
 )
+
+var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
 type CasmClass struct {
 	Prime            string                     `json:"prime"`
@@ -45,4 +49,35 @@ func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 	}
 
 	return &casmClass, nil
+}
+
+// PrecomputeAddress calculates the precomputed address for a contract instance.
+// ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
+//
+// Parameters:
+// - deployerAddress: the deployer address
+// - salt: the salt
+// - classHash: the class hash
+// - constructorCalldata: the constructor calldata
+// Returns:
+// - *felt.Felt: the precomputed address as a *felt.Felt
+// - error: an error if any
+func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+
+	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
+		PREFIX_CONTRACT_ADDRESS,
+		deployerAddress,
+		salt,
+		classHash,
+	})
+
+	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
+	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
+	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
+
+	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
+	if err != nil {
+		return nil, err
+	}
+	return utils.BigIntToFelt(preBigInt), nil
 }
