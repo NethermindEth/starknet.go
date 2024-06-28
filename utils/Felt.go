@@ -137,7 +137,7 @@ func splitLongString(s string) ([]string, error) {
 	}
 	res := r.FindAllString(s, -1)
 	if len(res) == 0 {
-		return []string{}, fmt.Errorf("invalid string no regex matches found, s: %s", s)
+		return []string{}, fmt.Errorf("invalid string no matches found, s: %s", s)
 	}
 	return res, nil
 }
