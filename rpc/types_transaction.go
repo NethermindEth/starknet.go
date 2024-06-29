@@ -43,6 +43,10 @@ type InvokeTxnV0 struct {
 	FunctionCall
 }
 
+func (tx InvokeTxnV0) InvokeType() string {
+	return "InvokeTxn: V0"
+}
+
 type InvokeTxnV1 struct {
 	MaxFee        *felt.Felt         `json:"max_fee"`
 	Version       TransactionVersion `json:"version"`
@@ -53,6 +57,11 @@ type InvokeTxnV1 struct {
 	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
+
+func (tx InvokeTxnV1) InvokeType() string {
+	return "InvokeTxn: V1"
+}
+
 type InvokeTxnV3 struct {
 	Type           TransactionType       `json:"type"`
 	SenderAddress  *felt.Felt            `json:"sender_address"`
@@ -70,6 +79,10 @@ type InvokeTxnV3 struct {
 	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+
+func (tx InvokeTxnV3) InvokeType() string {
+	return "InvokeTxn: V2"
 }
 
 type L1HandlerTxn struct {
