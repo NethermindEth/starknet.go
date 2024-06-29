@@ -15,7 +15,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/joho/godotenv"
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 const (
