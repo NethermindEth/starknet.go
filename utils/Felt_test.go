@@ -20,7 +20,7 @@ func TestByteArrToFelt(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		res, err := ByteArrToFelt(tc.in)
+		res, err := StringToByteArrFelt(tc.in)
 		if err != nil {
 			t.Errorf("error in byte array conversion, err: %v", err)
 		}

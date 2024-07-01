@@ -91,19 +91,21 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 	return bigArr
 }
 
-const SHORT_LENGTH = 31
-
-// ByteArrToFelt converts ByteArray to array of Felt objects.
+// StringToByteArrFelt converts string to array of Felt objects.
 //
 // Parameters:
 // - s: string/bytearray to convert
 // Returns:
 // - []*felt.Felt: the array of felt.Felt objects
 // - error: an error, if any
-func ByteArrToFelt(s string) ([]*felt.Felt, error) {
-	arr, err := splitLongString(s)
-	if err != nil {
-		return nil, err
+func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
+	const SHORT_LENGTH = 31
+	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
+	r := regexp.MustCompile(exp)
+
+	arr := r.FindAllString(s, -1)
+	if len(arr) == 0 {
+		return []*felt.Felt{}, fmt.Errorf("invalid string no matches found, s: %s", s)
 	}
 
 	hexarr := []string{}
@@ -127,17 +129,4 @@ func ByteArrToFelt(s string) ([]*felt.Felt, error) {
 
 	harr = append(harr, new(felt.Felt).SetUint64(size))
 	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
-}
-
-func splitLongString(s string) ([]string, error) {
-	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
-	r, err := regexp.Compile(exp)
-	if err != nil {
-		return []string{}, fmt.Errorf("invalid regex, err: %v", err)
-	}
-	res := r.FindAllString(s, -1)
-	if len(res) == 0 {
-		return []string{}, fmt.Errorf("invalid string no matches found, s: %s", s)
-	}
-	return res, nil
 }
