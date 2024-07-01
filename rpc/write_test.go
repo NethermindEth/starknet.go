@@ -105,7 +105,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				InvokeTx:     InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)},
+				InvokeTx:     BroadcastInvokev1Txn{InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)}},
 				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
 				ExpectedError: &RPCError{
 					Code:    ErrUnexpectedError.Code,
@@ -113,12 +113,12 @@ func TestAddInvokeTransaction(t *testing.T) {
 					Data:    "Something crazy happened"},
 			},
 			{
-				InvokeTx:      InvokeTxnV1{},
+				InvokeTx:      BroadcastInvokev1Txn{InvokeTxnV1{}},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
 				ExpectedError: nil,
 			},
 			{
-				InvokeTx: InvokeTxnV3{
+				InvokeTx: BroadcastInvokev3Txn{InvokeTxnV3{
 					Type:    TransactionType_Invoke,
 					Version: TransactionV3,
 					Signature: []*felt.Felt{
@@ -159,7 +159,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						utils.TestHexToFelt(t, "0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587"),
 					},
 					AccountDeploymentData: []*felt.Felt{},
-				},
+				}},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")},
 				ExpectedError: nil,
 			},

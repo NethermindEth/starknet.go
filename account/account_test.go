@@ -166,14 +166,15 @@ func TestTransactionHashInvoke(t *testing.T) {
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
-			invokeTxn := rpc.InvokeTxnV1{
-				Calldata:      test.FnCall.Calldata,
-				Nonce:         test.TxDetails.Nonce,
-				MaxFee:        test.TxDetails.MaxFee,
-				SenderAddress: account.AccountAddress,
-				Version:       test.TxDetails.Version,
-			}
-			hash, err := account.TransactionHashInvoke(invokeTxn)
+			invokeTxn := rpc.BroadcastInvokev1Txn{
+				InvokeTxnV1: rpc.InvokeTxnV1{
+					Calldata:      test.FnCall.Calldata,
+					Nonce:         test.TxDetails.Nonce,
+					MaxFee:        test.TxDetails.MaxFee,
+					SenderAddress: account.AccountAddress,
+					Version:       test.TxDetails.Version,
+				}}
+			hash, err := account.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
 		})
@@ -444,7 +445,7 @@ func TestAddInvoke(t *testing.T) {
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
 		PrivKey              *felt.Felt
-		InvokeTx             rpc.InvokeTxnV1
+		InvokeTx             rpc.BroadcastInvokev1Txn
 		FnCall               rpc.FunctionCall
 		TxDetails            rpc.TxDetails
 	}
@@ -460,13 +461,14 @@ func TestAddInvoke(t *testing.T) {
 				SetKS:                true,
 				PubKey:               utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
-				InvokeTx: rpc.InvokeTxnV1{
-					Nonce:         new(felt.Felt).SetUint64(5),
-					MaxFee:        utils.TestHexToFelt(t, "0x26112A960026"),
-					Version:       rpc.TransactionV1,
-					Type:          rpc.TransactionType_Invoke,
-					SenderAddress: utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-				},
+				InvokeTx: rpc.BroadcastInvokev1Txn{
+					InvokeTxnV1: rpc.InvokeTxnV1{
+						Nonce:         new(felt.Felt).SetUint64(5),
+						MaxFee:        utils.TestHexToFelt(t, "0x26112A960026"),
+						Version:       rpc.TransactionV1,
+						Type:          rpc.TransactionType_Invoke,
+						SenderAddress: utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
+					}},
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
 					EntryPointSelector: utils.TestHexToFelt(t, "0x166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac"),
@@ -483,13 +485,14 @@ func TestAddInvoke(t *testing.T) {
 				SetKS:                true,
 				PubKey:               utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
-				InvokeTx: rpc.InvokeTxnV1{
-					Nonce:         new(felt.Felt).SetUint64(8),
-					MaxFee:        utils.TestHexToFelt(t, "0x1f6410500832"),
-					Version:       rpc.TransactionV1,
-					Type:          rpc.TransactionType_Invoke,
-					SenderAddress: utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-				},
+				InvokeTx: rpc.BroadcastInvokev1Txn{
+					InvokeTxnV1: rpc.InvokeTxnV1{
+						Nonce:         new(felt.Felt).SetUint64(8),
+						MaxFee:        utils.TestHexToFelt(t, "0x1f6410500832"),
+						Version:       rpc.TransactionV1,
+						Type:          rpc.TransactionType_Invoke,
+						SenderAddress: utils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
+					}},
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
 					EntryPointSelector: utils.TestHexToFelt(t, "0x166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac"),
@@ -520,7 +523,7 @@ func TestAddInvoke(t *testing.T) {
 		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
 		require.NoError(t, err)
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
