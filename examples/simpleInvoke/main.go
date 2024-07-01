@@ -64,13 +64,14 @@ func main() {
 	}
 
 	// Building the InvokeTx struct
-	InvokeTx := rpc.InvokeTxnV1{
-		MaxFee:        new(felt.Felt).SetUint64(100000000000000),
-		Version:       rpc.TransactionV1,
-		Nonce:         nonce,
-		Type:          rpc.TransactionType_Invoke,
-		SenderAddress: accnt.AccountAddress,
-	}
+	InvokeTx := rpc.BroadcastInvokev1Txn{
+		InvokeTxnV1: rpc.InvokeTxnV1{
+			MaxFee:        new(felt.Felt).SetUint64(100000000000000),
+			Version:       rpc.TransactionV1,
+			Nonce:         nonce,
+			Type:          rpc.TransactionType_Invoke,
+			SenderAddress: accnt.AccountAddress,
+		}}
 
 	// Converting the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
@@ -93,7 +94,7 @@ func main() {
 	}
 
 	// Signing of the transaction that is done by the account
-	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
+	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +113,7 @@ func main() {
 		}
 		InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
 		// Signing the transaction again
-		err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx)
+		err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
 		if err != nil {
 			panic(err)
 		}
