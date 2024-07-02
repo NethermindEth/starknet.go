@@ -92,6 +92,8 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 }
 
 // StringToByteArrFelt converts string to array of Felt objects.
+// The returned array of felts will be of the format
+// [number of felts with 31 characters in length, 31 byte felts..., pending word with max size of 30 bytes, pending words bytes size]
 //
 // Parameters:
 // - s: string/bytearray to convert
