@@ -93,13 +93,22 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 
 // StringToByteArrFelt converts string to array of Felt objects.
 // The returned array of felts will be of the format
+//
 // [number of felts with 31 characters in length, 31 byte felts..., pending word with max size of 30 bytes, pending words bytes size]
 //
+// For further explanation, refer the [article]
+//
 // Parameters:
+//
 // - s: string/bytearray to convert
+//
 // Returns:
+//
 // - []*felt.Felt: the array of felt.Felt objects
+//
 // - error: an error, if any
+//
+// [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	const SHORT_LENGTH = 31
 	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
