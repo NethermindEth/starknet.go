@@ -117,8 +117,9 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	for _, val := range arr {
 		if len(val) == SHORT_LENGTH {
 			count += 1
+		} else {
+			size = uint64(len(val))
 		}
-		size = uint64(len(val))
 		hexarr = append(hexarr, hex.EncodeToString([]byte(val)))
 	}
 

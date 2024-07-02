@@ -17,6 +17,14 @@ func TestByteArrToFelt(t *testing.T) {
 			in:  "Long string, more than 31 characters.",
 			out: []string{"0x1", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x63746572732e", "0x6"},
 		},
+		{
+			in:  "Long string, more than 31 chara",
+			out: []string{"0x1", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x0"},
+		},
+		{
+			in:  "Long string, more than 31 charaLong string, more than 31 chara",
+			out: []string{"0x2", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x0"},
+		},
 	}
 
 	for _, tc := range tests {
