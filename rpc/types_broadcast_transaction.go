@@ -43,7 +43,7 @@ type BroadcastInvokev0Txn struct {
 }
 
 func (tx BroadcastInvokev0Txn) GetCalldata() []*felt.Felt {
-	return tx.InvokeTxnV0.FunctionCall.Calldata
+	return tx.Calldata
 }
 
 type BroadcastInvokev1Txn struct {
