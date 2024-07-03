@@ -53,6 +53,7 @@ type InvokeTxnV1 struct {
 	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
+
 type InvokeTxnV3 struct {
 	Type           TransactionType       `json:"type"`
 	SenderAddress  *felt.Felt            `json:"sender_address"`

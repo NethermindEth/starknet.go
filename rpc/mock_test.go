@@ -342,7 +342,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 
 	arg0Felt := args[0].(*felt.Felt)
-	l1BlockHash,err:=new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
+	l1BlockHash, err := new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		}
 
 		return json.Unmarshal(txnReceipt, &r)
-	} else if arg0Felt.Equal(l1BlockHash){
+	} else if arg0Felt.Equal(l1BlockHash) {
 		var txnRec TransactionReceiptWithBlockInfo
 		read, err := os.ReadFile("tests/receipt/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
 		if err != nil {
@@ -779,7 +779,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
 	switch invokeTx := args[0].(type) {
-	case InvokeTxnV1:
+	case BroadcastInvokev1Txn:
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
@@ -802,7 +802,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 			return err
 		}
 		return nil
-	case InvokeTxnV3:
+	case BroadcastInvokev3Txn:
 		deadbeefFelt, err := utils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
 		if err != nil {
 			return err
