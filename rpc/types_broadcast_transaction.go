@@ -13,7 +13,9 @@ var (
 	_ BroadcastTxn = BroadcastDeployAccountTxn{}
 )
 
-type BroadcastInvokeTxnType interface{}
+type BroadcastInvokeTxnType interface {
+	GetCalldata() []*felt.Felt
+}
 
 var (
 	_ BroadcastInvokeTxnType = BroadcastInvokev0Txn{}
@@ -45,12 +47,24 @@ type BroadcastInvokev0Txn struct {
 	InvokeTxnV0
 }
 
+func (tx BroadcastInvokev0Txn) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+
 type BroadcastInvokev1Txn struct {
 	InvokeTxnV1
 }
 
+func (tx BroadcastInvokev1Txn) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+
 type BroadcastInvokev3Txn struct {
 	InvokeTxnV3
+}
+
+func (tx BroadcastInvokev3Txn) GetCalldata() []*felt.Felt {
+	return tx.Calldata
 }
 
 type BroadcastDeclareTxnV1 struct {

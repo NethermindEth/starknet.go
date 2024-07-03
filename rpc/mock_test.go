@@ -779,7 +779,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
 	switch invokeTx := args[0].(type) {
-	case InvokeTxnV1:
+	case BroadcastInvokev1Txn:
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
@@ -802,7 +802,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 			return err
 		}
 		return nil
-	case InvokeTxnV3:
+	case BroadcastInvokev3Txn:
 		deadbeefFelt, err := utils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
 		if err != nil {
 			return err
