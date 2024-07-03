@@ -35,7 +35,6 @@ var (
 
 type BroadcastAddDeployTxnType interface {
 	GetConstructorCalldata() []*felt.Felt
-	GetContractAddressSalt() *felt.Felt
 }
 
 var (
@@ -115,18 +114,10 @@ func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
 
-func (tx BroadcastDeployAccountTxn) GetContractAddressSalt() *felt.Felt {
-	return tx.ContractAddressSalt
-}
-
 type BroadcastDeployAccountTxnV3 struct {
 	DeployAccountTxnV3
 }
 
 func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
-}
-
-func (tx BroadcastDeployAccountTxnV3) GetContractAddressSalt() *felt.Felt {
-	return tx.ContractAddressSalt
 }
