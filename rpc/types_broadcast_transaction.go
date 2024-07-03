@@ -21,7 +21,9 @@ var (
 	_ BroadcastInvokeTxnType = BroadcastInvokev3Txn{}
 )
 
-type BroadcastDeclareTxnType interface{}
+type BroadcastDeclareTxnType interface {
+	GetContractClass() interface{}
+}
 
 var (
 	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV1{}
@@ -29,7 +31,10 @@ var (
 	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV3{}
 )
 
-type BroadcastAddDeployTxnType interface{}
+type BroadcastAddDeployTxnType interface {
+	GetConstructorCalldata() []*felt.Felt
+	GetContractAddressSalt() *felt.Felt
+}
 
 var (
 	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxn{}
@@ -58,6 +63,11 @@ type BroadcastDeclareTxnV1 struct {
 	Nonce         *felt.Felt              `json:"nonce"`
 	ContractClass DeprecatedContractClass `json:"contract_class"`
 }
+
+func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
+	return tx.ContractClass
+}
+
 type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
@@ -68,6 +78,10 @@ type BroadcastDeclareTxnV2 struct {
 	Signature         []*felt.Felt       `json:"signature"`
 	Nonce             *felt.Felt         `json:"nonce"`
 	ContractClass     ContractClass      `json:"contract_class"`
+}
+
+func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
+	return tx.ContractClass
 }
 
 type BroadcastDeclareTxnV3 struct {
@@ -90,9 +104,30 @@ type BroadcastDeclareTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
+func (tx BroadcastDeclareTxnV3) GetContractClass() interface{} {
+	return *tx.ContractClass
+}
+
 type BroadcastDeployAccountTxn struct {
 	DeployAccountTxn
 }
+
+func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
+
+func (tx BroadcastDeployAccountTxn) GetContractAddressSalt() *felt.Felt {
+	return tx.ContractAddressSalt
+}
+
 type BroadcastDeployAccountTxnV3 struct {
 	DeployAccountTxnV3
+}
+
+func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
+
+func (tx BroadcastDeployAccountTxnV3) GetContractAddressSalt() *felt.Felt {
+	return tx.ContractAddressSalt
 }
