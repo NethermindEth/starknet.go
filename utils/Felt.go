@@ -120,10 +120,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	}
 
 	hexarr := []string{}
-	var (
-		count uint64
-		size  uint64
-	)
+	var count, size uint64
 
 	for _, val := range arr {
 		if len(val) == SHORT_LENGTH {
@@ -139,9 +136,6 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 		return nil, err
 	}
 
-	if size > 0 {
-		harr = append(harr, new(felt.Felt).SetUint64(size))
-	}
-
+	harr = append(harr, new(felt.Felt).SetUint64(size))
 	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
 }
