@@ -61,6 +61,12 @@ operations on the wallets. The package has excellent documentation for a smooth
 
 ***starknet simpleCall***
 
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file
+1. Make sure you are in the "simpleCall" directory
+1. Execute `go run main.go`
+   
 ```sh
 cd examples/simpleCall
 go mod tidy
@@ -70,6 +76,16 @@ go run main.go
 
 ***starknet deployAccount***
 
+This example uses a pre-existing class on the Sepolia network to deploy a new account contract. To successfully run this example, you will need: 1) a Sepolia endpoint, and 2) some Sepolia ETH to fund the precomputed address.
+
+Steps:
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Make sure you are in the "deployAccount" directory
+1. Execute `go run main.go`
+1. Fund the precomputed address using a starknet faucet, eg https://starknet-faucet.vercel.app/
+1. Press any key, then enter
+ 
 ```sh
 cd examples/deployAccount
 go mod tidy
@@ -79,6 +95,15 @@ go run main.go
 > Check [here](examples/deployAccount/README.md) for more details
 
 ***starknet invokeTransaction***
+
+Steps:
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
+1. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+1. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+1. Make sure you are in the "simpleInvoke" directory
+1. Execute `go run main.go`
 
 ```sh
 cd examples/simpleInvoke
