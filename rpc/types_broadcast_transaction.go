@@ -14,7 +14,7 @@ var (
 )
 
 type BroadcastInvokeTxnType interface {
-	InvokeType() string
+	GetCalldata() []*felt.Felt
 }
 
 var (
@@ -42,24 +42,24 @@ type BroadcastInvokev0Txn struct {
 	InvokeTxnV0
 }
 
-func (tx BroadcastInvokev0Txn) InvokeType() string {
-	return "BroadcastInvokev0Txn"
+func (tx BroadcastInvokev0Txn) GetCalldata() []*felt.Felt {
+	return tx.InvokeTxnV0.FunctionCall.Calldata
 }
 
 type BroadcastInvokev1Txn struct {
 	InvokeTxnV1
 }
 
-func (tx BroadcastInvokev1Txn) InvokeType() string {
-	return "BroadcastInvokev1Txn"
+func (tx BroadcastInvokev1Txn) GetCalldata() []*felt.Felt {
+	return tx.Calldata
 }
 
 type BroadcastInvokev3Txn struct {
 	InvokeTxnV3
 }
 
-func (tx BroadcastInvokev3Txn) InvokeType() string {
-	return "BroadcastInvokev3Txn"
+func (tx BroadcastInvokev3Txn) GetCalldata() []*felt.Felt {
+	return tx.Calldata
 }
 
 type BroadcastDeclareTxnV1 struct {
