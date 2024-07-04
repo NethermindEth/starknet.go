@@ -2,9 +2,11 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestByteArrToFelt(t *testing.T) {
+func TestStringToByteArrFelt(t *testing.T) {
 	var tests = []struct {
 		in  string
 		out []string
@@ -29,19 +31,10 @@ func TestByteArrToFelt(t *testing.T) {
 
 	for _, tc := range tests {
 		res, err := StringToByteArrFelt(tc.in)
-		if err != nil {
-			t.Fatalf("error in byte array conversion, err: %v", err)
-		}
-
-		if len(res) != len(tc.out) {
-			t.Fatalf("error in byte array conversion, invalid length")
-		}
+		require.NoError(t, err, "error returned from StringToByteArrFelt")
+		require.Len(t, res, len(tc.out), "invalid conversion: array sizes do not match")
 
 		out, _ := HexArrToFelt(tc.out)
-		for i, cmp := range out {
-			if !cmp.Equal(res[i]) {
-				t.Fatalf("invalid conversion, arr: %v", res)
-			}
-		}
+		require.Exactly(t, out, res, "invalid conversion: values do not match")
 	}
 }
