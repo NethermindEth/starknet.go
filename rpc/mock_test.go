@@ -643,7 +643,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 	}
 
 	switch args[0].(type) {
-	case DeclareTxnV2, DeclareTxnV3:
+	case BroadcastDeclareTxnV2, BroadcastDeclareTxnV3:
 		deadbeefFelt, err := utils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
 		if err != nil {
 			return err
@@ -831,7 +831,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, method string
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
 	switch args[0].(type) {
-	case DeployAccountTxn, DeployAccountTxnV3:
+	case BroadcastDeployAccountTxn, BroadcastDeployAccountTxnV3:
 
 		deadbeefFelt, err := utils.HexToFelt("0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e")
 		if err != nil {

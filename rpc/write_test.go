@@ -17,7 +17,7 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
-		DeclareTx     BroadcastAddDeployTxnType
+		DeclareTx     BroadcastDeclareTxnType
 		ExpectedResp  AddDeclareTransactionResponse
 		ExpectedError error
 	}
@@ -26,43 +26,44 @@ func TestDeclareTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				DeclareTx: DeclareTxnV2{},
+				DeclareTx: BroadcastDeclareTxnV2{},
 				ExpectedResp: AddDeclareTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
 			},
 			{
-				DeclareTx: DeclareTxnV3{
-					Type:          TransactionType_Declare,
-					Version:       TransactionV3,
-					Signature:     []*felt.Felt{},
-					Nonce:         utils.TestHexToFelt(t, "0x0"),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
+				DeclareTx: BroadcastDeclareTxnV3{
+					DeclareTxnV3: DeclareTxnV3{
+						Type:          TransactionType_Declare,
+						Version:       TransactionV3,
+						Signature:     []*felt.Felt{},
+						Nonce:         utils.TestHexToFelt(t, "0x0"),
+						NonceDataMode: DAModeL1,
+						FeeMode:       DAModeL1,
+						ResourceBounds: ResourceBoundsMapping{
+							L1Gas: ResourceBounds{
+								MaxAmount:       "0x0",
+								MaxPricePerUnit: "0x0",
+							},
+							L2Gas: ResourceBounds{
+								MaxAmount:       "0x0",
+								MaxPricePerUnit: "0x0",
+							},
 						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
-						},
-					},
-					Tip:                   "",
-					PayMasterData:         []*felt.Felt{},
-					SenderAddress:         utils.TestHexToFelt(t, "0x0"),
-					CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
-					ClassHash:             utils.TestHexToFelt(t, "0x0"),
-					AccountDeploymentData: []*felt.Felt{},
-				},
+						Tip:                   "",
+						PayMasterData:         []*felt.Felt{},
+						SenderAddress:         utils.TestHexToFelt(t, "0x0"),
+						CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
+						ClassHash:             utils.TestHexToFelt(t, "0x0"),
+						AccountDeploymentData: []*felt.Felt{},
+					}},
 				ExpectedResp: AddDeclareTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
 			},
 		},
 		"testnet": {{
-			DeclareTx: DeclareTxnV1{},
+			DeclareTx: BroadcastDeclareTxnV1{},
 			ExpectedResp: AddDeclareTransactionResponse{
 				TransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9")},
 			ExpectedError: errors.New("Invalid Params"),
@@ -76,7 +77,7 @@ func TestDeclareTransaction(t *testing.T) {
 			if err != nil {
 				t.Fatal("should be able to read file", err)
 			}
-			var declareTx AddDeclareTxnInput
+			var declareTx BroadcastDeclareTxnType // AddDeclareTxnInput
 			require.Nil(t, json.Unmarshal(declareTxJSON, &declareTx), "Error unmarshalling decalreTx")
 			test.DeclareTx = declareTx
 		}
@@ -193,7 +194,7 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				DeployTx: DeployAccountTxn{},
+				DeployTx: BroadcastDeployAccountTxn{DeployAccountTxn{}},
 				ExpectedResp: AddDeployAccountTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
 					ContractAddress: utils.TestHexToFelt(t, "0x0"),
@@ -201,34 +202,35 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				DeployTx: DeployAccountTxnV3{
-					Type:      TransactionType_DeployAccount,
-					Version:   TransactionV3,
-					ClassHash: utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-					Signature: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-						utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
-					},
-					Nonce:         new(felt.Felt),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
+				DeployTx: BroadcastDeployAccountTxnV3{
+					DeployAccountTxnV3{
+						Type:      TransactionType_DeployAccount,
+						Version:   TransactionV3,
+						ClassHash: utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
+						Signature: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
+							utils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
 						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "",
-							MaxPricePerUnit: "",
+						Nonce:         new(felt.Felt),
+						NonceDataMode: DAModeL1,
+						FeeMode:       DAModeL1,
+						ResourceBounds: ResourceBoundsMapping{
+							L1Gas: ResourceBounds{
+								MaxAmount:       "0x186a0",
+								MaxPricePerUnit: "0x5af3107a4000",
+							},
+							L2Gas: ResourceBounds{
+								MaxAmount:       "",
+								MaxPricePerUnit: "",
+							},
 						},
-					},
-					Tip:                 "",
-					PayMasterData:       []*felt.Felt{},
-					ContractAddressSalt: new(felt.Felt),
-					ConstructorCalldata: []*felt.Felt{
-						utils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
-					},
-				},
+						Tip:                 "",
+						PayMasterData:       []*felt.Felt{},
+						ContractAddressSalt: new(felt.Felt),
+						ConstructorCalldata: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
+						},
+					}},
 				ExpectedResp: AddDeployAccountTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
 					ContractAddress: utils.TestHexToFelt(t, "0x0")},
