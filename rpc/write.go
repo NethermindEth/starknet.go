@@ -39,14 +39,6 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn Br
 // - *AddDeclareTransactionResponse: The response of submitting the declare transaction
 // - error: an error if any
 func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxnType) (*AddDeclareTransactionResponse, error) {
-
-	switch txn := declareTransaction.(type) {
-	case DeclareTxnV2:
-		// DeclareTxnV2 should not have a populated class hash field. It is only needed for signing.
-		txn.ClassHash = nil
-		declareTransaction = txn
-	}
-
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
 		return nil, tryUnwrapToRPCErr(
