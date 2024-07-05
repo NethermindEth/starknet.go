@@ -56,7 +56,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 - [simple call example](./examples/simpleCall) to make a contract call to a testnet contract.
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
 - [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
-- [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/).
+- [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/) on testnet.
 
 ### Run Examples
 
