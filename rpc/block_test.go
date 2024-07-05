@@ -365,7 +365,7 @@ func TestBlockWithTxsAndInvokeTXNV1(t *testing.T) {
 			Timestamp:        1714901729,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
+		Transactions: []IBlockTransaction{
 
 			BlockInvokeTxnV1{
 				TransactionHash: utils.TestHexToFelt(t, "0x5f14364b746abcfdfc0280877ff6d18c311d363e62264d7f218c5da2d396acc"),
@@ -474,7 +474,7 @@ func TestBlockWithTxsAndInvokeTXNV3(t *testing.T) {
 			Timestamp:        1661450764,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
+		Transactions: []IBlockTransaction{
 			BlockInvokeTxnV3{
 				TransactionHash: utils.TestHexToFelt(t, "0xb91eada292de46f4ec663bac57699c7b8f8fa454a8efad91fde7f35d941199"),
 				InvokeTxnV3: InvokeTxnV3{
@@ -614,7 +614,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1715289398,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
+		Transactions: []IBlockTransaction{
 			BlockDeployAccountTxn{
 				TransactionHash: utils.TestHexToFelt(t, "0x26e30d2ed579c1ff575710d8ce29d9056e67ac08ab261a7221d384734d6ad5a"),
 				DeployAccountTxn: DeployAccountTxn{
@@ -659,7 +659,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1715244926,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
+		Transactions: []IBlockTransaction{
 			BlockDeclareTxnV1{
 				TransactionHash: utils.TestHexToFelt(t, "0x3c7817502dac2dc90198c6b64b85f3700507d74c75e08af85164e1b35e3a8b5"),
 				DeclareTxnV1: DeclareTxnV1{
@@ -688,7 +688,7 @@ func TestBlockWithTxsAndDeployOrDeclare(t *testing.T) {
 			Timestamp:        1715292305,
 		},
 		Status: "ACCEPTED_ON_L1",
-		Transactions: []BlockTransaction{
+		Transactions: []IBlockTransaction{
 			BlockDeclareTxnV2{
 				TransactionHash: utils.TestHexToFelt(t, "0x3e68091ecacab5a880ae8d9847d7b87408bbf05270ded34e082577acfdc3770"),
 				DeclareTxnV2: DeclareTxnV2{

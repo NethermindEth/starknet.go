@@ -342,7 +342,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	}
 
 	arg0Felt := args[0].(*felt.Felt)
-	l1BlockHash,err:=new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
+	l1BlockHash, err := new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		}
 
 		return json.Unmarshal(txnReceipt, &r)
-	} else if arg0Felt.Equal(l1BlockHash){
+	} else if arg0Felt.Equal(l1BlockHash) {
 		var txnRec TransactionReceiptWithBlockInfo
 		read, err := os.ReadFile("tests/receipt/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
 		if err != nil {
@@ -1094,32 +1094,152 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	_, ok = args[0].(BlockID)
+	blockId, ok := args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
 
-	var blockWithReceipts struct {
-		Result BlockWithReceipts `json:"result"`
-	}
-	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
-
+	fakeFeltField, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(read, &blockWithReceipts)
-	if err != nil {
-		return err
+	if blockId.Tag == "pending" {
+		pBlock, err := json.Marshal(
+			PendingBlockWithReceipts{
+				PendingBlockHeader{
+					ParentHash:       new(felt.Felt).SetUint64(1),
+					Timestamp:        123,
+					SequencerAddress: new(felt.Felt).SetUint64(1),
+					L1GasPrice: ResourcePrice{
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+						PriceInWei: new(felt.Felt).SetUint64(1),
+					},
+					L1DataGasPrice: ResourcePrice{
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+						PriceInWei: new(felt.Felt).SetUint64(1),
+					},
+					L1DAMode:        L1DAModeBlob,
+					StarknetVersion: "0.13",
+				},
+				BlockBodyWithReceipts{
+					Transactions: []TransactionWithReceipt{
+						{
+							Transaction: BlockTransaction{
+								BlockInvokeTxnV1{
+									TransactionHash: fakeFeltField,
+									InvokeTxnV1: InvokeTxnV1{
+										Type:          "INVOKE",
+										Version:       TransactionV1,
+										Nonce:         new(felt.Felt).SetUint64(1),
+										MaxFee:        new(felt.Felt).SetUint64(1),
+										SenderAddress: fakeFeltField,
+										Signature: []*felt.Felt{
+											fakeFeltField,
+										},
+										Calldata: []*felt.Felt{
+											new(felt.Felt).SetUint64(1),
+										},
+									},
+								},
+							},
+							Receipt: UnknownTransactionReceipt{
+								TransactionReceipt: InvokeTransactionReceipt{
+									Type:            "INVOKE",
+									TransactionHash: fakeFeltField,
+									ActualFee: FeePayment{
+										Amount: new(felt.Felt).SetUint64(1),
+										Unit:   UnitWei,
+									},
+									ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+									FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+									MessagesSent:    []MsgToL1{},
+									Events:          []Event{},
+								},
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(pBlock, &r)
+		if err != nil {
+			return err
+		}
+	} else {
+		block, err := json.Marshal(
+			BlockWithReceipts{
+				BlockHeader{
+					BlockHash:        fakeFeltField,
+					ParentHash:       new(felt.Felt).SetUint64(1),
+					BlockNumber:      1,
+					NewRoot:          new(felt.Felt).SetUint64(1),
+					Timestamp:        123,
+					SequencerAddress: new(felt.Felt).SetUint64(1),
+					L1GasPrice: ResourcePrice{
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+						PriceInWei: new(felt.Felt).SetUint64(1),
+					},
+					L1DataGasPrice: ResourcePrice{
+						PriceInFRI: new(felt.Felt).SetUint64(1),
+						PriceInWei: new(felt.Felt).SetUint64(1),
+					},
+					L1DAMode:        L1DAModeBlob,
+					StarknetVersion: "0.13",
+				},
+				"ACCEPTED_ON_L1",
+				BlockBodyWithReceipts{
+					Transactions: []TransactionWithReceipt{
+						{
+							Transaction: BlockTransaction{
+								BlockInvokeTxnV1{
+									TransactionHash: fakeFeltField,
+									InvokeTxnV1: InvokeTxnV1{
+										Type:          "INVOKE",
+										Version:       TransactionV1,
+										Nonce:         new(felt.Felt).SetUint64(1),
+										MaxFee:        new(felt.Felt).SetUint64(1),
+										SenderAddress: fakeFeltField,
+										Signature: []*felt.Felt{
+											fakeFeltField,
+										},
+										Calldata: []*felt.Felt{
+											new(felt.Felt).SetUint64(1),
+										},
+									},
+								},
+							},
+							Receipt: UnknownTransactionReceipt{
+								TransactionReceipt: InvokeTransactionReceipt{
+									Type:            "INVOKE",
+									TransactionHash: fakeFeltField,
+									ActualFee: FeePayment{
+										Amount: new(felt.Felt).SetUint64(1),
+										Unit:   UnitWei,
+									},
+									ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+									FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+									MessagesSent:    []MsgToL1{},
+									Events:          []Event{},
+								},
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(block, &r); err != nil {
+			return err
+		}
 	}
 
-	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts.Result)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(blockWithReceiptsJSON, &r)
+	return nil
 }
 
 // mock_starknet_traceBlockTransactions is a function that traces the transactions of a block in the StarkNet network.
