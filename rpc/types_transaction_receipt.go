@@ -1,405 +1,185 @@
 package rpc
 
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"strconv"
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
 
-// 	"github.com/NethermindEth/juno/core/felt"
-// 	"github.com/NethermindEth/starknet.go/utils"
-// )
+	"github.com/NethermindEth/juno/core/felt"
+)
 
-// type FeePayment struct {
-// 	Amount *felt.Felt     `json:"amount"`
-// 	Unit   FeePaymentUnit `json:"unit"`
-// }
+type FeePayment struct {
+	Amount *felt.Felt     `json:"amount"`
+	Unit   FeePaymentUnit `json:"unit"`
+}
 
-// type FeePaymentUnit string
+type FeePaymentUnit string
 
-// const (
-// 	UnitWei  FeePaymentUnit = "WEI"
-// 	UnitStrk FeePaymentUnit = "FRI"
-// )
+const (
+	UnitWei  FeePaymentUnit = "WEI"
+	UnitStrk FeePaymentUnit = "FRI"
+)
 
-// // CommonTransactionReceipt Common properties for a transaction receipt
-// type CommonTransactionReceipt struct {
-// 	// TransactionHash The hash identifying the transaction
-// 	TransactionHash *felt.Felt `json:"transaction_hash"`
-// 	// ActualFee The fee that was charged by the sequencer
-// 	ActualFee       FeePayment         `json:"actual_fee"`
-// 	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
-// 	FinalityStatus  TxnFinalityStatus  `json:"finality_status"`
-// 	Type            TransactionType    `json:"type,omitempty"`
-// 	MessagesSent    []MsgToL1          `json:"messages_sent"`
-// 	RevertReason    string             `json:"revert_reason,omitempty"`
-// 	// Events The events emitted as part of this transaction
-// 	Events             []Event            `json:"events"`
-// 	ExecutionResources ExecutionResources `json:"execution_resources"`
-// }
+// TransactionReceipt represents the common structure of a transaction receipt.
+type TransactionReceipt struct {
+	TransactionHash    *felt.Felt         `json:"transaction_hash"`
+	ActualFee          FeePayment         `json:"actual_fee"`
+	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
+	Type               TransactionType    `json:"type,omitempty"`
+	MessagesSent       []MsgToL1          `json:"messages_sent"`
+	RevertReason       string             `json:"revert_reason,omitempty"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
+	ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
+	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
+}
 
-// // Hash returns the transaction hash associated with the CommonTransactionReceipt.
-// func (tr CommonTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
+func (tr TransactionReceipt) Hash() *felt.Felt {
+	return tr.TransactionHash
+}
 
-// func (tr CommonTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
+func (tr TransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
+	return tr.ExecutionStatus
+}
 
-// // TODO: check how we can move that type up in starknet.go/types
-// type TransactionType string
+type TransactionType string
 
-// const (
-// 	TransactionType_Declare       TransactionType = "DECLARE"
-// 	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
-// 	TransactionType_Deploy        TransactionType = "DEPLOY"
-// 	TransactionType_Invoke        TransactionType = "INVOKE"
-// 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
-// )
+const (
+	TransactionType_Declare       TransactionType = "DECLARE"
+	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionType_Deploy        TransactionType = "DEPLOY"
+	TransactionType_Invoke        TransactionType = "INVOKE"
+	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
+)
 
-// // UnmarshalJSON unmarshals the JSON data into a TransactionType.
-// //
-// // The function modifies the value of the TransactionType pointer tt based on the unmarshaled data.
-// // The supported JSON values and their corresponding TransactionType values are:
-// //   - "DECLARE" maps to TransactionType_Declare
-// //   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
-// //   - "DEPLOY" maps to TransactionType_Deploy
-// //   - "INVOKE" maps to TransactionType_Invoke
-// //   - "L1_HANDLER" maps to TransactionType_L1Handler
-// //
-// // If none of the supported values match the input data, the function returns an error.
-// //
-// //	nil if the unmarshaling is successful.
-// //
-// // Parameters:
-// // - data: It takes a byte slice as input representing the JSON data to be unmarshaled
-// // Returns:
-// // - error: an error if the unmarshaling fails
-// func (tt *TransactionType) UnmarshalJSON(data []byte) error {
-// 	unquoted, err := strconv.Unquote(string(data))
-// 	if err != nil {
-// 		return err
-// 	}
+func (tt *TransactionType) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
 
-// 	switch unquoted {
-// 	case "DECLARE":
-// 		*tt = TransactionType_Declare
-// 	case "DEPLOY_ACCOUNT":
-// 		*tt = TransactionType_DeployAccount
-// 	case "DEPLOY":
-// 		*tt = TransactionType_Deploy
-// 	case "INVOKE":
-// 		*tt = TransactionType_Invoke
-// 	case "L1_HANDLER":
-// 		*tt = TransactionType_L1Handler
-// 	default:
-// 		return fmt.Errorf("unsupported type: %s", data)
-// 	}
+	switch unquoted {
+	case "DECLARE":
+		*tt = TransactionType_Declare
+	case "DEPLOY_ACCOUNT":
+		*tt = TransactionType_DeployAccount
+	case "DEPLOY":
+		*tt = TransactionType_Deploy
+	case "INVOKE":
+		*tt = TransactionType_Invoke
+	case "L1_HANDLER":
+		*tt = TransactionType_L1Handler
+	default:
+		return fmt.Errorf("unsupported type: %s", data)
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
-// // MarshalJSON marshals the TransactionType to JSON.
-// //
-// // Returns:
-// // - []byte: a byte slice
-// // - error: an error if any
-// func (tt TransactionType) MarshalJSON() ([]byte, error) {
-// 	return []byte(strconv.Quote(string(tt))), nil
-// }
+func (tt TransactionType) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(tt))), nil
+}
 
-// // InvokeTransactionReceipt Invoke Transaction Receipt
-// type InvokeTransactionReceipt CommonTransactionReceipt
+type ComputationResources struct {
+	Steps               int `json:"steps"`
+	MemoryHoles         int `json:"memory_holes,omitempty"`
+	RangeCheckApps      int `json:"range_check_builtin_applications,omitempty"`
+	PedersenApps        int `json:"pedersen_builtin_applications,omitempty"`
+	PoseidonApps        int `json:"poseidon_builtin_applications,omitempty"`
+	ECOPApps            int `json:"ec_op_builtin_applications,omitempty"`
+	ECDSAApps           int `json:"ecdsa_builtin_applications,omitempty"`
+	BitwiseApps         int `json:"bitwise_builtin_applications,omitempty"`
+	KeccakApps          int `json:"keccak_builtin_applications,omitempty"`
+	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
+}
 
-// // Hash returns the hash of the invoke transaction receipt.
-// func (tr InvokeTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
+func (er *ComputationResources) Validate() bool {
+	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
+		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
+		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
+		return false
+	}
+	return true
+}
 
-// // GetExecutionStatus returns the execution status of the InvokeTransactionReceipt.
-// func (tr InvokeTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
+type ExecutionResources struct {
+	ComputationResources
+	DataAvailability `json:"data_availability"`
+}
 
-// // DeclareTransactionReceipt Declare Transaction Receipt
-// type DeclareTransactionReceipt CommonTransactionReceipt
+type DataAvailability struct {
+	L1Gas     uint `json:"l1_gas"`
+	L1DataGas uint `json:"l1_data_gas"`
+}
 
-// // Hash returns the transaction hash.
-// func (tr DeclareTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
+type TransactionReceiptWithBlockInfo struct {
+	TransactionReceipt
+	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+	BlockNumber uint       `json:"block_number,omitempty"`
+}
 
-// // GetExecutionStatus returns the execution status of the DeclareTransactionReceipt function.
-// func (tr DeclareTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
+func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
+	aux := &struct {
+		TransactionReceipt
+		BlockHash   string `json:"block_hash,omitempty"`
+		BlockNumber uint   `json:"block_number,omitempty"`
+	}{
+		TransactionReceipt: t.TransactionReceipt,
+		BlockHash:          t.BlockHash.String(),
+		BlockNumber:        t.BlockNumber,
+	}
 
-// // DeployTransactionReceipt Deploy  Transaction Receipt
-// type DeployTransactionReceipt struct {
-// 	CommonTransactionReceipt
-// 	// The address of the deployed contract
-// 	ContractAddress *felt.Felt `json:"contract_address"`
-// }
+	return json.Marshal(aux)
+}
 
-// // Hash returns the transaction hash of the DeployTransactionReceipt.
-// func (tr DeployTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
+func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
+	var aux struct {
+		TransactionHash    *felt.Felt         `json:"transaction_hash"`
+		ActualFee          FeePayment         `json:"actual_fee"`
+		ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+		FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
+		Type               TransactionType    `json:"type,omitempty"`
+		MessagesSent       []MsgToL1          `json:"messages_sent"`
+		RevertReason       string             `json:"revert_reason,omitempty"`
+		Events             []Event            `json:"events"`
+		ExecutionResources ExecutionResources `json:"execution_resources"`
+		ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
+		MessageHash        NumAsHex           `json:"message_hash,omitempty"`
+		BlockHash          string             `json:"block_hash,omitempty"`
+		BlockNumber        uint               `json:"block_number,omitempty"`
+	}
 
-// // GetExecutionStatus returns the execution status of the DeployTransactionReceipt.
-// func (tr DeployTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
 
-// // DeployAccountTransactionReceipt Deploy Account Transaction Receipt
-// type DeployAccountTransactionReceipt struct {
-// 	CommonTransactionReceipt
-// 	// ContractAddress The address of the deployed contract
-// 	ContractAddress *felt.Felt `json:"contract_address"`
-// }
+	tr.TransactionReceipt = TransactionReceipt{
+		TransactionHash:    aux.TransactionHash,
+		ActualFee:          aux.ActualFee,
+		ExecutionStatus:    aux.ExecutionStatus,
+		FinalityStatus:     aux.FinalityStatus,
+		Type:               aux.Type,
+		MessagesSent:       aux.MessagesSent,
+		RevertReason:       aux.RevertReason,
+		Events:             aux.Events,
+		ExecutionResources: aux.ExecutionResources,
+		ContractAddress:    aux.ContractAddress,
+		MessageHash:        aux.MessageHash,
+	}
 
-// // Hash returns the transaction hash for the given DeployAccountTransactionReceipt.
-// func (tr DeployAccountTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
+	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
+	if err != nil {
+		return err
+	}
+	tr.BlockHash = blockHash
+	tr.BlockNumber = aux.BlockNumber
 
-// // GetExecutionStatus returns the execution status of the DeployAccountTransactionReceipt.
-// func (tr DeployAccountTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
+	return nil
+}
 
-// // L1HandlerTransactionReceipt L1 Handler Transaction Receipt
-// type L1HandlerTransactionReceipt struct {
-// 	MessageHash NumAsHex `json:"message_hash"`
-// 	CommonTransactionReceipt
-// }
-
-// // Hash returns the transaction hash.
-// func (tr L1HandlerTransactionReceipt) Hash() *felt.Felt {
-// 	return tr.TransactionHash
-// }
-
-// // GetExecutionStatus returns the execution status of the L1HandlerTransactionReceipt.
-// func (tr L1HandlerTransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-// 	return tr.ExecutionStatus
-// }
-
-// type ComputationResources struct {
-// 	// The number of Cairo steps used
-// 	Steps int `json:"steps"`
-// 	// The number of unused memory cells (each cell is roughly equivalent to a step)
-// 	MemoryHoles int `json:"memory_holes,omitempty"`
-// 	// The number of RANGE_CHECK builtin instances
-// 	RangeCheckApps int `json:"range_check_builtin_applications,omitempty"`
-// 	// The number of Pedersen builtin instances
-// 	PedersenApps int `json:"pedersen_builtin_applications,omitempty"`
-// 	// The number of Poseidon builtin instances
-// 	PoseidonApps int `json:"poseidon_builtin_applications,omitempty"`
-// 	// The number of EC_OP builtin instances
-// 	ECOPApps int `json:"ec_op_builtin_applications,omitempty"`
-// 	// The number of ECDSA builtin instances
-// 	ECDSAApps int `json:"ecdsa_builtin_applications,omitempty"`
-// 	// The number of BITWISE builtin instances
-// 	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
-// 	// The number of KECCAK builtin instances
-// 	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
-// 	// The number of accesses to the segment arena
-// 	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
-// }
-
-// // Validate checks if the fields are non-zero (to match the starknet-specs)
-// func (er *ComputationResources) Validate() bool {
-// 	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
-// 		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
-// 		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
-// 		return false
-// 	}
-// 	return true
-// }
-
-// // The resources consumed by the transaction, includes both computation and data.
-// type ExecutionResources struct {
-// 	ComputationResources
-// 	DataAvailability `json:"data_availability"`
-// }
-
-// type DataAvailability struct {
-// 	// the gas consumed by this transaction's data, 0 if it uses data gas for DA
-// 	L1Gas uint `json:"l1_gas"`
-// 	// the data gas consumed by this transaction's data, 0 if it uses gas for DA
-// 	L1DataGas uint `json:"l1_data_gas"`
-// }
-
-// type TransactionReceipt interface {
-// 	Hash() *felt.Felt
-// 	GetExecutionStatus() TxnExecutionStatus
-// }
-
-// type OrderedMsg struct {
-// 	// The order of the message within the transaction
-// 	Order   int `json:"order"`
-// 	MsgToL1 MsgToL1
-// }
-
-// type MsgToL1 struct {
-// 	// FromAddress The address of the L2 contract sending the message
-// 	FromAddress *felt.Felt `json:"from_address"`
-// 	// ToAddress The target L1 address the message is sent to
-// 	ToAddress *felt.Felt `json:"to_address"`
-// 	//Payload  The payload of the message
-// 	Payload []*felt.Felt `json:"payload"`
-// }
-
-// type MsgFromL1 struct {
-// 	// FromAddress The address of the L1 contract sending the message
-// 	FromAddress string `json:"from_address"`
-// 	// ToAddress The target L2 address the message is sent to
-// 	ToAddress *felt.Felt `json:"to_address"`
-// 	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
-// 	Selector *felt.Felt `json:"entry_point_selector"`
-// 	//Payload  The payload of the message
-// 	Payload []*felt.Felt `json:"payload"`
-// }
-
-// type UnknownTransactionReceipt struct{ TransactionReceipt }
-
-// // UnmarshalJSON unmarshals the given JSON data into an UnknownTransactionReceipt.
-// //
-// // Parameters:
-// // - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
-// // Returns:
-// // - error: an error if the unmarshaling fails
-// func (tr *UnknownTransactionReceipt) UnmarshalJSON(data []byte) error {
-// 	var dec map[string]interface{}
-// 	if err := json.Unmarshal(data, &dec); err != nil {
-// 		return err
-// 	}
-
-// 	// BlockWithReceipts wrap receipts in the TransactionReceipt field.
-// 	dec, err := utils.UnwrapJSON(dec, "TransactionReceipt")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	bytes, err := json.Marshal(dec)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	t, err := unmarshalTransactionReceipt(bytes)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	*tr = UnknownTransactionReceipt{t}
-// 	return nil
-// }
-
-// // unmarshalTransactionReceipt unmarshals a transaction receipt from a generic interface.
-// //
-// // Parameters:
-// // - t: The interface{} to be unmarshalled
-// // Returns:
-// // - TransactionReceipt: a TransactionReceipt
-// // - error: an error if the unmarshaling fails
-// func unmarshalTransactionReceipt(data []byte) (TransactionReceipt, error) {
-
-// 	var dec map[string]interface{}
-// 	if err := json.Unmarshal(data, &dec); err != nil {
-// 		return nil, err
-// 	}
-
-// 	typ, ok := dec["type"]
-// 	if !ok {
-// 		return nil, fmt.Errorf("unknown transaction type: %v", typ)
-// 	}
-
-// 	jsonData, err := json.Marshal(dec)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	switch TransactionType(typ.(string)) {
-// 	case TransactionType_Invoke:
-// 		var txn InvokeTransactionReceipt
-// 		err := json.Unmarshal(jsonData, &txn)
-// 		return txn, err
-// 	case TransactionType_L1Handler:
-// 		var txn L1HandlerTransactionReceipt
-// 		err := json.Unmarshal(jsonData, &txn)
-// 		return txn, err
-// 	case TransactionType_Declare:
-// 		var txn DeclareTransactionReceipt
-// 		err := json.Unmarshal(jsonData, &txn)
-// 		return txn, err
-// 	case TransactionType_Deploy:
-// 		var txn DeployTransactionReceipt
-// 		err := json.Unmarshal(jsonData, &txn)
-// 		return txn, err
-// 	case TransactionType_DeployAccount:
-// 		var txn DeployAccountTransactionReceipt
-// 		err := json.Unmarshal(jsonData, &txn)
-// 		return txn, err
-// 	}
-
-// 	return nil, fmt.Errorf("unknown transaction type: %v", typ)
-// }
-
-// // The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
-// type TxnStatus string
-
-// const (
-// 	TxnStatus_Received       TxnStatus = "RECEIVED"
-// 	TxnStatus_Rejected       TxnStatus = "REJECTED"
-// 	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
-// 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
-// )
-
-// type TxnStatusResp struct {
-// 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
-// 	FinalityStatus  TxnStatus          `json:"finality_status"`
-// }
-
-// type TransactionReceiptWithBlockInfo struct {
-// 	UnknownTransactionReceipt
-// 	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
-// 	BlockNumber uint       `json:"block_number,omitempty"`
-// }
-
-// func (t *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
-// 	var uTxnRec UnknownTransactionReceipt
-// 	err := uTxnRec.UnmarshalJSON(data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	t.UnknownTransactionReceipt = uTxnRec
-
-// 	aux := &struct {
-// 		BlockHash   string `json:"block_hash,omitempty"`
-// 		BlockNumber uint   `json:"block_number,omitempty"`
-// 	}{}
-
-// 	if err := json.Unmarshal(data, &aux); err != nil {
-// 		return err
-// 	}
-// 	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	t.BlockHash = blockHash
-// 	t.BlockNumber = aux.BlockNumber
-
-// 	return nil
-// }
-
-// func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
-// 	aux := &struct {
-// 		TransactionReceipt
-// 		BlockHash   string `json:"block_hash,omitempty"`
-// 		BlockNumber uint   `json:"block_number,omitempty"`
-// 	}{
-// 		TransactionReceipt: t.UnknownTransactionReceipt.TransactionReceipt,
-// 		BlockHash:          t.BlockHash.String(),
-// 		BlockNumber:        t.BlockNumber,
-// 	}
-
-// 	return json.Marshal(aux)
-// }
+type MsgToL1 struct {
+	FromAddress *felt.Felt   `json:"from_address"`
+	ToAddress   *felt.Felt   `json:"to_address"`
+	Payload     []*felt.Felt `json:"payload"`
+}
