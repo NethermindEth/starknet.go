@@ -23,7 +23,9 @@ var (
 	_ BroadcastInvokeTxnType = BroadcastInvokev3Txn{}
 )
 
-type BroadcastDeclareTxnType interface{}
+type BroadcastDeclareTxnType interface {
+	GetContractClass() interface{}
+}
 
 var (
 	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV1{}
@@ -31,7 +33,9 @@ var (
 	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV3{}
 )
 
-type BroadcastAddDeployTxnType interface{}
+type BroadcastAddDeployTxnType interface {
+	GetConstructorCalldata() []*felt.Felt
+}
 
 var (
 	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxn{}
@@ -72,6 +76,11 @@ type BroadcastDeclareTxnV1 struct {
 	Nonce         *felt.Felt              `json:"nonce"`
 	ContractClass DeprecatedContractClass `json:"contract_class"`
 }
+
+func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
+	return tx.ContractClass
+}
+
 type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
@@ -84,29 +93,31 @@ type BroadcastDeclareTxnV2 struct {
 	ContractClass     ContractClass      `json:"contract_class"`
 }
 
+func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
+	return tx.ContractClass
+}
+
 type BroadcastDeclareTxnV3 struct {
-	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
-	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           TransactionVersion    `json:"version"`
-	Signature         []*felt.Felt          `json:"signature"`
-	Nonce             *felt.Felt            `json:"nonce"`
-	ContractClass     *ContractClass        `json:"contract_class"`
-	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               U64                   `json:"tip"`
-	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData []*felt.Felt `json:"paymaster_data"`
-	// The data needed to deploy the account contract from which this tx will be initiated
-	AccountDeploymentData *felt.Felt `json:"account_deployment_data"`
-	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
-	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+	DeclareTxnV3
+	ContractClass *ContractClass `json:"contract_class"`
+}
+
+func (tx BroadcastDeclareTxnV3) GetContractClass() interface{} {
+	return *tx.ContractClass
 }
 
 type BroadcastDeployAccountTxn struct {
 	DeployAccountTxn
 }
+
+func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
+
 type BroadcastDeployAccountTxnV3 struct {
 	DeployAccountTxnV3
+}
+
+func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
 }
