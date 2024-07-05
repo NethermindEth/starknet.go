@@ -53,9 +53,10 @@ operations on the wallets. The package has excellent documentation for a smooth
 # Getting Started
 
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
-- [simple call example](./examples/simpleCall) to make a contract call to a mainnet contract
+- [simple call example](./examples/simpleCall) to make a contract call to a testnet contract.
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
 - [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
+- [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/).
 
 ### Run Examples
 
@@ -84,6 +85,15 @@ go run main.go
 ```
 
 > Check [here](examples/simpleInvoke/README.md) for more details
+
+***starknet deployContractUDC***
+
+```sh
+cd examples/deployContractUDC
+go run main.go
+```
+
+> Check [here](examples/deployContractUDC/README.md) for more details
 
 
 ### RPC
