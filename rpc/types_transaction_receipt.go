@@ -8,6 +8,32 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+type MsgToL1 struct {
+	// FromAddress The address of the L2 contract sending the message
+	FromAddress *felt.Felt `json:"from_address"`
+	// ToAddress The target L1 address the message is sent to
+	ToAddress *felt.Felt `json:"to_address"`
+	//Payload  The payload of the message
+	Payload []*felt.Felt `json:"payload"`
+}
+
+type MsgFromL1 struct {
+	// FromAddress The address of the L1 contract sending the message
+	FromAddress string `json:"from_address"`
+	// ToAddress The target L2 address the message is sent to
+	ToAddress *felt.Felt `json:"to_address"`
+	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
+	Selector *felt.Felt `json:"entry_point_selector"`
+	//Payload  The payload of the message
+	Payload []*felt.Felt `json:"payload"`
+}
+
+type OrderedMsg struct {
+	// The order of the message within the transaction
+	Order   int `json:"order"`
+	MsgToL1 MsgToL1
+}
+
 type FeePayment struct {
 	Amount *felt.Felt     `json:"amount"`
 	Unit   FeePaymentUnit `json:"unit"`
@@ -53,6 +79,24 @@ const (
 	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
 )
 
+// UnmarshalJSON unmarshals the JSON data into a TransactionType.
+//
+// The function modifies the value of the TransactionType pointer tt based on the unmarshaled data.
+// The supported JSON values and their corresponding TransactionType values are:
+//   - "DECLARE" maps to TransactionType_Declare
+//   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
+//   - "DEPLOY" maps to TransactionType_Deploy
+//   - "INVOKE" maps to TransactionType_Invoke
+//   - "L1_HANDLER" maps to TransactionType_L1Handler
+//
+// If none of the supported values match the input data, the function returns an error.
+//
+//	nil if the unmarshaling is successful.
+//
+// Parameters:
+// - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+// Returns:
+// - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -77,20 +121,35 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON marshals the TransactionType to JSON.
+//
+// Returns:
+// - []byte: a byte slice
+// - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }
 
 type ComputationResources struct {
-	Steps               int `json:"steps"`
-	MemoryHoles         int `json:"memory_holes,omitempty"`
-	RangeCheckApps      int `json:"range_check_builtin_applications,omitempty"`
-	PedersenApps        int `json:"pedersen_builtin_applications,omitempty"`
-	PoseidonApps        int `json:"poseidon_builtin_applications,omitempty"`
-	ECOPApps            int `json:"ec_op_builtin_applications,omitempty"`
-	ECDSAApps           int `json:"ecdsa_builtin_applications,omitempty"`
-	BitwiseApps         int `json:"bitwise_builtin_applications,omitempty"`
-	KeccakApps          int `json:"keccak_builtin_applications,omitempty"`
+	// The number of Cairo steps used
+	Steps int `json:"steps"`
+	// The number of unused memory cells (each cell is roughly equivalent to a step)
+	MemoryHoles int `json:"memory_holes,omitempty"`
+	// The number of RANGE_CHECK builtin instances
+	RangeCheckApps int `json:"range_check_builtin_applications,omitempty"`
+	// The number of Pedersen builtin instances
+	PedersenApps int `json:"pedersen_builtin_applications,omitempty"`
+	// The number of Poseidon builtin instances
+	PoseidonApps int `json:"poseidon_builtin_applications,omitempty"`
+	// The number of EC_OP builtin instances
+	ECOPApps int `json:"ec_op_builtin_applications,omitempty"`
+	// The number of ECDSA builtin instances
+	ECDSAApps int `json:"ecdsa_builtin_applications,omitempty"`
+	// The number of BITWISE builtin instances
+	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
+	// The number of KECCAK builtin instances
+	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
+	// The number of accesses to the segment arena
 	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
 }
 
@@ -109,8 +168,24 @@ type ExecutionResources struct {
 }
 
 type DataAvailability struct {
-	L1Gas     uint `json:"l1_gas"`
+	// the gas consumed by this transaction's data, 0 if it uses data gas for DA
+	L1Gas uint `json:"l1_gas"`
+	// the data gas consumed by this transaction's data, 0 if it uses gas for DA
 	L1DataGas uint `json:"l1_data_gas"`
+}
+
+type TxnStatus string
+
+const (
+	TxnStatus_Received       TxnStatus = "RECEIVED"
+	TxnStatus_Rejected       TxnStatus = "REJECTED"
+	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
+)
+
+type TxnStatusResp struct {
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FinalityStatus  TxnStatus          `json:"finality_status"`
 }
 
 type TransactionReceiptWithBlockInfo struct {
@@ -176,10 +251,4 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 	tr.BlockNumber = aux.BlockNumber
 
 	return nil
-}
-
-type MsgToL1 struct {
-	FromAddress *felt.Felt   `json:"from_address"`
-	ToAddress   *felt.Felt   `json:"to_address"`
-	Payload     []*felt.Felt `json:"payload"`
 }
