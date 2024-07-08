@@ -93,7 +93,9 @@ cd examples/deployContractUDC
 go run main.go
 ```
 
-> Check [here](examples/deployContractUDC/README.md) for more details
+> Check [here](examples/deployContractUDC/README.md) for more details.
+
+> Check [here](examples/deployContractUDC/README.md) for some FAQ answered by these examples.
 
 
 ### RPC
