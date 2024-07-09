@@ -193,69 +193,67 @@ func TestBlockWithReceipts(t *testing.T) {
 							},
 						},
 					},
-					Receipt: UnknownTransactionReceipt{
-						TransactionReceipt: InvokeTransactionReceipt{
-							Type:            "INVOKE",
-							TransactionHash: utils.TestHexToFelt(t, "0x5d41f4dec3678156d3888d6b890648c3baa02d866820689d5f8b3e20735521b"),
-							ActualFee: FeePayment{
-								Amount: utils.TestHexToFelt(t, "0x1276c2c6477ed"),
-								Unit:   UnitWei,
-							},
-							ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-							FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-							MessagesSent:    []MsgToL1{},
-							Events: []Event{
-								{
-									FromAddress: utils.TestHexToFelt(t, "0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e"),
-									Keys: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x297be67eb977068ccd2304c6440368d4a6114929aeb860c98b6a7e91f96e2ef"),
-										utils.TestHexToFelt(t, "0x436f6e74726f6c"),
-									},
-									Data: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x1"),
-										utils.TestHexToFelt(t, "0xa250005"),
-										utils.TestHexToFelt(t, "0x1"),
-										utils.TestHexToFelt(t, "0xe52"),
-									},
+					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
+						TransactionHash: utils.TestHexToFelt(t, "0x5d41f4dec3678156d3888d6b890648c3baa02d866820689d5f8b3e20735521b"),
+						ActualFee: FeePayment{
+							Amount: utils.TestHexToFelt(t, "0x1276c2c6477ed"),
+							Unit:   UnitWei,
+						},
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						MessagesSent:    []MsgToL1{},
+						Events: []Event{
+							{
+								FromAddress: utils.TestHexToFelt(t, "0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e"),
+								Keys: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x297be67eb977068ccd2304c6440368d4a6114929aeb860c98b6a7e91f96e2ef"),
+									utils.TestHexToFelt(t, "0x436f6e74726f6c"),
 								},
-								{
-									FromAddress: utils.TestHexToFelt(t, "0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e"),
-									Keys: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x1085a37d58e6a75db0dadc9bb9e6707ed9c5630aec61fdcdcd832decec751c0"),
-									},
-									Data: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x5"),
-										utils.TestHexToFelt(t, "0xa25"),
-										utils.TestHexToFelt(t, "0x1"),
-										utils.TestHexToFelt(t, "0xe52"),
-										utils.TestHexToFelt(t, "0x3543d2f0290e39a08cfdf2245f14aec7dca60672b7c7458375f3cb3834e1067"),
-									},
-								},
-								{
-									FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-									Keys: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
-									},
-									Data: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x3543d2f0290e39a08cfdf2245f14aec7dca60672b7c7458375f3cb3834e1067"),
-										utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-										utils.TestHexToFelt(t, "0x1276c2c6477ed"),
-										utils.TestHexToFelt(t, "0x0"),
-									},
+								Data: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x1"),
+									utils.TestHexToFelt(t, "0xa250005"),
+									utils.TestHexToFelt(t, "0x1"),
+									utils.TestHexToFelt(t, "0xe52"),
 								},
 							},
-							ExecutionResources: ExecutionResources{
-								ComputationResources{
-									Steps:          34408,
-									PedersenApps:   27,
-									RangeCheckApps: 1077,
-									ECOPApps:       3,
-									PoseidonApps:   65,
+							{
+								FromAddress: utils.TestHexToFelt(t, "0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e"),
+								Keys: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x1085a37d58e6a75db0dadc9bb9e6707ed9c5630aec61fdcdcd832decec751c0"),
 								},
-								DataAvailability{
-									L1Gas:     0,
-									L1DataGas: 256,
+								Data: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x5"),
+									utils.TestHexToFelt(t, "0xa25"),
+									utils.TestHexToFelt(t, "0x1"),
+									utils.TestHexToFelt(t, "0xe52"),
+									utils.TestHexToFelt(t, "0x3543d2f0290e39a08cfdf2245f14aec7dca60672b7c7458375f3cb3834e1067"),
 								},
+							},
+							{
+								FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+								Keys: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+								},
+								Data: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x3543d2f0290e39a08cfdf2245f14aec7dca60672b7c7458375f3cb3834e1067"),
+									utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+									utils.TestHexToFelt(t, "0x1276c2c6477ed"),
+									utils.TestHexToFelt(t, "0x0"),
+								},
+							},
+						},
+						ExecutionResources: ExecutionResources{
+							ComputationResources{
+								Steps:          34408,
+								PedersenApps:   27,
+								RangeCheckApps: 1077,
+								ECOPApps:       3,
+								PoseidonApps:   65,
+							},
+							DataAvailability{
+								L1Gas:     0,
+								L1DataGas: 256,
 							},
 						},
 					},
@@ -314,54 +312,52 @@ func TestBlockWithReceipts(t *testing.T) {
 							},
 						},
 					},
-					Receipt: UnknownTransactionReceipt{
-						TransactionReceipt: InvokeTransactionReceipt{
-							Type:            "INVOKE",
-							TransactionHash: utils.TestHexToFelt(t, "0x7dd8facd75bdebed2a76eb29dfa49172efea4913eea0abbc3e90a1af3d2c6ed"),
-							ActualFee: FeePayment{
-								Amount: utils.TestHexToFelt(t, "0x1bdf725ee2"),
-								Unit:   UnitWei,
-							},
-							ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-							FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-							MessagesSent:    []MsgToL1{},
-							Events: []Event{
-								{
-									FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-									Keys: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
-									},
-									Data: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x4dcbde5783e7131bd21c4114e22723ee0db79a5060933235fabea35049b766e"),
-										utils.TestHexToFelt(t, "0x73b7f95acad70fc8b2746062d9cf87c3e1600e0add99f469945b9d03d35637a"),
-										utils.TestHexToFelt(t, "0x7180a5ffdd4fe"),
-										utils.TestHexToFelt(t, "0x0"),
-									},
+					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
+						TransactionHash: utils.TestHexToFelt(t, "0x7dd8facd75bdebed2a76eb29dfa49172efea4913eea0abbc3e90a1af3d2c6ed"),
+						ActualFee: FeePayment{
+							Amount: utils.TestHexToFelt(t, "0x1bdf725ee2"),
+							Unit:   UnitWei,
+						},
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						MessagesSent:    []MsgToL1{},
+						Events: []Event{
+							{
+								FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+								Keys: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 								},
-								{
-									FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-									Keys: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
-									},
-									Data: []*felt.Felt{
-										utils.TestHexToFelt(t, "0x4dcbde5783e7131bd21c4114e22723ee0db79a5060933235fabea35049b766e"),
-										utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-										utils.TestHexToFelt(t, "0x1bdf725ee2"),
-										utils.TestHexToFelt(t, "0x0"),
-									},
+								Data: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x4dcbde5783e7131bd21c4114e22723ee0db79a5060933235fabea35049b766e"),
+									utils.TestHexToFelt(t, "0x73b7f95acad70fc8b2746062d9cf87c3e1600e0add99f469945b9d03d35637a"),
+									utils.TestHexToFelt(t, "0x7180a5ffdd4fe"),
+									utils.TestHexToFelt(t, "0x0"),
 								},
 							},
-							ExecutionResources: ExecutionResources{
-								ComputationResources{
-									Steps:          11453,
-									PedersenApps:   25,
-									RangeCheckApps: 224,
-									ECOPApps:       3,
+							{
+								FromAddress: utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+								Keys: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 								},
-								DataAvailability{
-									L1Gas:     0,
-									L1DataGas: 192,
+								Data: []*felt.Felt{
+									utils.TestHexToFelt(t, "0x4dcbde5783e7131bd21c4114e22723ee0db79a5060933235fabea35049b766e"),
+									utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+									utils.TestHexToFelt(t, "0x1bdf725ee2"),
+									utils.TestHexToFelt(t, "0x0"),
 								},
+							},
+						},
+						ExecutionResources: ExecutionResources{
+							ComputationResources{
+								Steps:          11453,
+								PedersenApps:   25,
+								RangeCheckApps: 224,
+								ECOPApps:       3,
+							},
+							DataAvailability{
+								L1Gas:     0,
+								L1DataGas: 192,
 							},
 						},
 					},
@@ -411,19 +407,17 @@ func TestBlockWithReceipts(t *testing.T) {
 							},
 						},
 					},
-					Receipt: UnknownTransactionReceipt{
-						TransactionReceipt: InvokeTransactionReceipt{
-							Type:            "INVOKE",
-							TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
-							ActualFee: FeePayment{
-								Amount: new(felt.Felt).SetUint64(1),
-								Unit:   UnitWei,
-							},
-							ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-							FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-							MessagesSent:    []MsgToL1{},
-							Events:          []Event{},
+					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
+						TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
+						ActualFee: FeePayment{
+							Amount: new(felt.Felt).SetUint64(1),
+							Unit:   UnitWei,
 						},
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						MessagesSent:    []MsgToL1{},
+						Events:          []Event{},
 					},
 				},
 			},
@@ -467,19 +461,17 @@ func TestBlockWithReceipts(t *testing.T) {
 							},
 						},
 					},
-					Receipt: UnknownTransactionReceipt{
-						TransactionReceipt: InvokeTransactionReceipt{
-							Type:            "INVOKE",
-							TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
-							ActualFee: FeePayment{
-								Amount: new(felt.Felt).SetUint64(1),
-								Unit:   UnitWei,
-							},
-							ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-							FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-							MessagesSent:    []MsgToL1{},
-							Events:          []Event{},
+					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
+						TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
+						ActualFee: FeePayment{
+							Amount: new(felt.Felt).SetUint64(1),
+							Unit:   UnitWei,
 						},
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						MessagesSent:    []MsgToL1{},
+						Events:          []Event{},
 					},
 				},
 			},

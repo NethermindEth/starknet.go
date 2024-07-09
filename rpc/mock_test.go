@@ -394,13 +394,13 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return err
 	}
 
-	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
+	transaction := TransactionReceipt{
 		TransactionHash: arg0Felt,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},
-	})
+	}
 	outputContent, err := json.Marshal(transaction)
 	if err != nil {
 		return err
@@ -1143,19 +1143,17 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 									},
 								},
 							},
-							Receipt: UnknownTransactionReceipt{
-								TransactionReceipt: InvokeTransactionReceipt{
-									Type:            "INVOKE",
-									TransactionHash: fakeFeltField,
-									ActualFee: FeePayment{
-										Amount: new(felt.Felt).SetUint64(1),
-										Unit:   UnitWei,
-									},
-									ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-									FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-									MessagesSent:    []MsgToL1{},
-									Events:          []Event{},
+							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
+								TransactionHash: fakeFeltField,
+								ActualFee: FeePayment{
+									Amount: new(felt.Felt).SetUint64(1),
+									Unit:   UnitWei,
 								},
+								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+								MessagesSent:    []MsgToL1{},
+								Events:          []Event{},
 							},
 						},
 					},
@@ -1212,19 +1210,17 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 									},
 								},
 							},
-							Receipt: UnknownTransactionReceipt{
-								TransactionReceipt: InvokeTransactionReceipt{
-									Type:            "INVOKE",
-									TransactionHash: fakeFeltField,
-									ActualFee: FeePayment{
-										Amount: new(felt.Felt).SetUint64(1),
-										Unit:   UnitWei,
-									},
-									ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-									FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-									MessagesSent:    []MsgToL1{},
-									Events:          []Event{},
+							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
+								TransactionHash: fakeFeltField,
+								ActualFee: FeePayment{
+									Amount: new(felt.Felt).SetUint64(1),
+									Unit:   UnitWei,
 								},
+								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+								MessagesSent:    []MsgToL1{},
+								Events:          []Event{},
 							},
 						},
 					},
