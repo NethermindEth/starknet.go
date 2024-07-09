@@ -394,13 +394,13 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return err
 	}
 
-	transaction := InvokeTransactionReceipt(CommonTransactionReceipt{
+	transaction := TransactionReceipt{
 		TransactionHash: arg0Felt,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},
-	})
+	}
 	outputContent, err := json.Marshal(transaction)
 	if err != nil {
 		return err
