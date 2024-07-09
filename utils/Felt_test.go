@@ -27,6 +27,18 @@ func TestStringToByteArrFelt(t *testing.T) {
 			in:  "Decentralized applications offer transparency and user control",
 			out: []string{"0x2", "0x446563656e7472616c697a6564206170706c69636174696f6e73206f666665", "0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c", "0x0"},
 		},
+		{
+			in:  "12345",
+			out: []string{"0x0", "0x3132333435", "0x5"},
+		},
+		{
+			in:  "1234567890123456789012345678901",
+			out: []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x0"},
+		},
+		{
+			in:  "12345678901234567890123456789012",
+			out: []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x32", "0x1"},
+		},
 	}
 
 	for _, tc := range tests {
@@ -61,6 +73,18 @@ func TestByteArrFeltToString(t *testing.T) {
 			in:  []string{"0x2", "0x446563656e7472616c697a6564206170706c69636174696f6e73206f666665", "0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c", "0x0"},
 			out: "Decentralized applications offer transparency and user control",
 		},
+		{
+			in:  []string{"0x0", "0x3132333435", "0x5"},
+			out: "12345",
+		},
+		{
+			in:  []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x0"},
+			out: "1234567890123456789012345678901",
+		},
+		{
+			in:  []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x32", "0x1"},
+			out: "12345678901234567890123456789012",
+		},
 	}
 
 	for _, tc := range tests {
@@ -68,6 +92,6 @@ func TestByteArrFeltToString(t *testing.T) {
 		require.NoError(t, err, "error returned from HexArrToFelt")
 		res, err := ByteArrFeltToString(in)
 		require.NoError(t, err, "error returned from ByteArrFeltToString")
-		require.Len(t, res, len(tc.out), "invalid conversion: array sizes do not match")
+		require.Equal(t, tc.out, res, "invalid conversion: output does not match")
 	}
 }

@@ -129,7 +129,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 		} else {
 			size = uint64(len(val))
 		}
-		hexarr = append(hexarr, hex.EncodeToString([]byte(val)))
+		hexarr = append(hexarr, "0x"+hex.EncodeToString([]byte(val)))
 	}
 
 	harr, err := HexArrToFelt(hexarr)
@@ -192,8 +192,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 }
 
 func feltToString(f *felt.Felt) (string, error) {
-	h := BigToHex(FeltToBigInt(f))
-	b, err := hex.DecodeString(h[2:])
+	b, err := hex.DecodeString(f.String()[2:])
 	if err != nil {
 		return "", fmt.Errorf("unable to decode to string")
 	}
