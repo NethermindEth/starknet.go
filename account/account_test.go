@@ -1026,7 +1026,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr, err)
 		} else {
-			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (resp.TransactionReceipt).GetExecutionStatus())
+			// check
+			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
 		}
 
 	}
@@ -1088,7 +1089,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		if test.ExpectedErr != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error())
 		} else {
-			require.Equal(t, test.ExpectedReceipt.GetExecutionStatus(), (*resp).GetExecutionStatus())
+			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
 
 	}

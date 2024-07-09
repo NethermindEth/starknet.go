@@ -61,14 +61,6 @@ type TransactionReceipt struct {
 	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
 }
 
-func (tr TransactionReceipt) Hash() *felt.Felt {
-	return tr.TransactionHash
-}
-
-func (tr TransactionReceipt) GetExecutionStatus() TxnExecutionStatus {
-	return tr.ExecutionStatus
-}
-
 type TransactionType string
 
 const (
