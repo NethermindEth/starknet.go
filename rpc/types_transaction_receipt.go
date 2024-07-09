@@ -210,38 +210,16 @@ func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 
 func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 	var aux struct {
-		TransactionHash    *felt.Felt         `json:"transaction_hash"`
-		ActualFee          FeePayment         `json:"actual_fee"`
-		ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
-		FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-		Type               TransactionType    `json:"type,omitempty"`
-		MessagesSent       []MsgToL1          `json:"messages_sent"`
-		RevertReason       string             `json:"revert_reason,omitempty"`
-		Events             []Event            `json:"events"`
-		ExecutionResources ExecutionResources `json:"execution_resources"`
-		ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
-		MessageHash        NumAsHex           `json:"message_hash,omitempty"`
-		BlockHash          string             `json:"block_hash,omitempty"`
-		BlockNumber        uint               `json:"block_number,omitempty"`
+		TransactionReceipt
+		BlockHash   string `json:"block_hash,omitempty"`
+		BlockNumber uint   `json:"block_number,omitempty"`
 	}
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 
-	tr.TransactionReceipt = TransactionReceipt{
-		TransactionHash:    aux.TransactionHash,
-		ActualFee:          aux.ActualFee,
-		ExecutionStatus:    aux.ExecutionStatus,
-		FinalityStatus:     aux.FinalityStatus,
-		Type:               aux.Type,
-		MessagesSent:       aux.MessagesSent,
-		RevertReason:       aux.RevertReason,
-		Events:             aux.Events,
-		ExecutionResources: aux.ExecutionResources,
-		ContractAddress:    aux.ContractAddress,
-		MessageHash:        aux.MessageHash,
-	}
+	tr.TransactionReceipt = aux.TransactionReceipt
 
 	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
 	if err != nil {
