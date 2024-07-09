@@ -137,6 +137,10 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 		return nil, err
 	}
 
+	if size == 0 {
+		harr = append(harr, new(felt.Felt).SetUint64(0))
+	}
+
 	harr = append(harr, new(felt.Felt).SetUint64(size))
 	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
 }
