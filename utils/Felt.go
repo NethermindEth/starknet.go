@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -138,4 +139,63 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 
 	harr = append(harr, new(felt.Felt).SetUint64(size))
 	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
+}
+
+// ByteArrFeltToString converts array of Felts to string.
+// The input array of felts will be of the format
+//
+// [number of felts with 31 characters in length, 31 byte felts..., pending word with max size of 30 bytes, pending words bytes size]
+//
+// For further explanation, refer the [article]
+//
+// Parameters:
+//
+// - []*felt.Felt: the array of felt.Felt objects
+//
+// Returns:
+//
+// - s: string/bytearray
+//
+// - error: an error, if any
+//
+// [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
+func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
+	if len(arr) < 3 {
+		return "", fmt.Errorf("invalid felt array, require atleast 3 elements in array")
+	}
+
+	count := FeltToBigInt(arr[0]).Uint64()
+	var index uint64
+	var res []string
+	for index = 0; index < count; index++ {
+		f := arr[1+index]
+		s, err := feltToString(f)
+		if err != nil {
+			return "", err
+		}
+		res = append(res, s)
+	}
+
+	pendingWordLength := arr[len(arr)-1]
+	if pendingWordLength.IsZero() {
+		return strings.Join(res, ""), nil
+	}
+
+	pendingWordFelt := arr[1+index]
+	s, err := feltToString(pendingWordFelt)
+	if err != nil {
+		return "", fmt.Errorf("invalid pending word")
+	}
+
+	res = append(res, s)
+	return strings.Join(res, ""), nil
+}
+
+func feltToString(f *felt.Felt) (string, error) {
+	h := BigToHex(FeltToBigInt(f))
+	b, err := hex.DecodeString(h[2:])
+	if err != nil {
+		return "", fmt.Errorf("unable to decode to string")
+	}
+	return string(b), nil
 }
