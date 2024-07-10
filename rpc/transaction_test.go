@@ -236,7 +236,7 @@ func TestTransactionReceipt(t *testing.T) {
 			},
 			DataAvailability: DataAvailability{
 				L1Gas:     0,
-				L1DataGas: 0,
+				L1DataGas: 128,
 			},
 		},
 	}
