@@ -64,6 +64,26 @@ func GetAccountCairoVersion() int {
 	return num
 }
 
+// Validates whether the CONTRACT_ADDRESS variable has been set in the '.env' file and returns it; panics otherwise.
+func GetContractAddress() string {
+	return getEnv("CONTRACT_ADDRESS")
+}
+
+// Validates whether the FROM_BLOCK and TO_BLOCK variables have been set in the '.env' file and returns them; panics otherwise.
+func GetFromAndToBlocks() (uint64, uint64) {
+	fromBlock, err := strconv.ParseUint(getEnv("FROM_BLOCK"), 10, 64)
+	if err != nil {
+	    msg := fmt.Errorf("error parsing FROM_BLOCK from the .env file: %w", err)
+		panic(msg)
+	}
+	toBlock, err := strconv.ParseUint(getEnv("TO_BLOCK"), 10, 64)
+	if err != nil {
+	    msg := fmt.Errorf("error parsing TO_BLOCK from the .env file: %w", err)
+		panic(msg)
+	}
+	return fromBlock, toBlock
+}
+
 // Loads an env variable by name and returns it; panics otherwise.
 func getEnv(envName string) string {
 	env := os.Getenv(envName)
