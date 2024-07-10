@@ -137,8 +137,8 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction UnknownTransaction        `json:"transaction"`
-	Receipt     UnknownTransactionReceipt `json:"receipt"`
+	Transaction UnknownTransaction `json:"transaction"`
+	Receipt     TransactionReceipt `json:"receipt"`
 }
 
 // The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
