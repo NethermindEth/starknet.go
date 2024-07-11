@@ -34,7 +34,7 @@ type AccountInterface interface {
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokev1Txn) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error
-	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
+	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV2) error
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
@@ -151,7 +151,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 // - tx: the *rpc.DeclareTxnV2
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV2) error {
 
 	hash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {

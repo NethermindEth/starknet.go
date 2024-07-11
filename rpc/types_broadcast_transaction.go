@@ -82,15 +82,8 @@ func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
 }
 
 type BroadcastDeclareTxnV2 struct {
-	Type TransactionType `json:"type"`
-	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt         `json:"sender_address"`
-	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
-	MaxFee            *felt.Felt         `json:"max_fee"`
-	Version           TransactionVersion `json:"version"`
-	Signature         []*felt.Felt       `json:"signature"`
-	Nonce             *felt.Felt         `json:"nonce"`
-	ContractClass     ContractClass      `json:"contract_class"`
+	DeclareTxnV2
+	ContractClass ContractClass `json:"contract_class"`
 }
 
 func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {

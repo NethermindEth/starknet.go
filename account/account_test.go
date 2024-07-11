@@ -1148,32 +1148,35 @@ func TestAddDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 	compClassHash := hash.CompiledClassHash(casmClass)
 
-	tx := rpc.DeclareTxnV2{
-		Nonce:   utils.TestHexToFelt(t, "0xd"),
-		MaxFee:  utils.TestHexToFelt(t, "0xc5cb22092551"),
-		Type:    rpc.TransactionType_Declare,
-		Version: rpc.TransactionV2,
-		Signature: []*felt.Felt{
-			utils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
-			utils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
-		},
-		SenderAddress:     AccountAddress,
-		CompiledClassHash: compClassHash,
-		ClassHash:         classHash,
-	}
+	tx := rpc.BroadcastDeclareTxnV2{
+		DeclareTxnV2: rpc.DeclareTxnV2{
+			Nonce:   utils.TestHexToFelt(t, "0xd"),
+			MaxFee:  utils.TestHexToFelt(t, "0xc5cb22092551"),
+			Type:    rpc.TransactionType_Declare,
+			Version: rpc.TransactionV2,
+			Signature: []*felt.Felt{
+				utils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
+				utils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
+			},
+			SenderAddress:     AccountAddress,
+			CompiledClassHash: compClassHash,
+			ClassHash:         classHash,
+		}}
 
 	err = acnt.SignDeclareTransaction(context.Background(), &tx)
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV2{
-		Nonce:             tx.Nonce,
-		MaxFee:            tx.MaxFee,
-		Type:              tx.Type,
-		Version:           tx.Version,
-		Signature:         tx.Signature,
-		SenderAddress:     tx.SenderAddress,
-		CompiledClassHash: tx.CompiledClassHash,
-		ContractClass:     class,
+		DeclareTxnV2: rpc.DeclareTxnV2{
+			Nonce:             tx.Nonce,
+			MaxFee:            tx.MaxFee,
+			Type:              tx.Type,
+			Version:           tx.Version,
+			Signature:         tx.Signature,
+			SenderAddress:     tx.SenderAddress,
+			CompiledClassHash: tx.CompiledClassHash,
+		},
+		ContractClass: class,
 	}
 
 	resp, err := acnt.AddDeclareTransaction(context.Background(), broadcastTx)

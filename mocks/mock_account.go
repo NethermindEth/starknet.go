@@ -73,7 +73,7 @@ func (mr *MockAccountInterfaceMockRecorder) Sign(ctx, msg any) *gomock.Call {
 }
 
 // SignDeclareTransaction mocks base method.
-func (m *MockAccountInterface) SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error {
+func (m *MockAccountInterface) SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV2) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignDeclareTransaction", ctx, tx)
 	ret0, _ := ret[0].(error)
@@ -87,7 +87,7 @@ func (mr *MockAccountInterfaceMockRecorder) SignDeclareTransaction(ctx, tx any) 
 }
 
 // SignDeployAccountTransaction mocks base method.
-func (m *MockAccountInterface) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error {
+func (m *MockAccountInterface) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignDeployAccountTransaction", ctx, tx, precomputeAddress)
 	ret0, _ := ret[0].(error)
