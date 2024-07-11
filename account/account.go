@@ -32,7 +32,7 @@ type AccountInterface interface {
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
+	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokev1Txn) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
@@ -108,7 +108,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 // - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
 // Returns:
 // - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastInvokev1Txn) error {
 
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {

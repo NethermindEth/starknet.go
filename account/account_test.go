@@ -523,7 +523,7 @@ func TestAddInvoke(t *testing.T) {
 		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
 		require.NoError(t, err)
 
 		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)

@@ -101,7 +101,7 @@ func (mr *MockAccountInterfaceMockRecorder) SignDeployAccountTransaction(ctx, tx
 }
 
 // SignInvokeTransaction mocks base method.
-func (m *MockAccountInterface) SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error {
+func (m *MockAccountInterface) SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokev1Txn) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignInvokeTransaction", ctx, tx)
 	ret0, _ := ret[0].(error)
