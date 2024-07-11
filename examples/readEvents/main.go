@@ -48,10 +48,10 @@ func main() {
 
 	fmt.Println("Established connection with the RPC provider")
 
-	// contractAddress is the address of the token contract whose events we want to read
+	// contractAddress is the address of the contract whose events we want to read
 	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
 	if err != nil {
-		msg := fmt.Errorf("failed to transform the token contract address %s, error %w", CONTRACT_ADDRESS, err)
+		msg := fmt.Errorf("failed to create felt from the contract address %s, error %w", CONTRACT_ADDRESS, err)
 		panic(msg)
 	}
 
