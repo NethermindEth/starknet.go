@@ -533,6 +533,27 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 	}
 }
 
+// AddTransaction calls dynamically one of Add<type>Transaction methods
+//
+// Parameters:
+// - ctx: the context.Context object for the transaction.
+// - txn: this Broadcast Transaction to be called.
+// Returns:
+// - interface{} returns required Broadcast txn return value.
+// - error: an error if any.
+func (account *Account) AddTransaction(ctx context.Context, txn rpc.BroadcastTxn) (interface{}, error) {
+	switch tx := txn.(type) {
+	case rpc.BroadcastInvokeTxnType:
+		return account.AddInvokeTransaction(ctx, tx)
+	case rpc.BroadcastDeclareTxnType:
+		return account.AddDeclareTransaction(ctx, tx)
+	case rpc.BroadcastAddDeployTxnType:
+		return account.AddDeployAccountTransaction(ctx, tx)
+	default:
+		return nil, errors.New("unsupported transaction type")
+	}
+}
+
 // AddInvokeTransaction generates an invoke transaction and adds it to the account's provider.
 //
 // Parameters:
