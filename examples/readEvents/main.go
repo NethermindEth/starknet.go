@@ -49,8 +49,6 @@ func main() {
 	fmt.Println("Established connection with the RPC provider")
 
 	// contractAddress is the address of the token contract whose events we want to read
-	// it is read from the .env file
-
 	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
 	if err != nil {
 		msg := fmt.Errorf("failed to transform the token contract address %s, error %w", CONTRACT_ADDRESS, err)
@@ -82,7 +80,7 @@ func main() {
 
 	// read all the events emitted by the contract in this range of blocks
 	events = readEvents(eventsInput, provider)
-	fmt.Printf("num events from contract %d\n", len(events))
+	fmt.Printf("number of events from contract %d\n", len(events))
 
 	// narrow the scope to event types InterestStateSetBorrowingRate and InterestStateUpdated
 	eventTypes := []string{"InterestStateSetBorrowingRate", "InterestStateUpdated"}
@@ -94,23 +92,30 @@ func main() {
 
 	// read the events with the new filter
 	events = readEvents(eventsInput, provider)
-	fmt.Printf("num events of specified types %d\n", len(events))
+	fmt.Printf("number of events of specified types %d\n", len(events))
 
-	// narrow the scope to events with particular key values
-	data, _ := new(felt.Felt).SetString("0x1258eae3eae5002125bebf062d611a772e8aea3a1879b64a19f363ebd00947")
+	// narrow the scope to events with a particular key value
+	var data *felt.Felt
+	data, err = new(felt.Felt).SetString(
+		"0x1258eae3eae5002125bebf062d611a772e8aea3a1879b64a19f363ebd00947",
+	)
+	if err != nil {
+		msg := fmt.Errorf("failed to create felt, error: %w", err)
+		panic(msg)
+	}
 	keyFilter = buildKeyFilter(eventTypes, [][]*felt.Felt{{data}})
 	// set the new filter on the Keys field of the eventsInput
 	eventsInput.Keys = keyFilter
 
 	// read the events with this filter
 	events = readEvents(eventsInput, provider)
-	fmt.Printf("num events of specified types with given keys %d\n", len(events))
+	fmt.Printf("number of events of specified types with given key %d\n", len(events))
 }
 
 func readEvents(eventsInput rpc.EventsInput, provider *rpc.Provider) []rpc.EmittedEvent {
 
 	ctx := context.Background()
-	events := make([]rpc.EmittedEvent, 0)
+	events := []rpc.EmittedEvent{}
 	haveMoreToRead := true
 	for haveMoreToRead {
 		eventChunk, err := provider.Events(ctx, eventsInput)
