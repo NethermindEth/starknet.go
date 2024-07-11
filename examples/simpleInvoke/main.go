@@ -120,7 +120,7 @@ func main() {
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
+	resp, err := accnt.AddTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
@@ -129,13 +129,13 @@ func main() {
 	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
 	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	txStatus, err := client.GetTransactionStatus(context.Background(), resp.(*rpc.AddInvokeTransactionResponse).TransactionHash)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction hash response: %v\n", resp.(*rpc.AddInvokeTransactionResponse).TransactionHash)
 	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
 

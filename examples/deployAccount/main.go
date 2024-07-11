@@ -121,13 +121,14 @@ func main() {
 	fmt.Scan(&input)
 
 	// Send transaction to the network
-	resp, err := accnt.AddDeployAccountTransaction(context.Background(), tx)
+	// resp, err := accnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := accnt.AddTransaction(context.Background(), tx)
 	if err != nil {
 		fmt.Println("Error returned from AddDeployAccountTransaction: ")
 		setup.PanicRPC(err)
 	}
 
 	fmt.Println("AddDeployAccountTransaction successfully submitted! Wait a few minutes to see it in Voyager.")
-	fmt.Printf("Transaction hash: %v \n", resp.TransactionHash)
-	fmt.Printf("Contract address: %v \n", resp.ContractAddress)
+	fmt.Printf("Transaction hash: %v \n", resp.(*rpc.AddDeployAccountTransactionResponse).TransactionHash)
+	fmt.Printf("Contract address: %v \n", resp.(*rpc.AddDeployAccountTransactionResponse).ContractAddress)
 }
