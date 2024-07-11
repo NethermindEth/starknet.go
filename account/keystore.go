@@ -26,7 +26,9 @@ type MemKeystore struct {
 // NewMemKeystore initializes and returns a new instance of MemKeystore.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *MemKeystore: a pointer to MemKeystore.
 func NewMemKeystore() *MemKeystore {
@@ -38,14 +40,21 @@ func NewMemKeystore() *MemKeystore {
 // SetNewMemKeystore returns a new instance of MemKeystore and sets the given public key and private key in it.
 //
 // Parameters:
-// - pub: a string representing the public key
 // - priv: a pointer to a big.Int representing the private key
 // Returns:
 // - *MemKeystore: a pointer to the newly created MemKeystore instance
-func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
+// - error: if any error occurs during conversion
+func SetNewMemKeystore(priv *big.Int) (*MemKeystore, error) {
 	ks := NewMemKeystore()
+
+	pubX, _, err := curve.Curve.PrivateToPoint(priv)
+	if err != nil {
+		return nil, err
+	}
+
+	pub := utils.BigIntToFelt(pubX).String()
 	ks.Put(pub, priv)
-	return ks
+	return ks, nil
 }
 
 // Put stores the given key in the keystore for the specified sender address.
@@ -126,7 +135,9 @@ func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *b
 // GetRandomKeys gets a random set of pub-priv keys.
 // Note: This should be used for testing purposes only, do NOT send real funds to these addresses.
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - *MemKeystore: a pointer to a MemKeystore instance
 // - *felt.Felt: a pointer to a public key as a felt.Felt
@@ -156,3 +167,7 @@ func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 
 	return ks, pubFelt, privFelt
 }
+
+// func derivePublicKeyFromPrivateKey(priv *big.Int) (*ecdsa.PublicKey, error) {
+// 	privBytes := priv.Bytes()
+// }
