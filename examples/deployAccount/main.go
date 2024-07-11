@@ -80,7 +80,7 @@ func main() {
 	fmt.Println("PrecomputedAddress:", precomputedAddress)
 
 	// Sign the transaction
-	err = accnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
+	err = accnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func main() {
 		}
 		tx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
 		// Signing the transaction again
-		err = accnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
+		err = accnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
 		if err != nil {
 			panic(err)
 		}

@@ -577,16 +577,17 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	classHash := utils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
 	require.NoError(t, err)
 
-	tx := rpc.DeployAccountTxn{
-		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
-		MaxFee:              utils.TestHexToFelt(t, "0xc5cb22092551"),
-		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{},
-		ClassHash:           classHash,
-		ContractAddressSalt: fakeUserPub,
-		ConstructorCalldata: []*felt.Felt{fakeUserPub},
-	}
+	tx := rpc.BroadcastDeployAccountTxn{
+		DeployAccountTxn: rpc.DeployAccountTxn{
+			Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
+			MaxFee:              utils.TestHexToFelt(t, "0xc5cb22092551"),
+			Type:                rpc.TransactionType_DeployAccount,
+			Version:             rpc.TransactionV1,
+			Signature:           []*felt.Felt{},
+			ClassHash:           classHash,
+			ContractAddressSalt: fakeUserPub,
+			ConstructorCalldata: []*felt.Felt{fakeUserPub},
+		}}
 
 	precomputedAddress, err := acnt.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.Nil(t, err)
@@ -595,7 +596,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), tx)
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
