@@ -29,12 +29,12 @@ var (
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
+	TransactionHashInvoke(invokeTxn rpc.BroadcastInvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
-	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokev1Txn) error
+	TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (*felt.Felt, error)
+	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error
-	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV2) error
+	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnType) error
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
@@ -108,7 +108,7 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 // - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
 // Returns:
 // - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastInvokev1Txn) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastInvokeTxnType) error {
 
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
@@ -118,7 +118,17 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 	if err != nil {
 		return err
 	}
-	invokeTx.Signature = signature
+
+	switch tx := (*invokeTx).(type) {
+	case *rpc.BroadcastInvokev0Txn:
+		tx.Signature = signature
+	case *rpc.BroadcastInvokev1Txn:
+		tx.Signature = signature
+	case *rpc.BroadcastInvokev3Txn:
+		tx.Signature = signature
+	default:
+		return errors.New("unsupported (invoke) transaction type")
+	}
 	return nil
 }
 
@@ -130,9 +140,9 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 // - precomputeAddress: the precomputed address for the transaction
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, deployAccountTx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error {
 
-	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
+	hash, err := account.TransactionHashDeployAccount(*deployAccountTx, precomputeAddress)
 	if err != nil {
 		return err
 	}
@@ -140,7 +150,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 	if err != nil {
 		return err
 	}
-	tx.Signature = signature
+	deployAccountTx.Signature = signature
 	return nil
 }
 
@@ -151,9 +161,9 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 // - tx: the *rpc.DeclareTxnV2
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV2) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx *rpc.BroadcastDeclareTxnType) error {
 
-	hash, err := account.TransactionHashDeclare(*tx)
+	hash, err := account.TransactionHashDeclare(*declareTx)
 	if err != nil {
 		return err
 	}
@@ -161,7 +171,15 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.Broa
 	if err != nil {
 		return err
 	}
-	tx.Signature = signature
+
+	switch tx := (*declareTx).(type) {
+	case *rpc.BroadcastDeclareTxnV1:
+		tx.Signature = signature
+	case *rpc.BroadcastDeclareTxnV2:
+		tx.Signature = signature
+	case *rpc.BroadcastDeclareTxnV3:
+		tx.Signature = signature
+	}
 	return nil
 }
 
@@ -256,11 +274,11 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 // - error: an error, if any
 
 // If the transaction type is unsupported, the function returns an error.
-func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
+func (account *Account) TransactionHashInvoke(tx rpc.BroadcastInvokeTxnType) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#v0_hash_calculation
 	switch txn := tx.(type) {
-	case rpc.InvokeTxnV0:
+	case rpc.BroadcastInvokev0Txn:
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -285,7 +303,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			[]*felt.Felt{},
 		)
 
-	case rpc.InvokeTxnV1:
+	case rpc.BroadcastInvokev1Txn:
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -308,7 +326,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce},
 		)
-	case rpc.InvokeTxnV3:
+	case rpc.BroadcastInvokev3Txn:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
 			return nil, ErrNotAllParametersSet
@@ -387,42 +405,19 @@ func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint
 // - error: an error, if any
 //
 // If the `tx` parameter is not one of the supported types, the function returns an error `ErrTxnTypeUnSupported`.
-func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (*felt.Felt, error) {
 
 	switch txn := tx.(type) {
-	case rpc.DeclareTxnV0:
-		// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
+	case rpc.BroadcastDeclareTxnV1:
+		// Due to inconsistencies in version 1 hash calculation we don't calculate the hash
 		return nil, ErrTxnVersionUnSupported
-	case rpc.DeclareTxnV1:
-		if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+
+	case rpc.BroadcastDeclareTxnV2:
+		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.MaxFee == nil || txn.Nonce == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
-		if err != nil {
-			return nil, err
-		}
-
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		return hash.CalculateTransactionHashCommon(
-			PREFIX_DECLARE,
-			txnVersionFelt,
-			txn.SenderAddress,
-			&felt.Zero,
-			calldataHash,
-			txn.MaxFee,
-			account.ChainId,
-			[]*felt.Felt{txn.Nonce},
-		)
-	case rpc.DeclareTxnV2:
-		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.CompiledClassHash})
 		if err != nil {
 			return nil, err
 		}
@@ -441,7 +436,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
 		)
-	case rpc.DeclareTxnV3:
+	case rpc.BroadcastDeclareTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 			txn.ClassHash == nil || txn.CompiledClassHash == nil {
