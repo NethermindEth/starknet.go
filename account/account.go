@@ -32,9 +32,9 @@ type AccountInterface interface {
 	TransactionHashInvoke(invokeTxn rpc.BroadcastInvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.BroadcastInvokeTxnType) error
+	SignInvokeTransaction(ctx context.Context, tx rpc.BroadcastInvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error
-	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnType) error
+	SignDeclareTransaction(ctx context.Context, tx rpc.BroadcastDeclareTxnType) error
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
@@ -108,9 +108,9 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 // - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
 // Returns:
 // - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.BroadcastInvokeTxnType) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) error {
 
-	txHash, err := account.TransactionHashInvoke(*invokeTx)
+	txHash, err := account.TransactionHashInvoke(invokeTx)
 	if err != nil {
 		return err
 	}
@@ -119,12 +119,12 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 		return err
 	}
 
-	switch tx := (*invokeTx).(type) {
-	case *rpc.BroadcastInvokev0Txn:
+	switch tx := (invokeTx).(type) {
+	case rpc.BroadcastInvokev0Txn:
 		tx.Signature = signature
-	case *rpc.BroadcastInvokev1Txn:
+	case rpc.BroadcastInvokev1Txn:
 		tx.Signature = signature
-	case *rpc.BroadcastInvokev3Txn:
+	case rpc.BroadcastInvokev3Txn:
 		tx.Signature = signature
 	default:
 		return errors.New("unsupported (invoke) transaction type")
@@ -161,9 +161,9 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, deploy
 // - tx: the *rpc.DeclareTxnV2
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx *rpc.BroadcastDeclareTxnType) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx rpc.BroadcastDeclareTxnType) error {
 
-	hash, err := account.TransactionHashDeclare(*declareTx)
+	hash, err := account.TransactionHashDeclare(declareTx)
 	if err != nil {
 		return err
 	}
@@ -172,12 +172,12 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx *r
 		return err
 	}
 
-	switch tx := (*declareTx).(type) {
-	case *rpc.BroadcastDeclareTxnV1:
+	switch tx := (declareTx).(type) {
+	case rpc.BroadcastDeclareTxnV1:
 		tx.Signature = signature
-	case *rpc.BroadcastDeclareTxnV2:
+	case rpc.BroadcastDeclareTxnV2:
 		tx.Signature = signature
-	case *rpc.BroadcastDeclareTxnV3:
+	case rpc.BroadcastDeclareTxnV3:
 		tx.Signature = signature
 	}
 	return nil
