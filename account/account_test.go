@@ -590,7 +590,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	precomputedAddress, err := acnt.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.Nil(t, err)
-	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx}, precomputedAddress))
+	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx}, precomputedAddress))
 
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
