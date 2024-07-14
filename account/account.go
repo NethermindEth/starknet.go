@@ -30,10 +30,10 @@ var (
 type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	TransactionHashInvoke(invokeTxn rpc.BroadcastInvokeTxnType) (*felt.Felt, error)
-	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeployAccount(tx rpc.BroadcastAddDeployTxnType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx rpc.BroadcastInvokeTxnType) error
-	SignDeployAccountTransaction(ctx context.Context, tx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error
+	SignDeployAccountTransaction(ctx context.Context, tx rpc.BroadcastAddDeployTxnType, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx rpc.BroadcastDeclareTxnType) error
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
@@ -140,9 +140,9 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 // - precomputeAddress: the precomputed address for the transaction
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, deployAccountTx *rpc.BroadcastDeployAccountTxn, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, deployAccountTx rpc.BroadcastAddDeployTxnType, precomputeAddress *felt.Felt) error {
 
-	hash, err := account.TransactionHashDeployAccount(*deployAccountTx, precomputeAddress)
+	hash, err := account.TransactionHashDeployAccount(deployAccountTx, precomputeAddress)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,15 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, deploy
 	if err != nil {
 		return err
 	}
-	deployAccountTx.Signature = signature
+
+	switch tx := (deployAccountTx).(type) {
+	case rpc.BroadcastDeployAccountTxn:
+		tx.Signature = signature
+	case rpc.BroadcastDeployAccountTxnV3:
+		tx.Signature = signature
+	default:
+		return errors.New("unsupported (invoke) transaction type")
+	}
 	return nil
 }
 
@@ -179,6 +187,8 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx rp
 		tx.Signature = signature
 	case rpc.BroadcastDeclareTxnV3:
 		tx.Signature = signature
+	default:
+		return errors.New("unsupported (declare) transaction type")
 	}
 	return nil
 }
@@ -191,11 +201,11 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx rp
 // Returns:
 // - *felt.Felt: the calculated transaction hash
 // - error: an error if any
-func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeployAccount(tx rpc.BroadcastAddDeployTxnType, contractAddress *felt.Felt) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
-	case rpc.DeployAccountTxn:
+	case rpc.BroadcastDeployAccountTxn:
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 		calldata = append(calldata, txn.ConstructorCalldata...)
 		calldataHash, err := hash.ComputeHashOnElementsFelt(calldata)
@@ -219,7 +229,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce},
 		)
-	case rpc.DeployAccountTxnV3:
+	case rpc.BroadcastDeployAccountTxnV3:
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
 			return nil, ErrNotAllParametersSet
 		}
