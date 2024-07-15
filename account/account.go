@@ -540,39 +540,30 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // Returns:
 // - interface{} returns required Broadcast txn return value.
 // - error: an error if any.
-func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (interface{}, error) {
+func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
 	case rpc.BroadcastInvokeTxnType:
-		return account.provider.AddInvokeTransaction(ctx, tx)
+		resp, err := account.provider.AddInvokeTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return rpc.ConvertToTransactionResponse(resp), nil
 	case rpc.BroadcastDeclareTxnType:
-		return account.provider.AddDeclareTransaction(ctx, tx)
+		resp, err := account.provider.AddDeclareTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return rpc.ConvertToTransactionResponse(resp), nil
 	case rpc.BroadcastAddDeployTxnType:
-		return account.provider.AddDeployAccountTransaction(ctx, tx)
+		resp, err := account.provider.AddDeployAccountTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return rpc.ConvertToTransactionResponse(resp), nil
 	default:
 		return nil, errors.New("unsupported transaction type")
 	}
 }
-
-// func convertToTransactionResponse(resp interface{}) *rpc.TransactionResponse {
-// 	switch r := resp.(type) {
-// 	case *rpc.AddInvokeTransactionResponse:
-// 		return &rpc.TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 		}
-// 	case *rpc.AddDeclareTransactionResponse:
-// 		return &rpc.TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 			ClassHash:       r.ClassHash,
-// 		}
-// 	case *rpc.AddDeployAccountTransactionResponse:
-// 		return &rpc.TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 			ContractAddress: r.ContractAddress,
-// 		}
-// 	default:
-// 		return nil
-// 	}
-// }
 
 // BlockHashAndNumber returns the block hash and number for the account.
 //

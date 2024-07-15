@@ -19,8 +19,29 @@ type AddInvokeTransactionResponse struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 
-// type TransactionResponse struct {
-// 	TransactionHash *felt.Felt `json:"transaction_hash"`
-// 	ClassHash       *felt.Felt `json:"class_hash"`
-// 	ContractAddress *felt.Felt `json:"contract_address"`
-// }
+type TransactionResponse struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	ClassHash       *felt.Felt `json:"class_hash"`
+	ContractAddress *felt.Felt `json:"contract_address"`
+}
+
+func ConvertToTransactionResponse(resp interface{}) *TransactionResponse {
+	switch r := resp.(type) {
+	case *AddInvokeTransactionResponse:
+		return &TransactionResponse{
+			TransactionHash: r.TransactionHash,
+		}
+	case *AddDeclareTransactionResponse:
+		return &TransactionResponse{
+			TransactionHash: r.TransactionHash,
+			ClassHash:       r.ClassHash,
+		}
+	case *AddDeployAccountTransactionResponse:
+		return &TransactionResponse{
+			TransactionHash: r.TransactionHash,
+			ContractAddress: r.ContractAddress,
+		}
+	default:
+		return nil
+	}
+}

@@ -137,13 +137,13 @@ func main() {
 	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
 	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.(*rpc.AddInvokeTransactionResponse).TransactionHash)
+	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.(*rpc.AddInvokeTransactionResponse).TransactionHash)
+	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
 	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
 }

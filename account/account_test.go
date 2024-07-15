@@ -529,7 +529,7 @@ func TestAddInvoke(t *testing.T) {
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
-			require.Nil(t, resp.(*rpc.AddInvokeTransactionResponse))
+			require.Nil(t, resp)
 		}
 
 	}
@@ -597,7 +597,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	resp, err := acnt.SendTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
-	require.NotNil(t, resp.(*rpc.AddDeployAccountTransactionResponse), "AddDeployAccountTransaction resp not nil")
+	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
 
 // TestTransactionHashDeclare tests the TransactionHashDeclare function.
@@ -1180,8 +1180,8 @@ func TestAddDeclareTxn(t *testing.T) {
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
-		require.Equal(t, expectedTxHash.String(), resp.(*rpc.AddDeclareTransactionResponse).TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
-		require.Equal(t, expectedClassHash.String(), resp.(*rpc.AddDeclareTransactionResponse).ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
+		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
 
