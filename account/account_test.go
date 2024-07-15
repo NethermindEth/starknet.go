@@ -526,7 +526,7 @@ func TestAddInvoke(t *testing.T) {
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
 		require.NoError(t, err)
 
-		resp, err := acnt.AddTransaction(context.Background(), test.InvokeTx)
+		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp.(*rpc.AddInvokeTransactionResponse))
@@ -595,7 +595,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	resp, err := acnt.SendTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp.(*rpc.AddDeployAccountTransactionResponse), "AddDeployAccountTransaction resp not nil")
 }
@@ -1175,7 +1175,7 @@ func TestAddDeclareTxn(t *testing.T) {
 		ContractClass:     class,
 	}
 
-	resp, err := acnt.AddTransaction(context.Background(), broadcastTx)
+	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
