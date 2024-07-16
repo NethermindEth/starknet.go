@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/crypto"
@@ -152,14 +153,14 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, deploy
 	}
 
 	switch tx := (deployAccountTx).(type) {
-	case *rpc.BroadcastDeployAccountTxn:
+	case rpc.BroadcastDeployAccountTxn:
 		// tx.SetSignature(signature)
 		tx.Signature = signature
-	case *rpc.BroadcastDeployAccountTxnV3:
+	case rpc.BroadcastDeployAccountTxnV3:
 		// tx.SetSignature(signature)
 		tx.Signature = signature
 	default:
-		return errors.New("unsupported (deploy account) transaction type")
+		return fmt.Errorf("unsupported (deploy account) transaction type: %v", tx)
 	}
 	return nil
 }
