@@ -121,11 +121,11 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 
 	switch tx := (invokeTx).(type) {
 	case rpc.BroadcastInvokev0Txn:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	case rpc.BroadcastInvokev1Txn:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	case rpc.BroadcastInvokev3Txn:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	default:
 		return errors.New("unsupported (invoke) transaction type")
 	}
@@ -153,9 +153,9 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, deploy
 
 	switch tx := (deployAccountTx).(type) {
 	case rpc.BroadcastDeployAccountTxn:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	case rpc.BroadcastDeployAccountTxnV3:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	default:
 		return errors.New("unsupported (invoke) transaction type")
 	}
@@ -182,11 +182,11 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, declareTx rp
 
 	switch tx := (declareTx).(type) {
 	case rpc.BroadcastDeclareTxnV1:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	case rpc.BroadcastDeclareTxnV2:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	case rpc.BroadcastDeclareTxnV3:
-		tx.Signature = signature
+		tx.SetSignature(signature)
 	default:
 		return errors.New("unsupported (declare) transaction type")
 	}

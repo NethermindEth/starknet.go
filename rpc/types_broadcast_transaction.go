@@ -50,6 +50,10 @@ func (tx BroadcastInvokev0Txn) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
 
+func (tx *BroadcastInvokev0Txn) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
+}
+
 type BroadcastInvokev1Txn struct {
 	InvokeTxnV1
 }
@@ -58,12 +62,20 @@ func (tx BroadcastInvokev1Txn) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
 
+func (tx *BroadcastInvokev1Txn) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
+}
+
 type BroadcastInvokev3Txn struct {
 	InvokeTxnV3
 }
 
 func (tx BroadcastInvokev3Txn) GetCalldata() []*felt.Felt {
 	return tx.Calldata
+}
+
+func (tx *BroadcastInvokev3Txn) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
 }
 
 type BroadcastDeclareTxnV1 struct {
@@ -79,6 +91,10 @@ type BroadcastDeclareTxnV1 struct {
 
 func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
 	return tx.ContractClass
+}
+
+func (tx *BroadcastDeclareTxnV1) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
 }
 
 type BroadcastDeclareTxnV2 struct {
@@ -97,6 +113,10 @@ func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
 	return tx.ContractClass
 }
 
+func (tx *BroadcastDeclareTxnV2) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
+}
+
 type BroadcastDeclareTxnV3 struct {
 	DeclareTxnV3
 	ContractClass *ContractClass `json:"contract_class"`
@@ -104,6 +124,10 @@ type BroadcastDeclareTxnV3 struct {
 
 func (tx BroadcastDeclareTxnV3) GetContractClass() interface{} {
 	return *tx.ContractClass
+}
+
+func (tx *BroadcastDeclareTxnV3) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
 }
 
 type BroadcastDeployAccountTxn struct {
@@ -114,10 +138,18 @@ func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
 
+func (tx *BroadcastDeployAccountTxn) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
+}
+
 type BroadcastDeployAccountTxnV3 struct {
 	DeployAccountTxnV3
 }
 
 func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
+}
+
+func (tx *BroadcastDeployAccountTxnV3) SetSignature(sig []*felt.Felt) {
+	tx.Signature = sig
 }

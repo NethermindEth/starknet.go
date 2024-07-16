@@ -1155,7 +1155,6 @@ func TestAddDeclareTxn(t *testing.T) {
 	compClassHash := hash.CompiledClassHash(casmClass)
 
 	tx := rpc.BroadcastDeclareTxnV2{
-		// DeclareTxnV2: rpc.DeclareTxnV2{
 		Nonce:   utils.TestHexToFelt(t, "0xd"),
 		MaxFee:  utils.TestHexToFelt(t, "0xc5cb22092551"),
 		Type:    rpc.TransactionType_Declare,
@@ -1166,10 +1165,9 @@ func TestAddDeclareTxn(t *testing.T) {
 		},
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
-		// ClassHash:         classHash,
 	}
 
-	err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	err = acnt.SignDeclareTransaction(context.Background(), tx)
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV2{
