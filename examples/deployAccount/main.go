@@ -61,7 +61,7 @@ func main() {
 
 	// Create transaction data
 	tx := rpc.BroadcastDeployAccountTxn{
-		DeployAccountTxn: rpc.DeployAccountTxn{
+		DeployAccountTxn: &rpc.DeployAccountTxn{
 			Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
 			MaxFee:              new(felt.Felt).SetUint64(7268996239700),
 			Type:                rpc.TransactionType_DeployAccount,

@@ -194,7 +194,7 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				DeployTx: BroadcastDeployAccountTxn{DeployAccountTxn{}},
+				DeployTx: BroadcastDeployAccountTxn{&DeployAccountTxn{}},
 				ExpectedResp: AddDeployAccountTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
 					ContractAddress: utils.TestHexToFelt(t, "0x0"),
@@ -203,7 +203,7 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 			},
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
-					DeployAccountTxnV3{
+					&DeployAccountTxnV3{
 						Type:      TransactionType_DeployAccount,
 						Version:   TransactionV3,
 						ClassHash: utils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
