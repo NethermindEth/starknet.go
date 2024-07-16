@@ -590,12 +590,12 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 
 	precomputedAddress, err := acnt.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.Nil(t, err)
-	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx}, precomputedAddress))
+	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: &tx}, precomputedAddress))
 
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: &tx})
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
@@ -840,7 +840,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
 				Txn: rpc.BroadcastDeployAccountTxn{
-					DeployAccountTxn: rpc.DeployAccountTxn{
+					DeployAccountTxn: &rpc.DeployAccountTxn{
 						Nonce:   utils.TestHexToFelt(t, "0x0"),
 						Type:    rpc.TransactionType_DeployAccount,
 						MaxFee:  utils.TestHexToFelt(t, "0x1d2109b99cf94"),
@@ -862,7 +862,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875
 				Txn: rpc.BroadcastDeployAccountTxnV3{
-					DeployAccountTxnV3: rpc.DeployAccountTxnV3{
+					DeployAccountTxnV3: &rpc.DeployAccountTxnV3{
 						Nonce:   utils.TestHexToFelt(t, "0x0"),
 						Type:    rpc.TransactionType_DeployAccount,
 						Version: rpc.TransactionV3,
@@ -899,7 +899,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
 				Txn: rpc.BroadcastDeployAccountTxn{
-					DeployAccountTxn: rpc.DeployAccountTxn{
+					DeployAccountTxn: &rpc.DeployAccountTxn{
 						Nonce:   utils.TestHexToFelt(t, "0x0"),
 						Type:    rpc.TransactionType_DeployAccount,
 						MaxFee:  utils.TestHexToFelt(t, "0x1d2109b99cf94"),
@@ -921,7 +921,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x4bf28fb0142063f1b9725ae490c6949e6f1842c79b49f7cc674b7e3f5ad4875
 				Txn: rpc.BroadcastDeployAccountTxnV3{
-					DeployAccountTxnV3: rpc.DeployAccountTxnV3{
+					DeployAccountTxnV3: &rpc.DeployAccountTxnV3{
 						Nonce:   utils.TestHexToFelt(t, "0x0"),
 						Type:    rpc.TransactionType_DeployAccount,
 						Version: rpc.TransactionV3,

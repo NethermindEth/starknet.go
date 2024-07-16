@@ -131,7 +131,7 @@ func (tx *BroadcastDeclareTxnV3) SetSignature(sig []*felt.Felt) {
 }
 
 type BroadcastDeployAccountTxn struct {
-	DeployAccountTxn
+	*DeployAccountTxn
 }
 
 func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
@@ -143,7 +143,7 @@ func (tx *BroadcastDeployAccountTxn) SetSignature(sig []*felt.Felt) {
 }
 
 type BroadcastDeployAccountTxnV3 struct {
-	DeployAccountTxnV3
+	*DeployAccountTxnV3
 }
 
 func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
