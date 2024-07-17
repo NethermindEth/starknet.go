@@ -536,9 +536,9 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 //
 // Parameters:
 // - ctx: the context.Context object for the transaction.
-// - txn: this Broadcast Transaction to be sent.
+// - txn: the Broadcast Transaction to be sent.
 // Returns:
-// - interface{} returns required Broadcast txn return value.
+// - *rpc.TransactionResponse: the transaction response.
 // - error: an error if any.
 func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
@@ -547,19 +547,19 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return rpc.ConvertToTransactionResponse(resp), nil
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
 	case rpc.BroadcastDeclareTxnType:
 		resp, err := account.provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return rpc.ConvertToTransactionResponse(resp), nil
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
 	case rpc.BroadcastAddDeployTxnType:
 		resp, err := account.provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return rpc.ConvertToTransactionResponse(resp), nil
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
 	default:
 		return nil, errors.New("unsupported transaction type")
 	}
