@@ -40,21 +40,14 @@ func NewMemKeystore() *MemKeystore {
 // SetNewMemKeystore returns a new instance of MemKeystore and sets the given public key and private key in it.
 //
 // Parameters:
+// - pub: a string representing the public key
 // - priv: a pointer to a big.Int representing the private key
 // Returns:
 // - *MemKeystore: a pointer to the newly created MemKeystore instance
-// - error: if any error occurs during conversion
-func SetNewMemKeystore(priv *big.Int) (*MemKeystore, error) {
+func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
 	ks := NewMemKeystore()
-
-	pubX, _, err := curve.Curve.PrivateToPoint(priv)
-	if err != nil {
-		return nil, err
-	}
-
-	pub := utils.BigIntToFelt(pubX).String()
 	ks.Put(pub, priv)
-	return ks, nil
+	return ks
 }
 
 // Put stores the given key in the keystore for the specified sender address.
@@ -167,7 +160,3 @@ func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 
 	return ks, pubFelt, privFelt
 }
-
-// func derivePublicKeyFromPrivateKey(priv *big.Int) (*ecdsa.PublicKey, error) {
-// 	privBytes := priv.Bytes()
-// }
