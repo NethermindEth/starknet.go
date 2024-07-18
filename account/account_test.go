@@ -167,7 +167,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.BroadcastInvokev1Txn{
-				InvokeTxnV1: rpc.InvokeTxnV1{
+				InvokeTxnV1: &rpc.InvokeTxnV1{
 					Calldata:      test.FnCall.Calldata,
 					Nonce:         test.TxDetails.Nonce,
 					MaxFee:        test.TxDetails.MaxFee,
@@ -462,7 +462,7 @@ func TestAddInvoke(t *testing.T) {
 				PubKey:               utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.BroadcastInvokev1Txn{
-					InvokeTxnV1: rpc.InvokeTxnV1{
+					InvokeTxnV1: &rpc.InvokeTxnV1{
 						Nonce:         new(felt.Felt).SetUint64(5),
 						MaxFee:        utils.TestHexToFelt(t, "0x26112A960026"),
 						Version:       rpc.TransactionV1,
@@ -486,7 +486,7 @@ func TestAddInvoke(t *testing.T) {
 				PubKey:               utils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              utils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
 				InvokeTx: rpc.BroadcastInvokev1Txn{
-					InvokeTxnV1: rpc.InvokeTxnV1{
+					InvokeTxnV1: &rpc.InvokeTxnV1{
 						Nonce:         new(felt.Felt).SetUint64(8),
 						MaxFee:        utils.TestHexToFelt(t, "0x1f6410500832"),
 						Version:       rpc.TransactionV1,
@@ -701,7 +701,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9
 				Txn: rpc.BroadcastInvokev3Txn{
-					InvokeTxnV3: rpc.InvokeTxnV3{
+					InvokeTxnV3: &rpc.InvokeTxnV3{
 						Nonce:   utils.TestHexToFelt(t, "0x12eaa"),
 						Type:    rpc.TransactionType_Invoke,
 						Version: rpc.TransactionV3,
@@ -758,7 +758,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x8eb1104170ec42fd27c09ea78822dfb083ddd15324480f856bff01bc65e9d9
 				Txn: rpc.BroadcastInvokev3Txn{
-					InvokeTxnV3: rpc.InvokeTxnV3{
+					InvokeTxnV3: &rpc.InvokeTxnV3{
 						Nonce:   utils.TestHexToFelt(t, "0x12eaa"),
 						Type:    rpc.TransactionType_Invoke,
 						Version: rpc.TransactionV3,

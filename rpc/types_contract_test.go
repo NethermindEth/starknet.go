@@ -16,14 +16,15 @@ const (
 // tests the successful unmarshalling of valid JSON into a DeprecatedContractClass
 // object.
 //
-// It reads the content of a file, then unmarshals the content into a 
+// It reads the content of a file, then unmarshals the content into a
 // DeprecatedContractClass object using the json.Unmarshal function. If any error
 // occurs during the process, the test fails.
 //
 // Parameters:
 // - t: The testing.T object used for reporting test failures and logging.
 // Returns:
-//  none
+//
+//	none
 func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 	content, err := os.ReadFile(validDeprecatedContractCompiledPath)
 	if err != nil {
@@ -45,7 +46,8 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 // Parameters:
 // - t: The testing.T object used for reporting test failures and logging.
 // Returns:
-//  none
+//
+//	none
 func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 	content, err := os.ReadFile(validContractCompiledPath)
 	if err != nil {

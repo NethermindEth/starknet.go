@@ -420,15 +420,21 @@ func (account *Account) TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (
 
 	switch txn := tx.(type) {
 	case rpc.BroadcastDeclareTxnV1:
-		// Due to inconsistencies in version 1 hash calculation we don't calculate the hash
-		return nil, ErrTxnVersionUnSupported
-
-	case rpc.BroadcastDeclareTxnV2:
-		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.MaxFee == nil || txn.Nonce == nil {
+		if txn.ContractClass.Program == "" || txn.SenderAddress == nil || txn.Version == "" || txn.MaxFee == nil || txn.Nonce == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.CompiledClassHash})
+	case rpc.BroadcastDeclareTxnV2:
+		if txn.ContractClass.SierraProgram == nil || txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.MaxFee == nil || txn.Nonce == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		classHash, err := hash.ClassHash(txn.ContractClass)
+		if err != nil {
+			return nil, err
+		}
+
+		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{classHash})
 		if err != nil {
 			return nil, err
 		}
@@ -449,7 +455,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.BroadcastDeclareTxnType) (
 		)
 	case rpc.BroadcastDeclareTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+		if txn.ContractClass.SierraProgram == nil || txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 			txn.ClassHash == nil || txn.CompiledClassHash == nil {
 			return nil, ErrNotAllParametersSet
 		}

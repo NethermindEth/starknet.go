@@ -33,7 +33,7 @@ func TestDeclareTransaction(t *testing.T) {
 			},
 			{
 				DeclareTx: BroadcastDeclareTxnV3{
-					DeclareTxnV3: DeclareTxnV3{
+					DeclareTxnV3: &DeclareTxnV3{
 						Type:          TransactionType_Declare,
 						Version:       TransactionV3,
 						Signature:     []*felt.Felt{},
@@ -106,7 +106,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				InvokeTx:     BroadcastInvokev1Txn{InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)}},
+				InvokeTx:     BroadcastInvokev1Txn{&InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)}},
 				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
 				ExpectedError: &RPCError{
 					Code:    ErrUnexpectedError.Code,
@@ -114,13 +114,13 @@ func TestAddInvokeTransaction(t *testing.T) {
 					Data:    "Something crazy happened"},
 			},
 			{
-				InvokeTx:      BroadcastInvokev1Txn{InvokeTxnV1{}},
+				InvokeTx:      BroadcastInvokev1Txn{&InvokeTxnV1{}},
 				ExpectedResp:  AddInvokeTransactionResponse{utils.TestHexToFelt(t, "0xdeadbeef")},
 				ExpectedError: nil,
 			},
 			{
 				InvokeTx: BroadcastInvokev3Txn{
-					InvokeTxnV3{
+					&InvokeTxnV3{
 						Type:    TransactionType_Invoke,
 						Version: TransactionV3,
 						Signature: []*felt.Felt{

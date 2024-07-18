@@ -74,7 +74,7 @@ func main() {
 
 	// Build the InvokeTx struct
 	InvokeTx := rpc.BroadcastInvokev1Txn{
-		InvokeTxnV1: rpc.InvokeTxnV1{
+		InvokeTxnV1: &rpc.InvokeTxnV1{
 			MaxFee:        new(felt.Felt).SetUint64(100000000000000),
 			Version:       rpc.TransactionV1,
 			Nonce:         nonce,
