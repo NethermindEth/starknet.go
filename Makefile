@@ -1,14 +1,32 @@
 test:
-	@go test ./...
-
-test-verbose:
 	@go test ./... -v
+
+rpc-test:
+	@go test -v ./rpc -env [mainnet|devnet|testnet|mock]
 
 bench:
 	@go test -bench=.
 
-rpc-test:
-	@go test -v ./rpc -env [mainnet|devnet|testnet|mock]
+install-deps: | install-gofumpt install-mockgen install-golangci-lint
+
+install-gofumpt:
+	go install mvdan.cc/gofumpt@latest
+
+install-mockgen:
+	go install go.uber.org/mock/mockgen@latest
+
+install-golangci-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
+
+lint:
+	@which golangci-lint || make install-golangci-lint
+	golangci-lint run
+
+tidy:
+	 go mod tidy
+
+format:
+	gofumpt -l -w .
 
 simple-call:
 	@if [ ! -f ./examples/.env ]; then \
