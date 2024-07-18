@@ -24,24 +24,3 @@ type TransactionResponse struct {
 	ClassHash       *felt.Felt `json:"class_hash,omitempty"`
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 }
-
-// func ConvertToTransactionResponse(resp interface{}) *TransactionResponse {
-// 	switch r := resp.(type) {
-// 	case *AddInvokeTransactionResponse:
-// 		return &TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 		}
-// 	case *AddDeclareTransactionResponse:
-// 		return &TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 			ClassHash:       r.ClassHash,
-// 		}
-// 	case *AddDeployAccountTransactionResponse:
-// 		return &TransactionResponse{
-// 			TransactionHash: r.TransactionHash,
-// 			ContractAddress: r.ContractAddress,
-// 		}
-// 	default:
-// 		return nil
-// 	}
-// }
