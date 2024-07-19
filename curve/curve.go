@@ -590,7 +590,7 @@ func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
 	for i, elem := range elems {
 		x := new(big.Int).Set(elem)
 
-		if x.Cmp(big.NewInt(0)) != -1 && x.Cmp(sc.P) != -1 {
+		if x.Cmp(big.NewInt(0)) == -1 || x.Cmp(sc.P) >= 0 {
 			return ptx, fmt.Errorf("invalid x: %v", x)
 		}
 
