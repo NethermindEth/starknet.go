@@ -436,7 +436,7 @@ func TestSignMOCK(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddInvoke(t *testing.T) {
+func TestSendInvokeTxn(t *testing.T) {
 
 	type testSetType struct {
 		ExpectedErr          error
@@ -552,7 +552,7 @@ func TestAddInvoke(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddDeployAccountDevnet(t *testing.T) {
+func TestSendDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
@@ -1106,7 +1106,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddDeclareTxn(t *testing.T) {
+func TestSendDeclareTxn(t *testing.T) {
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
