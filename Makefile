@@ -4,6 +4,9 @@ test:
 rpc-test:
 	@go test -v ./rpc -env [mainnet|devnet|testnet|mock]
 
+devnet-test:
+	@go test ./... -env devnet -v
+
 bench:
 	@go test -bench=.
 
