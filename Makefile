@@ -22,8 +22,8 @@ install-golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
 
 lint:
-	@which golangci-lint || make install-golangci-lint
-	golangci-lint run
+	@command -v golangci-lint >/dev/null 2>&1 || { echo >&2 "golangci-lint not installed. Run 'make install-golangci-lint' to install it."; exit 1; }
+	@golangci-lint run
 
 tidy:
 	 go mod tidy
