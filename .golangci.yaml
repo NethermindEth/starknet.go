@@ -47,7 +47,6 @@ linters-settings:
       - strings.SplitN
 
   govet:
-    shadow: true
     settings:
       printf:
         funcs:
@@ -105,22 +104,6 @@ linters:
     - tparallel
     - gci
     - exhaustruct
-
-  # don't enable:
-  # - asciicheck
-  # - scopelint
-  # - gochecknoglobals
-  # - gocognit
-  # - godot
-  # - godox
-  # - goerr113
-  # - interfacer
-  # - maligned
-  # - nestif
-  # - prealloc
-  # - testpackage
-  # - revive
-  # - wsl
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
