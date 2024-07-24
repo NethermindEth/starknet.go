@@ -18,11 +18,17 @@ install-gofumpt:
 install-mockgen:
 	go install go.uber.org/mock/mockgen@latest
 
-install-golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
+GOPATH := $(shell go env GOPATH)
+GOBIN := $(GOPATH)/bin
 
-lint:
-	@command -v golangci-lint >/dev/null 2>&1 || { echo >&2 "golangci-lint not installed. Run 'make install-golangci-lint' to install it."; exit 1; }
+install-golangci-lint:
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
+	@echo "Adding $(GOBIN) to PATH"
+	@export PATH=$(GOBIN):$$PATH && golangci-lint --version
+	@echo $PATH | grep go/bin
+
+lint: install-golangci-lint
+	@echo "Running golangci-lint"
 	@golangci-lint run
 
 tidy:
