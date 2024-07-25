@@ -33,30 +33,28 @@ func TestDeclareTransaction(t *testing.T) {
 			},
 			{
 				DeclareTx: BroadcastDeclareTxnV3{
-					DeclareTxnV3: DeclareTxnV3{
-						Type:          TransactionType_Declare,
-						Version:       TransactionV3,
-						Signature:     []*felt.Felt{},
-						Nonce:         utils.TestHexToFelt(t, "0x0"),
-						NonceDataMode: DAModeL1,
-						FeeMode:       DAModeL1,
-						ResourceBounds: ResourceBoundsMapping{
-							L1Gas: ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x0",
-							},
-							L2Gas: ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x0",
-							},
+					Type:          TransactionType_Declare,
+					Version:       TransactionV3,
+					Signature:     []*felt.Felt{},
+					Nonce:         utils.TestHexToFelt(t, "0x0"),
+					NonceDataMode: DAModeL1,
+					FeeMode:       DAModeL1,
+					ResourceBounds: ResourceBoundsMapping{
+						L1Gas: ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
 						},
-						Tip:                   "",
-						PayMasterData:         []*felt.Felt{},
-						SenderAddress:         utils.TestHexToFelt(t, "0x0"),
-						CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
-						ClassHash:             utils.TestHexToFelt(t, "0x0"),
-						AccountDeploymentData: []*felt.Felt{},
-					}},
+						L2Gas: ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x0",
+						},
+					},
+					Tip:                   "",
+					PayMasterData:         []*felt.Felt{},
+					SenderAddress:         utils.TestHexToFelt(t, "0x0"),
+					CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
+					AccountDeploymentData: []*felt.Felt{},
+				},
 				ExpectedResp: AddDeclareTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
