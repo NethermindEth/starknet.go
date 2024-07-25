@@ -66,10 +66,17 @@ func (s *Signer) MemKeyStore() *MemKeystore {
 // Returns:
 // - error: an error if the private key is invalid.
 func (s *Signer) Put(priv string, existingKeystore *MemKeystore) error {
-	privateKey, ok := new(big.Int).SetString(priv, 16)
+	privateKey, ok := new(big.Int).SetString(priv, 0)
 	if !ok {
 		return fmt.Errorf("invalid private key value")
 	}
+
+	pubKey, err := getPublicKey(privateKey)
+	if err != nil {
+		return err
+	}
+
+	s.publicKey = pubKey
 
 	var keystoreToUse *MemKeystore
 	if existingKeystore != nil {
