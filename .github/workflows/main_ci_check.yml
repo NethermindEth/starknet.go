@@ -3,7 +3,7 @@ name: (main) Auto CI run
 on:
   pull_request:
     branches:
-      - 'main' 
+      - "main"
 
 jobs:
   build_and_test:
@@ -67,7 +67,8 @@ jobs:
 
       # Build examples
       - name: Build examples
-        run: | 
+        run: |
           cd examples/deployAccount && go build
           cd ../simpleCall && go build
           cd ../simpleInvoke && go build
+          cd ../deployContractUDC && go build
