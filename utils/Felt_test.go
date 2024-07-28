@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -92,6 +93,70 @@ func TestByteArrFeltToString(t *testing.T) {
 		require.NoError(t, err, "error returned from HexArrToFelt")
 		res, err := ByteArrFeltToString(in)
 		require.NoError(t, err, "error returned from ByteArrFeltToString")
+		require.Equal(t, tc.out, res, "invalid conversion: output does not match")
+	}
+}
+
+func TestU256ToFelt(t *testing.T) {
+	b := new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil)
+	b1 := new(big.Int).Exp(big.NewInt(2), big.NewInt(129), nil)
+	b2 := b1.Add(b1, b).Add(b1, big.NewInt(20))
+
+	var tests = []struct {
+		in  *big.Int
+		out []string
+	}{
+		{
+			in:  big.NewInt(2),
+			out: []string{"0x2", "0x0"},
+		},
+		{
+			in:  new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil),
+			out: []string{"0x0", "0x1"},
+		},
+		{
+			in:  b2,
+			out: []string{"0x14", "0x3"},
+		},
+	}
+
+	for _, tc := range tests {
+		res, err := U256ToFelt(tc.in)
+		require.NoError(t, err, "error returned from U256ToFelt")
+		expected, err := HexArrToFelt(tc.out)
+		require.NoError(t, err, "error returned from HexArrToFelt")
+		require.Equal(t, expected, res, "invalid conversion: output does not match")
+	}
+}
+
+func TestFeltArrToU256(t *testing.T) {
+	b := new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil)
+	b1 := new(big.Int).Exp(big.NewInt(2), big.NewInt(129), nil)
+	b2 := b1.Add(b1, b).Add(b1, big.NewInt(20))
+
+	var tests = []struct {
+		in  []string
+		out *big.Int
+	}{
+		{
+			in:  []string{"0x2", "0x0"},
+			out: big.NewInt(2),
+		},
+		{
+			in:  []string{"0x0", "0x1"},
+			out: new(big.Int).Exp(big.NewInt(2), big.NewInt(128), nil),
+		},
+		{
+			in:  []string{"0x14", "0x3"},
+			out: b2,
+		},
+	}
+
+	for _, tc := range tests {
+		in, err := HexArrToFelt(tc.in)
+		require.NoError(t, err, "error returned from HexArrToFelt")
+		res, err := FeltArrToU256(in)
+		require.NoError(t, err, "error returned from U256ToFelt")
 		require.Equal(t, tc.out, res, "invalid conversion: output does not match")
 	}
 }

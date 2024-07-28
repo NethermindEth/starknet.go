@@ -202,3 +202,44 @@ func feltToString(f *felt.Felt) (string, error) {
 	}
 	return string(b), nil
 }
+
+// U256ToFelt converts big int an array of Felt objects to represent U256 datat type
+//
+// Parameters:
+// - num: big.Int
+// Returns:
+// - []*felt.Felt: the array of felt.Felt objects
+// - error: an error, if any
+func U256ToFelt(num *big.Int) ([]*felt.Felt, error) {
+	bytes := num.Bytes()
+	if len(bytes) > 32 {
+		return nil, fmt.Errorf("not a valid U256")
+	}
+
+	all := make([]byte, 32)
+	copy(all[32-len(bytes):], bytes[:])
+
+	least := new(felt.Felt).SetBytes(all[16:])
+	significant := new(felt.Felt).SetBytes(all[0:16])
+	return []*felt.Felt{least, significant}, nil
+}
+
+// FeltArrToU256 array of Felt objects that represents U256 data type to big.Int
+//
+// Parameters:
+// - arr: []*felt.Felt
+// Returns:
+// - *big.Int: big.Int representation of U256
+// - error: an error, if any
+func FeltArrToU256(arr []*felt.Felt) (*big.Int, error) {
+	if len(arr) != 2 {
+		return nil, fmt.Errorf("not a valid felt array for U256 conversion")
+	}
+
+	significant := arr[1].Bytes()
+	least := arr[0].Bytes()
+	res := make([]byte, 32)
+	copy(res[0:16], significant[16:])
+	copy(res[16:], least[16:])
+	return new(big.Int).SetBytes(res), nil
+}
