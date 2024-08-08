@@ -18,6 +18,7 @@ import (
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var Curve StarkCurve
@@ -520,101 +521,81 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	return xFelt, yFelt, nil
 }
 
-// HashElements calculates the hash of a list of elements using the StarkCurve struct and a golang Pedersen Hash.
-// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-//
+// HashElements calculates the hash of a list of elements using a golang Pedersen Hash.
 // Parameters:
 // - elems: slice of big.Int pointers to be hashed
 // Returns:
 // - hash: The hash of the list of elements
-// - err: An error if any
-func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
+func HashElements(elems []*big.Int) (hash *big.Int) {
+	feltArr := utils.BigIntArrToFeltArr(elems)
 	if len(elems) == 0 {
-		elems = append(elems, big.NewInt(0))
+		feltArr = append(feltArr, new(felt.Felt))
 	}
 
-	hash = big.NewInt(0)
-	for _, h := range elems {
-		hash, err = sc.PedersenHash([]*big.Int{hash, h})
-		if err != nil {
-			return hash, err
-		}
+	feltHash := new(felt.Felt)
+	for _, felt := range feltArr {
+		feltHash = Pedersen(feltHash, felt)
 	}
-	return hash, err
+
+	hash = utils.FeltToBigInt(feltHash)
+	return
 }
 
 // ComputeHashOnElements computes the hash on the given elements using a golang Pedersen Hash implementation.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
 //
-// The function appends the length of `elems` to the slice and then calls the `HashElements` method of the
-// `Curve` struct, passing in `elems` as an argument. The resulting hash and
-// any error that occurred during computation are returned.
+// The function appends the length of `elems` to the slice and then calls the `HashElements` method
+// passing in `elems` as an argument. The resulting hash is returned.
 //
 // Parameters:
 // - elems: slice of big.Int pointers to be hashed
 // Returns:
 // - hash: The hash of the list of elements
-// - err: An error if any
-func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
+func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
-	return Curve.HashElements((elems))
+	return HashElements(elems)
 }
 
-// PedersenHash calculates the Pedersen hash of the given elements.
-// NOTE: This function assumes the curve has been initialized with constant points
-// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-//
-// The function requires that the precomputed constant points have been initiated.
-// If the length of `sc.ConstantPoints` is zero, an error is returned.
-// The function iterates over the elements in `elems` and performs the Pedersen hash calculation.
-// For each element, it checks if the value is within the valid range.
-// If the value is invalid, an error is returned.
-// For each bit in the element, the function performs an addition operation on `ptx` and `pty`
-// using the corresponding constant point from the precomputed constant points.
-// If the constant point is a duplicate of `ptx`, an error is returned.
-// The function returns the resulting hash and a nil error if the calculation is successful.
-// Otherwise, it returns `ptx` and an error describing the issue encountered.
+// ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
+// Does the same as ComputeHashOnElements, but receives and returns felt types.
 //
 // Parameters:
-// - elems: An array of big integers representing the elements to hash.
+// - feltArr: A pointer to an array of Felt objects.
 // Returns:
-// - hash: The resulting Pedersen hash as a big integer.
-// - err: An error, if any, encountered during the calculation.
-func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
-	if len(sc.ConstantPoints) == 0 {
-		return hash, fmt.Errorf("must initiate precomputed constant points")
-	}
+// - *felt.Felt: a pointer to a Felt object
+func ComputeHashOnElementsFelt(feltArr []*felt.Felt) *felt.Felt {
+	return PedersenArray(feltArr...)
+}
 
-	ptx := new(big.Int).Set(sc.Gx)
-	pty := new(big.Int).Set(sc.Gy)
-	for i, elem := range elems {
-		x := new(big.Int).Set(elem)
+// Pedersen is a function that implements the Pedersen hash.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L20)
+//
+// Parameters:
+// - a: a pointers to felt.Felt to be hashed.
+// - b: a pointers to felt.Felt to be hashed.
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Pedersen(a, b *felt.Felt) *felt.Felt {
+	return junoCrypto.Pedersen(a, b)
+}
 
-		if x.Cmp(big.NewInt(0)) == -1 || x.Cmp(sc.P) >= 0 {
-			return ptx, fmt.Errorf("invalid x: %v", x)
-		}
-
-		for j := 0; j < 252; j++ {
-			idx := 2 + (i * 252) + j
-			xin := new(big.Int).Set(sc.ConstantPoints[idx][0])
-			yin := new(big.Int).Set(sc.ConstantPoints[idx][1])
-			if xin.Cmp(ptx) == 0 {
-				return hash, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
-			}
-			if x.Bit(0) == 1 {
-				ptx, pty = sc.Add(ptx, pty, xin, yin)
-			}
-			x = x.Rsh(x, 1)
-		}
-	}
-
-	return ptx, nil
+// PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
+// calls the PedersenArray function from the junoCrypto package with the provided parameters.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L12)
+//
+// Parameters:
+// - felts: A variadic number of pointers to felt.Felt
+// Returns:
+// - *felt.Felt: pointer to a felt.Felt
+func PedersenArray(felts ...*felt.Felt) *felt.Felt {
+	return junoCrypto.PedersenArray(felts...)
 }
 
 // PoseidonArray is a function that takes a variadic number of felt.Felt pointers as parameters and
+// calls the PoseidonArray function from the junoCrypto package with the provided parameters.
 // NOTE: This function just wraps the Juno implementation
 // (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
-// calls the PoseidonArray function from the junoCrypto package with the provided parameters.
 //
 // Parameters:
 // - felts: A variadic number of pointers to felt.Felt

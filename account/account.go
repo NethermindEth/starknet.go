@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -180,10 +181,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 	case rpc.DeployAccountTxn:
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 		calldata = append(calldata, txn.ConstructorCalldata...)
-		calldataHash, err := hash.ComputeHashOnElementsFelt(calldata)
-		if err != nil {
-			return nil, err
-		}
+		calldataHash := curve.ComputeHashOnElementsFelt(calldata)
 
 		versionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -200,7 +198,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			txn.MaxFee,
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce},
-		)
+		), nil
 	case rpc.DeployAccountTxnV3:
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
 			return nil, ErrNotAllParametersSet
@@ -265,11 +263,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
-		if err != nil {
-			return nil, err
-		}
-
+		calldataHash := curve.ComputeHashOnElementsFelt(txn.Calldata)
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
 			return nil, err
@@ -283,17 +277,14 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			txn.MaxFee,
 			account.ChainId,
 			[]*felt.Felt{},
-		)
+		), nil
 
 	case rpc.InvokeTxnV1:
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt(txn.Calldata)
-		if err != nil {
-			return nil, err
-		}
+		calldataHash := curve.ComputeHashOnElementsFelt(txn.Calldata)
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
 			return nil, err
@@ -307,7 +298,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			txn.MaxFee,
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce},
-		)
+		), nil
 	case rpc.InvokeTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
@@ -398,10 +389,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
-		if err != nil {
-			return nil, err
-		}
+		calldataHash := curve.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -416,16 +404,13 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			txn.MaxFee,
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce},
-		)
+		), nil
 	case rpc.DeclareTxnV2:
 		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash, err := hash.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
-		if err != nil {
-			return nil, err
-		}
+		calldataHash := curve.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -440,7 +425,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			txn.MaxFee,
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
-		)
+		), nil
 	case rpc.DeclareTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
@@ -495,10 +480,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // - *felt.Felt: the precomputed address as a *felt.Felt
 // - error: an error if any
 func (account *Account) PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-	result, err := contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
-	if err != nil {
-		return nil, err
-	}
+	result := contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 
 	return result, nil
 }

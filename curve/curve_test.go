@@ -3,12 +3,17 @@ package curve
 import (
 	"crypto/elliptic"
 	"fmt"
-	"log"
 	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/stretchr/testify/require"
 )
+
+// package level variable to be used by the benchmarking code
+// to prevent the compiler from optimizing the code away
+var result any
 
 // BenchmarkPedersenHash benchmarks the performance of the PedersenHash function.
 //
@@ -21,21 +26,21 @@ import (
 //
 //	none
 func BenchmarkPedersenHash(b *testing.B) {
-	suite := [][]*big.Int{
-		{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")},
-		{utils.HexToBN("0x1277312773"), utils.HexToBN("0x872362872362")},
-		{utils.HexToBN("0x1277312773"), utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")},
-		{utils.HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"), utils.HexToBN("0x872362872362")},
-		{utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), utils.HexToBN("0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB")},
-		{utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), utils.HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9")},
-		{utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"), utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde")},
+	suite := [][]string{
+		{"0x12773", "0x872362"},
+		{"0x1277312773", "0x872362872362"},
+		{"0x1277312773", "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},
+		{"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB", "0x872362872362"},
+		{"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826", "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},
+		{"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd", "0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"},
+		{"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd", "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"},
 	}
 
 	for _, test := range suite {
-		b.Run(fmt.Sprintf("input_size_%d_%d", test[0].BitLen(), test[1].BitLen()), func(b *testing.B) {
-			if _, err := Curve.PedersenHash(test); err != nil {
-				log.Fatal(err)
-			}
+		b.Run(fmt.Sprintf("input_size_%d_%d", len(test[0]), len(test[1])), func(b *testing.B) {
+			hexArr, err := utils.HexArrToFelt(test)
+			require.NoError(b, err)
+			result = Pedersen(hexArr[0], hexArr[1])
 		})
 	}
 }
@@ -66,9 +71,9 @@ func BenchmarkCurveSign(b *testing.B) {
 		})
 
 		for _, test := range dataSet {
-			if _, _, err := Curve.Sign(test.MessageHash, test.PrivateKey, test.Seed); err != nil {
-				log.Fatal(err)
-			}
+			result, _, err := Curve.Sign(test.MessageHash, test.PrivateKey, test.Seed)
+			require.NoError(b, err)
+			require.NotEmpty(b, result)
 		}
 	}
 }
@@ -89,24 +94,28 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, _ := Curve.GetRandomPrivateKey()
-	x, y, _ := Curve.PrivateToPoint(private)
+	private, err := Curve.GetRandomPrivateKey()
+	require.NoError(b, err)
+	x, y, err := Curve.PrivateToPoint(private)
+	require.NoError(b, err)
 
-	hash, _ := Curve.PedersenHash(
-		[]*big.Int{
-			utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
-		})
+	hash := Pedersen(
+		utils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+		utils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+	)
+	hashBigInt := utils.FeltToBigInt(hash)
 
-	r, s, _ := Curve.Sign(hash, private)
+	r, s, err := Curve.Sign(hashBigInt, private)
+	require.NoError(b, err)
 
-	b.Run(fmt.Sprintf("sign_input_size_%d", hash.BitLen()), func(b *testing.B) {
-		if _, _, err := Curve.Sign(hash, private); err != nil {
-			log.Fatal(err)
-		}
+	b.Run(fmt.Sprintf("sign_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
+		result, _, err = Curve.Sign(hashBigInt, private)
+		require.NoError(b, err)
+		require.NotEmpty(b, result)
 	})
-	b.Run(fmt.Sprintf("verify_input_size_%d", hash.BitLen()), func(b *testing.B) {
-		Curve.Verify(hash, r, s, x, y)
+	b.Run(fmt.Sprintf("verify_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
+		result = Curve.Verify(hashBigInt, r, s, x, y)
+		require.NotEmpty(b, result)
 	})
 }
 
@@ -119,13 +128,10 @@ func BenchmarkSignatureVerify(b *testing.B) {
 //	none
 func TestGeneral_PrivateToPoint(t *testing.T) {
 	x, _, err := Curve.PrivateToPoint(big.NewInt(2))
-	if err != nil {
-		t.Errorf("PrivateToPoint err %v", err)
-	}
-	expectedX, _ := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
-	if x.Cmp(expectedX) != 0 {
-		t.Errorf("Actual public key %v different from expected %v", x, expectedX)
-	}
+	require.NoError(t, err)
+	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
+	require.True(t, ok)
+	require.Equal(t, expectedX, x)
 }
 
 // TestGeneral_PedersenHash is a test function for the PedersenHash method in the General struct.
@@ -140,31 +146,30 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 //	none
 func TestGeneral_PedersenHash(t *testing.T) {
 	testPedersen := []struct {
-		elements []*big.Int
-		expected *big.Int
+		elements []string
+		expected string
 	}{
 		{
-			elements: []*big.Int{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")},
-			expected: utils.HexToBN("0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca"),
+			elements: []string{"0x12773", "0x872362"},
+			expected: "0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca",
 		},
 		{
-			elements: []*big.Int{utils.HexToBN("0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"), utils.HexToBN("0x537461726b4e6574204d61696c")},
-			expected: utils.HexToBN("0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c"),
+			elements: []string{"0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9", "0x537461726b4e6574204d61696c"},
+			expected: "0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c",
 		},
 		{
-			elements: []*big.Int{big.NewInt(100), big.NewInt(1000)},
-			expected: utils.HexToBN("0x45a62091df6da02dce4250cb67597444d1f465319908486b836f48d0f8bf6e7"),
+			elements: []string{"100", "1000"},
+			expected: "0x45a62091df6da02dce4250cb67597444d1f465319908486b836f48d0f8bf6e7",
 		},
 	}
 
-	for _, tt := range testPedersen {
-		hash, err := Curve.PedersenHash(tt.elements)
-		if err != nil {
-			t.Errorf("Hashing err: %v\n", err)
-		}
-		if hash.Cmp(tt.expected) != 0 {
-			t.Errorf("incorrect hash: got %v expected %v\n", hash, tt.expected)
-		}
+	for _, test := range testPedersen {
+		elementsFelt, err := utils.HexArrToFelt(test.elements)
+		require.NoError(t, err)
+		expected := utils.TestHexToFelt(t, test.expected)
+
+		result := Pedersen(elementsFelt[0], elementsFelt[1])
+		require.Equal(t, expected, result)
 	}
 }
 
@@ -202,9 +207,7 @@ func TestGeneral_DivMod(t *testing.T) {
 	for _, tt := range testDivmod {
 		divR := DivMod(tt.x, tt.y, Curve.P)
 
-		if divR.Cmp(tt.expected) != 0 {
-			t.Errorf("DivMod Res %v does not == expected %v\n", divR, tt.expected)
-		}
+		require.Equal(t, tt.expected, divR)
 	}
 }
 
@@ -213,7 +216,7 @@ func TestGeneral_DivMod(t *testing.T) {
 // It tests the addition of two big integers and compares the result with the expected values.
 // The function takes a slice of test cases, each containing two big integers and their expected sum.
 // It iterates over the test cases, computes the sum using the Add function, and checks if it matches the expected sum.
-// If the computed sum does not match the expected sum, an error is reported using the t.Errorf function.
+// If the computed sum does not match the expected sum, an error is reported using the require.Equal function.
 //
 // Parameters:
 // - t: a *testing.T value representing the testing context
@@ -243,13 +246,8 @@ func TestGeneral_Add(t *testing.T) {
 
 	for _, tt := range testAdd {
 		resX, resY := Curve.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
-		if resX.Cmp(tt.expectedX) != 0 {
-			t.Errorf("ResX %v does not == expected %v\n", resX, tt.expectedX)
-
-		}
-		if resY.Cmp(tt.expectedY) != 0 {
-			t.Errorf("ResY %v does not == expected %v\n", resY, tt.expectedY)
-		}
+		require.Equal(t, tt.expectedX, resX)
+		require.Equal(t, tt.expectedY, resY)
 	}
 }
 
@@ -286,25 +284,16 @@ func TestGeneral_MultAir(t *testing.T) {
 
 	for _, tt := range testMult {
 		x, y, err := Curve.MimicEcMultAir(tt.r, tt.x, tt.y, Curve.Gx, Curve.Gy)
-		if err != nil {
-			t.Errorf("MultAirERR %v\n", err)
-		}
-
-		if x.Cmp(tt.expectedX) != 0 {
-			t.Errorf("ResX %v does not == expected %v\n", x, tt.expectedX)
-
-		}
-		if y.Cmp(tt.expectedY) != 0 {
-			t.Errorf("ResY %v does not == expected %v\n", y, tt.expectedY)
-		}
+		require.NoError(t, err)
+		require.Equal(t, tt.expectedX, x)
+		require.Equal(t, tt.expectedY, y)
 	}
 }
 
-// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements function in the General package.
+// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and ComputeHashOnElementsFelt functions in the General package.
 //
-// This function tests the ComputeHashOnElements function by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
-// It checks the behavior of the ComputeHashOnElements function when an empty array is passed as input, as well as when an array with multiple elements is passed.
-// The expected hashes are precalculated using the utils.HexToBN function.
+// This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
+// It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
 //
 // Parameters:
 // - t: a *testing.T value representing the testing context
@@ -312,28 +301,25 @@ func TestGeneral_MultAir(t *testing.T) {
 //
 //	none
 func TestGeneral_ComputeHashOnElements(t *testing.T) {
-	hashEmptyArray, err := Curve.ComputeHashOnElements([]*big.Int{})
-	expectedHashEmmptyArray := utils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
-	if err != nil {
-		t.Errorf("Could no hash an empty array %v\n", err)
-	}
-	if hashEmptyArray.Cmp(expectedHashEmmptyArray) != 0 {
-		t.Errorf("Hash empty array wrong value. Expected %v got %v\n", expectedHashEmmptyArray, hashEmptyArray)
-	}
+	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
+	hashEmptyArrayFelt := ComputeHashOnElementsFelt([]*felt.Felt{})
 
-	hashFilledArray, err := Curve.ComputeHashOnElements([]*big.Int{
+	expectedHashEmmptyArray := utils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
+	require.Equal(t, hashEmptyArray, expectedHashEmmptyArray, "Hash empty array wrong value.")
+	require.Equal(t, utils.FeltToBigInt(hashEmptyArrayFelt), expectedHashEmmptyArray, "Hash empty array wrong value.")
+
+	filledArray := []*big.Int{
 		big.NewInt(123782376),
 		big.NewInt(213984),
 		big.NewInt(128763521321),
-	})
-	expectedHashFilledArray := utils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+	}
 
-	if err != nil {
-		t.Errorf("Could no hash an array with values %v\n", err)
-	}
-	if hashFilledArray.Cmp(expectedHashFilledArray) != 0 {
-		t.Errorf("Hash filled array wrong value. Expected %v got %v\n", expectedHashFilledArray, hashFilledArray)
-	}
+	hashFilledArray := ComputeHashOnElements(filledArray)
+	hashFilledArrayFelt := ComputeHashOnElementsFelt(utils.BigIntArrToFeltArr(filledArray))
+
+	expectedHashFilledArray := utils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+	require.Equal(t, hashFilledArray, expectedHashFilledArray, "Hash filled array wrong value.")
+	require.Equal(t, utils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
 }
 
 // TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
@@ -344,29 +330,21 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 //
 //	none
 func TestGeneral_HashAndSign(t *testing.T) {
-	hashy, err := Curve.HashElements([]*big.Int{
+	hashy := HashElements([]*big.Int{
 		big.NewInt(1953658213),
 		big.NewInt(126947999705460),
 		big.NewInt(1953658213),
 	})
-	if err != nil {
-		t.Errorf("Hasing elements: %v\n", err)
-	}
 
-	priv, _ := Curve.GetRandomPrivateKey()
+	priv, err := Curve.GetRandomPrivateKey()
+	require.NoError(t, err)
 	x, y, err := Curve.PrivateToPoint(priv)
-	if err != nil {
-		t.Errorf("Could not convert random private key to point: %v\n", err)
-	}
+	require.NoError(t, err)
 
 	r, s, err := Curve.Sign(hashy, priv)
-	if err != nil {
-		t.Errorf("Could not convert gen signature: %v\n", err)
-	}
+	require.NoError(t, err)
 
-	if !Curve.Verify(hashy, r, s, x, y) {
-		t.Errorf("Verified bad signature %v %v\n", r, s)
-	}
+	require.True(t, Curve.Verify(hashy, r, s, x, y))
 }
 
 // TestGeneral_ComputeFact tests the ComputeFact function.
@@ -401,9 +379,7 @@ func TestGeneral_ComputeFact(t *testing.T) {
 
 	for _, tt := range testFacts {
 		hash := utils.ComputeFact(tt.programHash, tt.programOutput)
-		if hash.Cmp(tt.expected) != 0 {
-			t.Errorf("Fact does not equal ex %v %v\n", hash, tt.expected)
-		}
+		require.Equal(t, tt.expected, hash)
 	}
 }
 
@@ -415,36 +391,25 @@ func TestGeneral_ComputeFact(t *testing.T) {
 //
 //	none
 func TestGeneral_BadSignature(t *testing.T) {
-	hash, err := Curve.PedersenHash([]*big.Int{utils.HexToBN("0x12773"), utils.HexToBN("0x872362")})
-	if err != nil {
-		t.Errorf("Hashing err: %v\n", err)
-	}
+	hash := Pedersen(utils.TestHexToFelt(t, "0x12773"), utils.TestHexToFelt(t, "0x872362"))
+	hashBigInt := utils.FeltToBigInt(hash)
 
-	priv, _ := Curve.GetRandomPrivateKey()
+	priv, err := Curve.GetRandomPrivateKey()
+	require.NoError(t, err)
 	x, y, err := Curve.PrivateToPoint(priv)
-	if err != nil {
-		t.Errorf("Could not convert random private key to point: %v\n", err)
-	}
+	require.NoError(t, err)
 
-	r, s, err := Curve.Sign(hash, priv)
-	if err != nil {
-		t.Errorf("Could not convert gen signature: %v\n", err)
-	}
+	r, s, err := Curve.Sign(hashBigInt, priv)
+	require.NoError(t, err)
 
 	badR := new(big.Int).Add(r, big.NewInt(1))
-	if Curve.Verify(hash, badR, s, x, y) {
-		t.Errorf("Verified bad signature %v %v\n", r, s)
-	}
+	require.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
 
 	badS := new(big.Int).Add(s, big.NewInt(1))
-	if Curve.Verify(hash, r, badS, x, y) {
-		t.Errorf("Verified bad signature %v %v\n", r, s)
-	}
+	require.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
 
-	badHash := new(big.Int).Add(hash, big.NewInt(1))
-	if Curve.Verify(badHash, r, s, x, y) {
-		t.Errorf("Verified bad signature %v %v\n", r, s)
-	}
+	badHash := new(big.Int).Add(hashBigInt, big.NewInt(1))
+	require.False(t, Curve.Verify(badHash, r, s, x, y))
 }
 
 // TestGeneral_Signature tests the Signature function.
@@ -494,28 +459,24 @@ func TestGeneral_Signature(t *testing.T) {
 
 	var err error
 	for _, tt := range testSignature {
+		require := require.New(t)
 		if tt.raw != "" {
-			h, _ := utils.HexToBytes(tt.raw)
+			h, err := utils.HexToBytes(tt.raw)
+			require.NoError(err)
 			tt.publicX, tt.publicY = elliptic.Unmarshal(Curve, h) //nolint:all
 		} else if tt.private != nil {
 			tt.publicX, tt.publicY, err = Curve.PrivateToPoint(tt.private)
-			if err != nil {
-				t.Errorf("Could not convert random private key to point: %v\n", err)
-			}
+			require.NoError(err)
 		} else if tt.publicX != nil {
 			tt.publicY = Curve.GetYCoordinate(tt.publicX)
 		}
 
 		if tt.rIn == nil && tt.private != nil {
 			tt.rIn, tt.sIn, err = Curve.Sign(tt.hash, tt.private)
-			if err != nil {
-				t.Errorf("Could not sign good hash: %v\n", err)
-			}
+			require.NoError(err)
 		}
 
-		if !Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY) {
-			t.Errorf("successful signature did not verify\n")
-		}
+		require.True(Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
 	}
 }
 
@@ -536,11 +497,7 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 	}
 	for _, d := range data {
 		l, h := utils.SplitFactStr(d["input"]) // 0x3
-		if l != d["l"] {
-			t.Errorf("expected %s, got %s", d["l"], l)
-		}
-		if h != d["h"] {
-			t.Errorf("expected %s, got %s", d["h"], h)
-		}
+		require.Equal(t, d["l"], l)
+		require.Equal(t, d["h"], h)
 	}
 }

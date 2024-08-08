@@ -73,6 +73,22 @@ func HexToBN(hexString string) *big.Int {
 	return n
 }
 
+// HexArrToBNArr converts a hexadecimal string array to a *big.Int array.
+// Trim "0x" prefix(if exists)
+//
+// Parameters:
+// - hexArr: the hexadecimal string array to be converted
+// Returns:
+// - *big.Int: the converted array
+func HexArrToBNArr(hexArr []string) []*big.Int {
+	bigNumArr := make([]*big.Int, len(hexArr))
+	for i, e := range hexArr {
+		bigNum := HexToBN(e)
+		bigNumArr[i] = bigNum
+	}
+	return bigNumArr
+}
+
 // HexToBytes converts a hexadecimal string to a byte slice.
 // trim "0x" prefix(if exists)
 //
