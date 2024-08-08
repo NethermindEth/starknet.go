@@ -70,7 +70,7 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 // Returns:
 // - *felt.Felt: a *felt.Felt with the value of str
 func strToFelt(str string) *felt.Felt {
-	var f = &felt.Zero
+	var f = new(felt.Felt)
 	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
 
 	if b, ok := new(big.Int).SetString(str, 0); ok {
@@ -128,40 +128,32 @@ func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedD
 // Parameters:
 // - account: A pointer to a big.Int representing the account.
 // - msg: A TypedMessage object representing the message.
-// - sc: A StarkCurve object representing the curve.
 // Returns:
 // - hash: A pointer to a big.Int representing the calculated hash.
-// - err: An error object indicating any error that occurred during the calculation.
-func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
+func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage) (hash *big.Int) {
 	elements := []*big.Int{utils.UTF8StrToBig("StarkNet Message")}
 
-	domEnc, err := td.GetTypedMessageHash("StarkNetDomain", td.Domain, sc)
-	if err != nil {
-		return hash, fmt.Errorf("could not hash domain: %w", err)
-	}
+	domEnc := td.GetTypedMessageHash("StarkNetDomain", td.Domain)
+
 	elements = append(elements, domEnc)
 	elements = append(elements, account)
 
-	msgEnc, err := td.GetTypedMessageHash(td.PrimaryType, msg, sc)
-	if err != nil {
-		return hash, fmt.Errorf("could not hash message: %w", err)
-	}
+	msgEnc := td.GetTypedMessageHash(td.PrimaryType, msg)
 
 	elements = append(elements, msgEnc)
-	hash, err = sc.ComputeHashOnElements(elements)
-	return hash, err
+	hash = curve.ComputeHashOnElements(elements)
+	return hash
 }
 
 // GetTypedMessageHash calculates the hash of a typed message using the provided StarkCurve.
 //
 // Parameters:
-//  - inType: the type of the message
-//  - msg: the typed message
-//  - sc: the StarkCurve used for hashing
+//   - inType: the type of the message
+//   - msg: the typed message
+//
 // Returns:
-//  - hash: the calculated hash
-//  - err: any error if any
-func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc curve.StarkCurve) (hash *big.Int, err error) {
+//   - hash: the calculated hash
+func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage) (hash *big.Int) {
 	prim := td.Types[inType]
 	elements := []*big.Int{prim.Encoding}
 
@@ -179,15 +171,12 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage, sc curv
 		innerElements = append(innerElements, fmtDefinitions...)
 		innerElements = append(innerElements, big.NewInt(int64(len(innerElements))))
 
-		innerHash, err := sc.HashElements(innerElements)
-		if err != nil {
-			return hash, fmt.Errorf("error hashing internal elements: %v %w", innerElements, err)
-		}
+		innerHash := curve.HashElements(innerElements)
 		elements = append(elements, innerHash)
 	}
 
-	hash, err = sc.ComputeHashOnElements(elements)
-	return hash, err
+	hash = curve.ComputeHashOnElements(elements)
+	return hash
 }
 
 // GetTypeHash returns the hash of the given type.

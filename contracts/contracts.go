@@ -6,7 +6,6 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
@@ -61,23 +60,17 @@ func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 // - constructorCalldata: the constructor calldata
 // Returns:
 // - *felt.Felt: the precomputed address as a *felt.Felt
-// - error: an error if any
-func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
+func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
 
-	bigIntArr := utils.FeltArrToBigIntArr([]*felt.Felt{
+	feltArr := []*felt.Felt{
 		PREFIX_CONTRACT_ADDRESS,
 		deployerAddress,
 		salt,
 		classHash,
-	})
-
-	constructorCalldataBigIntArr := utils.FeltArrToBigIntArr(constructorCalldata)
-	constructorCallDataHashInt, _ := curve.Curve.ComputeHashOnElements(constructorCalldataBigIntArr)
-	bigIntArr = append(bigIntArr, constructorCallDataHashInt)
-
-	preBigInt, err := curve.Curve.ComputeHashOnElements(bigIntArr)
-	if err != nil {
-		return nil, err
 	}
-	return utils.BigIntToFelt(preBigInt), nil
+
+	constructorCallDataHash := curve.ComputeHashOnElementsFelt(constructorCalldata)
+	feltArr = append(feltArr, constructorCallDataHash)
+
+	return curve.ComputeHashOnElementsFelt(feltArr)
 }

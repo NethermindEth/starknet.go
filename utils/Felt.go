@@ -202,3 +202,17 @@ func feltToString(f *felt.Felt) (string, error) {
 	}
 	return string(b), nil
 }
+
+// BigIntArrToFeltArr converts an array of big.Int objects to an array of Felt objects.
+//
+// Parameters:
+// - bigArr: the array of big.Int objects to convert
+// Returns:
+// - []*felt.Felt: the array of Felt objects
+func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
+	var feltArr []*felt.Felt
+	for _, big := range bigArr {
+		feltArr = append(feltArr, BigIntToFelt(big))
+	}
+	return feltArr
+}
