@@ -141,8 +141,8 @@ func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage) (hash *bi
 	msgEnc := td.GetTypedMessageHash(td.PrimaryType, msg)
 
 	elements = append(elements, msgEnc)
-	hash = curve.ComputeHashOnElements(elements)
-	return hash
+
+	return curve.ComputeHashOnElements(elements)
 }
 
 // GetTypedMessageHash calculates the hash of a typed message using the provided StarkCurve.
@@ -171,12 +171,11 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage) (hash *
 		innerElements = append(innerElements, fmtDefinitions...)
 		innerElements = append(innerElements, big.NewInt(int64(len(innerElements))))
 
-		innerHash := curve.HashElements(innerElements)
+		innerHash := curve.HashPedersenElements(innerElements)
 		elements = append(elements, innerHash)
 	}
 
-	hash = curve.ComputeHashOnElements(elements)
-	return hash
+	return curve.ComputeHashOnElements(elements)
 }
 
 // GetTypeHash returns the hash of the given type.
@@ -191,8 +190,7 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 	if err != nil {
 		return ret, err
 	}
-	sel := utils.GetSelectorFromName(enc)
-	return sel, nil
+	return utils.GetSelectorFromName(enc), nil
 }
 
 // EncodeType encodes the given inType using the TypedData struct.

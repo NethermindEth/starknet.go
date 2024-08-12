@@ -82,9 +82,8 @@ func HexToBN(hexString string) *big.Int {
 // - *big.Int: the converted array
 func HexArrToBNArr(hexArr []string) []*big.Int {
 	bigNumArr := make([]*big.Int, len(hexArr))
-	for i, e := range hexArr {
-		bigNum := HexToBN(e)
-		bigNumArr[i] = bigNum
+	for i, hexStr := range hexArr {
+		bigNumArr[i] = HexToBN(hexStr)
 	}
 	return bigNumArr
 }

@@ -330,7 +330,7 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 //
 //	none
 func TestGeneral_HashAndSign(t *testing.T) {
-	hashy := HashElements([]*big.Int{
+	hashy := HashPedersenElements([]*big.Int{
 		big.NewInt(1953658213),
 		big.NewInt(126947999705460),
 		big.NewInt(1953658213),

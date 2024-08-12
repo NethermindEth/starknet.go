@@ -27,8 +27,7 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 		Leaves:   leaves,
 		Branches: [][]*big.Int{},
 	}
-	root := mt.build(leaves)
-	mt.Root = root
+	mt.Root = mt.build(leaves)
 	return mt
 }
 
@@ -41,9 +40,9 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 // - *big.Int: the Merkle hash of the two big integers
 func MerkleHash(x, y *big.Int) *big.Int {
 	if x.Cmp(y) <= 0 {
-		return curve.HashElements([]*big.Int{x, y})
+		return curve.HashPedersenElements([]*big.Int{x, y})
 	}
-	return curve.HashElements([]*big.Int{y, x})
+	return curve.HashPedersenElements([]*big.Int{y, x})
 }
 
 // build recursively constructs a Merkle tree from the given leaves.

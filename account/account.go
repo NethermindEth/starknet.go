@@ -203,8 +203,6 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
 			return nil, ErrNotAllParametersSet
 		}
-		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
-		calldata = append(calldata, txn.ConstructorCalldata...) //nolint:all
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {

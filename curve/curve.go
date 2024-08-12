@@ -521,12 +521,12 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	return xFelt, yFelt, nil
 }
 
-// HashElements calculates the hash of a list of elements using a golang Pedersen Hash.
+// HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
 // Parameters:
 // - elems: slice of big.Int pointers to be hashed
 // Returns:
 // - hash: The hash of the list of elements
-func HashElements(elems []*big.Int) (hash *big.Int) {
+func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 	feltArr := utils.BigIntArrToFeltArr(elems)
 	if len(elems) == 0 {
 		feltArr = append(feltArr, new(felt.Felt))
@@ -543,7 +543,7 @@ func HashElements(elems []*big.Int) (hash *big.Int) {
 
 // ComputeHashOnElements computes the hash on the given elements using a golang Pedersen Hash implementation.
 //
-// The function appends the length of `elems` to the slice and then calls the `HashElements` method
+// The function appends the length of `elems` to the slice and then calls the `HashPedersenElements` method
 // passing in `elems` as an argument. The resulting hash is returned.
 //
 // Parameters:
@@ -552,7 +552,7 @@ func HashElements(elems []*big.Int) (hash *big.Int) {
 // - hash: The hash of the list of elements
 func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
-	return HashElements(elems)
+	return HashPedersenElements(elems)
 }
 
 // ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
