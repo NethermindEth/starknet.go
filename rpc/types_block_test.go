@@ -111,7 +111,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block/sepoliaTxs64159.json
+//go:embed tests/block/sepoliaBlockTxs64159.json
 var rawBlock []byte
 
 // TestBlock_Unmarshal tests the Unmarshal function of the Block type.
@@ -147,33 +147,19 @@ func TestBlockWithReceipts(t *testing.T) {
 	}
 
 	if testEnv == "testnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/sepoliaReceipts64159.json")
+		block, err := os.ReadFile("tests/blockWithReceipts/sepoliaBlockReceipts64159.json")
 		require.NoError(err)
 		require.NoError(json.Unmarshal(block, &blockWithReceipt))
 	} else if testEnv == "mainnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/mainnetReceipts588763.json")
+		block, err := os.ReadFile("tests/blockWithReceipts/mainnetBlockReceipts588763.json")
 		require.NoError(err)
 		require.NoError(json.Unmarshal(block, &blockWithReceipt))
 	}
 
+	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")
 	var blockMock123 = BlockWithReceipts{
 		BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "deadbeef"),
-			ParentHash:       new(felt.Felt).SetUint64(1),
-			BlockNumber:      1,
-			NewRoot:          new(felt.Felt).SetUint64(1),
-			Timestamp:        123,
-			SequencerAddress: new(felt.Felt).SetUint64(1),
-			L1GasPrice: ResourcePrice{
-				PriceInFRI: new(felt.Felt).SetUint64(1),
-				PriceInWei: new(felt.Felt).SetUint64(1),
-			},
-			L1DataGasPrice: ResourcePrice{
-				PriceInFRI: new(felt.Felt).SetUint64(1),
-				PriceInWei: new(felt.Felt).SetUint64(1),
-			},
-			L1DAMode:        L1DAModeBlob,
-			StarknetVersion: "0.13",
+			BlockHash: deadBeef,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
@@ -181,33 +167,18 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
+							TransactionHash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								Nonce:         new(felt.Felt).SetUint64(1),
-								MaxFee:        new(felt.Felt).SetUint64(1),
-								SenderAddress: utils.TestHexToFelt(t, "deadbeef"),
-								Signature: []*felt.Felt{
-									utils.TestHexToFelt(t, "deadbeef"),
-								},
-								Calldata: []*felt.Felt{
-									new(felt.Felt).SetUint64(1),
-								},
+								SenderAddress: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						Type:            "INVOKE",
-						TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
-						ActualFee: FeePayment{
-							Amount: new(felt.Felt).SetUint64(1),
-							Unit:   UnitWei,
-						},
+						TransactionHash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-						MessagesSent:    []MsgToL1{},
-						Events:          []Event{},
 					},
 				},
 			},
@@ -216,52 +187,25 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	var pendingBlockMock123 = PendingBlockWithReceipts{
 		PendingBlockHeader{
-			ParentHash:       new(felt.Felt).SetUint64(1),
-			Timestamp:        123,
-			SequencerAddress: new(felt.Felt).SetUint64(1),
-			L1GasPrice: ResourcePrice{
-				PriceInFRI: new(felt.Felt).SetUint64(1),
-				PriceInWei: new(felt.Felt).SetUint64(1),
-			},
-			L1DataGasPrice: ResourcePrice{
-				PriceInFRI: new(felt.Felt).SetUint64(1),
-				PriceInWei: new(felt.Felt).SetUint64(1),
-			},
-			L1DAMode:        L1DAModeBlob,
-			StarknetVersion: "0.13",
+			ParentHash: deadBeef,
 		},
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
+							TransactionHash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								Nonce:         new(felt.Felt).SetUint64(1),
-								MaxFee:        new(felt.Felt).SetUint64(1),
-								SenderAddress: utils.TestHexToFelt(t, "deadbeef"),
-								Signature: []*felt.Felt{
-									utils.TestHexToFelt(t, "deadbeef"),
-								},
-								Calldata: []*felt.Felt{
-									new(felt.Felt).SetUint64(1),
-								},
+								SenderAddress: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						Type:            "INVOKE",
-						TransactionHash: utils.TestHexToFelt(t, "deadbeef"),
-						ActualFee: FeePayment{
-							Amount: new(felt.Felt).SetUint64(1),
-							Unit:   UnitWei,
-						},
+						TransactionHash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-						MessagesSent:    []MsgToL1{},
-						Events:          []Event{},
 					},
 				},
 			},
