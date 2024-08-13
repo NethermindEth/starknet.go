@@ -60,6 +60,10 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 			return &nodeErr
 		}
 	}
+
+	if nodeErr.Code == 0 {
+		return Err(InternalError, err.Error())
+	}
 	return Err(nodeErr.Code, nodeErr.Data)
 }
 
