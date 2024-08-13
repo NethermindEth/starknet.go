@@ -1146,7 +1146,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 // The function first checks the type of the result parameter and returns an error if it is not of type *json.RawMessage.
 // It then checks the length of the args parameter and returns an error if it is not equal to 1. Next, it checks the
 // type of the first element of args and returns an error if it is not of type *felt.Felt. If the block hash is equal
-// to "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2", the function reads the trace from a file
+// to "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2", the function reads the trace from a file
 // and unmarshals it into a struct. It then marshals the result and unmarshals it into the result parameter.
 // If the block hash is not valid, the function returns an error of type ErrInvalidBlockHash.
 //
@@ -1168,12 +1168,12 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 	if !ok {
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
-	if blockID.Hash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
+	if blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 
 		var rawBlockTrace struct {
 			Result []Trace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/trace/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		read, err := os.ReadFile("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
 		if err != nil {
 			return err
 		}
@@ -1224,11 +1224,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e":
+	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/trace/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
+		read, err := os.ReadFile("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
 		if err != nil {
 			return err
 		}
