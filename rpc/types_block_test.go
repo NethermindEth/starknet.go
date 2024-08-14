@@ -248,6 +248,7 @@ func TestBlockWithReceipts(t *testing.T) {
 	for _, test := range testSet {
 		result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
 		require.NoError(err, "Error in BlockWithReceipts")
+
 		switch resultType := result.(type) {
 		case *BlockWithReceipts:
 			block, ok := result.(*BlockWithReceipts)
@@ -256,12 +257,6 @@ func TestBlockWithReceipts(t *testing.T) {
 			require.NotEmpty(block.Transactions, "the number of transactions should not be 0")
 
 			if test.ExpectedBlockWithReceipts != nil {
-				require.Equal(block.BlockHeader.BlockHash, test.ExpectedBlockWithReceipts.BlockHeader.BlockHash, "Error in BlockTxHash BlockHash")
-				require.Equal(block.BlockHeader.ParentHash, test.ExpectedBlockWithReceipts.BlockHeader.ParentHash, "Error in BlockTxHash ParentHash")
-				require.Equal(block.BlockHeader.Timestamp, test.ExpectedBlockWithReceipts.BlockHeader.Timestamp, "Error in BlockTxHash Timestamp")
-				require.Equal(block.BlockHeader.SequencerAddress, test.ExpectedBlockWithReceipts.BlockHeader.SequencerAddress, "Error in BlockTxHash SequencerAddress")
-				require.Equal(block.Status, test.ExpectedBlockWithReceipts.Status, "Error in BlockTxHash Status")
-				require.ElementsMatchf(block.Transactions, test.ExpectedBlockWithReceipts.Transactions, "Error in BlockTxHash Transactions")
 				require.Exactly(block, test.ExpectedBlockWithReceipts)
 			}
 		case *PendingBlockWithReceipts:
@@ -269,10 +264,6 @@ func TestBlockWithReceipts(t *testing.T) {
 			require.True(ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
 
 			if testEnv == "mock" {
-				require.Equal(pBlock.ParentHash, test.ExpectedPendingBlockWithReceipts.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
-				require.Equal(pBlock.SequencerAddress, test.ExpectedPendingBlockWithReceipts.SequencerAddress, "Error in PendingBlockWithReceipts SequencerAddress")
-				require.Equal(pBlock.Timestamp, test.ExpectedPendingBlockWithReceipts.Timestamp, "Error in PendingBlockWithReceipts Timestamp")
-				require.Equal(pBlock.Transactions, test.ExpectedPendingBlockWithReceipts.Transactions, "Error in PendingBlockWithReceipts Transactions")
 				require.Exactly(pBlock, test.ExpectedPendingBlockWithReceipts)
 			} else {
 				require.NotEmpty(pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
