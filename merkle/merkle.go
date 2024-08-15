@@ -17,24 +17,18 @@ type FixedSizeMerkleTree struct {
 //
 // It takes a variable number of *big.Int leaves as input and returns a pointer to a FixedSizeMerkleTree and an error.
 // The function builds the Merkle tree using the given leaves and sets the tree's root.
-// If there is an error during the tree building process, the function returns nil and the error.
 //
 // Parameters:
 // - leaves: a slice of *big.Int representing the leaves of the tree.
 // Returns:
 // - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
-// - error: an error if any
-func NewFixedSizeMerkleTree(leaves ...*big.Int) (*FixedSizeMerkleTree, error) {
+func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 	mt := &FixedSizeMerkleTree{
 		Leaves:   leaves,
 		Branches: [][]*big.Int{},
 	}
-	root, err := mt.build(leaves)
-	if err != nil {
-		return nil, err
-	}
-	mt.Root = root
-	return mt, err
+	mt.Root = mt.build(leaves)
+	return mt
 }
 
 // MerkleHash calculates the Merkle hash of two big integers.
@@ -44,12 +38,11 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) (*FixedSizeMerkleTree, error) {
 // - y: the second big integer
 // Returns:
 // - *big.Int: the Merkle hash of the two big integers
-// - error: an error if the calculation fails
-func MerkleHash(x, y *big.Int) (*big.Int, error) {
+func MerkleHash(x, y *big.Int) *big.Int {
 	if x.Cmp(y) <= 0 {
-		return curve.Curve.HashElements([]*big.Int{x, y})
+		return curve.HashPedersenElements([]*big.Int{x, y})
 	}
-	return curve.Curve.HashElements([]*big.Int{y, x})
+	return curve.HashPedersenElements([]*big.Int{y, x})
 }
 
 // build recursively constructs a Merkle tree from the given leaves.
@@ -58,26 +51,19 @@ func MerkleHash(x, y *big.Int) (*big.Int, error) {
 // - leaves: a slice of *big.Int representing the leaves of the tree
 // Return type(s):
 // - *big.Int: the root hash of the Merkle tree
-// - error: any error that occurred during the construction of the tree
-func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) (*big.Int, error) {
+func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
 	if len(leaves) == 1 {
-		return leaves[0], nil
+		return leaves[0]
 	}
 	mt.Branches = append(mt.Branches, leaves)
 	newLeaves := []*big.Int{}
 	for i := 0; i < len(leaves); i += 2 {
 		if i+1 == len(leaves) {
-			hash, err := MerkleHash(leaves[i], big.NewInt(0))
-			if err != nil {
-				return nil, err
-			}
+			hash := MerkleHash(leaves[i], big.NewInt(0))
 			newLeaves = append(newLeaves, hash)
 			break
 		}
-		hash, err := MerkleHash(leaves[i], leaves[i+1])
-		if err != nil {
-			return nil, err
-		}
+		hash := MerkleHash(leaves[i], leaves[i+1])
 		newLeaves = append(newLeaves, hash)
 	}
 	return mt.build(newLeaves)
@@ -125,10 +111,7 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 	if index%2 != 0 {
 		nextProof = branch[index-1]
 	}
-	newLeaf, err := MerkleHash(leaf, nextProof)
-	if err != nil {
-		return nil, fmt.Errorf("nextproof error: %v", err)
-	}
+	newLeaf := MerkleHash(leaf, nextProof)
 	newHashPath := append(hashPath, nextProof)
 	return mt.recursiveProof(newLeaf, branchIndex+1, newHashPath)
 }
@@ -150,9 +133,7 @@ func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {
 	if len(path) == 0 {
 		return root.Cmp(leaf) == 0
 	}
-	nexLeaf, err := MerkleHash(leaf, path[0])
-	if err != nil {
-		return false
-	}
+	nexLeaf := MerkleHash(leaf, path[0])
+
 	return ProofMerklePath(root, nexLeaf, path[1:])
 }
