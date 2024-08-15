@@ -2,9 +2,7 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -32,29 +30,7 @@ func TestDeclareTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				DeclareTx: BroadcastDeclareTxnV3{
-					Type:          TransactionType_Declare,
-					Version:       TransactionV3,
-					Signature:     []*felt.Felt{},
-					Nonce:         utils.TestHexToFelt(t, "0x0"),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
-						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
-						},
-					},
-					Tip:                   "",
-					PayMasterData:         []*felt.Felt{},
-					SenderAddress:         utils.TestHexToFelt(t, "0x0"),
-					CompiledClassHash:     utils.TestHexToFelt(t, "0x0"),
-					AccountDeploymentData: []*felt.Felt{},
-				},
+				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
 					TransactionHash: utils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
@@ -70,19 +46,9 @@ func TestDeclareTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		if test.DeclareTx == nil && testEnv == "testnet" {
-			declareTxJSON, err := os.ReadFile("./tests/write/declareTx.json")
-			if err != nil {
-				t.Fatal("should be able to read file", err)
-			}
-			var declareTx BroadcastDeclareTxnType // AddDeclareTxnInput
-			require.Nil(t, json.Unmarshal(declareTxJSON, &declareTx), "Error unmarshalling decalreTx")
-			test.DeclareTx = declareTx
-		}
-
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), test.DeclareTx)
 		if err != nil {
-			require.Equal(t, err.Error(), test.ExpectedError)
+			require.Equal(t, test.ExpectedError.Error(), err.Error())
 		} else {
 			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 		}

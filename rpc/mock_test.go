@@ -197,61 +197,22 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 		return errWrongArgs
 	}
 
-	var InvokeTxnV3Example = `{
-		"type": "INVOKE",
-		"sender_address": "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6",
-		"calldata": [
-			"0x1",
-			"0x6b74c515944ef1ef630ee1cf08a22e110c39e217fa15554a089182a11f78ed",
-			"0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
-			"0x13",
-			"0x41bbf1eff2ac123d9e01004a385329369cbc1c309838562f030b3faa2caa4",
-			"0x54103",
-			"0x7e430a7a59836b5969859b25379c640a8ccb66fb142606d7acb1a5563c2ad9",
-			"0x6600d829",
-			"0x103020400000000000000000000000000000000000000000000000000000000",
-			"0x4",
-			"0x5f5e100",
-			"0x5f60fc2",
-			"0x5f60fc2",
-			"0x5f6570d",
-			"0xa07695b6574c60c37",
-			"0x1",
-			"0x2",
-			"0x7afe11c6cdf846e8e33ff55c6e8310293b81aa58da4618af0c2fb29db2515c7",
-			"0x1200966b0f9a5cd1bf7217b202c3a4073a1ff583e4779a3a3ffb97a532fe0c",
-			"0x2cb74dff29a13dd5d855159349ec92f943bacf0547ff3734e7d84a15d08cbc5",
-			"0x460769330eab4b3269a5c07369382fcc09fbfc92458c63f77292425c72272f9",
-			"0x10ebdb197fd1017254b927b01073c64a368db45534413b539895768e57b72ba",
-			"0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962"
-		],
-		"version": "0x3",
-		"signature": [
-			"0x665f0c67ed4d9565f63857b1a55974b98b2411f579c53c9f903fd21a3edb3d1",
-			"0x549c4480aba4753c58f757c92b5a1d3d67b2ced4bf06076825af3f52f738d6d"
-		],
-		"nonce": "0x359d",
-		"resource_bounds": {
-			"l1_gas": {
-				"max_amount": "0x3bb2",
-				"max_price_per_unit": "0x2ba7def30000"
-			},
-			"l2_gas": {
-				"max_amount": "0x0",
-				"max_price_per_unit": "0x0"
-			}
-		},
-		"tip": "0x0",
-		"paymaster_data": [],
-		"account_deployment_data": [],
-		"nonce_data_availability_mode": "L1",
-		"fee_data_availability_mode": "L1"
-	}`
-
-	if err := json.Unmarshal([]byte(InvokeTxnV3Example), r); err != nil {
+	var InvokeTxnV3example InvokeTxnV3
+	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
+	if err != nil {
 		return err
 	}
-	return nil
+	err = json.Unmarshal(read, &InvokeTxnV3example)
+	if err != nil {
+		return err
+	}
+
+	txBytes, err := json.Marshal(InvokeTxnV3example)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(txBytes, &r)
 }
 
 // mock_starknet_getBlockTransactionCount is a function that mocks the behavior of the
@@ -353,7 +314,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 	if arg0Felt.Equal(testTxnHash) {
 
 		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
+		read, err := os.ReadFile("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
 		if err != nil {
 			return err
 		}
@@ -371,7 +332,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
 		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
+		read, err := os.ReadFile("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
 		if err != nil {
 			return err
 		}
@@ -1094,39 +1055,98 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 	if len(args) != 1 {
 		return errWrongArgs
 	}
-	_, ok = args[0].(BlockID)
+	blockId, ok := args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
 		return errWrongArgs
 	}
 
-	var blockWithReceipts struct {
-		Result BlockWithReceipts `json:"result"`
-	}
-	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
-
+	fakeFeltField, err := utils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(read, &blockWithReceipts)
-	if err != nil {
-		return err
+	if blockId.Tag == "pending" {
+		pBlock, err := json.Marshal(
+			PendingBlockWithReceipts{
+				PendingBlockHeader{
+					ParentHash: fakeFeltField,
+				},
+				BlockBodyWithReceipts{
+					Transactions: []TransactionWithReceipt{
+						{
+							Transaction: BlockTransaction{
+								BlockInvokeTxnV1{
+									TransactionHash: fakeFeltField,
+									InvokeTxnV1: InvokeTxnV1{
+										Type:          "INVOKE",
+										Version:       TransactionV1,
+										SenderAddress: fakeFeltField,
+									},
+								},
+							},
+							Receipt: TransactionReceipt{
+								TransactionHash: fakeFeltField,
+								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(pBlock, &r)
+		if err != nil {
+			return err
+		}
+	} else {
+		block, err := json.Marshal(
+			BlockWithReceipts{
+				BlockHeader{
+					BlockHash: fakeFeltField,
+				},
+				"ACCEPTED_ON_L1",
+				BlockBodyWithReceipts{
+					Transactions: []TransactionWithReceipt{
+						{
+							Transaction: BlockTransaction{
+								BlockInvokeTxnV1{
+									TransactionHash: fakeFeltField,
+									InvokeTxnV1: InvokeTxnV1{
+										Type:          "INVOKE",
+										Version:       TransactionV1,
+										SenderAddress: fakeFeltField,
+									},
+								},
+							},
+							Receipt: TransactionReceipt{
+								TransactionHash: fakeFeltField,
+								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+							},
+						},
+					},
+				},
+			},
+		)
+		if err != nil {
+			return err
+		}
+		if err := json.Unmarshal(block, &r); err != nil {
+			return err
+		}
 	}
 
-	blockWithReceiptsJSON, err := json.Marshal(blockWithReceipts.Result)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(blockWithReceiptsJSON, &r)
+	return nil
 }
 
 // mock_starknet_traceBlockTransactions is a function that traces the transactions of a block in the StarkNet network.
 // The function first checks the type of the result parameter and returns an error if it is not of type *json.RawMessage.
 // It then checks the length of the args parameter and returns an error if it is not equal to 1. Next, it checks the
 // type of the first element of args and returns an error if it is not of type *felt.Felt. If the block hash is equal
-// to "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2", the function reads the trace from a file
+// to "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2", the function reads the trace from a file
 // and unmarshals it into a struct. It then marshals the result and unmarshals it into the result parameter.
 // If the block hash is not valid, the function returns an error of type ErrInvalidBlockHash.
 //
@@ -1148,12 +1168,12 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 	if !ok {
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
-	if blockID.Hash.String() == "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2" {
+	if blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 
 		var rawBlockTrace struct {
 			Result []Trace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/trace/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		read, err := os.ReadFile("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
 		if err != nil {
 			return err
 		}
@@ -1204,11 +1224,11 @@ func mock_starknet_traceTransaction(result interface{}, method string, args ...i
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
 	}
 	switch transactionHash.String() {
-	case "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e":
+	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
 		var rawTrace struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		read, err := os.ReadFile("tests/trace/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
+		read, err := os.ReadFile("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
 		if err != nil {
 			return err
 		}

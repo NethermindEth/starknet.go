@@ -30,7 +30,7 @@ func TestTransactionTrace(t *testing.T) {
 		var rawjson struct {
 			Result InvokeTxnTrace `json:"result"`
 		}
-		expectedrespRaw, err := os.ReadFile("./tests/trace/0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e.json")
+		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
 		require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
 
 		err = json.Unmarshal(expectedrespRaw, &rawjson)
@@ -49,7 +49,7 @@ func TestTransactionTrace(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0x4b861c47d0fbc4cc24dacf92cf155ad0a2f7e2a0fd9b057b90cdd64eba7e12e"),
+				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedResp:    &expectedResp,
 				ExpectedError:   nil,
 			},
@@ -160,7 +160,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		var rawjson struct {
 			Result []Trace `json:"result"`
 		}
-		expectedrespRaw, err := os.ReadFile("./tests/trace/0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2.json")
+		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
 		require.NoError(t, err, "Error ReadFile for TestTraceBlockTransactions")
 
 		err = json.Unmarshal(expectedrespRaw, &rawjson)
@@ -178,7 +178,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			testSetType{
-				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x3ddc3a8aaac071ecdc5d8d0cfbb1dc4fc6a88272bc6c67523c9baaee52a5ea2")},
+				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")},
 				ExpectedResp: expectedResp,
 				ExpectedErr:  nil,
 			},
