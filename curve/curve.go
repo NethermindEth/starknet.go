@@ -555,17 +555,6 @@ func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 	return HashPedersenElements(elems)
 }
 
-// ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
-// Does the same as ComputeHashOnElements, but receives and returns felt types.
-//
-// Parameters:
-// - feltArr: A pointer to an array of Felt objects.
-// Returns:
-// - *felt.Felt: a pointer to a Felt object
-func ComputeHashOnElementsFelt(feltArr []*felt.Felt) *felt.Felt {
-	return PedersenArray(feltArr...)
-}
-
 // Pedersen is a function that implements the Pedersen hash.
 // NOTE: This function just wraps the Juno implementation
 // (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L20)

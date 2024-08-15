@@ -181,7 +181,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 	case rpc.DeployAccountTxn:
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 		calldata = append(calldata, txn.ConstructorCalldata...)
-		calldataHash := curve.ComputeHashOnElementsFelt(calldata)
+		calldataHash := curve.PedersenArray(calldata...)
 
 		versionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -261,7 +261,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash := curve.ComputeHashOnElementsFelt(txn.Calldata)
+		calldataHash := curve.PedersenArray(txn.Calldata...)
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
 			return nil, err
@@ -282,7 +282,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash := curve.ComputeHashOnElementsFelt(txn.Calldata)
+		calldataHash := curve.PedersenArray(txn.Calldata...)
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
 			return nil, err
@@ -387,7 +387,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash := curve.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash := curve.PedersenArray(txn.ClassHash)
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {
@@ -408,7 +408,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			return nil, ErrNotAllParametersSet
 		}
 
-		calldataHash := curve.ComputeHashOnElementsFelt([]*felt.Felt{txn.ClassHash})
+		calldataHash := curve.PedersenArray(txn.ClassHash)
 
 		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
 		if err != nil {

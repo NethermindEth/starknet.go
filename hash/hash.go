@@ -41,7 +41,7 @@ func CalculateTransactionHashCommon(
 		chainId,
 	}
 	dataToHash = append(dataToHash, additionalData...)
-	return curve.ComputeHashOnElementsFelt(dataToHash)
+	return curve.PedersenArray(dataToHash...)
 }
 
 // ClassHash calculates the hash of a contract class.

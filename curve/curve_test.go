@@ -290,7 +290,7 @@ func TestGeneral_MultAir(t *testing.T) {
 	}
 }
 
-// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and ComputeHashOnElementsFelt functions in the General package.
+// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
 //
 // This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
 // It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
@@ -302,7 +302,7 @@ func TestGeneral_MultAir(t *testing.T) {
 //	none
 func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
-	hashEmptyArrayFelt := ComputeHashOnElementsFelt([]*felt.Felt{})
+	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
 
 	expectedHashEmmptyArray := utils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
 	require.Equal(t, hashEmptyArray, expectedHashEmmptyArray, "Hash empty array wrong value.")
@@ -315,7 +315,7 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	}
 
 	hashFilledArray := ComputeHashOnElements(filledArray)
-	hashFilledArrayFelt := ComputeHashOnElementsFelt(utils.BigIntArrToFeltArr(filledArray))
+	hashFilledArrayFelt := PedersenArray(utils.BigIntArrToFeltArr(filledArray)...)
 
 	expectedHashFilledArray := utils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
 	require.Equal(t, hashFilledArray, expectedHashFilledArray, "Hash filled array wrong value.")

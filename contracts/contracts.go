@@ -61,11 +61,11 @@ func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 // Returns:
 // - *felt.Felt: the precomputed address as a *felt.Felt
 func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
-	return curve.ComputeHashOnElementsFelt([]*felt.Felt{
+	return curve.PedersenArray(
 		PREFIX_CONTRACT_ADDRESS,
 		deployerAddress,
 		salt,
 		classHash,
-		curve.ComputeHashOnElementsFelt(constructorCalldata),
-	})
+		curve.PedersenArray(constructorCalldata...),
+	)
 }
