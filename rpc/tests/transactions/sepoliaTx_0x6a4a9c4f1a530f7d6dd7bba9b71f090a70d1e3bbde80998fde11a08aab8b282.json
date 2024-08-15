@@ -1,0 +1,51 @@
+{
+  "transaction_hash": "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282",
+  "type": "INVOKE",
+  "version": "0x3",
+  "nonce": "0x359d",
+  "sender_address": "0x143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6",
+  "signature": [
+    "0x665f0c67ed4d9565f63857b1a55974b98b2411f579c53c9f903fd21a3edb3d1",
+    "0x549c4480aba4753c58f757c92b5a1d3d67b2ced4bf06076825af3f52f738d6d"
+  ],
+  "calldata": [
+    "0x1",
+    "0x6b74c515944ef1ef630ee1cf08a22e110c39e217fa15554a089182a11f78ed",
+    "0xc844fd57777b0cd7e75c8ea68deec0adf964a6308da7a58de32364b7131cc8",
+    "0x13",
+    "0x41bbf1eff2ac123d9e01004a385329369cbc1c309838562f030b3faa2caa4",
+    "0x54103",
+    "0x7e430a7a59836b5969859b25379c640a8ccb66fb142606d7acb1a5563c2ad9",
+    "0x6600d829",
+    "0x103020400000000000000000000000000000000000000000000000000000000",
+    "0x4",
+    "0x5f5e100",
+    "0x5f60fc2",
+    "0x5f60fc2",
+    "0x5f6570d",
+    "0xa07695b6574c60c37",
+    "0x1",
+    "0x2",
+    "0x7afe11c6cdf846e8e33ff55c6e8310293b81aa58da4618af0c2fb29db2515c7",
+    "0x1200966b0f9a5cd1bf7217b202c3a4073a1ff583e4779a3a3ffb97a532fe0c",
+    "0x2cb74dff29a13dd5d855159349ec92f943bacf0547ff3734e7d84a15d08cbc5",
+    "0x460769330eab4b3269a5c07369382fcc09fbfc92458c63f77292425c72272f9",
+    "0x10ebdb197fd1017254b927b01073c64a368db45534413b539895768e57b72ba",
+    "0x2e7dc996ebf724c1cf18d668fc3455df4245749ebc0724101cbc6c9cb13c962"
+  ],
+  "resource_bounds": {
+    "l1_gas": {
+      "max_amount": "0x3bb2",
+      "max_price_per_unit": "0x2ba7def30000"
+    },
+    "l2_gas": {
+      "max_amount": "0x0",
+      "max_price_per_unit": "0x0"
+    }
+  },
+  "tip": "0x0",
+  "paymaster_data": [],
+  "account_deployment_data": [],
+  "nonce_data_availability_mode": "L1",
+  "fee_data_availability_mode": "L1"
+}
