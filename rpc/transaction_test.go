@@ -160,6 +160,12 @@ func TestTransactionReceipt(t *testing.T) {
 	err = json.Unmarshal(read, &receiptL1Handler)
 	require.NoError(t, err)
 
+	var receiptTxn581c21 TransactionReceiptWithBlockInfo
+	read, err = os.ReadFile("tests/receipt/sepoliaRec_0x581c21c9a22768c82bdf1374b8e8caf361b992d3fb3cd5c90b57e29a48e659e.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(read, &receiptTxn581c21)
+	require.NoError(t, err)
+
 	testSet := map[string][]testSetType{
 		"mock": {
 			{

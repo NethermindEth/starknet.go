@@ -213,12 +213,14 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 
 	tr.TransactionReceipt = aux.TransactionReceipt
 
-	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
-	if err != nil {
-		return err
+	if aux.BlockHash != "" {
+		blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
+		if err != nil {
+			return err
+		}
+		tr.BlockHash = blockHash
+		tr.BlockNumber = aux.BlockNumber
 	}
-	tr.BlockHash = blockHash
-	tr.BlockNumber = aux.BlockNumber
 
 	return nil
 }

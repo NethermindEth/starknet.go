@@ -1,0 +1,50 @@
+{
+    "actual_fee": {
+        "amount": "0x46198809ef4",
+        "unit": "WEI"
+    },
+    "events": [
+        {
+            "data": [
+                "0x61fb9291a47fbce6a74257be2400d0f807067fd73e6437aa3f7461c38153492",
+                "0x2",
+                "0x17",
+                "0x40",
+                "0x1",
+                "0x0"
+            ],
+            "from_address": "0x678d2dbb97c627a10df6cfb93ea5301ced8811f1c927599732fb8da6db112e2",
+            "keys": [
+                "0x1a2f334228cee715f1f0f54053bb6b5eac54fa336e0bc1aacf7516decb0471d"
+            ]
+        },
+        {
+            "data": [
+                "0x412392b1436bae7f127fdf8ccea730bb8e52cb654491389b38d1ade7a5dc0d7",
+                "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+                "0x46198809ef4",
+                "0x0"
+            ],
+            "from_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            "keys": [
+                "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+            ]
+        }
+    ],
+    "execution_resources": {
+        "data_availability": {
+            "l1_data_gas": 0,
+            "l1_gas": 1652
+        },
+        "ec_op_builtin_applications": 3,
+        "pedersen_builtin_applications": 20,
+        "poseidon_builtin_applications": 6,
+        "range_check_builtin_applications": 236,
+        "steps": 8144
+    },
+    "execution_status": "SUCCEEDED",
+    "finality_status": "ACCEPTED_ON_L2",
+    "messages_sent": [],
+    "transaction_hash": "0x581c21c9a22768c82bdf1374b8e8caf361b992d3fb3cd5c90b57e29a48e659e",
+    "type": "INVOKE"
+}
