@@ -81,15 +81,15 @@ func adaptTransaction(t TXN) (Transaction, error) {
 // - ctx: The context.Context object for the request.
 // - hash: The hash of the transaction.
 // Returns:
-// - Transaction: The retrieved Transaction
+// - BlockTransaction: The retrieved Transaction
 // - error: An error if any
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error) {
+func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error) {
 	// todo: update to return a custom Transaction type, then use adapt function
-	var tx TXN
+	var tx BlockTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
-	return adaptTransaction(tx)
+	return &tx, nil
 }
 
 // TransactionByBlockIdAndIndex retrieves a transaction by its block ID and index.

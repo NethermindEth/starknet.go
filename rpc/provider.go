@@ -68,7 +68,7 @@ type RpcProvider interface {
 	Syncing(ctx context.Context) (*SyncStatus, error)
 	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }

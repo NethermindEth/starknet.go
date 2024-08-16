@@ -15,7 +15,7 @@ import (
 
 	felt "github.com/NethermindEth/juno/core/felt"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRpcProvider is a mock of RpcProvider interface.
@@ -447,10 +447,10 @@ func (mr *MockRpcProviderMockRecorder) TransactionByBlockIdAndIndex(ctx, blockID
 }
 
 // TransactionByHash mocks base method.
-func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

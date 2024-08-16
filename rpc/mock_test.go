@@ -264,7 +264,8 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		return errWrongArgs
 	}
 
-	var DeclareTnxV2Example = `{
+	var BlockDeclareTxnV2Example = `{
+		"transaction_hash": "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda",
 		"type": "DECLARE",
 		"sender_address": "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
 		"compiled_class_hash": "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252",
@@ -278,7 +279,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 		"class_hash": "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"
 	}`
 
-	if err := json.Unmarshal([]byte(DeclareTnxV2Example), r); err != nil {
+	if err := json.Unmarshal([]byte(BlockDeclareTxnV2Example), r); err != nil {
 		return err
 	}
 	return nil
