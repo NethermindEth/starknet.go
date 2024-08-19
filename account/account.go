@@ -829,8 +829,8 @@ func (account *Account) TraceTransaction(ctx context.Context, transactionHash *f
 // - blockID: The ID of the block.
 // - index: The index of the transaction in the block.
 // Returns:
-// - rpc.Transaction: The transaction and an error, if any.
-func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+// - rpc.BlockTransaction: The transaction and an error, if any.
+func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (*rpc.BlockTransaction, error) {
 	return account.provider.TransactionByBlockIdAndIndex(ctx, blockID, index)
 }
 
@@ -840,9 +840,9 @@ func (account *Account) TransactionByBlockIdAndIndex(ctx context.Context, blockI
 // - ctx: The context.Context
 // - hash: The *felt.Felt hash as parameters.
 // Returns:
-// - rpc.Transaction
+// - rpc.BlockTransaction
 // - error
-func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (account *Account) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpc.BlockTransaction, error) {
 	return account.provider.TransactionByHash(ctx, hash)
 }
 
