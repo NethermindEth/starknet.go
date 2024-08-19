@@ -197,7 +197,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 		return errWrongArgs
 	}
 
-	var InvokeTxnV3example InvokeTxnV3
+	var InvokeTxnV3example BlockInvokeTxnV3
 	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
 	if err != nil {
 		return err

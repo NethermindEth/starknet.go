@@ -432,10 +432,10 @@ func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIdAndIndex mocks base method.
-func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByBlockIdAndIndex", ctx, blockID, index)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

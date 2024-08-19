@@ -66,7 +66,7 @@ func TestTransactionByHash(t *testing.T) {
 
 		txCasted, ok := (tx.IBlockTransaction).(BlockDeclareTxnV2)
 		require.True(t, ok)
-		require.Equal(t, txCasted, test.ExpectedTxn.IBlockTransaction)
+		require.Equal(t, test.ExpectedTxn.IBlockTransaction, txCasted)
 	}
 }
 
@@ -90,10 +90,10 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	type testSetType struct {
 		BlockID     BlockID
 		Index       uint64
-		ExpectedTxn Transaction
+		ExpectedTxn BlockTransaction
 	}
 
-	var InvokeTxnV3example InvokeTxnV3
+	var InvokeTxnV3example BlockTransaction
 	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
 	require.NoError(t, err)
 	err = json.Unmarshal(read, &InvokeTxnV3example)
@@ -117,22 +117,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if tx == nil {
-			t.Fatal("transaction should exist")
-		}
-		txCasted, ok := (tx).(InvokeTxnV3)
-		if !ok {
-			t.Fatalf("transaction should be InvokeTxnV3, instead %T", tx)
-		}
 
-		require.Equal(t, txCasted.Type, TransactionType_Invoke)
-		require.Equal(t, txCasted, test.ExpectedTxn)
+		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+		require.NoError(t, err)
+		require.NotNil(t, tx)
+		txCasted, ok := (tx.IBlockTransaction).(BlockInvokeTxnV3)
+		require.True(t, ok)
+		require.Equal(t, test.ExpectedTxn.IBlockTransaction, txCasted)
 	}
 }
 
