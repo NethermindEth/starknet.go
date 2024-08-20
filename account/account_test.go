@@ -18,9 +18,9 @@ import (
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/golang/mock/gomock"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 var (
