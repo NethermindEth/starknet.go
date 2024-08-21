@@ -995,14 +995,15 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	if err != nil {
 		return err
 	}
+	fakeFelt, err := utils.HexToFelt("0xbeef")
 
 	if blockId.Tag == "pending" {
 		pBlock, err := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
-					ParentHash:       &felt.Zero,
+					ParentHash:       fakeFelt,
 					Timestamp:        123,
-					SequencerAddress: &felt.Zero},
+					SequencerAddress: fakeFelt},
 				txHashes,
 			})
 		if err != nil {
@@ -1013,26 +1014,16 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 			return err
 		}
 	} else {
-		blockHash, err := utils.HexToFelt("0xbeef")
 		if err != nil {
 			return err
 		}
 		block, err := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					BlockHash:        blockHash,
-					ParentHash:       &felt.Zero,
+					BlockHash:        fakeFelt,
+					ParentHash:       fakeFelt,
 					Timestamp:        124,
-					SequencerAddress: &felt.Zero,
-					L1DAMode:         L1DAModeBlob,
-					L1GasPrice: ResourcePrice{
-						PriceInWei: new(felt.Felt).SetUint64(1),
-						PriceInFRI: new(felt.Felt).SetUint64(1),
-					},
-					L1DataGasPrice: ResourcePrice{
-						PriceInWei: new(felt.Felt).SetUint64(1),
-						PriceInFRI: new(felt.Felt).SetUint64(1),
-					},
+					SequencerAddress: fakeFelt,
 				},
 				Status:       BlockStatus_AcceptedOnL1,
 				Transactions: txHashes,

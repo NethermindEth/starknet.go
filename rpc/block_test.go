@@ -2,7 +2,9 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -136,46 +138,16 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockSepolia64159 = BlockTxHashes{
-		BlockHeader: BlockHeader{
-			BlockHash:        utils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964"),
-			ParentHash:       utils.TestHexToFelt(t, "0x1406ec9385293905d6c20e9c5aa0bbf9f63f87d39cf12fcdfef3ed0d056c0f5"),
-			SequencerAddress: utils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
-			BlockNumber:      64159,
-			NewRoot:          utils.TestHexToFelt(t, "0x310be818a18de0d6f6c1391f467d0dbd1a2753e6dde876449448465f8e617f0"),
-			Timestamp:        1714901729,
-		},
-		Status: "ACCEPTED_ON_L1",
-		Transactions: utils.TestHexArrToFelt(t, []string{
-			"0x5e3fcf2f7dc0f3786a7406dc271cc54a00ba4658f9d0567b25b8e2a90a6250f",
-			"0x603fec12cfbc73bcf411fdf6f7780d4698c71b989002192a1277025235b23b9",
-			"0x23a24d95872d0eb15bf54cfb432830a3b85ad5c621b5edf849f131a2a45988d",
-			"0x4a35d133717f1f0288346432037d7964a16e503100fdab4cc3914a44790f3b4",
-			"0x5f14364b746abcfdfc0280877ff6d18c311d363e62264d7f218c5da2d396acc",
-			"0x7b49053e9a0bcd28c40d946702c28cf4ba068ff2e1755eff3fd99d62aada1a8",
-			"0x173c7a20046ab576667a2581cdea9565160a76e028864102a4d0828ca35a0d3",
-			"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
-			"0x402f81ce59e3e79ca12c9cffea888c3f02542f2f4926731cb2145a3b8e810d5",
-			"0x48fa3e27b725e595e910548f3c0bb1ddfb30d32b31ebbf23fa1e63a66b0e59d",
-			"0x3d43ca0ea28f8e412b6abb37b76e75ac33e7df177cc8e4221e361ed0621bcdd",
-			"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
-			"0x7a56162702394b43b8fc05c511e1ddbe490749f2fd6786365d5d59797cd2012",
-			"0xcaead659d470ac0b572f0a4d8831275d51944d08961aab1a85bd68f9e98409",
-			"0x73376f10049aa689a5c6bf78b39b5a8c76ce5fb6611290b3080aa0d4f492d56",
-			"0x45061dccdb8cb32e428ec7b25136ae3a691f02bf5d01bd2d30ae9d2d4a29d4e",
-			"0x707071e6d5354a254935bf605b4eba4bb289261dc9ce75c1e9d8ad1367a5154",
-			"0x5358c68fa172aafabae1a007f5ec71eb1bddd64d4574366880f253287e8a0be",
-			"0x27a2e57d2ead1f9b7ce99c2e7b367820ecedf66cae3353572e6e7a7de89d1ce",
-			"0x59866d2230404c1c5787b523d3233f7f9d4ea9faf804ff747a0a2d3da77720e",
-			"0x5d41f4dec3678156d3888d6b890648c3baa02d866820689d5f8b3e20735521b",
-		}),
-	}
+	var blockSepolia64159 BlockTxHashes
+	block, err := os.ReadFile("tests/blockWithHashes/sepoliaBlockWithHashes64159.json")
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(block, &blockSepolia64159))
 
 	txHashes := utils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
 		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
-	blockHash := utils.TestHexToFelt(t, "0xbeef")
+	fakeFelt := utils.TestHexToFelt(t, "0xbeef")
 
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -184,20 +156,20 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
 					PendingBlockHeader{
-						ParentHash:       &felt.Zero,
+						ParentHash:       fakeFelt,
 						Timestamp:        123,
-						SequencerAddress: &felt.Zero},
+						SequencerAddress: fakeFelt},
 					txHashes,
 				},
 			},
 			{
-				BlockID: BlockID{Hash: blockHash},
+				BlockID: BlockID{Hash: fakeFelt},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						BlockHash:        blockHash,
-						ParentHash:       &felt.Zero,
+						BlockHash:        fakeFelt,
+						ParentHash:       fakeFelt,
 						Timestamp:        124,
-						SequencerAddress: &felt.Zero},
+						SequencerAddress: fakeFelt},
 					Status:       BlockStatus_AcceptedOnL1,
 					Transactions: txHashes,
 				},
@@ -206,6 +178,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 		"testnet": {
 			{
 				BlockID:     WithBlockTag("latest"),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:     WithBlockTag("pending"),
 				ExpectedErr: nil,
 			},
 			{
@@ -223,42 +199,38 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
 		require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
 		switch resultType := result.(type) {
 		case *BlockTxHashes:
 			block, ok := result.(*BlockTxHashes)
-			require.True(t, ok, fmt.Sprintf("should return *BlockTxHashes, instead: %T\n", result))
+			require.Truef(t, ok, "should return *BlockTxHashes, instead: %T\n", result)
 
 			if test.ExpectedErr != nil {
 				continue
 			}
 
-			require.True(t, strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.Truef(t, strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
 			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
 			if test.ExpectedBlockWithTxHashes != nil {
-				if (*test.ExpectedBlockWithTxHashes).BlockHash == &felt.Zero {
-					continue
-				}
-
-				require.Equal(t, block.BlockHeader.BlockHash, test.ExpectedBlockWithTxHashes.BlockHeader.BlockHash, "Error in BlockTxHash BlockHash")
-				require.Equal(t, block.BlockHeader.ParentHash, test.ExpectedBlockWithTxHashes.BlockHeader.ParentHash, "Error in BlockTxHash ParentHash")
-				require.Equal(t, block.BlockHeader.Timestamp, test.ExpectedBlockWithTxHashes.BlockHeader.Timestamp, "Error in BlockTxHash Timestamp")
-				require.Equal(t, block.BlockHeader.SequencerAddress, test.ExpectedBlockWithTxHashes.BlockHeader.SequencerAddress, "Error in BlockTxHash SequencerAddress")
-				require.Equal(t, block.Status, test.ExpectedBlockWithTxHashes.Status, "Error in BlockTxHash Status")
-				require.Equal(t, block.Transactions, test.ExpectedBlockWithTxHashes.Transactions, "Error in BlockTxHash Transactions")
+				require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 			}
 		case *PendingBlockTxHashes:
 			pBlock, ok := result.(*PendingBlockTxHashes)
-			require.True(t, ok, fmt.Sprintf("should return *PendingBlockTxHashes, instead: %T\n", result))
+			require.Truef(t, ok, "should return *PendingBlockTxHashes, instead: %T\n", result)
 
-			require.Equal(t, pBlock.ParentHash, test.ExpectedPendingBlockWithTxHashes.ParentHash, "Error in PendingBlockTxHashes ParentHash")
-			require.Equal(t, pBlock.SequencerAddress, test.ExpectedPendingBlockWithTxHashes.SequencerAddress, "Error in PendingBlockTxHashes SequencerAddress")
-			require.Equal(t, pBlock.Timestamp, test.ExpectedPendingBlockWithTxHashes.Timestamp, "Error in PendingBlockTxHashes Timestamp")
-			require.Equal(t, pBlock.Transactions, test.ExpectedPendingBlockWithTxHashes.Transactions, "Error in PendingBlockTxHashes Transactions")
+			if test.ExpectedPendingBlockWithTxHashes == nil {
+				require.NotZero(t, pBlock.ParentHash)
+				require.NotZero(t, pBlock.Timestamp)
+				require.NotZero(t, pBlock.SequencerAddress)
+				require.NotZero(t, pBlock.L1GasPrice)
+				require.NotZero(t, pBlock.StarknetVersion)
+				require.NotZero(t, pBlock.L1DataGasPrice)
+				require.NotZero(t, pBlock.L1DAMode)
+			} else {
+				require.Exactly(t, test.ExpectedPendingBlockWithTxHashes, pBlock)
+			}
 		default:
 			t.Fatalf("unexpected block type, found: %T\n", resultType)
 		}
