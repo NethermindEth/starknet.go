@@ -111,7 +111,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block/sepoliaBlockTxs64159.json
+//go:embed tests/block/sepoliaBlockTxs65083.json
 var rawBlock []byte
 
 // TestBlock_Unmarshal tests the Unmarshal function of the Block type.

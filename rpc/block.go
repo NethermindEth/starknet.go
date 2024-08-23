@@ -166,7 +166,12 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
-				SequencerAddress: result.SequencerAddress},
+				SequencerAddress: result.SequencerAddress,
+				L1GasPrice:       result.L1GasPrice,
+				StarknetVersion:  result.StarknetVersion,
+				L1DataGasPrice:   result.L1DataGasPrice,
+				L1DAMode:         result.L1DAMode,
+			},
 			result.Transactions,
 		}, nil
 	}
