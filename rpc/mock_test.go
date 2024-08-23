@@ -44,53 +44,55 @@ func (r *rpcMock) Close() {
 func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	switch method {
 	case "starknet_addDeclareTransaction":
-		return mock_starknet_addDeclareTransaction(result, method, args...)
+		return mock_starknet_addDeclareTransaction(result, args...)
 	case "starknet_addInvokeTransaction":
-		return mock_starknet_addInvokeTransaction(result, method, args...)
+		return mock_starknet_addInvokeTransaction(result, args...)
 	case "starknet_addDeployAccountTransaction":
-		return mock_starknet_addDeployAccountTransaction(result, method, args...)
+		return mock_starknet_addDeployAccountTransaction(result, args...)
 	case "starknet_blockNumber":
-		return mock_starknet_blockNumber(result, method, args...)
+		return mock_starknet_blockNumber(result, args...)
 	case "starknet_call":
-		return mock_starknet_call(result, method, args...)
+		return mock_starknet_call(result, args...)
 	case "starknet_chainId":
-		return mock_starknet_chainId(result, method, args...)
+		return mock_starknet_chainId(result, args...)
 	case "starknet_estimateFee":
-		return mock_starknet_estimateFee(result, method, args...)
+		return mock_starknet_estimateFee(result, args...)
 	case "starknet_estimateMessageFee":
-		return mock_starknet_estimateMessageFee(result, method, args...)
+		return mock_starknet_estimateMessageFee(result, args...)
+	case "starknet_getBlockWithTxs":
+		return mock_starknet_getBlockWithTxs(result, args...)
 	case "starknet_getBlockTransactionCount":
-		return mock_starknet_getBlockTransactionCount(result, method, args...)
+		return mock_starknet_getBlockTransactionCount(result, args...)
 	case "starknet_getBlockWithTxHashes":
-		return mock_starknet_getBlockWithTxHashes(result, method, args...)
+		return mock_starknet_getBlockWithTxHashes(result, args...)
 	case "starknet_getBlockWithReceipts":
-		return mock_starknet_getBlockWithReceipts(result, method, args...)
+		return mock_starknet_getBlockWithReceipts(result, args...)
 	case "starknet_getClass":
-		return mock_starknet_getClass(result, method, args...)
+		return mock_starknet_getClass(result, args...)
 	case "starknet_getClassAt":
-		return mock_starknet_getClassAt(result, method, args...)
+		return mock_starknet_getClassAt(result, args...)
 	case "starknet_getClassHashAt":
-		return mock_starknet_getClassHashAt(result, method, args...)
+		return mock_starknet_getClassHashAt(result, args...)
 	case "starknet_getEvents":
-		return mock_starknet_getEvents(result, method, args...)
+		return mock_starknet_getEvents(result, args...)
 	case "starknet_getNonce":
-		return mock_starknet_getNonce(result, method, args...)
+		return mock_starknet_getNonce(result, args...)
 	case "starknet_getStateUpdate":
-		return mock_starknet_getStateUpdate(result, method, args...)
+		return mock_starknet_getStateUpdate(result, args...)
 	case "starknet_getStorageAt":
-		return mock_starknet_getStorageAt(result, method, args...)
+		return mock_starknet_getStorageAt(result, args...)
 	case "starknet_getTransactionByBlockIdAndIndex":
-		return mock_starknet_getTransactionByBlockIdAndIndex(result, method, args...)
+		return mock_starknet_getTransactionByBlockIdAndIndex(result, args...)
 	case "starknet_getTransactionByHash":
-		return mock_starknet_getTransactionByHash(result, method, args...)
+		return mock_starknet_getTransactionByHash(result, args...)
 	case "starknet_getTransactionReceipt":
-		return mock_starknet_getTransactionReceipt(result, method, args...)
+		return mock_starknet_getTransactionReceipt(result, args...)
 	case "starknet_syncing":
-		return mock_starknet_syncing(result, method, args...)
+		return mock_starknet_syncing(result, args...)
 	case "starknet_traceBlockTransactions":
-		return mock_starknet_traceBlockTransactions(result, method, args...)
+		return mock_starknet_traceBlockTransactions(result, args...)
 	case "starknet_traceTransaction":
-		return mock_starknet_traceTransaction(result, method, args...)
+		return mock_starknet_traceTransaction(result, args...)
 	default:
 		return errNotFound
 	}
@@ -104,7 +106,7 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 // - args: Additional arguments passed to the function
 // Returns:
 // - error: An error if the result is not of type *big.Int or if the arguments count is not zero
-func mock_starknet_blockNumber(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_blockNumber(result interface{}, args ...interface{}) error {
 	r, ok := result.(*big.Int)
 	if !ok || r == nil {
 		return errWrongType
@@ -125,7 +127,7 @@ func mock_starknet_blockNumber(result interface{}, method string, args ...interf
 // - args: a variadic parameter of type interface{} that represents the arguments of the function.
 // Returns:
 // - error: an error if there is a wrong type or wrong number of arguments.
-func mock_starknet_chainId(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_chainId(result interface{}, args ...interface{}) error {
 	r, ok := result.(*string)
 	if !ok {
 		return errWrongType
@@ -146,7 +148,7 @@ func mock_starknet_chainId(result interface{}, method string, args ...interface{
 // - args: a variadic parameter of type interface{} that represents the arguments of the function.
 // Return:
 // - error: an error if there is a wrong type or wrong number of arguments
-func mock_starknet_syncing(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 	// Note: Since starknet_syncing returns with bool or SyncStatus, we pass in interface{}
 	r, ok := result.(*interface{})
 	if !ok {
@@ -184,7 +186,7 @@ func mock_starknet_syncing(result interface{}, method string, args ...interface{
 // - args: The arguments of the API call. This should be a variadic parameter that accepts a variable number of arguments
 // Returns:
 // - error: An error if the API call fails, otherwise nil
-func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -224,7 +226,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, method st
 // - args: The arguments of the API call. This should be a variadic parameter that accepts a variable number of arguments
 // Returns:
 // - error: An error if the API call fails, otherwise nil
-func mock_starknet_getBlockTransactionCount(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getBlockTransactionCount(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -250,7 +252,7 @@ func mock_starknet_getBlockTransactionCount(result interface{}, method string, a
 // - args: a variadic parameter that contains the arguments used for retrieval
 // Returns:
 // - error: an error if there is a failure in retrieving the transaction
-func mock_starknet_getTransactionByHash(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getTransactionByHash(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -294,7 +296,7 @@ func mock_starknet_getTransactionByHash(result interface{}, method string, args 
 // - args: a variadic parameter representing the arguments of the transaction receipt
 // Returns:
 // - error: an error if there is an issue with the type of the result or the number of arguments
-func mock_starknet_getTransactionReceipt(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -384,7 +386,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, method string, args
 // Returns:
 // - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 2
 // The function always returns nil.
-func mock_starknet_getClassAt(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
@@ -429,7 +431,7 @@ func mock_starknet_getClassAt(result interface{}, method string, args ...interfa
 // Returns:
 // - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 2
 // The function always returns nil.
-func mock_starknet_getClassHashAt(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
@@ -453,7 +455,7 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 }
 
 // mock_starknet_getClass is a function that retrieves a class from the StarkNet API.
-// It takes in a result interface{}, a method string, and variadic args ...interface{}.
+// It takes in a result interface{} and variadic args ...interface{}.
 // The result interface{} should be a pointer to json.RawMessage.
 // The method string specifies the method to be called on the StarkNet API.
 // The args ...interface{} are the arguments to be passed to the method.
@@ -472,7 +474,7 @@ func mock_starknet_getClassHashAt(result interface{}, method string, args ...int
 // - args: The variadic args ...interface{} representing the arguments to be passed to the method
 // Returns:
 // - error: An error if any of the conditions mentioned above are met
-func mock_starknet_getClass(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
@@ -513,7 +515,7 @@ func mock_starknet_getClass(result interface{}, method string, args ...interface
 // Returns:
 // - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 1
 // The function always returns nil
-func mock_starknet_getEvents(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -567,7 +569,7 @@ func mock_starknet_getEvents(result interface{}, method string, args ...interfac
 // - args: The arguments to be passed to the method
 // Returns:
 // - error: An error if the transaction fails
-func mock_starknet_call(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_call(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -598,7 +600,7 @@ func mock_starknet_call(result interface{}, method string, args ...interface{}) 
 // - args: The arguments to be passed to the method
 // Return:
 // - error: An error if the transaction fails
-func mock_starknet_addDeclareTransaction(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -634,7 +636,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, method string, args
 // - args: The arguments to be passed to the method
 // Returns:
 // - error: an error if any
-func mock_starknet_estimateFee(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -689,7 +691,7 @@ func mock_starknet_estimateFee(result interface{}, method string, args ...interf
 // - args: The arguments to be passed to the method
 // Returns:
 // - error: an error if any
-func mock_starknet_estimateMessageFee(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -732,7 +734,7 @@ func mock_starknet_estimateMessageFee(result interface{}, method string, args ..
 // - args: The arguments to be passed to the method
 // Returns:
 // - error: an error if any
-func mock_starknet_addInvokeTransaction(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -784,7 +786,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, method string, args 
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1 or InvokeTxnV3, got %T\n", args[0]))
 	}
 }
-func mock_starknet_addDeployAccountTransaction(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_addDeployAccountTransaction(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -825,7 +827,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, method string
 // - args: The arguments to be passed to the method
 // Returns:
 // - error: an error if any
-func mock_starknet_getStorageAt(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -866,7 +868,7 @@ func mock_starknet_getStorageAt(result interface{}, method string, args ...inter
 // - args: a variadic parameter that can accept multiple arguments.
 // Returns:
 // - error: an error if any
-func mock_starknet_getStateUpdate(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error {
 
 	r, ok := result.(*json.RawMessage)
 	if !ok {
@@ -934,7 +936,7 @@ func mock_starknet_getStateUpdate(result interface{}, method string, args ...int
 //   - The number of arguments is not equal to 2
 //   - The first argument is not of type BlockID
 //   - The second argument is not of type *felt.Felt
-func mock_starknet_getNonce(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getNonce(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
@@ -965,6 +967,70 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 	return nil
 }
 
+// mock_starknet_getBlockWithTxs mocks the behavior of the starknet_getBlockWithTxs function.
+// If successful, it populates the result parameter with the json.RawMessage containing the block with the transactions.
+//
+// Parameters:
+// - result: the result is expected to be a pointer to json.RawMessage
+// - method: the method to be called
+// - args: variadic parameter that can contain any number of arguments
+// Returns:
+// - error: an error if any
+func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	blockId, ok := args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+
+	fakeFeltField, err := utils.HexToFelt("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+
+	if blockId.Tag == "pending" {
+		pBlock, err := json.Marshal(
+			PendingBlock{
+				PendingBlockHeader{
+					ParentHash:       fakeFeltField,
+					Timestamp:        123,
+					SequencerAddress: fakeFeltField,
+				},
+				BlockTransactions{},
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(pBlock, &r)
+	} else {
+		var fullBlockSepolia64159 Block
+		read, err := os.ReadFile("tests/block/sepoliaBlockTxs65083.json")
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(read, &fullBlockSepolia64159)
+		if err != nil {
+			return err
+		}
+
+		blockBites, err := json.Marshal(fullBlockSepolia64159)
+		if err != nil {
+			return err
+		}
+
+		return json.Unmarshal(blockBites, &r)
+	}
+}
+
 // mock_starknet_getBlockWithTxHashes mocks the behavior of the starknet_getBlockWithTxHashes function.
 // If successful, it populates the result parameter with the json.RawMessage containing the block with the specified transaction hashes.
 //
@@ -974,7 +1040,7 @@ func mock_starknet_getNonce(result interface{}, method string, args ...interface
 // - args: variadic parameter that can contain any number of arguments
 // Returns:
 // - error: an error if any
-func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -995,14 +1061,15 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	if err != nil {
 		return err
 	}
+	fakeFelt, err := utils.HexToFelt("0xbeef")
 
 	if blockId.Tag == "pending" {
 		pBlock, err := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
-					ParentHash:       &felt.Zero,
+					ParentHash:       fakeFelt,
 					Timestamp:        123,
-					SequencerAddress: &felt.Zero},
+					SequencerAddress: fakeFelt},
 				txHashes,
 			})
 		if err != nil {
@@ -1013,26 +1080,16 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 			return err
 		}
 	} else {
-		blockHash, err := utils.HexToFelt("0xbeef")
 		if err != nil {
 			return err
 		}
 		block, err := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					BlockHash:        blockHash,
-					ParentHash:       &felt.Zero,
+					BlockHash:        fakeFelt,
+					ParentHash:       fakeFelt,
 					Timestamp:        124,
-					SequencerAddress: &felt.Zero,
-					L1DAMode:         L1DAModeBlob,
-					L1GasPrice: ResourcePrice{
-						PriceInWei: new(felt.Felt).SetUint64(1),
-						PriceInFRI: new(felt.Felt).SetUint64(1),
-					},
-					L1DataGasPrice: ResourcePrice{
-						PriceInWei: new(felt.Felt).SetUint64(1),
-						PriceInFRI: new(felt.Felt).SetUint64(1),
-					},
+					SequencerAddress: fakeFelt,
 				},
 				Status:       BlockStatus_AcceptedOnL1,
 				Transactions: txHashes,
@@ -1048,7 +1105,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, method string, args 
 	return nil
 }
 
-func mock_starknet_getBlockWithReceipts(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -1157,7 +1214,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, method string, args 
 // - args: optional arguments for the method
 // Returns:
 // - error: an error if any
-func mock_starknet_traceBlockTransactions(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
@@ -1212,7 +1269,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, method string, arg
 // - args: a variadic parameter that can accept multiple arguments.
 // Returns:
 // - error: an error if any
-func mock_starknet_traceTransaction(result interface{}, method string, args ...interface{}) error {
+func mock_starknet_traceTransaction(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
