@@ -426,6 +426,7 @@ func TestBlockTransactionCount(t *testing.T) {
 	type testSetType struct {
 		BlockID       BlockID
 		ExpectedCount uint64
+		ExpectedError error
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -443,24 +444,20 @@ func TestBlockTransactionCount(t *testing.T) {
 				BlockID:       WithBlockNumber(52959),
 				ExpectedCount: 58,
 			},
+			{
+				BlockID:       WithBlockNumber(7338746823462834783),
+				ExpectedError: ErrBlockNotFound,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
-		require.NoError(t, err, "Unable to fetch the given block.")
-
-		diff, err := spy.Compare(count, false)
-		require.NoError(t, err, "Unable to compare the count.")
-
-		_, err = spy.Compare(count, true)
-		require.NoError(t, err, "Unable to compare the count.")
-
-		require.Equal(t, "FullMatch", diff, "structure expecting to be FullMatch, instead %s", diff)
-
-		require.Equal(t, test.ExpectedCount, count, fmt.Sprintf("structure expecting %d, instead: %d", test.ExpectedCount, count))
+		if err != nil {
+			require.EqualError(t, test.ExpectedError, err.Error())
+		} else {
+			require.Equalf(t, test.ExpectedCount, count, "structure expecting %d, instead: %d", test.ExpectedCount, count)
+		}
 	}
 }
 

@@ -139,10 +139,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
-		if errors.Is(err, errNotFound) {
-			return 0, ErrBlockNotFound
-		}
-		return 0, Err(InternalError, err)
+		return 0, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return result, nil
 }
