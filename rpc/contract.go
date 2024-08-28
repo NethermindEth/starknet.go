@@ -156,7 +156,7 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 	var raw FeeEstimate
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
 
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
 	}
 	return &raw, nil
 }
