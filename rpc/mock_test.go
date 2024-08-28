@@ -641,39 +641,49 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 	if !ok {
 		return errWrongType
 	}
-	if len(args) != 2 {
+	if len(args) != 3 {
 		fmt.Printf("args: %d\n", len(args))
 		return errWrongArgs
 	}
-	_, ok = args[0].(FunctionCall)
+	_, ok = args[0].([]BroadcastTxn)
 	if !ok {
-		fmt.Printf("args[0] should be FunctionCall, got %T\n", args[0])
+		fmt.Printf("args[0] should be BroadcastTxn, got %T\n", args[0])
 		return errWrongArgs
 	}
-	_, ok = args[1].(BlockID)
+	flags, ok := args[1].([]SimulationFlag)
 	if !ok {
-		fmt.Printf("args[1] should be *blockID, got %T\n", args[1])
+		fmt.Printf("args[1] should be SimulationFlag, got %T\n", args[1])
+		return errWrongArgs
+	}
+	_, ok = args[2].(BlockID)
+	if !ok {
+		fmt.Printf("args[2] should be *blockID, got %T\n", args[2])
 		return errWrongArgs
 	}
 
-	gasCons, err := new(felt.Felt).SetString("0x01a4")
-	if err != nil {
-		return err
+	var output FeeEstimate
+
+	if len(flags) > 0 {
+		output = FeeEstimate{
+			GasConsumed:     new(felt.Felt).SetUint64(1234),
+			GasPrice:        new(felt.Felt).SetUint64(1234),
+			DataGasConsumed: new(felt.Felt).SetUint64(1234),
+			DataGasPrice:    new(felt.Felt).SetUint64(1234),
+			OverallFee:      new(felt.Felt).SetUint64(1234),
+			FeeUnit:         UnitWei,
+		}
+	} else {
+		output = FeeEstimate{
+			GasConsumed:     utils.RANDOM_FELT,
+			GasPrice:        utils.RANDOM_FELT,
+			DataGasConsumed: utils.RANDOM_FELT,
+			DataGasPrice:    utils.RANDOM_FELT,
+			OverallFee:      utils.RANDOM_FELT,
+			FeeUnit:         UnitWei,
+		}
 	}
-	gasPrice, err := new(felt.Felt).SetString("0x45")
-	if err != nil {
-		return err
-	}
-	overallFee, err := new(felt.Felt).SetString("0x7134")
-	if err != nil {
-		return err
-	}
-	output := FeeEstimate{
-		GasConsumed: gasCons,
-		GasPrice:    gasPrice,
-		OverallFee:  overallFee,
-	}
-	outputContent, err := json.Marshal(output)
+
+	outputContent, err := json.Marshal([]FeeEstimate{output})
 	if err != nil {
 		return err
 	}
