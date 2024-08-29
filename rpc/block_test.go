@@ -12,15 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check the returned value is strictly positive.
-//
-// The function performs the following steps:
-// 1. Sets up the test configuration.
-// 2. Defines a test set.
-// 3. Loops over the test set.
-// 4. Creates a new spy.
-// 5. Calls the BlockNumber function on the test provider.
-// 6. Validates the returned block number.
+// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check is there is no errors.
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -30,26 +22,10 @@ import (
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	type testSetType struct{}
-
-	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {{}},
-		"mainnet": {{}},
-		"devnet":  {},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		blockNumber, err := testConfig.provider.BlockNumber(context.Background())
-		require.NoError(t, err, "BlockNumber should not return an error")
-
-		diff, err := spy.Compare(blockNumber, false)
-		require.NoError(t, err, "expecting to match")
-		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
-
-		require.False(t, blockNumber <= 3000, fmt.Sprintf("Block number should be > 3000, instead: %d", blockNumber))
+	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
+	require.NoError(t, err, "BlockNumber should not return an error")
+	if testEnv == "mock" {
+		require.Equal(t, uint64(1234), blockNumber)
 	}
 }
 

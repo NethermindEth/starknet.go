@@ -17,11 +17,11 @@ import (
 // - error: An error if any
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
-	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
+	if err := do(ctx, provider.c, "starknet_blockNumber", &blockNumber); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
-		return 0, Err(InternalError, err)
+		return 0, tryUnwrapToRPCErr(err)
 	}
 	return blockNumber, nil
 }

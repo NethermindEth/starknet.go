@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 
@@ -105,18 +104,22 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 // - method: The method string that specifies the API method being called
 // - args: Additional arguments passed to the function
 // Returns:
-// - error: An error if the result is not of type *big.Int or if the arguments count is not zero
+// - error: An error if the result is not of type uint64 or if the arguments count is not zero
 func mock_starknet_blockNumber(result interface{}, args ...interface{}) error {
-	r, ok := result.(*big.Int)
+	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		return errWrongType
 	}
 	if len(args) != 0 {
 		return errWrongArgs
 	}
-	value1 := big.NewInt(1)
-	*r = *value1
-	return nil
+
+	resp, err := json.Marshal(uint64(1234))
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(resp, r)
 }
 
 // mock_starknet_chainId is a function that mocks the behavior of the `starknet_chainId` method.
