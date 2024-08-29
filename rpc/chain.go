@@ -18,9 +18,8 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 		return provider.chainID, nil
 	}
 	var result string
-	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
-	if err := provider.c.CallContext(ctx, &result, "starknet_chainId", []interface{}{}...); err != nil {
-		return "", Err(InternalError, err)
+	if err := do(ctx, provider.c, "starknet_chainId", &result); err != nil {
+		return "", tryUnwrapToRPCErr(err)
 	}
 	provider.chainID = utils.HexToShortStr(result)
 	return provider.chainID, nil

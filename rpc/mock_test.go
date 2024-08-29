@@ -159,16 +159,19 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 // Returns:
 // - error: an error if there is a wrong type or wrong number of arguments.
 func mock_starknet_chainId(result interface{}, args ...interface{}) error {
-	r, ok := result.(*string)
+	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
 	}
 	if len(args) != 0 {
 		return errWrongArgs
 	}
-	value := "0x534e5f5345504f4c4941"
-	*r = value
-	return nil
+	resp, err := json.Marshal("0x534e5f5345504f4c4941")
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(resp, r)
 }
 
 // mock_starknet_syncing is a function that mocks the behavior of the starknet_syncing function.
