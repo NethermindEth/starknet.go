@@ -191,19 +191,12 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 		return errWrongArgs
 	}
 
-	blockDataFeltArr, err := utils.HexArrToFelt([]string{
-		"0x4b238e99c40d448b85dfc69e4414c2dbeb4d21d5c670b1662b5ad2ad2fcb061",
-		"0x9cee6f457637180c36532bb0bfc5a091bb410b70f0489bcbbb0f1eca6650be",
-	})
-	if err != nil {
-		return err
-	}
 	value := SyncStatus{
-		StartingBlockHash: blockDataFeltArr[0],
+		StartingBlockHash: utils.RANDOM_FELT,
 		StartingBlockNum:  "0x4c602",
-		CurrentBlockHash:  blockDataFeltArr[1],
+		CurrentBlockHash:  utils.RANDOM_FELT,
 		CurrentBlockNum:   "0x4c727",
-		HighestBlockHash:  blockDataFeltArr[1],
+		HighestBlockHash:  utils.RANDOM_FELT,
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value

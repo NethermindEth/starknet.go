@@ -99,7 +99,7 @@ type PendingStateUpdate struct {
 
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
-	SyncStatus        bool       // todo(remove? not in spec)
+	SyncStatus        bool
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
 	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`

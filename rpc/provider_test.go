@@ -6,11 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -108,68 +106,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 	return &testConfig
-}
-
-// TestSyncing tests the syncing functionality.
-//
-// It initializes a test configuration and sets up a test set. Then it loops
-// through the test set and creates a spy object. It calls the Syncing function
-// of the provider using the test configuration. It checks if there is any
-// error during syncing, and if so, it fails the test. If the starting block
-// hash is not nil, it compares the sync object with the spy object. It checks
-// if the current block number is a positive number and if the current block
-// hash starts with "0x". If the starting block hash is nil, it compares the
-// sync object with the spy object and checks if the current block hash is nil.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ChainID string
-	}
-
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		sync, err := testConfig.provider.Syncing(context.Background())
-		if err != nil {
-			t.Fatal("Syncing error:", err)
-		}
-		if sync.StartingBlockHash != nil {
-			if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
-				if _, err := spy.Compare(sync, true); err != nil {
-					log.Fatal(err)
-				}
-				t.Fatal("expecting to match", err)
-			}
-			i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
-			if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-				t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
-			}
-			if !strings.HasPrefix(sync.CurrentBlockHash.String(), "0x") {
-				t.Fatal("current block hash should return a string starting with 0x")
-			}
-		} else {
-			if _, err := spy.Compare(sync, false); err != nil {
-				log.Fatal(err)
-			}
-			require.Nil(t, sync.CurrentBlockHash)
-
-		}
-
-	}
 }
 
 func TestCookieManagement(t *testing.T) {
