@@ -97,17 +97,23 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/simulateInvokeTx.json")
+		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json.json")
 		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
+		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
 
-		err = json.Unmarshal(simulateTxnRaw, &simulateTxIn)
-		require.NoError(t, err, "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/simulateInvokeTxResp.json")
+		expectedrespRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTxResp.json")
 		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
+		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+	}
 
-		err = json.Unmarshal(expectedrespRaw, &expectedResp)
-		require.NoError(t, err, "Error unmarshalling simulateInvokeTxResp")
+	if testEnv == "testnet" || testEnv == "mock" {
+		simulateTxnRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTx.json")
+		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
+		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
+
+		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
+		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
+		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
 	}
 
 	type testSetType struct {
@@ -115,9 +121,15 @@ func TestSimulateTransaction(t *testing.T) {
 		ExpectedResp     SimulateTransactionOutput
 	}
 	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mock":    {},
-		"testnet": {},
+		"devnet": {},
+		"mock": {testSetType{
+			SimulateTxnInput: simulateTxIn,
+			ExpectedResp:     expectedResp,
+		}},
+		"testnet": {testSetType{
+			SimulateTxnInput: simulateTxIn,
+			ExpectedResp:     expectedResp,
+		}},
 		"mainnet": {testSetType{
 			SimulateTxnInput: simulateTxIn,
 			ExpectedResp:     expectedResp,

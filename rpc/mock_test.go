@@ -59,6 +59,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_estimateFee(result, args...)
 	case "starknet_estimateMessageFee":
 		return mock_starknet_estimateMessageFee(result, args...)
+	case "starknet_simulateTransactions":
+		return mock_starknet_simulateTransactions(result, args...)
 	case "starknet_getBlockWithTxs":
 		return mock_starknet_getBlockWithTxs(result, args...)
 	case "starknet_getBlockTransactionCount":
@@ -748,6 +750,65 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 		return err
 	}
 	return nil
+}
+
+// mock_starknet_simulateTransactions is a function that simulates transactions on the StarkNet network.
+// It takes a result interface{} and variadic args ...interface{} as input parameters.
+// The result parameter is expected to be of type *json.RawMessage, otherwise an error of type errWrongType is returned.
+// The args parameter is expected to have a length of 3, otherwise an error of type errWrongArgs is returned.
+// The first argument in args is expected to be of type BlockID, otherwise an error of type errWrongArgs is returned.
+// The second argument in args is expected to be of type []BroadcastTxn, otherwise an error of type errWrongArgs is returned.
+// The third argument in args is expected to be of type []SimulationFlag, otherwise an error of type errWrongArgs is returned.
+// The function reads a file named "sepoliaSimulateInvokeTxResp.json" and unmarshals its content into a variable of type SimulateTransactionOutput.
+// Then, it marshals the output variable into JSON format and unmarshals it into the result parameter.
+// If any error occurs during the process, it is returned.
+//
+// Parameters:
+// - result: The result of the method
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+func mock_starknet_simulateTransactions(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok {
+		return errWrongType
+	}
+	if len(args) != 3 {
+		fmt.Printf("args: %d\n", len(args))
+		return errWrongArgs
+	}
+	_, ok = args[0].(BlockID)
+	if !ok {
+		fmt.Printf("args[0] should be *blockID, got %T\n", args[0])
+		return errWrongArgs
+	}
+	_, ok = args[1].([]BroadcastTxn)
+	if !ok {
+		fmt.Printf("args[1] should be BroadcastTxn, got %T\n", args[1])
+		return errWrongArgs
+	}
+	_, ok = args[2].([]SimulationFlag)
+	if !ok {
+		fmt.Printf("args[2] should be SimulationFlag, got %T\n", args[2])
+		return errWrongArgs
+	}
+
+	var output SimulateTransactionOutput
+	read, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(read, &output)
+	if err != nil {
+		return err
+	}
+
+	outputContent, err := json.Marshal(output.Txns)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(outputContent, r)
 }
 
 // mock_starknet_addInvokeTransaction is a mock function that simulates the behavior of the

@@ -735,7 +735,7 @@ func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contract
 // Returns:
 // - []rpc.SimulatedTransaction: a list of simulated transactions
 // - error: an error, if any.
-func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	return account.provider.SimulateTransactions(ctx, blockID, txns, simulationFlags)
 }
 
