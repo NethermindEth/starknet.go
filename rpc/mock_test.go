@@ -1304,11 +1304,10 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 	if !ok {
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
-	if blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
+	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 
-		var rawBlockTrace struct {
-			Result []Trace `json:"result"`
-		}
+		var rawBlockTrace []Trace
+
 		read, err := os.ReadFile("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
 		if err != nil {
 			return err
@@ -1316,7 +1315,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		if nil != json.Unmarshal(read, &rawBlockTrace) {
 			return err
 		}
-		BlockTrace, err := json.Marshal(rawBlockTrace.Result)
+		BlockTrace, err := json.Marshal(rawBlockTrace)
 		if err != nil {
 			return err
 		}

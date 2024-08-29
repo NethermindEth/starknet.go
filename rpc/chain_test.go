@@ -82,7 +82,7 @@ func TestSyncing(t *testing.T) {
 				HighestBlockHash:  utils.RANDOM_FELT,
 				HighestBlockNum:   "0x4c727",
 			}
-			require.Exactly(t, value, sync)
+			require.Exactly(t, &value, sync)
 
 			continue
 		}

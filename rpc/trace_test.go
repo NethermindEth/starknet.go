@@ -163,18 +163,11 @@ func TestSimulateTransaction(t *testing.T) {
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	var expectedResp []Trace
-	if testEnv == "mock" {
-		var rawjson struct {
-			Result []Trace `json:"result"`
-		}
-		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
-		require.NoError(t, err, "Error ReadFile for TestTraceBlockTransactions")
+	var blockTraceSepolia []Trace
 
-		err = json.Unmarshal(expectedrespRaw, &rawjson)
-		require.NoError(t, err, "Error unmarshalling testdata TestTraceBlockTransactions")
-		expectedResp = rawjson.Result
-	}
+	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
+	require.NoError(t, err, "Error ReadFile for TestTraceBlockTransactions")
+	require.NoError(t, json.Unmarshal(expectedrespRaw, &blockTraceSepolia), "Error unmarshalling testdata TestTraceBlockTransactions")
 
 	type testSetType struct {
 		BlockID      BlockID
@@ -184,14 +177,21 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet":  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
 		"mainnet": {},
+		"testnet": { // TODO: there is a conflict between the test data and the rpc data, even though the data came from the same source...
+			// testSetType{
+			// 	BlockID:      WithBlockNumber(99433),
+			// 	ExpectedResp: blockTraceSepolia,
+			// 	ExpectedErr:  nil,
+			// },
+		},
 		"mock": {
 			testSetType{
-				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")},
-				ExpectedResp: expectedResp,
+				BlockID:      WithBlockHash(utils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
+				ExpectedResp: blockTraceSepolia,
 				ExpectedErr:  nil,
 			},
 			testSetType{
-				BlockID:      BlockID{Hash: utils.TestHexToFelt(t, "0x0")},
+				BlockID:      WithBlockNumber(0),
 				ExpectedResp: nil,
 				ExpectedErr:  ErrBlockNotFound,
 			}},
@@ -203,7 +203,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
 		} else {
-			require.Equal(t, test.ExpectedResp, resp)
+			require.EqualValues(t, test.ExpectedResp, resp)
 		}
 
 	}
