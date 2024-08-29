@@ -26,20 +26,9 @@ func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	var expectedResp InvokeTxnTrace
-	if testEnv == "mock" {
-		var rawjson struct {
-			Result InvokeTxnTrace `json:"result"`
-		}
-		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-		require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
-
-		err = json.Unmarshal(expectedrespRaw, &rawjson)
-		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
-
-		txnTrace, err := json.Marshal(rawjson.Result)
-		require.NoError(t, err, "Error unmarshalling testdata TestTraceTransaction")
-		require.NoError(t, json.Unmarshal(txnTrace, &expectedResp))
-	}
+	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
+	require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
+	require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling testdata TestTraceTransaction")
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -68,7 +57,14 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		"devnet":  {},
+		"devnet": {},
+		"testnet": {
+			testSetType{
+				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				ExpectedResp:    &expectedResp,
+				ExpectedError:   nil,
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 
