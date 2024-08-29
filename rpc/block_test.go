@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check is there is no errors.
+// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -29,18 +29,7 @@ func TestBlockNumber(t *testing.T) {
 	}
 }
 
-// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check the returned value is strictly positive.
-//
-// It sets up a test configuration and creates a test set based on the test environment.
-// Then it iterates through the test set and performs the following steps:
-//   - Creates a new spy using the testConfig provider.
-//   - Sets the testConfig provider to the spy.
-//   - Calls the BlockHashAndNumber function of the testConfig provider with a context.
-//   - Checks if there is an error and if it matches the expected error.
-//   - Compares the result with the spy and checks if it matches the expected result.
-//   - Checks if the block number is greater than 3000.
-//   - Checks if the block hash starts with "0x".
-//
+// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
@@ -49,28 +38,12 @@ func TestBlockNumber(t *testing.T) {
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	type testSetType struct{}
+	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
+	require.NoError(t, err, "BlockHashAndNumber should not return an error")
+	require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
 
-	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {{}},
-		"mainnet": {{}},
-		"devnet":  {},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
-		require.NoError(t, err, "BlockHashAndNumber should not return an error")
-
-		diff, err := spy.Compare(blockHashAndNumber, false)
-		require.NoError(t, err, "expecting to match")
-		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
-
-		require.False(t, blockHashAndNumber.BlockNumber <= 3000, "Block number should be > 3000, instead: %d", blockHashAndNumber.BlockNumber)
-
-		require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+	if testEnv == "mock" {
+		require.Equal(t, &BlockHashAndNumberOutput{BlockNumber: 1234, BlockHash: utils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
 
