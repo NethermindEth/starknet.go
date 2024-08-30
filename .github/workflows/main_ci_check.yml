@@ -40,8 +40,7 @@ jobs:
 
       # Test rpc on testnet
       - name: Test RPC on testnet
-        run: echo "Skip for now - need public endpoint that follows rpc spec"
-        #run: cd rpc && go test -timeout 1200s -v -env testnet .
+        run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://free-rpc.nethermind.io/sepolia-juno"
