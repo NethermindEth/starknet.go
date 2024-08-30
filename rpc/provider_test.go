@@ -118,9 +118,14 @@ func TestCookieManagement(t *testing.T) {
 				Path:  "/",
 			})
 		} else {
-			var result string
-			err := mock_starknet_chainId(&result)
+			var rawResp json.RawMessage
+			err := mock_starknet_chainId(&rawResp)
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			var result string
+			if err := json.Unmarshal(rawResp, &result); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

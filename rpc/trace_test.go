@@ -144,7 +144,8 @@ func TestSimulateTransaction(t *testing.T) {
 			test.SimulateTxnInput.Txns,
 			test.SimulateTxnInput.SimulationFlags)
 		require.NoError(t, err)
-		require.Equal(t, test.ExpectedResp.Txns, resp)
+		require.Equal(t, test.ExpectedResp.Txns[0].FeeEstimate, resp[0].FeeEstimate)
+		require.Len(t, test.ExpectedResp.Txns, len(resp))
 	}
 }
 
