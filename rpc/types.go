@@ -187,7 +187,7 @@ type TxDetails struct {
 	Version TransactionVersion
 }
 
-type FeeEstimate struct {
+type FeeEstimation struct {
 	// The Ethereum gas consumption of the transaction
 	GasConsumed *felt.Felt `json:"gas_consumed"`
 

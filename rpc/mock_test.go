@@ -678,10 +678,10 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 		return errWrongArgs
 	}
 
-	var output FeeEstimate
+	var output FeeEstimation
 
 	if len(flags) > 0 {
-		output = FeeEstimate{
+		output = FeeEstimation{
 			GasConsumed:     new(felt.Felt).SetUint64(1234),
 			GasPrice:        new(felt.Felt).SetUint64(1234),
 			DataGasConsumed: new(felt.Felt).SetUint64(1234),
@@ -690,7 +690,7 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 			FeeUnit:         UnitWei,
 		}
 	} else {
-		output = FeeEstimate{
+		output = FeeEstimation{
 			GasConsumed:     utils.RANDOM_FELT,
 			GasPrice:        utils.RANDOM_FELT,
 			DataGasConsumed: utils.RANDOM_FELT,
@@ -700,7 +700,7 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 		}
 	}
 
-	outputContent, err := json.Marshal([]FeeEstimate{output})
+	outputContent, err := json.Marshal([]FeeEstimation{output})
 	if err != nil {
 		return err
 	}
@@ -737,7 +737,7 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 		return errWrongArgs
 	}
 
-	output := FeeEstimate{
+	output := FeeEstimation{
 		GasConsumed: new(felt.Felt).SetUint64(1),
 		GasPrice:    new(felt.Felt).SetUint64(2),
 		OverallFee:  new(felt.Felt).SetUint64(3),

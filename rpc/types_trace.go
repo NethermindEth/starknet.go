@@ -30,8 +30,8 @@ type SimulateTransactionOutput struct {
 }
 
 type SimulatedTransaction struct {
-	TxnTrace    `json:"transaction_trace"`
-	FeeEstimate `json:"fee_estimation"`
+	TxnTrace      `json:"transaction_trace"`
+	FeeEstimation `json:"fee_estimation"`
 }
 
 type TxnTrace interface{}
@@ -163,10 +163,10 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var feeEstimate FeeEstimate
+	var feeEstimation FeeEstimation
 
-	if feeEstimateData, ok := dec["fee_estimation"]; ok {
-		err = remarshal(feeEstimateData, &feeEstimate)
+	if feeEstimationData, ok := dec["fee_estimation"]; ok {
+		err = remarshal(feeEstimationData, &feeEstimation)
 		if err != nil {
 			return err
 		}
@@ -175,8 +175,8 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 	}
 
 	*txn = SimulatedTransaction{
-		TxnTrace:    trace,
-		FeeEstimate: feeEstimate,
+		TxnTrace:      trace,
+		FeeEstimation: feeEstimation,
 	}
 	return nil
 }

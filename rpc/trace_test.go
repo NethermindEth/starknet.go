@@ -142,7 +142,7 @@ func TestSimulateTransaction(t *testing.T) {
 		require.NoError(t, err)
 
 		for i, trace := range resp {
-			require.Equal(t, test.ExpectedResp.Txns[i].FeeEstimate, trace.FeeEstimate)
+			require.Equal(t, test.ExpectedResp.Txns[i].FeeEstimation, trace.FeeEstimation)
 			compareTraceTxs(t, test.ExpectedResp.Txns[i].TxnTrace, trace.TxnTrace)
 		}
 	}

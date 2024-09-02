@@ -402,7 +402,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst *FeeEstimate
+		ExpectedFeeEst *FeeEstimation
 		ExpectedError  error
 	}
 
@@ -425,7 +425,7 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: &FeeEstimate{
+				ExpectedFeeEst: &FeeEstimation{
 					GasConsumed: new(felt.Felt).SetUint64(1),
 					GasPrice:    new(felt.Felt).SetUint64(2),
 					OverallFee:  new(felt.Felt).SetUint64(3),
@@ -436,7 +436,7 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(122476),
-				ExpectedFeeEst: &FeeEstimate{
+				ExpectedFeeEst: &FeeEstimation{
 					GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
 					GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
 					DataGasConsumed: &felt.Zero,
@@ -481,7 +481,7 @@ func TestEstimateFee(t *testing.T) {
 		txs           []BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
-		expectedResp  []FeeEstimate
+		expectedResp  []FeeEstimation
 		expectedError error
 	}
 
@@ -523,7 +523,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(15643),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
 						GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
@@ -560,7 +560,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockHash(utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
 						GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
@@ -580,7 +580,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockTag("latest"),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.RANDOM_FELT,
 						GasPrice:        utils.RANDOM_FELT,
@@ -598,7 +598,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockTag("latest"),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     new(felt.Felt).SetUint64(1234),
 						GasPrice:        new(felt.Felt).SetUint64(1234),
@@ -618,7 +618,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(100000),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
 						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
@@ -636,7 +636,7 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockNumber(100000),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
 						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
