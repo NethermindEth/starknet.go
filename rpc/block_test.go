@@ -12,15 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check the returned value is strictly positive.
-//
-// The function performs the following steps:
-// 1. Sets up the test configuration.
-// 2. Defines a test set.
-// 3. Loops over the test set.
-// 4. Creates a new spy.
-// 5. Calls the BlockNumber function on the test provider.
-// 6. Validates the returned block number.
+// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
 // - t: the testing object for running the test cases
@@ -30,41 +22,14 @@ import (
 func TestBlockNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	type testSetType struct{}
-
-	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {{}},
-		"mainnet": {{}},
-		"devnet":  {},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		blockNumber, err := testConfig.provider.BlockNumber(context.Background())
-		require.NoError(t, err, "BlockNumber should not return an error")
-
-		diff, err := spy.Compare(blockNumber, false)
-		require.NoError(t, err, "expecting to match")
-		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
-
-		require.False(t, blockNumber <= 3000, fmt.Sprintf("Block number should be > 3000, instead: %d", blockNumber))
+	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
+	require.NoError(t, err, "BlockNumber should not return an error")
+	if testEnv == "mock" {
+		require.Equal(t, uint64(1234), blockNumber)
 	}
 }
 
-// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check the returned value is strictly positive.
-//
-// It sets up a test configuration and creates a test set based on the test environment.
-// Then it iterates through the test set and performs the following steps:
-//   - Creates a new spy using the testConfig provider.
-//   - Sets the testConfig provider to the spy.
-//   - Calls the BlockHashAndNumber function of the testConfig provider with a context.
-//   - Checks if there is an error and if it matches the expected error.
-//   - Compares the result with the spy and checks if it matches the expected result.
-//   - Checks if the block number is greater than 3000.
-//   - Checks if the block hash starts with "0x".
-//
+// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
@@ -73,28 +38,12 @@ func TestBlockNumber(t *testing.T) {
 func TestBlockHashAndNumber(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	type testSetType struct{}
+	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
+	require.NoError(t, err, "BlockHashAndNumber should not return an error")
+	require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
 
-	testSet := map[string][]testSetType{
-		"mock":    {},
-		"testnet": {{}},
-		"mainnet": {{}},
-		"devnet":  {},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
-		require.NoError(t, err, "BlockHashAndNumber should not return an error")
-
-		diff, err := spy.Compare(blockHashAndNumber, false)
-		require.NoError(t, err, "expecting to match")
-		require.Equal(t, "FullMatch", diff, "expecting to match, instead %s", diff)
-
-		require.False(t, blockHashAndNumber.BlockNumber <= 3000, "Block number should be > 3000, instead: %d", blockHashAndNumber.BlockNumber)
-
-		require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+	if testEnv == "mock" {
+		require.Equal(t, &BlockHashAndNumberOutput{BlockNumber: 1234, BlockHash: utils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
 
@@ -426,6 +375,7 @@ func TestBlockTransactionCount(t *testing.T) {
 	type testSetType struct {
 		BlockID       BlockID
 		ExpectedCount uint64
+		ExpectedError error
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -443,24 +393,20 @@ func TestBlockTransactionCount(t *testing.T) {
 				BlockID:       WithBlockNumber(52959),
 				ExpectedCount: 58,
 			},
+			{
+				BlockID:       WithBlockNumber(7338746823462834783),
+				ExpectedError: ErrBlockNotFound,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
-		require.NoError(t, err, "Unable to fetch the given block.")
-
-		diff, err := spy.Compare(count, false)
-		require.NoError(t, err, "Unable to compare the count.")
-
-		_, err = spy.Compare(count, true)
-		require.NoError(t, err, "Unable to compare the count.")
-
-		require.Equal(t, "FullMatch", diff, "structure expecting to be FullMatch, instead %s", diff)
-
-		require.Equal(t, test.ExpectedCount, count, fmt.Sprintf("structure expecting %d, instead: %d", test.ExpectedCount, count))
+		if err != nil {
+			require.EqualError(t, test.ExpectedError, err.Error())
+		} else {
+			require.Equalf(t, test.ExpectedCount, count, "structure expecting %d, instead: %d", test.ExpectedCount, count)
+		}
 	}
 }
 

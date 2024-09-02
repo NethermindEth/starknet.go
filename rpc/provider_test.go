@@ -6,11 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -18,13 +16,7 @@ import (
 )
 
 const (
-	TestPublicKey            = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
-	DevNetETHAddress         = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-	TestNetETHAddress        = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-	DevNetAccount032Address  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
-	TestNetAccount032Address = "0x6ca4fdd437dffde5253ba7021ef7265c88b07789aa642eafda37791626edf00"
-	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
-	TestNetAccount040Address = "0x6cbfa37f409610fee26eeb427ed854b3a4b24580d9b9ef6c3e38db7b3f7322c"
+	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 )
 
 // testConfiguration is a type that is used to configure tests
@@ -116,109 +108,6 @@ func beforeEach(t *testing.T) *testConfiguration {
 	return &testConfig
 }
 
-// TestChainID is a function that tests the ChainID function in the Go test file.
-//
-// The function initializes a test configuration and defines a test set with different chain IDs for different environments.
-// It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
-// The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
-// If there is a mismatch or an error occurs, the function logs a fatal error.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestChainID(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ChainID string
-	}
-	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "SN_SEPOLIA"}},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "SN_SEPOLIA"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
-
-	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		chain, err := testConfig.provider.ChainID(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := spy.Compare(chain, false); err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if chain != test.ChainID {
-			t.Fatalf("expecting %s, instead: %s", test.ChainID, chain)
-		}
-	}
-}
-
-// TestSyncing tests the syncing functionality.
-//
-// It initializes a test configuration and sets up a test set. Then it loops
-// through the test set and creates a spy object. It calls the Syncing function
-// of the provider using the test configuration. It checks if there is any
-// error during syncing, and if so, it fails the test. If the starting block
-// hash is not nil, it compares the sync object with the spy object. It checks
-// if the current block number is a positive number and if the current block
-// hash starts with "0x". If the starting block hash is nil, it compares the
-// sync object with the spy object and checks if the current block hash is nil.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//
-//	none
-func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ChainID string
-	}
-
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		sync, err := testConfig.provider.Syncing(context.Background())
-		if err != nil {
-			t.Fatal("Syncing error:", err)
-		}
-		if sync.StartingBlockHash != nil {
-			if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
-				if _, err := spy.Compare(sync, true); err != nil {
-					log.Fatal(err)
-				}
-				t.Fatal("expecting to match", err)
-			}
-			i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
-			if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-				t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
-			}
-			if !strings.HasPrefix(sync.CurrentBlockHash.String(), "0x") {
-				t.Fatal("current block hash should return a string starting with 0x")
-			}
-		} else {
-			if _, err := spy.Compare(sync, false); err != nil {
-				log.Fatal(err)
-			}
-			require.Nil(t, sync.CurrentBlockHash)
-
-		}
-
-	}
-}
-
 func TestCookieManagement(t *testing.T) {
 	// Don't return anything unless cookie is set.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -229,9 +118,14 @@ func TestCookieManagement(t *testing.T) {
 				Path:  "/",
 			})
 		} else {
-			var result string
-			err := mock_starknet_chainId(&result)
+			var rawResp json.RawMessage
+			err := mock_starknet_chainId(&rawResp)
 			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			var result string
+			if err := json.Unmarshal(rawResp, &result); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}

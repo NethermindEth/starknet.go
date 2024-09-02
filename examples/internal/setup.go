@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/joho/godotenv"
 )
@@ -71,4 +72,24 @@ func getEnv(envName string) string {
 		panic(fmt.Sprintf("%s variable not set in the '.env' file", envName))
 	}
 	return env
+}
+
+// PadZerosInFelt pads zeros to the left of a hex felt value to make it 64 characters long.
+func PadZerosInFelt(hexFelt *felt.Felt) string {
+	length := 66
+	hexStr := hexFelt.String()
+
+	// Check if the hex value is already of the desired length
+	if len(hexStr) >= length {
+		return hexStr
+	}
+
+	// Extract the hex value without the "0x" prefix
+	hexValue := hexStr[2:]
+	// Pad zeros after the "0x" prefix
+	paddedHexValue := fmt.Sprintf("%0*s", length-2, hexValue)
+	// Add back the "0x" prefix to the padded hex value
+	paddedHexStr := "0x" + paddedHexValue
+
+	return paddedHexStr
 }

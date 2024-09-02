@@ -682,9 +682,9 @@ func (account *Account) ClassHashAt(ctx context.Context, blockID rpc.BlockID, co
 // - requests: An array of rpc.BroadcastTxn objects representing the requests to estimate the fee for.
 // - blockID: The rpc.BlockID object representing the block ID for which to estimate the fee.
 // Returns:
-// - []rpc.FeeEstimate: An array of rpc.FeeEstimate objects representing the estimated fees.
+// - []rpc.FeeEstimation: An array of rpc.FeeEstimation objects representing the estimated fees.
 // - error: An error object if any error occurred during the estimation process.
-func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (account *Account) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	return account.provider.EstimateFee(ctx, requests, simulationFlags, blockID)
 }
 
@@ -695,9 +695,9 @@ func (account *Account) EstimateFee(ctx context.Context, requests []rpc.Broadcas
 // - msg: The rpc.MsgFromL1 object representing the message.
 // - blockID: The rpc.BlockID object representing the block ID.
 // Returns:
-// - *rpc.FeeEstimate: a pointer to rpc.FeeEstimate
+// - *rpc.FeeEstimation: a pointer to rpc.FeeEstimation
 // - error: an error if any.
-func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
+func (account *Account) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimation, error) {
 	return account.provider.EstimateMessageFee(ctx, msg, blockID)
 }
 
@@ -735,7 +735,7 @@ func (account *Account) Nonce(ctx context.Context, blockID rpc.BlockID, contract
 // Returns:
 // - []rpc.SimulatedTransaction: a list of simulated transactions
 // - error: an error, if any.
-func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (account *Account) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	return account.provider.SimulateTransactions(ctx, blockID, txns, simulationFlags)
 }
 

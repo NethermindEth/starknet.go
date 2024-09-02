@@ -82,7 +82,7 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 // Simulate a given sequence of transactions on the requested state, and generate the execution traces.
 // Note that some of the transactions may revert, in which case no error is thrown, but revert details can be seen on the returned trace object.
 // Note that some of the transactions may revert, this will be reflected by the revert_error property in the trace. Other types of failures (e.g. unexpected error or failure in the validation phase) will result in TRANSACTION_EXECUTION_ERROR.
-func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []Transaction, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
+func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
 
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
