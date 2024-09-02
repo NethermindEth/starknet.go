@@ -87,15 +87,7 @@ func TestSyncing(t *testing.T) {
 			continue
 		}
 
-		require.False(t, sync.SyncStatus)
-		if sync.StartingBlockHash == nil {
-			require.Zero(t, sync.StartingBlockHash)
-			require.Zero(t, sync.StartingBlockNum)
-			require.Zero(t, sync.CurrentBlockHash)
-			require.Zero(t, sync.CurrentBlockNum)
-			require.Zero(t, sync.HighestBlockHash)
-			require.Zero(t, sync.HighestBlockNum)
-		} else {
+		if sync.SyncStatus == nil {
 			require.True(t, strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
 			require.NotZero(t, sync.StartingBlockHash)
 			require.NotZero(t, sync.StartingBlockNum)
@@ -103,6 +95,14 @@ func TestSyncing(t *testing.T) {
 			require.NotZero(t, sync.CurrentBlockNum)
 			require.NotZero(t, sync.HighestBlockHash)
 			require.NotZero(t, sync.HighestBlockNum)
+		} else {
+			require.False(t, *sync.SyncStatus)
+			require.Zero(t, sync.StartingBlockHash)
+			require.Zero(t, sync.StartingBlockNum)
+			require.Zero(t, sync.CurrentBlockHash)
+			require.Zero(t, sync.CurrentBlockNum)
+			require.Zero(t, sync.HighestBlockHash)
+			require.Zero(t, sync.HighestBlockNum)
 		}
 
 	}
