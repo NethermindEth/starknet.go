@@ -18,7 +18,8 @@ import (
 // Parameters:
 // - t: A testing.T object used for running the test and reporting any failures.
 // Returns:
-//   none
+//
+//	none
 func TestUnmarshalCasmClassHash(t *testing.T) {
 	content, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
 	require.NoError(t, err)
@@ -36,7 +37,8 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 // Parameters:
 // - t: A testing.T object used for running the test and reporting any failures.
 // Returns:
-//   none
+//
+//	none
 func TestClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
 	expectedClasshash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
@@ -47,8 +49,7 @@ func TestClassHash(t *testing.T) {
 	var class rpc.ContractClass
 	err = json.Unmarshal(content, &class)
 	require.NoError(t, err)
-	compClassHash, err := hash.ClassHash(class)
-	require.NoError(t, err)
+	compClassHash := hash.ClassHash(class)
 	require.Equal(t, expectedClasshash, compClassHash.String())
 }
 
@@ -60,7 +61,8 @@ func TestClassHash(t *testing.T) {
 // Parameters:
 // - t: A testing.T object used for running the test and reporting any failures.
 // Returns:
-//   none
+//
+//	none
 func TestCompiledClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
 	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"

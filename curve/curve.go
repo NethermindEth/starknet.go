@@ -603,7 +603,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
 // - error: An error if any
-func (sc StarkCurve) StarknetKeccak(b []byte) (*felt.Felt, error) {
+func (sc StarkCurve) StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
 }
 
