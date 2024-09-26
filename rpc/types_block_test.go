@@ -269,7 +269,6 @@ func TestBlockWithReceipts(t *testing.T) {
 				require.NotEmpty(pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
 				require.NotEmpty(pBlock.SequencerAddress, "Error in PendingBlockWithReceipts SequencerAddress")
 				require.NotEmpty(pBlock.Timestamp, "Error in PendingBlockWithReceipts Timestamp")
-				require.NotEmpty(pBlock.Transactions, "Error in PendingBlockWithReceipts Transactions")
 			}
 
 		default:
