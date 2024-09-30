@@ -176,8 +176,9 @@ const (
 )
 
 type TxnStatusResp struct {
-	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
 	FinalityStatus  TxnStatus          `json:"finality_status"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FailureReason   string             `json:"failure_reason,omitempty"`
 }
 
 type TransactionReceiptWithBlockInfo struct {
