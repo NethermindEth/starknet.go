@@ -174,6 +174,8 @@ type BlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
 	// The price of l1 data gas in the block
 	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
 	// Specifies whether the data of this block is published via blob data or calldata

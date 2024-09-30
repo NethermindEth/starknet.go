@@ -154,9 +154,9 @@ var (
 		Code:    52,
 		Message: "Invalid transaction nonce",
 	}
-	ErrInsufficientMaxFee = &RPCError{
+	ErrInsufficientResourcesForValidate = &RPCError{
 		Code:    53,
-		Message: "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
+		Message: "The transaction's resources don't cover validation or the minimal transaction fee",
 	}
 	ErrInsufficientAccountBalance = &RPCError{
 		Code:    54,
