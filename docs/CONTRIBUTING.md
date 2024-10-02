@@ -23,7 +23,7 @@ We recommend the following work-flow for contributors:
 1. **Install `golangci-lint`:**
 
    ```bash
-   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.3
+   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.0
    ```
 
 2. **Run the linter:**
