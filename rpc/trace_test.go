@@ -93,7 +93,7 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json.json")
+		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json")
 		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
 		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
 
