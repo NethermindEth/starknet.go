@@ -11,7 +11,8 @@ import (
 // - t: a pointer to the testing.T object
 // - proofs: a slice of pointers to big.Int objects representing the proofs
 // Returns:
-//   none
+//
+//	none
 func debugProof(t *testing.T, proofs []*big.Int) {
 	t.Log("...proof")
 	for k, v := range proofs {
@@ -26,23 +27,21 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 // Parameters:
 // - t: A testing.T object used for reporting test failures and logging.
 // Returns:
-//   none
+//
+//	none
 func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6), big.NewInt(7)}
-	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
-	proof_7_0, _ := MerkleHash(big.NewInt(7), big.NewInt(0))
-	proof_1_2, _ := MerkleHash(big.NewInt(1), big.NewInt(2))
-	proof_3_4, _ := MerkleHash(big.NewInt(3), big.NewInt(4))
-	proof_1_2_3_4, _ := MerkleHash(proof_1_2, proof_3_4)
+	merkleTree := NewFixedSizeMerkleTree(leaves...)
+	proof_7_0 := MerkleHash(big.NewInt(7), big.NewInt(0))
+	proof_1_2 := MerkleHash(big.NewInt(1), big.NewInt(2))
+	proof_3_4 := MerkleHash(big.NewInt(3), big.NewInt(4))
+	proof_1_2_3_4 := MerkleHash(proof_1_2, proof_3_4)
 	manualProof := []*big.Int{
 		big.NewInt(6),
 		proof_7_0,
 		proof_1_2_3_4,
 	}
 	leaf := big.NewInt(5)
-	if err != nil {
-		t.Fatal("should generate merkle tree, error", err)
-	}
 	proof, err := merkleTree.Proof(leaf)
 	if err != nil {
 		t.Fatal("should generate merkle proof, error", err)

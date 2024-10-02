@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -400,44 +402,95 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst FeeEstimate
+		ExpectedFeeEst *FeeEstimation
+		ExpectedError  error
 	}
+
+	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
+	l1Handler := MsgFromL1{
+		FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
+		ToAddress:   utils.TestHexToFelt(t, "0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"),
+		Selector:    utils.TestHexToFelt(t, "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"),
+		Payload: utils.TestHexArrToFelt(t, []string{
+			"0x455448",
+			"0x2f14d277fc49e0e2d2967d019aea8d6bd9cb3998",
+			"0x02000e6213e24b84012b1f4b1cbd2d7a723fb06950aeab37bedb6f098c7e051a",
+			"0x01a055690d9db80000",
+			"0x00",
+		}),
+	}
+
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: FeeEstimate{
+				ExpectedFeeEst: &FeeEstimation{
 					GasConsumed: new(felt.Felt).SetUint64(1),
 					GasPrice:    new(felt.Felt).SetUint64(2),
 					OverallFee:  new(felt.Felt).SetUint64(3),
 				},
 			},
 		},
-		"testnet": {},
+		"testnet": {
+			{
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockNumber(122476),
+				ExpectedFeeEst: &FeeEstimation{
+					GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
+					GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
+					DataGasConsumed: &felt.Zero,
+					DataGasPrice:    utils.TestHexToFelt(t, "0x216251c284"),
+					OverallFee:      utils.TestHexToFelt(t, "0xdd816d65a9ea"),
+					FeeUnit:         UnitWei,
+				},
+			},
+			{ // invalid msg data
+				MsgFromL1: MsgFromL1{
+					FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
+					ToAddress:   utils.RANDOM_FELT,
+					Selector:    utils.RANDOM_FELT,
+					Payload:     []*felt.Felt{},
+				},
+				BlockID:       WithBlockNumber(122476),
+				ExpectedError: ErrContractError,
+			},
+			{ // invalid block number
+				MsgFromL1:     l1Handler,
+				BlockID:       WithBlockNumber(9999999999999999999),
+				ExpectedError: ErrBlockNotFound,
+			},
+		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		value, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
+		resp, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
-			t.Fatal(err)
+			require.EqualError(t, test.ExpectedError, err.Error())
+		} else {
+			require.Exactly(t, test.ExpectedFeeEst, resp)
 		}
-		require.Equal(t, *value, test.ExpectedFeeEst)
 	}
 }
 
 func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	testBlockNumber := uint64(15643)
 	type testSetType struct {
 		txs           []BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
-		expectedResp  []FeeEstimate
+		expectedResp  []FeeEstimation
 		expectedError error
 	}
+
+	var bradcastInvokeV1 BroadcastInvokev1Txn
+	expectedRespRaw, err := os.ReadFile("./tests/transactions/estimateFeeSepoliaInvokeV1.json")
+	require.NoError(t, err)
+	err = json.Unmarshal(expectedRespRaw, &bradcastInvokeV1)
+	require.NoError(t, err)
+
 	testSet := map[string][]testSetType{
 		"mainnet": {
 			{
@@ -468,21 +521,20 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       BlockID{Number: &testBlockNumber},
+				blockID:       WithBlockNumber(15643),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
 						GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
 						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    &felt.Zero,
+						DataGasPrice:    new(felt.Felt).SetUint64(1),
 						OverallFee:      utils.TestHexToFelt(t, "0xa0a99fc14d84"),
 						FeeUnit:         UnitWei,
 					},
 				},
 			},
 			{
-
 				txs: []BroadcastTxn{
 					DeployAccountTxn{
 
@@ -506,27 +558,128 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       BlockID{Hash: utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")},
+				blockID:       WithBlockHash(utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
 				expectedError: nil,
-				expectedResp: []FeeEstimate{
+				expectedResp: []FeeEstimation{
 					{
 						GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
 						GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
 						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    &felt.Zero,
+						DataGasPrice:    new(felt.Felt).SetUint64(1),
 						OverallFee:      utils.TestHexToFelt(t, "0x3c2c41636c50"),
 						FeeUnit:         UnitWei,
 					},
 				},
 			},
 		},
-		"mock":    {},
-		"testnet": {},
+		"mock": {
+			{ // without flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockTag("latest"),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						GasConsumed:     utils.RANDOM_FELT,
+						GasPrice:        utils.RANDOM_FELT,
+						DataGasConsumed: utils.RANDOM_FELT,
+						DataGasPrice:    utils.RANDOM_FELT,
+						OverallFee:      utils.RANDOM_FELT,
+						FeeUnit:         UnitWei,
+					},
+				},
+			},
+			{ // with flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockTag("latest"),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						GasConsumed:     new(felt.Felt).SetUint64(1234),
+						GasPrice:        new(felt.Felt).SetUint64(1234),
+						DataGasConsumed: new(felt.Felt).SetUint64(1234),
+						DataGasPrice:    new(felt.Felt).SetUint64(1234),
+						OverallFee:      new(felt.Felt).SetUint64(1234),
+						FeeUnit:         UnitWei,
+					},
+				},
+			},
+		},
+		"testnet": {
+			{ // without flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(100000),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
+						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:      utils.TestHexToFelt(t, "0x955fd7d0ffd4"),
+						FeeUnit:         UnitWei,
+					},
+				},
+			},
+			{ // with flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockNumber(100000),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
+						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						DataGasConsumed: &felt.Zero,
+						DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:      utils.TestHexToFelt(t, "0x9547446da823"),
+						FeeUnit:         UnitWei,
+					},
+				},
+			},
+			{ // invalid transaction
+				txs: []BroadcastTxn{
+					InvokeTxnV1{
+						MaxFee:        utils.RANDOM_FELT,
+						Type:          TransactionType_Invoke,
+						Version:       TransactionV1,
+						SenderAddress: utils.RANDOM_FELT,
+						Nonce:         utils.RANDOM_FELT,
+						Calldata:      []*felt.Felt{},
+						Signature:     []*felt.Felt{},
+					},
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(100000),
+				expectedError: ErrTxnExec,
+			},
+			{ // invalid block
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(9999999999999999999),
+				expectedError: ErrBlockNotFound,
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
-		require.Equal(t, test.expectedError, err)
-		require.Equal(t, test.expectedResp, resp)
+		if err != nil {
+			require.EqualError(t, test.expectedError, err.Error())
+		} else {
+			require.Exactly(t, test.expectedResp, resp)
+		}
 	}
 }

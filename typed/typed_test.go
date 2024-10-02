@@ -2,12 +2,11 @@ package typed
 
 import (
 	"fmt"
-	"log"
 	"math/big"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/stretchr/testify/require"
 )
 
 type Mail struct {
@@ -50,7 +49,7 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 //
 // Returns:
 // - ttd: the generated TypedData object
-func MockTypedData() (ttd TypedData) {
+func MockTypedData() (ttd TypedData, err error) {
 	exampleTypes := make(map[string]TypeDef)
 	domDefs := []Definition{{"name", "felt"}, {"version", "felt"}, {"chainId", "felt"}}
 	exampleTypes["StarkNetDomain"] = TypeDef{Definitions: domDefs}
@@ -65,8 +64,11 @@ func MockTypedData() (ttd TypedData) {
 		ChainId: "1",
 	}
 
-	ttd, _ = NewTypedData(exampleTypes, "Mail", dm)
-	return ttd
+	ttd, err = NewTypedData(exampleTypes, "Mail", dm)
+	if err != nil {
+		return TypedData{}, err
+	}
+	return ttd, err
 }
 
 // TestGeneral_GetMessageHash tests the GetMessageHash function.
@@ -83,7 +85,8 @@ func MockTypedData() (ttd TypedData) {
 // Returns:
 // - None
 func TestGeneral_GetMessageHash(t *testing.T) {
-	ttd := MockTypedData()
+	ttd, err := MockTypedData()
+	require.NoError(t, err)
 
 	mail := Mail{
 		From: Person{
@@ -97,15 +100,10 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail, curve.Curve)
-	if err != nil {
-		t.Errorf("Could not hash message: %v\n", err)
-	}
+	hash := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail)
 
 	exp := "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0"
-	if utils.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	require.Equal(t, exp, utils.BigToHex(hash))
 }
 
 // BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.
@@ -120,7 +118,8 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 //
 //	none
 func BenchmarkGetMessageHash(b *testing.B) {
-	ttd := MockTypedData()
+	ttd, err := MockTypedData()
+	require.NoError(b, err)
 
 	mail := Mail{
 		From: Person{
@@ -135,9 +134,8 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	}
 	addr := utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
-		if _, err := ttd.GetMessageHash(addr, mail, curve.Curve); err != nil {
-			log.Fatal(err)
-		}
+		result := ttd.GetMessageHash(addr, mail)
+		require.NotEmpty(b, result)
 	})
 }
 
@@ -152,17 +150,13 @@ func BenchmarkGetMessageHash(b *testing.B) {
 //
 //	none
 func TestGeneral_GetDomainHash(t *testing.T) {
-	ttd := MockTypedData()
+	ttd, err := MockTypedData()
+	require.NoError(t, err)
 
-	hash, err := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain, curve.Curve)
-	if err != nil {
-		t.Errorf("Could not hash message: %v\n", err)
-	}
+	hash := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain)
 
 	exp := "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07"
-	if utils.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	require.Equal(t, exp, utils.BigToHex(hash))
 }
 
 // TestGeneral_GetTypedMessageHash is a unit test for the GetTypedMessageHash function
@@ -178,7 +172,8 @@ func TestGeneral_GetDomainHash(t *testing.T) {
 //
 //	none
 func TestGeneral_GetTypedMessageHash(t *testing.T) {
-	ttd := MockTypedData()
+	ttd, err := MockTypedData()
+	require.NoError(t, err)
 
 	mail := Mail{
 		From: Person{
@@ -192,15 +187,10 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 		Contents: "Hello, Bob!",
 	}
 
-	hash, err := ttd.GetTypedMessageHash("Mail", mail, curve.Curve)
-	if err != nil {
-		t.Errorf("Could get typed message hash: %v\n", err)
-	}
+	hash := ttd.GetTypedMessageHash("Mail", mail)
 
 	exp := "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec"
-	if utils.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	require.Equal(t, exp, utils.BigToHex(hash))
 }
 
 // TestGeneral_GetTypeHash tests the GetTypeHash function.
@@ -215,37 +205,28 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 //
 //	none
 func TestGeneral_GetTypeHash(t *testing.T) {
-	tdd := MockTypedData()
+	require := require.New(t)
 
-	hash, err := tdd.GetTypeHash("StarkNetDomain")
-	if err != nil {
-		t.Errorf("error enccoding type %v\n", err)
-	}
+	ttd, err := MockTypedData()
+	require.NoError(err)
+
+	hash, err := ttd.GetTypeHash("StarkNetDomain")
+	require.NoError(err)
 
 	exp := "0x1bfc207425a47a5dfa1a50a4f5241203f50624ca5fdf5e18755765416b8e288"
-	if utils.BigToHex(hash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	require.Equal(exp, utils.BigToHex(hash))
 
-	enc := tdd.Types["StarkNetDomain"]
-	if utils.BigToHex(enc.Encoding) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	enc := ttd.Types["StarkNetDomain"]
+	require.Equal(exp, utils.BigToHex(enc.Encoding))
 
-	pHash, err := tdd.GetTypeHash("Person")
-	if err != nil {
-		t.Errorf("error enccoding type %v\n", err)
-	}
+	pHash, err := ttd.GetTypeHash("Person")
+	require.NoError(err)
 
 	exp = "0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855"
-	if utils.BigToHex(pHash) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(pHash), exp)
-	}
+	require.Equal(exp, utils.BigToHex(pHash))
 
-	enc = tdd.Types["Person"]
-	if utils.BigToHex(enc.Encoding) != exp {
-		t.Errorf("type hash: %v does not match expected %v\n", utils.BigToHex(hash), exp)
-	}
+	enc = ttd.Types["Person"]
+	require.Equal(exp, utils.BigToHex(enc.Encoding))
 }
 
 // TestGeneral_GetSelectorFromName tests the GetSelectorFromName function.
@@ -288,15 +269,12 @@ func TestGeneral_GetSelectorFromName(t *testing.T) {
 //
 //	none
 func TestGeneral_EncodeType(t *testing.T) {
-	tdd := MockTypedData()
+	ttd, err := MockTypedData()
+	require.NoError(t, err)
 
-	enc, err := tdd.EncodeType("Mail")
-	if err != nil {
-		t.Errorf("error enccoding type %v\n", err)
-	}
+	enc, err := ttd.EncodeType("Mail")
+	require.NoError(t, err)
 
 	exp := "Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)"
-	if enc != exp {
-		t.Errorf("type encoding: %v does not match expected %v\n", enc, exp)
-	}
+	require.Equal(t, exp, enc)
 }

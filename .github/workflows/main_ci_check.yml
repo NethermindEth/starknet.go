@@ -3,7 +3,7 @@ name: (main) Auto CI run
 on:
   pull_request:
     branches:
-      - 'main' 
+      - "main"
 
 jobs:
   build_and_test:
@@ -40,8 +40,7 @@ jobs:
 
       # Test rpc on testnet
       - name: Test RPC on testnet
-        run: echo "Skip for now - need public endpoint that follows rpc spec"
-        #run: cd rpc && go test -timeout 1200s -v -env testnet .
+        run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           INTEGRATION_BASE: "https://free-rpc.nethermind.io/sepolia-juno"
@@ -67,7 +66,8 @@ jobs:
 
       # Build examples
       - name: Build examples
-        run: | 
+        run: |
           cd examples/deployAccount && go build
           cd ../simpleCall && go build
           cd ../simpleInvoke && go build
+          cd ../deployContractUDC && go build

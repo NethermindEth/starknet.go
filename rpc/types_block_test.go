@@ -5,10 +5,13 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,7 +111,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block/block.json
+//go:embed tests/block/sepoliaBlockTxs65083.json
 var rawBlock []byte
 
 // TestBlock_Unmarshal tests the Unmarshal function of the Block type.
@@ -130,40 +133,146 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
-	provider := &Provider{c: &rpcMock{}}
-
-	ctx := context.Background()
+	testConfig := beforeEach(t)
+	require := require.New(t)
 
 	type testSetType struct {
-		BlockID                   BlockID
-		ExpectedBlockWithReceipts BlockWithReceipts
-		ExpectedErr               *RPCError
+		BlockID                          BlockID
+		ExpectedBlockWithReceipts        *BlockWithReceipts
+		ExpectedPendingBlockWithReceipts *PendingBlockWithReceipts
 	}
 
-	var expectedBlockWithReceipts struct {
+	var blockWithReceipt struct {
 		Result BlockWithReceipts `json:"result"`
 	}
-	read, err := os.ReadFile("tests/blockWithReceipts/integration332275.json")
-	require.Nil(t, err)
-	require.Nil(t, json.Unmarshal(read, &expectedBlockWithReceipts))
+
+	if testEnv == "testnet" {
+		block, err := os.ReadFile("tests/blockWithReceipts/sepoliaBlockReceipts64159.json")
+		require.NoError(err)
+		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+	} else if testEnv == "mainnet" {
+		block, err := os.ReadFile("tests/blockWithReceipts/mainnetBlockReceipts588763.json")
+		require.NoError(err)
+		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+	}
+
+	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")
+	var blockMock123 = BlockWithReceipts{
+		BlockHeader{
+			BlockHash: deadBeef,
+		},
+		"ACCEPTED_ON_L1",
+		BlockBodyWithReceipts{
+			Transactions: []TransactionWithReceipt{
+				{
+					Transaction: BlockTransaction{
+						BlockInvokeTxnV1{
+							TransactionHash: deadBeef,
+							InvokeTxnV1: InvokeTxnV1{
+								Type:          "INVOKE",
+								Version:       TransactionV1,
+								SenderAddress: deadBeef,
+							},
+						},
+					},
+					Receipt: TransactionReceipt{
+						TransactionHash: deadBeef,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+					},
+				},
+			},
+		},
+	}
+
+	var pendingBlockMock123 = PendingBlockWithReceipts{
+		PendingBlockHeader{
+			ParentHash: deadBeef,
+		},
+		BlockBodyWithReceipts{
+			Transactions: []TransactionWithReceipt{
+				{
+					Transaction: BlockTransaction{
+						BlockInvokeTxnV1{
+							TransactionHash: deadBeef,
+							InvokeTxnV1: InvokeTxnV1{
+								Type:          "INVOKE",
+								Version:       TransactionV1,
+								SenderAddress: deadBeef,
+							},
+						},
+					},
+					Receipt: TransactionReceipt{
+						TransactionHash: deadBeef,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+					},
+				},
+			},
+		},
+	}
 
 	testSet := map[string][]testSetType{
-		"mock": {testSetType{
-			BlockID:                   BlockID{Tag: "tests/blockWithReceipts/integration332275.json"},
-			ExpectedBlockWithReceipts: expectedBlockWithReceipts.Result,
-			ExpectedErr:               nil,
+		"mock": {
+			{
+				BlockID:                          WithBlockTag("latest"),
+				ExpectedBlockWithReceipts:        &blockMock123,
+				ExpectedPendingBlockWithReceipts: nil,
+			},
+			{
+				BlockID:                          WithBlockTag("latest"),
+				ExpectedBlockWithReceipts:        nil,
+				ExpectedPendingBlockWithReceipts: &pendingBlockMock123,
+			},
 		},
+		"testnet": {
+			{
+				BlockID: WithBlockTag("pending"),
+			},
+			{
+				BlockID:                   WithBlockNumber(64159),
+				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+			},
+		},
+		"mainnet": {
+			{
+				BlockID: WithBlockTag("pending"),
+			},
+			{
+				BlockID:                   WithBlockNumber(588763),
+				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		t.Run("BlockWithReceipts - block", func(t *testing.T) {
+		result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
+		require.NoError(err, "Error in BlockWithReceipts")
 
-			block, err := provider.BlockWithReceipts(ctx, test.BlockID)
-			require.Nil(t, err)
-			blockCasted := block.(*BlockWithReceipts)
-			require.Equal(t, test.ExpectedBlockWithReceipts, *blockCasted)
+		switch resultType := result.(type) {
+		case *BlockWithReceipts:
+			block, ok := result.(*BlockWithReceipts)
+			require.True(ok, fmt.Sprintf("should return *BlockWithReceipts, instead: %T\n", result))
+			require.True(strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.NotEmpty(block.Transactions, "the number of transactions should not be 0")
 
-		})
+			if test.ExpectedBlockWithReceipts != nil {
+				require.Exactly(block, test.ExpectedBlockWithReceipts)
+			}
+		case *PendingBlockWithReceipts:
+			pBlock, ok := result.(*PendingBlockWithReceipts)
+			require.True(ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
+
+			if testEnv == "mock" {
+				require.Exactly(pBlock, test.ExpectedPendingBlockWithReceipts)
+			} else {
+				require.NotEmpty(pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
+				require.NotEmpty(pBlock.SequencerAddress, "Error in PendingBlockWithReceipts SequencerAddress")
+				require.NotEmpty(pBlock.Timestamp, "Error in PendingBlockWithReceipts Timestamp")
+			}
+
+		default:
+			t.Fatalf("unexpected block type, found: %T\n", resultType)
+		}
 	}
 }
