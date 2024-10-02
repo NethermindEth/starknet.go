@@ -133,8 +133,8 @@ type Trace struct {
 }
 
 type ExecInvocation struct {
-	FunctionInvocation FnInvocation `json:"function_invocation,omitempty"`
-	RevertReason       string       `json:"revert_reason,omitempty"`
+	*FnInvocation
+	RevertReason string `json:"revert_reason,omitempty"`
 }
 
 // UnmarshalJSON unmarshals the data into a SimulatedTransaction object.
