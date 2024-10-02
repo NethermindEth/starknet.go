@@ -655,4 +655,5 @@ func validatePendingBlockHeader(t *testing.T, pBlock *PendingBlockHeader) {
 	require.NotZero(t, pBlock.L1GasPrice)
 	require.NotZero(t, pBlock.StarknetVersion)
 	require.NotZero(t, pBlock.L1DataGasPrice)
+	require.NotNil(t, pBlock.L1DAMode)
 }
