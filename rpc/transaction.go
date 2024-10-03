@@ -71,3 +71,20 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 	}
 	return &receipt, nil
 }
+
+// Given an l1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages sent by the l1 transaction, ordered by the l1 tx sending order
+//
+// Parameters:
+// - ctx: the context.Context object for cancellation and timeouts.
+// - transactionHash: The hash of the L1 transaction that sent L1->L2 messages as a felt
+// Returns:
+// - [] MessageStatusResp: An array containing the status of the messages sent by the l1 transaction
+// - error, if one arose.
+func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash *felt.Felt) ([]MessageStatusResp, error) {
+	var response []MessageStatusResp
+	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
+	if err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+	}
+	return response, nil
+}
