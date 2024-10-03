@@ -74,6 +74,46 @@ type ContractClass struct {
 	ABI string `json:"abi,omitempty"`
 }
 
+// You must provide one of these fields
+type StorageProofInput struct {
+	// A list of the class hashes for which we want to prove membership in the classes trie
+	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
+	// A list of contracts for which we want to prove membership in the global state trie
+	ContractAddresses []*felt.Felt `json:"contract_addresses,omitempty"`
+	// A list of (contract_address, storage_keys) pairs
+	ContractsStorageKeys []ContractStorageKeys `json:"contracts_storage_keys,omitempty"`
+}
+
+type StorageProofResult struct {
+	ClassesProof           NodeHashToNode   `json:"classes_proof,omitempty"`
+	ContractsProof         NodeHashToNode   `json:"contracts_proof,omitempty"`
+	ContractsStorageProofs []NodeHashToNode `json:"contracts_storage_proofs,omitempty"`
+}
+
+type ContractStorageKeys struct {
+	ContractAddress *felt.Felt   `json:"contract_address"`
+	StorageKeys     []*felt.Felt `json:"storage_keys"`
+}
+
+// A node_hash -> node mapping of all the nodes in the union of the paths between the requested leaves and the root (for each node present, its sibling is also present)
+type NodeHashToNode struct {
+	NodeHash *felt.Felt `json:"node_hash"`
+	Node     MerkleNode `json:"node"`
+}
+
+type MerkleNode struct {
+	Path   uint       `json:"path"`
+	Length uint       `json:"length"`
+	Value  *felt.Felt `json:"value"`
+	// the hash of the child nodes, if not present then the node is a leaf
+	ChildrenHashes ChildrenHashes `json:"children_hashes,omitempty"`
+}
+
+type ChildrenHashes struct {
+	Left  *felt.Felt `json:"left"`
+	Right *felt.Felt `json:"right"`
+}
+
 // UnmarshalJSON unmarshals the JSON content into the DeprecatedContractClass struct.
 //
 // It takes a byte array `content` as a parameter and returns an error if there is any.
