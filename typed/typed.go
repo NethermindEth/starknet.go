@@ -20,9 +20,10 @@ type TypedData struct {
 }
 
 type Domain struct {
-	Name    string
-	Version string
-	ChainId string
+	Name     string
+	Version  string
+	ChainId  string
+	Revision string
 }
 
 type TypeDef struct {
@@ -59,6 +60,8 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 		processStrToBig(dm.Version)
 	case "chainId":
 		processStrToBig(dm.ChainId)
+	case "revision":
+		processStrToBig(dm.Revision)
 	}
 	return fmtEnc
 }
