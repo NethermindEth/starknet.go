@@ -1,4 +1,4 @@
-package contracts_test
+package contracts
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +45,7 @@ func TestUnmarshalContractClass(t *testing.T) {
 //
 //	none
 func TestUnmarshalCasmClass(t *testing.T) {
-	casmClass, err := contracts.UnmarshalCasmClass("./tests/hello_starknet_compiled.casm.json")
+	casmClass, err := UnmarshalCasmClass("./tests/hello_starknet_compiled.casm.json")
 	require.NoError(t, err)
 	assert.Equal(t, casmClass.Prime, "0x800000000000011000000000000000000000000000000000000000000000001")
 	assert.Equal(t, casmClass.Version, "2.1.0")
@@ -106,13 +105,12 @@ func TestPrecomputeAddress(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		precomputedAddress, err := contracts.PrecomputeAddress(
+		precomputedAddress := PrecomputeAddress(
 			utils.TestHexToFelt(t, test.DeployerAddress),
 			utils.TestHexToFelt(t, test.Salt),
 			utils.TestHexToFelt(t, test.ClassHash),
 			test.ConstructorCalldata,
 		)
-		require.NoError(t, err)
 		require.Equal(t, test.ExpectedPrecomputedAddress, precomputedAddress.String())
 	}
 }

@@ -127,8 +127,8 @@ type PendingBlock struct {
 
 // encoding/json doesn't support inlining fields
 type BlockWithReceipts struct {
-	BlockStatus BlockStatus `json:"status"`
 	BlockHeader
+	Status BlockStatus `json:"status"`
 	BlockBodyWithReceipts
 }
 
@@ -137,7 +137,7 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction UnknownTransaction `json:"transaction"`
+	Transaction BlockTransaction   `json:"transaction"`
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 

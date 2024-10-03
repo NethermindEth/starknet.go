@@ -18,9 +18,9 @@ import (
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/golang/mock/gomock"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 var (
@@ -1135,8 +1135,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	var class rpc.ContractClass
 	err = json.Unmarshal(content, &class)
 	require.NoError(t, err)
-	classHash, err := hash.ClassHash(class)
-	require.NoError(t, err)
+	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
 	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
@@ -1195,6 +1194,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // - []devnet.TestAccount: a slice of test accounts
 // - error: an error, if any
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
+	t.Helper()
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return devnet, acnts, err

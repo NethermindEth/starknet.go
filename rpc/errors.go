@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 const (
@@ -61,7 +60,11 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 			return &nodeErr
 		}
 	}
-	return Err(InternalError, fmt.Sprintln(nodeErr.Code, nodeErr.Message, nodeErr.Data))
+
+	if nodeErr.Code == 0 {
+		return Err(InternalError, err.Error())
+	}
+	return Err(nodeErr.Code, nodeErr.Data)
 }
 
 type RPCError struct {

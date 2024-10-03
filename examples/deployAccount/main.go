@@ -77,8 +77,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("PrecomputedAddress:", precomputedAddress)
-
+	fmt.Println("PrecomputedAddress:", setup.PadZerosInFelt(precomputedAddress))
 	// Sign the transaction
 	err = accnt.SignDeployAccountTransaction(context.Background(), &tx.DeployAccountTxn, precomputedAddress)
 	if err != nil {
@@ -115,7 +114,7 @@ func main() {
 	// At this point you need to add funds to precomputed address to use it.
 	var input string
 
-	fmt.Println("The `precomputedAddress` account needs to have enough ETH to perform a transaction.")
+	fmt.Println("\nThe `precomputedAddress` account needs to have enough ETH to perform a transaction.")
 	fmt.Printf("Use the starknet faucet to send ETH to your `precomputedAddress`. You need aproximately %f ETH. \n", feeInETH)
 	fmt.Println("When your account has been funded by the faucet, press any key, then `enter` to continue : ")
 	fmt.Scan(&input)
