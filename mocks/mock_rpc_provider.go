@@ -296,6 +296,21 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetMessagesStatus mocks base method.
+func (m *MockRpcProvider) GetMessagesStatus(ctx context.Context, transactionHash *felt.Felt) ([]rpc.MessageStatusResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessagesStatus", ctx, transactionHash)
+	ret0, _ := ret[0].([]rpc.MessageStatusResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessagesStatus indicates an expected call of GetMessagesStatus.
+func (mr *MockRpcProviderMockRecorder) GetMessagesStatus(ctx, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessagesStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetMessagesStatus), ctx, transactionHash)
+}
+
 // GetTransactionStatus mocks base method.
 func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
 	m.ctrl.T.Helper()
