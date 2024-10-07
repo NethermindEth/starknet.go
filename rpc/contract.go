@@ -160,3 +160,20 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 	}
 	return &raw, nil
 }
+
+// Get merkle paths in one of the state tries: global state, classes, individual contract
+//
+// Parameters:
+// - ctx: The context of the function call
+// - storageProofInput: an input containing at least one of the fields filled
+// Returns:
+// - *StorageProofResult: the proofs of the field passed in the input
+// - error: an error if any occurred during the execution
+func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
+	var raw StorageProofResult
+	if err := do(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
+
+		return nil, tryUnwrapToRPCErr(err)
+	}
+	return &raw, nil
+}
