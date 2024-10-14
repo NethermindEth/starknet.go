@@ -1,4 +1,4 @@
-package typed
+package typed2
 
 import (
 	"bytes"
@@ -6,64 +6,33 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
-	"slices"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-var (
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
-	REVISION_0_TYPES []string = []string{
-		"felt",
-		"bool",
-		"string", //up to 31 ASCII characters
-		"selector",
-		"merkletree",
-	}
-
-	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string" represents an
-	// arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit, use the new type "shortstring" instead.
-	//
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
-	REVISION_1_TYPES []string = []string{
-		"u128",
-		"i128",
-		"ContractAddress",
-		"ClassHash",
-		"timestamp",
-		"shortstring",
-		"enum",
-		"u256",
-		"TokenAmount",
-		"NftId",
-	}
-)
-
 type TypedData struct {
-	Types       map[string]TypeDefinition
+	Types       map[string]TypeDef
 	PrimaryType string
 	Domain      Domain
 	Message     TypedMessage
 }
 
 type Domain struct {
-	Name     string
-	Version  string
-	ChainId  string
-	Revision uint8 `json:"contains,omitempty"`
+	Name    string
+	Version string
+	ChainId string
 }
 
-type TypeDefinition struct {
-	Encoding   *big.Int
-	Parameters []TypeParameter
+type TypeDef struct {
+	Encoding    *big.Int
+	Definitions []Definition
 }
 
-type TypeParameter struct {
-	Name     string
-	Type     string
-	Contains string `json:"contains,omitempty"`
+type Definition struct {
+	Name string
+	Type string
 }
 
 type TypedMessage interface {
@@ -126,13 +95,13 @@ func strToFelt(str string) *felt.Felt {
 // If there is an error encoding the type hash, it returns an error with the message "error encoding type hash: {enc.String()} {err}".
 //
 // Parameters:
-// - types: a map[string]TypeDefinition representing the types associated with their names.
+// - types: a map[string]TypeDef representing the types associated with their names.
 // - pType: a string representing the primary type.
 // - dom: a Domain representing the domain.
 // Returns:
 // - td: a TypedData object
 // - err: an error if any
-func NewTypedData(types map[string]TypeDefinition, pType string, dom Domain) (td TypedData, err error) {
+func NewTypedData(types map[string]TypeDef, pType string, dom Domain) (td TypedData, err error) {
 	td = TypedData{
 		Types:       types,
 		PrimaryType: pType,
@@ -188,7 +157,7 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage) (hash *
 	prim := td.Types[inType]
 	elements := []*big.Int{prim.Encoding}
 
-	for _, def := range prim.Parameters {
+	for _, def := range prim.Definitions {
 		if def.Type == "felt" {
 			fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
 			elements = append(elements, fmtDefinitions...)
@@ -231,65 +200,40 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 // Returns:
 // - enc: the encoded type
 // - err: any error if any
-func (td TypedData) EncodeType(typeName string) (enc string, err error) {
-	customTypesEncodeResp := make(map[string]string)
-
-	var encodeType func(typeName string, typeDef TypeDefinition) (result string, err error)
-	encodeType = func(typeName string, typeDef TypeDefinition) (result string, err error) {
-		var buf bytes.Buffer
-
-		buf.WriteString(typeName)
-		buf.WriteString("(")
-
-		var ok bool
-
-		for i, param := range typeDef.Parameters {
-			buf.WriteString(fmt.Sprintf("%s:%s", param.Name, param.Type))
-			if i != (len(typeDef.Parameters) - 1) {
-				buf.WriteString(",")
+func (td TypedData) EncodeType(inType string) (enc string, err error) {
+	var typeDefs TypeDef
+	var ok bool
+	if typeDefs, ok = td.Types[inType]; !ok {
+		return enc, fmt.Errorf("can't parse type %s from types %v", inType, td.Types)
+	}
+	var buf bytes.Buffer
+	customTypes := make(map[string]TypeDef)
+	buf.WriteString(inType)
+	buf.WriteString("(")
+	for i, def := range typeDefs.Definitions {
+		if def.Type != "felt" {
+			var customTypeDef TypeDef
+			if customTypeDef, ok = td.Types[def.Type]; !ok {
+				return enc, fmt.Errorf("can't parse type %s from types %v", def.Type, td.Types)
 			}
-			// e.g.: "felt" or "felt*"
-			if slices.Contains(REVISION_0_TYPES, param.Type) || slices.Contains(REVISION_0_TYPES, fmt.Sprintf("%s*", param.Type)) {
-				continue
-			} else if _, ok = customTypesEncodeResp[param.Type]; !ok {
-				var customTypeDef TypeDefinition
-				if customTypeDef, ok = td.Types[param.Type]; !ok { //OBS: this is wrong on V1
-					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, td.Types)
-				}
-				customTypesEncodeResp[param.Type], err = encodeType(param.Name, customTypeDef)
-				if err != nil {
-					return "", err
-				}
+			customTypes[def.Type] = customTypeDef
+		}
+		buf.WriteString(fmt.Sprintf("%s:%s", def.Name, def.Type))
+		if i != (len(typeDefs.Definitions) - 1) {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString(")")
+
+	for customTypeName, customType := range customTypes {
+		buf.WriteString(fmt.Sprintf("%s(", customTypeName))
+		for i, def := range customType.Definitions {
+			buf.WriteString(fmt.Sprintf("%s:%s", def.Name, def.Type))
+			if i != (len(customType.Definitions) - 1) {
+				buf.WriteString(",")
 			}
 		}
 		buf.WriteString(")")
-
-		return buf.String(), nil
 	}
-
-	var typeDef TypeDefinition
-	var ok bool
-	if typeDef, ok = td.Types[typeName]; !ok {
-		return "", fmt.Errorf("can't parse type %s from types %v", typeName, td.Types)
-	}
-	enc, err = encodeType(typeName, typeDef)
-	if err != nil {
-		return "", err
-	}
-
-	// appends the custom types' encode
-	if len(customTypesEncodeResp) > 0 {
-		// sort the types
-		keys := make([]string, 0, len(customTypesEncodeResp))
-		for key := range customTypesEncodeResp {
-			keys = append(keys, key)
-		}
-		slices.Sort(keys)
-
-		for _, key := range keys {
-			enc = enc + customTypesEncodeResp[key]
-		}
-	}
-
-	return enc, nil
+	return buf.String(), nil
 }
