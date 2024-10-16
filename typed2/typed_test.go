@@ -1,10 +1,8 @@
-package typed
+package typed2
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/utils"
@@ -52,31 +50,13 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 // Returns:
 // - ttd: the generated TypedData object
 func MockTypedData() (ttd TypedData, err error) {
-	types := []TypeDefinition{
-		{
-			Name: "StarkNetDomain",
-			Parameters: []TypeParameter{
-				{Name: "name", Type: "felt"},
-				{Name: "version", Type: "felt"},
-				{Name: "chainId", Type: "felt"},
-			},
-		},
-		{
-			Name: "Mail",
-			Parameters: []TypeParameter{
-				{Name: "from", Type: "Person"},
-				{Name: "to", Type: "Person"},
-				{Name: "contents", Type: "felt"},
-			},
-		},
-		{
-			Name: "Person",
-			Parameters: []TypeParameter{
-				{Name: "name", Type: "felt"},
-				{Name: "wallet", Type: "felt"},
-			},
-		},
-	}
+	exampleTypes := make(map[string]TypeDef)
+	domDefs := []Definition{{"name", "felt"}, {"version", "felt"}, {"chainId", "felt"}}
+	exampleTypes["StarkNetDomain"] = TypeDef{Definitions: domDefs}
+	mailDefs := []Definition{{"from", "Person"}, {"to", "Person"}, {"contents", "felt"}}
+	exampleTypes["Mail"] = TypeDef{Definitions: mailDefs}
+	persDefs := []Definition{{"name", "felt"}, {"wallet", "felt"}}
+	exampleTypes["Person"] = TypeDef{Definitions: persDefs}
 
 	dm := Domain{
 		Name:    "StarkNet Mail",
@@ -84,20 +64,11 @@ func MockTypedData() (ttd TypedData, err error) {
 		ChainId: "1",
 	}
 
-	ttd, err = NewTypedData(types, "Mail", dm)
+	ttd, err = NewTypedData(exampleTypes, "Mail", dm)
 	if err != nil {
 		return TypedData{}, err
 	}
 	return ttd, err
-}
-
-func TestGeneral_Unmarshal(t *testing.T) {
-	content, err := os.ReadFile("./tests/baseExample.json")
-	require.NoError(t, err)
-
-	var typedData TypedData
-	err = json.Unmarshal(content, &typedData)
-	require.NoError(t, err)
 }
 
 // TestGeneral_GetMessageHash tests the GetMessageHash function.

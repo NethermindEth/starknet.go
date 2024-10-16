@@ -3,6 +3,7 @@ package typed
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -50,8 +51,8 @@ type TypedData struct {
 
 type Domain struct {
 	Name     string
-	Version  string
-	ChainId  string
+	Version  json.Number
+	ChainId  json.Number
 	Revision uint8 `json:"contains,omitempty"`
 }
 
@@ -88,9 +89,9 @@ func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	case "name":
 		processStrToBig(dm.Name)
 	case "version":
-		processStrToBig(dm.Version)
+		processStrToBig(dm.Version.String())
 	case "chainId":
-		processStrToBig(dm.ChainId)
+		processStrToBig(dm.ChainId.String())
 	}
 	return fmtEnc
 }
@@ -299,4 +300,70 @@ func (td TypedData) EncodeType(typeName string) (enc string, err error) {
 	}
 
 	return enc, nil
+}
+
+func (typedData *TypedData) UnmarshalJSON(data []byte) error {
+	var dec map[string]interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	// primaryType
+	rawPrimaryType, ok := dec["primaryType"]
+	if !ok {
+		return fmt.Errorf("invalid typedData json: missing field 'primaryType'")
+	}
+	primaryType, ok := rawPrimaryType.(string)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal 'primaryType', it's not a string")
+	}
+
+	// domain
+	rawDomain, ok := dec["domain"]
+	if !ok {
+		return fmt.Errorf("invalid typedData json: missing field 'domain'")
+	}
+	bytesDomain, err := json.Marshal(rawDomain)
+	if err != nil {
+		return err
+	}
+	var domain Domain
+	if err := json.Unmarshal(bytesDomain, &domain); err != nil {
+		return err
+	}
+
+	// types
+	rawTypes, err := utils.UnwrapJSON(dec, "types")
+	if err != nil {
+		return err
+	}
+	var types []TypeDefinition
+	for key, value := range rawTypes {
+		bytesValue, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+
+		var params []TypeParameter
+		if err := json.Unmarshal(bytesValue, &params); err != nil {
+			return err
+		}
+
+		typeDef := TypeDefinition{
+			Name:       key,
+			Parameters: params,
+		}
+
+		types = append(types, typeDef)
+	}
+
+	resultTypedData, err := NewTypedData(types, primaryType, domain)
+	if err != nil {
+		return err
+	}
+
+	*typedData = resultTypedData
+	return nil
+
+	// TODO: implement typedMessage unmarshal
 }
