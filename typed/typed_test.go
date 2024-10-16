@@ -50,13 +50,31 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 // Returns:
 // - ttd: the generated TypedData object
 func MockTypedData() (ttd TypedData, err error) {
-	exampleTypes := make(map[string]TypeDefinition)
-	domDefs := []TypeParameter{{"name", "felt", ""}, {"version", "felt", ""}, {"chainId", "felt", ""}}
-	exampleTypes["StarkNetDomain"] = TypeDefinition{Parameters: domDefs}
-	mailDefs := []TypeParameter{{"from", "Person", ""}, {"to", "Person", ""}, {"contents", "felt", ""}}
-	exampleTypes["Mail"] = TypeDefinition{Parameters: mailDefs}
-	persDefs := []TypeParameter{{"name", "felt", ""}, {"wallet", "felt", ""}}
-	exampleTypes["Person"] = TypeDefinition{Parameters: persDefs}
+	types := []TypeDefinition{
+		{
+			Name: "StarkNetDomain",
+			Parameters: []TypeParameter{
+				{Name: "name", Type: "felt"},
+				{Name: "version", Type: "felt"},
+				{Name: "chainId", Type: "felt"},
+			},
+		},
+		{
+			Name: "Mail",
+			Parameters: []TypeParameter{
+				{Name: "from", Type: "Person"},
+				{Name: "to", Type: "Person"},
+				{Name: "contents", Type: "felt"},
+			},
+		},
+		{
+			Name: "Person",
+			Parameters: []TypeParameter{
+				{Name: "name", Type: "felt"},
+				{Name: "wallet", Type: "felt"},
+			},
+		},
+	}
 
 	dm := Domain{
 		Name:    "StarkNet Mail",
@@ -64,7 +82,7 @@ func MockTypedData() (ttd TypedData, err error) {
 		ChainId: "1",
 	}
 
-	ttd, err = NewTypedData(exampleTypes, "Mail", dm)
+	ttd, err = NewTypedData(types, "Mail", dm)
 	if err != nil {
 		return TypedData{}, err
 	}

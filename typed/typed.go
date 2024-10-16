@@ -56,6 +56,7 @@ type Domain struct {
 }
 
 type TypeDefinition struct {
+	Name       string `json:"-"`
 	Encoding   *big.Int
 	Parameters []TypeParameter
 }
@@ -132,14 +133,20 @@ func strToFelt(str string) *felt.Felt {
 // Returns:
 // - td: a TypedData object
 // - err: an error if any
-func NewTypedData(types map[string]TypeDefinition, pType string, dom Domain) (td TypedData, err error) {
-	td = TypedData{
-		Types:       types,
-		PrimaryType: pType,
-		Domain:      dom,
+func NewTypedData(types []TypeDefinition, primaryType string, domain Domain) (td TypedData, err error) {
+	typesMap := make(map[string]TypeDefinition)
+
+	for _, typeDef := range types {
+		typesMap[typeDef.Name] = typeDef
 	}
-	if _, ok := td.Types[pType]; !ok {
-		return td, fmt.Errorf("invalid primary type: %s", pType)
+
+	td = TypedData{
+		Types:       typesMap,
+		PrimaryType: primaryType,
+		Domain:      domain,
+	}
+	if _, ok := td.Types[primaryType]; !ok {
+		return td, fmt.Errorf("invalid primary type: %s", primaryType)
 	}
 
 	for k, v := range td.Types {
@@ -256,7 +263,7 @@ func (td TypedData) EncodeType(typeName string) (enc string, err error) {
 				if customTypeDef, ok = td.Types[param.Type]; !ok { //OBS: this is wrong on V1
 					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, td.Types)
 				}
-				customTypesEncodeResp[param.Type], err = encodeType(param.Name, customTypeDef)
+				customTypesEncodeResp[param.Type], err = encodeType(param.Type, customTypeDef)
 				if err != nil {
 					return "", err
 				}
