@@ -46,7 +46,7 @@ type TypedData struct {
 	Types       map[string]TypeDefinition
 	PrimaryType string
 	Domain      Domain
-	Message     TypedMessage
+	Message     map[string]any
 }
 
 type Domain struct {
@@ -134,17 +134,24 @@ func strToFelt(str string) *felt.Felt {
 // Returns:
 // - td: a TypedData object
 // - err: an error if any
-func NewTypedData(types []TypeDefinition, primaryType string, domain Domain) (td TypedData, err error) {
+func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td TypedData, err error) {
 	typesMap := make(map[string]TypeDefinition)
 
 	for _, typeDef := range types {
 		typesMap[typeDef.Name] = typeDef
 	}
 
+	messageMap := make(map[string]any)
+	err = json.Unmarshal(message, &messageMap)
+	if err != nil {
+		return td, fmt.Errorf("error unmarshalling the message: %w", err)
+	}
+
 	td = TypedData{
 		Types:       typesMap,
 		PrimaryType: primaryType,
 		Domain:      domain,
+		Message:     messageMap,
 	}
 	if _, ok := td.Types[primaryType]; !ok {
 		return td, fmt.Errorf("invalid primary type: %s", primaryType)
@@ -357,7 +364,18 @@ func (typedData *TypedData) UnmarshalJSON(data []byte) error {
 		types = append(types, typeDef)
 	}
 
-	resultTypedData, err := NewTypedData(types, primaryType, domain)
+	// message
+	rawMessage, ok := dec["message"]
+	if !ok {
+		return fmt.Errorf("invalid typedData json: missing field 'message'")
+	}
+	bytesMessage, err := json.Marshal(rawMessage)
+	if err != nil {
+		return err
+	}
+
+	// result
+	resultTypedData, err := NewTypedData(types, primaryType, domain, bytesMessage)
 	if err != nil {
 		return err
 	}

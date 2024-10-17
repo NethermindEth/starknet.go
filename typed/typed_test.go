@@ -84,7 +84,21 @@ func MockTypedData() (ttd TypedData, err error) {
 		ChainId: "1",
 	}
 
-	ttd, err = NewTypedData(types, "Mail", dm)
+	message := `
+		{
+    "from": {
+      "name": "Cow",
+      "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+    },
+    "to": {
+      "name": "Bob",
+      "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+    },
+    "contents": "Hello, Bob!"
+  }
+	`
+
+	ttd, err = NewTypedData(types, "Mail", dm, []byte(message))
 	if err != nil {
 		return TypedData{}, err
 	}
