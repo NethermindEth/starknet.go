@@ -12,15 +12,61 @@ import (
 )
 
 type Mail struct {
-	From     Person
-	To       Person
-	Contents string
+	From     Person `json:"from"`
+	To       Person `json:"to"`
+	Contents string `json:"contents"`
 }
 
 type Person struct {
-	Name   string
-	Wallet string
+	Name   string `json:"name"`
+	Wallet string `json:"wallet"`
 }
+
+var types = []TypeDefinition{
+	{
+		Name: "StarkNetDomain",
+		Parameters: []TypeParameter{
+			{Name: "name", Type: "felt"},
+			{Name: "version", Type: "felt"},
+			{Name: "chainId", Type: "felt"},
+		},
+	},
+	{
+		Name: "Mail",
+		Parameters: []TypeParameter{
+			{Name: "from", Type: "Person"},
+			{Name: "to", Type: "Person"},
+			{Name: "contents", Type: "felt"},
+		},
+	},
+	{
+		Name: "Person",
+		Parameters: []TypeParameter{
+			{Name: "name", Type: "felt"},
+			{Name: "wallet", Type: "felt"},
+		},
+	},
+}
+
+var dm = Domain{
+	Name:    "StarkNet Mail",
+	Version: "1",
+	ChainId: "1",
+}
+
+var message = `
+	{
+	"from": {
+		"name": "Cow",
+		"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	},
+	"to": {
+		"name": "Bob",
+		"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+	},
+	"contents": "Hello, Bob!"
+}
+`
 
 // FmtDefinitionEncoding formats the encoding for the given field in the Mail struct.
 //
@@ -52,52 +98,6 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 // Returns:
 // - ttd: the generated TypedData object
 func MockTypedData() (ttd TypedData, err error) {
-	types := []TypeDefinition{
-		{
-			Name: "StarkNetDomain",
-			Parameters: []TypeParameter{
-				{Name: "name", Type: "felt"},
-				{Name: "version", Type: "felt"},
-				{Name: "chainId", Type: "felt"},
-			},
-		},
-		{
-			Name: "Mail",
-			Parameters: []TypeParameter{
-				{Name: "from", Type: "Person"},
-				{Name: "to", Type: "Person"},
-				{Name: "contents", Type: "felt"},
-			},
-		},
-		{
-			Name: "Person",
-			Parameters: []TypeParameter{
-				{Name: "name", Type: "felt"},
-				{Name: "wallet", Type: "felt"},
-			},
-		},
-	}
-
-	dm := Domain{
-		Name:    "StarkNet Mail",
-		Version: "1",
-		ChainId: "1",
-	}
-
-	message := `
-		{
-    "from": {
-      "name": "Cow",
-      "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-    },
-    "to": {
-      "name": "Bob",
-      "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-    },
-    "contents": "Hello, Bob!"
-  }
-	`
-
 	ttd, err = NewTypedData(types, "Mail", dm, []byte(message))
 	if err != nil {
 		return TypedData{}, err
@@ -112,6 +112,31 @@ func TestGeneral_Unmarshal(t *testing.T) {
 	var typedData TypedData
 	err = json.Unmarshal(content, &typedData)
 	require.NoError(t, err)
+}
+
+func TestGeneral_CreateMessageWithTypes(t *testing.T) {
+	ttd1, err := NewTypedData(types, "Mail", dm, []byte(message))
+	require.NoError(t, err)
+
+	mail := Mail{
+		From: Person{
+			Name:   "Cow",
+			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+		},
+		To: Person{
+			Name:   "Bob",
+			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+		},
+		Contents: "Hello, Bob!",
+	}
+
+	bytes, err := json.Marshal(mail)
+	require.NoError(t, err)
+
+	ttd2, err := NewTypedData(types, "Mail", dm, bytes)
+	require.NoError(t, err)
+
+	require.EqualValues(t, ttd1, ttd2)
 }
 
 // TestGeneral_GetMessageHash tests the GetMessageHash function.
