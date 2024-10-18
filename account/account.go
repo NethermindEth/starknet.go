@@ -41,7 +41,6 @@ type AccountInterface interface {
 }
 
 var _ AccountInterface = &Account{}
-var _ rpc.RpcProvider = &Account{}
 
 type Account struct {
 	provider       rpc.RpcProvider
@@ -513,40 +512,37 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 	}
 }
 
-// AddInvokeTransaction generates an invoke transaction and adds it to the account's provider.
+// SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
 //
 // Parameters:
 // - ctx: the context.Context object for the transaction.
-// - invokeTx: the invoke transaction to be added.
+// - txn: the Broadcast Transaction to be sent.
 // Returns:
-// - *rpc.AddInvokeTransactionResponse: The response for the AddInvokeTransactionResponse
+// - *rpc.TransactionResponse: the transaction response.
 // - error: an error if any.
-func (account *Account) AddInvokeTransaction(ctx context.Context, invokeTx rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
-	return account.provider.AddInvokeTransaction(ctx, invokeTx)
-}
-
-// AddDeclareTransaction adds a declare transaction to the account.
-//
-// Parameters:
-// - ctx: The context.Context for the request.
-// - declareTransaction: The input for adding a declare transaction.
-// Returns:
-// - *rpc.AddDeclareTransactionResponse: The response for adding a declare transaction
-// - error: an error, if any
-func (account *Account) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
-	return account.provider.AddDeclareTransaction(ctx, declareTransaction)
-}
-
-// AddDeployAccountTransaction adds a deploy account transaction to the account.
-//
-// Parameters:
-// - ctx: The context.Context object for the function.
-// - deployAccountTransaction: The rpc.DeployAccountTxn object representing the deploy account transaction.
-// Returns:
-// - *rpc.AddDeployAccountTransactionResponse: a pointer to rpc.AddDeployAccountTransactionResponse
-// - error: an error if any
-func (account *Account) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
-	return account.provider.AddDeployAccountTransaction(ctx, deployAccountTransaction)
+func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
+	switch tx := txn.(type) {
+	case rpc.BroadcastInvokeTxnType:
+		resp, err := account.provider.AddInvokeTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+	case rpc.BroadcastDeclareTxnType:
+		resp, err := account.provider.AddDeclareTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+	case rpc.BroadcastAddDeployTxnType:
+		resp, err := account.provider.AddDeployAccountTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+	default:
+		return nil, errors.New("unsupported transaction type")
+	}
 }
 
 // BlockHashAndNumber returns the block hash and number for the account.
