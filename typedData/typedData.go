@@ -43,28 +43,29 @@ var (
 )
 
 type TypedData struct {
-	Types       map[string]TypeDefinition
-	PrimaryType string
-	Domain      Domain
-	Message     map[string]any
+	Types       map[string]TypeDefinition `json:"types"`
+	PrimaryType string                    `json:"primaryType"`
+	Domain      Domain                    `json:"domain"`
+	Message     map[string]any            `json:"message"`
+	Revision    Revision
 }
 
 type Domain struct {
-	Name     string
-	Version  json.Number
-	ChainId  json.Number
-	Revision uint8 `json:"contains,omitempty"`
+	Name     string      `json:"name"`
+	Version  json.Number `json:"version"`
+	ChainId  json.Number `json:"chainId"`
+	Revision uint8       `json:"revision,omitempty"`
 }
 
 type TypeDefinition struct {
-	Name       string `json:"-"`
-	Encoding   *big.Int
+	Name       string   `json:"-"`
+	Encoding   *big.Int //TODO: maybe remove this
 	Parameters []TypeParameter
 }
 
 type TypeParameter struct {
-	Name     string
-	Type     string
+	Name     string `json:"name"`
+	Type     string `json:"type"`
 	Contains string `json:"contains,omitempty"`
 }
 
@@ -147,11 +148,17 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 		return td, fmt.Errorf("error unmarshalling the message: %w", err)
 	}
 
+	revision, err := NewRevision(domain.Revision)
+	if err != nil {
+		return td, fmt.Errorf("error getting revision: %w", err)
+	}
+
 	td = TypedData{
 		Types:       typesMap,
 		PrimaryType: primaryType,
 		Domain:      domain,
 		Message:     messageMap,
+		Revision:    revision,
 	}
 	if _, ok := td.Types[primaryType]; !ok {
 		return td, fmt.Errorf("invalid primary type: %s", primaryType)
