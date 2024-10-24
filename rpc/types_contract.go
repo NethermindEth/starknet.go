@@ -74,8 +74,9 @@ type ContractClass struct {
 	ABI string `json:"abi,omitempty"`
 }
 
-// You must provide one of these fields
 type StorageProofInput struct {
+	// The hash of the requested block, or number (height) of the requested block, or a block tag
+	BlockID BlockID `json:"block_id"`
 	// A list of the class hashes for which we want to prove membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
 	// A list of contracts for which we want to prove membership in the global state trie
@@ -84,18 +85,41 @@ type StorageProofInput struct {
 	ContractsStorageKeys []ContractStorageKeys `json:"contracts_storage_keys,omitempty"`
 }
 
-type StorageProofResult struct {
-	ClassesProof           NodeHashToNode   `json:"classes_proof,omitempty"`
-	ContractsProof         NodeHashToNode   `json:"contracts_proof,omitempty"`
-	ContractsStorageProofs []NodeHashToNode `json:"contracts_storage_proofs,omitempty"`
-}
-
 type ContractStorageKeys struct {
 	ContractAddress *felt.Felt   `json:"contract_address"`
 	StorageKeys     []*felt.Felt `json:"storage_keys"`
 }
 
-// A node_hash -> node mapping of all the nodes in the union of the paths between the requested leaves and the root (for each node present, its sibling is also present)
+// The requested storage proofs. Note that if a requested leaf has the default value,
+// the path to it may end in an edge node whose path is not a prefix of the requested leaf,
+// thus effecitvely proving non-membership
+type StorageProofResult struct {
+	ClassesProof           NodeHashToNode   `json:"classes_proof"`
+	ContractsProof         ContractsProof   `json:"contracts_proof"`
+	ContractsStorageProofs []NodeHashToNode `json:"contracts_storage_proofs"`
+	GlobalRoots            []NodeHashToNode `json:"global_roots"`
+}
+
+type ContractsProof struct {
+	Nodes              NodeHashToNode       `json:"nodes"`
+	ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
+}
+
+// The nonce and class hash for each requested contract address, in the order in which
+// they appear in the request. These values are needed to construct the associated leaf node
+type ContractLeavesData struct {
+	Nonce     *felt.Felt `json:"nonce"`
+	ClassHash *felt.Felt `json:"class_hash"`
+}
+
+type GlobalRoots struct {
+	ContractsTreeRoot *felt.Felt `json:"contracts_tree_root"`
+	ClassesTreeRoot   *felt.Felt `json:"classes_tree_root"`
+	// the associated block hash (needed in case the caller used a block tag for the block_id parameter)
+	BlockHash *felt.Felt `json:"block_hash"`
+}
+
+// A node_hash -> node mapping of all the nodes in the union of the paths between the requested leaves and the root
 type NodeHashToNode struct {
 	NodeHash *felt.Felt `json:"node_hash"`
 	Node     MerkleNode `json:"node"`
