@@ -296,6 +296,21 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetStorageProof mocks base method.
+func (m *MockRpcProvider) GetStorageProof(ctx context.Context, storageProofInput rpc.StorageProofInput) (*rpc.StorageProofResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorageProof", ctx, storageProofInput)
+	ret0, _ := ret[0].(*rpc.StorageProofResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorageProof indicates an expected call of GetStorageProof.
+func (mr *MockRpcProviderMockRecorder) GetStorageProof(ctx, storageProofInput any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProof", reflect.TypeOf((*MockRpcProvider)(nil).GetStorageProof), ctx, storageProofInput)
+}
+
 // GetTransactionStatus mocks base method.
 func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
 	m.ctrl.T.Helper()
