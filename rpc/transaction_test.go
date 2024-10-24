@@ -203,3 +203,7 @@ func TestGetTransactionStatus(t *testing.T) {
 		require.Equal(t, *resp, test.ExpectedResp)
 	}
 }
+
+func TestGetMessagesStatus(t *testing.T) {
+	t.Skip("TODO: create a test before merge")
+}

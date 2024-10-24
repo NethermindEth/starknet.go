@@ -29,7 +29,7 @@ type MsgFromL1 struct {
 }
 
 type MessageStatusResp struct {
-	// The hash of a Starknet transaction
+	// The hash of a L1 handler transaction
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
