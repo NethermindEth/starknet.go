@@ -683,3 +683,7 @@ func TestEstimateFee(t *testing.T) {
 		}
 	}
 }
+
+func TestGetStorageProof(t *testing.T) {
+	t.Skip("TODO: create a test before merge")
+}

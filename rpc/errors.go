@@ -138,6 +138,10 @@ var (
 		Code:    41,
 		Message: "Transaction execution error",
 	}
+	ErrStorageProofNotSupported = &RPCError{
+		Code:    42,
+		Message: "the node doesn't support storage proofs for blocks that are too far in the past",
+	}
 	ErrInvalidContractClass = &RPCError{
 		Code:    50,
 		Message: "Invalid contract class",

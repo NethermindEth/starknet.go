@@ -161,7 +161,8 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 	return &raw, nil
 }
 
-// Get merkle paths in one of the state tries: global state, classes, individual contract
+// Get merkle paths in one of the state tries: global state, classes, individual contract.
+// A single request can query for any mix of the three types of storage proofs (classes, contracts, and storage)
 //
 // Parameters:
 // - ctx: The context of the function call
@@ -173,7 +174,7 @@ func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput
 	var raw StorageProofResult
 	if err := do(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
 
-		return nil, tryUnwrapToRPCErr(err)
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
 	}
 	return &raw, nil
 }
