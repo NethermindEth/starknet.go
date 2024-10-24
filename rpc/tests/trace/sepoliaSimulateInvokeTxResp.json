@@ -182,7 +182,7 @@
 					"range_check_builtin_applications": 121,
 					"ec_op_builtin_applications": 3,
 					"data_availability": {
-						"l1_gas": 4668,
+						"l1_gas": 4646,
 						"l1_data_gas": 0
 					}
 				}
