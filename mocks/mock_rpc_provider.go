@@ -297,7 +297,7 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 }
 
 // GetMessagesStatus mocks base method.
-func (m *MockRpcProvider) GetMessagesStatus(ctx context.Context, transactionHash *felt.Felt) ([]rpc.MessageStatusResp, error) {
+func (m *MockRpcProvider) GetMessagesStatus(ctx context.Context, transactionHash rpc.NumAsHex) ([]rpc.MessageStatusResp, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessagesStatus", ctx, transactionHash)
 	ret0, _ := ret[0].([]rpc.MessageStatusResp)
