@@ -1,4 +1,4 @@
-package typedData
+package typed
 
 import (
 	"fmt"
