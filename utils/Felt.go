@@ -31,6 +31,16 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 	return new(felt.Felt).SetString(hex)
 }
 
+// StrToFelt generates a felt.Felt from a string representation containing ASCII characters, not hex values.
+//
+// Parameters:
+// - str: The string to convert to a felt.Felt
+// Returns:
+// - *felt.Felt: a felt.Felt representing the converted value
+func StrToFelt(str string) *felt.Felt {
+	return new(felt.Felt).SetBytes([]byte(str))
+}
+
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
 // The function iterates over each element in the hexArr array and calls the HexToFelt function to convert each hexadecimal value to a felt object.
