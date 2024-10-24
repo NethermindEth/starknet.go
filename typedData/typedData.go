@@ -2,19 +2,16 @@ package typedData
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"regexp"
 	"slices"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
+	//TODO: remove this
 	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
 	REVISION_0_TYPES []string = []string{
 		"felt",
@@ -58,8 +55,8 @@ type Domain struct {
 }
 
 type TypeDefinition struct {
-	Name       string   `json:"-"`
-	Encoding   *big.Int //TODO: maybe remove this
+	Name       string     `json:"-"`
+	Enconding  *felt.Felt `json:"-"`
 	Parameters []TypeParameter
 }
 
@@ -67,60 +64,6 @@ type TypeParameter struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
 	Contains string `json:"contains,omitempty"`
-}
-
-type TypedMessage interface {
-	FmtDefinitionEncoding(string) []*big.Int
-}
-
-// FmtDefinitionEncoding formats the definition (standard Starknet Domain) encoding.
-//
-// Parameters:
-// - field: the field to format the encoding for
-// Returns:
-// - fmtEnc: a slice of big integers
-func (dm Domain) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
-	processStrToBig := func(fieldVal string) {
-		feltVal := strToFelt(fieldVal)
-		bigInt := utils.FeltToBigInt(feltVal)
-		fmtEnc = append(fmtEnc, bigInt)
-	}
-
-	switch field {
-	case "name":
-		processStrToBig(dm.Name)
-	case "version":
-		processStrToBig(dm.Version.String())
-	case "chainId":
-		processStrToBig(dm.ChainId.String())
-	}
-	return fmtEnc
-}
-
-// strToFelt converts a string (decimal, hexadecimal or UTF8 charset) to a *felt.Felt.
-//
-// Parameters:
-// - str: the string to convert to a *felt.Felt
-// Returns:
-// - *felt.Felt: a *felt.Felt with the value of str
-func strToFelt(str string) *felt.Felt {
-	var f = new(felt.Felt)
-	asciiRegexp := regexp.MustCompile(`^([[:graph:]]|[[:space:]]){1,31}$`)
-
-	if b, ok := new(big.Int).SetString(str, 0); ok {
-		f.SetBytes(b.Bytes())
-		return f
-	}
-	// TODO: revisit conversation on seperate 'ShortString' conversion
-	if asciiRegexp.MatchString(str) {
-		hexStr := hex.EncodeToString([]byte(str))
-		if b, ok := new(big.Int).SetString(hexStr, 16); ok {
-			f.SetBytes(b.Bytes())
-			return f
-		}
-	}
-
-	return f
 }
 
 // NewTypedData initializes a new TypedData object with the given types, primary type, and domain
@@ -135,7 +78,7 @@ func strToFelt(str string) *felt.Felt {
 // Returns:
 // - td: a TypedData object
 // - err: an error if any
-func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td TypedData, err error) {
+func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td *TypedData, err error) {
 	typesMap := make(map[string]TypeDefinition)
 
 	for _, typeDef := range types {
@@ -153,7 +96,7 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 		return td, fmt.Errorf("error getting revision: %w", err)
 	}
 
-	td = TypedData{
+	td = &TypedData{
 		Types:       typesMap,
 		PrimaryType: primaryType,
 		Domain:      domain,
@@ -165,70 +108,87 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 	}
 
 	for k, v := range td.Types {
-		enc, err := td.GetTypeHash(k)
+		enc, err := getTypeHash(k, td.Types)
 		if err != nil {
-			return td, fmt.Errorf("error encoding type hash: %s %w", enc.String(), err)
+			return td, fmt.Errorf("error encoding type hash: %s %w", k, err)
 		}
-		v.Encoding = enc
+		v.Enconding = enc
 		td.Types[k] = v
 	}
 	return td, nil
 }
 
 // GetMessageHash calculates the hash of a typed message for a given account using the StarkCurve.
-// (ref: https://github.com/0xs34n/starknet.js/blob/767021a203ac0b9cdb282eb6d63b33bfd7614858/src/utils/typedData/index.ts#L166)
+//
+// (ref: https://github.com/starknet-io/SNIPs/blob/5d5a42c654c27b377d8b7f90b453065fd19ec2eb/SNIPS/snip-12.md#specification)
 //
 // Parameters:
-// - account: A pointer to a big.Int representing the account.
-// - msg: A TypedMessage object representing the message.
+// - account: A string representing the account.
 // Returns:
-// - hash: A pointer to a big.Int representing the calculated hash.
-func (td TypedData) GetMessageHash(account *big.Int, msg TypedMessage) (hash *big.Int) {
-	elements := []*big.Int{utils.UTF8StrToBig("StarkNet Message")}
+// - hash: A pointer to a felt.Felt representing the calculated hash.
+func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error) {
+	elements := []*felt.Felt{}
 
-	domEnc := td.GetTypedMessageHash("StarkNetDomain", td.Domain)
+	starknetMessage, err := utils.HexToFelt(utils.StrToHex("StarkNet Message"))
+	if err != nil {
+		return hash, err
+	}
+	elements = append(elements, starknetMessage)
 
+	domEnc, err := td.GetStructHash(td.Revision.Domain())
+	if err != nil {
+		return hash, err
+	}
 	elements = append(elements, domEnc)
-	elements = append(elements, account)
 
-	msgEnc := td.GetTypedMessageHash(td.PrimaryType, msg)
+	accountFelt, err := utils.HexToFelt(account)
+	if err != nil {
+		return hash, err
+	}
+	elements = append(elements, accountFelt)
 
+	msgEnc, err := td.GetStructHash(td.PrimaryType)
+	if err != nil {
+		return hash, err
+	}
 	elements = append(elements, msgEnc)
 
-	return curve.ComputeHashOnElements(elements)
+	return td.Revision.HashMethod(elements...), nil
 }
 
-// GetTypedMessageHash calculates the hash of a typed message using the provided StarkCurve.
+// GetStructHash calculates the hash of a type and its respective data.
 //
 // Parameters:
-//   - inType: the type of the message
-//   - msg: the typed message
-//
+// - typeName: the name of the type to be hashed.
 // Returns:
-//   - hash: the calculated hash
-func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage) (hash *big.Int) {
-	prim := td.Types[inType]
-	elements := []*big.Int{prim.Encoding}
-
-	for _, def := range prim.Parameters {
-		if def.Type == "felt" {
-			fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
-			elements = append(elements, fmtDefinitions...)
-			continue
-		}
-
-		innerElements := []*big.Int{}
-		encType := td.Types[def.Type]
-		innerElements = append(innerElements, encType.Encoding)
-		fmtDefinitions := msg.FmtDefinitionEncoding(def.Name)
-		innerElements = append(innerElements, fmtDefinitions...)
-		innerElements = append(innerElements, big.NewInt(int64(len(innerElements))))
-
-		innerHash := curve.HashPedersenElements(innerElements)
-		elements = append(elements, innerHash)
+// - hash: A pointer to a felt.Felt representing the calculated hash.
+// - err: any error if any
+func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error) {
+	typeDef, ok := td.Types[typeName]
+	if !ok {
+		return hash, fmt.Errorf("error getting the type definition of %s", typeName)
+	}
+	encTypeData, err := EncodeData(&typeDef, td, context...)
+	if err != nil {
+		return hash, err
 	}
 
-	return curve.ComputeHashOnElements(elements)
+	return td.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
+}
+
+func shortGetStructHash(
+	typeDef *TypeDefinition,
+	typedData *TypedData,
+	data *map[string]any,
+	context ...string,
+) (hash *felt.Felt, err error) {
+
+	encTypeData, err := encodeData(typeDef, typedData, data, context...)
+	if err != nil {
+		return hash, err
+	}
+
+	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
 // GetTypeHash returns the hash of the given type.
@@ -238,12 +198,17 @@ func (td TypedData) GetTypedMessageHash(inType string, msg TypedMessage) (hash *
 // Returns:
 // - ret: the hash of the given type
 // - err: any error if any
-func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
-	enc, err := td.EncodeType(inType)
+func (td TypedData) GetTypeHash(typeName string) (ret *felt.Felt, err error) {
+	//TODO: create/update methods descriptions
+	return getTypeHash(typeName, td.Types)
+}
+
+func getTypeHash(typeName string, types map[string]TypeDefinition) (ret *felt.Felt, err error) {
+	enc, err := encodeType(typeName, types)
 	if err != nil {
 		return ret, err
 	}
-	return utils.GetSelectorFromName(enc), nil
+	return utils.GetSelectorFromNameFelt(enc), nil
 }
 
 // EncodeType encodes the given inType using the TypedData struct.
@@ -253,11 +218,11 @@ func (td TypedData) GetTypeHash(inType string) (ret *big.Int, err error) {
 // Returns:
 // - enc: the encoded type
 // - err: any error if any
-func (td TypedData) EncodeType(typeName string) (enc string, err error) {
+func encodeType(typeName string, types map[string]TypeDefinition) (enc string, err error) {
 	customTypesEncodeResp := make(map[string]string)
 
-	var encodeType func(typeName string, typeDef TypeDefinition) (result string, err error)
-	encodeType = func(typeName string, typeDef TypeDefinition) (result string, err error) {
+	var getEncodeType func(typeName string, typeDef TypeDefinition) (result string, err error)
+	getEncodeType = func(typeName string, typeDef TypeDefinition) (result string, err error) {
 		var buf bytes.Buffer
 
 		buf.WriteString(typeName)
@@ -275,10 +240,10 @@ func (td TypedData) EncodeType(typeName string) (enc string, err error) {
 				continue
 			} else if _, ok = customTypesEncodeResp[param.Type]; !ok {
 				var customTypeDef TypeDefinition
-				if customTypeDef, ok = td.Types[param.Type]; !ok { //OBS: this is wrong on V1
-					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, td.Types)
+				if customTypeDef, ok = types[param.Type]; !ok { //OBS: this is wrong on V1
+					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, types)
 				}
-				customTypesEncodeResp[param.Type], err = encodeType(param.Type, customTypeDef)
+				customTypesEncodeResp[param.Type], err = getEncodeType(param.Type, customTypeDef)
 				if err != nil {
 					return "", err
 				}
@@ -291,10 +256,10 @@ func (td TypedData) EncodeType(typeName string) (enc string, err error) {
 
 	var typeDef TypeDefinition
 	var ok bool
-	if typeDef, ok = td.Types[typeName]; !ok {
-		return "", fmt.Errorf("can't parse type %s from types %v", typeName, td.Types)
+	if typeDef, ok = types[typeName]; !ok {
+		return "", fmt.Errorf("can't parse type %s from types %v", typeName, types)
 	}
-	enc, err = encodeType(typeName, typeDef)
+	enc, err = getEncodeType(typeName, typeDef)
 	if err != nil {
 		return "", err
 	}
@@ -310,6 +275,118 @@ func (td TypedData) EncodeType(typeName string) (enc string, err error) {
 
 		for _, key := range keys {
 			enc = enc + customTypesEncodeResp[key]
+		}
+	}
+
+	return enc, nil
+}
+
+func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc []*felt.Felt, err error) {
+	localTypeDef := *typeDef
+	if localTypeDef.Name == "StarkNetDomain" || localTypeDef.Name == "StarknetDomain" {
+		domainMap := make(map[string]any)
+		domainBytes, err := json.Marshal(td.Domain)
+		if err != nil {
+			return enc, err
+		}
+		err = json.Unmarshal(domainBytes, &domainMap)
+		if err != nil {
+			return enc, err
+		}
+
+		return encodeData(typeDef, td, &domainMap, context...)
+	}
+
+	return encodeData(typeDef, td, &td.Message, context...)
+}
+
+func encodeData(
+	typeDef *TypeDefinition,
+	typedData *TypedData,
+	data *map[string]any,
+	context ...string,
+) (enc []*felt.Felt, err error) {
+	localData := *data
+
+	if len(context) != 0 {
+		for _, paramName := range context {
+			value, ok := localData[paramName]
+			if !ok {
+				return enc, fmt.Errorf("context error: parameter '%s' not found in the data map", paramName)
+			}
+			newData, ok := value.(map[string]any)
+			if !ok {
+				return enc, fmt.Errorf("context error: error generating the new data map")
+			}
+			localData = newData
+		}
+	}
+
+	getStringFromData := func(key string) (resp string, err error) {
+		value, ok := localData[key]
+		if !ok {
+			return resp, fmt.Errorf("error trying to get the value of the %s type", key)
+		}
+		resp = fmt.Sprintf("%v", value)
+		return resp, nil
+	}
+
+	getFeltFromData := func(key string) (feltValue *felt.Felt, err error) {
+		strValue, err := getStringFromData(key)
+		if err != nil {
+			return feltValue, err
+		}
+		hexValue := utils.StrToHex(strValue)
+		feltValue, err = utils.HexToFelt(hexValue)
+		if err != nil {
+			return feltValue, err
+		}
+
+		return feltValue, nil
+	}
+
+	for _, param := range typeDef.Parameters {
+		switch param.Type {
+		case "felt", "bool":
+			value, err := getFeltFromData(param.Name)
+			if err != nil {
+				return enc, err
+			}
+			enc = append(enc, value)
+		case "string":
+			if typedData.Revision.version == 0 {
+				value, err := getFeltFromData(param.Name)
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, value)
+			} else {
+				value, err := getStringFromData(param.Name)
+				if err != nil {
+					return enc, err
+				}
+				byteArr, err := utils.StringToByteArrFelt(value)
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, typedData.Revision.HashMethod(byteArr...))
+			}
+		default:
+			if nextTypeDef, ok := typedData.Types[param.Type]; ok {
+				structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, structEnc)
+				// check revision
+				// }
+				// if nextTypeDef, ok := typedData.rev[param.Type]; ok {
+				// 	structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
+				// 	if err != nil {
+				// 		return enc, err
+				// 	}
+				// 	enc = append(enc, structEnc)
+			}
 		}
 	}
 
@@ -387,7 +464,7 @@ func (typedData *TypedData) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*typedData = resultTypedData
+	*typedData = *resultTypedData
 	return nil
 
 	// TODO: implement typedMessage unmarshal

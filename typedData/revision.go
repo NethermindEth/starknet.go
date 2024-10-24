@@ -1,7 +1,6 @@
 package typedData
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -34,40 +33,56 @@ var (
 )
 
 type Revision struct {
-	Domain     String
-	HashMethod func(felts ...*felt.Felt) *felt.Felt
+	version    uint8
+	domain     string
+	hashMethod func(felts ...*felt.Felt) *felt.Felt
 	//TODO: hashMerkleMethod ?
-	Types RevisionTypes
+	types RevisionTypes
 }
 
 type RevisionTypes struct {
 	Basic  []string
-	Preset map[string]any
+	Preset map[string]TypeDefinition
+}
+
+func (rev *Revision) Version() uint8 {
+	return rev.version
+}
+
+func (rev *Revision) Domain() string {
+	return rev.domain
+}
+
+func (rev *Revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
+	return rev.hashMethod(felts...)
+}
+
+func (rev *Revision) Types() RevisionTypes {
+	return rev.types
 }
 
 func NewRevision(version uint8) (rev Revision, err error) {
-	preset := make(map[string]any)
+	preset := make(map[string]TypeDefinition)
 
 	switch version {
 	case 0:
 		rev = Revision{
-			Domain:     "StarkNetDomain",
-			HashMethod: curve.PedersenArray,
-			Types: RevisionTypes{
+			version:    0,
+			domain:     "StarkNetDomain",
+			hashMethod: curve.PedersenArray,
+			types: RevisionTypes{
 				Basic:  revision_0_basic_types,
 				Preset: preset,
 			},
 		}
 		return rev, nil
 	case 1:
-		preset, err = getRevisionV1PresetTypes()
-		if err != nil {
-			return rev, fmt.Errorf("error getting revision 1 preset types: %w", err)
-		}
+		preset = getRevisionV1PresetTypes()
 		rev = Revision{
-			Domain:     "StarknetDomain",
-			HashMethod: curve.PoseidonArray,
-			Types: RevisionTypes{
+			version:    1,
+			domain:     "StarknetDomain",
+			hashMethod: curve.PoseidonArray,
+			types: RevisionTypes{
 				Basic:  append(revision_1_basic_types, revision_0_basic_types...),
 				Preset: preset,
 			},
@@ -78,24 +93,57 @@ func NewRevision(version uint8) (rev Revision, err error) {
 	}
 }
 
-func getRevisionV1PresetTypes() (result map[string]any, err error) {
-	type RevV1PresetTypes struct {
-		NftId       NftId
-		TokenAmount TokenAmount
-		U256        U256
+func getRevisionV1PresetTypes() map[string]TypeDefinition {
+	//NftId
+	//TokenAmount
+	//U256
+	presetTypes := []TypeDefinition{
+		{
+			Name: "NftId",
+			Parameters: []TypeParameter{
+				{
+					Name: "collection_address",
+					Type: "ContractAddress",
+				},
+				{
+					Name: "token_id",
+					Type: "U256",
+				},
+			},
+		},
+		{
+			Name: "TokenAmount",
+			Parameters: []TypeParameter{
+				{
+					Name: "token_address",
+					Type: "ContractAddress",
+				},
+				{
+					Name: "amount",
+					Type: "U256",
+				},
+			},
+		},
+		{
+			Name: "U256",
+			Parameters: []TypeParameter{
+				{
+					Name: "low",
+					Type: "U128",
+				},
+				{
+					Name: "high",
+					Type: "U128",
+				},
+			},
+		},
 	}
 
-	var preset RevV1PresetTypes
+	result := make(map[string]TypeDefinition)
 
-	bytes, err := json.Marshal(preset)
-	if err != nil {
-		return result, err
+	for _, typeDef := range presetTypes {
+		result[typeDef.Name] = typeDef
 	}
 
-	err = json.Unmarshal(bytes, &result)
-	if err != nil {
-		return result, err
-	}
-
-	return result, err
+	return result
 }

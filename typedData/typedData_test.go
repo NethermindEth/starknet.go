@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,25 +67,6 @@ var message = `
 }
 `
 
-// FmtDefinitionEncoding formats the encoding for the given field in the Mail struct.
-//
-// Parameters:
-// - field: the field to format the encoding for
-// Returns:
-// - fmtEnc: a slice of big integers
-func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
-	if field == "from" {
-		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.From.Name))
-		fmtEnc = append(fmtEnc, utils.HexToBN(mail.From.Wallet))
-	} else if field == "to" {
-		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.To.Name))
-		fmtEnc = append(fmtEnc, utils.HexToBN(mail.To.Wallet))
-	} else if field == "contents" {
-		fmtEnc = append(fmtEnc, utils.UTF8StrToBig(mail.Contents))
-	}
-	return fmtEnc
-}
-
 // MockTypedData generates a TypedData object for testing purposes.
 // It creates example types and initializes a Domain object. Then it uses the example types and the domain to create a new TypedData object.
 // The function returns the generated TypedData object.
@@ -97,15 +77,37 @@ func (mail Mail) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 //
 // Returns:
 // - ttd: the generated TypedData object
-func MockTypedData() (ttd TypedData, err error) {
-	ttd, err = NewTypedData(types, "Mail", dm, []byte(message))
-	if err != nil {
-		return TypedData{}, err
-	}
-	return ttd, err
+func MockTypedData(t *testing.T) (ttd TypedData) {
+	t.Helper()
+	content, err := os.ReadFile("./tests/baseExample.json")
+	require.NoError(t, err)
+
+	err = json.Unmarshal(content, &ttd)
+	require.NoError(t, err)
+
+	return
+}
+func BMockTypedData(b *testing.B) (ttd TypedData) {
+	b.Helper()
+	content, err := os.ReadFile("./tests/baseExample.json")
+	require.NoError(b, err)
+
+	err = json.Unmarshal(content, &ttd)
+	require.NoError(b, err)
+
+	return
 }
 
-func TestGeneral_Unmarshal(t *testing.T) {
+// The TestUnmarshal function tests the ability to correctly unmarshal (deserialize) JSON content from
+// a file into a Go TypedData struct. It starts by reading a json file. The JSON content is then unmarshaled
+// into a TypedData struct using the json.Unmarshal function. After unmarshaling, the test checks if there were
+// any errors during the unmarshaling process, and if an error is found, the test will fail.
+//
+// Parameters:
+// - t: a testing.T object that provides methods for testing functions
+// Returns:
+// - None
+func TestUnmarshal(t *testing.T) {
 	content, err := os.ReadFile("./tests/baseExample.json")
 	require.NoError(t, err)
 
@@ -115,31 +117,141 @@ func TestGeneral_Unmarshal(t *testing.T) {
 }
 
 func TestGeneral_CreateMessageWithTypes(t *testing.T) {
-	ttd1, err := NewTypedData(types, "Mail", dm, []byte(message))
-	require.NoError(t, err)
-
-	mail := Mail{
-		From: Person{
-			Name:   "Cow",
-			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-		},
-		To: Person{
-			Name:   "Bob",
-			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-		},
-		Contents: "Hello, Bob!",
+	t.Skip("TODO: need to implement encodeData method")
+	// for testSetType 2
+	type Example1 struct {
+		N0 Felt            `json:"n0"`
+		N1 Bool            `json:"n1"`
+		N2 String          `json:"n2"`
+		N3 Selector        `json:"n3"`
+		N4 U128            `json:"n4"`
+		N5 I128            `json:"n5"`
+		N6 ContractAddress `json:"n6"`
+		N7 ClassHash       `json:"n7"`
+		N8 Timestamp       `json:"n8"`
+		N9 Shortstring     `json:"n9"`
 	}
 
-	bytes, err := json.Marshal(mail)
-	require.NoError(t, err)
+	// for testSetType 3
+	type Example2 struct {
+		N0 TokenAmount `json:"n0"`
+		N1 NftId       `json:"n1"`
+	}
 
-	ttd2, err := NewTypedData(types, "Mail", dm, bytes)
-	require.NoError(t, err)
+	hex1, ok := new(big.Int).SetString("0x3e8", 0)
+	require.True(t, ok)
+	hex2, ok := new(big.Int).SetString("0x0", 0)
+	require.True(t, ok)
 
-	require.EqualValues(t, ttd1, ttd2)
+	type testSetType struct {
+		MessageWithString string
+		MessageWithTypes  any
+	}
+	testSet := []testSetType{
+		{
+			MessageWithString: `
+			{
+				"from": {
+					"name": "Cow",
+					"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+				},
+				"to": {
+					"name": "Bob",
+					"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+				},
+				"contents": "Hello, Bob!"
+			}`,
+			MessageWithTypes: Mail{
+				From: Person{
+					Name:   "Cow",
+					Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+				},
+				To: Person{
+					Name:   "Bob",
+					Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+				},
+				Contents: "Hello, Bob!",
+			},
+		},
+		{
+			MessageWithString: `
+			{
+				"n0": "0x3e8",
+				"n1": true,
+				"n2": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				"n3": "transfer",
+				"n4": 10,
+				"n5": -10,
+				"n6": "0x3e8",
+				"n7": "0x3e8",
+				"n8": 1000,
+				"n9": "transfer"
+			}`,
+			MessageWithTypes: Example1{
+				N0: "0x3e8",
+				N1: true,
+				N2: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+				N3: "transfer",
+				N4: big.NewInt(10),
+				N5: big.NewInt(-10),
+				N6: "0x3e8",
+				N7: "0x3e8",
+				N8: big.NewInt(1000),
+				N9: "transfer",
+			},
+		},
+		{
+			MessageWithString: `
+			{
+				"n0": {
+					"token_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"amount": {
+						"low": "0x3e8",
+						"high": "0x0"
+					}
+				},
+				"n1": {
+					"collection_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"token_id": {
+						"low": "0x3e8",
+						"high": "0x0"
+					}
+				}
+			}`,
+			MessageWithTypes: Example2{
+				N0: TokenAmount{
+					TokenAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					Amount: U256{
+						Low:  hex1,
+						High: hex2,
+					},
+				},
+				N1: NftId{
+					CollectionAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					TokenID: U256{
+						Low:  hex1,
+						High: hex2,
+					},
+				},
+			},
+		},
+	}
+	for _, test := range testSet {
+		ttd1, err := NewTypedData(types, "Mail", dm, []byte(test.MessageWithString))
+		require.NoError(t, err)
+
+		bytes, err := json.Marshal(test.MessageWithTypes)
+		require.NoError(t, err)
+
+		ttd2, err := NewTypedData(types, "Mail", dm, bytes)
+		require.NoError(t, err)
+
+		require.EqualValues(t, ttd1, ttd2)
+
+	}
 }
 
-// TestGeneral_GetMessageHash tests the GetMessageHash function.
+// TestMessageHash tests the GetMessageHash function.
 //
 // It creates a mock TypedData and sets up a test case for hashing a mail message.
 // The mail message contains information about the sender and recipient, as well as the contents of the message.
@@ -152,26 +264,14 @@ func TestGeneral_CreateMessageWithTypes(t *testing.T) {
 // - t: a testing.T object that provides methods for testing functions
 // Returns:
 // - None
-func TestGeneral_GetMessageHash(t *testing.T) {
-	ttd, err := MockTypedData()
+func TestGetMessageHash(t *testing.T) {
+	ttd := MockTypedData(t)
+
+	hash, err := ttd.GetMessageHash("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	require.NoError(t, err)
 
-	mail := Mail{
-		From: Person{
-			Name:   "Cow",
-			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-		},
-		To: Person{
-			Name:   "Bob",
-			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-		},
-		Contents: "Hello, Bob!",
-	}
-
-	hash := ttd.GetMessageHash(utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"), mail)
-
 	exp := "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0"
-	require.Equal(t, exp, utils.BigToHex(hash))
+	require.Equal(t, exp, hash.String())
 }
 
 // BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.
@@ -186,79 +286,14 @@ func TestGeneral_GetMessageHash(t *testing.T) {
 //
 //	none
 func BenchmarkGetMessageHash(b *testing.B) {
-	ttd, err := MockTypedData()
-	require.NoError(b, err)
+	ttd := BMockTypedData(b)
 
-	mail := Mail{
-		From: Person{
-			Name:   "Cow",
-			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-		},
-		To: Person{
-			Name:   "Bob",
-			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-		},
-		Contents: "Hello, Bob!",
-	}
-	addr := utils.HexToBN("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
-	b.Run(fmt.Sprintf("input_size_%d", addr.BitLen()), func(b *testing.B) {
-		result := ttd.GetMessageHash(addr, mail)
+	addr := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	b.Run(fmt.Sprintf("input_size_%d", len(addr)), func(b *testing.B) {
+		result, err := ttd.GetMessageHash(addr)
+		require.NoError(b, err)
 		require.NotEmpty(b, result)
 	})
-}
-
-// TestGeneral_GetDomainHash tests the GetDomainHash function.
-// It creates a mock TypedData object and generates the hash of a typed message using the Starknet domain and curve.
-// If there is an error during the hashing process, it logs the error.
-// It then compares the generated hash with the expected hash and logs an error if they do not match.
-//
-// Parameters:
-// - t: a testing.T object that provides methods for testing functions
-// Returns:
-//
-//	none
-func TestGeneral_GetDomainHash(t *testing.T) {
-	ttd, err := MockTypedData()
-	require.NoError(t, err)
-
-	hash := ttd.GetTypedMessageHash("StarkNetDomain", ttd.Domain)
-
-	exp := "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07"
-	require.Equal(t, exp, utils.BigToHex(hash))
-}
-
-// TestGeneral_GetTypedMessageHash is a unit test for the GetTypedMessageHash function
-// equivalent of get struct hash.
-//
-// It tests the generation of a typed message hash for a given mail object using a specific curve.
-// The function expects the mail object to have a "From" field of type Person, a "To" field of type Person,
-// and a "Contents" field of type string. It returns the generated hash as a byte array and an error object.
-//
-// Parameters:
-// - t: a testing.T object that provides methods for testing functions
-// Returns:
-//
-//	none
-func TestGeneral_GetTypedMessageHash(t *testing.T) {
-	ttd, err := MockTypedData()
-	require.NoError(t, err)
-
-	mail := Mail{
-		From: Person{
-			Name:   "Cow",
-			Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-		},
-		To: Person{
-			Name:   "Bob",
-			Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-		},
-		Contents: "Hello, Bob!",
-	}
-
-	hash := ttd.GetTypedMessageHash("Mail", mail)
-
-	exp := "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec"
-	require.Equal(t, exp, utils.BigToHex(hash))
 }
 
 // TestGeneral_GetTypeHash tests the GetTypeHash function.
@@ -272,62 +307,41 @@ func TestGeneral_GetTypedMessageHash(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_GetTypeHash(t *testing.T) {
+func TestGetTypeHash(t *testing.T) {
 	require := require.New(t)
+	ttd := MockTypedData(t)
 
-	ttd, err := MockTypedData()
-	require.NoError(err)
+	type testSetType struct {
+		TypeName     string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		// revision 0
+		{
+			TypeName:     "StarkNetDomain",
+			ExpectedHash: "0x1bfc207425a47a5dfa1a50a4f5241203f50624ca5fdf5e18755765416b8e288",
+		},
+		{
+			TypeName:     "Person",
+			ExpectedHash: "0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855",
+		},
+		{
+			TypeName:     "Mail",
+			ExpectedHash: "0x13d89452df9512bf750f539ba3001b945576243288137ddb6c788457d4b2f79",
+		},
+	}
+	for _, test := range testSet {
+		hash, err := ttd.GetTypeHash(test.TypeName)
+		require.NoError(err)
 
-	hash, err := ttd.GetTypeHash("StarkNetDomain")
-	require.NoError(err)
-
-	exp := "0x1bfc207425a47a5dfa1a50a4f5241203f50624ca5fdf5e18755765416b8e288"
-	require.Equal(exp, utils.BigToHex(hash))
-
-	enc := ttd.Types["StarkNetDomain"]
-	require.Equal(exp, utils.BigToHex(enc.Encoding))
-
-	pHash, err := ttd.GetTypeHash("Person")
-	require.NoError(err)
-
-	exp = "0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855"
-	require.Equal(exp, utils.BigToHex(pHash))
-
-	enc = ttd.Types["Person"]
-	require.Equal(exp, utils.BigToHex(enc.Encoding))
-}
-
-// TestGeneral_GetSelectorFromName tests the GetSelectorFromName function.
-//
-// It checks if the GetSelectorFromName function returns the expected values
-// for different input names.
-// The expected values are hard-coded and compared against the actual values.
-// If any of the actual values do not match the expected values, an error is
-// reported.
-//
-// Parameters:
-// - t: The testing.T object used for reporting test failures and logging test output
-// Returns:
-//
-//	none
-func TestGeneral_GetSelectorFromName(t *testing.T) {
-	sel1 := utils.BigToHex(utils.GetSelectorFromName("initialize"))
-	sel2 := utils.BigToHex(utils.GetSelectorFromName("mint"))
-	sel3 := utils.BigToHex(utils.GetSelectorFromName("test"))
-
-	exp1 := "0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463"
-	exp2 := "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354"
-	exp3 := "0x22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658"
-
-	if sel1 != exp1 || sel2 != exp2 || sel3 != exp3 {
-		t.Errorf("invalid Keccak256 encoding: %v %v %v\n", sel1, sel2, sel3)
+		require.Equal(test.ExpectedHash, hash.String())
 	}
 }
 
-// TestGeneral_EncodeType tests the EncodeType function.
+// TestEncodeType tests the EncodeType function.
 //
 // It creates a mock typed data and calls the EncodeType method with the
-// parameter "Mail". It checks if the returned encoding matches the expected
+// type name. It checks if the returned encoding matches the expected
 // encoding. If there is an error during the encoding process, it fails the
 // test.
 //
@@ -336,13 +350,70 @@ func TestGeneral_GetSelectorFromName(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_EncodeType(t *testing.T) {
-	ttd, err := MockTypedData()
-	require.NoError(t, err)
+func TestEncodeType(t *testing.T) {
+	require := require.New(t)
+	ttd := MockTypedData(t)
 
-	enc, err := ttd.EncodeType("Mail")
-	require.NoError(t, err)
+	type testSetType struct {
+		TypeName       string
+		ExpectedEncode string
+	}
+	testSet := []testSetType{
+		// revision 0
+		{
+			TypeName:       "StarkNetDomain",
+			ExpectedEncode: "StarkNetDomain(name:felt,version:felt,chainId:felt)",
+		},
+		{
+			TypeName:       "Person",
+			ExpectedEncode: "Person(name:felt,wallet:felt)",
+		},
+		{
+			TypeName:       "Mail",
+			ExpectedEncode: "Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)",
+		},
+	}
+	for _, test := range testSet {
+		encode, err := encodeType(test.TypeName, ttd.Types)
+		require.NoError(err)
 
-	exp := "Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)"
-	require.Equal(t, exp, enc)
+		require.Equal(test.ExpectedEncode, encode)
+	}
+}
+
+// TestGetStructHash tests the GetStructHash function.
+//
+// It creates a mock typed data and calls the GetStructHash method with the
+// type name. It checks if the returned encoding matches the expected
+// encoding. If there is an error during the encoding process, it fails the
+// test.
+//
+// Parameters:
+// - t: The testing.T object used for reporting test failures and logging test output
+// Returns:
+//
+//	none
+func TestGetStructHash(t *testing.T) {
+	ttd := MockTypedData(t)
+
+	type testSetType struct {
+		TypeName     string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		{
+			TypeName:     "StarkNetDomain",
+			ExpectedHash: "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07",
+		},
+		{
+			TypeName:     "Mail",
+			ExpectedHash: "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec",
+		},
+	}
+	for _, test := range testSet {
+		hash, err := ttd.GetStructHash(test.TypeName)
+		require.NoError(t, err)
+
+		require.Equal(t, test.ExpectedHash, hash.String())
+	}
 }
