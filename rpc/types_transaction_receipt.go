@@ -28,6 +28,15 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
+type MessageStatusResp struct {
+	// The hash of a L1 handler transaction
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+	FinalityStatus TxnStatus `json:"finality_status"`
+	// The failure reason, only appears if finality_status is REJECTED
+	FailureReason string `json:"failure_reason,omitempty"`
+}
+
 type OrderedMsg struct {
 	// The order of the message within the transaction
 	Order   int `json:"order"`
