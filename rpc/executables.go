@@ -12,13 +12,13 @@ import (
 // - ctx: The context.Context used for the request
 // - classHash: The hash of the contract class whose CASM will be returned
 // Returns:
-// - *felt.Felt: The compiled contract class
+// - CasmCompiledContractClass: The compiled contract class
 // - error: An error if any occurred during the execution
-func (provider *Provider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*felt.Felt, error) {
-	var result *felt.Felt
+func (provider *Provider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*CasmCompiledContractClass, error) {
+	var result CasmCompiledContractClass
 	if err := do(ctx, provider.c, "starknet_getCompiledCasm", &result, classHash); err != nil {
 
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
 	}
-	return result, nil
+	return &result, nil
 }

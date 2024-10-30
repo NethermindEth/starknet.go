@@ -1,9 +1,6 @@
 package rpc
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -35,156 +32,64 @@ type Hints struct {
 	HintArr []Hint
 }
 
-func (hints *Hints) GetValues() (int, []Hint) {
+func (hints *Hints) Values() (int, []Hint) {
 	return hints.Int, hints.HintArr
 }
 
-type Hint any // TODO: finish the description and create an unmarshall func to every 'any' type
-
-type DeprecatedHint struct {
-	any // is one of these types: DeprecatedHintEnum, AssertAllAccessesUsed, AssertLtAssertValidInput, Felt252DictRead, or Felt252DictWrite
+func (hints *Hints) Tuple() [2]any {
+	return [2]any{hints.Int, hints.HintArr}
 }
 
-// UnmarshalJSON unmarshals the JSON data into a DeprecatedHint object.
-//
-// Parameters:
-// - data: The JSON data to be unmarshalled
-// Returns:
-// - error: An error if the unmarshalling process fails
-func (depHint *DeprecatedHint) UnmarshalJSON(data []byte) error {
-	var dec interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
+type Hint struct {
+	DeprecatedHint
+	CoreHint
+	StarknetHint
+}
 
-	switch hint := dec.(type) {
-	case string:
-		*depHint = DeprecatedHint{DeprecatedHintEnum(hint)}
-	case AssertAllAccessesUsed:
-		*depHint = DeprecatedHint{hint}
-	case AssertLtAssertValidInput:
-		*depHint = DeprecatedHint{hint}
-	case Felt252DictRead:
-		*depHint = DeprecatedHint{hint}
-	case Felt252DictWrite:
-		*depHint = DeprecatedHint{hint}
-	default:
-		return fmt.Errorf("failed to unmarshal 'DeprecatedHint'")
-	}
-
-	return nil
+type DeprecatedHint struct {
+	DeprecatedHintEnum
+	AssertAllAccessesUsed    AssertAllAccessesUsed    `json:",omitempty"`
+	AssertLtAssertValidInput AssertLtAssertValidInput `json:",omitempty"`
+	Felt252DictRead          Felt252DictRead          `json:",omitempty"`
+	Felt252DictWrite         Felt252DictWrite         `json:",omitempty"`
 }
 
 type CoreHint struct {
-	any // it can be a wide variety of types. Ref: https://github.com/starkware-libs/starknet-specs/blob/19ab9d4df4ae3acc1a52cde5a43a7cace08bcc4b/api/starknet_executables.json#L403
-}
-
-// UnmarshalJSON unmarshals the JSON data into a CoreHint object.
-//
-// Parameters:
-// - data: The JSON data to be unmarshalled
-// Returns:
-// - error: An error if the unmarshalling process fails
-func (coreHint *CoreHint) UnmarshalJSON(data []byte) error {
-	var dec interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
-
-	switch hint := dec.(type) {
-	case AllocSegment:
-		*coreHint = CoreHint{hint}
-	case TestLessThan:
-		*coreHint = CoreHint{hint}
-	case TestLessThanOrEqual:
-		*coreHint = CoreHint{hint}
-	case TestLessThanOrEqualAddress:
-		*coreHint = CoreHint{hint}
-	case WideMul128:
-		*coreHint = CoreHint{hint}
-	case DivMod:
-		*coreHint = CoreHint{hint}
-	case Uint256DivMod:
-		*coreHint = CoreHint{hint}
-	case Uint512DivModByUint256:
-		*coreHint = CoreHint{hint}
-	case SquareRoot:
-		*coreHint = CoreHint{hint}
-	case Uint256SquareRoot:
-		*coreHint = CoreHint{hint}
-	case LinearSplit:
-		*coreHint = CoreHint{hint}
-	case AllocFelt252Dict:
-		*coreHint = CoreHint{hint}
-	case Felt252DictEntryInit:
-		*coreHint = CoreHint{hint}
-	case Felt252DictEntryUpdate:
-		*coreHint = CoreHint{hint}
-	case GetSegmentArenaIndex:
-		*coreHint = CoreHint{hint}
-	case InitSquashData:
-		*coreHint = CoreHint{hint}
-	case GetCurrentAccessIndex:
-		*coreHint = CoreHint{hint}
-	case ShouldSkipSquashLoop:
-		*coreHint = CoreHint{hint}
-	case GetCurrentAccessDelta:
-		*coreHint = CoreHint{hint}
-	case ShouldContinueSquashLoop:
-		*coreHint = CoreHint{hint}
-	case GetNextDictKey:
-		*coreHint = CoreHint{hint}
-	case AssertLeFindSmallArcs:
-		*coreHint = CoreHint{hint}
-	case AssertLeIsFirstArcExcluded:
-		*coreHint = CoreHint{hint}
-	case AssertLeIsSecondArcExcluded:
-		*coreHint = CoreHint{hint}
-	case RandomEcPoint:
-		*coreHint = CoreHint{hint}
-	case FieldSqrt:
-		*coreHint = CoreHint{hint}
-	case DebugPrint:
-		*coreHint = CoreHint{hint}
-	case AllocConstantSize:
-		*coreHint = CoreHint{hint}
-	case U256InvModN:
-		*coreHint = CoreHint{hint}
-	case EvalCircuit:
-		*coreHint = CoreHint{hint}
-	default:
-		return fmt.Errorf("failed to unmarshal 'CoreHint'")
-	}
-
-	return nil
+	AllocConstantSize           AllocConstantSize           `json:",omitempty"`
+	AllocFelt252Dict            AllocFelt252Dict            `json:",omitempty"`
+	AllocSegment                AllocSegment                `json:",omitempty"`
+	AssertLeFindSmallArcs       AssertLeFindSmallArcs       `json:",omitempty"`
+	AssertLeIsFirstArcExcluded  AssertLeIsFirstArcExcluded  `json:",omitempty"`
+	AssertLeIsSecondArcExcluded AssertLeIsSecondArcExcluded `json:",omitempty"`
+	DebugPrint                  DebugPrint                  `json:",omitempty"`
+	DivMod                      DivMod                      `json:",omitempty"`
+	EvalCircuit                 EvalCircuit                 `json:",omitempty"`
+	Felt252DictEntryInit        Felt252DictEntryInit        `json:",omitempty"`
+	Felt252DictEntryUpdate      Felt252DictEntryUpdate      `json:",omitempty"`
+	FieldSqrt                   FieldSqrt                   `json:",omitempty"`
+	GetCurrentAccessDelta       GetCurrentAccessDelta       `json:",omitempty"`
+	GetCurrentAccessIndex       GetCurrentAccessIndex       `json:",omitempty"`
+	GetNextDictKey              GetNextDictKey              `json:",omitempty"`
+	GetSegmentArenaIndex        GetSegmentArenaIndex        `json:",omitempty"`
+	InitSquashData              InitSquashData              `json:",omitempty"`
+	LinearSplit                 LinearSplit                 `json:",omitempty"`
+	RandomEcPoint               RandomEcPoint               `json:",omitempty"`
+	ShouldContinueSquashLoop    ShouldContinueSquashLoop    `json:",omitempty"`
+	ShouldSkipSquashLoop        ShouldSkipSquashLoop        `json:",omitempty"`
+	SquareRoot                  SquareRoot                  `json:",omitempty"`
+	TestLessThan                TestLessThan                `json:",omitempty"`
+	TestLessThanOrEqual         TestLessThanOrEqual         `json:",omitempty"`
+	TestLessThanOrEqualAddress  TestLessThanOrEqualAddress  `json:",omitempty"`
+	U256InvModN                 U256InvModN                 `json:",omitempty"`
+	Uint256DivMod               Uint256DivMod               `json:",omitempty"`
+	Uint256SquareRoot           Uint256SquareRoot           `json:",omitempty"`
+	Uint512DivModByUint256      Uint512DivModByUint256      `json:",omitempty"`
+	WideMul128                  WideMul128                  `json:",omitempty"`
 }
 
 type StarknetHint struct {
-	any // is one of these types: SystemCall or Cheatcode
-}
-
-// UnmarshalJSON unmarshals the JSON data into a StarknetHint object.
-//
-// Parameters:
-// - data: The JSON data to be unmarshalled
-// Returns:
-// - error: An error if the unmarshalling process fails
-func (strkHint *StarknetHint) UnmarshalJSON(data []byte) error {
-	var dec interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
-
-	switch hint := dec.(type) {
-	case SystemCall:
-		*strkHint = StarknetHint{hint}
-	case Cheatcode:
-		*strkHint = StarknetHint{hint}
-	default:
-		return fmt.Errorf("failed to unmarshal 'StarknetHint'")
-	}
-
-	return nil
+	Cheatcode  Cheatcode  `json:",omitempty"`
+	SystemCall SystemCall `json:",omitempty"`
 }
 
 type DeprecatedHintEnum string
@@ -200,7 +105,7 @@ type AssertAllAccessesUsed struct {
 }
 
 type CellRef struct {
-	Register Register `json:"Register"`
+	Register Register `json:"register"`
 	Offset   int      `json:"offset"`
 }
 
@@ -238,7 +143,12 @@ type Felt252DictEntryUpdate struct {
 	Value   ResOperand `json:"value"`
 }
 
-type ResOperand any // is one of these types: Deref, DoubleDeref, Immediate, or BinOp
+type ResOperand struct {
+	BinOp       BinOp       `json:",omitempty"`
+	Deref       Deref       `json:",omitempty"`
+	DoubleDeref DoubleDeref `json:",omitempty"`
+	Immediate   Immediate   `json:",omitempty"`
+}
 
 type Deref CellRef
 
@@ -248,8 +158,12 @@ type DoubleDeref struct {
 	Offset  int
 }
 
-func (dd *DoubleDeref) GetValues() (CellRef, int) {
+func (dd *DoubleDeref) Values() (CellRef, int) {
 	return dd.CellRef, dd.Offset
+}
+
+func (dd *DoubleDeref) Tuple() [2]any {
+	return [2]any{dd.CellRef, dd.Offset}
 }
 
 type Immediate NumAsHex
@@ -264,7 +178,12 @@ const (
 type BinOp struct {
 	Operation Operation `json:"op"`
 	A         CellRef   `json:"a"`
-	B         any       `json:"b"` // is one of these types: Deref or Immediate
+	B         B         `json:"b"`
+}
+
+type B struct {
+	Deref     Deref     `json:",omitempty"`
+	Immediate Immediate `json:",omitempty"`
 }
 
 type AllocSegment struct {

@@ -251,6 +251,21 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClassHashAt", reflect.TypeOf((*MockRpcProvider)(nil).ClassHashAt), ctx, blockID, contractAddress)
 }
 
+// CompiledCasm mocks base method.
+func (m *MockRpcProvider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*rpc.CasmCompiledContractClass, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompiledCasm", ctx, classHash)
+	ret0, _ := ret[0].(*rpc.CasmCompiledContractClass)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CompiledCasm indicates an expected call of CompiledCasm.
+func (mr *MockRpcProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompiledCasm", reflect.TypeOf((*MockRpcProvider)(nil).CompiledCasm), ctx, classHash)
+}
+
 // EstimateFee mocks base method.
 func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
