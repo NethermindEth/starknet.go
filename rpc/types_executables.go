@@ -1,6 +1,9 @@
 package rpc
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -38,11 +41,151 @@ func (hints *Hints) GetValues() (int, []Hint) {
 
 type Hint any // TODO: finish the description and create an unmarshall func to every 'any' type
 
-type DeprecatedHint any // is one of these types: DeprecatedHintEnum, AssertAllAccessesUsed, AssertLtAssertValidInput, Felt252DictRead, or Felt252DictWrite
+type DeprecatedHint struct {
+	any // is one of these types: DeprecatedHintEnum, AssertAllAccessesUsed, AssertLtAssertValidInput, Felt252DictRead, or Felt252DictWrite
+}
 
-type CoreHint any
+// UnmarshalJSON unmarshals the JSON data into a DeprecatedHint object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (depHint *DeprecatedHint) UnmarshalJSON(data []byte) error {
+	var dec interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
 
-type StarknetHint any
+	switch hint := dec.(type) {
+	case string:
+		*depHint = DeprecatedHint{DeprecatedHintEnum(hint)}
+	case AssertAllAccessesUsed:
+		*depHint = DeprecatedHint{hint}
+	case AssertLtAssertValidInput:
+		*depHint = DeprecatedHint{hint}
+	case Felt252DictRead:
+		*depHint = DeprecatedHint{hint}
+	case Felt252DictWrite:
+		*depHint = DeprecatedHint{hint}
+	default:
+		return fmt.Errorf("failed to unmarshal 'DeprecatedHint'")
+	}
+
+	return nil
+}
+
+type CoreHint struct {
+	any // it can be a wide variety of types. Ref: https://github.com/starkware-libs/starknet-specs/blob/19ab9d4df4ae3acc1a52cde5a43a7cace08bcc4b/api/starknet_executables.json#L403
+}
+
+// UnmarshalJSON unmarshals the JSON data into a CoreHint object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (coreHint *CoreHint) UnmarshalJSON(data []byte) error {
+	var dec interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	switch hint := dec.(type) {
+	case AllocSegment:
+		*coreHint = CoreHint{hint}
+	case TestLessThan:
+		*coreHint = CoreHint{hint}
+	case TestLessThanOrEqual:
+		*coreHint = CoreHint{hint}
+	case TestLessThanOrEqualAddress:
+		*coreHint = CoreHint{hint}
+	case WideMul128:
+		*coreHint = CoreHint{hint}
+	case DivMod:
+		*coreHint = CoreHint{hint}
+	case Uint256DivMod:
+		*coreHint = CoreHint{hint}
+	case Uint512DivModByUint256:
+		*coreHint = CoreHint{hint}
+	case SquareRoot:
+		*coreHint = CoreHint{hint}
+	case Uint256SquareRoot:
+		*coreHint = CoreHint{hint}
+	case LinearSplit:
+		*coreHint = CoreHint{hint}
+	case AllocFelt252Dict:
+		*coreHint = CoreHint{hint}
+	case Felt252DictEntryInit:
+		*coreHint = CoreHint{hint}
+	case Felt252DictEntryUpdate:
+		*coreHint = CoreHint{hint}
+	case GetSegmentArenaIndex:
+		*coreHint = CoreHint{hint}
+	case InitSquashData:
+		*coreHint = CoreHint{hint}
+	case GetCurrentAccessIndex:
+		*coreHint = CoreHint{hint}
+	case ShouldSkipSquashLoop:
+		*coreHint = CoreHint{hint}
+	case GetCurrentAccessDelta:
+		*coreHint = CoreHint{hint}
+	case ShouldContinueSquashLoop:
+		*coreHint = CoreHint{hint}
+	case GetNextDictKey:
+		*coreHint = CoreHint{hint}
+	case AssertLeFindSmallArcs:
+		*coreHint = CoreHint{hint}
+	case AssertLeIsFirstArcExcluded:
+		*coreHint = CoreHint{hint}
+	case AssertLeIsSecondArcExcluded:
+		*coreHint = CoreHint{hint}
+	case RandomEcPoint:
+		*coreHint = CoreHint{hint}
+	case FieldSqrt:
+		*coreHint = CoreHint{hint}
+	case DebugPrint:
+		*coreHint = CoreHint{hint}
+	case AllocConstantSize:
+		*coreHint = CoreHint{hint}
+	case U256InvModN:
+		*coreHint = CoreHint{hint}
+	case EvalCircuit:
+		*coreHint = CoreHint{hint}
+	default:
+		return fmt.Errorf("failed to unmarshal 'CoreHint'")
+	}
+
+	return nil
+}
+
+type StarknetHint struct {
+	any // is one of these types: SystemCall or Cheatcode
+}
+
+// UnmarshalJSON unmarshals the JSON data into a StarknetHint object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (strkHint *StarknetHint) UnmarshalJSON(data []byte) error {
+	var dec interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	switch hint := dec.(type) {
+	case SystemCall:
+		*strkHint = StarknetHint{hint}
+	case Cheatcode:
+		*strkHint = StarknetHint{hint}
+	default:
+		return fmt.Errorf("failed to unmarshal 'StarknetHint'")
+	}
+
+	return nil
+}
 
 type DeprecatedHintEnum string
 
@@ -205,7 +348,7 @@ type GetSegmentArenaIndex struct {
 	DictIndex  CellRef    `json:"dict_index"`
 }
 
-type InitSquashDatas struct {
+type InitSquashData struct {
 	DictAccess ResOperand `json:"dict_access"`
 	PtrDiff    ResOperand `json:"ptr_diff"`
 	NAccesses  ResOperand `json:"n_accesses"`
