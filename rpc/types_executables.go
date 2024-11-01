@@ -7,7 +7,7 @@ import (
 type CasmCompiledContractClass struct {
 	EntryPointsByType CasmEntryPointsByType `json:"entry_points_by_type"`
 	ByteCode          []*felt.Felt          `json:"bytecode"`
-	Prime             []*felt.Felt          `json:"prime"`
+	Prime             NumAsHex              `json:"prime"`
 	CompilerVersion   string                `json:"compiler_version"`
 	Hints             Hints                 `json:"hints"`
 	// a list of sizes of segments in the bytecode, each segment is hashed invidually when computing the bytecode hash
