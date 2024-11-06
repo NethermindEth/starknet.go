@@ -1067,7 +1067,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     error
+		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -1087,7 +1087,10 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
 		if test.ExpectedErr != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error())
+			rpcErr, ok := err.(*rpc.RPCError)
+			require.True(t, ok)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+			require.Equal(t, test.ExpectedErr.Message, rpcErr.Message)
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
