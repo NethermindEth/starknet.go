@@ -127,7 +127,10 @@ type NodeHashToNode struct {
 }
 
 // A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node
-type MerkleNode interface{} // it should be an EdgeNode or BinaryNode
+type MerkleNode struct {
+	EdgeNode   `json:",omitempty"`
+	BinaryNode `json:",omitempty"`
+}
 
 // Represents a path to the highest non-zero descendant node
 type EdgeNode struct {
@@ -238,43 +241,6 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	}
 
 	c.ABI = &abiPointer
-	return nil
-}
-
-func (nodeHashToNode *NodeHashToNode) UnmarshalJSON(bytes []byte) error {
-	valueMap := make(map[string]any)
-	if err := json.Unmarshal(bytes, &valueMap); err != nil {
-		return err
-	}
-
-	nodeHash, ok := valueMap["node_hash"]
-	if !ok {
-		return fmt.Errorf("missing 'node_hash' in json object")
-	}
-	nodeHashFelt, ok := nodeHash.(felt.Felt)
-	if !ok {
-		return fmt.Errorf("error casting 'node_hash' to felt.Felt")
-	}
-
-	node, ok := valueMap["node"]
-	if !ok {
-		return fmt.Errorf("missing 'node' in json object")
-	}
-	var merkleNode MerkleNode
-	switch nodeT := node.(type) {
-	case BinaryNode:
-		merkleNode = nodeT
-	case EdgeNode:
-		merkleNode = nodeT
-	default:
-		return fmt.Errorf("'node' should be an EdgeNode or BinaryNode")
-	}
-
-	*nodeHashToNode = NodeHashToNode{
-		NodeHash: &nodeHashFelt,
-		Node:     merkleNode,
-	}
-
 	return nil
 }
 
