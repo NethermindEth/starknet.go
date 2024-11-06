@@ -1,6 +1,8 @@
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 func UnwrapJSON(data map[string]interface{}, tag string) (map[string]interface{}, error) {
 	if data[tag] != nil {
