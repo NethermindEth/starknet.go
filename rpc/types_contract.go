@@ -69,7 +69,7 @@ type ContractClass struct {
 	// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
 	ContractClassVersion string `json:"contract_class_version"`
 
-	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
+	EntryPointsByType SierraEntryPointsByType `json:"entry_points_by_type"`
 
 	ABI string `json:"abi,omitempty"`
 }
@@ -285,7 +285,7 @@ type SierraEntryPoint struct {
 	Selector *felt.Felt `json:"selector"`
 }
 
-type EntryPointsByType struct {
+type SierraEntryPointsByType struct {
 	Constructor []SierraEntryPoint `json:"CONSTRUCTOR"`
 	External    []SierraEntryPoint `json:"EXTERNAL"`
 	L1Handler   []SierraEntryPoint `json:"L1_HANDLER"`
