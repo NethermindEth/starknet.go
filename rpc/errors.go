@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -76,10 +77,10 @@ type RPCError struct {
 }
 
 func (e RPCError) Error() string {
-	if e.Data == nil {
+	if e.Data == nil || e.Data.Message == "" {
 		return e.Message
 	}
-	return e.Message + e.Data.Message
+	return e.Message + ": " + e.Data.Message
 }
 
 type RPCData struct {
@@ -113,7 +114,7 @@ func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	return nil
+	return fmt.Errorf("failed to unmarshal RPCData")
 }
 
 func (rpcData RPCData) MarshalJSON() ([]byte, error) {
@@ -295,7 +296,7 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	return nil
+	return fmt.Errorf("failed to unmarshal ContractExecutionError")
 }
 
 type ContractExecutionErrorStruct struct {
