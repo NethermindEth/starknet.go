@@ -1,6 +1,9 @@
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 func UnwrapJSON(data map[string]interface{}, tag string) (map[string]interface{}, error) {
 	if data[tag] != nil {
@@ -15,4 +18,17 @@ func UnwrapJSON(data map[string]interface{}, tag string) (map[string]interface{}
 		return unwrappedData, nil
 	}
 	return data, nil
+}
+
+func GetTypedFieldFromJSONMap[T any](data map[string]json.RawMessage, tag string) (resp T, err error) {
+	rawResp, ok := data[tag]
+	if !ok {
+		return resp, fmt.Errorf("missing '%s' field in json object", tag)
+	}
+
+	if err := json.Unmarshal(rawResp, &resp); err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }

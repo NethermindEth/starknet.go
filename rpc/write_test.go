@@ -75,7 +75,8 @@ func TestAddInvokeTransaction(t *testing.T) {
 				ExpectedError: &RPCError{
 					Code:    ErrUnexpectedError.Code,
 					Message: ErrUnexpectedError.Message,
-					Data:    "Something crazy happened"},
+					Data:    RPCData{Message: "Something crazy happened"},
+				},
 			},
 			{
 				InvokeTx:      BroadcastInvokev1Txn{InvokeTxnV1{}},

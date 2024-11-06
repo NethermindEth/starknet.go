@@ -991,7 +991,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, "UnExpectedErr"),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.RPCData{Message: "UnExpectedErr"}),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -1010,7 +1010,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, context.DeadlineExceeded),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.RPCData{Message: context.DeadlineExceeded.Error()}),
 			},
 		},
 	}[testEnv]
@@ -1076,7 +1076,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.RPCData{Message: "Post \"http://0.0.0.0:5050/\": context deadline exceeded"}),
 			},
 		},
 	}[testEnv]
