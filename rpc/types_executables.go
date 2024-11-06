@@ -9,7 +9,7 @@ type CasmCompiledContractClass struct {
 	ByteCode          []*felt.Felt          `json:"bytecode"`
 	Prime             NumAsHex              `json:"prime"`
 	CompilerVersion   string                `json:"compiler_version"`
-	Hints             Hints                 `json:"hints"`
+	Hints             []Hints               `json:"hints"`
 	// a list of sizes of segments in the bytecode, each segment is hashed invidually when computing the bytecode hash
 	BytecodeSegmentLengths []int `json:"bytecode_segment_lengths,omitempty"`
 }
