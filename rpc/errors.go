@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 const (
@@ -22,7 +21,7 @@ const (
 // - data: any data associated with the error.
 // Returns
 // - *RPCError: a pointer to an RPCError object.
-func Err(code int, data RPCData) *RPCError {
+func Err(code int, data *RPCData) *RPCError {
 	switch code {
 	case InvalidJSON:
 		return &RPCError{Code: InvalidJSON, Message: "Parse error", Data: data}
@@ -49,13 +48,13 @@ func Err(code int, data RPCData) *RPCError {
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, errIn := json.Marshal(err)
 	if errIn != nil {
-		return Err(InternalError, RPCData{Message: errIn.Error()})
+		return Err(InternalError, &RPCData{Message: errIn.Error()})
 	}
 
 	var nodeErr RPCError
 	errIn = json.Unmarshal(errBytes, &nodeErr)
 	if errIn != nil {
-		return Err(InternalError, RPCData{Message: errIn.Error()})
+		return Err(InternalError, &RPCData{Message: errIn.Error()})
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -65,61 +64,74 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	}
 
 	if nodeErr.Code == 0 {
-		return Err(InternalError, RPCData{Message: err.Error()})
+		return Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	return Err(nodeErr.Code, nodeErr.Data)
 }
 
 type RPCError struct {
-	Code    int     `json:"code"`
-	Message string  `json:"message"`
-	Data    RPCData `json:"data,omitempty"`
+	Code    int      `json:"code"`
+	Message string   `json:"message"`
+	Data    *RPCData `json:"data,omitempty"`
 }
 
 func (e RPCError) Error() string {
+	if e.Data == nil {
+		return e.Message
+	}
 	return e.Message + e.Data.Message
 }
 
 type RPCData struct {
-	Message                       string
-	ContractErrorData             ContractErrorData             `json:",omitempty"`
-	TransactionExecutionErrorData TransactionExecutionErrorData `json:",omitempty"`
+	Message                       string                         `json:",omitempty"`
+	ContractErrorData             *ContractErrorData             `json:",omitempty"`
+	TransactionExecutionErrorData *TransactionExecutionErrorData `json:",omitempty"`
 }
 
 func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 	var message string
-
 	if err := json.Unmarshal(data, &message); err == nil {
 		rpcData.Message = message
 		return nil
 	}
 
-	var rpcMap map[string]json.RawMessage
-	if err := json.Unmarshal(data, &rpcMap); err != nil {
-		return err
-	}
-
-	message, err := utils.GetTypedFieldFromJSONMap[string](rpcMap, "Message")
-	if err == nil {
-		rpcData.Message = message
+	var contractErrData ContractErrorData
+	if err := json.Unmarshal(data, &contractErrData); err == nil {
+		*rpcData = RPCData{
+			Message:           rpcData.Message + contractErrData.RevertError.Message,
+			ContractErrorData: &contractErrData,
+		}
 		return nil
 	}
 
-	contractErrData, err := utils.GetTypedFieldFromJSONMap[ContractErrorData](rpcMap, "ContractErrorData")
-	if err != nil {
-		return err
+	var txExErrData TransactionExecutionErrorData
+	if err := json.Unmarshal(data, &txExErrData); err == nil {
+		*rpcData = RPCData{
+			Message:                       rpcData.Message + txExErrData.ExecutionError.Message,
+			TransactionExecutionErrorData: &txExErrData,
+		}
+		return nil
 	}
-	rpcData.Message += contractErrData.RevertError.Message
-	rpcData.ContractErrorData = contractErrData
-
-	txExErrData, err := utils.GetTypedFieldFromJSONMap[TransactionExecutionErrorData](rpcMap, "ContractErrorData")
-	if err != nil {
-		return err
-	}
-	rpcData.Message += txExErrData.ExecutionError.Message
-	rpcData.TransactionExecutionErrorData = txExErrData
 
 	return nil
+}
+
+func (rpcData RPCData) MarshalJSON() ([]byte, error) {
+	var temp any
+
+	if rpcData.ContractErrorData != nil {
+		temp = *rpcData.ContractErrorData
+		return json.Marshal(temp)
+	}
+
+	if rpcData.TransactionExecutionErrorData != nil {
+		temp = *rpcData.TransactionExecutionErrorData
+		return json.Marshal(temp)
+	}
+
+	temp = rpcData.Message
+
+	return json.Marshal(temp)
 }
 
 var (
