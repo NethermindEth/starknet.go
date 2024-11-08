@@ -108,6 +108,7 @@ func TestCall(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
+		// TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type"
 		require := require.New(t)
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 		if test.ExpectedError != nil {

@@ -482,6 +482,7 @@ func TestEstimateMessageFee(t *testing.T) {
 
 func TestEstimateFee(t *testing.T) {
 	//TODO: upgrade the mainnet and testnet test cases before merge
+	//TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type
 
 	testConfig := beforeEach(t)
 
