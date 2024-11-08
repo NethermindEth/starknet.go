@@ -117,7 +117,7 @@ func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("failed to unmarshal RPCData")
 }
 
-func (rpcData RPCData) MarshalJSON() ([]byte, error) {
+func (rpcData *RPCData) MarshalJSON() ([]byte, error) {
 	var temp any
 
 	if rpcData.ContractErrorData != nil {
