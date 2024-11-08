@@ -36,7 +36,7 @@ func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
 	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
 	if err := provider.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
-		return nil, Err(InternalError, err)
+		return nil, Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	switch res := result.(type) {
 	case bool:
@@ -44,7 +44,7 @@ func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	case SyncStatus:
 		return &res, nil
 	default:
-		return nil, Err(InternalError, "internal error with starknet_syncing")
+		return nil, Err(InternalError, &RPCData{Message: "internal error with starknet_syncing"})
 	}
 
 }
