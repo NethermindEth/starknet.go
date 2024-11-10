@@ -100,7 +100,7 @@ go run main.go
 
 ### RPC
 
-`starknet.go` RPC implements the Starknet [RPC v0.7.0 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.0-rc2)
+`starknet.go` RPC implements the Starknet [RPC v0.7.1 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |

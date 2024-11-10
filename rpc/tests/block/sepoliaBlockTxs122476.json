@@ -1,0 +1,213 @@
+{
+  "status": "ACCEPTED_ON_L1",
+  "block_hash": "0x56a71e0443d2fbfaa91b1000e830b516ca0d4a424abb9c970d23801957dbfa3",
+  "parent_hash": "0x4a1ea63e3ef611fb240bb16eead16695c636363a3024610376904e69d516322",
+  "block_number": 122476,
+  "new_root": "0x237e5c6bfe1194ec161004611f3ac9665642471751b9d1294067d628a1545a3",
+  "timestamp": 1724239919,
+  "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+  "l1_gas_price": {
+    "price_in_fri": "0x47066ac08715",
+    "price_in_wei": "0x28fb3be9e"
+  },
+  "l1_data_gas_price": {
+    "price_in_fri": "0x39dbaca5e26d4",
+    "price_in_wei": "0x216251c284"
+  },
+  "l1_da_mode": "CALLDATA",
+  "starknet_version": "0.13.2",
+  "transactions": [
+    {
+      "transaction_hash": "0x641245619f0e5010cb9f074066b5503c1800cd378ffdcae19eece606b08770c",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x1c",
+      "max_fee": "0x6e9ddce36b59",
+      "sender_address": "0x43a18d9fd0d0f5c9a2c6d81d08154d262c0fc7a7f3f9dad3f0bdec4d7095afa",
+      "signature": [
+        "0x1",
+        "0x0",
+        "0x7cbfb36b90ae66bd015b40b8ad8474e83cf56f579dd8ea0a24142b03c4efb51",
+        "0xa8b12c708ab70dbd54db4d70f12e96460836f25af0cb54c83873e70d25c6aa",
+        "0x236af83c1fd8dac6ce2d08af9ccb61ad6673df527bf5684d668b05025d9deb6"
+      ],
+      "calldata": [
+        "0x1",
+        "0x55bf57fd5e7cc51e9dc3454cd739def751a49f25206e47d0ab41935eba96ac5",
+        "0x2c3af3bc76ccc9147c14ca5db346743531c8fc91c1b5be4ccfab190021aa828",
+        "0x1",
+        "0x4d93124831d19c120a4f4fedc1de422c77659297c594b0988bc6605a1906c13"
+      ]
+    },
+    {
+      "transaction_hash": "0x64a8fac37485df357b317d7a8bb4aa18fb72ebc05363c7fc710af98316c2840",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x6",
+      "max_fee": "0x6b0555ce18bf",
+      "sender_address": "0x6f4baf2a23802beeab7d6cb3aa2cb36ca1b0b93d371eac0560568d689909e0e",
+      "signature": [
+        "0x6a00cb31718dc425e29c4114b29682d7b4b9cdfe34fc42d8d67aa8e571e890b",
+        "0x6304c0fd58833f66192eff8d9798ce90560dc25cd10748327078b63ee21fea"
+      ],
+      "calldata": [
+        "0x1",
+        "0x2f62fd47cbc9bb16b2e9ab22e1a9d57352aff1cab642d93256061a6cd3c6838",
+        "0x351e7616cb53c4e023ff48cbf54d76dfa5e4597a1e30b0d4fec4bba86d92c59",
+        "0x3",
+        "0x5",
+        "0x3",
+        "0x8"
+      ]
+    },
+    {
+      "transaction_hash": "0xce7138ae93a21e94ac063665f7a51be346d9c3c287d918e391f98c9d9a33fd",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x3def",
+      "max_fee": "0x16345785d8a0000",
+      "sender_address": "0x64b4dacea78c6394572f4534400abb74a872a059b68630fba80895c646aa97f",
+      "signature": [
+        "0x509f8e6e14954b6f7bba2e4b35bc4176b751f6229730e014441cccd5e733d6e",
+        "0x3379aa29d6c131e5486e189f4cb43e5a09727ad4e6ea0b58199283cb0c913a8"
+      ],
+      "calldata": [
+        "0x1",
+        "0x36031daa264c24520b11d93af622c848b2499b66b41d611bac95e13cfca131a",
+        "0x3d0bcca55c118f88a08e0fcc06f43906c0c174feb52ebc83f0fa28a1f59ed67",
+        "0x8",
+        "0x1",
+        "0x2",
+        "0x66c5d037",
+        "0x44455249424954",
+        "0x505241474d415f4d45524b4c45",
+        "0x444552494249545f4f5054494f4e535f4d45524b4c455f524f4f54",
+        "0xa90b73a7b7b48deb9fe3ea09be50d30d",
+        "0x55fb4f5a4dd7c056a51f1a55e0bc09a"
+      ]
+    },
+    {
+      "transaction_hash": "0x5cf2ffcc8c96d8c065e108bbd905e70b704ebc81e024d6a1de8c402fed65f7f",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x7",
+      "max_fee": "0x49edb704d666",
+      "sender_address": "0x6f4baf2a23802beeab7d6cb3aa2cb36ca1b0b93d371eac0560568d689909e0e",
+      "signature": [
+        "0x9e88cff23da4c7f299213beb54b13bcc4da60f668cb648e3a7bc4fa3b9705a",
+        "0x40a053a9e135f795533b2854ca2f554a17b675a7c5c7ca5681ce4b5c99313a2"
+      ],
+      "calldata": [
+        "0x1",
+        "0x2f62fd47cbc9bb16b2e9ab22e1a9d57352aff1cab642d93256061a6cd3c6838",
+        "0x351e7616cb53c4e023ff48cbf54d76dfa5e4597a1e30b0d4fec4bba86d92c59",
+        "0x3",
+        "0x6",
+        "0x2",
+        "0x3"
+      ]
+    },
+    {
+      "transaction_hash": "0x6c1c8408b4cdfbd64c9c994ed832b4ff1bab0fa61dbe6cb481096a089b89f77",
+      "type": "L1_HANDLER",
+      "version": "0x0",
+      "nonce": "0x21e6",
+      "contract_address": "0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
+      "calldata": [
+        "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
+        "0x455448",
+        "0xb957c7591bf8b8ad1e5b8942de6ff3b1d22d4951",
+        "0x74a007ad858d86d30a34b0426cc0a9b44cdb7b287a39827741b922c3f5055e8",
+        "0x8ac7230489e80000",
+        "0x0"
+      ],
+      "entry_point_selector": "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"
+    },
+    {
+      "transaction_hash": "0x5cd0758b83ad825e08acc746b18022f03b9b972beadd9697f2422349b0148b0",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x8",
+      "max_fee": "0x49e9df773879",
+      "sender_address": "0x6f4baf2a23802beeab7d6cb3aa2cb36ca1b0b93d371eac0560568d689909e0e",
+      "signature": [
+        "0x632491df7060ab0f30b8b051237de3734dd4060d75fa3b6dea05a98acb39d26",
+        "0x6d6b36c0763109401072bdcaaf21dba0d1f01e50513b128bffa785c4799c7e0"
+      ],
+      "calldata": [
+        "0x1",
+        "0x2f62fd47cbc9bb16b2e9ab22e1a9d57352aff1cab642d93256061a6cd3c6838",
+        "0x351e7616cb53c4e023ff48cbf54d76dfa5e4597a1e30b0d4fec4bba86d92c59",
+        "0x3",
+        "0x7",
+        "0x0",
+        "0x2"
+      ]
+    },
+    {
+      "transaction_hash": "0x71648395117861ef59d09920696915a17d1df06a9439119376b0c894ad44ce7",
+      "type": "DEPLOY_ACCOUNT",
+      "version": "0x1",
+      "nonce": "0x0",
+      "max_fee": "0x639f39858940",
+      "contract_address_salt": "0x72ebef11beea5f6bc7a40867f4c13198c674d4d6b4e1bc6b534542c330b62f9",
+      "class_hash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+      "constructor_calldata": [
+        "0x0",
+        "0x72ebef11beea5f6bc7a40867f4c13198c674d4d6b4e1bc6b534542c330b62f9",
+        "0x1"
+      ],
+      "signature": [
+        "0x1",
+        "0x0",
+        "0x72ebef11beea5f6bc7a40867f4c13198c674d4d6b4e1bc6b534542c330b62f9",
+        "0x748e650647cba51ef1bd1ac2faf63d21ed4f24d228fc8586213f0d2d637046f",
+        "0x7da98a8a6c77fd1db081a4859683aaa420b70c0a5923a66ef272b9750eb5f92"
+      ]
+    },
+    {
+      "transaction_hash": "0xaae8c4f108bd775e19caf0ee3c5505d4eeea9130c19965b8ecb8af47c687a0",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x1",
+      "max_fee": "0x533bc04f0dda",
+      "sender_address": "0x11de9c756a84a99b5765183625cd7ad8eb6a0206ce2904dbe478a1a1e5c0cb1",
+      "signature": [
+        "0x1",
+        "0x0",
+        "0x72ebef11beea5f6bc7a40867f4c13198c674d4d6b4e1bc6b534542c330b62f9",
+        "0x5e214ddd79c80b2e79382acfd6d00e6fcef6c068ab9b38217f050309620ea9a",
+        "0x3078e43f6ed45c1d0380df34a662519686c50e6d4124cab4253b02e72295267"
+      ],
+      "calldata": [
+        "0x1",
+        "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+        "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+        "0x3",
+        "0xa940bfe8529989ba4e7bf3a52ab68fc33e7e4a54a8dcbd905208f52a2539b8",
+        "0x5f5e100",
+        "0x0"
+      ]
+    },
+    {
+      "transaction_hash": "0x66534071605a2bb656fb93b34da7300fd98e44d87e19356833e6abc0d5cb245",
+      "type": "INVOKE",
+      "version": "0x1",
+      "nonce": "0x9",
+      "max_fee": "0x5b300530450c",
+      "sender_address": "0x6f4baf2a23802beeab7d6cb3aa2cb36ca1b0b93d371eac0560568d689909e0e",
+      "signature": [
+        "0x1c8a08103a1c0a292d9e74dba944722d7692b440ccef82a753aed52edca092a",
+        "0x481395eb95e87902f4dcdfe2c1b8b45682ab6fe30c4d75c2f5069e49bf65ca7"
+      ],
+      "calldata": [
+        "0x1",
+        "0x2f62fd47cbc9bb16b2e9ab22e1a9d57352aff1cab642d93256061a6cd3c6838",
+        "0xebe67ecda98df0a49deaf33424f0f34c7216d3d08eac37cef51835b4707e64",
+        "0x2",
+        "0x382f32312f3230323420363a33323a313920504d",
+        "0x1"
+      ]
+    }
+  ]
+}

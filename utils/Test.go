@@ -7,6 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Just a random felt variable to use when needed. The value is "0xdeadbeef"
+var RANDOM_FELT = new(felt.Felt).SetUint64(3735928559)
+
 // TestHexToFelt generates a felt.Felt from a hexadecimal string.
 //
 // Parameters:
