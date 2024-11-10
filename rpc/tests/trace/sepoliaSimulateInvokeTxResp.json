@@ -1,0 +1,201 @@
+{
+	"jsonrpc": "2.0",
+	"result": [
+		{
+			"transaction_trace": {
+				"type": "INVOKE",
+				"validate_invocation": {
+					"contract_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+					"entry_point_selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+					"calldata": [
+						"0x1",
+						"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"0x2",
+						"0xffffffff",
+						"0x0"
+					],
+					"caller_address": "0x0",
+					"class_hash": "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+					"entry_point_type": "EXTERNAL",
+					"call_type": "CALL",
+					"result": [
+						"0x56414c4944"
+					],
+					"calls": [],
+					"events": [],
+					"messages": [],
+					"execution_resources": {
+						"steps": 970,
+						"memory_holes": 5,
+						"range_check_builtin_applications": 20,
+						"ec_op_builtin_applications": 3
+					}
+				},
+				"execute_invocation": {
+					"contract_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+					"entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+					"calldata": [
+						"0x1",
+						"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"0x2",
+						"0xffffffff",
+						"0x0"
+					],
+					"caller_address": "0x0",
+					"class_hash": "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+					"entry_point_type": "EXTERNAL",
+					"call_type": "CALL",
+					"result": [
+						"0x1",
+						"0x0"
+					],
+					"calls": [
+						{
+							"contract_address": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+							"entry_point_selector": "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+							"calldata": [
+								"0xffffffff",
+								"0x0"
+							],
+							"caller_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+							"class_hash": "0x245e2d200513255c7b2170ddbca52c3f0e319624143b6c79696bf991d10cef7",
+							"entry_point_type": "EXTERNAL",
+							"call_type": "CALL",
+							"result": [],
+							"calls": [],
+							"events": [
+								{
+									"order": 0,
+									"keys": [
+										"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+										"0x0",
+										"0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06"
+									],
+									"data": [
+										"0xffffffff",
+										"0x0"
+									]
+								}
+							],
+							"messages": [],
+							"execution_resources": {
+								"steps": 1137,
+								"memory_holes": 42,
+								"pedersen_builtin_applications": 2,
+								"range_check_builtin_applications": 28
+							}
+						}
+					],
+					"events": [],
+					"messages": [],
+					"execution_resources": {
+						"steps": 2867,
+						"memory_holes": 105,
+						"pedersen_builtin_applications": 2,
+						"range_check_builtin_applications": 64
+					}
+				},
+				"fee_transfer_invocation": {
+					"contract_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+					"entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+					"calldata": [
+						"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+						"0x955fd7d0ffd4",
+						"0x0"
+					],
+					"caller_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+					"class_hash": "0x7f3777c99f3700505ea966676aac4a0d692c2a9f5e667f4c606b51ca1dd3420",
+					"entry_point_type": "EXTERNAL",
+					"call_type": "CALL",
+					"result": [
+						"0x1"
+					],
+					"calls": [],
+					"events": [
+						{
+							"order": 0,
+							"keys": [
+								"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+							],
+							"data": [
+								"0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+								"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+								"0x955fd7d0ffd4",
+								"0x0"
+							]
+						}
+					],
+					"messages": [],
+					"execution_resources": {
+						"steps": 1178,
+						"memory_holes": 23,
+						"pedersen_builtin_applications": 4,
+						"range_check_builtin_applications": 37
+					}
+				},
+				"state_diff": {
+					"storage_diffs": [
+						{
+							"address": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+							"storage_entries": [
+								{
+									"key": "0x110e2f729c9c2b988559994a3daccd838cf52faf88e18101373e67dd061455a",
+									"value": "0x5b09cdee5e8fff5"
+								},
+								{
+									"key": "0x1d0f2383a44f5fbfa2bce9f73ac70f52a9a5190555037d4f1b2dae8b8f4d952",
+									"value": "0x58d15ea7627fff7"
+								}
+							]
+						},
+						{
+							"address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+							"storage_entries": [
+								{
+									"key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+									"value": "0x1d5213163f322a7b90"
+								},
+								{
+									"key": "0x1d0f2383a44f5fbfa2bce9f73ac70f52a9a5190555037d4f1b2dae8b8f4d952",
+									"value": "0xa0341baf49c2"
+								}
+							]
+						}
+					],
+					"nonces": [
+						{
+							"contract_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+							"nonce": "0x1b"
+						}
+					],
+					"deployed_contracts": [],
+					"deprecated_declared_classes": [],
+					"declared_classes": [],
+					"replaced_classes": []
+				},
+				"execution_resources": {
+					"steps": 5015,
+					"memory_holes": 133,
+					"pedersen_builtin_applications": 6,
+					"range_check_builtin_applications": 121,
+					"ec_op_builtin_applications": 3,
+					"data_availability": {
+						"l1_gas": 4646,
+						"l1_data_gas": 0
+					}
+				}
+			},
+			"fee_estimation": {
+				"gas_consumed": "0x123c",
+				"gas_price": "0x831211d3b",
+				"data_gas_consumed": "0x0",
+				"data_gas_price": "0x1b10c",
+				"overall_fee": "0x955fd7d0ffd4",
+				"unit": "WEI"
+			}
+		}
+	],
+	"id": 0
+}

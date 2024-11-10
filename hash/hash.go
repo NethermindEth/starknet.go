@@ -5,25 +5,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
 )
-
-// ComputeHashOnElementsFelt computes the hash on elements of a Felt array.
-//
-// Parameters:
-// - feltArr: A pointer to an array of Felt objects.
-// Returns:
-// - *felt.Felt: a pointer to a Felt object
-// - error: an error if any
-func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
-	bigIntArr := utils.FeltArrToBigIntArr(feltArr)
-
-	hash, err := curve.Curve.ComputeHashOnElements(bigIntArr)
-	if err != nil {
-		return nil, err
-	}
-	return utils.BigIntToFelt(hash), nil
-}
 
 // CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
@@ -39,7 +21,6 @@ func ComputeHashOnElementsFelt(feltArr []*felt.Felt) (*felt.Felt, error) {
 // - additionalData: Additional data to be included in the hash
 // Returns:
 // - *felt.Felt: the calculated transaction hash
-// - error: an error if any
 func CalculateTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
@@ -48,7 +29,7 @@ func CalculateTransactionHashCommon(
 	calldata *felt.Felt,
 	maxFee *felt.Felt,
 	chainId *felt.Felt,
-	additionalData []*felt.Felt) (*felt.Felt, error) {
+	additionalData []*felt.Felt) *felt.Felt {
 
 	dataToHash := []*felt.Felt{
 		txHashPrefix,
@@ -60,7 +41,7 @@ func CalculateTransactionHashCommon(
 		chainId,
 	}
 	dataToHash = append(dataToHash, additionalData...)
-	return ComputeHashOnElementsFelt(dataToHash)
+	return curve.PedersenArray(dataToHash...)
 }
 
 // ClassHash calculates the hash of a contract class.
@@ -76,7 +57,7 @@ func CalculateTransactionHashCommon(
 // Returns:
 // - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 // - error: an error object if there was an error during the hash calculation.
-func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
+func ClassHash(contract rpc.ContractClass) *felt.Felt {
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
@@ -85,13 +66,10 @@ func ClassHash(contract rpc.ContractClass) (*felt.Felt, error) {
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
 	SierraProgamHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
-	ABIHash, err := curve.Curve.StarknetKeccak([]byte(contract.ABI))
-	if err != nil {
-		return nil, err
-	}
+	ABIHash := curve.Curve.StarknetKeccak([]byte(contract.ABI))
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash), nil
+	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
 }
 
 // hashEntryPointByType calculates the hash of an entry point by type.

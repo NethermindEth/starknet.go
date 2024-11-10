@@ -30,6 +30,7 @@ func TestCall(t *testing.T) {
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
+		ExpectedError         error
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -65,6 +66,33 @@ func TestCall(t *testing.T) {
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: utils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
+			{
+				FunctionCall: FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: ErrContractError,
+			},
+			{
+				FunctionCall: FunctionCall{
+					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:       WithBlockNumber(9999999999999999999),
+				ExpectedError: ErrBlockNotFound,
+			},
+			{
+				FunctionCall: FunctionCall{
+					ContractAddress:    utils.RANDOM_FELT,
+					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: ErrContractNotFound,
+			},
 		},
 		"mainnet": {
 			{
@@ -82,8 +110,12 @@ func TestCall(t *testing.T) {
 	for _, test := range testSet {
 		require := require.New(t)
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
-		require.NoError(err)
-		require.NotEmpty(output, "should return an output")
-		require.Equal(test.ExpectedPatternResult, output[0])
+		if test.ExpectedError != nil {
+			require.EqualError(test.ExpectedError, err.Error())
+		} else {
+			require.NoError(err)
+			require.NotEmpty(output, "should return an output")
+			require.Equal(test.ExpectedPatternResult, output[0])
+		}
 	}
 }

@@ -15,7 +15,7 @@ import (
 
 	felt "github.com/NethermindEth/juno/core/felt"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRpcProvider is a mock of RpcProvider interface.
@@ -252,10 +252,10 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 }
 
 // EstimateFee mocks base method.
-func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
-	ret0, _ := ret[0].([]rpc.FeeEstimate)
+	ret0, _ := ret[0].([]rpc.FeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -267,10 +267,10 @@ func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag
 }
 
 // EstimateMessageFee mocks base method.
-func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateMessageFee", ctx, msg, blockID)
-	ret0, _ := ret[0].(*rpc.FeeEstimate)
+	ret0, _ := ret[0].(*rpc.FeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -327,7 +327,7 @@ func (mr *MockRpcProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
 	ret0, _ := ret[0].([]rpc.SimulatedTransaction)
@@ -432,10 +432,10 @@ func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIdAndIndex mocks base method.
-func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByBlockIdAndIndex", ctx, blockID, index)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -447,10 +447,10 @@ func (mr *MockRpcProviderMockRecorder) TransactionByBlockIdAndIndex(ctx, blockID
 }
 
 // TransactionByHash mocks base method.
-func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

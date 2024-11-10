@@ -135,8 +135,8 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 // Estimates the resources required by a given sequence of transactions when applied on a given state.
 // If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error),
 // a TRANSACTION_EXECUTION_ERROR is returned. For v0-2 transactions the estimate is given in wei, and for v3 transactions it is given in fri.
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimate, error) {
-	var raw []FeeEstimate
+func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error) {
+	var raw []FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
@@ -150,13 +150,13 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastT
 // - msg: The message to estimate the fee for
 // - blockID: The ID of the block to estimate the fee in
 // Returns:
-// - *FeeEstimate: the fee estimated for the message
+// - *FeeEstimation: the fee estimated for the message
 // - error: an error if any occurred during the execution
-func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimate, error) {
-	var raw FeeEstimate
+func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error) {
+	var raw FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
 
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
 	}
 	return &raw, nil
 }
