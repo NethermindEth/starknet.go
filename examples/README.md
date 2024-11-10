@@ -36,4 +36,6 @@ To run an example:
   R: See [simpleCall](./simpleCall/main.go).
 1. How to make a function call?  
   R: See [simpleCall](./simpleCall/main.go).
+1. How to read event logs?
+  R: See [readEvents](./readEvents/main.go).
 
