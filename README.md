@@ -95,6 +95,14 @@ go run main.go
 
 > Check [here](examples/deployContractUDC/README.md) for more details.
 
+***starknet readEvents***
+ 
+```sh
+cd examples/readEvents
+go run main.go
+```
+> Check [here](examples/readEvents/README.md) for more details
+
 <br/> Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ answered by these examples.
 
 
