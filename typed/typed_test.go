@@ -53,26 +53,47 @@ var dm = Domain{
 	ChainId: "1",
 }
 
-// MockTypedData generates a TypedData object for testing purposes.
-// It creates example types and initializes a Domain object. Then it uses the example types and the domain to create a new TypedData object.
-// The function returns the generated TypedData object.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - ttd: the generated TypedData object
-func MockTypedData(t *testing.T) (ttd TypedData) {
-	t.Helper()
-	content, err := os.ReadFile("./tests/baseExample.json")
-	require.NoError(t, err)
+var typedDataExamples = make(map[string]TypedData)
 
-	err = json.Unmarshal(content, &ttd)
-	require.NoError(t, err)
+// var typedDataExamples struct {
+// 	baseExample         TypedData
+// 	example_baseTypes   TypedData
+// 	example_enum        TypedData
+// 	example_presetTypes TypedData
+// 	mail_StructArray    TypedData
+// 	session_MerkleTree  TypedData
+// 	v1Nested            TypedData
+// }
 
-	return
+func TestMain(m *testing.M) {
+	//TODO: implement v1 so we can use other examples
+	fileNames := []string{
+		"baseExample",
+		// "example_baseTypes",
+		// "example_enum",
+		// "example_presetTypes",
+		// "mail_StructArray",
+		// "session_MerkleTree",
+		// "v1Nested",
+	}
+
+	for _, fileName := range fileNames {
+		var ttd TypedData
+		content, err := os.ReadFile(fmt.Sprintf("./tests/%s.json", fileName))
+		if err != nil {
+			panic("fail to read file")
+		}
+		err = json.Unmarshal(content, &ttd)
+		if err != nil {
+			panic("fail to unmarshal TypedData")
+		}
+
+		typedDataExamples[fileName] = ttd
+	}
+
+	os.Exit(m.Run())
 }
+
 func BMockTypedData(b *testing.B) (ttd TypedData) {
 	b.Helper()
 	content, err := os.ReadFile("./tests/baseExample.json")
@@ -251,7 +272,7 @@ func TestGeneral_CreateMessageWithTypes(t *testing.T) {
 // Returns:
 // - None
 func TestGetMessageHash(t *testing.T) {
-	ttd := MockTypedData(t)
+	ttd := typedDataExamples["baseExample"]
 
 	hash, err := ttd.GetMessageHash("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
 	require.NoError(t, err)
@@ -295,7 +316,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 //	none
 func TestGetTypeHash(t *testing.T) {
 	require := require.New(t)
-	ttd := MockTypedData(t)
+	ttd := typedDataExamples["baseExample"]
 
 	type testSetType struct {
 		TypeName     string
@@ -338,7 +359,7 @@ func TestGetTypeHash(t *testing.T) {
 //	none
 func TestEncodeType(t *testing.T) {
 	require := require.New(t)
-	ttd := MockTypedData(t)
+	ttd := typedDataExamples["baseExample"]
 
 	type testSetType struct {
 		TypeName       string
@@ -380,7 +401,7 @@ func TestEncodeType(t *testing.T) {
 //
 //	none
 func TestGetStructHash(t *testing.T) {
-	ttd := MockTypedData(t)
+	ttd := typedDataExamples["baseExample"]
 
 	type testSetType struct {
 		TypeName     string
