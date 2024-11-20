@@ -53,20 +53,6 @@ var dm = Domain{
 	ChainId: "1",
 }
 
-var message = `
-	{
-	"from": {
-		"name": "Cow",
-		"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-	},
-	"to": {
-		"name": "Bob",
-		"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-	},
-	"contents": "Hello, Bob!"
-}
-`
-
 // MockTypedData generates a TypedData object for testing purposes.
 // It creates example types and initializes a Domain object. Then it uses the example types and the domain to create a new TypedData object.
 // The function returns the generated TypedData object.
