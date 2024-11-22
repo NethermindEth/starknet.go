@@ -44,6 +44,31 @@ var (
 var RevisionV0 revision
 var RevisionV1 revision
 
+func init() {
+	preset := make(map[string]TypeDefinition)
+
+	RevisionV0 = revision{
+		version:    0,
+		domain:     "StarkNetDomain",
+		hashMethod: curve.PedersenArray,
+		types: RevisionTypes{
+			Basic:  revision_0_basic_types,
+			Preset: preset,
+		},
+	}
+
+	preset = getRevisionV1PresetTypes()
+	RevisionV1 = revision{
+		version:    1,
+		domain:     "StarknetDomain",
+		hashMethod: curve.PoseidonArray,
+		types: RevisionTypes{
+			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
+			Preset: preset,
+		},
+	}
+}
+
 type revision struct {
 	version    uint8
 	domain     string
@@ -71,31 +96,6 @@ func (rev *revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
 
 func (rev *revision) Types() RevisionTypes {
 	return rev.types
-}
-
-func init() {
-	preset := make(map[string]TypeDefinition)
-
-	RevisionV0 = revision{
-		version:    0,
-		domain:     "StarkNetDomain",
-		hashMethod: curve.PedersenArray,
-		types: RevisionTypes{
-			Basic:  revision_0_basic_types,
-			Preset: preset,
-		},
-	}
-
-	preset = getRevisionV1PresetTypes()
-	RevisionV1 = revision{
-		version:    1,
-		domain:     "StarknetDomain",
-		hashMethod: curve.PoseidonArray,
-		types: RevisionTypes{
-			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
-			Preset: preset,
-		},
-	}
 }
 
 func GetRevision(version uint8) (rev revision, err error) {

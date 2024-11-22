@@ -205,7 +205,7 @@ func shortGetStructHash(
 // Returns:
 // - ret: the hash of the given type
 // - err: any error if any
-func (td TypedData) GetTypeHash(typeName string) (ret *felt.Felt, err error) {
+func (td *TypedData) GetTypeHash(typeName string) (ret *felt.Felt, err error) {
 	//TODO: create/update methods descriptions
 	return getTypeHash(typeName, td.Types)
 }
