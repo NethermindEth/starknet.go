@@ -2,6 +2,8 @@ package typed
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
@@ -22,7 +24,7 @@ var (
 	//
 	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
 	revision_1_basic_types []string = []string{
-		//TODO: enum?
+		"enum",
 		"u128",
 		"i128",
 		"ContractAddress",
@@ -30,9 +32,19 @@ var (
 		"timestamp",
 		"shortstring",
 	}
+
+	//lint:ignore U1000 Variable used to check Preset types in other pieces of code
+	revision_1_preset_types []string = []string{
+		"NftId",
+		"TokenAmount",
+		"u256",
+	}
 )
 
-type Revision struct {
+var RevisionV0 revision
+var RevisionV1 revision
+
+type revision struct {
 	version    uint8
 	domain     string
 	hashMethod func(felts ...*felt.Felt) *felt.Felt
@@ -45,49 +57,53 @@ type RevisionTypes struct {
 	Preset map[string]TypeDefinition
 }
 
-func (rev *Revision) Version() uint8 {
+func (rev *revision) Version() uint8 {
 	return rev.version
 }
 
-func (rev *Revision) Domain() string {
+func (rev *revision) Domain() string {
 	return rev.domain
 }
 
-func (rev *Revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
+func (rev *revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
 	return rev.hashMethod(felts...)
 }
 
-func (rev *Revision) Types() RevisionTypes {
+func (rev *revision) Types() RevisionTypes {
 	return rev.types
 }
 
-func NewRevision(version uint8) (rev Revision, err error) {
+func init() {
 	preset := make(map[string]TypeDefinition)
 
+	RevisionV0 = revision{
+		version:    0,
+		domain:     "StarkNetDomain",
+		hashMethod: curve.PedersenArray,
+		types: RevisionTypes{
+			Basic:  revision_0_basic_types,
+			Preset: preset,
+		},
+	}
+
+	preset = getRevisionV1PresetTypes()
+	RevisionV1 = revision{
+		version:    1,
+		domain:     "StarknetDomain",
+		hashMethod: curve.PoseidonArray,
+		types: RevisionTypes{
+			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
+			Preset: preset,
+		},
+	}
+}
+
+func GetRevision(version uint8) (rev revision, err error) {
 	switch version {
 	case 0:
-		rev = Revision{
-			version:    0,
-			domain:     "StarkNetDomain",
-			hashMethod: curve.PedersenArray,
-			types: RevisionTypes{
-				Basic:  revision_0_basic_types,
-				Preset: preset,
-			},
-		}
-		return rev, nil
+		return RevisionV0, nil
 	case 1:
-		preset = getRevisionV1PresetTypes()
-		rev = Revision{
-			version:    1,
-			domain:     "StarknetDomain",
-			hashMethod: curve.PoseidonArray,
-			types: RevisionTypes{
-				Basic:  append(revision_1_basic_types, revision_0_basic_types...),
-				Preset: preset,
-			},
-		}
-		return rev, nil
+		return RevisionV1, nil
 	default:
 		return rev, fmt.Errorf("invalid revision version")
 	}
@@ -96,7 +112,7 @@ func NewRevision(version uint8) (rev Revision, err error) {
 func getRevisionV1PresetTypes() map[string]TypeDefinition {
 	//NftId
 	//TokenAmount
-	//U256
+	//u256
 	presetTypes := []TypeDefinition{
 		{
 			Name: "NftId",
@@ -107,7 +123,7 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 				},
 				{
 					Name: "token_id",
-					Type: "U256",
+					Type: "u256",
 				},
 			},
 		},
@@ -120,12 +136,12 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 				},
 				{
 					Name: "amount",
-					Type: "U256",
+					Type: "u256",
 				},
 			},
 		},
 		{
-			Name: "U256",
+			Name: "u256",
 			Parameters: []TypeParameter{
 				{
 					Name: "low",
@@ -146,4 +162,17 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 	}
 
 	return result
+}
+
+// Check if the provided type name is a standard type defined at the SNIP 12, also validates arrays
+func isStandardType(typeName string) bool {
+	typeName, _ = strings.CutSuffix(typeName, "*")
+
+	if slices.Contains(revision_0_basic_types, typeName) ||
+		slices.Contains(revision_1_basic_types, typeName) ||
+		slices.Contains(revision_1_preset_types, typeName) {
+		return true
+	}
+
+	return false
 }

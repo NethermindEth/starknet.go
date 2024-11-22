@@ -44,7 +44,7 @@ type TypedData struct {
 	PrimaryType string                    `json:"primaryType"`
 	Domain      Domain                    `json:"domain"`
 	Message     map[string]any            `json:"message"`
-	Revision    Revision                  `json:"-"`
+	Revision    revision                  `json:"-"`
 }
 
 type Domain struct {
@@ -95,7 +95,7 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 		return td, fmt.Errorf("error unmarshalling the message: %w", err)
 	}
 
-	revision, err := NewRevision(domain.Revision)
+	revision, err := GetRevision(domain.Revision)
 	if err != nil {
 		return td, fmt.Errorf("error getting revision: %w", err)
 	}

@@ -55,16 +55,6 @@ var dm = Domain{
 
 var typedDataExamples = make(map[string]TypedData)
 
-// var typedDataExamples struct {
-// 	baseExample         TypedData
-// 	example_baseTypes   TypedData
-// 	example_enum        TypedData
-// 	example_presetTypes TypedData
-// 	mail_StructArray    TypedData
-// 	session_MerkleTree  TypedData
-// 	v1Nested            TypedData
-// }
-
 func TestMain(m *testing.M) {
 	//TODO: implement v1 so we can use other examples
 	fileNames := []string{
@@ -81,11 +71,11 @@ func TestMain(m *testing.M) {
 		var ttd TypedData
 		content, err := os.ReadFile(fmt.Sprintf("./tests/%s.json", fileName))
 		if err != nil {
-			panic("fail to read file")
+			panic(fmt.Errorf("fail to read file: %w", err))
 		}
 		err = json.Unmarshal(content, &ttd)
 		if err != nil {
-			panic("fail to unmarshal TypedData")
+			panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 		}
 
 		typedDataExamples[fileName] = ttd
