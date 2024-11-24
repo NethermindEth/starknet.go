@@ -354,24 +354,34 @@ func TestEncodeType(t *testing.T) {
 	type testSetType struct {
 		TypeName       string
 		ExpectedEncode string
+		Revision       revision
 	}
 	testSet := []testSetType{
 		// revision 0
 		{
 			TypeName:       "StarkNetDomain",
 			ExpectedEncode: "StarkNetDomain(name:felt,version:felt,chainId:felt)",
-		},
-		{
-			TypeName:       "Person",
-			ExpectedEncode: "Person(name:felt,wallet:felt)",
+			Revision:       RevisionV0,
 		},
 		{
 			TypeName:       "Mail",
 			ExpectedEncode: "Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)",
+			Revision:       RevisionV0,
+		},
+		// revision 1
+		{
+			TypeName:       "StarkNetDomain",
+			ExpectedEncode: `"StarkNetDomain"("name":"felt","version":"felt","chainId":"felt")`,
+			Revision:       RevisionV1,
+		},
+		{
+			TypeName:       "Mail",
+			ExpectedEncode: `"Mail"("from":"Person","to":"Person","contents":"felt")"Person"("name":"felt","wallet":"felt")`,
+			Revision:       RevisionV1,
 		},
 	}
 	for _, test := range testSet {
-		encode, err := encodeType(test.TypeName, ttd.Types)
+		encode, err := encodeType(test.TypeName, ttd.Types, test.Revision.Version())
 		require.NoError(err)
 
 		require.Equal(test.ExpectedEncode, encode)
