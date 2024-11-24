@@ -379,6 +379,13 @@ func encodeData(
 				}
 				enc = append(enc, typedData.Revision.HashMethod(byteArr...))
 			}
+		case "selector":
+			value, err := getStringFromData(param.Name)
+			if err != nil {
+				return enc, err
+			}
+			feltValue := utils.GetSelectorFromNameFelt(value)
+			enc = append(enc, feltValue)
 		default:
 			if nextTypeDef, ok := typedData.Types[param.Type]; ok {
 				structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
