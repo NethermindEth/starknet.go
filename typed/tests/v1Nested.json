@@ -33,94 +33,34 @@
   "primaryType": "TransferERC721",
   "types": {
     "Account1": [
-      {
-        "name": "Name",
-        "type": "string"
-      },
-      {
-        "name": "Address",
-        "type": "felt"
-      }
+      {"name": "Name", "type": "string"},
+      {"name": "Address", "type": "felt"}
     ],
     "Nft": [
-      {
-        "name": "Collection",
-        "type": "string"
-      },
-      {
-        "name": "Address",
-        "type": "felt"
-      },
-      {
-        "name": "Nft_id",
-        "type": "felt"
-      },
-      {
-        "name": "Negotiated_for",
-        "type": "Transaction"
-      }
+      {"name": "Collection", "type": "string"},
+      {"name": "Address", "type": "felt"},
+      {"name": "Nft_id", "type": "felt"},
+      {"name": "Negotiated_for", "type": "Transaction"}
     ],
     "Transaction": [
-      {
-        "name": "Qty",
-        "type": "string"
-      },
-      {
-        "name": "Unit",
-        "type": "string"
-      },
-      {
-        "name": "Token_address",
-        "type": "felt"
-      },
-      {
-        "name": "Amount",
-        "type": "felt"
-      }
+      {"name": "Qty", "type": "string"},
+      {"name": "Unit", "type": "string"},
+      {"name": "Token_address", "type": "felt"},
+      {"name": "Amount", "type": "felt"}
     ],
     "TransferERC721": [
-      {
-        "name": "MessageId",
-        "type": "felt"
-      },
-      {
-        "name": "From",
-        "type": "Account1"
-      },
-      {
-        "name": "To",
-        "type": "Account1"
-      },
-      {
-        "name": "Nft_to_transfer",
-        "type": "Nft"
-      },
-      {
-        "name": "Comment1",
-        "type": "string"
-      },
-      {
-        "name": "Comment2",
-        "type": "string"
-      },
-      {
-        "name": "Comment3",
-        "type": "string"
-      }
+      {"name": "MessageId", "type": "felt"},
+      {"name": "From", "type": "Account1"},
+      {"name": "To", "type": "Account1"},
+      {"name": "Nft_to_transfer", "type": "Nft"},
+      {"name": "Comment1", "type": "string"},
+      {"name": "Comment2", "type": "string"},
+      {"name": "Comment3", "type": "string"}
     ],
     "StarknetDomain": [
-      {
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "name": "chainId",
-        "type": "felt"
-      },
-      {
-        "name": "version",
-        "type": "string"
-      }
+      {"name": "name", "type": "string"},
+      {"name": "chainId", "type": "felt"},
+      {"name": "version", "type": "string"}
     ]
   }
 }

@@ -99,12 +99,12 @@ func (rev *revision) Types() RevisionTypes {
 	return rev.types
 }
 
-func GetRevision(version uint8) (rev revision, err error) {
+func GetRevision(version uint8) (rev *revision, err error) {
 	switch version {
 	case 0:
-		return RevisionV0, nil
+		return &RevisionV0, nil
 	case 1:
-		return RevisionV1, nil
+		return &RevisionV1, nil
 	default:
 		return rev, fmt.Errorf("invalid revision version")
 	}

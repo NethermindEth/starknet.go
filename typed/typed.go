@@ -10,41 +10,12 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-var (
-	//TODO: remove this
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
-	REVISION_0_TYPES []string = []string{
-		"felt",
-		"bool",
-		"string", //up to 31 ASCII characters
-		"selector",
-		"merkletree",
-	}
-
-	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string" represents an
-	// arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit, use the new type "shortstring" instead.
-	//
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
-	REVISION_1_TYPES []string = []string{
-		"u128",
-		"i128",
-		"ContractAddress",
-		"ClassHash",
-		"timestamp",
-		"shortstring",
-		"enum",
-		"u256",
-		"TokenAmount",
-		"NftId",
-	}
-)
-
 type TypedData struct {
 	Types       map[string]TypeDefinition `json:"types"`
 	PrimaryType string                    `json:"primaryType"`
 	Domain      Domain                    `json:"domain"`
 	Message     map[string]any            `json:"message"`
-	Revision    revision                  `json:"-"`
+	Revision    *revision                 `json:"-"`
 }
 
 type Domain struct {
@@ -330,20 +301,89 @@ func encodeData(
 		}
 	}
 
-	getStringFromData := func(key string) (resp string, err error) {
+	getData := func(key string) (any, error) {
 		value, ok := data[key]
 		if !ok {
-			return resp, fmt.Errorf("error trying to get the value of the %s type", key)
+			return value, fmt.Errorf("error trying to get the value of the %s param", key)
 		}
-		resp = fmt.Sprintf("%v", value)
-		return resp, nil
+		return value, nil
 	}
 
-	getFeltFromData := func(key string) (feltValue *felt.Felt, err error) {
-		strValue, err := getStringFromData(key)
-		if err != nil {
-			return feltValue, err
+	handleObjectTypes := func(typeName string, data any) (resp *felt.Felt, err error) {
+		mapData, ok := data.(map[string]any)
+		if !ok {
+			return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeName)
 		}
+
+		if nextTypeDef, ok := typedData.Types[typeName]; ok {
+			resp, err := shortGetStructHash(&nextTypeDef, typedData, mapData, context...)
+			if err != nil {
+				return resp, err
+			}
+
+			return resp, nil
+		}
+		return resp, fmt.Errorf("error trying to get the type definition of '%s'", typeName)
+	}
+
+	// getTypeFromContains := func(typeName string) (typeDef TypeDefinition, err error) {
+	// 	typeDef, ok := typedData.Types[typeName]
+	// 	if !ok {
+	// 		return typeDef, fmt.Errorf("type '%s' not found in the typedData", typeName)
+	// 	}
+	// 	return typeDef, nil
+	// }
+
+	for _, param := range typeDef.Parameters {
+		// if strings.HasSuffix(param.Type, "*") {
+		// 	tempData, ok := data[param.Name]
+		// 	if !ok {
+		// 		return enc, fmt.Errorf("error trying to get the value of the %s param", param.Name)
+		// 	}
+		// 	dataArray, ok := tempData.([]any)
+		// 	if !ok {
+		// 		return enc, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
+		// 	}
+		// }
+		localData, err := getData(param.Name)
+		if err != nil {
+			return enc, err
+		}
+
+		if isStandardType(param.Type) {
+			switch param.Type {
+			case "merkletree":
+			case "enum":
+			case "NftId", "TokenAmount", "u256":
+				resp, err := handleObjectTypes(param.Type, localData)
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, resp)
+			default:
+				resp, err := encodePieceOfData(param.Type, localData, typedData.Revision)
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, resp)
+			}
+
+			continue
+		}
+
+		resp, err := handleObjectTypes(param.Type, localData)
+		if err != nil {
+			return enc, err
+		}
+		enc = append(enc, resp)
+	}
+
+	return enc, nil
+}
+
+func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
+	getFeltFromData := func() (feltValue *felt.Felt, err error) {
+		strValue := fmt.Sprintf("%v", data)
 		hexValue := utils.StrToHex(strValue)
 		feltValue, err = utils.HexToFelt(hexValue)
 		if err != nil {
@@ -353,59 +393,50 @@ func encodeData(
 		return feltValue, nil
 	}
 
-	for _, param := range typeDef.Parameters {
-		switch param.Type {
-		case "felt", "bool":
-			value, err := getFeltFromData(param.Name)
-			if err != nil {
-				return enc, err
-			}
-			enc = append(enc, value)
-		case "string":
-			if typedData.Revision.version == 0 {
-				value, err := getFeltFromData(param.Name)
-				if err != nil {
-					return enc, err
-				}
-				enc = append(enc, value)
-			} else {
-				value, err := getStringFromData(param.Name)
-				if err != nil {
-					return enc, err
-				}
-				byteArr, err := utils.StringToByteArrFelt(value)
-				if err != nil {
-					return enc, err
-				}
-				enc = append(enc, typedData.Revision.HashMethod(byteArr...))
-			}
-		case "selector":
-			value, err := getStringFromData(param.Name)
-			if err != nil {
-				return enc, err
-			}
-			feltValue := utils.GetSelectorFromNameFelt(value)
-			enc = append(enc, feltValue)
-		default:
-			if nextTypeDef, ok := typedData.Types[param.Type]; ok {
-				structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
-				if err != nil {
-					return enc, err
-				}
-				enc = append(enc, structEnc)
-				// check revision
-				// }
-				// if nextTypeDef, ok := typedData.rev[param.Type]; ok {
-				// 	structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
-				// 	if err != nil {
-				// 		return enc, err
-				// 	}
-				// 	enc = append(enc, structEnc)
-			}
+	switch typeName {
+	case "felt", "bool":
+		resp, err = getFeltFromData()
+		if err != nil {
+			return resp, err
 		}
+		return resp, nil
+	case "string":
+		if rev.Version() == 0 {
+			resp, err := getFeltFromData()
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		} else {
+			value := fmt.Sprintf("%v", data)
+			byteArr, err := utils.StringToByteArrFelt(value)
+			if err != nil {
+				return resp, err
+			}
+			return rev.HashMethod(byteArr...), nil
+		}
+	case "selector":
+		value := fmt.Sprintf("%v", data)
+		return utils.GetSelectorFromNameFelt(value), nil
+	// case "merkletree":
+	// 	typeDef, err := getTypeFromContains(param.Contains)
+	// 	if err != nil {
+	// 		return felt, err
+	// 	}
+
+	// 	enc = append(enc, feltValue)
+	default:
+		// check revision
+		// }
+		// if nextTypeDef, ok := typedData.rev[param.Type]; ok {
+		// 	structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
+		// 	if err != nil {
+		// 		return felt, err
+		// 	}
+		// 	enc = append(enc, structEnc)
 	}
 
-	return enc, nil
+	return resp, nil
 }
 
 func (typedData *TypedData) UnmarshalJSON(data []byte) error {
