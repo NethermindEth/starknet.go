@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"slices"
 	"strconv"
 	"strings"
@@ -437,12 +438,29 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 	}
 
 	switch typeName {
-	case "felt", "bool", "shortstring", "u128", "i128", "ContractAddress", "ClassHash", "timestamp":
+	case "felt", "shortstring", "u128", "ContractAddress", "ClassHash", "timestamp":
 		resp, err = getFeltFromData()
 		if err != nil {
 			return resp, err
 		}
 		return resp, nil
+	case "bool":
+		boolVal, ok := data.(bool)
+		if !ok {
+			return resp, fmt.Errorf("faild to convert '%v' to 'bool'", data)
+		}
+		if boolVal {
+			return new(felt.Felt).SetUint64(1), nil
+		}
+		return new(felt.Felt).SetUint64(0), nil
+	case "i128":
+		strValue := fmt.Sprintf("%v", data)
+		bigNum, ok := new(big.Int).SetString(strValue, 0)
+		if !ok {
+			return resp, fmt.Errorf("faild to convert '%s' of type 'i128' to big.Int", strValue)
+		}
+		feltValue := new(felt.Felt).SetBigInt(bigNum)
+		return feltValue, nil
 	case "string":
 		if rev.Version() == 0 {
 			resp, err := getFeltFromData()

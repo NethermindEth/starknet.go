@@ -60,7 +60,7 @@ func TestMain(m *testing.M) {
 	fileNames := []string{
 		"baseExample",
 		"example_array",
-		// "example_baseTypes",
+		"example_baseTypes",
 		// "example_enum",
 		// "example_presetTypes",
 		// "mail_StructArray",
@@ -264,30 +264,35 @@ func TestGeneral_CreateMessageWithTypes(t *testing.T) {
 // - None
 func TestGetMessageHash(t *testing.T) {
 	type testSetType struct {
-		TypeData            TypedData
+		TypedData           TypedData
 		Address             string
 		ExpectedMessageHash string
 	}
 	testSet := []testSetType{
 		{
-			TypeData:            typedDataExamples["baseExample"],
+			TypedData:           typedDataExamples["baseExample"],
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0",
 		},
 		{
-			TypeData:            typedDataExamples["example_array"],
+			TypedData:           typedDataExamples["example_array"],
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x88edea26d6177a8bc545b2e73c960ab7ddd67b46237b386b514e50315ce0f4",
 		},
+		{
+			TypedData:           typedDataExamples["example_baseTypes"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0xdb7829db8909c0c5496f5952bcfc4fc894341ce01842537fc4f448743480b6",
+		},
 		// {
-		// 	TypeData:            typedDataExamples["session_MerkleTree"],
+		// 	TypedData:            typedDataExamples["session_MerkleTree"],
 		// 	Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 		// 	ExpectedMessageHash: "0x5d28fa1b31f92e63022f7d85271606e52bed89c046c925f16b09e644dc99794",
 		// },
 	}
 
 	for _, test := range testSet {
-		hash, err := test.TypeData.GetMessageHash(test.Address)
+		hash, err := test.TypedData.GetMessageHash(test.Address)
 		require.NoError(t, err)
 
 		require.Equal(t, test.ExpectedMessageHash, hash.String())
@@ -328,33 +333,33 @@ func BenchmarkGetMessageHash(b *testing.B) {
 //
 //	none
 func TestGetTypeHash(t *testing.T) {
-	require := require.New(t)
-	ttd := typedDataExamples["baseExample"]
-
 	type testSetType struct {
+		TypedData    TypedData
 		TypeName     string
 		ExpectedHash string
 	}
 	testSet := []testSetType{
-		// revision 0
 		{
+			TypedData:    typedDataExamples["baseExample"],
 			TypeName:     "StarkNetDomain",
 			ExpectedHash: "0x1bfc207425a47a5dfa1a50a4f5241203f50624ca5fdf5e18755765416b8e288",
 		},
 		{
-			TypeName:     "Person",
-			ExpectedHash: "0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855",
-		},
-		{
+			TypedData:    typedDataExamples["baseExample"],
 			TypeName:     "Mail",
 			ExpectedHash: "0x13d89452df9512bf750f539ba3001b945576243288137ddb6c788457d4b2f79",
 		},
+		{
+			TypedData:    typedDataExamples["example_baseTypes"],
+			TypeName:     "Example",
+			ExpectedHash: "0x1f94cd0be8b4097a41486170fdf09a4cd23aefbc74bb2344718562994c2c111",
+		},
 	}
 	for _, test := range testSet {
-		hash, err := ttd.GetTypeHash(test.TypeName)
-		require.NoError(err)
+		hash, err := test.TypedData.GetTypeHash(test.TypeName)
+		require.NoError(t, err)
 
-		require.Equal(test.ExpectedHash, hash.String())
+		require.Equal(t, test.ExpectedHash, hash.String())
 	}
 }
 
@@ -371,43 +376,38 @@ func TestGetTypeHash(t *testing.T) {
 //
 //	none
 func TestEncodeType(t *testing.T) {
-	require := require.New(t)
-	ttd := typedDataExamples["baseExample"]
-
 	type testSetType struct {
+		TypedData      TypedData
 		TypeName       string
 		ExpectedEncode string
-		Revision       revision
 	}
 	testSet := []testSetType{
-		// revision 0
 		{
+			TypedData:      typedDataExamples["baseExample"],
 			TypeName:       "StarkNetDomain",
 			ExpectedEncode: "StarkNetDomain(name:felt,version:felt,chainId:felt)",
-			Revision:       RevisionV0,
 		},
 		{
+			TypedData:      typedDataExamples["baseExample"],
 			TypeName:       "Mail",
 			ExpectedEncode: "Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)",
-			Revision:       RevisionV0,
-		},
-		// revision 1
-		{
-			TypeName:       "StarkNetDomain",
-			ExpectedEncode: `"StarkNetDomain"("name":"felt","version":"felt","chainId":"felt")`,
-			Revision:       RevisionV1,
 		},
 		{
-			TypeName:       "Mail",
-			ExpectedEncode: `"Mail"("from":"Person","to":"Person","contents":"felt")"Person"("name":"felt","wallet":"felt")`,
-			Revision:       RevisionV1,
+			TypedData:      typedDataExamples["example_array"],
+			TypeName:       "StarknetDomain",
+			ExpectedEncode: `"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")`,
+		},
+		{
+			TypedData:      typedDataExamples["example_baseTypes"],
+			TypeName:       "Example",
+			ExpectedEncode: `"Example"("n0":"felt","n1":"bool","n2":"string","n3":"selector","n4":"u128","n5":"i128","n6":"ContractAddress","n7":"ClassHash","n8":"timestamp","n9":"shortstring")`,
 		},
 	}
 	for _, test := range testSet {
-		encode, err := encodeType(test.TypeName, ttd.Types, test.Revision.Version())
-		require.NoError(err)
+		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision.Version())
+		require.NoError(t, err)
 
-		require.Equal(test.ExpectedEncode, encode)
+		require.Equal(t, test.ExpectedEncode, encode)
 	}
 }
 
@@ -424,24 +424,30 @@ func TestEncodeType(t *testing.T) {
 //
 //	none
 func TestGetStructHash(t *testing.T) {
-	ttd := typedDataExamples["baseExample"]
-
 	type testSetType struct {
+		TypedData    TypedData
 		TypeName     string
 		ExpectedHash string
 	}
 	testSet := []testSetType{
 		{
+			TypedData:    typedDataExamples["baseExample"],
 			TypeName:     "StarkNetDomain",
 			ExpectedHash: "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07",
 		},
 		{
+			TypedData:    typedDataExamples["baseExample"],
 			TypeName:     "Mail",
 			ExpectedHash: "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec",
 		},
+		{
+			TypedData:    typedDataExamples["example_baseTypes"],
+			TypeName:     "Example",
+			ExpectedHash: "0x2288b5f74a05d6e2f2efea4e2275a7fdfff532707e6ba77187c14ea84f1b778",
+		},
 	}
 	for _, test := range testSet {
-		hash, err := ttd.GetStructHash(test.TypeName)
+		hash, err := test.TypedData.GetStructHash(test.TypeName)
 		require.NoError(t, err)
 
 		require.Equal(t, test.ExpectedHash, hash.String())
