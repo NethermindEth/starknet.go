@@ -183,7 +183,13 @@ func validateDomain(domain Domain, domainType TypeDefinition) error {
 		return fmt.Errorf("domain should only have 3 or 4 fields")
 	}
 
-	fieldNames := []string{"name", "version", "chainId", "revision"}
+	fieldNames := []string{
+		"name",
+		"version",
+		"chainId",
+		"chain_id", // ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
+		"revision",
+	}
 
 	switch {
 	case domainType.Name == RevisionV0.domain:

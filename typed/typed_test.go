@@ -59,6 +59,7 @@ func TestMain(m *testing.M) {
 	//TODO: implement v1 so we can use other examples
 	fileNames := []string{
 		"baseExample",
+		"example_array",
 		// "example_baseTypes",
 		// "example_enum",
 		// "example_presetTypes",
@@ -262,13 +263,35 @@ func TestGeneral_CreateMessageWithTypes(t *testing.T) {
 // Returns:
 // - None
 func TestGetMessageHash(t *testing.T) {
-	ttd := typedDataExamples["baseExample"]
+	type testSetType struct {
+		TypeData            TypedData
+		Address             string
+		ExpectedMessageHash string
+	}
+	testSet := []testSetType{
+		{
+			TypeData:            typedDataExamples["baseExample"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0",
+		},
+		{
+			TypeData:            typedDataExamples["example_array"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x88edea26d6177a8bc545b2e73c960ab7ddd67b46237b386b514e50315ce0f4",
+		},
+		// {
+		// 	TypeData:            typedDataExamples["session_MerkleTree"],
+		// 	Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+		// 	ExpectedMessageHash: "0x5d28fa1b31f92e63022f7d85271606e52bed89c046c925f16b09e644dc99794",
+		// },
+	}
 
-	hash, err := ttd.GetMessageHash("0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826")
-	require.NoError(t, err)
+	for _, test := range testSet {
+		hash, err := test.TypeData.GetMessageHash(test.Address)
+		require.NoError(t, err)
 
-	exp := "0x6fcff244f63e38b9d88b9e3378d44757710d1b244282b435cb472053c8d78d0"
-	require.Equal(t, exp, hash.String())
+		require.Equal(t, test.ExpectedMessageHash, hash.String())
+	}
 }
 
 // BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.

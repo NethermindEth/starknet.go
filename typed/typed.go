@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -20,10 +21,10 @@ type TypedData struct {
 }
 
 type Domain struct {
-	Name     string      `json:"name"`
-	Version  json.Number `json:"version"`
-	ChainId  json.Number `json:"chainId"`
-	Revision uint8       `json:"revision,omitempty"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	ChainId  string `json:"chainId"`
+	Revision uint8  `json:"revision,omitempty"`
 }
 
 type TypeDefinition struct {
@@ -302,6 +303,10 @@ func encodeData(
 		}
 	}
 
+	var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
+	var handleObjectTypes func(typeName string, data any) (resp *felt.Felt, err error)
+	var handleArrays func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
+
 	getData := func(key string) (any, error) {
 		value, ok := data[key]
 		if !ok {
@@ -310,7 +315,36 @@ func encodeData(
 		return value, nil
 	}
 
-	handleObjectTypes := func(typeName string, data any) (resp *felt.Felt, err error) {
+	handleStandardTypes = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
+		switch param.Type {
+		case "merkletree":
+			tempParam := TypeParameter{
+				Name: param.Name,
+				Type: param.Contains,
+			}
+			resp, err := handleArrays(tempParam, data, rev)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		case "enum":
+		case "NftId", "TokenAmount", "u256":
+			resp, err := handleObjectTypes(param.Type, data)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		default:
+			resp, err := encodePieceOfData(param.Type, data, rev)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		}
+		return resp, fmt.Errorf("error trying to encode the data of '%s'", param.Type)
+	}
+
+	handleObjectTypes = func(typeName string, data any) (resp *felt.Felt, err error) {
 		mapData, ok := data.(map[string]any)
 		if !ok {
 			return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeName)
@@ -327,36 +361,17 @@ func encodeData(
 		return resp, fmt.Errorf("error trying to get the type definition of '%s'", typeName)
 	}
 
-	handleStandardTypes := func(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
-		switch typeName {
-		case "merkletree":
-		case "enum":
-		case "NftId", "TokenAmount", "u256":
-			resp, err := handleObjectTypes(typeName, data)
-			if err != nil {
-				return resp, err
-			}
-			return resp, nil
-		default:
-			resp, err := encodePieceOfData(typeName, data, rev)
-			if err != nil {
-				return resp, err
-			}
-			return resp, nil
-		}
-		return resp, fmt.Errorf("error trying to encode the data of '%s'", typeName)
-	}
-
-	handleArrays := func(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
+	handleArrays = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
 		dataArray, ok := data.([]any)
 		if !ok {
-			return resp, fmt.Errorf("error trying to convert the value of the type '%s' to an array", typeName)
+			return resp, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
 		}
 		localEncode := []*felt.Felt{}
+		singleParamType, _ := strings.CutSuffix(param.Type, "*")
 
-		if isStandardType(typeName) {
+		if isStandardType(singleParamType) {
 			for _, item := range dataArray {
-				resp, err := handleStandardTypes(typeName, item, rev)
+				resp, err := handleStandardTypes(TypeParameter{Type: singleParamType}, item, rev)
 				if err != nil {
 					return resp, err
 				}
@@ -366,7 +381,7 @@ func encodeData(
 		}
 
 		for _, item := range dataArray {
-			resp, err := handleObjectTypes(typeName, item)
+			resp, err := handleObjectTypes(singleParamType, item)
 			if err != nil {
 				return resp, err
 			}
@@ -375,14 +390,6 @@ func encodeData(
 		return rev.HashMethod(localEncode...), nil
 	}
 
-	// getTypeFromContains := func(typeName string) (typeDef TypeDefinition, err error) {
-	// 	typeDef, ok := typedData.Types[typeName]
-	// 	if !ok {
-	// 		return typeDef, fmt.Errorf("type '%s' not found in the typedData", typeName)
-	// 	}
-	// 	return typeDef, nil
-	// }
-
 	for _, param := range typeDef.Parameters {
 		localData, err := getData(param.Name)
 		if err != nil {
@@ -390,7 +397,7 @@ func encodeData(
 		}
 
 		if strings.HasSuffix(param.Type, "*") {
-			resp, err := handleArrays(param.Type, localData, typedData.Revision)
+			resp, err := handleArrays(param, localData, typedData.Revision)
 			if err != nil {
 				return enc, err
 			}
@@ -399,7 +406,7 @@ func encodeData(
 		}
 
 		if isStandardType(param.Type) {
-			resp, err := handleStandardTypes(param.Type, localData, typedData.Revision)
+			resp, err := handleStandardTypes(param, localData, typedData.Revision)
 			if err != nil {
 				return enc, err
 			}
@@ -430,7 +437,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 	}
 
 	switch typeName {
-	case "felt", "bool":
+	case "felt", "bool", "shortstring", "u128", "i128", "ContractAddress", "ClassHash", "timestamp":
 		resp, err = getFeltFromData()
 		if err != nil {
 			return resp, err
@@ -462,6 +469,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 
 	// 	enc = append(enc, feltValue)
 	default:
+		return resp, fmt.Errorf("invalid type '%s'", typeName)
 		// check revision
 		// }
 		// if nextTypeDef, ok := typedData.rev[param.Type]; ok {
@@ -471,8 +479,6 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 		// 	}
 		// 	enc = append(enc, structEnc)
 	}
-
-	return resp, nil
 }
 
 func (typedData *TypedData) UnmarshalJSON(data []byte) error {
@@ -530,5 +536,57 @@ func (typedData *TypedData) UnmarshalJSON(data []byte) error {
 	}
 
 	*typedData = *resultTypedData
+	return nil
+}
+
+func (domain *Domain) UnmarshalJSON(data []byte) error {
+	var dec map[string]any
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	getField := func(fieldName string) (string, error) {
+		value, ok := dec[fieldName]
+		if !ok {
+			return "", fmt.Errorf("error getting value of '%s' from 'domain' struct", fieldName)
+		}
+		return fmt.Sprintf("%v", value), nil
+	}
+
+	name, err := getField("name")
+	if err != nil {
+		return err
+	}
+
+	version, err := getField("version")
+	if err != nil {
+		return err
+	}
+
+	chainId, err := getField("chainId")
+	if err != nil {
+		var err2 error
+		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
+		chainId, err2 = getField("chain_id")
+		if err2 != nil {
+			return err
+		}
+	}
+
+	revision, err := getField("revision")
+	if err != nil {
+		revision = "0"
+	}
+	numRevision, err := strconv.ParseUint(revision, 10, 8)
+	if err != nil {
+		return err
+	}
+
+	*domain = Domain{
+		Name:     name,
+		Version:  version,
+		ChainId:  chainId,
+		Revision: uint8(numRevision),
+	}
 	return nil
 }
