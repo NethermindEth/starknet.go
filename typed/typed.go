@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -326,6 +327,54 @@ func encodeData(
 		return resp, fmt.Errorf("error trying to get the type definition of '%s'", typeName)
 	}
 
+	handleStandardTypes := func(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
+		switch typeName {
+		case "merkletree":
+		case "enum":
+		case "NftId", "TokenAmount", "u256":
+			resp, err := handleObjectTypes(typeName, data)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		default:
+			resp, err := encodePieceOfData(typeName, data, rev)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		}
+		return resp, fmt.Errorf("error trying to encode the data of '%s'", typeName)
+	}
+
+	handleArrays := func(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
+		dataArray, ok := data.([]any)
+		if !ok {
+			return resp, fmt.Errorf("error trying to convert the value of the type '%s' to an array", typeName)
+		}
+		localEncode := []*felt.Felt{}
+
+		if isStandardType(typeName) {
+			for _, item := range dataArray {
+				resp, err := handleStandardTypes(typeName, item, rev)
+				if err != nil {
+					return resp, err
+				}
+				localEncode = append(localEncode, resp)
+			}
+			return rev.HashMethod(localEncode...), nil
+		}
+
+		for _, item := range dataArray {
+			resp, err := handleObjectTypes(typeName, item)
+			if err != nil {
+				return resp, err
+			}
+			localEncode = append(localEncode, resp)
+		}
+		return rev.HashMethod(localEncode...), nil
+	}
+
 	// getTypeFromContains := func(typeName string) (typeDef TypeDefinition, err error) {
 	// 	typeDef, ok := typedData.Types[typeName]
 	// 	if !ok {
@@ -335,39 +384,26 @@ func encodeData(
 	// }
 
 	for _, param := range typeDef.Parameters {
-		// if strings.HasSuffix(param.Type, "*") {
-		// 	tempData, ok := data[param.Name]
-		// 	if !ok {
-		// 		return enc, fmt.Errorf("error trying to get the value of the %s param", param.Name)
-		// 	}
-		// 	dataArray, ok := tempData.([]any)
-		// 	if !ok {
-		// 		return enc, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
-		// 	}
-		// }
 		localData, err := getData(param.Name)
 		if err != nil {
 			return enc, err
 		}
 
-		if isStandardType(param.Type) {
-			switch param.Type {
-			case "merkletree":
-			case "enum":
-			case "NftId", "TokenAmount", "u256":
-				resp, err := handleObjectTypes(param.Type, localData)
-				if err != nil {
-					return enc, err
-				}
-				enc = append(enc, resp)
-			default:
-				resp, err := encodePieceOfData(param.Type, localData, typedData.Revision)
-				if err != nil {
-					return enc, err
-				}
-				enc = append(enc, resp)
+		if strings.HasSuffix(param.Type, "*") {
+			resp, err := handleArrays(param.Type, localData, typedData.Revision)
+			if err != nil {
+				return enc, err
 			}
+			enc = append(enc, resp)
+			continue
+		}
 
+		if isStandardType(param.Type) {
+			resp, err := handleStandardTypes(param.Type, localData, typedData.Revision)
+			if err != nil {
+				return enc, err
+			}
+			enc = append(enc, resp)
 			continue
 		}
 
