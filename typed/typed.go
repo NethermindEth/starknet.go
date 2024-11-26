@@ -228,27 +228,28 @@ func encodeType(typeName string, types map[string]TypeDefinition, revision *revi
 			if i != (len(typeDef.Parameters) - 1) {
 				buf.WriteString(",")
 			}
+			singleTypeName, _ := strings.CutSuffix(param.Type, "*")
 
-			if isBasicType(param.Type) {
+			if isBasicType(singleTypeName) {
 				continue
-			} else if _, ok = customTypesEncodeResp[param.Type]; !ok {
-				if isPresetType(param.Type) {
-					typeDef, ok := revision.Types().Preset[param.Type]
+			} else if _, ok = customTypesEncodeResp[singleTypeName]; !ok {
+				if isPresetType(singleTypeName) {
+					typeDef, ok := revision.Types().Preset[singleTypeName]
 					if !ok {
-						return result, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+						return result, fmt.Errorf("error trying to get the type definition of '%s'", singleTypeName)
 					}
-					customTypesEncodeResp[param.Type], err = getEncodeType(param.Type, typeDef)
+					customTypesEncodeResp[singleTypeName], err = getEncodeType(singleTypeName, typeDef)
 					if err != nil {
 						return "", err
 					}
 
 					continue
 				}
-				customTypeDef, ok := types[param.Type]
+				customTypeDef, ok := types[singleTypeName]
 				if !ok {
-					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, types)
+					return "", fmt.Errorf("can't parse type %s from types %v", singleTypeName, types)
 				}
-				customTypesEncodeResp[param.Type], err = getEncodeType(param.Type, customTypeDef)
+				customTypesEncodeResp[singleTypeName], err = getEncodeType(singleTypeName, customTypeDef)
 				if err != nil {
 					return "", err
 				}
@@ -401,8 +402,6 @@ func encodeData(
 				} else {
 					localArr = append(localArr, rev.HashMerkleMethod(felts[i], felts[i+1]))
 				}
-				oi := utils.FeltArrToStringArr(localArr)
-				fmt.Print(oi)
 			}
 
 			return handleMerkleTree(localArr)
@@ -444,7 +443,7 @@ func encodeData(
 			localEncode = append(localEncode, resp)
 		}
 
-		if isMerkle[0] {
+		if len(isMerkle) != 0 {
 			return handleMerkleTree(localEncode), nil
 		}
 		return rev.HashMethod(localEncode...), nil

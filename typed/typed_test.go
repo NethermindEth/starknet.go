@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 		"example_baseTypes",
 		// "example_enum",
 		"example_presetTypes",
-		// "mail_StructArray",
+		"mail_StructArray",
 		"session_MerkleTree",
 		// "v1Nested",
 	}
@@ -294,6 +294,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x751fb7d98545f7649d0d0eadc80d770fcd88d8cfaa55590b284f4e1b701ef0a",
 		},
+		{
+			TypedData:           typedDataExamples["mail_StructArray"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x5914ed2764eca2e6a41eb037feefd3d2e33d9af6225a9e7fe31ac943ff712c",
+		},
 	}
 
 	for _, test := range testSet {
@@ -421,6 +426,11 @@ func TestEncodeType(t *testing.T) {
 			TypedData:      typedDataExamples["session_MerkleTree"],
 			TypeName:       "Session",
 			ExpectedEncode: `Session(key:felt,expires:felt,root:merkletree)`,
+		},
+		{
+			TypedData:      typedDataExamples["mail_StructArray"],
+			TypeName:       "Mail",
+			ExpectedEncode: `Mail(from:Person,to:Person,posts_len:felt,posts:Post*)Person(name:felt,wallet:felt)Post(title:felt,content:felt)`,
 		},
 	}
 	for _, test := range testSet {
