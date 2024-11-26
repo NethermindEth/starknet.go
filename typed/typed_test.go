@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 		"example_array",
 		"example_baseTypes",
 		// "example_enum",
-		// "example_presetTypes",
+		"example_presetTypes",
 		// "mail_StructArray",
 		// "session_MerkleTree",
 		// "v1Nested",
@@ -284,6 +284,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0xdb7829db8909c0c5496f5952bcfc4fc894341ce01842537fc4f448743480b6",
 		},
+		{
+			TypedData:           typedDataExamples["example_presetTypes"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x185b339d5c566a883561a88fb36da301051e2c0225deb325c91bb7aa2f3473a",
+		},
 		// {
 		// 	TypedData:            typedDataExamples["session_MerkleTree"],
 		// 	Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
@@ -402,9 +407,14 @@ func TestEncodeType(t *testing.T) {
 			TypeName:       "Example",
 			ExpectedEncode: `"Example"("n0":"felt","n1":"bool","n2":"string","n3":"selector","n4":"u128","n5":"i128","n6":"ContractAddress","n7":"ClassHash","n8":"timestamp","n9":"shortstring")`,
 		},
+		{
+			TypedData:      typedDataExamples["example_presetTypes"],
+			TypeName:       "Example",
+			ExpectedEncode: `"Example"("n0":"TokenAmount","n1":"NftId")"NftId"("collection_address":"ContractAddress","token_id":"u256")"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
+		},
 	}
 	for _, test := range testSet {
-		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision.Version())
+		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision)
 		require.NoError(t, err)
 
 		require.Equal(t, test.ExpectedEncode, encode)
@@ -443,7 +453,7 @@ func TestGetStructHash(t *testing.T) {
 		{
 			TypedData:    typedDataExamples["example_baseTypes"],
 			TypeName:     "Example",
-			ExpectedHash: "0x2288b5f74a05d6e2f2efea4e2275a7fdfff532707e6ba77187c14ea84f1b778",
+			ExpectedHash: "0x75db031c1f5bf980cc48f46943b236cb85a95c8f3b3c8203572453075d3d39",
 		},
 	}
 	for _, test := range testSet {

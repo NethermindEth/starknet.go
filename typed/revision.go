@@ -146,11 +146,11 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 			Parameters: []TypeParameter{
 				{
 					Name: "low",
-					Type: "U128",
+					Type: "u128",
 				},
 				{
 					Name: "high",
-					Type: "U128",
+					Type: "u128",
 				},
 			},
 		},
@@ -176,4 +176,23 @@ func isStandardType(typeName string) bool {
 	}
 
 	return false
+}
+
+// Check if the provided type name is a basic type defined at the SNIP 12, also validates arrays
+func isBasicType(typeName string) bool {
+	typeName, _ = strings.CutSuffix(typeName, "*")
+
+	if slices.Contains(revision_0_basic_types, typeName) ||
+		slices.Contains(revision_1_basic_types, typeName) {
+		return true
+	}
+
+	return false
+}
+
+// Check if the provided type name is a preset type defined at the SNIP 12, also validates arrays
+func isPresetType(typeName string) bool {
+	typeName, _ = strings.CutSuffix(typeName, "*")
+
+	return slices.Contains(revision_1_preset_types, typeName)
 }

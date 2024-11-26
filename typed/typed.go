@@ -83,12 +83,20 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 	}
 
 	for k, v := range td.Types {
-		enc, err := getTypeHash(k, td.Types, td.Revision.Version())
+		enc, err := getTypeHash(k, td.Types, td.Revision)
 		if err != nil {
 			return td, fmt.Errorf("error encoding type hash: %s %w", k, err)
 		}
 		v.Enconding = enc
 		td.Types[k] = v
+	}
+	for k, v := range td.Revision.types.Preset {
+		enc, err := getTypeHash(k, td.Revision.types.Preset, td.Revision)
+		if err != nil {
+			return td, fmt.Errorf("error encoding type hash: %s %w", k, err)
+		}
+		v.Enconding = enc
+		td.Revision.types.Preset[k] = v
 	}
 	return td, nil
 }
@@ -181,11 +189,11 @@ func shortGetStructHash(
 // - err: any error if any
 func (td *TypedData) GetTypeHash(typeName string) (ret *felt.Felt, err error) {
 	//TODO: create/update methods descriptions
-	return getTypeHash(typeName, td.Types, td.Revision.Version())
+	return getTypeHash(typeName, td.Types, td.Revision)
 }
 
-func getTypeHash(typeName string, types map[string]TypeDefinition, revisionVersion uint8) (ret *felt.Felt, err error) {
-	enc, err := encodeType(typeName, types, revisionVersion)
+func getTypeHash(typeName string, types map[string]TypeDefinition, revision *revision) (ret *felt.Felt, err error) {
+	enc, err := encodeType(typeName, types, revision)
 	if err != nil {
 		return ret, err
 	}
@@ -199,14 +207,14 @@ func getTypeHash(typeName string, types map[string]TypeDefinition, revisionVersi
 // Returns:
 // - enc: the encoded type
 // - err: any error if any
-func encodeType(typeName string, types map[string]TypeDefinition, revisionVersion uint8) (enc string, err error) {
+func encodeType(typeName string, types map[string]TypeDefinition, revision *revision) (enc string, err error) {
 	customTypesEncodeResp := make(map[string]string)
 
 	var getEncodeType func(typeName string, typeDef TypeDefinition) (result string, err error)
 	getEncodeType = func(typeName string, typeDef TypeDefinition) (result string, err error) {
 		var buf bytes.Buffer
 		quotationMark := ""
-		if revisionVersion == 1 {
+		if revision.Version() == 1 {
 			quotationMark = `"`
 		}
 
@@ -220,12 +228,24 @@ func encodeType(typeName string, types map[string]TypeDefinition, revisionVersio
 			if i != (len(typeDef.Parameters) - 1) {
 				buf.WriteString(",")
 			}
-			// e.g.: "felt" or "felt*"
-			if isStandardType(param.Type) {
+
+			if isBasicType(param.Type) {
 				continue
 			} else if _, ok = customTypesEncodeResp[param.Type]; !ok {
-				var customTypeDef TypeDefinition
-				if customTypeDef, ok = types[param.Type]; !ok { //OBS: this is wrong on V1
+				if isPresetType(param.Type) {
+					typeDef, ok := revision.Types().Preset[param.Type]
+					if !ok {
+						return result, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+					}
+					customTypesEncodeResp[param.Type], err = getEncodeType(param.Type, typeDef)
+					if err != nil {
+						return "", err
+					}
+
+					continue
+				}
+				customTypeDef, ok := types[param.Type]
+				if !ok {
 					return "", fmt.Errorf("can't parse type %s from types %v", param.Type, types)
 				}
 				customTypesEncodeResp[param.Type], err = getEncodeType(param.Type, customTypeDef)
@@ -305,13 +325,13 @@ func encodeData(
 	}
 
 	var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
-	var handleObjectTypes func(typeName string, data any) (resp *felt.Felt, err error)
+	var handleObjectTypes func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error)
 	var handleArrays func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
 
 	getData := func(key string) (any, error) {
 		value, ok := data[key]
 		if !ok {
-			return value, fmt.Errorf("error trying to get the value of the %s param", key)
+			return value, fmt.Errorf("error trying to get the value of the '%s' param", key)
 		}
 		return value, nil
 	}
@@ -330,7 +350,11 @@ func encodeData(
 			return resp, nil
 		case "enum":
 		case "NftId", "TokenAmount", "u256":
-			resp, err := handleObjectTypes(param.Type, data)
+			typeDef, ok := rev.Types().Preset[param.Type]
+			if !ok {
+				return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+			}
+			resp, err := handleObjectTypes(&typeDef, data)
 			if err != nil {
 				return resp, err
 			}
@@ -345,21 +369,18 @@ func encodeData(
 		return resp, fmt.Errorf("error trying to encode the data of '%s'", param.Type)
 	}
 
-	handleObjectTypes = func(typeName string, data any) (resp *felt.Felt, err error) {
+	handleObjectTypes = func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error) {
 		mapData, ok := data.(map[string]any)
 		if !ok {
-			return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeName)
+			return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeDef)
 		}
 
-		if nextTypeDef, ok := typedData.Types[typeName]; ok {
-			resp, err := shortGetStructHash(&nextTypeDef, typedData, mapData, context...)
-			if err != nil {
-				return resp, err
-			}
-
-			return resp, nil
+		resp, err = shortGetStructHash(typeDef, typedData, mapData, context...)
+		if err != nil {
+			return resp, err
 		}
-		return resp, fmt.Errorf("error trying to get the type definition of '%s'", typeName)
+
+		return resp, nil
 	}
 
 	handleArrays = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
@@ -381,8 +402,12 @@ func encodeData(
 			return rev.HashMethod(localEncode...), nil
 		}
 
+		typeDef, ok := rev.Types().Preset[singleParamType]
+		if !ok {
+			return resp, fmt.Errorf("error trying to get the type definition of '%s'", singleParamType)
+		}
 		for _, item := range dataArray {
-			resp, err := handleObjectTypes(singleParamType, item)
+			resp, err := handleObjectTypes(&typeDef, item)
 			if err != nil {
 				return resp, err
 			}
@@ -415,11 +440,16 @@ func encodeData(
 			continue
 		}
 
-		resp, err := handleObjectTypes(param.Type, localData)
+		nextTypeDef, ok := typedData.Types[param.Type]
+		if !ok {
+			return enc, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+		}
+		resp, err := handleObjectTypes(&nextTypeDef, localData)
 		if err != nil {
 			return enc, err
 		}
 		enc = append(enc, resp)
+
 	}
 
 	return enc, nil
