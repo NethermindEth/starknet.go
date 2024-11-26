@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 		// "example_enum",
 		"example_presetTypes",
 		// "mail_StructArray",
-		// "session_MerkleTree",
+		"session_MerkleTree",
 		// "v1Nested",
 	}
 
@@ -289,11 +289,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x185b339d5c566a883561a88fb36da301051e2c0225deb325c91bb7aa2f3473a",
 		},
-		// {
-		// 	TypedData:            typedDataExamples["session_MerkleTree"],
-		// 	Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-		// 	ExpectedMessageHash: "0x5d28fa1b31f92e63022f7d85271606e52bed89c046c925f16b09e644dc99794",
-		// },
+		{
+			TypedData:           typedDataExamples["session_MerkleTree"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x751fb7d98545f7649d0d0eadc80d770fcd88d8cfaa55590b284f4e1b701ef0a",
+		},
 	}
 
 	for _, test := range testSet {
@@ -359,6 +359,11 @@ func TestGetTypeHash(t *testing.T) {
 			TypeName:     "Example",
 			ExpectedHash: "0x1f94cd0be8b4097a41486170fdf09a4cd23aefbc74bb2344718562994c2c111",
 		},
+		{
+			TypedData:    typedDataExamples["session_MerkleTree"],
+			TypeName:     "Session",
+			ExpectedHash: "0x1aa0e1c56b45cf06a54534fa1707c54e520b842feb21d03b7deddb6f1e340c",
+		},
 	}
 	for _, test := range testSet {
 		hash, err := test.TypedData.GetTypeHash(test.TypeName)
@@ -412,6 +417,11 @@ func TestEncodeType(t *testing.T) {
 			TypeName:       "Example",
 			ExpectedEncode: `"Example"("n0":"TokenAmount","n1":"NftId")"NftId"("collection_address":"ContractAddress","token_id":"u256")"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
 		},
+		{
+			TypedData:      typedDataExamples["session_MerkleTree"],
+			TypeName:       "Session",
+			ExpectedEncode: `Session(key:felt,expires:felt,root:merkletree)`,
+		},
 	}
 	for _, test := range testSet {
 		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision)
@@ -446,14 +456,19 @@ func TestGetStructHash(t *testing.T) {
 			ExpectedHash: "0x54833b121883a3e3aebff48ec08a962f5742e5f7b973469c1f8f4f55d470b07",
 		},
 		{
-			TypedData:    typedDataExamples["baseExample"],
-			TypeName:     "Mail",
-			ExpectedHash: "0x4758f1ed5e7503120c228cbcaba626f61514559e9ef5ed653b0b885e0f38aec",
-		},
-		{
 			TypedData:    typedDataExamples["example_baseTypes"],
 			TypeName:     "Example",
 			ExpectedHash: "0x75db031c1f5bf980cc48f46943b236cb85a95c8f3b3c8203572453075d3d39",
+		},
+		{
+			TypedData:    typedDataExamples["example_presetTypes"],
+			TypeName:     "Example",
+			ExpectedHash: "0x74fba3f77f8a6111a9315bac313bf75ecfa46d1234e0fda60312fb6a6517667",
+		},
+		{
+			TypedData:    typedDataExamples["session_MerkleTree"],
+			TypeName:     "Session",
+			ExpectedHash: "0x73602062421caf6ad2e942253debfad4584bff58930981364dcd378021defe8",
 		},
 	}
 	for _, test := range testSet {

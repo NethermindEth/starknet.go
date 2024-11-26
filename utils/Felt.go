@@ -102,6 +102,20 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 	return bigArr
 }
 
+// FeltArrToStringArr converts an array of Felt objects to an array of string objects.
+//
+// Parameters:
+// - f: the array of Felt objects to convert
+// Returns:
+// - []string: the array of string objects
+func FeltArrToStringArr(f []*felt.Felt) []string {
+	var stringArr []string
+	for _, felt := range f {
+		stringArr = append(stringArr, felt.String())
+	}
+	return stringArr
+}
+
 // StringToByteArrFelt converts string to array of Felt objects.
 // The returned array of felts will be of the format
 //

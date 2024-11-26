@@ -298,6 +298,9 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 			return enc, err
 		}
 
+		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
+		domainMap["chain_id"] = domainMap["chainId"]
+
 		return encodeData(typeDef, td, domainMap, context...)
 	}
 
@@ -326,7 +329,7 @@ func encodeData(
 
 	var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
 	var handleObjectTypes func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error)
-	var handleArrays func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
+	var handleArrays func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error)
 
 	getData := func(key string) (any, error) {
 		value, ok := data[key]
@@ -343,7 +346,7 @@ func encodeData(
 				Name: param.Name,
 				Type: param.Contains,
 			}
-			resp, err := handleArrays(tempParam, data, rev)
+			resp, err := handleArrays(tempParam, data, rev, true)
 			if err != nil {
 				return resp, err
 			}
@@ -383,7 +386,28 @@ func encodeData(
 		return resp, nil
 	}
 
-	handleArrays = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
+	handleArrays = func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error) {
+		var handleMerkleTree func(felts []*felt.Felt) *felt.Felt
+		// ref https://github.com/starknet-io/starknet.js/blob/3cfdd8448538128bf9fd158d2e87be20310a69e3/src/utils/merkle.ts#L41
+		handleMerkleTree = func(felts []*felt.Felt) *felt.Felt {
+			if len(felts) == 1 {
+				return felts[0]
+			}
+			var localArr []*felt.Felt
+
+			for i := 0; i < len(felts); i += 2 {
+				if i+1 == len(felts) {
+					localArr = append(localArr, rev.HashMerkleMethod(felts[i], new(felt.Felt)))
+				} else {
+					localArr = append(localArr, rev.HashMerkleMethod(felts[i], felts[i+1]))
+				}
+				oi := utils.FeltArrToStringArr(localArr)
+				fmt.Print(oi)
+			}
+
+			return handleMerkleTree(localArr)
+		}
+
 		dataArray, ok := data.([]any)
 		if !ok {
 			return resp, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
@@ -391,7 +415,7 @@ func encodeData(
 		localEncode := []*felt.Felt{}
 		singleParamType, _ := strings.CutSuffix(param.Type, "*")
 
-		if isStandardType(singleParamType) {
+		if isBasicType(singleParamType) {
 			for _, item := range dataArray {
 				resp, err := handleStandardTypes(TypeParameter{Type: singleParamType}, item, rev)
 				if err != nil {
@@ -402,16 +426,26 @@ func encodeData(
 			return rev.HashMethod(localEncode...), nil
 		}
 
-		typeDef, ok := rev.Types().Preset[singleParamType]
+		var typeDef TypeDefinition
+		if isPresetType(singleParamType) {
+			typeDef, ok = rev.Types().Preset[singleParamType]
+		} else {
+			typeDef, ok = typedData.Types[singleParamType]
+		}
 		if !ok {
 			return resp, fmt.Errorf("error trying to get the type definition of '%s'", singleParamType)
 		}
+
 		for _, item := range dataArray {
 			resp, err := handleObjectTypes(&typeDef, item)
 			if err != nil {
 				return resp, err
 			}
 			localEncode = append(localEncode, resp)
+		}
+
+		if isMerkle[0] {
+			return handleMerkleTree(localEncode), nil
 		}
 		return rev.HashMethod(localEncode...), nil
 	}
@@ -509,13 +543,6 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 	case "selector":
 		value := fmt.Sprintf("%v", data)
 		return utils.GetSelectorFromNameFelt(value), nil
-	// case "merkletree":
-	// 	typeDef, err := getTypeFromContains(param.Contains)
-	// 	if err != nil {
-	// 		return felt, err
-	// 	}
-
-	// 	enc = append(enc, feltValue)
 	default:
 		return resp, fmt.Errorf("invalid type '%s'", typeName)
 		// check revision

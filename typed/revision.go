@@ -48,9 +48,10 @@ func init() {
 	preset := make(map[string]TypeDefinition)
 
 	RevisionV0 = revision{
-		version:    0,
-		domain:     "StarkNetDomain",
-		hashMethod: curve.PedersenArray,
+		version:          0,
+		domain:           "StarkNetDomain",
+		hashMethod:       curve.PedersenArray,
+		hashMerkleMethod: curve.Pedersen,
 		types: RevisionTypes{
 			Basic:  revision_0_basic_types,
 			Preset: preset,
@@ -59,9 +60,10 @@ func init() {
 
 	preset = getRevisionV1PresetTypes()
 	RevisionV1 = revision{
-		version:    1,
-		domain:     "StarknetDomain",
-		hashMethod: curve.PoseidonArray,
+		version:          1,
+		domain:           "StarknetDomain",
+		hashMethod:       curve.PoseidonArray,
+		hashMerkleMethod: curve.Poseidon,
 		types: RevisionTypes{
 			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
 			Preset: preset,
@@ -71,11 +73,11 @@ func init() {
 
 type revision struct {
 	//TODO: create a enum
-	version    uint8
-	domain     string
-	hashMethod func(felts ...*felt.Felt) *felt.Felt
-	//TODO: hashMerkleMethod ?
-	types RevisionTypes
+	version          uint8
+	domain           string
+	hashMethod       func(felts ...*felt.Felt) *felt.Felt
+	hashMerkleMethod func(a, b *felt.Felt) *felt.Felt
+	types            RevisionTypes
 }
 
 type RevisionTypes struct {
@@ -93,6 +95,18 @@ func (rev *revision) Domain() string {
 
 func (rev *revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
 	return rev.hashMethod(felts...)
+}
+
+func (rev *revision) HashMerkleMethod(a *felt.Felt, b *felt.Felt) *felt.Felt {
+	var first, second *felt.Felt
+	if a.Cmp(b) > 0 {
+		first = b
+		second = a
+	} else {
+		first = a
+		second = b
+	}
+	return rev.hashMerkleMethod(first, second)
 }
 
 func (rev *revision) Types() RevisionTypes {
