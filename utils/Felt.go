@@ -141,7 +141,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 
 	arr := r.FindAllString(s, -1)
 	if len(arr) == 0 {
-		return []*felt.Felt{}, fmt.Errorf("invalid string no matches found, s: %s", s)
+		return []*felt.Felt{&felt.Zero, &felt.Zero, &felt.Zero}, nil
 	}
 
 	hexarr := []string{}

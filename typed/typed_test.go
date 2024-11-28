@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 		"example_presetTypes",
 		"mail_StructArray",
 		"session_MerkleTree",
-		// "v1Nested",
+		"v1Nested",
 	}
 
 	for _, fileName := range fileNames {
@@ -299,6 +299,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x5914ed2764eca2e6a41eb037feefd3d2e33d9af6225a9e7fe31ac943ff712c",
 		},
+		{
+			TypedData:           typedDataExamples["v1Nested"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x69b57cf0cd7c151c51f9616cc58a1f0a877fec28c8c15ff7537cf777c54a30d",
+		},
 	}
 
 	for _, test := range testSet {
@@ -432,6 +437,11 @@ func TestEncodeType(t *testing.T) {
 			TypeName:       "Mail",
 			ExpectedEncode: `Mail(from:Person,to:Person,posts_len:felt,posts:Post*)Person(name:felt,wallet:felt)Post(title:felt,content:felt)`,
 		},
+		{
+			TypedData:      typedDataExamples["v1Nested"],
+			TypeName:       "TransferERC721",
+			ExpectedEncode: `"TransferERC721"("MessageId":"felt","From":"Account1","To":"Account1","Nft_to_transfer":"Nft","Comment1":"string","Comment2":"string","Comment3":"string")"Account1"("Name":"string","Address":"felt")"Nft"("Collection":"string","Address":"felt","Nft_id":"felt","Negotiated_for":"Transaction")"Transaction"("Qty":"string","Unit":"string","Token_address":"felt","Amount":"felt")`,
+		},
 	}
 	for _, test := range testSet {
 		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision)
@@ -479,6 +489,11 @@ func TestGetStructHash(t *testing.T) {
 			TypedData:    typedDataExamples["session_MerkleTree"],
 			TypeName:     "Session",
 			ExpectedHash: "0x73602062421caf6ad2e942253debfad4584bff58930981364dcd378021defe8",
+		},
+		{
+			TypedData:    typedDataExamples["v1Nested"],
+			TypeName:     "TransferERC721",
+			ExpectedHash: "0x11b5fb80dd88c3d8b6239b065def4ac9a79e6995b117ed5940a3a0734324b79",
 		},
 	}
 	for _, test := range testSet {
