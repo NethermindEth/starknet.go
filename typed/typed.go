@@ -416,9 +416,157 @@ func encodeData(
 		}
 	}
 
-	var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
-	var handleObjectTypes func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error)
-	var handleArrays func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error)
+	// helper functions
+	verifyType := func(param TypeParameter, data any) (resp *felt.Felt, err error) {
+		//helper functions
+		var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
+		var handleObjectTypes func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error)
+		var handleArrays func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error)
+
+		handleStandardTypes = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
+			switch param.Type {
+			case "merkletree":
+				tempParam := TypeParameter{
+					Name: param.Name,
+					Type: param.Contains,
+				}
+				resp, err := handleArrays(tempParam, data, rev, true)
+				if err != nil {
+					return resp, err
+				}
+				return resp, nil
+			case "enum":
+				typeDef, ok := typedData.Types[param.Contains]
+				if !ok {
+					return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Contains)
+				}
+				resp, err := handleObjectTypes(&typeDef, data)
+				if err != nil {
+					return resp, err
+				}
+				return resp, nil
+			case "NftId", "TokenAmount", "u256":
+				typeDef, ok := rev.Types().Preset[param.Type]
+				if !ok {
+					return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+				}
+				resp, err := handleObjectTypes(&typeDef, data)
+				if err != nil {
+					return resp, err
+				}
+				return resp, nil
+			default:
+				resp, err := encodePieceOfData(param.Type, data, rev)
+				if err != nil {
+					return resp, err
+				}
+				return resp, nil
+			}
+		}
+
+		handleObjectTypes = func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error) {
+			mapData, ok := data.(map[string]any)
+			if !ok {
+				return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeDef)
+			}
+
+			resp, err = shortGetStructHash(typeDef, typedData, mapData)
+			if err != nil {
+				return resp, err
+			}
+
+			return resp, nil
+		}
+
+		handleArrays = func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error) {
+			var handleMerkleTree func(felts []*felt.Felt) *felt.Felt
+			// ref https://github.com/starknet-io/starknet.js/blob/3cfdd8448538128bf9fd158d2e87be20310a69e3/src/utils/merkle.ts#L41
+			handleMerkleTree = func(felts []*felt.Felt) *felt.Felt {
+				if len(felts) == 1 {
+					return felts[0]
+				}
+				var localArr []*felt.Felt
+
+				for i := 0; i < len(felts); i += 2 {
+					if i+1 == len(felts) {
+						localArr = append(localArr, rev.HashMerkleMethod(felts[i], new(felt.Felt)))
+					} else {
+						localArr = append(localArr, rev.HashMerkleMethod(felts[i], felts[i+1]))
+					}
+				}
+
+				return handleMerkleTree(localArr)
+			}
+
+			dataArray, ok := data.([]any)
+			if !ok {
+				return resp, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
+			}
+			localEncode := []*felt.Felt{}
+			singleParamType, _ := strings.CutSuffix(param.Type, "*")
+
+			if isBasicType(singleParamType) {
+				for _, item := range dataArray {
+					resp, err := handleStandardTypes(TypeParameter{Type: singleParamType}, item, rev)
+					if err != nil {
+						return resp, err
+					}
+					localEncode = append(localEncode, resp)
+				}
+				return rev.HashMethod(localEncode...), nil
+			}
+
+			var typeDef TypeDefinition
+			if isPresetType(singleParamType) {
+				typeDef, ok = rev.Types().Preset[singleParamType]
+			} else {
+				typeDef, ok = typedData.Types[singleParamType]
+			}
+			if !ok {
+				return resp, fmt.Errorf("error trying to get the type definition of '%s'", singleParamType)
+			}
+
+			for _, item := range dataArray {
+				resp, err := handleObjectTypes(&typeDef, item)
+				if err != nil {
+					return resp, err
+				}
+				localEncode = append(localEncode, resp)
+			}
+
+			if len(isMerkle) != 0 {
+				return handleMerkleTree(localEncode), nil
+			}
+			return rev.HashMethod(localEncode...), nil
+		}
+
+		//function logic
+		if strings.HasSuffix(param.Type, "*") {
+			resp, err := handleArrays(param, data, typedData.Revision)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		}
+
+		if isStandardType(param.Type) {
+			resp, err := handleStandardTypes(param, data, typedData.Revision)
+			if err != nil {
+				return resp, err
+			}
+			return resp, nil
+		}
+
+		nextTypeDef, ok := typedData.Types[param.Type]
+		if !ok {
+			return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+		}
+		resp, err = handleObjectTypes(&nextTypeDef, data)
+		if err != nil {
+			return resp, err
+		}
+		return resp, nil
+	}
 
 	getData := func(key string) (any, error) {
 		value, ok := data[key]
@@ -428,149 +576,18 @@ func encodeData(
 		return value, nil
 	}
 
-	handleStandardTypes = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
-		switch param.Type {
-		case "merkletree":
-			tempParam := TypeParameter{
-				Name: param.Name,
-				Type: param.Contains,
-			}
-			resp, err := handleArrays(tempParam, data, rev, true)
-			if err != nil {
-				return resp, err
-			}
-			return resp, nil
-		case "enum":
-		case "NftId", "TokenAmount", "u256":
-			typeDef, ok := rev.Types().Preset[param.Type]
-			if !ok {
-				return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
-			}
-			resp, err := handleObjectTypes(&typeDef, data)
-			if err != nil {
-				return resp, err
-			}
-			return resp, nil
-		default:
-			resp, err := encodePieceOfData(param.Type, data, rev)
-			if err != nil {
-				return resp, err
-			}
-			return resp, nil
-		}
-		return resp, fmt.Errorf("error trying to encode the data of '%s'", param.Type)
-	}
-
-	handleObjectTypes = func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error) {
-		mapData, ok := data.(map[string]any)
-		if !ok {
-			return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeDef)
-		}
-
-		resp, err = shortGetStructHash(typeDef, typedData, mapData)
-		if err != nil {
-			return resp, err
-		}
-
-		return resp, nil
-	}
-
-	handleArrays = func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error) {
-		var handleMerkleTree func(felts []*felt.Felt) *felt.Felt
-		// ref https://github.com/starknet-io/starknet.js/blob/3cfdd8448538128bf9fd158d2e87be20310a69e3/src/utils/merkle.ts#L41
-		handleMerkleTree = func(felts []*felt.Felt) *felt.Felt {
-			if len(felts) == 1 {
-				return felts[0]
-			}
-			var localArr []*felt.Felt
-
-			for i := 0; i < len(felts); i += 2 {
-				if i+1 == len(felts) {
-					localArr = append(localArr, rev.HashMerkleMethod(felts[i], new(felt.Felt)))
-				} else {
-					localArr = append(localArr, rev.HashMerkleMethod(felts[i], felts[i+1]))
-				}
-			}
-
-			return handleMerkleTree(localArr)
-		}
-
-		dataArray, ok := data.([]any)
-		if !ok {
-			return resp, fmt.Errorf("error trying to convert the value of '%s' to an array", param.Name)
-		}
-		localEncode := []*felt.Felt{}
-		singleParamType, _ := strings.CutSuffix(param.Type, "*")
-
-		if isBasicType(singleParamType) {
-			for _, item := range dataArray {
-				resp, err := handleStandardTypes(TypeParameter{Type: singleParamType}, item, rev)
-				if err != nil {
-					return resp, err
-				}
-				localEncode = append(localEncode, resp)
-			}
-			return rev.HashMethod(localEncode...), nil
-		}
-
-		var typeDef TypeDefinition
-		if isPresetType(singleParamType) {
-			typeDef, ok = rev.Types().Preset[singleParamType]
-		} else {
-			typeDef, ok = typedData.Types[singleParamType]
-		}
-		if !ok {
-			return resp, fmt.Errorf("error trying to get the type definition of '%s'", singleParamType)
-		}
-
-		for _, item := range dataArray {
-			resp, err := handleObjectTypes(&typeDef, item)
-			if err != nil {
-				return resp, err
-			}
-			localEncode = append(localEncode, resp)
-		}
-
-		if len(isMerkle) != 0 {
-			return handleMerkleTree(localEncode), nil
-		}
-		return rev.HashMethod(localEncode...), nil
-	}
-
+	// function logic
 	for _, param := range typeDef.Parameters {
 		localData, err := getData(param.Name)
 		if err != nil {
 			return enc, err
 		}
 
-		if strings.HasSuffix(param.Type, "*") {
-			resp, err := handleArrays(param, localData, typedData.Revision)
-			if err != nil {
-				return enc, err
-			}
-			enc = append(enc, resp)
-			continue
-		}
-
-		if isStandardType(param.Type) {
-			resp, err := handleStandardTypes(param, localData, typedData.Revision)
-			if err != nil {
-				return enc, err
-			}
-			enc = append(enc, resp)
-			continue
-		}
-
-		nextTypeDef, ok := typedData.Types[param.Type]
-		if !ok {
-			return enc, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
-		}
-		resp, err := handleObjectTypes(&nextTypeDef, localData)
+		resp, err := verifyType(param, localData)
 		if err != nil {
 			return enc, err
 		}
 		enc = append(enc, resp)
-
 	}
 
 	return enc, nil

@@ -370,6 +370,11 @@ func TestGetTypeHash(t *testing.T) {
 			ExpectedHash: "0x1f94cd0be8b4097a41486170fdf09a4cd23aefbc74bb2344718562994c2c111",
 		},
 		{
+			TypedData:    typedDataExamples["example_presetTypes"],
+			TypeName:     "Example",
+			ExpectedHash: "0x1a25a8bb84b761090b1fadaebe762c4b679b0d8883d2bedda695ea340839a55",
+		},
+		{
 			TypedData:    typedDataExamples["session_MerkleTree"],
 			TypeName:     "Session",
 			ExpectedHash: "0x1aa0e1c56b45cf06a54534fa1707c54e520b842feb21d03b7deddb6f1e340c",
@@ -464,6 +469,7 @@ func TestGetStructHash(t *testing.T) {
 	type testSetType struct {
 		TypedData    TypedData
 		TypeName     string
+		Context      []string
 		ExpectedHash string
 	}
 	testSet := []testSetType{
@@ -494,7 +500,7 @@ func TestGetStructHash(t *testing.T) {
 		},
 	}
 	for _, test := range testSet {
-		hash, err := test.TypedData.GetStructHash(test.TypeName)
+		hash, err := test.TypedData.GetStructHash(test.TypeName, test.Context...)
 		require.NoError(t, err)
 
 		require.Equal(t, test.ExpectedHash, hash.String())
