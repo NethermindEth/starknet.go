@@ -167,7 +167,6 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
@@ -194,7 +193,6 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
