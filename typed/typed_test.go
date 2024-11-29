@@ -444,10 +444,7 @@ func TestEncodeType(t *testing.T) {
 		},
 	}
 	for _, test := range testSet {
-		encode, err := encodeType(test.TypeName, test.TypedData.Types, test.TypedData.Revision)
-		require.NoError(t, err)
-
-		require.Equal(t, test.ExpectedEncode, encode)
+		require.Equal(t, test.ExpectedEncode, test.TypedData.Types[test.TypeName].EncoddingString)
 	}
 }
 
