@@ -45,7 +45,7 @@ var RevisionV0 revision
 var RevisionV1 revision
 
 func init() {
-	preset := make(map[string]TypeDefinition)
+	presetMap := make(map[string]TypeDefinition)
 
 	RevisionV0 = revision{
 		version:          0,
@@ -54,11 +54,12 @@ func init() {
 		hashMerkleMethod: curve.Pedersen,
 		types: RevisionTypes{
 			Basic:  revision_0_basic_types,
-			Preset: preset,
+			Preset: presetMap,
 		},
 	}
 
-	preset = getRevisionV1PresetTypes()
+	presetMap = getRevisionV1PresetTypes()
+
 	RevisionV1 = revision{
 		version:          1,
 		domain:           "StarknetDomain",
@@ -66,7 +67,7 @@ func init() {
 		hashMerkleMethod: curve.Poseidon,
 		types: RevisionTypes{
 			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
-			Preset: preset,
+			Preset: presetMap,
 		},
 	}
 }
@@ -125,12 +126,17 @@ func GetRevision(version uint8) (rev *revision, err error) {
 }
 
 func getRevisionV1PresetTypes() map[string]TypeDefinition {
-	//NftId
-	//TokenAmount
-	//u256
+	NftIdEnc, _ := new(felt.Felt).SetString("0x14648649d4413eb385eea9ac7e6f2b9769671f5d9d7ad40f7b4aadd67839d4")
+	TokenAmountEnc, _ := new(felt.Felt).SetString("0xaf7d0f5e34446178d80fadf5ddaaed52347121d2fac19ff184ff508d4776f2")
+	u256dEnc, _ := new(felt.Felt).SetString("0x3b143be38b811560b45593fb2a071ec4ddd0a020e10782be62ffe6f39e0e82c")
+
 	presetTypes := []TypeDefinition{
 		{
-			Name: "NftId",
+			Name:               "NftId",
+			Enconding:          NftIdEnc,
+			EncoddingString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")"u256"("low":"u128","high":"u128")`,
+			SingleEncString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")`,
+			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
 				{
 					Name: "collection_address",
@@ -143,7 +149,11 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 			},
 		},
 		{
-			Name: "TokenAmount",
+			Name:               "TokenAmount",
+			Enconding:          TokenAmountEnc,
+			EncoddingString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
+			SingleEncString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")`,
+			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
 				{
 					Name: "token_address",
@@ -156,7 +166,11 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 			},
 		},
 		{
-			Name: "u256",
+			Name:               "u256",
+			Enconding:          u256dEnc,
+			EncoddingString:    `"u256"("low":"u128","high":"u128")`,
+			SingleEncString:    `"u256"("low":"u128","high":"u128")`,
+			ReferencedTypesEnc: []string{},
 			Parameters: []TypeParameter{
 				{
 					Name: "low",
@@ -170,13 +184,13 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 		},
 	}
 
-	result := make(map[string]TypeDefinition)
+	presetTypesMap := make(map[string]TypeDefinition)
 
 	for _, typeDef := range presetTypes {
-		result[typeDef.Name] = typeDef
+		presetTypesMap[typeDef.Name] = typeDef
 	}
 
-	return result
+	return presetTypesMap
 }
 
 // Check if the provided type name is a standard type defined at the SNIP 12, also validates arrays

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -29,9 +30,12 @@ type Domain struct {
 }
 
 type TypeDefinition struct {
-	Name       string     `json:"-"`
-	Enconding  *felt.Felt `json:"-"`
-	Parameters []TypeParameter
+	Name               string     `json:"-"`
+	Enconding          *felt.Felt `json:"-"`
+	EncoddingString    string     `json:"-"`
+	SingleEncString    string     `json:"-"`
+	ReferencedTypesEnc []string   `json:"-"`
+	Parameters         []TypeParameter
 }
 
 type TypeParameter struct {
@@ -53,26 +57,43 @@ type TypeParameter struct {
 // - td: a TypedData object
 // - err: an error if any
 func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td *TypedData, err error) {
+	//types
 	typesMap := make(map[string]TypeDefinition)
-
 	for _, typeDef := range types {
 		typesMap[typeDef.Name] = typeDef
 	}
 
+	//primary type
 	if _, ok := typesMap[primaryType]; !ok {
 		return td, fmt.Errorf("invalid primary type: %s", primaryType)
 	}
 
+	//message
 	messageMap := make(map[string]any)
 	err = json.Unmarshal(message, &messageMap)
 	if err != nil {
 		return td, fmt.Errorf("error unmarshalling the message: %w", err)
 	}
 
+	//revision
 	revision, err := GetRevision(domain.Revision)
 	if err != nil {
 		return td, fmt.Errorf("error getting revision: %w", err)
 	}
+
+	//domain type encoding
+	domainTypeDef, err := encodeTypes(revision.Domain(), typesMap, revision)
+	if err != nil {
+		return td, err
+	}
+	typesMap[revision.Domain()] = domainTypeDef
+
+	//types encoding
+	primaryTypeDef, err := encodeTypes(primaryType, typesMap, revision)
+	if err != nil {
+		return td, err
+	}
+	typesMap[primaryType] = primaryTypeDef
 
 	td = &TypedData{
 		Types:       typesMap,
@@ -82,22 +103,6 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 		Revision:    revision,
 	}
 
-	for k, v := range td.Types {
-		enc, err := getTypeHash(k, td.Types, td.Revision)
-		if err != nil {
-			return td, fmt.Errorf("error encoding type hash: %s %w", k, err)
-		}
-		v.Enconding = enc
-		td.Types[k] = v
-	}
-	for k, v := range td.Revision.types.Preset {
-		enc, err := getTypeHash(k, td.Revision.types.Preset, td.Revision)
-		if err != nil {
-			return td, fmt.Errorf("error encoding type hash: %s %w", k, err)
-		}
-		v.Enconding = enc
-		td.Revision.types.Preset[k] = v
-	}
 	return td, nil
 }
 
@@ -187,17 +192,9 @@ func shortGetStructHash(
 // Returns:
 // - ret: the hash of the given type
 // - err: any error if any
-func (td *TypedData) GetTypeHash(typeName string) (ret *felt.Felt, err error) {
+func (td *TypedData) GetTypeHash(typeName string) *felt.Felt {
 	//TODO: create/update methods descriptions
-	return getTypeHash(typeName, td.Types, td.Revision)
-}
-
-func getTypeHash(typeName string, types map[string]TypeDefinition, revision *revision) (ret *felt.Felt, err error) {
-	enc, err := encodeType(typeName, types, revision)
-	if err != nil {
-		return ret, err
-	}
-	return utils.GetSelectorFromNameFelt(enc), nil
+	return td.Types[typeName].Enconding
 }
 
 // EncodeType encodes the given inType using the TypedData struct.
@@ -207,11 +204,41 @@ func getTypeHash(typeName string, types map[string]TypeDefinition, revision *rev
 // Returns:
 // - enc: the encoded type
 // - err: any error if any
-func encodeType(typeName string, types map[string]TypeDefinition, revision *revision) (enc string, err error) {
-	customTypesEncodeResp := make(map[string]string)
+func encodeTypes(typeName string, types map[string]TypeDefinition, revision *revision, isEnum ...bool) (newTypeDef TypeDefinition, err error) {
+	getTypeEncodeString := func(typeName string, typeDef TypeDefinition, customTypesStringEnc *[]string, isEnum ...bool) (result string, err error) {
+		verifyTypeName := func(typeName string, isEnum ...bool) error {
+			singleTypeName, _ := strings.CutSuffix(typeName, "*")
 
-	var getEncodeType func(typeName string, typeDef TypeDefinition) (result string, err error)
-	getEncodeType = func(typeName string, typeDef TypeDefinition) (result string, err error) {
+			if isBasicType(singleTypeName) {
+				return nil
+			}
+
+			if isPresetType(singleTypeName) {
+				typeEnc, ok := revision.Types().Preset[singleTypeName]
+				if !ok {
+					return fmt.Errorf("error trying to get the type definition of '%s'", singleTypeName)
+				}
+				*customTypesStringEnc = append(*customTypesStringEnc, append([]string{typeEnc.SingleEncString}, typeEnc.ReferencedTypesEnc...)...)
+
+				return nil
+			}
+
+			if newTypeDef := types[singleTypeName]; newTypeDef.SingleEncString != "" {
+				*customTypesStringEnc = append(*customTypesStringEnc, append([]string{newTypeDef.SingleEncString}, newTypeDef.ReferencedTypesEnc...)...)
+				return nil
+			}
+
+			newTypeDef, err := encodeTypes(singleTypeName, types, revision, isEnum...)
+			if err != nil {
+				return err
+			}
+
+			*customTypesStringEnc = append(*customTypesStringEnc, append([]string{newTypeDef.SingleEncString}, newTypeDef.ReferencedTypesEnc...)...)
+			types[singleTypeName] = newTypeDef
+
+			return nil
+		}
+
 		var buf bytes.Buffer
 		quotationMark := ""
 		if revision.Version() == 1 {
@@ -221,38 +248,51 @@ func encodeType(typeName string, types map[string]TypeDefinition, revision *revi
 		buf.WriteString(quotationMark + typeName + quotationMark)
 		buf.WriteString("(")
 
-		var ok bool
-
 		for i, param := range typeDef.Parameters {
-			buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+quotationMark+"%s"+quotationMark, param.Name, param.Type))
-			if i != (len(typeDef.Parameters) - 1) {
-				buf.WriteString(",")
-			}
-			singleTypeName, _ := strings.CutSuffix(param.Type, "*")
-
-			if isBasicType(singleTypeName) {
-				continue
-			} else if _, ok = customTypesEncodeResp[singleTypeName]; !ok {
-				if isPresetType(singleTypeName) {
-					typeDef, ok := revision.Types().Preset[singleTypeName]
-					if !ok {
-						return result, fmt.Errorf("error trying to get the type definition of '%s'", singleTypeName)
-					}
-					customTypesEncodeResp[singleTypeName], err = getEncodeType(singleTypeName, typeDef)
-					if err != nil {
-						return "", err
-					}
-
-					continue
-				}
-				customTypeDef, ok := types[singleTypeName]
-				if !ok {
-					return "", fmt.Errorf("can't parse type %s from types %v", singleTypeName, types)
-				}
-				customTypesEncodeResp[singleTypeName], err = getEncodeType(singleTypeName, customTypeDef)
+			if len(isEnum) != 0 {
+				reg, err := regexp.Compile(`[^\(\),\s]+`)
 				if err != nil {
 					return "", err
 				}
+				typesArr := reg.FindAllString(param.Type, -1)
+				var fullTypeName string
+				for i, typeNam := range typesArr {
+					fullTypeName += `"` + typeNam + `"`
+					if i < (len(typesArr) - 1) {
+						fullTypeName += `,`
+					}
+				}
+				buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+`(`+"%s"+`)`, param.Name, fullTypeName))
+
+				for _, typeNam := range typesArr {
+					err = verifyTypeName(typeNam)
+					if err != nil {
+						return "", err
+					}
+				}
+			} else {
+				currentTypeName := param.Type
+
+				if currentTypeName == "enum" {
+					if param.Contains == "" {
+						return "", fmt.Errorf("missing 'contains' value from '%s'", param.Name)
+					}
+					currentTypeName = param.Contains
+					err = verifyTypeName(currentTypeName, true)
+					if err != nil {
+						return "", err
+					}
+				}
+
+				buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+quotationMark+"%s"+quotationMark, param.Name, currentTypeName))
+
+				err = verifyTypeName(param.Type)
+				if err != nil {
+					return "", err
+				}
+			}
+			if i != (len(typeDef.Parameters) - 1) {
+				buf.WriteString(",")
 			}
 		}
 		buf.WriteString(")")
@@ -260,31 +300,54 @@ func encodeType(typeName string, types map[string]TypeDefinition, revision *revi
 		return buf.String(), nil
 	}
 
-	var typeDef TypeDefinition
-	var ok bool
-	if typeDef, ok = types[typeName]; !ok {
-		return "", fmt.Errorf("can't parse type %s from types %v", typeName, types)
+	typeDef, ok := types[typeName]
+	if !ok {
+		return typeDef, fmt.Errorf("can't parse type %s from types %v", typeName, types)
 	}
-	enc, err = getEncodeType(typeName, typeDef)
+
+	if newTypeDef = types[typeName]; newTypeDef.EncoddingString != "" {
+		return newTypeDef, nil
+	}
+
+	referencedTypesEnc := make([]string, 0)
+
+	singleEncString, err := getTypeEncodeString(typeName, typeDef, &referencedTypesEnc, isEnum...)
 	if err != nil {
-		return "", err
+		return typeDef, err
 	}
 
+	fullEncString := singleEncString
 	// appends the custom types' encode
-	if len(customTypesEncodeResp) > 0 {
-		// sort the types
-		keys := make([]string, 0, len(customTypesEncodeResp))
-		for key := range customTypesEncodeResp {
-			keys = append(keys, key)
+	if len(referencedTypesEnc) > 0 {
+		// temp map just to remove duplicated items
+		uniqueMap := make(map[string]bool)
+		for _, typeEncStr := range referencedTypesEnc {
+			uniqueMap[typeEncStr] = true
 		}
-		slices.Sort(keys)
+		// clear the array
+		referencedTypesEnc = make([]string, 0, len(uniqueMap))
+		// fill it again
+		for typeEncStr := range uniqueMap {
+			referencedTypesEnc = append(referencedTypesEnc, typeEncStr)
+		}
 
-		for _, key := range keys {
-			enc = enc + customTypesEncodeResp[key]
+		slices.Sort(referencedTypesEnc)
+
+		for _, typeEncStr := range referencedTypesEnc {
+			fullEncString += typeEncStr
 		}
 	}
 
-	return enc, nil
+	newTypeDef = TypeDefinition{
+		Name:               typeDef.Name,
+		Parameters:         typeDef.Parameters,
+		Enconding:          utils.GetSelectorFromNameFelt(fullEncString),
+		EncoddingString:    fullEncString,
+		SingleEncString:    singleEncString,
+		ReferencedTypesEnc: referencedTypesEnc,
+	}
+
+	return newTypeDef, nil
 }
 
 func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc []*felt.Felt, err error) {
