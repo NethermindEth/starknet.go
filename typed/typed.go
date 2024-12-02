@@ -182,14 +182,18 @@ func shortGetStructHash(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
 	data map[string]any,
+	isEnum bool,
 	context ...string,
 ) (hash *felt.Felt, err error) {
 
-	encTypeData, err := encodeData(typeDef, typedData, data, context...)
+	encTypeData, err := encodeData(typeDef, typedData, data, isEnum, context...)
 	if err != nil {
 		return hash, err
 	}
 
+	if isEnum {
+		return typedData.Revision.HashMethod(encTypeData...), nil
+	}
 	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
@@ -390,16 +394,17 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
 		domainMap["chain_id"] = domainMap["chainId"]
 
-		return encodeData(typeDef, td, domainMap, context...)
+		return encodeData(typeDef, td, domainMap, false, context...)
 	}
 
-	return encodeData(typeDef, td, td.Message, context...)
+	return encodeData(typeDef, td, td.Message, false, context...)
 }
 
 func encodeData(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
 	data map[string]any,
+	isEnum bool,
 	context ...string,
 ) (enc []*felt.Felt, err error) {
 	if len(context) != 0 {
@@ -420,7 +425,7 @@ func encodeData(
 	verifyType := func(param TypeParameter, data any) (resp *felt.Felt, err error) {
 		//helper functions
 		var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
-		var handleObjectTypes func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error)
+		var handleObjectTypes func(typeDef *TypeDefinition, data any, isEnum ...bool) (resp *felt.Felt, err error)
 		var handleArrays func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error)
 
 		handleStandardTypes = func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error) {
@@ -440,7 +445,7 @@ func encodeData(
 				if !ok {
 					return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Contains)
 				}
-				resp, err := handleObjectTypes(&typeDef, data)
+				resp, err := handleObjectTypes(&typeDef, data, true)
 				if err != nil {
 					return resp, err
 				}
@@ -464,13 +469,17 @@ func encodeData(
 			}
 		}
 
-		handleObjectTypes = func(typeDef *TypeDefinition, data any) (resp *felt.Felt, err error) {
+		handleObjectTypes = func(typeDef *TypeDefinition, data any, isEnum ...bool) (resp *felt.Felt, err error) {
 			mapData, ok := data.(map[string]any)
 			if !ok {
 				return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeDef)
 			}
 
-			resp, err = shortGetStructHash(typeDef, typedData, mapData)
+			if len(isEnum) != 0 {
+				resp, err = shortGetStructHash(typeDef, typedData, mapData, true)
+			} else {
+				resp, err = shortGetStructHash(typeDef, typedData, mapData, false)
+			}
 			if err != nil {
 				return resp, err
 			}
@@ -527,7 +536,7 @@ func encodeData(
 			}
 
 			for _, item := range dataArray {
-				resp, err := handleObjectTypes(&typeDef, item)
+				resp, err := handleObjectTypes(&typeDef, item, isEnum)
 				if err != nil {
 					return resp, err
 				}
@@ -561,7 +570,7 @@ func encodeData(
 		if !ok {
 			return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
 		}
-		resp, err = handleObjectTypes(&nextTypeDef, data)
+		resp, err = handleObjectTypes(&nextTypeDef, data, isEnum)
 		if err != nil {
 			return resp, err
 		}
@@ -577,7 +586,47 @@ func encodeData(
 	}
 
 	// function logic
-	for _, param := range typeDef.Parameters {
+	for paramIndex, param := range typeDef.Parameters {
+		if isEnum {
+			value, exists := data[param.Name]
+			// check if it's the selected enum option
+			if !exists {
+				if paramIndex == len(typeDef.Parameters)-1 {
+					return enc, fmt.Errorf("no enum option selected for '%s', the data is not valid", typeDef.Name)
+				}
+				continue
+			}
+
+			dataArr, ok := value.([]any)
+			if !ok {
+				return enc, fmt.Errorf("error trying to convert the data value of '%s' to an array", param.Name)
+			}
+
+			enc = append(enc, new(felt.Felt).SetUint64(uint64(paramIndex)))
+
+			if len(dataArr) == 0 {
+				enc = append(enc, &felt.Zero)
+				break
+			}
+
+			reg := regexp.MustCompile(`[^\(\),\s]+`)
+			typesArr := reg.FindAllString(param.Type, -1)
+
+			if len(dataArr) != len(typesArr) {
+				return enc, fmt.Errorf("error encoding the '%s' param: the length of the type and the data array are not the same", param.Name)
+			}
+
+			for i, typeNam := range typesArr {
+				resp, err := verifyType(TypeParameter{Type: typeNam}, dataArr[i])
+				if err != nil {
+					return enc, err
+				}
+				enc = append(enc, resp)
+			}
+
+			break
+		}
+
 		localData, err := getData(param.Name)
 		if err != nil {
 			return enc, err

@@ -61,7 +61,7 @@ func TestMain(m *testing.M) {
 		"baseExample",
 		"example_array",
 		"example_baseTypes",
-		// "example_enum",
+		"example_enum",
 		"example_presetTypes",
 		"mail_StructArray",
 		"session_MerkleTree",
@@ -304,6 +304,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x69b57cf0cd7c151c51f9616cc58a1f0a877fec28c8c15ff7537cf777c54a30d",
 		},
+		{
+			TypedData:           typedDataExamples["example_enum"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x6e61abaf480b1370bbf231f54e298c5f4872f40a6d2dd409ff30accee5bbd1e",
+		},
 	}
 
 	for _, test := range testSet {
@@ -447,6 +452,11 @@ func TestEncodeType(t *testing.T) {
 			TypeName:       "TransferERC721",
 			ExpectedEncode: `"TransferERC721"("MessageId":"felt","From":"Account1","To":"Account1","Nft_to_transfer":"Nft","Comment1":"string","Comment2":"string","Comment3":"string")"Account1"("Name":"string","Address":"felt")"Nft"("Collection":"string","Address":"felt","Nft_id":"felt","Negotiated_for":"Transaction")"Transaction"("Qty":"string","Unit":"string","Token_address":"felt","Amount":"felt")`,
 		},
+		{
+			TypedData:      typedDataExamples["example_enum"],
+			TypeName:       "Example",
+			ExpectedEncode: `"Example"("someEnum1":"EnumA","someEnum2":"EnumB")"EnumA"("Variant 1":(),"Variant 2":("u128","u128*"),"Variant 3":("u128"))"EnumB"("Variant 1":(),"Variant 2":("u128"))`,
+		},
 	}
 	for _, test := range testSet {
 		require.Equal(t, test.ExpectedEncode, test.TypedData.Types[test.TypeName].EncoddingString)
@@ -497,6 +507,11 @@ func TestGetStructHash(t *testing.T) {
 			TypedData:    typedDataExamples["v1Nested"],
 			TypeName:     "TransferERC721",
 			ExpectedHash: "0x11b5fb80dd88c3d8b6239b065def4ac9a79e6995b117ed5940a3a0734324b79",
+		},
+		{
+			TypedData:    typedDataExamples["example_enum"],
+			TypeName:     "Example",
+			ExpectedHash: "0x1e1bb5d477e92cbf562b3b766c5c1e5f8590f2df868d4c8249c0db8416f8c37",
 		},
 	}
 	for _, test := range testSet {
