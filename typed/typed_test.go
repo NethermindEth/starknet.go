@@ -11,8 +11,15 @@ import (
 
 var typedDataExamples = make(map[string]TypedData)
 
+// TestMain initializes test data by loading TypedData examples from JSON files.
+// It reads multiple test files and stores them in the typedDataExamples map
+// before running the tests.
+//
+// Parameters:
+// - m: The testing.M object that provides the test runner
+// Returns:
+// - None (calls os.Exit directly)
 func TestMain(m *testing.M) {
-	//TODO: implement v1 so we can use other examples
 	fileNames := []string{
 		"baseExample",
 		"example_array",
@@ -42,6 +49,13 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// BMockTypedData is a helper function for benchmarks that loads a base example
+// TypedData from a JSON file.
+//
+// Parameters:
+// - b: The testing.B object used for benchmarking
+// Returns:
+// - ttd: A TypedData instance loaded from the base example file
 func BMockTypedData(b *testing.B) (ttd TypedData) {
 	b.Helper()
 	content, err := os.ReadFile("./tests/baseExample.json")

@@ -22,6 +22,7 @@ type TypedData struct {
 	revision    *revision
 }
 
+// Types returns a copy of the TypedData's type definitions map
 func (td *TypedData) Types() map[string]TypeDefinition {
 	copyMap := make(map[string]TypeDefinition, len(td.types))
 	for k, v := range td.types {
@@ -30,14 +31,17 @@ func (td *TypedData) Types() map[string]TypeDefinition {
 	return copyMap
 }
 
+// PrimaryType returns the primary type name of the TypedData
 func (td *TypedData) PrimaryType() string {
 	return td.primaryType
 }
 
+// Domain returns the domain information of the TypedData
 func (td *TypedData) Domain() Domain {
 	return td.domain
 }
 
+// Message returns a copy of the TypedData's message map
 func (td *TypedData) Message() map[string]any {
 	copyMap := make(map[string]any, len(td.message))
 	for k, v := range td.message {
@@ -46,6 +50,7 @@ func (td *TypedData) Message() map[string]any {
 	return copyMap
 }
 
+// Revision returns the revision value of the TypedData
 func (td *TypedData) Revision() revision {
 	return *td.revision
 }
@@ -72,18 +77,17 @@ type TypeParameter struct {
 	Contains string `json:"contains,omitempty"`
 }
 
-// NewTypedData initializes a new TypedData object with the given types, primary type, and domain
-// for interacting and signing in accordance with https://github.com/0xs34n/starknet.js/tree/develop/src/utils/typedData
-// If the primary type is invalid, it returns an error with the message "invalid primary type: {pType}".
-// If there is an error encoding the type hash, it returns an error with the message "error encoding type hash: {enc.String()} {err}".
+// NewTypedData creates a new instance of TypedData.
 //
 // Parameters:
-// - types: a map[string]TypeDefinition representing the types associated with their names.
-// - pType: a string representing the primary type.
-// - dom: a Domain representing the domain.
+// - types: a slice of TypeDefinition representing the types used in the TypedData.
+// - primaryType: a string representing the primary type of the TypedData.
+// - domain: a Domain struct representing the domain information of the TypedData.
+// - message: a byte slice containing the JSON-encoded message.
+//
 // Returns:
-// - td: a TypedData object
-// - err: an error if any
+// - td: a pointer to the newly created TypedData instance.
+// - err: an error if any occurred during the creation of the TypedData.
 func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td *TypedData, err error) {
 	//types
 	typesMap := make(map[string]TypeDefinition)
@@ -184,13 +188,20 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 	return td.revision.HashMethod(elements...), nil
 }
 
-// GetStructHash calculates the hash of a type and its respective data.
+// GetStructHash calculates the hash of a struct type and its respective data.
 //
 // Parameters:
 // - typeName: the name of the type to be hashed.
+// - context: optional context strings to be included in the hash calculation.
+//
+// You can use 'context' to specify the path of the type you want to hash. Example: if you want to hash the type "ExampleInner"
+// that is within the "Example" primary type with the name of "example_inner", you can specify the context as ["example_inner"].
+// If "ExampleInner" has a parameter with the name of "example_inner_inner" that you want to know the hash, you can specify the context
+// as ["example_inner", "example_inner_inner"].
+//
 // Returns:
 // - hash: A pointer to a felt.Felt representing the calculated hash.
-// - err: any error if any
+// - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error) {
 	typeDef, ok := td.types[typeName]
 	if !ok {
@@ -206,6 +217,7 @@ func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *fe
 	return td.revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
+// shortGetStructHash is a helper function that calculates the hash of a struct type and its respective data.
 func shortGetStructHash(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
@@ -228,10 +240,10 @@ func shortGetStructHash(
 // GetTypeHash returns the hash of the given type.
 //
 // Parameters:
-// - inType: the type to hash
+// - typeName: the name of the type to hash
 // Returns:
-// - ret: the hash of the given type
-// - err: any error if any
+// - hash: A pointer to a felt.Felt representing the calculated hash.
+// - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 	//TODO: create/update methods descriptions
 	typeDef, ok := td.types[typeName]
@@ -243,13 +255,15 @@ func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 	return typeDef.Enconding, nil
 }
 
-// EncodeType encodes the given inType using the TypedData struct.
-//
+// encodeTypes encodes the given type name using the TypedData struct.
 // Parameters:
-// - inType: the type to encode
+// - typeName: name of the type to encode
+// - types: map of type definitions
+// - revision: revision information
+// - isEnum: optional boolean indicating if type is an enum
 // Returns:
-// - enc: the encoded type
-// - err: any error if any
+// - newTypeDef: the encoded type definition
+// - err: any error encountered during encoding
 func encodeTypes(typeName string, types map[string]TypeDefinition, revision *revision, isEnum ...bool) (newTypeDef TypeDefinition, err error) {
 	getTypeEncodeString := func(typeName string, typeDef TypeDefinition, customTypesStringEnc *[]string, isEnum ...bool) (result string, err error) {
 		verifyTypeName := func(param TypeParameter, isEnum ...bool) error {
@@ -407,6 +421,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 	return newTypeDef, nil
 }
 
+// EncodeData encodes the given type definition using the TypedData struct.
 func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc []*felt.Felt, err error) {
 	if typeDef.Name == "StarkNetDomain" || typeDef.Name == "StarknetDomain" {
 		domainMap := make(map[string]any)
@@ -428,6 +443,22 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 	return encodeData(typeDef, td, td.message, false, context...)
 }
 
+// encodeData is a helper function that encodes the given type definition using the TypedData struct.
+//
+// Parameters:
+// - typeDef: a pointer to the TypeDefinition representing the type to be encoded.
+// - typedData: a pointer to the TypedData struct containing the data to be encoded.
+// - data: a map containing the data to be encoded.
+// - isEnum: a boolean indicating whether the type is an enum.
+// - context: optional context strings to be included in the encoding process.
+//
+// The function first checks if the context is provided and updates the data map accordingly.
+// It then defines helper functions to handle standard types, object types, and arrays.
+// The main encoding logic is implemented within these helper functions.
+//
+// Returns:
+// - enc: a slice of pointers to felt.Felt representing the encoded data.
+// - err: an error if any occurred during the encoding process.
 func encodeData(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
@@ -666,6 +697,14 @@ func encodeData(
 	return enc, nil
 }
 
+// encodePieceOfData encodes a single piece of data based on its type.
+// Parameters:
+// - typeName: the type of data to encode
+// - data: the actual data to encode
+// - rev: revision information
+// Returns:
+// - resp: encoded data as a felt.Felt
+// - err: any error encountered during encoding
 func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
 	getFeltFromData := func() (feltValue *felt.Felt, err error) {
 		strValue := func(data any) string {
@@ -750,17 +789,10 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 		return utils.GetSelectorFromNameFelt(value), nil
 	default:
 		return resp, fmt.Errorf("invalid type '%s'", typeName)
-		// check revision
-		// }
-		// if nextTypeDef, ok := typedData.rev[param.Type]; ok {
-		// 	structEnc, err := shortGetStructHash(&nextTypeDef, typedData, data, append(context, param.Name)...)
-		// 	if err != nil {
-		// 		return felt, err
-		// 	}
-		// 	enc = append(enc, structEnc)
 	}
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for TypedData
 func (td *TypedData) UnmarshalJSON(data []byte) error {
 	var dec map[string]json.RawMessage
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -819,6 +851,7 @@ func (td *TypedData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface for Domain
 func (domain *Domain) UnmarshalJSON(data []byte) error {
 	var dec map[string]any
 	if err := json.Unmarshal(data, &dec); err != nil {
