@@ -422,7 +422,7 @@ func encodeData(
 	}
 
 	// helper functions
-	verifyType := func(param TypeParameter, data any) (resp *felt.Felt, err error) {
+	verifyType := func(param TypeParameter, data any, isEnum bool) (resp *felt.Felt, err error) {
 		//helper functions
 		var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
 		var handleObjectTypes func(typeDef *TypeDefinition, data any, isEnum ...bool) (resp *felt.Felt, err error)
@@ -443,7 +443,7 @@ func encodeData(
 			case "enum":
 				typeDef, ok := typedData.Types[param.Contains]
 				if !ok {
-					return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Contains)
+					return resp, fmt.Errorf("error trying to get the type definition of '%s' in contains of '%s'", param.Contains, param.Name)
 				}
 				resp, err := handleObjectTypes(&typeDef, data, true)
 				if err != nil {
@@ -475,7 +475,7 @@ func encodeData(
 				return resp, fmt.Errorf("error trying to convert the value of '%s' to an map", typeDef)
 			}
 
-			if len(isEnum) != 0 {
+			if len(isEnum) != 0 && isEnum[0] {
 				resp, err = shortGetStructHash(typeDef, typedData, mapData, true)
 			} else {
 				resp, err = shortGetStructHash(typeDef, typedData, mapData, false)
@@ -516,7 +516,7 @@ func encodeData(
 
 			if isBasicType(singleParamType) {
 				for _, item := range dataArray {
-					resp, err := handleStandardTypes(TypeParameter{Type: singleParamType}, item, rev)
+					resp, err := handleStandardTypes(TypeParameter{Name: param.Name, Type: singleParamType, Contains: param.Contains}, item, rev)
 					if err != nil {
 						return resp, err
 					}
@@ -612,12 +612,8 @@ func encodeData(
 			reg := regexp.MustCompile(`[^\(\),\s]+`)
 			typesArr := reg.FindAllString(param.Type, -1)
 
-			if len(dataArr) != len(typesArr) {
-				return enc, fmt.Errorf("error encoding the '%s' param: the length of the type and the data array are not the same", param.Name)
-			}
-
 			for i, typeNam := range typesArr {
-				resp, err := verifyType(TypeParameter{Type: typeNam}, dataArr[i])
+				resp, err := verifyType(TypeParameter{Type: typeNam}, dataArr[i], false)
 				if err != nil {
 					return enc, err
 				}
@@ -632,7 +628,7 @@ func encodeData(
 			return enc, err
 		}
 
-		resp, err := verifyType(param, localData)
+		resp, err := verifyType(param, localData, false)
 		if err != nil {
 			return enc, err
 		}
@@ -644,7 +640,35 @@ func encodeData(
 
 func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
 	getFeltFromData := func() (feltValue *felt.Felt, err error) {
-		strValue := fmt.Sprintf("%v", data)
+		strValue := func(data any) string {
+			switch v := data.(type) {
+			case string:
+				return v
+			case float64:
+				// Handle floating point numbers without trailing zeros
+				if float64(int64(v)) == v {
+					return strconv.FormatInt(int64(v), 10)
+				}
+				return strconv.FormatFloat(v, 'f', -1, 64)
+			case float32:
+				if float32(int32(v)) == v {
+					return strconv.FormatInt(int64(v), 10)
+				}
+				return strconv.FormatFloat(float64(v), 'f', -1, 32)
+			case int:
+				return strconv.Itoa(v)
+			case int64:
+				return strconv.FormatInt(v, 10)
+			case int32:
+				return strconv.FormatInt(int64(v), 10)
+			case bool:
+				return strconv.FormatBool(v)
+			case nil:
+				return ""
+			default:
+				return fmt.Sprintf("%v", v)
+			}
+		}(data)
 		hexValue := utils.StrToHex(strValue)
 		feltValue, err = utils.HexToFelt(hexValue)
 		if err != nil {

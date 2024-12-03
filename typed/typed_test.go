@@ -66,6 +66,7 @@ func TestMain(m *testing.M) {
 		"mail_StructArray",
 		"session_MerkleTree",
 		"v1Nested",
+		"allInOne",
 	}
 
 	for _, fileName := range fileNames {
@@ -308,6 +309,11 @@ func TestGetMessageHash(t *testing.T) {
 			TypedData:           typedDataExamples["example_enum"],
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x6e61abaf480b1370bbf231f54e298c5f4872f40a6d2dd409ff30accee5bbd1e",
+		},
+		{
+			TypedData:           typedDataExamples["allInOne"],
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x8fa4e453de78c2762493760efd449a38eb46f85b2e02b116b77b3daa9075c8",
 		},
 	}
 
