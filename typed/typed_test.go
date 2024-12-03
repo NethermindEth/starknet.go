@@ -3,55 +3,11 @@ package typed
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-type Mail struct {
-	From     Person `json:"from"`
-	To       Person `json:"to"`
-	Contents string `json:"contents"`
-}
-
-type Person struct {
-	Name   string `json:"name"`
-	Wallet string `json:"wallet"`
-}
-
-var types = []TypeDefinition{
-	{
-		Name: "StarkNetDomain",
-		Parameters: []TypeParameter{
-			{Name: "name", Type: "felt"},
-			{Name: "version", Type: "felt"},
-			{Name: "chainId", Type: "felt"},
-		},
-	},
-	{
-		Name: "Mail",
-		Parameters: []TypeParameter{
-			{Name: "from", Type: "Person"},
-			{Name: "to", Type: "Person"},
-			{Name: "contents", Type: "felt"},
-		},
-	},
-	{
-		Name: "Person",
-		Parameters: []TypeParameter{
-			{Name: "name", Type: "felt"},
-			{Name: "wallet", Type: "felt"},
-		},
-	},
-}
-
-var dm = Domain{
-	Name:    "StarkNet Mail",
-	Version: "1",
-	ChainId: "1",
-}
 
 var typedDataExamples = make(map[string]TypedData)
 
@@ -95,159 +51,6 @@ func BMockTypedData(b *testing.B) (ttd TypedData) {
 	require.NoError(b, err)
 
 	return
-}
-
-// The TestUnmarshal function tests the ability to correctly unmarshal (deserialize) JSON content from
-// a file into a Go TypedData struct. It starts by reading a json file. The JSON content is then unmarshaled
-// into a TypedData struct using the json.Unmarshal function. After unmarshaling, the test checks if there were
-// any errors during the unmarshaling process, and if an error is found, the test will fail.
-//
-// Parameters:
-// - t: a testing.T object that provides methods for testing functions
-// Returns:
-// - None
-func TestUnmarshal(t *testing.T) {
-	content, err := os.ReadFile("./tests/baseExample.json")
-	require.NoError(t, err)
-
-	var typedData TypedData
-	err = json.Unmarshal(content, &typedData)
-	require.NoError(t, err)
-}
-
-func TestGeneral_CreateMessageWithTypes(t *testing.T) {
-	t.Skip("TODO: need to implement encodeData method")
-	// for testSetType 2
-	type Example1 struct {
-		N0 Felt            `json:"n0"`
-		N1 Bool            `json:"n1"`
-		N2 String          `json:"n2"`
-		N3 Selector        `json:"n3"`
-		N4 U128            `json:"n4"`
-		N5 I128            `json:"n5"`
-		N6 ContractAddress `json:"n6"`
-		N7 ClassHash       `json:"n7"`
-		N8 Timestamp       `json:"n8"`
-		N9 Shortstring     `json:"n9"`
-	}
-
-	// for testSetType 3
-	type Example2 struct {
-		N0 TokenAmount `json:"n0"`
-		N1 NftId       `json:"n1"`
-	}
-
-	hex1, ok := new(big.Int).SetString("0x3e8", 0)
-	require.True(t, ok)
-	hex2, ok := new(big.Int).SetString("0x0", 0)
-	require.True(t, ok)
-
-	type testSetType struct {
-		MessageWithString string
-		MessageWithTypes  any
-	}
-	testSet := []testSetType{
-		{
-			MessageWithString: `
-			{
-				"from": {
-					"name": "Cow",
-					"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-				},
-				"to": {
-					"name": "Bob",
-					"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-				},
-				"contents": "Hello, Bob!"
-			}`,
-			MessageWithTypes: Mail{
-				From: Person{
-					Name:   "Cow",
-					Wallet: "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-				},
-				To: Person{
-					Name:   "Bob",
-					Wallet: "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
-				},
-				Contents: "Hello, Bob!",
-			},
-		},
-		{
-			MessageWithString: `
-			{
-				"n0": "0x3e8",
-				"n1": true,
-				"n2": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				"n3": "transfer",
-				"n4": 10,
-				"n5": -10,
-				"n6": "0x3e8",
-				"n7": "0x3e8",
-				"n8": 1000,
-				"n9": "transfer"
-			}`,
-			MessageWithTypes: Example1{
-				N0: "0x3e8",
-				N1: true,
-				N2: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-				N3: "transfer",
-				N4: big.NewInt(10),
-				N5: big.NewInt(-10),
-				N6: "0x3e8",
-				N7: "0x3e8",
-				N8: big.NewInt(1000),
-				N9: "transfer",
-			},
-		},
-		{
-			MessageWithString: `
-			{
-				"n0": {
-					"token_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-					"amount": {
-						"low": "0x3e8",
-						"high": "0x0"
-					}
-				},
-				"n1": {
-					"collection_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-					"token_id": {
-						"low": "0x3e8",
-						"high": "0x0"
-					}
-				}
-			}`,
-			MessageWithTypes: Example2{
-				N0: TokenAmount{
-					TokenAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-					Amount: U256{
-						Low:  hex1,
-						High: hex2,
-					},
-				},
-				N1: NftId{
-					CollectionAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-					TokenID: U256{
-						Low:  hex1,
-						High: hex2,
-					},
-				},
-			},
-		},
-	}
-	for _, test := range testSet {
-		ttd1, err := NewTypedData(types, "Mail", dm, []byte(test.MessageWithString))
-		require.NoError(t, err)
-
-		bytes, err := json.Marshal(test.MessageWithTypes)
-		require.NoError(t, err)
-
-		ttd2, err := NewTypedData(types, "Mail", dm, bytes)
-		require.NoError(t, err)
-
-		require.EqualValues(t, ttd1, ttd2)
-
-	}
 }
 
 // TestMessageHash tests the GetMessageHash function.
@@ -465,7 +268,7 @@ func TestEncodeType(t *testing.T) {
 		},
 	}
 	for _, test := range testSet {
-		require.Equal(t, test.ExpectedEncode, test.TypedData.Types[test.TypeName].EncoddingString)
+		require.Equal(t, test.ExpectedEncode, test.TypedData.types[test.TypeName].EncoddingString)
 	}
 }
 

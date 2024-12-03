@@ -15,11 +15,39 @@ import (
 )
 
 type TypedData struct {
-	Types       map[string]TypeDefinition `json:"types"`
-	PrimaryType string                    `json:"primaryType"`
-	Domain      Domain                    `json:"domain"`
-	Message     map[string]any            `json:"message"`
-	Revision    *revision                 `json:"-"`
+	types       map[string]TypeDefinition
+	primaryType string
+	domain      Domain
+	message     map[string]any
+	revision    *revision
+}
+
+func (td *TypedData) Types() map[string]TypeDefinition {
+	copyMap := make(map[string]TypeDefinition, len(td.types))
+	for k, v := range td.types {
+		copyMap[k] = v
+	}
+	return copyMap
+}
+
+func (td *TypedData) PrimaryType() string {
+	return td.primaryType
+}
+
+func (td *TypedData) Domain() Domain {
+	return td.domain
+}
+
+func (td *TypedData) Message() map[string]any {
+	copyMap := make(map[string]any, len(td.message))
+	for k, v := range td.message {
+		copyMap[k] = v
+	}
+	return copyMap
+}
+
+func (td *TypedData) Revision() revision {
+	return *td.revision
 }
 
 type Domain struct {
@@ -102,11 +130,11 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 	}
 
 	td = &TypedData{
-		Types:       typesMap,
-		PrimaryType: primaryType,
-		Domain:      domain,
-		Message:     messageMap,
-		Revision:    revision,
+		types:       typesMap,
+		primaryType: primaryType,
+		domain:      domain,
+		message:     messageMap,
+		revision:    revision,
 	}
 
 	return td, nil
@@ -133,7 +161,7 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 	elements = append(elements, starknetMessage)
 
 	//Enc[domain_separator]
-	domEnc, err := td.GetStructHash(td.Revision.Domain())
+	domEnc, err := td.GetStructHash(td.revision.Domain())
 	if err != nil {
 		return hash, err
 	}
@@ -147,13 +175,13 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 	elements = append(elements, accountFelt)
 
 	//Enc[message]
-	msgEnc, err := td.GetStructHash(td.PrimaryType)
+	msgEnc, err := td.GetStructHash(td.primaryType)
 	if err != nil {
 		return hash, err
 	}
 	elements = append(elements, msgEnc)
 
-	return td.Revision.HashMethod(elements...), nil
+	return td.revision.HashMethod(elements...), nil
 }
 
 // GetStructHash calculates the hash of a type and its respective data.
@@ -164,9 +192,9 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 // - hash: A pointer to a felt.Felt representing the calculated hash.
 // - err: any error if any
 func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error) {
-	typeDef, ok := td.Types[typeName]
+	typeDef, ok := td.types[typeName]
 	if !ok {
-		if typeDef, ok = td.Revision.Types().Preset[typeName]; !ok {
+		if typeDef, ok = td.revision.Types().Preset[typeName]; !ok {
 			return hash, fmt.Errorf("error getting the type definition of %s", typeName)
 		}
 	}
@@ -175,7 +203,7 @@ func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *fe
 		return hash, err
 	}
 
-	return td.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
+	return td.revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
 func shortGetStructHash(
@@ -192,9 +220,9 @@ func shortGetStructHash(
 	}
 
 	if isEnum {
-		return typedData.Revision.HashMethod(encTypeData...), nil
+		return typedData.revision.HashMethod(encTypeData...), nil
 	}
-	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
+	return typedData.revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
 // GetTypeHash returns the hash of the given type.
@@ -206,9 +234,9 @@ func shortGetStructHash(
 // - err: any error if any
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 	//TODO: create/update methods descriptions
-	typeDef, ok := td.Types[typeName]
+	typeDef, ok := td.types[typeName]
 	if !ok {
-		if typeDef, ok = td.Revision.Types().Preset[typeName]; !ok {
+		if typeDef, ok = td.revision.Types().Preset[typeName]; !ok {
 			return typeDef.Enconding, fmt.Errorf("type '%s' not found", typeName)
 		}
 	}
@@ -382,7 +410,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc []*felt.Felt, err error) {
 	if typeDef.Name == "StarkNetDomain" || typeDef.Name == "StarknetDomain" {
 		domainMap := make(map[string]any)
-		domainBytes, err := json.Marshal(td.Domain)
+		domainBytes, err := json.Marshal(td.domain)
 		if err != nil {
 			return enc, err
 		}
@@ -397,7 +425,7 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 		return encodeData(typeDef, td, domainMap, false, context...)
 	}
 
-	return encodeData(typeDef, td, td.Message, false, context...)
+	return encodeData(typeDef, td, td.message, false, context...)
 }
 
 func encodeData(
@@ -441,7 +469,7 @@ func encodeData(
 				}
 				return resp, nil
 			case "enum":
-				typeDef, ok := typedData.Types[param.Contains]
+				typeDef, ok := typedData.types[param.Contains]
 				if !ok {
 					return resp, fmt.Errorf("error trying to get the type definition of '%s' in contains of '%s'", param.Contains, param.Name)
 				}
@@ -529,7 +557,7 @@ func encodeData(
 			if isPresetType(singleParamType) {
 				typeDef, ok = rev.Types().Preset[singleParamType]
 			} else {
-				typeDef, ok = typedData.Types[singleParamType]
+				typeDef, ok = typedData.types[singleParamType]
 			}
 			if !ok {
 				return resp, fmt.Errorf("error trying to get the type definition of '%s'", singleParamType)
@@ -551,7 +579,7 @@ func encodeData(
 
 		//function logic
 		if strings.HasSuffix(param.Type, "*") {
-			resp, err := handleArrays(param, data, typedData.Revision)
+			resp, err := handleArrays(param, data, typedData.revision)
 			if err != nil {
 				return resp, err
 			}
@@ -559,14 +587,14 @@ func encodeData(
 		}
 
 		if isStandardType(param.Type) {
-			resp, err := handleStandardTypes(param, data, typedData.Revision)
+			resp, err := handleStandardTypes(param, data, typedData.revision)
 			if err != nil {
 				return resp, err
 			}
 			return resp, nil
 		}
 
-		nextTypeDef, ok := typedData.Types[param.Type]
+		nextTypeDef, ok := typedData.types[param.Type]
 		if !ok {
 			return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
 		}
@@ -733,7 +761,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 	}
 }
 
-func (typedData *TypedData) UnmarshalJSON(data []byte) error {
+func (td *TypedData) UnmarshalJSON(data []byte) error {
 	var dec map[string]json.RawMessage
 	if err := json.Unmarshal(data, &dec); err != nil {
 		return err
@@ -787,7 +815,7 @@ func (typedData *TypedData) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*typedData = *resultTypedData
+	*td = *resultTypedData
 	return nil
 }
 
