@@ -1,4 +1,4 @@
-package typed
+package typedData
 
 import (
 	"encoding/json"
