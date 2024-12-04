@@ -155,37 +155,31 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error) {
 	//signed_data = encode(PREFIX_MESSAGE, Enc[domain_separator], account, Enc[message])
 
-	elements := []*felt.Felt{}
-
 	//PREFIX_MESSAGE
-	starknetMessage, err := utils.HexToFelt(utils.StrToHex("StarkNet Message"))
+	prefixMessage, err := utils.HexToFelt(utils.StrToHex("StarkNet Message"))
 	if err != nil {
 		return hash, err
 	}
-	elements = append(elements, starknetMessage)
 
 	//Enc[domain_separator]
 	domEnc, err := td.GetStructHash(td.revision.Domain())
 	if err != nil {
 		return hash, err
 	}
-	elements = append(elements, domEnc)
 
 	//account
 	accountFelt, err := utils.HexToFelt(account)
 	if err != nil {
 		return hash, err
 	}
-	elements = append(elements, accountFelt)
 
 	//Enc[message]
 	msgEnc, err := td.GetStructHash(td.primaryType)
 	if err != nil {
 		return hash, err
 	}
-	elements = append(elements, msgEnc)
 
-	return td.revision.HashMethod(elements...), nil
+	return td.revision.HashMethod(prefixMessage, domEnc, accountFelt, msgEnc), nil
 }
 
 // GetStructHash calculates the hash of a struct type and its respective data.
