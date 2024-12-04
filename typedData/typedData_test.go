@@ -125,12 +125,12 @@ func TestGetMessageHash(t *testing.T) {
 		{
 			TypedData:           typedDataExamples["example_enum"],
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-			ExpectedMessageHash: "0x6e61abaf480b1370bbf231f54e298c5f4872f40a6d2dd409ff30accee5bbd1e",
+			ExpectedMessageHash: "0x416b85b18063b1b3420ab709e9d5e35cb716691d397c5841ce7c5198ee30bf",
 		},
 		{
 			TypedData:           typedDataExamples["allInOne"],
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
-			ExpectedMessageHash: "0x8fa4e453de78c2762493760efd449a38eb46f85b2e02b116b77b3daa9075c8",
+			ExpectedMessageHash: "0x300dc63cc85a15529bba5ed482009be716645fa9f2c64bd8716cf6f34767651",
 		},
 	}
 
@@ -334,7 +334,7 @@ func TestGetStructHash(t *testing.T) {
 		{
 			TypedData:    typedDataExamples["example_enum"],
 			TypeName:     "Example",
-			ExpectedHash: "0x1e1bb5d477e92cbf562b3b766c5c1e5f8590f2df868d4c8249c0db8416f8c37",
+			ExpectedHash: "0x1551dc992033e2256a2f7ec849495d90f9759ebb535e3006d16e2b9e3b57b4c",
 		},
 	}
 	for _, test := range testSet {

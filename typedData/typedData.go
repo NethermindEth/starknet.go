@@ -225,9 +225,6 @@ func shortGetStructHash(
 		return hash, err
 	}
 
-	if isEnum {
-		return typedData.revision.HashMethod(encTypeData...), nil
-	}
 	return typedData.revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
