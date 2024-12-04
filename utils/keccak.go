@@ -52,19 +52,16 @@ func StrToBig(str string) *big.Int {
 // - str: The string to convert to a hexadecimal
 // Returns:
 // - hex: a string representing the converted value
-func StrToHex(str string) (hex string) {
+func StrToHex(str string) string {
 	if strings.HasPrefix(str, "0x") {
 		return str
 	}
-	bigNum, ok := new(big.Int).SetString(str, 0)
-	if ok {
-		hex = bigNum.Text(16)
-		hex = "0x" + hex
-	} else {
-		hex = fmt.Sprintf("0x%x", str)
+
+	if bigNum, ok := new(big.Int).SetString(str, 0); ok {
+		return "0x" + bigNum.Text(16)
 	}
 
-	return hex
+	return "0x" + fmt.Sprintf("%x", str)
 }
 
 // HexToShortStr converts a hexadecimal string to a short string (Starknet) representation.
