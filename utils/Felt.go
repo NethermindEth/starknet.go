@@ -109,9 +109,9 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 // Returns:
 // - []string: the array of string objects
 func FeltArrToStringArr(f []*felt.Felt) []string {
-	var stringArr []string
-	for _, felt := range f {
-		stringArr = append(stringArr, felt.String())
+	stringArr := make([]string, len(f))
+	for i, felt := range f {
+		stringArr[i] = felt.String()
 	}
 	return stringArr
 }
