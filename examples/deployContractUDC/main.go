@@ -128,7 +128,7 @@ func main() {
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.AddInvokeTransaction(context.Background(), InvokeTx)
+	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		setup.PanicRPC(err)
 	}

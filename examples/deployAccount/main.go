@@ -120,7 +120,7 @@ func main() {
 	fmt.Scan(&input)
 
 	// Send transaction to the network
-	resp, err := accnt.AddDeployAccountTransaction(context.Background(), tx)
+	resp, err := accnt.SendTransaction(context.Background(), tx)
 	if err != nil {
 		fmt.Println("Error returned from AddDeployAccountTransaction: ")
 		setup.PanicRPC(err)
