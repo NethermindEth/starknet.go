@@ -1,0 +1,163 @@
+{
+  "types": {
+    "StarknetDomain": [
+      { "name": "name", "type": "shortstring" },
+      { "name": "version", "type": "shortstring" },
+      { "name": "chainId", "type": "shortstring" },
+      { "name": "revision", "type": "shortstring" }
+    ],
+    "Setup": [
+      { "name": "multiEnumExample", "type": "Example" },
+      { "name": "basicTypesExample", "type": "BasicTypes" },
+      { "name": "nestedExample", "type": "Nested1" },
+      { "name": "merkleTreeExample", "type": "merkletree", "contains": "MerkleTreeLeaf" }
+    ],
+    "Example": [
+      { "name": "someEnum1", "type": "enum", "contains": "EnumA" },
+      { "name": "someEnum2", "type": "enum", "contains": "EnumB" }
+    ],
+    "EnumA": [
+      { "name": "Variant 1", "type": "()" },
+      { "name": "Variant 2", "type": "(u128,u128*)" },
+      { "name": "Variant 3", "type": "(u128)" }
+    ],
+    "EnumB": [
+      { "name": "Variant 1", "type": "()" },
+      { "name": "Variant 2", "type": "(u128)" }
+    ],
+    "BasicTypes": [
+      { "name": "n0", "type": "felt" },
+      { "name": "n1", "type": "bool" },
+      { "name": "n2", "type": "string" },
+      { "name": "n3", "type": "selector" },
+      { "name": "n4", "type": "u128" },
+      { "name": "n5", "type": "i128" },
+      { "name": "n6", "type": "ContractAddress" },
+      { "name": "n7", "type": "ClassHash" },
+      { "name": "n8", "type": "timestamp" },
+      { "name": "n9", "type": "shortstring" }
+    ],
+    "Nested1": [
+      { "name": "n1", "type": "bool*" },
+      { "name": "n2", "type": "Nested2" }
+    ],
+    "Nested2": [
+      { "name": "n1", "type": "i128*" },
+      { "name": "n2", "type": "Nested3" }
+    ],
+    "Nested3": [
+      { "name": "n1", "type": "shortstring*" },
+      { "name": "n2", "type": "Nested4" }
+    ],
+    "Nested4": [
+      { "name": "n1", "type": "TokenAmount*" },
+      { "name": "n2", "type": "Nested5" }
+    ],
+    "Nested5": [
+      { "name": "n1", "type": "NftId*" },
+      { "name": "n2", "type": "u256*" }
+    ],
+    "MerkleTreeLeaf": [
+      { "name": "timestamp", "type": "timestamp" },
+      { "name": "block_hash", "type": "felt" }
+    ]
+  },
+  "primaryType": "Setup",
+  "domain": {
+    "name": "StarkNet Mail",
+    "version": "1",
+    "chainId": "1",
+    "revision": "1"
+  },
+  "message": {
+    "multiEnumExample": {
+      "someEnum1": {
+        "Variant 2": [2, [0, 1, 34, 8748]]
+      },
+      "someEnum2": {
+        "Variant 1": []
+      }
+    },
+    "basicTypesExample": {
+      "n0": "0x1a2b3c4d5e6f",
+      "n1": true,
+      "n2": "Lorem ipsum alskdj alskdjaslkd sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et alskdj alskdjaslkde magna aliqua.",
+      "n3": "transfers",
+      "n4": 101927,
+      "n5": -12980,
+      "n6": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004d",
+      "n7": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+      "n8": 100898790,
+      "n9": "transfer tokens"
+    },
+    "nestedExample": {
+      "n1": [true, false],
+      "n2": {
+        "n1": [-12980, 12980],
+        "n2": {
+          "n1": ["transfer tokens", "transfer nfts"],
+          "n2": {
+            "n1": [
+              {
+                "token_address": "0x019d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                "amount": {
+                  "low": "0x1",
+                  "high": "0x0"
+                }
+              },
+              {
+                "token_address": "0x029d36570d4e46f48e99674bd3fcc84364ab56b96f7c741b1562b82f9e004dc1",
+                "amount": {
+                  "low": "0x1234",
+                  "high": "0x0"
+                }
+              }
+            ],
+            "n2": {
+              "n1": [
+                {
+                  "collection_address": "0x022b14c83d9f25e16a4c73b98f5612d3e7c4590f2a8b369c4d15e70a3b291f41",
+                  "token_id": {
+                    "low": "0x3e8",
+                    "high": "0x0"
+                  }
+                },
+                {
+                  "collection_address": "0x0234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                  "token_id": {
+                    "low": "0x3e8",
+                    "high": "0x0"
+                  }
+                }
+              ],
+              "n2": [
+                {
+                  "low": "0x3e88956",
+                  "high": "0x0"
+                },
+                {
+                  "low": "0x3e39228",
+                  "high": "0x0"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "merkleTreeExample": [
+      {
+        "timestamp": 100898790,
+        "block_hash": "0x1a2b3c446e6f"
+      },
+      {
+        "timestamp": 100898791,
+        "block_hash": "0x783c4d5e6f"
+      },
+      {
+        "timestamp": 100898792,
+        "block_hash": "0x647b3c4d5e6f"
+      }
+    ]
+  }
+}

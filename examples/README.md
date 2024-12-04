@@ -36,4 +36,6 @@ To run an example:
   R: See [simpleCall](./simpleCall/main.go).
 1. How to make a function call?  
   R: See [simpleCall](./simpleCall/main.go).
+1. How to sign and verify a typed data?  
+  R: See [typedData](./typedData/main.go).
 
