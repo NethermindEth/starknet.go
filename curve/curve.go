@@ -568,6 +568,19 @@ func Pedersen(a, b *felt.Felt) *felt.Felt {
 	return junoCrypto.Pedersen(a, b)
 }
 
+// Poseidon is a function that implements the Poseidon hash.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/poseidon_hash.go#L59)
+//
+// Parameters:
+// - a: a pointers to felt.Felt to be hashed.
+// - b: a pointers to felt.Felt to be hashed.
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Poseidon(a, b *felt.Felt) *felt.Felt {
+	return junoCrypto.Poseidon(a, b)
+}
+
 // PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
 // calls the PedersenArray function from the junoCrypto package with the provided parameters.
 // NOTE: This function just wraps the Juno implementation
@@ -590,7 +603,7 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 // - felts: A variadic number of pointers to felt.Felt
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
-func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
+func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PoseidonArray(felts...)
 }
 
@@ -603,7 +616,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
 // - error: An error if any
-func (sc StarkCurve) StarknetKeccak(b []byte) *felt.Felt {
+func StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
 }
 

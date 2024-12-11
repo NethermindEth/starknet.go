@@ -65,11 +65,11 @@ func ClassHash(contract rpc.ContractClass) *felt.Felt {
 	ConstructorHash := hashEntryPointByType(contract.EntryPointsByType.Constructor)
 	ExternalHash := hashEntryPointByType(contract.EntryPointsByType.External)
 	L1HandleHash := hashEntryPointByType(contract.EntryPointsByType.L1Handler)
-	SierraProgamHash := curve.Curve.PoseidonArray(contract.SierraProgram...)
-	ABIHash := curve.Curve.StarknetKeccak([]byte(contract.ABI))
+	SierraProgamHash := curve.PoseidonArray(contract.SierraProgram...)
+	ABIHash := curve.StarknetKeccak([]byte(contract.ABI))
 
 	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
-	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
+	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
 }
 
 // hashEntryPointByType calculates the hash of an entry point by type.
@@ -83,7 +83,7 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	for _, elt := range entryPoint {
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}
-	return curve.Curve.PoseidonArray(flattened...)
+	return curve.PoseidonArray(flattened...)
 }
 
 // CompiledClassHash calculates the hash of a compiled class in the Casm format.
@@ -97,10 +97,10 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
-	ByteCodeHasH := curve.Curve.PoseidonArray(casmClass.ByteCode...)
+	ByteCodeHasH := curve.PoseidonArray(casmClass.ByteCode...)
 
 	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
-	return curve.Curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
+	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
 }
 
 // hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
@@ -116,8 +116,8 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *
 		for _, builtIn := range elt.Builtins {
 			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
 		}
-		builtInHash := curve.Curve.PoseidonArray(builtInFlat...)
+		builtInHash := curve.PoseidonArray(builtInFlat...)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
 	}
-	return curve.Curve.PoseidonArray(flattened...)
+	return curve.PoseidonArray(flattened...)
 }

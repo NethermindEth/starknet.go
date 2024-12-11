@@ -31,6 +31,16 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 	return new(felt.Felt).SetString(hex)
 }
 
+// StrToFelt generates a felt.Felt from a string representation containing ASCII characters, not hex values.
+//
+// Parameters:
+// - str: The string to convert to a felt.Felt
+// Returns:
+// - *felt.Felt: a felt.Felt representing the converted value
+func StrToFelt(str string) *felt.Felt {
+	return new(felt.Felt).SetBytes([]byte(str))
+}
+
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
 // The function iterates over each element in the hexArr array and calls the HexToFelt function to convert each hexadecimal value to a felt object.
@@ -92,6 +102,20 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 	return bigArr
 }
 
+// FeltArrToStringArr converts an array of Felt objects to an array of string objects.
+//
+// Parameters:
+// - f: the array of Felt objects to convert
+// Returns:
+// - []string: the array of string objects
+func FeltArrToStringArr(f []*felt.Felt) []string {
+	stringArr := make([]string, len(f))
+	for i, felt := range f {
+		stringArr[i] = felt.String()
+	}
+	return stringArr
+}
+
 // StringToByteArrFelt converts string to array of Felt objects.
 // The returned array of felts will be of the format
 //
@@ -117,7 +141,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 
 	arr := r.FindAllString(s, -1)
 	if len(arr) == 0 {
-		return []*felt.Felt{}, fmt.Errorf("invalid string no matches found, s: %s", s)
+		return []*felt.Felt{&felt.Zero, &felt.Zero, &felt.Zero}, nil
 	}
 
 	hexarr := []string{}
