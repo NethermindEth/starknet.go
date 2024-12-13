@@ -282,7 +282,7 @@ func TestEncodeType(t *testing.T) {
 		},
 	}
 	for _, test := range testSet {
-		require.Equal(t, test.ExpectedEncode, test.TypedData.types[test.TypeName].EncoddingString)
+		require.Equal(t, test.ExpectedEncode, test.TypedData.Types[test.TypeName].EncoddingString)
 	}
 }
 
