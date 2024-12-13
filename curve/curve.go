@@ -722,3 +722,48 @@ func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error)
 	x, y = sc.EcMult(privKey, sc.EcGenX, sc.EcGenY)
 	return x, y, nil
 }
+
+// VerifySignature verifies the ECDSA signature of a given message hash using the provided public key.
+//
+// It takes the message hash, the r and s values of the signature, and the public key as strings and
+// verifies the signature using the public key.
+//
+// Parameters:
+// - msgHash: The hash of the message to be verified as a string
+// - r: The r value (the first part) of the signature as a string
+// - s: The s value (the second part) of the signature as a string
+// - pubKey: The public key (only the x coordinate) as a string
+// Return values:
+// - bool: A boolean indicating whether the signature is valid
+// - error: An error if any occurred during the verification process
+func VerifySignature(msgHash, r, s, pubKey string) bool {
+	feltMsgHash, err := new(felt.Felt).SetString(msgHash)
+	if err != nil {
+		return false
+	}
+	feltR, err := new(felt.Felt).SetString(r)
+	if err != nil {
+		return false
+	}
+	feltS, err := new(felt.Felt).SetString(s)
+	if err != nil {
+		return false
+	}
+	pubKeyFelt, err := new(felt.Felt).SetString(pubKey)
+	if err != nil {
+		return false
+	}
+
+	signature := junoCrypto.Signature{
+		R: *feltR,
+		S: *feltS,
+	}
+
+	pubKeyStruct := junoCrypto.NewPublicKey(pubKeyFelt)
+	resp, err := pubKeyStruct.Verify(&signature, feltMsgHash)
+	if err != nil {
+		return false
+	}
+
+	return resp
+}

@@ -49,15 +49,7 @@ func main() {
 	fmt.Println("Signature:", signature)
 
 	// This is how you can verify the signature
-	privKeyBI, ok := new(big.Int).SetString(setup.GetPrivateKey(), 0)
-	if !ok {
-		panic("Fail to convert privKey to bitInt")
-	}
-	x, y, err := curve.Curve.PrivateToPoint(privKeyBI)
-	if err != nil {
-		panic(fmt.Errorf("fail to get point: %w", err))
-	}
-	isValid := curve.Curve.Verify(messageHash.BigInt(new(big.Int)), signature[0].BigInt(new(big.Int)), signature[1].BigInt(new(big.Int)), x, y)
+	isValid := curve.VerifySignature(messageHash.String(), signature[0].String(), signature[1].String(), setup.GetPublicKey())
 	fmt.Println("Verification result:", isValid)
 }
 
