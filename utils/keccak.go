@@ -46,6 +46,24 @@ func StrToBig(str string) *big.Int {
 	return b
 }
 
+// StrToBig generates a hexadecimal from a string/number representation.
+//
+// Parameters:
+// - str: The string to convert to a hexadecimal
+// Returns:
+// - hex: a string representing the converted value
+func StrToHex(str string) string {
+	if strings.HasPrefix(str, "0x") {
+		return str
+	}
+
+	if bigNum, ok := new(big.Int).SetString(str, 0); ok {
+		return "0x" + bigNum.Text(16)
+	}
+
+	return "0x" + fmt.Sprintf("%x", str)
+}
+
 // HexToShortStr converts a hexadecimal string to a short string (Starknet) representation.
 //
 // Parameters:

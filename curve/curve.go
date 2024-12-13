@@ -568,6 +568,19 @@ func Pedersen(a, b *felt.Felt) *felt.Felt {
 	return junoCrypto.Pedersen(a, b)
 }
 
+// Poseidon is a function that implements the Poseidon hash.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/poseidon_hash.go#L59)
+//
+// Parameters:
+// - a: a pointers to felt.Felt to be hashed.
+// - b: a pointers to felt.Felt to be hashed.
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Poseidon(a, b *felt.Felt) *felt.Felt {
+	return junoCrypto.Poseidon(a, b)
+}
+
 // PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
 // calls the PedersenArray function from the junoCrypto package with the provided parameters.
 // NOTE: This function just wraps the Juno implementation
@@ -590,7 +603,7 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 // - felts: A variadic number of pointers to felt.Felt
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
-func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
+func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PoseidonArray(felts...)
 }
 
@@ -603,7 +616,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
 // - error: An error if any
-func (sc StarkCurve) StarknetKeccak(b []byte) *felt.Felt {
+func StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
 }
 
@@ -708,4 +721,49 @@ func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error)
 	}
 	x, y = sc.EcMult(privKey, sc.EcGenX, sc.EcGenY)
 	return x, y, nil
+}
+
+// VerifySignature verifies the ECDSA signature of a given message hash using the provided public key.
+//
+// It takes the message hash, the r and s values of the signature, and the public key as strings and
+// verifies the signature using the public key.
+//
+// Parameters:
+// - msgHash: The hash of the message to be verified as a string
+// - r: The r value (the first part) of the signature as a string
+// - s: The s value (the second part) of the signature as a string
+// - pubKey: The public key (only the x coordinate) as a string
+// Return values:
+// - bool: A boolean indicating whether the signature is valid
+// - error: An error if any occurred during the verification process
+func VerifySignature(msgHash, r, s, pubKey string) bool {
+	feltMsgHash, err := new(felt.Felt).SetString(msgHash)
+	if err != nil {
+		return false
+	}
+	feltR, err := new(felt.Felt).SetString(r)
+	if err != nil {
+		return false
+	}
+	feltS, err := new(felt.Felt).SetString(s)
+	if err != nil {
+		return false
+	}
+	pubKeyFelt, err := new(felt.Felt).SetString(pubKey)
+	if err != nil {
+		return false
+	}
+
+	signature := junoCrypto.Signature{
+		R: *feltR,
+		S: *feltS,
+	}
+
+	pubKeyStruct := junoCrypto.NewPublicKey(pubKeyFelt)
+	resp, err := pubKeyStruct.Verify(&signature, feltMsgHash)
+	if err != nil {
+		return false
+	}
+
+	return resp
 }
