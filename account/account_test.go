@@ -436,7 +436,7 @@ func TestSignMOCK(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddInvoke(t *testing.T) {
+func TestSendInvokeTxn(t *testing.T) {
 
 	type testSetType struct {
 		ExpectedErr          error
@@ -526,7 +526,7 @@ func TestAddInvoke(t *testing.T) {
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
 		require.NoError(t, err)
 
-		resp, err := acnt.AddInvokeTransaction(context.Background(), test.InvokeTx)
+		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
@@ -552,7 +552,7 @@ func TestAddInvoke(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddDeployAccountDevnet(t *testing.T) {
+func TestSendDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
@@ -595,7 +595,7 @@ func TestAddDeployAccountDevnet(t *testing.T) {
 	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	resp, err := acnt.SendTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
 	require.NotNil(t, resp, "AddDeployAccountTransaction resp not nil")
 }
@@ -1106,7 +1106,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // Returns:
 //
 //	none
-func TestAddDeclareTxn(t *testing.T) {
+func TestSendDeclareTxn(t *testing.T) {
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -1174,7 +1174,7 @@ func TestAddDeclareTxn(t *testing.T) {
 		ContractClass:     class,
 	}
 
-	resp, err := acnt.AddDeclareTransaction(context.Background(), broadcastTx)
+	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
