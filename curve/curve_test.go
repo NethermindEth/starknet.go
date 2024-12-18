@@ -501,3 +501,28 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 		require.Equal(t, d["h"], h)
 	}
 }
+
+// TestGeneral_VerifySignature is a test function that verifies the correctness of the VerifySignature function.
+//
+// It checks if the signature of a given message hash is valid using the provided r, s values and the public key.
+// The function takes no parameters and returns no values.
+//
+// Parameters:
+// - t: The testing.T object for running the test
+// Returns:
+//
+//	none
+func TestGeneral_VerifySignature(t *testing.T) {
+	// values verified with starknet.js
+
+	msgHash := "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336"
+	r := "0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4"
+	s := "0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879"
+	fullPubKey := "0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c"
+
+	require.True(t, VerifySignature(msgHash, r, s, fullPubKey))
+
+	// Change the last digit of the message hash to test invalid signature
+	wrongMsgHash := "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2337"
+	require.False(t, VerifySignature(wrongMsgHash, r, s, fullPubKey))
+}

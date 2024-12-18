@@ -196,5 +196,17 @@
 			"pedersen_builtin_applications": 4,
 			"range_check_builtin_applications": 37
 		}
+	},
+	"execution_resources": {
+		"steps": 10379,
+		"memory_holes": 354,
+		"pedersen_builtin_applications": 22,
+		"range_check_builtin_applications": 355,
+		"bitwise_builtin_applications": 2,
+		"ec_op_builtin_applications": 9,
+		"data_availability": {
+			"l1_gas": 0,
+			"l1_data_gas": 640
+		}
 	}
 }

@@ -92,6 +92,20 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 	return bigArr
 }
 
+// FeltArrToStringArr converts an array of Felt objects to an array of string objects.
+//
+// Parameters:
+// - f: the array of Felt objects to convert
+// Returns:
+// - []string: the array of string objects
+func FeltArrToStringArr(f []*felt.Felt) []string {
+	stringArr := make([]string, len(f))
+	for i, felt := range f {
+		stringArr[i] = felt.String()
+	}
+	return stringArr
+}
+
 // StringToByteArrFelt converts string to array of Felt objects.
 // The returned array of felts will be of the format
 //
@@ -117,7 +131,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 
 	arr := r.FindAllString(s, -1)
 	if len(arr) == 0 {
-		return []*felt.Felt{}, fmt.Errorf("invalid string no matches found, s: %s", s)
+		return []*felt.Felt{&felt.Zero, &felt.Zero, &felt.Zero}, nil
 	}
 
 	hexarr := []string{}
