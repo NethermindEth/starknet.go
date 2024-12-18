@@ -266,9 +266,9 @@ func (nodeHashToNode *NodeHashToNode) UnmarshalJSON(bytes []byte) error {
 	var merkleNode MerkleNode
 	switch nodeT := node.(type) {
 	case BinaryNode:
-		merkleNode = nodeT
+		merkleNode = MerkleNode{BinaryNode: nodeT}
 	case EdgeNode:
-		merkleNode = nodeT
+		merkleNode = MerkleNode{EdgeNode: nodeT}
 	default:
 		return fmt.Errorf("'node' should be an EdgeNode or BinaryNode")
 	}
