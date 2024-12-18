@@ -88,6 +88,10 @@ func main() {
 	}
 
 	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
+	//
+	// note: in Starknet, you can pass multiple function calls in the same transaction, even if they are from different contracts.
+	// To do this, just group all the function calls in the same slice and pass it to FmtCalldata
+	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
 	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
 	if err != nil {
 		panic(err)
