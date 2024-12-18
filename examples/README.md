@@ -28,6 +28,8 @@ To run an example:
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to send an invoke transaction?  
   R: See [simpleInvoke](./simpleInvoke/main.go).
+1. How to make multiple function calls in the same transaction?
+  R: See [simpleInvoke](./simpleInvoke/main.go), line 92.
 1. How to get the transaction status?  
   R: See [simpleInvoke](./simpleInvoke/main.go), line 131.
 1. How to deploy an ERC20 token?  
@@ -38,4 +40,3 @@ To run an example:
   R: See [simpleCall](./simpleCall/main.go).
 1. How to sign and verify a typed data?  
   R: See [typedData](./typedData/main.go).
-
