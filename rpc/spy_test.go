@@ -103,7 +103,7 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
-		return "", Err(InternalError, err)
+		return "", Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
 	if debug {

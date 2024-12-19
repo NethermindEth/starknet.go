@@ -2,6 +2,9 @@ package rpc
 
 import (
 	"encoding/json"
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 const (
@@ -19,7 +22,7 @@ const (
 // - data: any data associated with the error.
 // Returns
 // - *RPCError: a pointer to an RPCError object.
-func Err(code int, data any) *RPCError {
+func Err(code int, data *RPCData) *RPCError {
 	switch code {
 	case InvalidJSON:
 		return &RPCError{Code: InvalidJSON, Message: "Parse error", Data: data}
@@ -46,13 +49,13 @@ func Err(code int, data any) *RPCError {
 func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, errIn := json.Marshal(err)
 	if errIn != nil {
-		return Err(InternalError, errIn.Error())
+		return Err(InternalError, &RPCData{Message: errIn.Error()})
 	}
 
 	var nodeErr RPCError
 	errIn = json.Unmarshal(errBytes, &nodeErr)
 	if errIn != nil {
-		return Err(InternalError, errIn.Error())
+		return Err(InternalError, &RPCData{Message: errIn.Error()})
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -62,19 +65,74 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	}
 
 	if nodeErr.Code == 0 {
-		return Err(InternalError, err.Error())
+		return Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	return Err(nodeErr.Code, nodeErr.Data)
 }
 
 type RPCError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Code    int      `json:"code"`
+	Message string   `json:"message"`
+	Data    *RPCData `json:"data,omitempty"`
 }
 
 func (e RPCError) Error() string {
-	return e.Message
+	if e.Data == nil || e.Data.Message == "" {
+		return e.Message
+	}
+	return e.Message + ": " + e.Data.Message
+}
+
+type RPCData struct {
+	Message                       string                         `json:",omitempty"`
+	ContractErrorData             *ContractErrorData             `json:",omitempty"`
+	TransactionExecutionErrorData *TransactionExecutionErrorData `json:",omitempty"`
+}
+
+func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
+	var message string
+	if err := json.Unmarshal(data, &message); err == nil {
+		rpcData.Message = message
+		return nil
+	}
+
+	var contractErrData ContractErrorData
+	if err := json.Unmarshal(data, &contractErrData); err == nil {
+		*rpcData = RPCData{
+			Message:           rpcData.Message + contractErrData.RevertError.Message,
+			ContractErrorData: &contractErrData,
+		}
+		return nil
+	}
+
+	var txExErrData TransactionExecutionErrorData
+	if err := json.Unmarshal(data, &txExErrData); err == nil {
+		*rpcData = RPCData{
+			Message:                       rpcData.Message + txExErrData.ExecutionError.Message,
+			TransactionExecutionErrorData: &txExErrData,
+		}
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal RPCData")
+}
+
+func (rpcData *RPCData) MarshalJSON() ([]byte, error) {
+	var temp any
+
+	if rpcData.ContractErrorData != nil {
+		temp = *rpcData.ContractErrorData
+		return json.Marshal(temp)
+	}
+
+	if rpcData.TransactionExecutionErrorData != nil {
+		temp = *rpcData.TransactionExecutionErrorData
+		return json.Marshal(temp)
+	}
+
+	temp = rpcData.Message
+
+	return json.Marshal(temp)
 }
 
 var (
@@ -199,7 +257,55 @@ var (
 		Message: "An unexpected error occurred",
 	}
 	ErrCompilationError = &RPCError{
-		Code:    9999, //placeholder number as this error has no code so far. TODO: change this with the next updates
-		Message: "More data about the compilation failure",
+		Code:    100,
+		Message: "Failed to compile the contract",
 	}
 )
+
+type ContractErrorData struct {
+	// the execution trace up to the point of failure
+	RevertError ContractExecutionError `json:"revert_error,omitempty"`
+}
+
+type TransactionExecutionErrorData struct {
+	// The index of the first transaction failing in a sequence of given transactions
+	TransactionIndex int `json:"transaction_index,omitempty"`
+	// the execution trace up to the point of failure
+	ExecutionError ContractExecutionError `json:"execution_error,omitempty"`
+}
+
+type ContractExecutionError struct {
+	// the error raised during execution
+	Message                      string `json:",omitempty"`
+	ContractExecutionErrorStruct `json:",omitempty"`
+}
+
+func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
+	var contractErrStruct ContractExecutionErrorStruct
+	var message string
+
+	if err := json.Unmarshal(data, &message); err == nil {
+		*contractEx = ContractExecutionError{
+			Message:                      message,
+			ContractExecutionErrorStruct: contractErrStruct,
+		}
+		return nil
+	}
+
+	if err := json.Unmarshal(data, &contractErrStruct); err == nil {
+		*contractEx = ContractExecutionError{
+			Message:                      "",
+			ContractExecutionErrorStruct: contractErrStruct,
+		}
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal ContractExecutionError")
+}
+
+type ContractExecutionErrorStruct struct {
+	ContractAddress *felt.Felt              `json:"contract_address"`
+	ClassHash       *felt.Felt              `json:"class_hash"`
+	Selector        *felt.Felt              `json:"selector"`
+	Error           *ContractExecutionError `json:"error"`
+}

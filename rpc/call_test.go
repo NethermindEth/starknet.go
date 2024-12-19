@@ -30,7 +30,7 @@ func TestCall(t *testing.T) {
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
-		ExpectedError         error
+		ExpectedError         *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -111,7 +111,10 @@ func TestCall(t *testing.T) {
 		require := require.New(t)
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 		if test.ExpectedError != nil {
-			require.EqualError(test.ExpectedError, err.Error())
+			rpcErr, ok := err.(*RPCError)
+			require.True(ok)
+			require.Equal(test.ExpectedError.Code, rpcErr.Code)
+			require.Equal(test.ExpectedError.Message, rpcErr.Message)
 		} else {
 			require.NoError(err)
 			require.NotEmpty(output, "should return an output")
