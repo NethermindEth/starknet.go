@@ -227,6 +227,8 @@ type PendingBlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
 	// The price of l1 data gas in the block

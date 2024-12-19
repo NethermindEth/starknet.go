@@ -127,7 +127,10 @@ type NodeHashToNode struct {
 }
 
 // A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node
-type MerkleNode interface{} // it should be an EdgeNode or BinaryNode
+type MerkleNode struct {
+	EdgeNode   `json:",omitempty"`
+	BinaryNode `json:",omitempty"`
+}
 
 // Represents a path to the highest non-zero descendant node
 type EdgeNode struct {
@@ -263,9 +266,9 @@ func (nodeHashToNode *NodeHashToNode) UnmarshalJSON(bytes []byte) error {
 	var merkleNode MerkleNode
 	switch nodeT := node.(type) {
 	case BinaryNode:
-		merkleNode = nodeT
+		merkleNode = MerkleNode{BinaryNode: nodeT}
 	case EdgeNode:
-		merkleNode = nodeT
+		merkleNode = MerkleNode{EdgeNode: nodeT}
 	default:
 		return fmt.Errorf("'node' should be an EdgeNode or BinaryNode")
 	}

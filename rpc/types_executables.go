@@ -10,7 +10,7 @@ type CasmCompiledContractClass struct {
 	Prime             NumAsHex              `json:"prime"`
 	CompilerVersion   string                `json:"compiler_version"`
 	Hints             []Hints               `json:"hints"`
-	// a list of sizes of segments in the bytecode, each segment is hashed invidually when computing the bytecode hash
+	// a list of sizes of segments in the bytecode, each segment is hashed individually when computing the bytecode hash
 	BytecodeSegmentLengths []int `json:"bytecode_segment_lengths,omitempty"`
 }
 
@@ -152,7 +152,7 @@ type ResOperand struct {
 
 type Deref CellRef
 
-// A (CellRef, offsest) tuple, but adapted to a golang struct
+// A (CellRef, offset) tuple, but adapted to a golang struct
 type DoubleDeref struct {
 	CellRef CellRef
 	Offset  int
