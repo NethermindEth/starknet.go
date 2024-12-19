@@ -199,7 +199,7 @@ var (
 		Message: "An unexpected error occurred",
 	}
 	ErrCompilationError = &RPCError{
-		Code:    9999, //placeholder number as this error has no code so far. TODO: change this with the next updates
-		Message: "More data about the compilation failure",
+		Code:    100,
+		Message: "Failed to compile the contract",
 	}
 )
