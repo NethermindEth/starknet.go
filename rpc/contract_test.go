@@ -404,7 +404,7 @@ func TestEstimateMessageFee(t *testing.T) {
 		MsgFromL1
 		BlockID
 		ExpectedFeeEst *FeeEstimation
-		ExpectedError  *RPCError
+		ExpectedError  error
 	}
 
 	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
@@ -470,10 +470,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	for _, test := range testSet {
 		resp, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
-			rpcErr, ok := err.(*RPCError)
-			require.True(t, ok)
-			require.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+			require.EqualError(t, test.ExpectedError, err.Error())
 		} else {
 			require.Exactly(t, test.ExpectedFeeEst, resp)
 		}

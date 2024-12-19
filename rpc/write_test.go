@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -16,7 +17,7 @@ func TestDeclareTransaction(t *testing.T) {
 	type testSetType struct {
 		DeclareTx     BroadcastDeclareTxnType
 		ExpectedResp  AddDeclareTransactionResponse
-		ExpectedError *RPCError
+		ExpectedError error
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {},
@@ -39,7 +40,7 @@ func TestDeclareTransaction(t *testing.T) {
 			DeclareTx: BroadcastDeclareTxnV1{},
 			ExpectedResp: AddDeclareTransactionResponse{
 				TransactionHash: utils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9")},
-			ExpectedError: &RPCError{Code: InvalidParams, Message: "Invalid Params"},
+			ExpectedError: errors.New("Invalid Params"),
 		},
 		},
 	}[testEnv]
@@ -47,10 +48,7 @@ func TestDeclareTransaction(t *testing.T) {
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), test.DeclareTx)
 		if err != nil {
-			rpcErr, ok := err.(*RPCError)
-			require.True(t, ok)
-			require.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+			require.Equal(t, test.ExpectedError.Error(), err.Error())
 		} else {
 			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 		}

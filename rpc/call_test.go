@@ -30,7 +30,7 @@ func TestCall(t *testing.T) {
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
-		ExpectedError         *RPCError
+		ExpectedError         error
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -108,14 +108,10 @@ func TestCall(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		// TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type"
 		require := require.New(t)
 		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 		if test.ExpectedError != nil {
-			rpcErr, ok := err.(*RPCError)
-			require.True(ok)
-			require.Equal(test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(test.ExpectedError.Message, rpcErr.Message)
+			require.EqualError(test.ExpectedError, err.Error())
 		} else {
 			require.NoError(err)
 			require.NotEmpty(output, "should return an output")
