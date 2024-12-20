@@ -46,16 +46,16 @@ func Err(code int, data *RPCData) *RPCError {
 // - rpcErrors: variadic list of *RPCError objects to be checked
 // Returns:
 // - error: the original error
-func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
-	errBytes, errIn := json.Marshal(err)
-	if errIn != nil {
-		return Err(InternalError, &RPCData{Message: errIn.Error()})
+func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
+	errBytes, err := json.Marshal(baseError)
+	if err != nil {
+		return &RPCError{Code: InternalError, Message: err.Error()}
 	}
 
 	var nodeErr RPCError
-	errIn = json.Unmarshal(errBytes, &nodeErr)
-	if errIn != nil {
-		return Err(InternalError, &RPCData{Message: errIn.Error()})
+	err = json.Unmarshal(errBytes, &nodeErr)
+	if err != nil {
+		return &RPCError{Code: InternalError, Message: err.Error()}
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -65,8 +65,9 @@ func tryUnwrapToRPCErr(err error, rpcErrors ...*RPCError) *RPCError {
 	}
 
 	if nodeErr.Code == 0 {
-		return Err(InternalError, &RPCData{Message: err.Error()})
+		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: &RPCData{Message: baseError.Error()}}
 	}
+
 	return Err(nodeErr.Code, nodeErr.Data)
 }
 
@@ -276,8 +277,8 @@ type TransactionExecutionErrorData struct {
 
 type ContractExecutionError struct {
 	// the error raised during execution
-	Message                      string `json:",omitempty"`
-	ContractExecutionErrorStruct `json:",omitempty"`
+	Message                       string `json:",omitempty"`
+	*ContractExecutionErrorStruct `json:",omitempty"`
 }
 
 func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
@@ -287,7 +288,7 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &message); err == nil {
 		*contractEx = ContractExecutionError{
 			Message:                      message,
-			ContractExecutionErrorStruct: contractErrStruct,
+			ContractExecutionErrorStruct: &contractErrStruct,
 		}
 		return nil
 	}
@@ -295,12 +296,25 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &contractErrStruct); err == nil {
 		*contractEx = ContractExecutionError{
 			Message:                      "",
-			ContractExecutionErrorStruct: contractErrStruct,
+			ContractExecutionErrorStruct: &contractErrStruct,
 		}
 		return nil
 	}
 
 	return fmt.Errorf("failed to unmarshal ContractExecutionError")
+}
+
+func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
+	var temp any
+
+	if contractEx.ContractExecutionErrorStruct != nil {
+		temp = contractEx.ContractExecutionErrorStruct
+		return json.Marshal(temp)
+	}
+
+	temp = contractEx.Message
+
+	return json.Marshal(temp)
 }
 
 type ContractExecutionErrorStruct struct {
