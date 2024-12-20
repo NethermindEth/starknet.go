@@ -122,8 +122,15 @@ type FnInvocation struct {
 	L1Messages []OrderedMsg `json:"messages"`
 
 	// Resources consumed by the internal call
-	// https://github.com/starkware-libs/starknet-specs/blob/v0.7.0-rc0/api/starknet_trace_api_openrpc.json#L374C1-L374C29
-	ComputationResources ComputationResources `json:"execution_resources"`
+	ExecutionResources InnerCallExecutionResources `json:"execution_resources"`
+}
+
+// the resources consumed by an inner call (does not account for state diffs since data is squashed across the transaction)
+type InnerCallExecutionResources struct {
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	L1Gas uint `json:"l1_gas"`
+	// l2 gas consumed by this transaction, used for computation and calldata
+	L2Gas uint `json:"l2_gas"`
 }
 
 // A single pair of transaction hash and corresponding trace
