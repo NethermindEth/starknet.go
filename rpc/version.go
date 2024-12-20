@@ -9,7 +9,7 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 	var result string
 	err := do(ctx, provider.c, "starknet_specVersion", &result)
 	if err != nil {
-		return "", Err(InternalError, err)
+		return "", Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	return result, nil
 }
