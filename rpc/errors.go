@@ -138,6 +138,10 @@ var (
 		Code:    41,
 		Message: "Transaction execution error",
 	}
+	ErrStorageProofNotSupported = &RPCError{
+		Code:    42,
+		Message: "the node doesn't support storage proofs for blocks that are too far in the past",
+	}
 	ErrInvalidContractClass = &RPCError{
 		Code:    50,
 		Message: "Invalid contract class",
@@ -150,9 +154,9 @@ var (
 		Code:    52,
 		Message: "Invalid transaction nonce",
 	}
-	ErrInsufficientMaxFee = &RPCError{
+	ErrInsufficientResourcesForValidate = &RPCError{
 		Code:    53,
-		Message: "Max fee is smaller than the minimal transaction cost (validation plus fee transfer)",
+		Message: "The transaction's resources don't cover validation or the minimal transaction fee",
 	}
 	ErrInsufficientAccountBalance = &RPCError{
 		Code:    54,
@@ -193,5 +197,9 @@ var (
 	ErrUnexpectedError = &RPCError{
 		Code:    63,
 		Message: "An unexpected error occurred",
+	}
+	ErrCompilationError = &RPCError{
+		Code:    100,
+		Message: "Failed to compile the contract",
 	}
 )

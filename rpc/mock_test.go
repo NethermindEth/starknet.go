@@ -682,21 +682,25 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 
 	if len(flags) > 0 {
 		output = FeeEstimation{
-			GasConsumed:     new(felt.Felt).SetUint64(1234),
-			GasPrice:        new(felt.Felt).SetUint64(1234),
-			DataGasConsumed: new(felt.Felt).SetUint64(1234),
-			DataGasPrice:    new(felt.Felt).SetUint64(1234),
-			OverallFee:      new(felt.Felt).SetUint64(1234),
-			FeeUnit:         UnitWei,
+			L1GasConsumed:     new(felt.Felt).SetUint64(1234),
+			L1GasPrice:        new(felt.Felt).SetUint64(1234),
+			L2GasConsumed:     new(felt.Felt).SetUint64(1234),
+			L2GasPrice:        new(felt.Felt).SetUint64(1234),
+			L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
+			L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
+			OverallFee:        new(felt.Felt).SetUint64(1234),
+			FeeUnit:           UnitWei,
 		}
 	} else {
 		output = FeeEstimation{
-			GasConsumed:     utils.RANDOM_FELT,
-			GasPrice:        utils.RANDOM_FELT,
-			DataGasConsumed: utils.RANDOM_FELT,
-			DataGasPrice:    utils.RANDOM_FELT,
-			OverallFee:      utils.RANDOM_FELT,
-			FeeUnit:         UnitWei,
+			L1GasConsumed:     utils.RANDOM_FELT,
+			L1GasPrice:        utils.RANDOM_FELT,
+			L2GasConsumed:     utils.RANDOM_FELT,
+			L2GasPrice:        utils.RANDOM_FELT,
+			L1DataGasConsumed: utils.RANDOM_FELT,
+			L1DataGasPrice:    utils.RANDOM_FELT,
+			OverallFee:        utils.RANDOM_FELT,
+			FeeUnit:           UnitWei,
 		}
 	}
 
@@ -738,9 +742,11 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 	}
 
 	output := FeeEstimation{
-		GasConsumed: new(felt.Felt).SetUint64(1),
-		GasPrice:    new(felt.Felt).SetUint64(2),
-		OverallFee:  new(felt.Felt).SetUint64(3),
+		L1GasConsumed: utils.RANDOM_FELT,
+		L1GasPrice:    utils.RANDOM_FELT,
+		L2GasConsumed: utils.RANDOM_FELT,
+		L2GasPrice:    utils.RANDOM_FELT,
+		OverallFee:    utils.RANDOM_FELT,
 	}
 	outputContent, err := json.Marshal(output)
 	if err != nil {

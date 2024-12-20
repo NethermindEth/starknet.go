@@ -145,10 +145,13 @@ type DeclareTxnV3 struct {
 type ResourceBoundsMapping struct {
 	// The max amount and max price per unit of L1 gas used in this tx
 	L1Gas ResourceBounds `json:"l1_gas"`
+	// The max amount and max price per unit of L1 blob gas used in this tx
+	L1DataGas ResourceBounds `json:"l1_data_gas"`
 	// The max amount and max price per unit of L2 gas used in this tx
 	L2Gas ResourceBounds `json:"l2_gas"`
 }
 
+// DA_MODE: Specifies a storage domain in Starknet. Each domain has different guarantees regarding availability
 type DataAvailabilityMode string
 
 const (

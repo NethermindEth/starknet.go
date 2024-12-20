@@ -18,7 +18,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn Br
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,
@@ -47,7 +47,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 			ErrCompilationFailed,
 			ErrCompiledClassHashMismatch,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,
@@ -73,7 +73,7 @@ func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deplo
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,

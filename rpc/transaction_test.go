@@ -179,6 +179,8 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus
 func TestGetTransactionStatus(t *testing.T) {
+	//TODO: implement a test case to 'failure_reason' before merge
+
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -202,4 +204,8 @@ func TestGetTransactionStatus(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, *resp, test.ExpectedResp)
 	}
+}
+
+func TestGetMessagesStatus(t *testing.T) {
+	t.Skip("TODO: create a test before merge")
 }

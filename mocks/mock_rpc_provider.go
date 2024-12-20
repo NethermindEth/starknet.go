@@ -251,6 +251,21 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClassHashAt", reflect.TypeOf((*MockRpcProvider)(nil).ClassHashAt), ctx, blockID, contractAddress)
 }
 
+// CompiledCasm mocks base method.
+func (m *MockRpcProvider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*rpc.CasmCompiledContractClass, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompiledCasm", ctx, classHash)
+	ret0, _ := ret[0].(*rpc.CasmCompiledContractClass)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CompiledCasm indicates an expected call of CompiledCasm.
+func (mr *MockRpcProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompiledCasm", reflect.TypeOf((*MockRpcProvider)(nil).CompiledCasm), ctx, classHash)
+}
+
 // EstimateFee mocks base method.
 func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
@@ -294,6 +309,36 @@ func (m *MockRpcProvider) Events(ctx context.Context, input rpc.EventsInput) (*r
 func (mr *MockRpcProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
+}
+
+// GetMessagesStatus mocks base method.
+func (m *MockRpcProvider) GetMessagesStatus(ctx context.Context, transactionHash rpc.NumAsHex) ([]rpc.MessageStatusResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessagesStatus", ctx, transactionHash)
+	ret0, _ := ret[0].([]rpc.MessageStatusResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessagesStatus indicates an expected call of GetMessagesStatus.
+func (mr *MockRpcProviderMockRecorder) GetMessagesStatus(ctx, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessagesStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetMessagesStatus), ctx, transactionHash)
+}
+
+// GetStorageProof mocks base method.
+func (m *MockRpcProvider) GetStorageProof(ctx context.Context, storageProofInput rpc.StorageProofInput) (*rpc.StorageProofResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorageProof", ctx, storageProofInput)
+	ret0, _ := ret[0].(*rpc.StorageProofResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorageProof indicates an expected call of GetStorageProof.
+func (mr *MockRpcProviderMockRecorder) GetStorageProof(ctx, storageProofInput any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProof", reflect.TypeOf((*MockRpcProvider)(nil).GetStorageProof), ctx, storageProofInput)
 }
 
 // GetTransactionStatus mocks base method.
