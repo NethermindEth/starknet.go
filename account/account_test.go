@@ -1195,6 +1195,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // - error: an error, if any
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	t.Helper()
+
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return devnet, acnts, err
