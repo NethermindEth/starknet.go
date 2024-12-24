@@ -8,6 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
+	"github.com/gorilla/websocket"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -22,7 +23,7 @@ type Provider struct {
 	chainID string
 }
 
-// NewProvider creates a new rpc Provider instance.
+// NewProvider creates a new HTTP rpc Provider instance.
 func NewProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
@@ -31,6 +32,20 @@ func NewProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) 
 	client := &http.Client{Jar: jar}
 	// prepend the custom client to allow users to override
 	options = append([]ethrpc.ClientOption{ethrpc.WithHTTPClient(client)}, options...)
+	c, err := ethrpc.DialOptions(context.Background(), url, options...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &Provider{c: c}, nil
+}
+
+// NewWebsocketProvider creates a new Websocket rpc Provider instance.
+func NewWebsocketProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) {
+	var dialer websocket.Dialer
+	// prepend the custom client to allow users to override
+	options = append([]ethrpc.ClientOption{ethrpc.WithWebsocketDialer(dialer)}, options...)
 	c, err := ethrpc.DialOptions(context.Background(), url, options...)
 
 	if err != nil {
