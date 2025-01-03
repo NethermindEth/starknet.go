@@ -86,6 +86,7 @@ func (e RPCError) Error() string {
 
 type RPCData struct {
 	Message                       string                         `json:",omitempty"`
+	CompilationErrorData          *CompilationErrorData          `json:",omitempty"`
 	ContractErrorData             *ContractErrorData             `json:",omitempty"`
 	TransactionExecutionErrorData *TransactionExecutionErrorData `json:",omitempty"`
 }
@@ -94,6 +95,15 @@ func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 	var message string
 	if err := json.Unmarshal(data, &message); err == nil {
 		rpcData.Message = message
+		return nil
+	}
+
+	var compilationErrData CompilationErrorData
+	if err := json.Unmarshal(data, &compilationErrData); err == nil {
+		*rpcData = RPCData{
+			Message:              rpcData.Message + compilationErrData.CompilationError,
+			CompilationErrorData: &compilationErrData,
+		}
 		return nil
 	}
 
@@ -120,6 +130,11 @@ func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 
 func (rpcData *RPCData) MarshalJSON() ([]byte, error) {
 	var temp any
+
+	if rpcData.CompilationErrorData != nil {
+		temp = *rpcData.CompilationErrorData
+		return json.Marshal(temp)
+	}
 
 	if rpcData.ContractErrorData != nil {
 		temp = *rpcData.ContractErrorData
@@ -263,6 +278,11 @@ var (
 	}
 )
 
+type CompilationErrorData struct {
+	// More data about the compilation failure
+	CompilationError string `json:"compilation_error,omitempty"`
+}
+
 type ContractErrorData struct {
 	// the execution trace up to the point of failure
 	RevertError ContractExecutionError `json:"revert_error,omitempty"`
@@ -277,26 +297,26 @@ type TransactionExecutionErrorData struct {
 
 type ContractExecutionError struct {
 	// the error raised during execution
-	Message                       string `json:",omitempty"`
-	*ContractExecutionErrorStruct `json:",omitempty"`
+	Message                      string `json:",omitempty"`
+	*ContractExecutionErrorInner `json:",omitempty"`
 }
 
 func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
-	var contractErrStruct ContractExecutionErrorStruct
+	var contractErrStruct ContractExecutionErrorInner
 	var message string
 
 	if err := json.Unmarshal(data, &message); err == nil {
 		*contractEx = ContractExecutionError{
-			Message:                      message,
-			ContractExecutionErrorStruct: &contractErrStruct,
+			Message:                     message,
+			ContractExecutionErrorInner: &contractErrStruct,
 		}
 		return nil
 	}
 
 	if err := json.Unmarshal(data, &contractErrStruct); err == nil {
 		*contractEx = ContractExecutionError{
-			Message:                      "",
-			ContractExecutionErrorStruct: &contractErrStruct,
+			Message:                     "",
+			ContractExecutionErrorInner: &contractErrStruct,
 		}
 		return nil
 	}
@@ -307,8 +327,8 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 	var temp any
 
-	if contractEx.ContractExecutionErrorStruct != nil {
-		temp = contractEx.ContractExecutionErrorStruct
+	if contractEx.ContractExecutionErrorInner != nil {
+		temp = contractEx.ContractExecutionErrorInner
 		return json.Marshal(temp)
 	}
 
@@ -317,7 +337,7 @@ func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(temp)
 }
 
-type ContractExecutionErrorStruct struct {
+type ContractExecutionErrorInner struct {
 	ContractAddress *felt.Felt              `json:"contract_address"`
 	ClassHash       *felt.Felt              `json:"class_hash"`
 	Selector        *felt.Felt              `json:"selector"`
