@@ -837,7 +837,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
-				unexpErr.Data = "Something crazy happened"
+				unexpErr.Data = &RPCData{Message: "Something crazy happened"}
 				return &unexpErr
 			}
 		}
@@ -1382,7 +1382,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 		return &RPCError{
 			Code:    10,
 			Message: "No trace available for transaction",
-			Data:    "REJECTED",
+			Data:    &RPCData{Message: "REJECTED"},
 		}
 	default:
 		return ErrHashNotFound
