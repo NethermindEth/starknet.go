@@ -43,7 +43,12 @@ func NewProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) 
 
 // NewWebsocketProvider creates a new Websocket rpc Provider instance.
 func NewWebsocketProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) {
-	var dialer websocket.Dialer
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	dialer := websocket.Dialer{Jar: jar}
+
 	// prepend the custom client to allow users to override
 	options = append([]ethrpc.ClientOption{ethrpc.WithWebsocketDialer(dialer)}, options...)
 	c, err := ethrpc.DialOptions(context.Background(), url, options...)
