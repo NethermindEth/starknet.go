@@ -991,7 +991,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, "UnExpectedErr"),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "UnExpectedErr"}),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -1010,7 +1010,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, context.DeadlineExceeded),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, &rpc.RPCData{Message: context.DeadlineExceeded.Error()}),
 			},
 		},
 	}[testEnv]
@@ -1067,7 +1067,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     error
+		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -1076,7 +1076,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "Post \"http://0.0.0.0:5050\": context deadline exceeded"}),
 			},
 		},
 	}[testEnv]
@@ -1087,11 +1087,13 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
 		if test.ExpectedErr != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error())
+			rpcErr, ok := err.(*rpc.RPCError)
+			require.True(t, ok)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+			require.Equal(t, test.ExpectedErr.Data.Message, rpcErr.Data.Message)
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
-
 	}
 }
 
