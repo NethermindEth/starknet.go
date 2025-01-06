@@ -272,6 +272,22 @@ var (
 		Code:    63,
 		Message: "An unexpected error occurred",
 	}
+	ErrInvalidSubscriptionID = &RPCError{
+		Code:    66,
+		Message: "Invalid subscription id",
+	}
+	ErrTooManyAddressesInFilter = &RPCError{
+		Code:    67,
+		Message: "Too many addresses in filter sender_address filter",
+	}
+	ErrTooManyBlocksBack = &RPCError{
+		Code:    68,
+		Message: "Cannot go back more than 1024 blocks",
+	}
+	ErrCallOnPending = &RPCError{
+		Code:    69,
+		Message: "This method does not support being called on the pending block",
+	}
 	ErrCompilationError = &RPCError{
 		Code:    100,
 		Message: "Failed to compile the contract",
