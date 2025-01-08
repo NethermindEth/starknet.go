@@ -14,7 +14,7 @@ type callCloser interface {
 
 type wsConn interface {
 	callCloser
-	Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*client.ClientSubscription, error)
+	Subscribe(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*client.ClientSubscription, error)
 }
 
 // do is a function that performs a remote procedure call (RPC) using the provided callCloser.
