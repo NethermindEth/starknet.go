@@ -410,7 +410,16 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 			if msg.Error != nil {
 				op.err = msg.Error
 			} else {
-				op.err = json.Unmarshal(msg.Result, &op.sub.subid)
+				// starknet returns a object with a subid field instead of a string
+				if op.sub.namespace == "starknet" {
+					var subid struct {
+						SubID uint64 `json:"subscription_id"`
+					}
+					op.err = json.Unmarshal(msg.Result, &subid)
+					op.sub.subid = strconv.FormatUint(subid.SubID, 10)
+				} else {
+					op.err = json.Unmarshal(msg.Result, &op.sub.subid)
+				}
 				if op.err == nil {
 					go op.sub.run()
 					h.clientSubs[op.sub.subid] = op.sub
@@ -432,7 +441,7 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 			h.log.Trace("Handled RPC response", "reqid", idForLog{msg.ID}, "duration", time.Since(start))
 
 		case msg.isNotification():
-			if strings.HasSuffix(msg.Method, notificationMethodSuffix) {
+			if strings.HasPrefix(msg.Method, starknetNotificationMethodPrefix) || strings.HasSuffix(msg.Method, notificationMethodSuffix) {
 				h.handleSubscriptionResult(msg)
 				continue
 			}
@@ -455,8 +464,14 @@ func (h *handler) handleSubscriptionResult(msg *jsonrpcMessage) {
 		h.log.Debug("Dropping invalid subscription message")
 		return
 	}
-	if h.clientSubs[result.ID] != nil {
-		h.clientSubs[result.ID].deliver(result.Result)
+
+	id := strconv.FormatUint(result.StarknetID, 10)
+	if id == "0" {
+		id = result.ID
+	}
+
+	if h.clientSubs[id] != nil {
+		h.clientSubs[id].deliver(result.Result)
 	}
 }
 

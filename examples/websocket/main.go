@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/starknet.go/rpc"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // main entry point of the program.
@@ -24,21 +22,27 @@ import (
 func main() {
 	fmt.Println("Starting simpleCall example")
 
-	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
-
 	// Initialize connection to RPC provider
-	client, err := rpc.NewWebsocketProvider(rpcProviderUrl)
+	client, err := rpc.NewWebsocketProvider("ws://localhost:6061") //local juno node for testing
 	if err != nil {
 		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
 	}
 
 	fmt.Println("Established connection with the client")
 
-	chainID, err := client.ChainID(context.Background())
+	ch := make(chan *rpc.BlockHeader)
+	sub, err := client.SubscribeNewHeads(context.Background(), ch)
 	if err != nil {
-		panic(fmt.Sprintf("Error getting chain ID: %s", err))
+		rpcErr := err.(*rpc.RPCError)
+		panic(fmt.Sprintf("Error subscribing: %s", rpcErr.Error()))
 	}
-	fmt.Printf("Chain ID: %s\n", chainID)
 
+	for {
+		select {
+		case resp := <-ch:
+			fmt.Printf("New block: %d \n", resp.BlockNumber)
+		case err := <-sub.Err():
+			panic(fmt.Sprintf("Error subscribing to new heads: %s", err))
+		}
+	}
 }

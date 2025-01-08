@@ -1,6 +1,10 @@
 package rpc
 
-import "context"
+import (
+	"context"
+
+	"github.com/NethermindEth/starknet.go/client"
+)
 
 // New block headers subscription.
 // Creates a WebSocket stream which will fire events for new block headers
@@ -11,9 +15,11 @@ import "context"
 // Returns:
 // - subscriptionId: The subscription ID
 // - error: An error, if any
-func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, blockID BlockID) (subscriptionId int, err error) {
-	if err = do(ctx, provider.c, "starknet_subscribeNewHeads", &subscriptionId, blockID); err != nil {
-		return 0, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
+
+func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, ch chan<- *BlockHeader) (*client.ClientSubscription, error) {
+	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewHeads", ch)
+	if err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
 	}
-	return subscriptionId, nil
+	return sub, nil
 }

@@ -36,19 +36,24 @@ const (
 	unsubscribeMethodSuffix  = "_unsubscribe"
 	notificationMethodSuffix = "_subscription"
 
+	starknetSubscribeMethodPrefix    = "starknet_subscribe"
+	starknetNotificationMethodPrefix = "starknet_subscription"
+
 	defaultWriteTimeout = 10 * time.Second // used if context has no deadline
 )
 
 var null = json.RawMessage("null")
 
 type subscriptionResult struct {
-	ID     string          `json:"subscription"`
-	Result json.RawMessage `json:"result,omitempty"`
+	StarknetID uint64          `json:"subscription_id"`
+	ID         string          `json:"subscription,omitempty"` // ethereum field, kept for testing compatibility
+	Result     json.RawMessage `json:"result,omitempty"`
 }
 
 type subscriptionResultEnc struct {
-	ID     string `json:"subscription"`
-	Result any    `json:"result"`
+	StarknetID uint64 `json:"subscription_id"`
+	ID         string `json:"subscription,omitempty"` // ethereum field, kept for testing compatibility
+	Result     any    `json:"result"`
 }
 
 type jsonrpcSubscriptionNotification struct {
@@ -89,7 +94,7 @@ func (msg *jsonrpcMessage) hasValidVersion() bool {
 }
 
 func (msg *jsonrpcMessage) isSubscribe() bool {
-	return strings.HasSuffix(msg.Method, subscribeMethodSuffix)
+	return strings.HasPrefix(msg.Method, starknetSubscribeMethodPrefix) || strings.HasSuffix(msg.Method, subscribeMethodSuffix)
 }
 
 func (msg *jsonrpcMessage) isUnsubscribe() bool {
