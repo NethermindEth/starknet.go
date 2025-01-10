@@ -324,6 +324,12 @@ func newWebsocketCodec(conn *websocket.Conn, host string, req http.Header, readL
 }
 
 func (wc *websocketCodec) close() {
+	err := wc.conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "client is closed"), time.Time{})
+	if err != nil {
+		// Handle error but ensure we still try to close the connection
+		log.Warn("Error sending close message: ", err)
+	}
+
 	wc.jsonCodec.close()
 	wc.wg.Wait()
 }

@@ -26,6 +26,7 @@ import (
 	"errors"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -268,6 +269,11 @@ func (sub *ClientSubscription) Unsubscribe() {
 	})
 }
 
+// ID returns the subscription ID.
+func (sub *ClientSubscription) ID() string {
+	return sub.subid
+}
+
 // deliver is called by the client's message dispatcher to send a notification value.
 func (sub *ClientSubscription) deliver(result json.RawMessage) (ok bool) {
 	select {
@@ -373,6 +379,17 @@ func (sub *ClientSubscription) requestUnsubscribe() error {
 	var result interface{}
 	ctx, cancel := context.WithTimeout(context.Background(), unsubscribeTimeout)
 	defer cancel()
-	err := sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
+
+	var err error
+	if sub.namespace == "starknet" {
+		var subId uint64
+		subId, err = strconv.ParseUint(sub.subid, 10, 64)
+		if err != nil {
+			return err
+		}
+		err = sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, subId)
+	} else {
+		err = sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
+	}
 	return err
 }

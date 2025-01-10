@@ -11,13 +11,19 @@ import (
 //
 // Parameters:
 // - ctx: The context.Context object for controlling the function call
-// - blockID: The ID of the block to retrieve the transactions from
+// - headers: The channel to send the new block headers to
+// - blockID (optional): The block to get notifications from, default is latest, limited to 1024 blocks back
 // Returns:
 // - subscriptionId: The subscription ID
 // - error: An error, if any
+func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID ...BlockID) (*client.ClientSubscription, error) {
+	// Convert blockID to []any
+	params := make([]any, len(blockID))
+	for i, v := range blockID {
+		params[i] = v
+	}
 
-func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, ch chan<- *BlockHeader) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewHeads", ch)
+	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewHeads", headers, params...)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
 	}

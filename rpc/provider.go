@@ -28,6 +28,11 @@ type WsProvider struct {
 	c wsConn
 }
 
+// Close closes the client, aborting any in-flight requests.
+func (p *WsProvider) Close() {
+	p.c.Close()
+}
+
 // NewProvider creates a new HTTP rpc Provider instance.
 func NewProvider(url string, options ...client.ClientOption) (*Provider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
