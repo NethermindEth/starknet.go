@@ -71,3 +71,7 @@ jobs:
           cd ../simpleCall && go build
           cd ../simpleInvoke && go build
           cd ../deployContractUDC && go build
+
+      # Test client on mock
+      - name: Test client with mocks
+        run: cd client && go test -v
