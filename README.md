@@ -96,6 +96,15 @@ go run main.go
 
 > Check [here](examples/deployContractUDC/README.md) for more details.
 
+***starknet typedData***
+
+```sh
+cd examples/typedData
+go run main.go
+```
+
+> Check [here](examples/typedData/README.md) for more details.
+
 <br/> Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ answered by these examples.
 
 
