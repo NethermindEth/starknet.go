@@ -110,7 +110,7 @@ func TestHTTPRespBodyUnlimited(t *testing.T) {
 
 	s := NewServer()
 	defer s.Stop()
-	s.RegisterName("test", largeRespService{respLength})
+	_ = s.RegisterName("test", largeRespService{respLength})
 	ts := httptest.NewServer(s)
 	defer ts.Close()
 

@@ -90,7 +90,7 @@ func runTestScript(t *testing.T, file string) {
 		case strings.HasPrefix(line, "--> "):
 			t.Log(line)
 			// write to connection
-			clientConn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+			_ = clientConn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 			if _, err := io.WriteString(clientConn, line[4:]+"\n"); err != nil {
 				t.Fatalf("write error: %v", err)
 			}
@@ -98,7 +98,7 @@ func runTestScript(t *testing.T, file string) {
 			t.Log(line)
 			want := line[4:]
 			// read line from connection and compare text
-			clientConn.SetReadDeadline(time.Now().Add(5 * time.Second))
+			_ = clientConn.SetReadDeadline(time.Now().Add(5 * time.Second))
 			sent, err := readbuf.ReadString('\n')
 			if err != nil {
 				t.Fatalf("read error: %v", err)
@@ -124,7 +124,9 @@ func TestServerShortLivedConn(t *testing.T) {
 		t.Fatal("can't listen:", err)
 	}
 	defer listener.Close()
-	go server.ServeListener(listener)
+	go func() {
+		_ = server.ServeListener(listener)
+	}()
 
 	var (
 		request  = `{"jsonrpc":"2.0","id":1,"method":"rpc_modules"}` + "\n"
@@ -137,10 +139,10 @@ func TestServerShortLivedConn(t *testing.T) {
 			t.Fatal("can't dial:", err)
 		}
 
-		conn.SetDeadline(deadline)
+		_ = conn.SetDeadline(deadline)
 		// Write the request, then half-close the connection so the server stops reading.
-		conn.Write([]byte(request))
-		conn.(*net.TCPConn).CloseWrite()
+		_, _ = conn.Write([]byte(request))
+		_ = conn.(*net.TCPConn).CloseWrite()
 		// Now try to get the response.
 		buf := make([]byte, 2000)
 		n, err := conn.Read(buf)

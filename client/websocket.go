@@ -369,14 +369,14 @@ func (wc *websocketCodec) pingLoop() {
 
 		case <-pingTimer.C:
 			wc.jsonCodec.encMu.Lock()
-			wc.conn.SetWriteDeadline(time.Now().Add(wsPingWriteTimeout))
-			wc.conn.WriteMessage(websocket.PingMessage, nil)
-			wc.conn.SetReadDeadline(time.Now().Add(wsPongTimeout))
+			_ = wc.conn.SetWriteDeadline(time.Now().Add(wsPingWriteTimeout))
+			_ = wc.conn.WriteMessage(websocket.PingMessage, nil)
+			_ = wc.conn.SetReadDeadline(time.Now().Add(wsPongTimeout))
 			wc.jsonCodec.encMu.Unlock()
 			pingTimer.Reset(wsPingInterval)
 
 		case <-wc.pongReceived:
-			wc.conn.SetReadDeadline(time.Time{})
+			_ = wc.conn.SetReadDeadline(time.Time{})
 		}
 	}
 }

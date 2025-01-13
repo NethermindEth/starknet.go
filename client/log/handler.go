@@ -77,7 +77,7 @@ func (h *TerminalHandler) Handle(_ context.Context, r slog.Record) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	buf := h.format(h.buf, r, h.useColor)
-	h.wr.Write(buf)
+	_, _ = h.wr.Write(buf)
 	h.buf = buf[:0]
 	return nil
 }

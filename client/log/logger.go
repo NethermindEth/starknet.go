@@ -170,7 +170,7 @@ func (l *logger) Write(level slog.Level, msg string, attrs ...any) {
 	}
 	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
 	r.Add(attrs...)
-	l.inner.Handler().Handle(context.Background(), r)
+	_ = l.inner.Handler().Handle(context.Background(), r)
 }
 
 func (l *logger) Log(level slog.Level, msg string, attrs ...any) {

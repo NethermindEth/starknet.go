@@ -427,7 +427,7 @@ func TestClientSubscribeInvalidArg(t *testing.T) {
 				t.Error(string(buf))
 			}
 		}()
-		client.EthSubscribe(context.Background(), arg, "foo_bar")
+		_, _ = client.EthSubscribe(context.Background(), arg, "foo_bar")
 	}
 	check(true, nil)
 	check(true, 1)
@@ -565,7 +565,7 @@ func TestUnsubscribeTimeout(t *testing.T) {
 	t.Parallel()
 
 	srv := NewServer()
-	srv.RegisterName("nftest", new(notificationTestService))
+	_ = srv.RegisterName("nftest", new(notificationTestService))
 
 	// Setup middleware to block on unsubscribe.
 	p1, p2 := net.Pipe()
@@ -637,7 +637,7 @@ func TestClientSubscriptionUnsubscribeServer(t *testing.T) {
 
 	// Create the server.
 	srv := NewServer()
-	srv.RegisterName("nftest", new(notificationTestService))
+	_ = srv.RegisterName("nftest", new(notificationTestService))
 	p1, p2 := net.Pipe()
 	recorder := &unsubscribeRecorder{ServerCodec: NewCodec(p1)}
 	go srv.ServeCodec(recorder, OptionMethodInvocation|OptionSubscriptions)
@@ -680,7 +680,7 @@ func TestClientSubscriptionChannelClose(t *testing.T) {
 	defer srv.Stop()
 	defer httpsrv.Close()
 
-	srv.RegisterName("nftest", new(notificationTestService))
+	_ = srv.RegisterName("nftest", new(notificationTestService))
 	client, _ := Dial(wsURL)
 	defer client.Close()
 
@@ -842,7 +842,9 @@ func TestClientReconnect(t *testing.T) {
 		if err != nil {
 			t.Fatal("can't listen:", err)
 		}
-		go http.Serve(l, srv.WebsocketHandler([]string{"*"}))
+		go func() {
+			_ = http.Serve(l, srv.WebsocketHandler([]string{"*"}))
+		}()
 		return srv, l
 	}
 
