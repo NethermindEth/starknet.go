@@ -334,7 +334,7 @@ func (c *Client) CallContext(ctx context.Context, result interface{}, method str
 	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
 		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
 	}
-	msg, err := c.newMessage(method, args...)
+	msg, err := c.newMessage(method, args)
 	if err != nil {
 		return err
 	}
@@ -402,7 +402,7 @@ func (c *Client) BatchCallContext(ctx context.Context, b []BatchElem) error {
 		resp: make(chan []*jsonrpcMessage, 1),
 	}
 	for i, elem := range b {
-		msg, err := c.newMessage(elem.Method, elem.Args...)
+		msg, err := c.newMessage(elem.Method, elem.Args)
 		if err != nil {
 			return err
 		}
@@ -465,7 +465,7 @@ func (c *Client) BatchCallContext(ctx context.Context, b []BatchElem) error {
 // Notify sends a notification, i.e. a method call that doesn't expect a response.
 func (c *Client) Notify(ctx context.Context, method string, args ...interface{}) error {
 	op := new(requestOp)
-	msg, err := c.newMessage(method, args...)
+	msg, err := c.newMessage(method, args)
 	if err != nil {
 		return err
 	}
@@ -480,7 +480,11 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 // EthSubscribe registers a subscription under the "eth" namespace.
 // Note: this was kept for compatibility with the ethereum client tests
 func (c *Client) EthSubscribe(ctx context.Context, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
-	return c.Subscribe(ctx, "eth", subscribeMethodSuffix, channel, args...)
+	return c.SubscribeWithSliceArgs(ctx, "eth", subscribeMethodSuffix, channel, args)
+}
+
+func (c *Client) SubscribeWithSliceArgs(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
+	return c.Subscribe(ctx, namespace, methodSuffix, channel, args)
 }
 
 // Subscribe calls the "<namespace>_subscribe" method with the given arguments,
@@ -495,7 +499,7 @@ func (c *Client) EthSubscribe(ctx context.Context, channel interface{}, args ...
 // before considering the subscriber dead. The subscription Err channel will receive
 // ErrSubscriptionQueueOverflow. Use a sufficiently large buffer on the channel or ensure
 // that the channel usually has at least one reader to prevent this issue.
-func (c *Client) Subscribe(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
+func (c *Client) Subscribe(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args interface{}) (*ClientSubscription, error) {
 	// Check type of channel first.
 	chanVal := reflect.ValueOf(channel)
 	if chanVal.Kind() != reflect.Chan || chanVal.Type().ChanDir()&reflect.SendDir == 0 {
@@ -508,7 +512,7 @@ func (c *Client) Subscribe(ctx context.Context, namespace string, methodSuffix s
 		return nil, ErrNotificationsUnsupported
 	}
 
-	msg, err := c.newMessage(namespace+methodSuffix, args...)
+	msg, err := c.newMessage(namespace+methodSuffix, args)
 	if err != nil {
 		return nil, err
 	}
@@ -536,7 +540,7 @@ func (c *Client) SupportsSubscriptions() bool {
 	return !c.isHTTP
 }
 
-func (c *Client) newMessage(method string, paramsIn ...interface{}) (*jsonrpcMessage, error) {
+func (c *Client) newMessage(method string, paramsIn interface{}) (*jsonrpcMessage, error) {
 	msg := &jsonrpcMessage{Version: vsn, ID: c.nextID(), Method: method}
 	if paramsIn != nil { // prevent sending "params":null
 		var err error

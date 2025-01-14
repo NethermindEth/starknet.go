@@ -447,7 +447,7 @@ func TestClientSubscribe(t *testing.T) {
 
 	nc := make(chan int)
 	count := 10
-	sub, err := client.Subscribe(context.Background(), "nftest", subscribeMethodSuffix, nc, "someSubscription", count, 0)
+	sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, nc, "someSubscription", count, 0)
 	if err != nil {
 		t.Fatal("can't subscribe:", err)
 	}
@@ -494,7 +494,7 @@ func TestClientSubscribeClose(t *testing.T) {
 		err  error
 	)
 	go func() {
-		sub, err = client.Subscribe(context.Background(), "nftest2", subscribeMethodSuffix, nc, "hangSubscription", 999)
+		sub, err = client.SubscribeWithSliceArgs(context.Background(), "nftest2", subscribeMethodSuffix, nc, "hangSubscription", 999)
 		errc <- err
 	}()
 
@@ -526,7 +526,7 @@ func TestClientCloseUnsubscribeRace(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		client := DialInProc(server)
 		nc := make(chan int)
-		sub, err := client.Subscribe(context.Background(), "nftest", subscribeMethodSuffix, nc, "someSubscription", 3, 1)
+		sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, nc, "someSubscription", 3, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -584,7 +584,7 @@ func TestUnsubscribeTimeout(t *testing.T) {
 	defer client.Close()
 
 	// Start subscription.
-	sub, err := client.Subscribe(context.Background(), "nftest", subscribeMethodSuffix, make(chan int), "someSubscription", 1, 1)
+	sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, make(chan int), "someSubscription", 1, 1)
 	if err != nil {
 		t.Fatalf("failed to subscribe: %v", err)
 	}
@@ -652,7 +652,7 @@ func TestClientSubscriptionUnsubscribeServer(t *testing.T) {
 
 	// Create the subscription.
 	ch := make(chan int)
-	sub, err := client.Subscribe(context.Background(), "nftest", subscribeMethodSuffix, ch, "someSubscription", 1, 1)
+	sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, ch, "someSubscription", 1, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -686,7 +686,7 @@ func TestClientSubscriptionChannelClose(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		ch := make(chan int, 100)
-		sub, err := client.Subscribe(context.Background(), "nftest", subscribeMethodSuffix, ch, "someSubscription", 100, 1)
+		sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, ch, "someSubscription", 100, 1)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -712,7 +712,7 @@ func TestClientNotificationStorm(t *testing.T) {
 		// Subscribe on the server. It will start sending many notifications
 		// very quickly.
 		nc := make(chan int)
-		sub, err := client.Subscribe(ctx, "nftest", subscribeMethodSuffix, nc, "someSubscription", count, 0)
+		sub, err := client.SubscribeWithSliceArgs(ctx, "nftest", subscribeMethodSuffix, nc, "someSubscription", count, 0)
 		if err != nil {
 			t.Fatal("can't subscribe:", err)
 		}
