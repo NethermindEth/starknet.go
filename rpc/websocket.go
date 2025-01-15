@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 )
 
@@ -41,7 +42,26 @@ func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<
 // - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 // - error: An error, if any
 func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, input EventSubscriptionInput) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, input)
+	var sub *client.ClientSubscription
+	var err error
+
+	var emptyBlockID BlockID
+	if input.BlockID == emptyBlockID {
+		// BlockID has a custom MarshalJSON that doesn't allow zero values.
+		// Create a temporary struct without BlockID field to properly handle the optional parameter.
+		tempInput := struct {
+			FromAddress *felt.Felt     `json:"from_address,omitempty"`
+			Keys        [][]*felt.Felt `json:"keys,omitempty"`
+		}{
+			FromAddress: input.FromAddress,
+			Keys:        input.Keys,
+		}
+
+		sub, err = provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, tempInput)
+	} else {
+		sub, err = provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, input)
+	}
+
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
 	}
