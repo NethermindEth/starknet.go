@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -156,6 +157,113 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
+	t.Run("normal call, fromAddress only", func(t *testing.T) {
+		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+		require.NoError(t, err)
+		defer wsProvider.Close()
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+			FromAddress: fromAddress,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+		defer sub.Unsubscribe()
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
+
+				// Subscription with only fromAddress should return events from the specified address from the latest block onwards.
+				require.Equal(t, fromAddress, resp.FromAddress)
+				return
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(20 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
+	t.Run("normal call, keys only", func(t *testing.T) {
+		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+		require.NoError(t, err)
+		defer wsProvider.Close()
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+			Keys: [][]*felt.Felt{{key}},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+		defer sub.Unsubscribe()
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
+
+				// Subscription with only keys should return events with the specified keys from the latest block onwards.
+				require.Equal(t, key, resp.Keys[0])
+				return
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(20 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
+	t.Run("normal call, blockID only", func(t *testing.T) {
+		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+		require.NoError(t, err)
+		defer wsProvider.Close()
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+			BlockID: WithBlockNumber(blockNumber - 100),
+		})
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+		defer sub.Unsubscribe()
+
+		differentFromAddressFound := false
+		differentKeyFound := false
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Less(t, resp.BlockNumber, blockNumber)
+
+				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
+				// Verify by checking for events with different addresses and keys than the test values.
+				if !differentFromAddressFound {
+					if resp.FromAddress != fromAddress {
+						differentFromAddressFound = true
+					}
+				}
+
+				if !differentKeyFound {
+					if !slices.Contains(resp.Keys, key) {
+						differentKeyFound = true
+					}
+				}
+
+				if differentFromAddressFound && differentKeyFound {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(4 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
 	t.Run("normal call, with all arguments, within the range of 1024 blocks", func(t *testing.T) {
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
@@ -184,6 +292,57 @@ func TestSubscribeEvents(t *testing.T) {
 			case <-time.After(4 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
+		}
+	})
+
+	t.Run("error calls", func(t *testing.T) {
+		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+		require.NoError(t, err)
+		defer wsProvider.Close()
+
+		type testSetType struct {
+			input         EventSubscriptionInput
+			expectedError error
+		}
+
+		keys := make([][]*felt.Felt, 1025)
+		for i := 0; i < 1025; i++ {
+			keys[i] = []*felt.Felt{utils.HexToFeltNoErr("0x1")}
+		}
+
+		testSet := []testSetType{
+			{
+				input: EventSubscriptionInput{
+					Keys: keys,
+				},
+				expectedError: ErrTooManyKeysInFilter,
+			},
+			{
+				input: EventSubscriptionInput{
+					BlockID: WithBlockNumber(blockNumber - 1025),
+				},
+				expectedError: ErrTooManyBlocksBack,
+			},
+			{
+				input: EventSubscriptionInput{
+					BlockID: WithBlockNumber(blockNumber + 2),
+				},
+				expectedError: ErrBlockNotFound,
+			},
+			{
+				input: EventSubscriptionInput{
+					BlockID: WithBlockTag("pending"),
+				},
+				expectedError: ErrCallOnPending,
+			},
+		}
+
+		for _, test := range testSet {
+			events := make(chan *EmittedEvent)
+			defer close(events)
+			sub, err := wsProvider.SubscribeEvents(context.Background(), events, test.input)
+			require.Nil(t, sub)
+			require.EqualError(t, err, test.expectedError.Error())
 		}
 	})
 }
