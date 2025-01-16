@@ -164,6 +164,10 @@ var (
 		Code:    20,
 		Message: "Contract not found",
 	}
+	ErrEntrypointNotFound = &RPCError{
+		Code:    21,
+		Message: "Requested entrypoint does not exist in the contract",
+	}
 	ErrBlockNotFound = &RPCError{
 		Code:    24,
 		Message: "Block not found",
