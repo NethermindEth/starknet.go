@@ -346,3 +346,53 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 }
+
+func TestSubscribeTransactionStatus(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+
+	testConfig := beforeEach(t)
+	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
+
+	provider := testConfig.provider
+	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
+	require.NoError(t, err)
+	block := blockInterface.(*BlockTxHashes)
+
+	txHash := new(felt.Felt)
+	for _, tx := range block.Transactions {
+		status, err := provider.GetTransactionStatus(context.Background(), tx)
+		require.NoError(t, err)
+		if status.FinalityStatus == TxnStatus_Accepted_On_L2 {
+			txHash = tx
+			break
+		}
+	}
+
+	t.Run("normal call", func(t *testing.T) {
+		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+		require.NoError(t, err)
+		defer wsProvider.Close()
+
+		events := make(chan *NewTxnStatusResp)
+		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), events, txHash)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+		defer sub.Unsubscribe()
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &NewTxnStatusResp{}, resp)
+				require.Equal(t, txHash, resp.TransactionHash)
+				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
+				return
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(4 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+}
