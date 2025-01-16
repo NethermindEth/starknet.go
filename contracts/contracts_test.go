@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -31,6 +32,31 @@ func TestUnmarshalContractClass(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, class.SierraProgram[0].String(), "0x1")
 	assert.Equal(t, class.SierraProgram[1].String(), "0x3")
+}
+
+// TestUnmarshalContractClassWithNonStringAbi is a test function to unmarshal a
+// contract class made with compiler >= 2.7.0 version. The difference is that
+// ABI is no longer string.
+//
+// It reads the content of a file and unmarshals it into a ContractClass struct.
+// Then it asserts the equality of certain values within the struct.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// Returns:
+//
+//	none
+func TestUnmarshalContractClassWithNonStringAbi(t *testing.T) {
+	fmt.Println(os.Getwd())
+
+	content, err := os.ReadFile("./tests/test_contract.sierra.json")
+	require.NoError(t, err)
+
+	var class rpc.ContractClass
+	err = json.Unmarshal(content, &class)
+	require.NoError(t, err)
+	assert.Equal(t, class.SierraProgram[0].String(), "0x1")
+	assert.Equal(t, class.SierraProgram[1].String(), "0x6")
 }
 
 // TestUnmarshalCasmClass tests the UnmarshalCasmClass function.
