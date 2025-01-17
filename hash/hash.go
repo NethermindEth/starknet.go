@@ -245,12 +245,11 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
 
-	var ByteCodeHasH *felt.Felt = nil
+	var ByteCodeHasH *felt.Felt
 
 	if casmClass.BytecodeSegmentLengths != nil {
 		ByteCodeHasH, _ = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
-	}
-	if ByteCodeHasH == nil {
+	} else {
 		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
 	}
 
