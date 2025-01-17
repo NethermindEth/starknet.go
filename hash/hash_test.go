@@ -77,3 +77,27 @@ func TestCompiledClassHash(t *testing.T) {
 	hash := hash.CompiledClassHash(casmClass)
 	require.Equal(t, expectedHash, hash.String())
 }
+
+// TestCompiledClassHash is a test function that verifies the correctness of the CompiledClassHash function in the hash package.
+//
+// It reads the contents of a file, unmarshals it into a CasmClass object, computes the hash using the CompiledClassHash function,
+// and asserts that the computed hash matches the expected hash.
+//
+// Parameters:
+// - t: A testing.T object used for running the test and reporting any failures.
+// Returns:
+//
+//	none
+func TestCompiledClassHashWithBytecodeSegmentLengths(t *testing.T) {
+	expectedHash := "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889"
+
+	content, err := os.ReadFile("./tests/contract.casm.json")
+	require.NoError(t, err)
+
+	var casmClass contracts.CasmClass
+	err = json.Unmarshal(content, &casmClass)
+	require.NoError(t, err)
+
+	hash := hash.CompiledClassHash(casmClass)
+	require.Equal(t, expectedHash, hash.String())
+}

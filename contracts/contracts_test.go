@@ -2,7 +2,6 @@ package contracts
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -47,8 +46,6 @@ func TestUnmarshalContractClass(t *testing.T) {
 //
 //	none
 func TestUnmarshalContractClassWithNonStringAbi(t *testing.T) {
-	fmt.Println(os.Getwd())
-
 	content, err := os.ReadFile("./tests/test_contract.sierra.json")
 	require.NoError(t, err)
 

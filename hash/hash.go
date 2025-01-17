@@ -1,10 +1,14 @@
 package hash
 
 import (
+	"errors"
+	"slices"
+
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
@@ -86,6 +90,149 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	return curve.PoseidonArray(flattened...)
 }
 
+type hasherFunc = func() *felt.Felt
+
+type bytecodeSegment struct {
+	Hash hasherFunc
+	Size uint64
+}
+
+// getByteCodeSegmentHasher calculates hasher function for byte code array from casm file
+// this code is adaptation of:
+// https://github.com/starkware-libs/cairo-lang/blob/v0.13.1/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
+//
+// Parameters:
+// - bytecode: Array of compiled bytecode values from casm file
+// - bytecode_segment_lengths: Nested datastructure of bytecode_segment_lengths values from casm file
+// - visited_pcs: array pointer for tracking which bytecode bits were already processed, needed for recursive processing
+// - bytecode_offset: pointer at current offset in bytecode array, needed for recursive processing organisation
+// Returns:
+// - hasherFunc: closure that calculates hash for given bytecode array, or nil in case of error
+// - uint64: size of the current processed bytecode array, or nil in case of error
+// - error: error if any happened or nil if everything fine
+func getByteCodeSegmentHasher(
+	bytecode []*felt.Felt,
+	bytecode_segment_lengths contracts.NestedUInts,
+	visited_pcs *[]uint64,
+	bytecode_offset uint64,
+) (hasherFunc, uint64, error) {
+	if !bytecode_segment_lengths.IsArray {
+		segment_value := *bytecode_segment_lengths.Value
+		segment_end := bytecode_offset + segment_value
+
+		for {
+			visited_pcs_data := *visited_pcs
+
+			if len(visited_pcs_data) <= 0 {
+				break
+			}
+
+			last_visited_pcs := visited_pcs_data[len(visited_pcs_data)-1]
+
+			if (bytecode_offset > last_visited_pcs) || (last_visited_pcs >= segment_end) {
+				break
+			}
+
+			*visited_pcs = visited_pcs_data[:len(visited_pcs_data)-1]
+		}
+
+		bytecode_part := bytecode[bytecode_offset:segment_end]
+
+		return func() *felt.Felt {
+			return curve.PoseidonArray(bytecode_part...)
+		}, segment_value, nil
+	}
+
+	segments := []bytecodeSegment{}
+	total_len := uint64(0)
+
+	for _, item := range bytecode_segment_lengths.Values {
+		visited_pcs_data := *visited_pcs
+		var visited_pc_before *uint64 = nil
+
+		if len(visited_pcs_data) > 0 {
+			visited_pc_before = &visited_pcs_data[len(visited_pcs_data)-1]
+		}
+
+		segment_hash, segment_len, err := getByteCodeSegmentHasher(
+			bytecode,
+			item,
+			visited_pcs,
+			bytecode_offset,
+		)
+
+		if err != nil {
+			return nil, 0, err
+		}
+
+		var visited_pc_after *uint64 = nil
+		if len(visited_pcs_data) > 0 {
+			visited_pc_after = &visited_pcs_data[len(visited_pcs_data)-1]
+		}
+
+		is_used := visited_pc_after != visited_pc_before
+
+		if is_used && *visited_pc_before != bytecode_offset {
+			return nil, 0, errors.New(
+				"invalid segment structure: PC {visited_pc_before} was visited, " +
+					"but the beginning of the segment ({bytecode_offset}) was not",
+			)
+		}
+
+		segments = append(segments, bytecodeSegment{
+			Hash: segment_hash,
+			Size: segment_len,
+		})
+		bytecode_offset += segment_len
+		total_len += segment_len
+	}
+
+	return func() *felt.Felt {
+		components := make([]*felt.Felt, len(segments)*2)
+
+		for i, val := range segments {
+			components[i*2] = utils.Uint64ToFelt(val.Size)
+			components[i*2+1] = val.Hash()
+		}
+
+		return felt.Zero.Add(
+			utils.Uint64ToFelt(1),
+			curve.PoseidonArray(components...),
+		)
+	}, total_len, nil
+}
+
+// getByteCodeSegmentHasher calculates hash for byte code array from casm file
+//
+// Parameters:
+// - bytecode: Array of compiled bytecode values from casm file
+// - bytecode_segment_lengths: Nested datastructure of bytecode_segment_lengths values from casm file
+// Returns:
+// - *felt.Felt: Hash value
+// - error: Error message
+func hashCasmClassByteCode(
+	bytecode []*felt.Felt,
+	bytecode_segment_lengths contracts.NestedUInts,
+) (*felt.Felt, error) {
+	visited := []uint64{}
+
+	for i := range len(bytecode) {
+		visited = append(visited, uint64(i))
+	}
+
+	slices.Reverse(visited)
+
+	hasher, _, err := getByteCodeSegmentHasher(
+		bytecode, bytecode_segment_lengths, &visited, uint64(0),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return hasher(), nil
+}
+
 // CompiledClassHash calculates the hash of a compiled class in the Casm format.
 //
 // Parameters:
@@ -97,7 +244,15 @@ func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
-	ByteCodeHasH := curve.PoseidonArray(casmClass.ByteCode...)
+
+	var ByteCodeHasH *felt.Felt = nil
+
+	if casmClass.BytecodeSegmentLengths != nil {
+		ByteCodeHasH, _ = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
+	}
+	if ByteCodeHasH == nil {
+		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
+	}
 
 	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
 	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
