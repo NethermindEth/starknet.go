@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Established connection with the client")
 
 	ch := make(chan *rpc.BlockHeader)
-	sub, err := client.SubscribeNewHeads(context.Background(), ch)
+	sub, err := client.SubscribeNewHeads(context.Background(), ch, nil)
 	if err != nil {
 		rpcErr := err.(*rpc.RPCError)
 		panic(fmt.Sprintf("Error subscribing: %s", rpcErr.Error()))

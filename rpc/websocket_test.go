@@ -135,7 +135,7 @@ func TestSubscribeEvents(t *testing.T) {
 		defer wsProvider.Close()
 
 		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{})
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 		defer sub.Unsubscribe()
@@ -160,7 +160,7 @@ func TestSubscribeEvents(t *testing.T) {
 		defer wsProvider.Close()
 
 		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: fromAddress,
 		})
 		require.NoError(t, err)
@@ -190,7 +190,7 @@ func TestSubscribeEvents(t *testing.T) {
 		defer wsProvider.Close()
 
 		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys: [][]*felt.Felt{{key}},
 		})
 		require.NoError(t, err)
@@ -220,7 +220,7 @@ func TestSubscribeEvents(t *testing.T) {
 		defer wsProvider.Close()
 
 		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID: WithBlockNumber(blockNumber - 100),
 		})
 		require.NoError(t, err)
@@ -267,7 +267,7 @@ func TestSubscribeEvents(t *testing.T) {
 		defer wsProvider.Close()
 
 		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, EventSubscriptionInput{
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID:     WithBlockNumber(blockNumber - 100),
 			FromAddress: fromAddress,
 			Keys:        [][]*felt.Felt{{key}},
@@ -335,9 +335,10 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		for _, test := range testSet {
+			t.Logf("test: %+v", test.expectedError.Error())
 			events := make(chan *EmittedEvent)
 			defer close(events)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, test.input)
+			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
 			require.Nil(t, sub)
 			require.EqualError(t, err, test.expectedError.Error())
 		}
