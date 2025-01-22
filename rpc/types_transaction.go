@@ -401,3 +401,39 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
 }
+
+// SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
+type SubPendingTxnsInput struct {
+	// Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
+	TransactionDetails bool `json:"transaction_details,omitempty"`
+	// Filter transactions to only receive notification from address list
+	SenderAddress *felt.Felt `json:"sender_address,omitempty"`
+}
+
+// SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
+type SubPendingTxns struct {
+	// The hashes of the pending transactions. Only present if transactionDetails is false.
+	TransactionHashes []*felt.Felt
+	// The full transaction details. Only present if transactionDetails is true.
+	Transactions []*BlockTransaction
+}
+
+// UnmarshalJSON unmarshals the JSON data into a SubPendingTxns object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
+	var txnsHashes []*felt.Felt
+	if err := json.Unmarshal(data, &txnsHashes); err == nil {
+		s.TransactionHashes = txnsHashes
+		return nil
+	}
+	var txns []*BlockTransaction
+	if err := json.Unmarshal(data, &txns); err == nil {
+		s.Transactions = txns
+		return nil
+	}
+	return errors.New("failed to unmarshal SubPendingTxns")
+}
