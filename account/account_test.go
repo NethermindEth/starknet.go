@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -41,12 +43,18 @@ var (
 //
 //	none
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "devnet", "set the test environment")
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 	if testEnv == "mock" {
 		return
 	}
-	base = "http://localhost:5050"
+	base = os.Getenv("INTEGRATION_BASE")
+	if base == "" {
+		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
+			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
+		}
+		base = os.Getenv("INTEGRATION_BASE")
+	}
 	os.Exit(m.Run())
 }
 
