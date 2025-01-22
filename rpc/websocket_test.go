@@ -23,7 +23,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		headers         chan *BlockHeader
-		blockID         []BlockID
+		blockID         *BlockID
 		counter         int
 		isErrorExpected bool
 	}
@@ -34,6 +34,8 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
+	blockIdEx1 := WithBlockNumber(blockNumber - 100)
+	blockIdEx2 := WithBlockNumber(blockNumber - 1025)
 	testSet := map[string][]testSetType{
 		"testnet": {
 			{ // normal
@@ -42,28 +44,23 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{ // with tag latest
 				headers:         make(chan *BlockHeader),
-				blockID:         []BlockID{WithBlockTag("latest")},
+				blockID:         &BlockID{Tag: "latest"},
 				isErrorExpected: false,
 			},
 			{ // with tag pending
 				headers:         make(chan *BlockHeader),
-				blockID:         []BlockID{WithBlockTag("pending")},
+				blockID:         &BlockID{Tag: "pending"},
 				isErrorExpected: true,
 			},
 			{ // with block number within the range of 1024 blocks
 				headers:         make(chan *BlockHeader),
-				blockID:         []BlockID{WithBlockNumber(blockNumber - 100)},
+				blockID:         &blockIdEx1,
 				counter:         100,
 				isErrorExpected: false,
 			},
 			{ // invalid, with block number out of the range of 1024 blocks
 				headers:         make(chan *BlockHeader),
-				blockID:         []BlockID{WithBlockNumber(blockNumber - 1025)},
-				isErrorExpected: true,
-			},
-			{ // invalid, more than one blockID parameter
-				headers:         make(chan *BlockHeader),
-				blockID:         []BlockID{WithBlockTag("latest"), WithBlockTag("latest")},
+				blockID:         &blockIdEx2,
 				isErrorExpected: true,
 			},
 		},
@@ -77,10 +74,10 @@ func TestSubscribeNewHeads(t *testing.T) {
 			defer wsProvider.Close()
 
 			var sub *client.ClientSubscription
-			if len(test.blockID) == 0 {
-				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers)
+			if test.blockID == nil {
+				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, nil)
 			} else {
-				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.blockID...)
+				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.blockID)
 			}
 
 			if test.isErrorExpected {
