@@ -407,7 +407,7 @@ type SubPendingTxnsInput struct {
 	// Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
 	TransactionDetails bool `json:"transaction_details,omitempty"`
 	// Filter transactions to only receive notification from address list
-	SenderAddress *felt.Felt `json:"sender_address,omitempty"`
+	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
 // SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.

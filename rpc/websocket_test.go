@@ -68,6 +68,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	for index, test := range testSet {
 		t.Run(fmt.Sprintf("test %d", index+1), func(t *testing.T) {
+			t.Parallel()
 
 			wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 			require.NoError(t, err)
@@ -130,6 +131,8 @@ func TestSubscribeEvents(t *testing.T) {
 	key := utils.HexToFeltNoErr("0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9")
 
 	t.Run("normal call, with empty args", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -155,6 +158,8 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 
 	t.Run("normal call, fromAddress only", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -185,6 +190,8 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 
 	t.Run("normal call, keys only", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -215,6 +222,8 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 
 	t.Run("normal call, blockID only", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -262,6 +271,8 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 
 	t.Run("normal call, with all arguments, within the range of 1024 blocks", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -293,6 +304,8 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 
 	t.Run("error calls", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
 		require.NoError(t, err)
 		defer wsProvider.Close()
@@ -393,4 +406,86 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestSubscribePendingTransactions(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+
+	testConfig := beforeEach(t)
+	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
+
+	type testSetType struct {
+		pendingTxns   chan *SubPendingTxns
+		options       *SubPendingTxnsInput
+		expectedError error
+	}
+
+	addresses := make([]*felt.Felt, 1025)
+	for i := 0; i < 1025; i++ {
+		addresses[i] = utils.HexToFeltNoErr("0x1")
+	}
+
+	testSet := map[string][]testSetType{
+		"testnet": {
+			{ // nil input
+				pendingTxns: make(chan *SubPendingTxns),
+				options:     nil,
+			},
+			{ // empty input
+				pendingTxns: make(chan *SubPendingTxns),
+				options:     &SubPendingTxnsInput{},
+			},
+			{ // with transanctionDetails true
+				pendingTxns: make(chan *SubPendingTxns),
+				options:     &SubPendingTxnsInput{TransactionDetails: true},
+			},
+			{ // error: too many addresses
+				pendingTxns:   make(chan *SubPendingTxns),
+				options:       &SubPendingTxnsInput{SenderAddress: addresses},
+				expectedError: ErrTooManyAddressesInFilter,
+			},
+		},
+	}[testEnv]
+
+	for index, test := range testSet {
+		t.Run(fmt.Sprintf("test %d", index+1), func(t *testing.T) {
+			t.Parallel()
+
+			wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+			require.NoError(t, err)
+			defer wsProvider.Close()
+
+			sub, err := wsProvider.SubscribePendingTransactions(context.Background(), test.pendingTxns, test.options)
+
+			if test.expectedError != nil {
+				require.Error(t, err)
+				return
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.NotNil(t, sub)
+			defer sub.Unsubscribe()
+
+			for {
+				select {
+				case resp := <-test.pendingTxns:
+					require.IsType(t, &SubPendingTxns{}, resp)
+
+					if test.options == nil || !test.options.TransactionDetails {
+						require.NotEmpty(t, resp.TransactionHashes)
+						require.Empty(t, resp.Transactions)
+					} else {
+						require.Empty(t, resp.TransactionHashes)
+						require.NotEmpty(t, resp.Transactions)
+					}
+					return
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				}
+			}
+		})
+	}
 }
