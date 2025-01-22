@@ -6,6 +6,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+var emptyCalldata = []*felt.Felt{}
+
 // Call calls the Starknet Provider's function with the given (Starknet) request and block ID.
 //
 // Parameters:
@@ -16,6 +18,10 @@ import (
 // - []*felt.Felt: the result of the function call
 // - error: an error if any occurred during the execution
 func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockID BlockID) ([]*felt.Felt, error) {
+	if request.Calldata == nil {
+		request.Calldata = emptyCalldata
+	}
+
 	var result []*felt.Felt
 	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrContractError, ErrBlockNotFound)
