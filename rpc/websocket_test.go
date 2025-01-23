@@ -14,6 +14,8 @@ import (
 )
 
 func TestSubscribeNewHeads(t *testing.T) {
+	t.Parallel()
+
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -115,6 +117,8 @@ func TestSubscribeNewHeads(t *testing.T) {
 }
 
 func TestSubscribeEvents(t *testing.T) {
+	t.Parallel()
+
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -359,6 +363,7 @@ func TestSubscribeEvents(t *testing.T) {
 }
 
 func TestSubscribeTransactionStatus(t *testing.T) {
+	t.Parallel()
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -409,6 +414,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 }
 
 func TestSubscribePendingTransactions(t *testing.T) {
+	t.Parallel()
 	if testEnv != "testnet" {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
@@ -489,3 +495,6 @@ func TestSubscribePendingTransactions(t *testing.T) {
 		})
 	}
 }
+
+// TODO: Add mock for testing reorg events.
+// A simple test was made to make sure the reorg events are received; it'll be added in the PR 651 comments

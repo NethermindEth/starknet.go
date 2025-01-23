@@ -17,6 +17,7 @@
 package client
 
 import (
+	"bytes"
 	"container/list"
 	"context"
 	crand "crypto/rand"
@@ -203,11 +204,13 @@ func (s *Subscription) MarshalJSON() ([]byte, error) {
 
 // ClientSubscription is a subscription established through the Client's Subscribe
 type ClientSubscription struct {
-	client    *Client
-	etype     reflect.Type
-	channel   reflect.Value
-	namespace string
-	subid     string
+	client       *Client
+	etype        reflect.Type
+	channel      reflect.Value
+	reorgEtype   reflect.Type
+	reorgChannel chan *ReorgEvent
+	namespace    string
+	subid        string
 
 	// The in channel receives notification values from client dispatcher.
 	in chan json.RawMessage
@@ -228,7 +231,7 @@ type ClientSubscription struct {
 // This is the sentinel value sent on sub.quit when Unsubscribe is called.
 var errUnsubscribed = errors.New("unsubscribed")
 
-func newClientSubscription(c *Client, namespace string, channel reflect.Value) *ClientSubscription {
+func newClientSubscription(c *Client, namespace string, channel reflect.Value, method string) *ClientSubscription {
 	sub := &ClientSubscription{
 		client:      c,
 		namespace:   namespace,
@@ -240,6 +243,13 @@ func newClientSubscription(c *Client, namespace string, channel reflect.Value) *
 		unsubDone:   make(chan struct{}),
 		err:         make(chan error, 1),
 	}
+
+	// A reorg event can be received from subscribing to newHeads, Events, TransactionStatus
+	if strings.HasSuffix(method, "NewHeads") || strings.HasSuffix(method, "Events") || strings.HasSuffix(method, "TransactionStatus") {
+		sub.reorgChannel = make(chan *ReorgEvent)
+		sub.reorgEtype = reflect.TypeOf(&ReorgEvent{})
+	}
+
 	return sub
 }
 
@@ -253,6 +263,12 @@ func newClientSubscription(c *Client, namespace string, channel reflect.Value) *
 // The error channel is closed when Unsubscribe is called on the subscription.
 func (sub *ClientSubscription) Err() <-chan error {
 	return sub.err
+}
+
+// Reorg returns a channel that notifies the subscriber of a reorganization of the chain.
+// A reorg event could be received only from subscribing to NewHeads, Events, and TransactionStatus
+func (sub *ClientSubscription) Reorg() <-chan *ReorgEvent {
+	return sub.reorgChannel
 }
 
 // Unsubscribe unsubscribes the notification and closes the error channel.
@@ -295,6 +311,9 @@ func (sub *ClientSubscription) close(err error) {
 // is launched by the client's handler after the subscription has been created.
 func (sub *ClientSubscription) run() {
 	defer close(sub.unsubDone)
+	if sub.reorgChannel != nil {
+		defer close(sub.reorgChannel)
+	}
 
 	unsubscribe, err := sub.forward()
 
@@ -326,7 +345,15 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 		{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(sub.in)},
 		{Dir: reflect.SelectSend, Chan: sub.channel},
 	}
+
+	// a separate case for reorg events as it'll come in the same subscription
+	var reorgCases []reflect.SelectCase
+	if sub.reorgChannel != nil {
+		reorgCases = append(cases[:2:2], reflect.SelectCase{Dir: reflect.SelectSend, Chan: reflect.ValueOf(sub.reorgChannel)})
+	}
+
 	buffer := list.New()
+	isReorg := false
 
 	for {
 		var chosen int
@@ -336,8 +363,13 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 			chosen, recv, _ = reflect.Select(cases[:2])
 		} else {
 			// Non-empty buffer, send the first queued item.
-			cases[2].Send = reflect.ValueOf(buffer.Front().Value)
-			chosen, recv, _ = reflect.Select(cases)
+			if isReorg {
+				reorgCases[2].Send = reflect.ValueOf(buffer.Front().Value)
+				chosen, recv, _ = reflect.Select(reorgCases)
+			} else {
+				cases[2].Send = reflect.ValueOf(buffer.Front().Value)
+				chosen, recv, _ = reflect.Select(cases)
+			}
 		}
 
 		switch chosen {
@@ -352,7 +384,7 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 			return false, err
 
 		case 1: // <-sub.in
-			val, err := sub.unmarshal(recv.Interface().(json.RawMessage))
+			val, err := sub.unmarshal(recv.Interface().(json.RawMessage), &isReorg)
 			if err != nil {
 				return true, err
 			}
@@ -361,16 +393,35 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 			}
 			buffer.PushBack(val)
 
-		case 2: // sub.channel<-
-			cases[2].Send = reflect.Value{} // Don't hold onto the value.
+		case 2: // sub.channel<- OR sub.reorgChannel<-
+			if isReorg {
+				reorgCases[2].Send = reflect.Value{} // Don't hold onto the value.
+			} else {
+				cases[2].Send = reflect.Value{} // Don't hold onto the value.
+			}
 			buffer.Remove(buffer.Front())
 		}
 	}
 }
 
-func (sub *ClientSubscription) unmarshal(result json.RawMessage) (interface{}, error) {
+func (sub *ClientSubscription) unmarshal(result json.RawMessage, isReorg *bool) (interface{}, error) {
 	val := reflect.New(sub.etype)
-	err := json.Unmarshal(result, val.Interface())
+	dec := json.NewDecoder(bytes.NewReader(result))
+	dec.DisallowUnknownFields()
+	err := dec.Decode(val.Interface())
+
+	// If there's an error when unmarshalling to the main channel type, maybe it's a reorg event
+	if err != nil && sub.reorgEtype != nil {
+		val = reflect.New(sub.reorgEtype)
+		err2 := json.Unmarshal(result, val.Interface())
+		if err2 != nil {
+			err = errors.Join(err, err2)
+		} else {
+			*isReorg = true
+			return val.Elem().Interface(), nil
+		}
+	}
+	*isReorg = false
 	return val.Elem().Interface(), err
 }
 

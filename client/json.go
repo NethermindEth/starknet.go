@@ -27,6 +27,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 const (
@@ -54,6 +56,15 @@ type subscriptionResultEnc struct {
 	StarknetID uint64 `json:"subscription_id"`
 	ID         string `json:"subscription,omitempty"` // ethereum field, kept for testing compatibility
 	Result     any    `json:"result"`
+}
+
+// Struct representing a reorganization of the chain
+// Can be received from subscribing to newHeads, Events, TransactionStatus
+type ReorgEvent struct {
+	StartBlockHash *felt.Felt `json:"starting_block_hash"`
+	StartBlockNum  uint64     `json:"starting_block_number"`
+	EndBlockHash   *felt.Felt `json:"ending_block_hash"`
+	EndBlockNum    uint64     `json:"ending_block_number"`
 }
 
 type jsonrpcSubscriptionNotification struct {
