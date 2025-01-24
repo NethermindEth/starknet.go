@@ -496,5 +496,48 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	}
 }
 
+func TestUnsubscribe(t *testing.T) {
+	t.Parallel()
+
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+
+	testConfig := beforeEach(t)
+	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
+
+	wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
+	require.NoError(t, err)
+	defer wsProvider.Close()
+
+	events := make(chan *EmittedEvent)
+	sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+	require.NoError(t, err)
+	require.NotNil(t, sub)
+
+	go func(t *testing.T) {
+		timer := time.NewTimer(3 * time.Second)
+		<-timer.C
+		sub.Unsubscribe()
+	}(t)
+
+loop:
+	for {
+		select {
+		case resp := <-events:
+			require.IsType(t, &EmittedEvent{}, resp)
+		case err := <-sub.Err():
+			// when unsubscribing, the error channel should return nil
+			require.Nil(t, err)
+			break loop
+		case <-time.After(5 * time.Second):
+			t.Fatal("timeout waiting for unsubscription")
+		}
+	}
+
+	// Unsubscribe again to make sure nothing happens
+	sub.Unsubscribe()
+}
+
 // TODO: Add mock for testing reorg events.
 // A simple test was made to make sure the reorg events are received; it'll be added in the PR 651 comments
