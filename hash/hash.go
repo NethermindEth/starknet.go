@@ -103,76 +103,76 @@ type bytecodeSegment struct {
 //
 // Parameters:
 // - bytecode: Array of compiled bytecode values from casm file
-// - bytecode_segment_lengths: Nested datastructure of bytecode_segment_lengths values from casm file
-// - visited_pcs: array pointer for tracking which bytecode bits were already processed, needed for recursive processing
-// - bytecode_offset: pointer at current offset in bytecode array, needed for recursive processing organisation
+// - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
+// - visitedPcs: array pointer for tracking which bytecode bits were already processed, needed for recursive processing
+// - bytecodeOffset: pointer at current offset in bytecode array, needed for recursive processing organisation
 // Returns:
 // - hasherFunc: closure that calculates hash for given bytecode array, or nil in case of error
 // - uint64: size of the current processed bytecode array, or nil in case of error
 // - error: error if any happened or nil if everything fine
 func getByteCodeSegmentHasher(
 	bytecode []*felt.Felt,
-	bytecode_segment_lengths contracts.NestedUInts,
-	visited_pcs *[]uint64,
-	bytecode_offset uint64,
+	bytecodeSegmentLengths contracts.NestedUInts,
+	visitedPcs *[]uint64,
+	bytecodeOffset uint64,
 ) (hasherFunc, uint64, error) {
-	if !bytecode_segment_lengths.IsArray {
-		segment_value := *bytecode_segment_lengths.Value
-		segment_end := bytecode_offset + segment_value
+	if !bytecodeSegmentLengths.IsArray {
+		segmentValue := *bytecodeSegmentLengths.Value
+		segmentEnd := bytecodeOffset + segmentValue
 
 		for {
-			visited_pcs_data := *visited_pcs
+			visitedPcsData := *visitedPcs
 
-			if len(visited_pcs_data) <= 0 {
+			if len(visitedPcsData) <= 0 {
 				break
 			}
 
-			last_visited_pcs := visited_pcs_data[len(visited_pcs_data)-1]
+			lastVisitedPcs := visitedPcsData[len(visitedPcsData)-1]
 
-			if (bytecode_offset > last_visited_pcs) || (last_visited_pcs >= segment_end) {
+			if (bytecodeOffset > lastVisitedPcs) || (lastVisitedPcs >= segmentEnd) {
 				break
 			}
 
-			*visited_pcs = visited_pcs_data[:len(visited_pcs_data)-1]
+			*visitedPcs = visitedPcsData[:len(visitedPcsData)-1]
 		}
 
-		bytecode_part := bytecode[bytecode_offset:segment_end]
+		bytecodePart := bytecode[bytecodeOffset:segmentEnd]
 
 		return func() *felt.Felt {
-			return curve.PoseidonArray(bytecode_part...)
-		}, segment_value, nil
+			return curve.PoseidonArray(bytecodePart...)
+		}, segmentValue, nil
 	}
 
 	segments := []bytecodeSegment{}
-	total_len := uint64(0)
+	totalLen := uint64(0)
 
-	for _, item := range bytecode_segment_lengths.Values {
-		visited_pcs_data := *visited_pcs
-		var visited_pc_before *uint64 = nil
+	for _, item := range bytecodeSegmentLengths.Values {
+		visitedPcsData := *visitedPcs
+		var visitedPcBefore *uint64 = nil
 
-		if len(visited_pcs_data) > 0 {
-			visited_pc_before = &visited_pcs_data[len(visited_pcs_data)-1]
+		if len(visitedPcsData) > 0 {
+			visitedPcBefore = &visitedPcsData[len(visitedPcsData)-1]
 		}
 
-		segment_hash, segment_len, err := getByteCodeSegmentHasher(
+		segmentHash, segmentLen, err := getByteCodeSegmentHasher(
 			bytecode,
 			item,
-			visited_pcs,
-			bytecode_offset,
+			visitedPcs,
+			bytecodeOffset,
 		)
 
 		if err != nil {
 			return nil, 0, err
 		}
 
-		var visited_pc_after *uint64 = nil
-		if len(visited_pcs_data) > 0 {
-			visited_pc_after = &visited_pcs_data[len(visited_pcs_data)-1]
+		var visitedPcAfter *uint64 = nil
+		if len(visitedPcsData) > 0 {
+			visitedPcAfter = &visitedPcsData[len(visitedPcsData)-1]
 		}
 
-		is_used := visited_pc_after != visited_pc_before
+		is_used := visitedPcAfter != visitedPcBefore
 
-		if is_used && *visited_pc_before != bytecode_offset {
+		if is_used && *visitedPcBefore != bytecodeOffset {
 			return nil, 0, errors.New(
 				"invalid segment structure: PC {visited_pc_before} was visited, " +
 					"but the beginning of the segment ({bytecode_offset}) was not",
@@ -180,11 +180,11 @@ func getByteCodeSegmentHasher(
 		}
 
 		segments = append(segments, bytecodeSegment{
-			Hash: segment_hash,
-			Size: segment_len,
+			Hash: segmentHash,
+			Size: segmentLen,
 		})
-		bytecode_offset += segment_len
-		total_len += segment_len
+		bytecodeOffset += segmentLen
+		totalLen += segmentLen
 	}
 
 	return func() *felt.Felt {
@@ -199,20 +199,20 @@ func getByteCodeSegmentHasher(
 			utils.Uint64ToFelt(1),
 			curve.PoseidonArray(components...),
 		)
-	}, total_len, nil
+	}, totalLen, nil
 }
 
 // getByteCodeSegmentHasher calculates hash for byte code array from casm file
 //
 // Parameters:
 // - bytecode: Array of compiled bytecode values from casm file
-// - bytecode_segment_lengths: Nested datastructure of bytecode_segment_lengths values from casm file
+// - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
 // Returns:
 // - *felt.Felt: Hash value
 // - error: Error message
 func hashCasmClassByteCode(
 	bytecode []*felt.Felt,
-	bytecode_segment_lengths contracts.NestedUInts,
+	bytecodeSegmentLengths contracts.NestedUInts,
 ) (*felt.Felt, error) {
 	visited := []uint64{}
 
@@ -223,7 +223,7 @@ func hashCasmClassByteCode(
 	slices.Reverse(visited)
 
 	hasher, _, err := getByteCodeSegmentHasher(
-		bytecode, bytecode_segment_lengths, &visited, uint64(0),
+		bytecode, bytecodeSegmentLengths, &visited, uint64(0),
 	)
 
 	if err != nil {
