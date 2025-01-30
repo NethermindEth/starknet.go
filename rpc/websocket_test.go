@@ -21,13 +21,13 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 
 	testConfig := beforeEach(t)
-	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
 
 	type testSetType struct {
 		headers         chan *BlockHeader
 		subBlockID      *SubscriptionBlockID
 		counter         int
 		isErrorExpected bool
+		description     string
 	}
 
 	provider := testConfig.provider
@@ -38,49 +38,51 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	testSet := map[string][]testSetType{
 		"testnet": {
-			{ // normal
+			{
 				headers:         make(chan *BlockHeader),
 				isErrorExpected: false,
+				description:     "normal call",
 			},
-			{ // with tag latest
+			{
 				headers:         make(chan *BlockHeader),
 				subBlockID:      &SubscriptionBlockID{Tag: "latest"},
 				isErrorExpected: false,
+				description:     "with tag latest",
 			},
-			{ // with block number within the range of 1024 blocks
+			{
 				headers:         make(chan *BlockHeader),
 				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 100},
 				counter:         100,
 				isErrorExpected: false,
+				description:     "with block number within the range of 1024 blocks",
 			},
-			{ // invalid, with block number out of the range of 1024 blocks
+			{
 				headers:         make(chan *BlockHeader),
 				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 1025},
 				isErrorExpected: true,
+				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
 		},
 	}[testEnv]
 
-	for index, test := range testSet {
-		t.Run(fmt.Sprintf("test %d", index+1), func(t *testing.T) {
+	for _, test := range testSet {
+		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
 			t.Parallel()
 
-			wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-			require.NoError(t, err)
-			defer wsProvider.Close()
+			wsProvider := testConfig.wsProvider
 
 			var sub *client.ClientSubscription
 			sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.subBlockID)
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
 
 			if test.isErrorExpected {
 				require.Error(t, err)
 				return
-			} else {
-				require.NoError(t, err)
 			}
-
+			require.NoError(t, err)
 			require.NotNil(t, sub)
-			defer sub.Unsubscribe()
 
 			for {
 				select {
@@ -113,7 +115,6 @@ func TestSubscribeEvents(t *testing.T) {
 	}
 
 	testConfig := beforeEach(t)
-	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
 
 	provider := testConfig.provider
 	blockNumber, err := provider.BlockNumber(context.Background())
@@ -126,15 +127,15 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("normal call, with empty args", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		for {
 			select {
@@ -153,17 +154,17 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("normal call, fromAddress only", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: fromAddress,
 		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		for {
 			select {
@@ -185,17 +186,17 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("normal call, keys only", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys: [][]*felt.Felt{{key}},
 		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		for {
 			select {
@@ -217,17 +218,17 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("normal call, blockID only", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID: SubscriptionBlockID{Number: blockNumber - 100},
 		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		differentFromAddressFound := false
 		differentKeyFound := false
@@ -266,9 +267,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("normal call, with all arguments, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
@@ -276,15 +275,19 @@ func TestSubscribeEvents(t *testing.T) {
 			FromAddress: fromAddress,
 			Keys:        [][]*felt.Felt{{key}},
 		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		for {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
+				// 'fromAddress' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
+				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, fromAddress, resp.FromAddress)
 				require.Equal(t, key, resp.Keys[0])
 				return
@@ -299,9 +302,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("error calls", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		type testSetType struct {
 			input         EventSubscriptionInput
@@ -339,6 +340,9 @@ func TestSubscribeEvents(t *testing.T) {
 			events := make(chan *EmittedEvent)
 			defer close(events)
 			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
 			require.Nil(t, sub)
 			require.EqualError(t, err, test.expectedError.Error())
 		}
@@ -352,7 +356,6 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	}
 
 	testConfig := beforeEach(t)
-	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
 
 	provider := testConfig.provider
 	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
@@ -370,15 +373,15 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	}
 
 	t.Run("normal call", func(t *testing.T) {
-		wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-		require.NoError(t, err)
-		defer wsProvider.Close()
+		wsProvider := testConfig.wsProvider
 
 		events := make(chan *NewTxnStatusResp)
 		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), events, txHash)
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
-		defer sub.Unsubscribe()
 
 		for {
 			select {
@@ -403,12 +406,12 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	}
 
 	testConfig := beforeEach(t)
-	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
 
 	type testSetType struct {
 		pendingTxns   chan *SubPendingTxns
 		options       *SubPendingTxnsInput
 		expectedError error
+		description   string
 	}
 
 	addresses := make([]*felt.Felt, 1025)
@@ -418,45 +421,47 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 	testSet := map[string][]testSetType{
 		"testnet": {
-			{ // nil input
+			{
 				pendingTxns: make(chan *SubPendingTxns),
 				options:     nil,
+				description: "nil input",
 			},
-			{ // empty input
+			{
 				pendingTxns: make(chan *SubPendingTxns),
 				options:     &SubPendingTxnsInput{},
+				description: "empty input",
 			},
-			{ // with transanctionDetails true
+			{
 				pendingTxns: make(chan *SubPendingTxns),
 				options:     &SubPendingTxnsInput{TransactionDetails: true},
+				description: "with transanctionDetails true",
 			},
-			{ // error: too many addresses
+			{
 				pendingTxns:   make(chan *SubPendingTxns),
 				options:       &SubPendingTxnsInput{SenderAddress: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
+				description:   "error: too many addresses",
 			},
 		},
 	}[testEnv]
 
-	for index, test := range testSet {
-		t.Run(fmt.Sprintf("test %d", index+1), func(t *testing.T) {
+	for _, test := range testSet {
+		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
 			t.Parallel()
 
-			wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-			require.NoError(t, err)
-			defer wsProvider.Close()
+			wsProvider := testConfig.wsProvider
 
 			sub, err := wsProvider.SubscribePendingTransactions(context.Background(), test.pendingTxns, test.options)
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
 
 			if test.expectedError != nil {
 				require.Error(t, err)
 				return
-			} else {
-				require.NoError(t, err)
 			}
-
+			require.NoError(t, err)
 			require.NotNil(t, sub)
-			defer sub.Unsubscribe()
 
 			for {
 				select {
@@ -487,14 +492,14 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	testConfig := beforeEach(t)
-	require.NotNil(t, testConfig.wsBase, "wsProvider base is not set")
 
-	wsProvider, err := NewWebsocketProvider(testConfig.wsBase)
-	require.NoError(t, err)
-	defer wsProvider.Close()
+	wsProvider := testConfig.wsProvider
 
 	events := make(chan *EmittedEvent)
 	sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+	if sub != nil {
+		defer sub.Unsubscribe()
+	}
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
@@ -517,9 +522,6 @@ loop:
 			t.Fatal("timeout waiting for unsubscription")
 		}
 	}
-
-	// Unsubscribe again to make sure nothing happens
-	sub.Unsubscribe()
 }
 
 // TODO: Add mock for testing reorg events.

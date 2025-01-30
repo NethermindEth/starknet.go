@@ -6,4 +6,4 @@ Steps:
 1. Make sure you are in the "websocket" directory
 1. Execute `go run main.go`
 
-The calls outuputs will be returned at the end of the execution.
+The call outputs will be returned at the end of the execution.
