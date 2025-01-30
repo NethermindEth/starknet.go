@@ -64,11 +64,9 @@ loop1:
 
 	fmt.Printf("Unsubscribed from the subscription %s successfully\n", sub.ID())
 
-	olderBlockId := rpc.WithBlockNumber(latestBlockNumber - 10)
-
 	// We'll now subscribe to the node again, but this time we'll pass in an older block number as the blockID.
 	// This way, the node will send us block headers from that block number onwards.
-	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, &olderBlockId)
+	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, &rpc.SubscriptionBlockID{Number: latestBlockNumber - 10})
 	if err != nil {
 		setup.PanicRPC(err)
 	}

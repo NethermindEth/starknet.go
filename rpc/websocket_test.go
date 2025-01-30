@@ -25,7 +25,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		headers         chan *BlockHeader
-		blockID         *BlockID
+		subBlockID      *SubscriptionBlockID
 		counter         int
 		isErrorExpected bool
 	}
@@ -36,8 +36,6 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
-	blockIdEx1 := WithBlockNumber(blockNumber - 100)
-	blockIdEx2 := WithBlockNumber(blockNumber - 1025)
 	testSet := map[string][]testSetType{
 		"testnet": {
 			{ // normal
@@ -46,23 +44,18 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{ // with tag latest
 				headers:         make(chan *BlockHeader),
-				blockID:         &BlockID{Tag: "latest"},
+				subBlockID:      &SubscriptionBlockID{Tag: "latest"},
 				isErrorExpected: false,
-			},
-			{ // with tag pending
-				headers:         make(chan *BlockHeader),
-				blockID:         &BlockID{Tag: "pending"},
-				isErrorExpected: true,
 			},
 			{ // with block number within the range of 1024 blocks
 				headers:         make(chan *BlockHeader),
-				blockID:         &blockIdEx1,
+				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 100},
 				counter:         100,
 				isErrorExpected: false,
 			},
 			{ // invalid, with block number out of the range of 1024 blocks
 				headers:         make(chan *BlockHeader),
-				blockID:         &blockIdEx2,
+				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 1025},
 				isErrorExpected: true,
 			},
 		},
@@ -77,11 +70,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 			defer wsProvider.Close()
 
 			var sub *client.ClientSubscription
-			if test.blockID == nil {
-				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, nil)
-			} else {
-				sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.blockID)
-			}
+			sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.subBlockID)
 
 			if test.isErrorExpected {
 				require.Error(t, err)
@@ -234,7 +223,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithBlockNumber(blockNumber - 100),
+			BlockID: SubscriptionBlockID{Number: blockNumber - 100},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, sub)
@@ -283,7 +272,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithBlockNumber(blockNumber - 100),
+			BlockID:     SubscriptionBlockID{Number: blockNumber - 100},
 			FromAddress: fromAddress,
 			Keys:        [][]*felt.Felt{{key}},
 		})
@@ -333,21 +322,15 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber - 1025),
+					BlockID: SubscriptionBlockID{Number: blockNumber - 1025},
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber + 2),
+					BlockID: SubscriptionBlockID{Number: blockNumber + 2},
 				},
 				expectedError: ErrBlockNotFound,
-			},
-			{
-				input: EventSubscriptionInput{
-					BlockID: WithBlockTag("pending"),
-				},
-				expectedError: ErrCallOnPending,
 			},
 		}
 

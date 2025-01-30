@@ -30,14 +30,9 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 		options = &EventSubscriptionInput{}
 	}
 
-	var emptyBlockID BlockID
-	if options.BlockID == emptyBlockID {
-		options.BlockID = WithBlockTag("latest")
-	}
-
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
+		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 	return sub, nil
 }
@@ -48,19 +43,15 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //   - headers: The channel to send the new block headers to
-//   - blockID (optional): The block to get notifications from, limited to 1024 blocks back. If set to nil, the latest block will be used
+//   - subBlockID (optional): The block to get notifications from, limited to 1024 blocks back. If set to nil, the latest block will be used
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID *BlockID) (*client.ClientSubscription, error) {
-	if blockID == nil {
-		blockID = &BlockID{Tag: "latest"}
-	}
-
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, blockID)
+func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID *SubscriptionBlockID) (*client.ClientSubscription, error) {
+	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound, ErrCallOnPending)
+		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 	return sub, nil
 }

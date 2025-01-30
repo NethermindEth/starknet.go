@@ -288,10 +288,6 @@ var (
 		Code:    68,
 		Message: "Cannot go back more than 1024 blocks",
 	}
-	ErrCallOnPending = &RPCError{
-		Code:    69,
-		Message: "This method does not support being called on the pending block",
-	}
 	ErrCompilationError = &RPCError{
 		Code:    100,
 		Message: "Failed to compile the contract",
