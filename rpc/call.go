@@ -16,6 +16,10 @@ import (
 // - []*felt.Felt: the result of the function call
 // - error: an error if any occurred during the execution
 func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockID BlockID) ([]*felt.Felt, error) {
+	if request.Calldata == nil {
+		request.Calldata = []*felt.Felt{}
+	}
+
 	var result []*felt.Felt
 	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrEntrypointNotFound, ErrContractError, ErrBlockNotFound)
