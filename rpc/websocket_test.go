@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"slices"
 	"testing"
 	"time"
 
@@ -230,30 +229,22 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		differentFromAddressFound := false
-		differentKeyFound := false
+		uniqueAddresses := make(map[string]bool)
+		uniqueKeys := make(map[string]bool)
 
 		for {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
-
 				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
-				// Verify by checking for events with different addresses and keys than the test values.
-				if !differentFromAddressFound {
-					if resp.FromAddress != fromAddress {
-						differentFromAddressFound = true
-					}
-				}
+				// As none filters are applied, the events should be from all addresses and keys.
 
-				if !differentKeyFound {
-					if !slices.Contains(resp.Keys, key) {
-						differentKeyFound = true
-					}
-				}
+				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueKeys[resp.Keys[0].String()] = true
 
-				if differentFromAddressFound && differentKeyFound {
+				// check if there are at least 3 different addresses and keys in the received events
+				if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
 					return
 				}
 			case err := <-sub.Err():
@@ -329,7 +320,7 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: SubscriptionBlockID{Number: blockNumber + 2},
+					BlockID: SubscriptionBlockID{Number: blockNumber + 100},
 				},
 				expectedError: ErrBlockNotFound,
 			},
