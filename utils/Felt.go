@@ -31,20 +31,6 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 	return new(felt.Felt).SetString(hex)
 }
 
-// HexToFelt converts a hexadecimal string to a *felt.Felt object, ignoring errors.
-//
-// Note: only use this function if you are sure that the input is a valid felt input.
-// Not recommended for production use. Always handle errors correctly.
-//
-// Parameters:
-// - hex: the input hexadecimal string to be converted.
-// Returns:
-// - *felt.Felt: a *felt.Felt object
-func HexToFeltNoErr(hex string) *felt.Felt {
-	felt, _ := new(felt.Felt).SetString(hex)
-	return felt
-}
-
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
 // The function iterates over each element in the hexArr array and calls the HexToFelt function to convert each hexadecimal value to a felt object.

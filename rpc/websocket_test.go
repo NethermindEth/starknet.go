@@ -130,9 +130,9 @@ func TestSubscribeEvents(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1}                                              // for the case the latest block number is updated
-	fromAddress := utils.HexToFeltNoErr("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7") // sepolia StarkGate: ETH Token
-	key := utils.HexToFeltNoErr("0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9")
+	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1}                                                // for the case the latest block number is updated
+	fromAddress := utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7") // sepolia StarkGate: ETH Token
+	key := utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9")
 
 	t.Run("normal call, with empty args", func(t *testing.T) {
 		t.Parallel()
@@ -321,7 +321,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		keys := make([][]*felt.Felt, 1025)
 		for i := 0; i < 1025; i++ {
-			keys[i] = []*felt.Felt{utils.HexToFeltNoErr("0x1")}
+			keys[i] = []*felt.Felt{utils.TestHexToFelt(t, "0x1")}
 		}
 
 		testSet := []testSetType{
@@ -430,7 +430,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 	addresses := make([]*felt.Felt, 1025)
 	for i := 0; i < 1025; i++ {
-		addresses[i] = utils.HexToFeltNoErr("0x1")
+		addresses[i] = utils.TestHexToFelt(t, "0x1")
 	}
 
 	testSet := map[string][]testSetType{
