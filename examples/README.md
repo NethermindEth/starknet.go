@@ -3,6 +3,7 @@ To successfully execute these examples you'll need to configure some environment
 
 1. Rename the ".env.template" file located at the root of this folder to ".env"
 1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Uncomment, and assign your Sepolia websocket testnet endpoint to the `WS_PROVIDER_URL` variable in the ".env" file
 1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
 1. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
 1. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
@@ -40,3 +41,5 @@ To run an example:
   R: See [simpleCall](./simpleCall/main.go).
 1. How to sign and verify a typed data?  
   R: See [typedData](./typedData/main.go).
+1. How to use WebSocket methods? How to subscribe, unsubscribe, handle errors, and read values from them?  
+  R: See [websocket](./websocket/main.go).

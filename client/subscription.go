@@ -271,7 +271,7 @@ func (sub *ClientSubscription) Reorg() <-chan *ReorgEvent {
 	return sub.reorgChannel
 }
 
-// Unsubscribe unsubscribes the notification and closes the error channel.
+// Unsubscribe unsubscribes the notification by calling the 'starknet_unsubscribe' method and closes the error channel.
 // It can safely be called more than once.
 func (sub *ClientSubscription) Unsubscribe() {
 	sub.errOnce.Do(func() {
