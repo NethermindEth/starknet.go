@@ -404,9 +404,9 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 
 // SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
 type SubPendingTxnsInput struct {
-	// Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
+	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
 	TransactionDetails bool `json:"transaction_details,omitempty"`
-	// Filter transactions to only receive notification from address list
+	// Optional: Filter transactions to only receive notification from address list
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
