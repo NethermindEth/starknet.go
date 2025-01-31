@@ -40,7 +40,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 			{
 				headers:         make(chan *BlockHeader),
 				isErrorExpected: false,
-				description:     "normal call",
+				description:     "normal call, without subBlockID",
 			},
 			{
 				headers:         make(chan *BlockHeader),
