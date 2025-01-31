@@ -1076,7 +1076,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "Post \"http://localhost:5050\": context deadline exceeded"}),
+				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "context deadline exceeded"}),
 			},
 		},
 	}[testEnv]
@@ -1090,7 +1090,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			rpcErr, ok := err.(*rpc.RPCError)
 			require.True(t, ok)
 			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedErr.Data.Message, rpcErr.Data.Message)
+			require.Contains(t, rpcErr.Data.Message, test.ExpectedErr.Data.Message) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}

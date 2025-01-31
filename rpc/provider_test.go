@@ -21,8 +21,10 @@ const (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	provider *Provider
-	base     string
+	provider   *Provider
+	wsProvider *WsProvider
+	base       string
+	wsBase     string
 }
 
 var (
@@ -31,15 +33,16 @@ var (
 
 	// testConfigurations are predefined test configurations
 	testConfigurations = map[string]testConfiguration{
-		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
+		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. Juno)
+		// (ref: https://github.com/NethermindEth/juno)
 		"mainnet": {
 			base: "https://free-rpc.nethermind.io/mainnet-juno",
 		},
-		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
+		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. Juno)
+		// (ref: https://github.com/NethermindEth/juno)
 		"testnet": {
 			base: "https://free-rpc.nethermind.io/sepolia-juno",
+			// wsBase: "ws://localhost:6061",
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
@@ -96,15 +99,30 @@ func beforeEach(t *testing.T) *testConfiguration {
 	if base != "" {
 		testConfig.base = base
 	}
-	c, err := NewProvider(testConfig.base)
+
+	client, err := NewProvider(testConfig.base)
 	if err != nil {
 		t.Fatal("connect should succeed, instead:", err)
 	}
-
-	testConfig.provider = c
+	testConfig.provider = client
 	t.Cleanup(func() {
 		testConfig.provider.c.Close()
 	})
+
+	wsBase := os.Getenv("WS_PROVIDER_URL")
+	if wsBase != "" {
+		testConfig.wsBase = wsBase
+
+		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+		if err != nil {
+			t.Fatal("connect should succeed, instead:", err)
+		}
+		testConfig.wsProvider = wsClient
+		t.Cleanup(func() {
+			testConfig.wsProvider.c.Close()
+		})
+	}
+
 	return &testConfig
 }
 
