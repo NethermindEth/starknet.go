@@ -93,14 +93,9 @@ func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pe
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
 func (provider *WsProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatusResp, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash, WithBlockTag("latest"))
+	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
+		return nil, tryUnwrapToRPCErr(err)
 	}
-	// TODO: wait for Juno to implement this. This is the correct implementation by the spec
-	// 	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash)
-	// 	if err != nil {
-	// 		return nil, tryUnwrapToRPCErr(err)
-	// 	}
 	return sub, nil
 }
