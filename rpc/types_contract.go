@@ -65,26 +65,8 @@ type DeprecatedContractClass struct {
 type NestedString string
 
 func (ns *NestedString) UnmarshalJSON(data []byte) error {
-	var temp interface{}
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	if value, ok := temp.(string); ok {
-		// For cairo compiler prior to 2.7.0, the ABI is a string
-		*ns = NestedString(value)
-		return nil
-	} else {
-		// For modern cairo compilers, convert ABI data to escaped json string
-		// Convert the nested structure back to JSON string
-		nestedBytes, err := json.Marshal(temp)
-		if err != nil {
-			return err
-		}
-
-		*ns = NestedString(nestedBytes)
-		return nil
-	}
+	*ns = NestedString(data)
+	return nil
 }
 
 type ContractClass struct {
