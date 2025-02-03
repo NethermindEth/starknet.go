@@ -63,8 +63,7 @@ func int2octets(v *big.Int, rolen int) []byte {
 // The function computes the octet representation of the input bit string.
 // It converts the 'in' big integer to an octet and then subtracts 'q' from it.
 // If the result is negative, the 'in' big integer is converted to an octet and returned.
-//
-//	Otherwise, the result of the subtraction is converted to an octet and returned.
+// Otherwise, the result of the subtraction is converted to an octet and returned.
 //
 // Parameters:
 // - in: a pointer to a big.Int representing the input bit string
