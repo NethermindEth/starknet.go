@@ -58,7 +58,7 @@ func CalculateTransactionHashCommon(
 // - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 // - error: an error object if there was an error during the hash calculation.
 func ClassHash(contract rpc.ContractClass) *felt.Felt {
-	// https://docs.starknet.io/documentation/architecture_and_concepts/Smart_Contracts/class-hash/
+	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte(Version))
@@ -68,7 +68,7 @@ func ClassHash(contract rpc.ContractClass) *felt.Felt {
 	SierraProgamHash := curve.PoseidonArray(contract.SierraProgram...)
 	ABIHash := curve.StarknetKeccak([]byte(contract.ABI))
 
-	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_hash_calculation
 	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
 }
 
