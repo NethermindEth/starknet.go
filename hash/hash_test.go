@@ -89,15 +89,26 @@ func TestCompiledClassHash(t *testing.T) {
 //
 //	none
 func TestCompiledClassHashWithBytecodeSegmentLengths(t *testing.T) {
-	expectedHash := "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889"
+	{
+		content, err := os.ReadFile("./tests/contract.casm.json")
+		require.NoError(t, err)
 
-	content, err := os.ReadFile("./tests/contract.casm.json")
-	require.NoError(t, err)
+		var casmClass contracts.CasmClass
+		err = json.Unmarshal(content, &casmClass)
+		require.NoError(t, err)
 
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content, &casmClass)
-	require.NoError(t, err)
+		hash := hash.CompiledClassHash(casmClass)
+		require.Equal(t, "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889", hash.String())
+	}
+	{
+		content, err := os.ReadFile("./tests/argent-0.4.0/ArgentAccount.casm")
+		require.NoError(t, err)
 
-	hash := hash.CompiledClassHash(casmClass)
-	require.Equal(t, expectedHash, hash.String())
+		var casmClass contracts.CasmClass
+		err = json.Unmarshal(content, &casmClass)
+		require.NoError(t, err)
+
+		hash := hash.CompiledClassHash(casmClass)
+		require.Equal(t, "0x7a663375245780bd307f56fde688e33e5c260ab02b76741a57711c5b60d47f6", hash.String())
+	}
 }
