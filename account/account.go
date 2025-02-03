@@ -187,7 +187,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			return nil, err
 		}
 
-		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
+		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 		return hash.CalculateTransactionHashCommon(
 			PREFIX_DEPLOY_ACCOUNT,
 			versionFelt,
