@@ -63,7 +63,8 @@ func int2octets(v *big.Int, rolen int) []byte {
 // The function computes the octet representation of the input bit string.
 // It converts the 'in' big integer to an octet and then subtracts 'q' from it.
 // If the result is negative, the 'in' big integer is converted to an octet and returned.
-//  Otherwise, the result of the subtraction is converted to an octet and returned.
+//
+//	Otherwise, the result of the subtraction is converted to an octet and returned.
 //
 // Parameters:
 // - in: a pointer to a big.Int representing the input bit string
@@ -81,11 +82,10 @@ func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 	return int2octets(z2, rolen)
 }
 
-
 // bits2int converts a big.Int representing a bit string to an integer.
 // https://tools.ietf.org/html/rfc6979#section-2.3.2
 //
-// Parameters: 
+// Parameters:
 // - in: a pointer to a big.Int representing the input bit string
 // - qlen: an integer representing the desired length of the output integer
 // Returns:
@@ -98,7 +98,6 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 	}
 	return in
 }
-
 
 // mac calculates the message authentication code (MAC) using the provided hash algorithm,
 // key, message, and buffer.
