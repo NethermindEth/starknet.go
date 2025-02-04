@@ -187,7 +187,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			return nil, err
 		}
 
-		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
+		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
 		return hash.CalculateTransactionHashCommon(
 			PREFIX_DEPLOY_ACCOUNT,
 			versionFelt,
@@ -253,7 +253,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 // If the transaction type is unsupported, the function returns an error.
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_unsupported_hash_calculation
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 	switch txn := tx.(type) {
 	case rpc.InvokeTxnV0:
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
