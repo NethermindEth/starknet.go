@@ -68,7 +68,7 @@ func ClassHash(contract rpc.ContractClass) *felt.Felt {
 	SierraProgamHash := curve.PoseidonArray(contract.SierraProgram...)
 	ABIHash := curve.StarknetKeccak([]byte(contract.ABI))
 
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
+	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/#computing_the_cairo_1_class_hash
 	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
 }
 
