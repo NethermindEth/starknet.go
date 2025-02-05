@@ -56,7 +56,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
-		return nil, Err(InternalError, err)
+		return nil, Err(InternalError, &RPCData{Message: err.Error()})
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
@@ -64,14 +64,14 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 		var contractClass ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
-			return nil, Err(InternalError, err)
+			return nil, Err(InternalError, &RPCData{Message: err.Error()})
 		}
 		return &contractClass, nil
 	}
 	var depContractClass DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
-		return nil, Err(InternalError, err)
+		return nil, Err(InternalError, &RPCData{Message: err.Error()})
 	}
 	return &depContractClass, nil
 }
@@ -135,6 +135,15 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 // Estimates the resources required by a given sequence of transactions when applied on a given state.
 // If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error),
 // a TRANSACTION_EXECUTION_ERROR is returned. For v0-2 transactions the estimate is given in wei, and for v3 transactions it is given in fri.
+//
+// Parameters:
+// - ctx: The context of the function call
+// - requests: A sequence of transactions to estimate, running each transaction on the state resulting from applying all the previous ones
+// - simulationFlags: Describes what parts of the transaction should be executed
+// - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on
+// Returns:
+// - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
+// - error: An error if any occurred during the execution
 func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
@@ -157,6 +166,25 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
 
 		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
+	}
+	return &raw, nil
+}
+
+// Get merkle paths in one of the state tries: global state, classes, individual contract.
+// A single request can query for any mix of the three types of storage proofs (classes, contracts, and storage)
+//
+// Parameters:
+// - ctx: The context of the function call
+// - storageProofInput: an input containing at least one of the fields filled
+// Returns:
+// - *StorageProofResult: The requested storage proofs. Note that if a requested leaf has the default value,
+// the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
+// - error: an error if any occurred during the execution
+func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
+	var raw StorageProofResult
+	if err := do(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
+
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
 	}
 	return &raw, nil
 }
