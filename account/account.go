@@ -175,7 +175,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.Decl
 // - error: an error if any
 func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
 
-	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_transaction
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
 	case rpc.DeployAccountTxn:
 		calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
@@ -187,7 +187,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 			return nil, err
 		}
 
-		// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
+		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
 		return hash.CalculateTransactionHashCommon(
 			PREFIX_DEPLOY_ACCOUNT,
 			versionFelt,
@@ -219,7 +219,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 		if err != nil {
 			return nil, err
 		}
-		// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#deploy_account_hash_calculation
+		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
 		return crypto.PoseidonArray(
 			PREFIX_DEPLOY_ACCOUNT,
 			txnVersionFelt,
@@ -253,7 +253,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 // If the transaction type is unsupported, the function returns an error.
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 
-	// https://docs.starknet.io/documentation/architecture_and_concepts/Network_Architecture/transactions/#v0_hash_calculation
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 	switch txn := tx.(type) {
 	case rpc.InvokeTxnV0:
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
