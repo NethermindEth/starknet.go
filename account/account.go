@@ -88,7 +88,6 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // - []*felt.Felt: an array of signed felt messages
 // - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
-
 	msgBig := utils.FeltToBigInt(msg)
 
 	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
@@ -413,11 +412,12 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
+
 		return hash.CalculateTransactionHashCommon(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
-			&felt.Zero,
+			utils.Uint64ToFelt(0),
 			calldataHash,
 			txn.MaxFee,
 			account.ChainId,

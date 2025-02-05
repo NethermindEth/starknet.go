@@ -23,14 +23,29 @@ import (
 //
 //	none
 func TestUnmarshalContractClass(t *testing.T) {
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
-	require.NoError(t, err)
+	{
+		content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
+		require.NoError(t, err)
 
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
-	assert.Equal(t, class.SierraProgram[0].String(), "0x1")
-	assert.Equal(t, class.SierraProgram[1].String(), "0x3")
+		var class rpc.ContractClass
+		err = json.Unmarshal(content, &class)
+		require.NoError(t, err)
+		assert.Equal(t, class.SierraProgram[0].String(), "0x1")
+		assert.Equal(t, class.SierraProgram[1].String(), "0x3")
+	}
+
+	{
+		// contract class made with compiler >= 2.7.0 version
+
+		content, err := os.ReadFile("./tests/test_contract.sierra.json")
+		require.NoError(t, err)
+
+		var class rpc.ContractClass
+		err = json.Unmarshal(content, &class)
+		require.NoError(t, err)
+		assert.Equal(t, class.SierraProgram[0].String(), "0x1")
+		assert.Equal(t, class.SierraProgram[1].String(), "0x6")
+	}
 }
 
 // TestUnmarshalCasmClass tests the UnmarshalCasmClass function.
