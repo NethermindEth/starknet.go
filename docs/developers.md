@@ -1,8 +1,8 @@
 # A few words for developers
 
-This document points some things you might want to know when onboarding on
+This document points out some things you might want to know when onboarding on
 starknet.go. For now, we have listed a number of questions that we would like you
-know before you contribute:
+to know before you contribute:
 
 <!-- - What version of `rpc` should I use -->
 - What is the difference between `rpc` and `gateway`?
@@ -12,7 +12,7 @@ know before you contribute:
 
 ## What is the difference between `rpc` and `gateway`?
 
-starknet.go provides an access to Starknet through several interfaces:
+starknet.go provides access to Starknet through several interfaces:
 - the `gateway` remains a primary access to Starknet. It is managed by
   Starkware and is stable. It evolves with the protocol features and is
   actually split in 2: the gateway allows to run transactions, and the feeder
@@ -22,12 +22,12 @@ starknet.go provides an access to Starknet through several interfaces:
   node like [eqlabs/pathfinder](https://github.com/eqlabs/pathfinder). This
   access has several benefits, including the fact that it will implement a
   peer-to-peer connection and is based on `openrpc` 2.0. As a result, the
-  protocol definition is better standardize and starknet.go uses the
+  protocol definition is better standardized and starknet.go uses the
   [go-ethereum/rpc](https://pkg.go.dev/github.com/ethereum/go-ethereum/rpc)
   client to access Starknet.
 
 If you wonder which one to use, the short answer is it depends. However, starknet.go
-provide an access to both and tries to share a common interface between the 2.
+provides access to both and tries to share a common interface between the 2.
 Be careful that when you are doing something on the project, you should pay
 attention to the 2 interfaces, even if the implementations are specific.
 
