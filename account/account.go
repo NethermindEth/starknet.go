@@ -16,8 +16,8 @@ import (
 
 var (
 	ErrNotAllParametersSet   = errors.New("not all neccessary parameters have been set")
-	ErrTxnTypeUnSupported    = errors.New("unsupported transction type")
-	ErrTxnVersionUnSupported = errors.New("unsupported transction version")
+	ErrTxnTypeUnSupported    = errors.New("unsupported transaction type")
+	ErrTxnVersionUnSupported = errors.New("unsupported transaction version")
 	ErrFeltToBigInt          = errors.New("felt to BigInt error")
 )
 
