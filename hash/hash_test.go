@@ -64,38 +64,33 @@ func TestClassHash(t *testing.T) {
 //
 //	none
 func TestCompiledClassHash(t *testing.T) {
-	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
-	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"
 
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
-	require.NoError(t, err)
+	type testSetType struct {
+		CasmPath     string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		{
+			// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
+			CasmPath:     "./tests/hello_starknet_compiled.casm.json",
+			ExpectedHash: "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603",
+		},
+		{
+			// Contract has bytecode_segment_lengths field
+			CasmPath:     "./tests/contract.casm.json",
+			ExpectedHash: "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889",
+		},
+	}
 
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content, &casmClass)
-	require.NoError(t, err)
+	for _, test := range testSet {
+		content, err := os.ReadFile(test.CasmPath)
+		require.NoError(t, err)
 
-	hash := hash.CompiledClassHash(casmClass)
-	require.Equal(t, expectedHash, hash.String())
-}
+		var casmClass contracts.CasmClass
+		err = json.Unmarshal(content, &casmClass)
+		require.NoError(t, err)
 
-// TestCompiledClassHash is a test function that verifies the correctness of the CompiledClassHash function in the hash package.
-//
-// It reads the contents of a file, unmarshals it into a CasmClass object, computes the hash using the CompiledClassHash function,
-// and asserts that the computed hash matches the expected hash.
-//
-// Parameters:
-// - t: A testing.T object used for running the test and reporting any failures.
-// Returns:
-//
-//	none
-func TestCompiledClassHashWithBytecodeSegmentLengths(t *testing.T) {
-	content, err := os.ReadFile("./tests/contract.casm.json")
-	require.NoError(t, err)
-
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content, &casmClass)
-	require.NoError(t, err)
-
-	hash := hash.CompiledClassHash(casmClass)
-	require.Equal(t, "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889", hash.String())
+		hash := hash.CompiledClassHash(casmClass)
+		require.Equal(t, test.ExpectedHash, hash.String())
+	}
 }

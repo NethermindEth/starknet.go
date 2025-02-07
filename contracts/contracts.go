@@ -17,6 +17,22 @@ type NestedUInts struct {
 	Values  []NestedUInts
 }
 
+func NewNestedFieldValue(val uint64) NestedUInts {
+	return NestedUInts{
+		IsArray: false,
+		Value:   &val,
+		Values:  nil,
+	}
+}
+
+func NewNestedFieldArray(val ...NestedUInts) *NestedUInts {
+	return &NestedUInts{
+		IsArray: true,
+		Value:   nil,
+		Values:  val,
+	}
+}
+
 func toNestedInts(values []interface{}) ([]NestedUInts, error) {
 
 	var res []NestedUInts = make([]NestedUInts, 0)

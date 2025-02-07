@@ -417,7 +417,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
-			utils.Uint64ToFelt(0),
+			&felt.Zero,
 			calldataHash,
 			txn.MaxFee,
 			account.ChainId,
