@@ -482,9 +482,6 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
-	//TODO: upgrade the mainnet and testnet test cases before merge
-	t.Skip("TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type")
-
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -502,86 +499,90 @@ func TestEstimateFee(t *testing.T) {
 	require.NoError(t, err)
 
 	testSet := map[string][]testSetType{
-		// "mainnet": {
-		// 	{
-		// 		txs: []BroadcastTxn{
-		// 			InvokeTxnV0{
-		// 				Type:    TransactionType_Invoke,
-		// 				Version: TransactionV0,
-		// 				MaxFee:  utils.TestHexToFelt(t, "0x95e566845d000"),
-		// 				FunctionCall: FunctionCall{
-		// 					ContractAddress:    utils.TestHexToFelt(t, "0x45e92c365ba0908382bc346159f896e528214470c60ae2cd4038a0fff747b1e"),
-		// 					EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-		// 					Calldata: utils.TestHexArrToFelt(t, []string{
-		// 						"0x1",
-		// 						"0x4a3621276a83251b557a8140e915599ae8e7b6207b067ea701635c0d509801e",
-		// 						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-		// 						"0x0",
-		// 						"0x3",
-		// 						"0x3",
-		// 						"0x697066733a2f2f516d57554c7a475135556a52616953514776717765347931",
-		// 						"0x4731796f4757324e6a5a76564e77776a66514577756a",
-		// 						"0x0",
-		// 						"0x2"}),
-		// 				},
-		// 				Signature: []*felt.Felt{
-		// 					utils.TestHexToFelt(t, "0x63e4618ca2e323a45b9f860f12a4f5c4984648f1d110aa393e79d596d82abcc"),
-		// 					utils.TestHexToFelt(t, "0x2844257b088ad4f49e2fe3df1ea6a8530aa2d21d8990112b7e88c4bd0ce9d50"),
-		// 				},
-		// 			},
-		// 		},
-		// 		simFlags:      []SimulationFlag{},
-		// 		blockID:       WithBlockNumber(15643),
-		// 		expectedError: nil,
-		// 		expectedResp: []FeeEstimation{
-		// 			{
-		// 				GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
-		// 				GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
-		// 				DataGasConsumed: &felt.Zero,
-		// 				DataGasPrice:    new(felt.Felt).SetUint64(1),
-		// 				OverallFee:      utils.TestHexToFelt(t, "0xa0a99fc14d84"),
-		// 				FeeUnit:         UnitWei,
-		// 			},
-		// 		},
-		// 	},
-		// 	{
-		// 		txs: []BroadcastTxn{
-		// 			DeployAccountTxn{
+		"mainnet": {
+			{
+				txs: []BroadcastTxn{
+					InvokeTxnV0{
+						Type:    TransactionType_Invoke,
+						Version: TransactionV0,
+						MaxFee:  utils.TestHexToFelt(t, "0x95e566845d000"),
+						FunctionCall: FunctionCall{
+							ContractAddress:    utils.TestHexToFelt(t, "0x45e92c365ba0908382bc346159f896e528214470c60ae2cd4038a0fff747b1e"),
+							EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+							Calldata: utils.TestHexArrToFelt(t, []string{
+								"0x1",
+								"0x4a3621276a83251b557a8140e915599ae8e7b6207b067ea701635c0d509801e",
+								"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+								"0x0",
+								"0x3",
+								"0x3",
+								"0x697066733a2f2f516d57554c7a475135556a52616953514776717765347931",
+								"0x4731796f4757324e6a5a76564e77776a66514577756a",
+								"0x0",
+								"0x2"}),
+						},
+						Signature: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x63e4618ca2e323a45b9f860f12a4f5c4984648f1d110aa393e79d596d82abcc"),
+							utils.TestHexToFelt(t, "0x2844257b088ad4f49e2fe3df1ea6a8530aa2d21d8990112b7e88c4bd0ce9d50"),
+						},
+					},
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(15643),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						L1GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
+						L1GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
+						L2GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
+						L2GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
+						L1DataGasConsumed: &felt.Zero,
+						L1DataGasPrice:    new(felt.Felt).SetUint64(1),
+						OverallFee:        utils.TestHexToFelt(t, "0xa0a99fc14d84"),
+						FeeUnit:           UnitWei,
+					},
+				},
+			},
+			{
+				txs: []BroadcastTxn{
+					DeployAccountTxn{
 
-		// 				Type:    TransactionType_DeployAccount,
-		// 				Version: TransactionV1,
-		// 				MaxFee:  utils.TestHexToFelt(t, "0xdec823b1380c"),
-		// 				Nonce:   utils.TestHexToFelt(t, "0x0"),
-		// 				Signature: []*felt.Felt{
-		// 					utils.TestHexToFelt(t, "0x41dbc4b41f6506502a09eb7aea85759de02e91f49d0565776125946e54a2ec6"),
-		// 					utils.TestHexToFelt(t, "0x85dcf2bc8e3543071a6657947cc9c157a9f6ad7844a686a975b588199634a9"),
-		// 				},
-		// 				ContractAddressSalt: utils.TestHexToFelt(t, "0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e"),
-		// 				ClassHash:           utils.TestHexToFelt(t, "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
-		// 				ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
-		// 					"0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
-		// 					"0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463",
-		// 					"0x2",
-		// 					"0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e",
-		// 					"0x0",
-		// 				}),
-		// 			},
-		// 		},
-		// 		simFlags:      []SimulationFlag{},
-		// 		blockID:       WithBlockHash(utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
-		// 		expectedError: nil,
-		// 		expectedResp: []FeeEstimation{
-		// 			{
-		// 				GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
-		// 				GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
-		// 				DataGasConsumed: &felt.Zero,
-		// 				DataGasPrice:    new(felt.Felt).SetUint64(1),
-		// 				OverallFee:      utils.TestHexToFelt(t, "0x3c2c41636c50"),
-		// 				FeeUnit:         UnitWei,
-		// 			},
-		// 		},
-		// 	},
-		// },
+						Type:    TransactionType_DeployAccount,
+						Version: TransactionV1,
+						MaxFee:  utils.TestHexToFelt(t, "0xdec823b1380c"),
+						Nonce:   utils.TestHexToFelt(t, "0x0"),
+						Signature: []*felt.Felt{
+							utils.TestHexToFelt(t, "0x41dbc4b41f6506502a09eb7aea85759de02e91f49d0565776125946e54a2ec6"),
+							utils.TestHexToFelt(t, "0x85dcf2bc8e3543071a6657947cc9c157a9f6ad7844a686a975b588199634a9"),
+						},
+						ContractAddressSalt: utils.TestHexToFelt(t, "0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e"),
+						ClassHash:           utils.TestHexToFelt(t, "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
+						ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
+							"0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
+							"0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463",
+							"0x2",
+							"0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e",
+							"0x0",
+						}),
+					},
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockHash(utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						L1GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
+						L1GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
+						L2GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
+						L2GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
+						L1DataGasConsumed: &felt.Zero,
+						L1DataGasPrice:    new(felt.Felt).SetUint64(1),
+						OverallFee:        utils.TestHexToFelt(t, "0x3c2c41636c50"),
+						FeeUnit:           UnitWei,
+					},
+				},
+			},
+		},
 		"mock": {
 			{ // without flag
 				txs: []BroadcastTxn{
@@ -624,68 +625,72 @@ func TestEstimateFee(t *testing.T) {
 				},
 			},
 		},
-		// "testnet": {
-		// 	{ // without flag
-		// 		txs: []BroadcastTxn{
-		// 			bradcastInvokeV1,
-		// 		},
-		// 		simFlags:      []SimulationFlag{},
-		// 		blockID:       WithBlockNumber(100000),
-		// 		expectedError: nil,
-		// 		expectedResp: []FeeEstimation{
-		// 			{
-		// 				GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
-		// 				GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
-		// 				DataGasConsumed: &felt.Zero,
-		// 				DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
-		// 				OverallFee:      utils.TestHexToFelt(t, "0x955fd7d0ffd4"),
-		// 				FeeUnit:         UnitWei,
-		// 			},
-		// 		},
-		// 	},
-		// 	{ // with flag
-		// 		txs: []BroadcastTxn{
-		// 			bradcastInvokeV1,
-		// 		},
-		// 		simFlags:      []SimulationFlag{SKIP_VALIDATE},
-		// 		blockID:       WithBlockNumber(100000),
-		// 		expectedError: nil,
-		// 		expectedResp: []FeeEstimation{
-		// 			{
-		// 				GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
-		// 				GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
-		// 				DataGasConsumed: &felt.Zero,
-		// 				DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
-		// 				OverallFee:      utils.TestHexToFelt(t, "0x9547446da823"),
-		// 				FeeUnit:         UnitWei,
-		// 			},
-		// 		},
-		// 	},
-		// 	{ // invalid transaction
-		// 		txs: []BroadcastTxn{
-		// 			InvokeTxnV1{
-		// 				MaxFee:        utils.RANDOM_FELT,
-		// 				Type:          TransactionType_Invoke,
-		// 				Version:       TransactionV1,
-		// 				SenderAddress: utils.RANDOM_FELT,
-		// 				Nonce:         utils.RANDOM_FELT,
-		// 				Calldata:      []*felt.Felt{},
-		// 				Signature:     []*felt.Felt{},
-		// 			},
-		// 		},
-		// 		simFlags:      []SimulationFlag{},
-		// 		blockID:       WithBlockNumber(100000),
-		// 		expectedError: ErrTxnExec,
-		// 	},
-		// 	{ // invalid block
-		// 		txs: []BroadcastTxn{
-		// 			bradcastInvokeV1,
-		// 		},
-		// 		simFlags:      []SimulationFlag{},
-		// 		blockID:       WithBlockNumber(9999999999999999999),
-		// 		expectedError: ErrBlockNotFound,
-		// 	},
-		// },
+		"testnet": {
+			{ // without flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(100000),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						L1GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
+						L1GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						L2GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
+						L2GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						L1DataGasConsumed: &felt.Zero,
+						L1DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:        utils.TestHexToFelt(t, "0x955fd7d0ffd4"),
+						FeeUnit:           UnitWei,
+					},
+				},
+			},
+			{ // with flag
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockNumber(100000),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						L1GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
+						L1GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						L2GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
+						L2GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
+						L1DataGasConsumed: &felt.Zero,
+						L1DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:        utils.TestHexToFelt(t, "0x9547446da823"),
+						FeeUnit:           UnitWei,
+					},
+				},
+			},
+			{ // invalid transaction
+				txs: []BroadcastTxn{
+					InvokeTxnV1{
+						MaxFee:        utils.RANDOM_FELT,
+						Type:          TransactionType_Invoke,
+						Version:       TransactionV1,
+						SenderAddress: utils.RANDOM_FELT,
+						Nonce:         utils.RANDOM_FELT,
+						Calldata:      []*felt.Felt{},
+						Signature:     []*felt.Felt{},
+					},
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(100000),
+				expectedError: ErrTxnExec,
+			},
+			{ // invalid block
+				txs: []BroadcastTxn{
+					bradcastInvokeV1,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(9999999999999999999),
+				expectedError: ErrBlockNotFound,
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
