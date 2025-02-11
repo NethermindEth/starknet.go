@@ -397,7 +397,6 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
-	//TODO: upgrade the testnet test case before merge
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
@@ -436,18 +435,20 @@ func TestEstimateMessageFee(t *testing.T) {
 			},
 		},
 		"testnet": {
-			// {
-			// 	MsgFromL1: l1Handler,
-			// 	BlockID:   WithBlockNumber(122476),
-			// 	ExpectedFeeEst: &FeeEstimation{
-			// 		GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
-			// 		GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
-			// 		DataGasConsumed: &felt.Zero,
-			// 		DataGasPrice:    utils.TestHexToFelt(t, "0x216251c284"),
-			// 		OverallFee:      utils.TestHexToFelt(t, "0xdd816d65a9ea"),
-			// 		FeeUnit:         UnitWei,
-			// 	},
-			// },
+			{
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockNumber(122476),
+				ExpectedFeeEst: &FeeEstimation{
+					L1GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
+					L1GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
+					L2GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
+					L2GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
+					L1DataGasConsumed: &felt.Zero,
+					L1DataGasPrice:    utils.TestHexToFelt(t, "0x216251c284"),
+					OverallFee:        utils.TestHexToFelt(t, "0xdd816d65a9ea"),
+					FeeUnit:           UnitWei,
+				},
+			},
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
 					FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
