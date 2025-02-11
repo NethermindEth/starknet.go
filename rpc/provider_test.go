@@ -95,7 +95,7 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	base := os.Getenv("INTEGRATION_BASE")
+	base := os.Getenv("HTTP_PROVIDER_URL")
 	if base != "" {
 		testConfig.base = base
 	}
@@ -109,19 +109,23 @@ func beforeEach(t *testing.T) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 
+	if testEnv == "devnet" {
+		return &testConfig
+	}
+
 	wsBase := os.Getenv("WS_PROVIDER_URL")
 	if wsBase != "" {
 		testConfig.wsBase = wsBase
 
-		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
-		if err != nil {
-			t.Fatal("connect should succeed, instead:", err)
-		}
-		testConfig.wsProvider = wsClient
-		t.Cleanup(func() {
-			testConfig.wsProvider.c.Close()
-		})
 	}
+	wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+	if err != nil {
+		t.Fatal("connect should succeed, instead:", err)
+	}
+	testConfig.wsProvider = wsClient
+	t.Cleanup(func() {
+		testConfig.wsProvider.c.Close()
+	})
 
 	return &testConfig
 }

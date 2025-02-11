@@ -33,7 +33,7 @@ var (
 //
 // It sets up the test environment by parsing command line flags and loading environment variables.
 // The test environment can be set using the "env" flag.
-// It then sets the base path for integration tests by reading the value from the "INTEGRATION_BASE" environment variable.
+// It then sets the base path for integration tests by reading the value from the "HTTP_PROVIDER_URL" environment variable.
 // If the base path is not set and the test environment is not "mock", it panics.
 // Finally, it exits with the return value of the test suite
 //
@@ -48,12 +48,12 @@ func TestMain(m *testing.M) {
 	if testEnv == "mock" {
 		return
 	}
-	base = os.Getenv("INTEGRATION_BASE")
+	base = os.Getenv("HTTP_PROVIDER_URL")
 	if base == "" {
 		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
 			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
 		}
-		base = os.Getenv("INTEGRATION_BASE")
+		base = os.Getenv("HTTP_PROVIDER_URL")
 	}
 	os.Exit(m.Run())
 }
