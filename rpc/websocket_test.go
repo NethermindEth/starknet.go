@@ -515,5 +515,8 @@ loop:
 	}
 }
 
-// TODO: Add mock for testing reorg events.
-// A simple test was made to make sure the reorg events are received; it'll be added in the PR 651 comments
+// A simple test was made to make sure the reorg events are received. Ref:
+// https://github.com/NethermindEth/starknet.go/pull/651#discussion_r1927356194
+func TestReorgEvents(t *testing.T) {
+	t.Skip("TODO: implement reorg test")
+}
