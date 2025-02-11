@@ -448,7 +448,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			}
 
 			if test.expectedError != nil {
-				require.Error(t, err)
+				require.EqualError(t, err, test.expectedError.Error())
 				return
 			}
 			require.NoError(t, err)
