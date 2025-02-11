@@ -66,6 +66,7 @@ func TestCall(t *testing.T) {
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: utils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
+			// TODO: create a case for the ErrEntrypointNotFound error when Juno implement it
 			{
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
