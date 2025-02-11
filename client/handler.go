@@ -412,11 +412,9 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 			} else {
 				// starknet returns a object with a subid field instead of a string
 				if op.sub.namespace == "starknet" {
-					var subid struct {
-						SubID uint64 `json:"subscription_id"`
-					}
+					var subid uint64
 					op.err = json.Unmarshal(msg.Result, &subid)
-					op.sub.subid = strconv.FormatUint(subid.SubID, 10)
+					op.sub.subid = strconv.FormatUint(subid, 10)
 				} else {
 					op.err = json.Unmarshal(msg.Result, &op.sub.subid)
 				}
