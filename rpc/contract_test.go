@@ -704,5 +704,35 @@ func TestEstimateFee(t *testing.T) {
 }
 
 func TestGetStorageProof(t *testing.T) {
-	t.Skip("TODO: create a test before merge")
+	t.Skip("TODO: incomplete. Waiting for the websocket PR to be merged, so that we can change the behavior of the client.CallContext method")
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		Description       string
+		StorageProofInput StorageProofInput
+		ExpectedResult    StorageProofResult
+		ExpectedError     error
+	}
+	testSet := map[string][]testSetType{
+		"mock":   {},
+		"devnet": {},
+		"testnet": {
+			{
+				Description: "normal call, only required field block_id",
+				StorageProofInput: StorageProofInput{
+					BlockID: WithBlockTag("latest"),
+				},
+				ExpectedError: nil,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		require := require.New(t)
+		result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
+		require.NoError(err)
+		require.NotNil(result, "should return a nonce")
+		require.Equal(test.ExpectedResult, result)
+	}
 }
