@@ -142,32 +142,9 @@ func TestUnmarshalCasmClass(t *testing.T) {
 
 		expectedEntryPoint := testCase.ExpectedCasmClass.EntryPointByType
 
-		// External
-		for entryPointIdx, externalEntryPoint := range casmClass.EntryPointByType.External {
-			expectedExternalEntryPoint := expectedEntryPoint.External[entryPointIdx]
-
-			assert.ElementsMatch(t, externalEntryPoint.Builtins, expectedExternalEntryPoint.Builtins)
-			assert.Equal(t, externalEntryPoint.Offset, expectedExternalEntryPoint.Offset)
-			assert.Equal(t, externalEntryPoint.Selector.String(), expectedExternalEntryPoint.Selector.String())
-		}
-
-		// Constructor
-		for entryPointIdx, contructorEntryPoint := range casmClass.EntryPointByType.Constructor {
-			expectedConstructorEntryPoint := expectedEntryPoint.Constructor[entryPointIdx]
-
-			assert.ElementsMatch(t, contructorEntryPoint.Builtins, expectedConstructorEntryPoint.Builtins)
-			assert.Equal(t, contructorEntryPoint.Offset, expectedConstructorEntryPoint.Offset)
-			assert.Equal(t, contructorEntryPoint.Selector.String(), expectedConstructorEntryPoint.Selector.String())
-		}
-
-		// L1 handle
-		for entryPointIdx, l1EntryPoint := range casmClass.EntryPointByType.Constructor {
-			expectedL1EntryPoint := expectedEntryPoint.L1Handler[entryPointIdx]
-
-			assert.ElementsMatch(t, l1EntryPoint.Builtins, expectedL1EntryPoint.Builtins)
-			assert.Equal(t, l1EntryPoint.Offset, expectedL1EntryPoint.Offset)
-			assert.Equal(t, l1EntryPoint.Selector.String(), expectedL1EntryPoint.Selector.String())
-		}
+		assert.Equal(t, casmClass.EntryPointByType.External, expectedEntryPoint.External)
+		assert.Equal(t, casmClass.EntryPointByType.Constructor, expectedEntryPoint.Constructor)
+		assert.Equal(t, casmClass.EntryPointByType.L1Handler, expectedEntryPoint.L1Handler)
 
 		assert.Equal(t, testCase.ExpectedCasmClass.BytecodeSegmentLengths, casmClass.BytecodeSegmentLengths)
 	}
@@ -232,5 +209,21 @@ func TestPrecomputeAddress(t *testing.T) {
 			test.ConstructorCalldata,
 		)
 		require.Equal(t, test.ExpectedPrecomputedAddress, precomputedAddress.String())
+	}
+}
+
+func NewNestedFieldValue(val uint64) NestedUInts {
+	return NestedUInts{
+		IsArray: false,
+		Value:   &val,
+		Values:  nil,
+	}
+}
+
+func NewNestedFieldArray(val ...NestedUInts) *NestedUInts {
+	return &NestedUInts{
+		IsArray: true,
+		Value:   nil,
+		Values:  val,
 	}
 }

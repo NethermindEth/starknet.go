@@ -195,9 +195,7 @@ func getByteCodeSegmentHasher(
 			components[i*2+1] = val.Hash()
 		}
 
-		zero := &felt.Felt{}
-
-		return zero.Add(
+		return new(felt.Felt).Add(
 			utils.Uint64ToFelt(1),
 			curve.PoseidonArray(components...),
 		)
