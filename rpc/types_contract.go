@@ -62,6 +62,24 @@ type DeprecatedContractClass struct {
 	ABI *ABI `json:"abi,omitempty"`
 }
 
+type NestedString string
+
+func (ns *NestedString) UnmarshalJSON(data []byte) error {
+	var temp interface{}
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	if value, ok := temp.(string); ok {
+		// For cairo compiler prior to 2.7.0, the ABI is a string
+		*ns = NestedString(value)
+	} else {
+		*ns = NestedString(data)
+	}
+
+	return nil
+}
+
 type ContractClass struct {
 	// The list of Sierra instructions of which the program consists
 	SierraProgram []*felt.Felt `json:"sierra_program"`
@@ -71,7 +89,7 @@ type ContractClass struct {
 
 	EntryPointsByType EntryPointsByType `json:"entry_points_by_type"`
 
-	ABI string `json:"abi,omitempty"`
+	ABI NestedString `json:"abi,omitempty"`
 }
 
 // UnmarshalJSON unmarshals the JSON content into the DeprecatedContractClass struct.

@@ -2,6 +2,7 @@ package contracts
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -10,12 +11,74 @@ import (
 
 var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
+type NestedUInts struct {
+	IsArray bool
+	Value   *uint64
+	Values  []NestedUInts
+}
+
+func toNestedInts(values []interface{}) ([]NestedUInts, error) {
+
+	var res []NestedUInts = make([]NestedUInts, 0)
+
+	for _, value := range values {
+		if numeric, ok := value.(float64); ok {
+			intVal := uint64(numeric)
+			res = append(res, NestedUInts{
+				IsArray: false,
+				Value:   &intVal,
+				Values:  nil,
+			})
+			continue
+		}
+
+		if arrVal, ok := value.([]interface{}); ok {
+			nested, err := toNestedInts(arrVal)
+			if err != nil {
+				return nil, err
+			}
+
+			res = append(res, NestedUInts{
+				IsArray: true,
+				Value:   nil,
+				Values:  nested,
+			})
+			continue
+		}
+
+		return nil, errors.New("Invalid type")
+	}
+
+	return res, nil
+}
+
+func (ns *NestedUInts) UnmarshalJSON(data []byte) error {
+	var temp []interface{}
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	nested, err := toNestedInts(temp)
+
+	if err != nil {
+		return err
+	}
+
+	*ns = NestedUInts{
+		IsArray: true,
+		Value:   nil,
+		Values:  nested,
+	}
+
+	return nil
+}
+
 type CasmClass struct {
-	Prime            string                     `json:"prime"`
-	Version          string                     `json:"compiler_version"`
-	ByteCode         []*felt.Felt               `json:"bytecode"`
-	EntryPointByType CasmClassEntryPointsByType `json:"entry_points_by_type"`
-	// Hints            any                        `json:"hints"`
+	Prime                  string                     `json:"prime"`
+	Version                string                     `json:"compiler_version"`
+	ByteCode               []*felt.Felt               `json:"bytecode"`
+	EntryPointByType       CasmClassEntryPointsByType `json:"entry_points_by_type"`
+	BytecodeSegmentLengths *NestedUInts               `json:"bytecode_segment_lengths,omitempty"`
 }
 
 type CasmClassEntryPointsByType struct {

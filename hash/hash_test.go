@@ -40,17 +40,34 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 //
 //	none
 func TestClassHash(t *testing.T) {
-	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
-	expectedClasshash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
+	type testSetType struct {
+		SierraPath   string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		{
+			//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
+			SierraPath:   "./tests/contract.sierra.json",
+			ExpectedHash: "0x56d1005889687bfda105b51cde93486a9b8bcbc3f05ccc9728f4521121fd8d7",
+		},
+		{
+			// Contract has bytecode_segment_lengths field
+			SierraPath:   "./tests/hello_starknet_compiled.sierra.json",
+			ExpectedHash: "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944",
+		},
+	}
 
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
-	require.NoError(t, err)
+	for _, test := range testSet {
+		content, err := os.ReadFile(test.SierraPath)
+		require.NoError(t, err)
 
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
-	compClassHash := hash.ClassHash(class)
-	require.Equal(t, expectedClasshash, compClassHash.String())
+		var sierraClass rpc.ContractClass
+		err = json.Unmarshal(content, &sierraClass)
+		require.NoError(t, err)
+
+		hash := hash.ClassHash(sierraClass)
+		require.Equal(t, test.ExpectedHash, hash.String())
+	}
 }
 
 // TestCompiledClassHash is a test function that verifies the correctness of the CompiledClassHash function in the hash package.
@@ -64,16 +81,33 @@ func TestClassHash(t *testing.T) {
 //
 //	none
 func TestCompiledClassHash(t *testing.T) {
-	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
-	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"
 
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
-	require.NoError(t, err)
+	type testSetType struct {
+		CasmPath     string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		{
+			// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
+			CasmPath:     "./tests/hello_starknet_compiled.casm.json",
+			ExpectedHash: "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603",
+		},
+		{
+			// Contract has bytecode_segment_lengths field
+			CasmPath:     "./tests/contract.casm.json",
+			ExpectedHash: "0x28e4f13aed1aea3b4c2544bc10b0a2a4f37c71f830d0e3031e95aeb9cef9889",
+		},
+	}
 
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content, &casmClass)
-	require.NoError(t, err)
+	for _, test := range testSet {
+		content, err := os.ReadFile(test.CasmPath)
+		require.NoError(t, err)
 
-	hash := hash.CompiledClassHash(casmClass)
-	require.Equal(t, expectedHash, hash.String())
+		var casmClass contracts.CasmClass
+		err = json.Unmarshal(content, &casmClass)
+		require.NoError(t, err)
+
+		hash := hash.CompiledClassHash(casmClass)
+		require.Equal(t, test.ExpectedHash, hash.String())
+	}
 }

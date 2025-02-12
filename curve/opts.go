@@ -16,7 +16,8 @@ type funcCurveOption struct {
 // Parameters:
 // - fso: a pointer to funcCurveOption
 // Returns:
-//  none
+//
+//	none
 func (fso *funcCurveOption) apply(do *curveOptions) {
 	fso.f(do)
 }

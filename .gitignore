@@ -1,3 +1,4 @@
+.tool-versions
 starknet.go
 vendor/
 .env*
