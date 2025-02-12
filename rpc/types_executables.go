@@ -1,6 +1,10 @@
 package rpc
 
 import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -14,10 +18,55 @@ type CasmCompiledContractClass struct {
 	BytecodeSegmentLengths []int `json:"bytecode_segment_lengths,omitempty"`
 }
 
+// Validate ensures all required fields are present and valid
+func (c *CasmCompiledContractClass) Validate() error {
+	if c.ByteCode == nil {
+		return fmt.Errorf("bytecode is required")
+	}
+	if c.Prime == "" {
+		return fmt.Errorf("prime is required")
+	}
+	if c.CompilerVersion == "" {
+		return fmt.Errorf("compiler_version is required")
+	}
+	if c.Hints == nil {
+		return fmt.Errorf("hints is required")
+	}
+	if err := c.EntryPointsByType.Validate(); err != nil {
+		return fmt.Errorf("entry_points_by_type validation failed: %w", err)
+	}
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (c *CasmCompiledContractClass) UnmarshalJSON(data []byte) error {
+	type Alias CasmCompiledContractClass
+	aux := &Alias{}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	*c = CasmCompiledContractClass(*aux)
+	return c.Validate()
+}
+
 type CasmEntryPointsByType struct {
 	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
 	External    []CasmEntryPoint `json:"EXTERNAL"`
 	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+
+// Validate ensures all required fields are present and valid
+func (e *CasmEntryPointsByType) Validate() error {
+	if e.Constructor == nil {
+		return fmt.Errorf("CONSTRUCTOR is required")
+	}
+	if e.External == nil {
+		return fmt.Errorf("EXTERNAL is required")
+	}
+	if e.L1Handler == nil {
+		return fmt.Errorf("L1_HANDLER is required")
+	}
+	return nil
 }
 
 type CasmEntryPoint struct {
@@ -32,6 +81,35 @@ type Hints struct {
 	HintArr []Hint
 }
 
+// UnmarshalJSON implements json.Unmarshaler interface
+func (h *Hints) UnmarshalJSON(data []byte) error {
+	var tuple []json.RawMessage
+	if err := json.Unmarshal(data, &tuple); err != nil {
+		return err
+	}
+
+	if len(tuple) != 2 {
+		return fmt.Errorf("expected tuple of length 2, got %d", len(tuple))
+	}
+
+	// Unmarshal the first element (integer)
+	if err := json.Unmarshal(tuple[0], &h.Int); err != nil {
+		return fmt.Errorf("failed to unmarshal Int: %w", err)
+	}
+
+	// Unmarshal the second element (array of hints)
+	if err := json.Unmarshal(tuple[1], &h.HintArr); err != nil {
+		return fmt.Errorf("failed to unmarshal HintArr: %w", err)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler interface
+func (h *Hints) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]interface{}{h.Int, h.HintArr})
+}
+
 func (hints *Hints) Values() (int, []Hint) {
 	return hints.Int, hints.HintArr
 }
@@ -40,10 +118,48 @@ func (hints *Hints) Tuple() [2]any {
 	return [2]any{hints.Int, hints.HintArr}
 }
 
+// Can have only one of the following hints
 type Hint struct {
-	DeprecatedHint
-	CoreHint
-	StarknetHint
+	DeprecatedHint DeprecatedHint `json:",omitempty"`
+	CoreHint       CoreHint       `json:",omitempty"`
+	StarknetHint   StarknetHint   `json:",omitempty"`
+}
+
+// Validate ensures only one hint type is set
+func (h *Hint) Validate() error {
+	count := 0
+	if !reflect.ValueOf(h.DeprecatedHint).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(h.CoreHint).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(h.StarknetHint).IsZero() {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("exactly one hint type must be set, got %d", count)
+	}
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (h *Hint) UnmarshalJSON(data []byte) error {
+	type HintAlias Hint
+	aux := &HintAlias{}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	*h = Hint(*aux)
+	return h.Validate()
+}
+
+// MarshalJSON implements json.Marshaler interface
+func (h *Hint) MarshalJSON() ([]byte, error) {
+	if err := h.Validate(); err != nil {
+		return nil, err
+	}
+	return json.Marshal(*h)
 }
 
 type DeprecatedHint struct {
@@ -54,6 +170,7 @@ type DeprecatedHint struct {
 	Felt252DictWrite         Felt252DictWrite         `json:",omitempty"`
 }
 
+// Can have only one of the following hints
 type CoreHint struct {
 	AllocConstantSize           AllocConstantSize           `json:",omitempty"`
 	AllocFelt252Dict            AllocFelt252Dict            `json:",omitempty"`
@@ -116,6 +233,30 @@ const (
 	FP Register = "FP"
 )
 
+// UnmarshalJSON implements json.Unmarshaler
+func (r *Register) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	switch Register(s) {
+	case AP, FP:
+		*r = Register(s)
+		return nil
+	default:
+		return fmt.Errorf("invalid register value: %s, must be either AP or FP", s)
+	}
+}
+
+// MarshalJSON implements json.Marshaler
+func (r Register) MarshalJSON() ([]byte, error) {
+	if r != AP && r != FP {
+		return nil, fmt.Errorf("invalid register value: %s, must be either AP or FP", r)
+	}
+	return json.Marshal(string(r))
+}
+
 type AssertLtAssertValidInput struct {
 	A ResOperand `json:"a"`
 	B ResOperand `json:"b"`
@@ -156,6 +297,35 @@ type Deref CellRef
 type DoubleDeref struct {
 	CellRef CellRef
 	Offset  int
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (dd *DoubleDeref) UnmarshalJSON(data []byte) error {
+	var tuple []json.RawMessage
+	if err := json.Unmarshal(data, &tuple); err != nil {
+		return err
+	}
+
+	if len(tuple) != 2 {
+		return fmt.Errorf("expected tuple of length 2, got %d", len(tuple))
+	}
+
+	// Unmarshal CellRef
+	if err := json.Unmarshal(tuple[0], &dd.CellRef); err != nil {
+		return fmt.Errorf("failed to unmarshal CellRef: %w", err)
+	}
+
+	// Unmarshal offset
+	if err := json.Unmarshal(tuple[1], &dd.Offset); err != nil {
+		return fmt.Errorf("failed to unmarshal Offset: %w", err)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (dd *DoubleDeref) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]interface{}{dd.CellRef, dd.Offset})
 }
 
 func (dd *DoubleDeref) Values() (CellRef, int) {
@@ -272,7 +442,7 @@ type InitSquashData struct {
 	PtrDiff    ResOperand `json:"ptr_diff"`
 	NAccesses  ResOperand `json:"n_accesses"`
 	BigKeys    CellRef    `json:"big_keys"`
-	FirstKeys  CellRef    `json:"first_key"`
+	FirstKey   CellRef    `json:"first_key"`
 }
 
 type GetCurrentAccessIndex struct {
@@ -338,8 +508,8 @@ type U256InvModN struct {
 	G1Option  CellRef    `json:"g1_option"`
 	SOrR0     CellRef    `json:"s_or_r0"`
 	SOrR1     CellRef    `json:"s_or_r1"`
-	TOrR0     CellRef    `json:"t_or_k0"`
-	TOrR1     CellRef    `json:"t_or_k1"`
+	TOrK0     CellRef    `json:"t_or_k0"`
+	TOrK1     CellRef    `json:"t_or_k1"`
 }
 
 type EvalCircuit struct {
