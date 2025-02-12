@@ -79,7 +79,7 @@ func TestCall(t *testing.T) {
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:       WithBlockTag("latest"),
-				ExpectedError: ErrContractError,
+				ExpectedError: ErrEntrypointNotFound,
 			},
 			{
 				name: "BlockNotFound",
