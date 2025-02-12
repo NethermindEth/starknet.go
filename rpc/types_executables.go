@@ -118,95 +118,373 @@ func (hints *Hints) Tuple() [2]any {
 	return [2]any{hints.Int, hints.HintArr}
 }
 
-// Can have only one of the following hints
+// Can be one of the following hints
 type Hint struct {
-	DeprecatedHint DeprecatedHint `json:",omitempty"`
-	CoreHint       CoreHint       `json:",omitempty"`
-	StarknetHint   StarknetHint   `json:",omitempty"`
-}
-
-// Validate ensures only one hint type is set
-func (h *Hint) Validate() error {
-	count := 0
-	if !reflect.ValueOf(h.DeprecatedHint).IsZero() {
-		count++
-	}
-	if !reflect.ValueOf(h.CoreHint).IsZero() {
-		count++
-	}
-	if !reflect.ValueOf(h.StarknetHint).IsZero() {
-		count++
-	}
-	if count != 1 {
-		return fmt.Errorf("exactly one hint type must be set, got %d", count)
-	}
-	return nil
+	Type string
+	Data interface{}
 }
 
 // UnmarshalJSON implements json.Unmarshaler
 func (h *Hint) UnmarshalJSON(data []byte) error {
-	type HintAlias Hint
-	aux := &HintAlias{}
-	if err := json.Unmarshal(data, aux); err != nil {
+	// Try DeprecatedHint first
+	var deprecated DeprecatedHint
+	if err := json.Unmarshal(data, &deprecated); err == nil {
+		h.Type = deprecated.Type
+		h.Data = deprecated.Data
+		return nil
+	}
+
+	// Try CoreHint
+	var core CoreHint
+	if err := json.Unmarshal(data, &core); err == nil {
+		h.Type = core.Type
+		h.Data = core.Data
+		return nil
+	}
+
+	// Try StarknetHint
+	var starknet StarknetHint
+	if err := json.Unmarshal(data, &starknet); err == nil {
+		h.Type = starknet.Type
+		h.Data = starknet.Data
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal hint as any known type")
+}
+
+// MarshalJSON implements json.Marshaler
+func (h *Hint) MarshalJSON() ([]byte, error) {
+	if h.Type == "" || h.Data == nil {
+		return nil, fmt.Errorf("hint type and data must be set")
+	}
+
+	// For enum types, marshal directly as string
+	if h.Type == "enum" {
+		return json.Marshal(h.Data)
+	}
+
+	// For object types, marshal as key-value pair
+	return json.Marshal(map[string]interface{}{
+		h.Type: h.Data,
+	})
+}
+
+// Can be one of the following values
+type DeprecatedHint struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (d *DeprecatedHint) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as string enum first
+	var enumVal string
+	if err := json.Unmarshal(data, &enumVal); err == nil {
+		switch DeprecatedHintEnum(enumVal) {
+		case AssertCurrentAccessIndicesIsEmpty, AssertAllKeysUsed, AssertLeAssertThirdArcExcluded:
+			d.Type = "enum"
+			d.Data = DeprecatedHintEnum(enumVal)
+			return nil
+		}
+	}
+
+	// If not an enum, try to unmarshal as an object
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
-	*h = Hint(*aux)
-	return h.Validate()
-}
 
-// MarshalJSON implements json.Marshaler interface
-func (h *Hint) MarshalJSON() ([]byte, error) {
-	if err := h.Validate(); err != nil {
-		return nil, err
+	if len(raw) != 1 {
+		return fmt.Errorf("deprecated hint must have exactly one field, got %d", len(raw))
 	}
-	return json.Marshal(*h)
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+		break
+	}
+
+	switch hintType {
+	case "AssertAllAccessesUsed":
+		var hint AssertAllAccessesUsed
+		if err := json.Unmarshal(hintData, &hint); err != nil {
+			return err
+		}
+		d.Data = hint
+	case "AssertLtAssertValidInput":
+		var hint AssertLtAssertValidInput
+		if err := json.Unmarshal(hintData, &hint); err != nil {
+			return err
+		}
+		d.Data = hint
+	case "Felt252DictRead":
+		var hint Felt252DictRead
+		if err := json.Unmarshal(hintData, &hint); err != nil {
+			return err
+		}
+		d.Data = hint
+	case "Felt252DictWrite":
+		var hint Felt252DictWrite
+		if err := json.Unmarshal(hintData, &hint); err != nil {
+			return err
+		}
+		d.Data = hint
+	default:
+		return fmt.Errorf("unknown deprecated hint type: %s", hintType)
+	}
+
+	d.Type = hintType
+	return nil
 }
 
-type DeprecatedHint struct {
-	DeprecatedHintEnum
-	AssertAllAccessesUsed    AssertAllAccessesUsed    `json:",omitempty"`
-	AssertLtAssertValidInput AssertLtAssertValidInput `json:",omitempty"`
-	Felt252DictRead          Felt252DictRead          `json:",omitempty"`
-	Felt252DictWrite         Felt252DictWrite         `json:",omitempty"`
+// MarshalJSON implements json.Marshaler
+func (d *DeprecatedHint) MarshalJSON() ([]byte, error) {
+	if d.Type == "" || d.Data == nil {
+		return nil, fmt.Errorf("deprecated hint type and data must be set")
+	}
+
+	// For enum types, marshal directly as string
+	if d.Type == "enum" {
+		return json.Marshal(d.Data)
+	}
+
+	return json.Marshal(map[string]interface{}{
+		d.Type: d.Data,
+	})
 }
 
-// Can have only one of the following hints
+// Can be one of the following values
 type CoreHint struct {
-	AllocConstantSize           AllocConstantSize           `json:",omitempty"`
-	AllocFelt252Dict            AllocFelt252Dict            `json:",omitempty"`
-	AllocSegment                AllocSegment                `json:",omitempty"`
-	AssertLeFindSmallArcs       AssertLeFindSmallArcs       `json:",omitempty"`
-	AssertLeIsFirstArcExcluded  AssertLeIsFirstArcExcluded  `json:",omitempty"`
-	AssertLeIsSecondArcExcluded AssertLeIsSecondArcExcluded `json:",omitempty"`
-	DebugPrint                  DebugPrint                  `json:",omitempty"`
-	DivMod                      DivMod                      `json:",omitempty"`
-	EvalCircuit                 EvalCircuit                 `json:",omitempty"`
-	Felt252DictEntryInit        Felt252DictEntryInit        `json:",omitempty"`
-	Felt252DictEntryUpdate      Felt252DictEntryUpdate      `json:",omitempty"`
-	FieldSqrt                   FieldSqrt                   `json:",omitempty"`
-	GetCurrentAccessDelta       GetCurrentAccessDelta       `json:",omitempty"`
-	GetCurrentAccessIndex       GetCurrentAccessIndex       `json:",omitempty"`
-	GetNextDictKey              GetNextDictKey              `json:",omitempty"`
-	GetSegmentArenaIndex        GetSegmentArenaIndex        `json:",omitempty"`
-	InitSquashData              InitSquashData              `json:",omitempty"`
-	LinearSplit                 LinearSplit                 `json:",omitempty"`
-	RandomEcPoint               RandomEcPoint               `json:",omitempty"`
-	ShouldContinueSquashLoop    ShouldContinueSquashLoop    `json:",omitempty"`
-	ShouldSkipSquashLoop        ShouldSkipSquashLoop        `json:",omitempty"`
-	SquareRoot                  SquareRoot                  `json:",omitempty"`
-	TestLessThan                TestLessThan                `json:",omitempty"`
-	TestLessThanOrEqual         TestLessThanOrEqual         `json:",omitempty"`
-	TestLessThanOrEqualAddress  TestLessThanOrEqualAddress  `json:",omitempty"`
-	U256InvModN                 U256InvModN                 `json:",omitempty"`
-	Uint256DivMod               Uint256DivMod               `json:",omitempty"`
-	Uint256SquareRoot           Uint256SquareRoot           `json:",omitempty"`
-	Uint512DivModByUint256      Uint512DivModByUint256      `json:",omitempty"`
-	WideMul128                  WideMul128                  `json:",omitempty"`
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler
+func (c *CoreHint) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if len(raw) != 1 {
+		return fmt.Errorf("core hint must have exactly one field, got %d", len(raw))
+	}
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+		break
+	}
+
+	var err error
+	switch hintType {
+	case "AllocConstantSize":
+		var hint AllocConstantSize
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "AllocFelt252Dict":
+		var hint AllocFelt252Dict
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "AllocSegment":
+		var hint AllocSegment
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "AssertLeFindSmallArcs":
+		var hint AssertLeFindSmallArcs
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "AssertLeIsFirstArcExcluded":
+		var hint AssertLeIsFirstArcExcluded
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "AssertLeIsSecondArcExcluded":
+		var hint AssertLeIsSecondArcExcluded
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "DebugPrint":
+		var hint DebugPrint
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "DivMod":
+		var hint DivMod
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "EvalCircuit":
+		var hint EvalCircuit
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "Felt252DictEntryInit":
+		var hint Felt252DictEntryInit
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "Felt252DictEntryUpdate":
+		var hint Felt252DictEntryUpdate
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "FieldSqrt":
+		var hint FieldSqrt
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "GetCurrentAccessDelta":
+		var hint GetCurrentAccessDelta
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "GetCurrentAccessIndex":
+		var hint GetCurrentAccessIndex
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "GetNextDictKey":
+		var hint GetNextDictKey
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "GetSegmentArenaIndex":
+		var hint GetSegmentArenaIndex
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "InitSquashData":
+		var hint InitSquashData
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "LinearSplit":
+		var hint LinearSplit
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "RandomEcPoint":
+		var hint RandomEcPoint
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "ShouldContinueSquashLoop":
+		var hint ShouldContinueSquashLoop
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "ShouldSkipSquashLoop":
+		var hint ShouldSkipSquashLoop
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "SquareRoot":
+		var hint SquareRoot
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "TestLessThan":
+		var hint TestLessThan
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "TestLessThanOrEqual":
+		var hint TestLessThanOrEqual
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "TestLessThanOrEqualAddress":
+		var hint TestLessThanOrEqualAddress
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "U256InvModN":
+		var hint U256InvModN
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "Uint256DivMod":
+		var hint Uint256DivMod
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "Uint256SquareRoot":
+		var hint Uint256SquareRoot
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "Uint512DivModByUint256":
+		var hint Uint512DivModByUint256
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	case "WideMul128":
+		var hint WideMul128
+		err = json.Unmarshal(hintData, &hint)
+		c.Data = hint
+	default:
+		return fmt.Errorf("unknown core hint type: %s", hintType)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal core hint data: %w", err)
+	}
+
+	c.Type = hintType
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (c *CoreHint) MarshalJSON() ([]byte, error) {
+	if c.Type == "" || c.Data == nil {
+		return nil, fmt.Errorf("core hint type and data must be set")
+	}
+
+	return json.Marshal(map[string]interface{}{
+		c.Type: c.Data,
+	})
+}
+
+// Can be one of the following values
 type StarknetHint struct {
-	Cheatcode  Cheatcode  `json:",omitempty"`
-	SystemCall SystemCall `json:",omitempty"`
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (s *StarknetHint) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if len(raw) != 1 {
+		return fmt.Errorf("starknet hint must have exactly one field, got %d", len(raw))
+	}
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+		break
+	}
+
+	var err error
+	switch hintType {
+	case "Cheatcode":
+		var hint Cheatcode
+		err = json.Unmarshal(hintData, &hint)
+		s.Data = hint
+	case "SystemCall":
+		var hint SystemCall
+		err = json.Unmarshal(hintData, &hint)
+		s.Data = hint
+	default:
+		return fmt.Errorf("unknown starknet hint type: %s", hintType)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal starknet hint data: %w", err)
+	}
+
+	s.Type = hintType
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (s *StarknetHint) MarshalJSON() ([]byte, error) {
+	if s.Type == "" || s.Data == nil {
+		return nil, fmt.Errorf("starknet hint type and data must be set")
+	}
+
+	return json.Marshal(map[string]interface{}{
+		s.Type: s.Data,
+	})
 }
 
 type DeprecatedHintEnum string
@@ -284,11 +562,52 @@ type Felt252DictEntryUpdate struct {
 	Value   ResOperand `json:"value"`
 }
 
+// Can have only one of the following fields
 type ResOperand struct {
 	BinOp       BinOp       `json:",omitempty"`
 	Deref       Deref       `json:",omitempty"`
 	DoubleDeref DoubleDeref `json:",omitempty"`
 	Immediate   Immediate   `json:",omitempty"`
+}
+
+// Validate ensures only one field is set
+func (r *ResOperand) Validate() error {
+	count := 0
+	if !reflect.ValueOf(r.BinOp).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(r.Deref).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(r.DoubleDeref).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(r.Immediate).IsZero() {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("exactly one field must be set in ResOperand, got %d", count)
+	}
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *ResOperand) UnmarshalJSON(data []byte) error {
+	type ResOperandAlias ResOperand
+	aux := &ResOperandAlias{}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	*r = ResOperand(*aux)
+	return r.Validate()
+}
+
+// MarshalJSON implements json.Marshaler
+func (r *ResOperand) MarshalJSON() ([]byte, error) {
+	if err := r.Validate(); err != nil {
+		return nil, err
+	}
+	return json.Marshal(*r)
 }
 
 type Deref CellRef
@@ -351,9 +670,44 @@ type BinOp struct {
 	B         B         `json:"b"`
 }
 
+// Can have only one of the following fields
 type B struct {
 	Deref     Deref     `json:",omitempty"`
 	Immediate Immediate `json:",omitempty"`
+}
+
+// Validate ensures only one field is set
+func (b *B) Validate() error {
+	count := 0
+	if !reflect.ValueOf(b.Deref).IsZero() {
+		count++
+	}
+	if !reflect.ValueOf(b.Immediate).IsZero() {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("exactly one field must be set in B, got %d", count)
+	}
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (b *B) UnmarshalJSON(data []byte) error {
+	type BAlias B
+	aux := &BAlias{}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	*b = B(*aux)
+	return b.Validate()
+}
+
+// MarshalJSON implements json.Marshaler
+func (b *B) MarshalJSON() ([]byte, error) {
+	if err := b.Validate(); err != nil {
+		return nil, err
+	}
+	return json.Marshal(*b)
 }
 
 type AllocSegment struct {
