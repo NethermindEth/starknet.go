@@ -40,17 +40,34 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 //
 //	none
 func TestClassHash(t *testing.T) {
-	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
-	expectedClasshash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
+	type testSetType struct {
+		SierraPath   string
+		ExpectedHash string
+	}
+	testSet := []testSetType{
+		{
+			//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
+			SierraPath:   "./tests/contract.sierra.json",
+			ExpectedHash: "0x56d1005889687bfda105b51cde93486a9b8bcbc3f05ccc9728f4521121fd8d7",
+		},
+		{
+			// Contract has bytecode_segment_lengths field
+			SierraPath:   "./tests/hello_starknet_compiled.sierra.json",
+			ExpectedHash: "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944",
+		},
+	}
 
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
-	require.NoError(t, err)
+	for _, test := range testSet {
+		content, err := os.ReadFile(test.SierraPath)
+		require.NoError(t, err)
 
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
-	compClassHash := hash.ClassHash(class)
-	require.Equal(t, expectedClasshash, compClassHash.String())
+		var sierraClass rpc.ContractClass
+		err = json.Unmarshal(content, &sierraClass)
+		require.NoError(t, err)
+
+		hash := hash.ClassHash(sierraClass)
+		require.Equal(t, test.ExpectedHash, hash.String())
+	}
 }
 
 // TestCompiledClassHash is a test function that verifies the correctness of the CompiledClassHash function in the hash package.
