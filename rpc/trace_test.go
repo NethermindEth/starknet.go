@@ -93,23 +93,13 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *utils.UnmarshallFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", false)
+		expectedResp = *utils.UnmarshallFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", false)
 	}
 
 	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *utils.UnmarshallFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", false)
+		expectedResp = *utils.UnmarshallFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", false)
 	}
 
 	type testSetType struct {

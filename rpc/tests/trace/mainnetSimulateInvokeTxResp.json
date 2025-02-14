@@ -350,10 +350,12 @@
           }
         },
         "fee_estimation": {
-          "gas_consumed": "0xdfd",
-          "gas_price": "0x2d9ad4d89",
-          "data_gas_consumed": "0x0",
-          "data_gas_price": "0x1",
+          "l1_gas_consumed": "0xdfd",
+          "l1_gas_price": "0x2d9ad4d89",
+          "l2_gas_consumed": "0x0",
+          "l2_gas_price": "0x0",
+          "l1_data_gas_consumed": "0x0",
+          "l1_data_gas_price": "0x1",
           "overall_fee": "0x27deed359565",
           "unit": "WEI"
         }
@@ -599,10 +601,12 @@
           }
         },
         "fee_estimation": {
-          "gas_consumed": "0x826",
-          "gas_price": "0x2d9ad4d89",
-          "data_gas_consumed": "0x0",
-          "data_gas_price": "0x1",
+          "l1_gas_consumed": "0x826",
+          "l1_gas_price": "0x2d9ad4d89",
+          "l2_gas_consumed": "0x0",
+          "l2_gas_price": "0x0",
+          "l1_data_gas_consumed": "0x0",
+          "l1_data_gas_price": "0x1",
           "overall_fee": "0x1739ba25ca56",
           "unit": "WEI"
         }
