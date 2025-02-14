@@ -75,6 +75,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClassAt(result, args...)
 	case "starknet_getClassHashAt":
 		return mock_starknet_getClassHashAt(result, args...)
+	case "starknet_getCompiledCasm":
+		return mock_starknet_getCompiledCasm(result, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, args...)
 	case "starknet_getNonce":
@@ -1387,4 +1389,53 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	default:
 		return ErrHashNotFound
 	}
+}
+
+// mock_starknet_getCompiledCasm mocks the behavior of getting compiled CASM for a contract class.
+//
+// Parameters:
+// - result: The result of the operation
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	classHash, ok := args[0].(*felt.Felt)
+	if !ok {
+		return errWrongArgs
+	}
+
+	if classHash.String() == "0xbad" {
+		return &RPCError{
+			Code:    100,
+			Message: "Failed to compile the contract",
+			Data:    &RPCData{Message: "compilation error: invalid sierra class"},
+		}
+	}
+
+	// Return error for specific test case
+	if classHash != utils.RANDOM_FELT {
+		return ErrClassHashNotFound
+	}
+
+	// Read the test data from file
+	read, err := os.ReadFile("tests/compiledCasm.json")
+	if err != nil {
+		return err
+	}
+
+	var rpcResponse struct {
+		Result json.RawMessage `json:"result"`
+	}
+	if err := json.Unmarshal(read, &rpcResponse); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(rpcResponse.Result, r)
 }

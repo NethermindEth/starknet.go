@@ -19,10 +19,26 @@ func TestCompiledCasm(t *testing.T) {
 		Description        string
 		ClassHash          *felt.Felt
 		ExpectedResultPath string
-		ExpectedError      error
+		ExpectedError      *RPCError
 	}
 	testSet := map[string][]testSetType{
-		"mock":   {},
+		"mock": {
+			{
+				Description:        "success - get compiled CASM",
+				ClassHash:          utils.RANDOM_FELT,
+				ExpectedResultPath: "./tests/compiledCasm.json",
+			},
+			{
+				Description:   "error - class hash not found",
+				ClassHash:     utils.TestHexToFelt(t, "0xdadadadada"),
+				ExpectedError: ErrClassHashNotFound,
+			},
+			{
+				Description:   "error - compilation error",
+				ClassHash:     utils.TestHexToFelt(t, "0xbad"),
+				ExpectedError: ErrCompilationError,
+			},
+		},
 		"devnet": {},
 		"testnet": {
 			{
@@ -61,12 +77,14 @@ func TestCompiledCasm(t *testing.T) {
 
 		// getting the result from the provider and asserting equality
 		result, err := testConfig.provider.CompiledCasm(context.Background(), test.ClassHash)
-		assert.Equal(t, err, test.ExpectedError)
-		assert.Equal(t, expectedResult, result)
-
 		if test.ExpectedError != nil {
+			rpcErr, ok := err.(*RPCError)
+			require.True(t, ok)
+			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 			continue
 		}
+		assert.NoError(t, err)
+		assert.Equal(t, expectedResult, result)
 
 		// asserting equality of the json results
 		jsonResult, err := json.Marshal(result)
