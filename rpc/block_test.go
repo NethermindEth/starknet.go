@@ -84,10 +84,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockSepolia64159 BlockTxHashes
-	block, err := os.ReadFile("tests/blockWithHashes/sepoliaBlockWithHashes64159.json")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(block, &blockSepolia64159))
+	blockSepolia64159 := *utils.UnmarshallFileToType[BlockTxHashes](t, "./tests/blockWithHashes/sepoliaBlockWithHashes64159.json", true)
 
 	txHashes := utils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
