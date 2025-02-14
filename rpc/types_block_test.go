@@ -146,7 +146,6 @@ func TestBlockWithReceipts(t *testing.T) {
 	if testEnv == "testnet" {
 		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	} else if testEnv == "mainnet" {
-		// TODO: before merge, update the test json file to rpc v0.8.0 when available
 		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
