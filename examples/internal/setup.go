@@ -30,7 +30,7 @@ func PanicRPC(err error) {
 	err = errors.Join(
 		errors.New(fmt.Sprint(RPCErr.Code)),
 		errors.New(RPCErr.Message),
-		errors.New(fmt.Sprint(RPCErr.Data)),
+		errors.New(fmt.Sprint(RPCErr.Data.Message)),
 	)
 	panic(err)
 }

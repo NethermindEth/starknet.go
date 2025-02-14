@@ -75,13 +75,13 @@ type ContractClass struct {
 }
 
 type StorageProofInput struct {
-	// The hash of the requested block, or number (height) of the requested block, or a block tag
+	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
 	BlockID BlockID `json:"block_id"`
-	// A list of the class hashes for which we want to prove membership in the classes trie
+	// Optional. A list of the class hashes for which we want to prove membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
-	// A list of contracts for which we want to prove membership in the global state trie
+	// Optional. A list of contracts for which we want to prove membership in the global state trie
 	ContractAddresses []*felt.Felt `json:"contract_addresses,omitempty"`
-	// A list of (contract_address, storage_keys) pairs
+	// Optional. A list of (contract_address, storage_keys) pairs
 	ContractsStorageKeys []ContractStorageKeys `json:"contracts_storage_keys,omitempty"`
 }
 

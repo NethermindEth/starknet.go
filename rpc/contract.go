@@ -175,7 +175,7 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 // Parameters:
 // - ctx: The context of the function call
-// - storageProofInput: an input containing at least one of the fields filled
+// - storageProofInput: an input containing optional and required fields for the request
 // Returns:
 // - *StorageProofResult: The requested storage proofs. Note that if a requested leaf has the default value,
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership

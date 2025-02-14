@@ -203,7 +203,6 @@ func shortGetStructHash(
 // - hash: A pointer to a felt.Felt representing the calculated hash.
 // - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
-	//TODO: create/update methods descriptions
 	typeDef, ok := td.Types[typeName]
 	if !ok {
 		if typeDef, ok = td.Revision.Types().Preset[typeName]; !ok {

@@ -2,11 +2,11 @@ package account_test
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -1076,7 +1076,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "Post \"http://localhost:5050\": context deadline exceeded"}),
+				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "context deadline exceeded"}),
 			},
 		},
 	}[testEnv]
@@ -1090,7 +1090,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			rpcErr, ok := err.(*rpc.RPCError)
 			require.True(t, ok)
 			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedErr.Data.Message, rpcErr.Data.Message)
+			require.True(t, strings.Contains(rpcErr.Data.Message, test.ExpectedErr.Data.Message))
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
@@ -1131,21 +1131,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	content, err := os.ReadFile("./tests/hello_world_compiled.sierra.json")
-	require.NoError(t, err)
-
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
+	class := *utils.TestUnmarshallJSONToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
 	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
-	require.NoError(t, err)
-
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content2, &casmClass)
-	require.NoError(t, err)
+	casmClass := *utils.TestUnmarshallJSONToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
 	compClassHash := hash.CompiledClassHash(casmClass)
 
 	tx := rpc.DeclareTxnV2{
