@@ -68,7 +68,7 @@ func TestCompiledClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash_test.py
 	expectedHash := "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603"
 
-	casmClass := *utils.TestUnmarshallFileToType[contracts.CasmClass](t, "./tests/hello_starknet_compiled.casm.json", false)
+	casmClass := *utils.TestUnmarshallJSONToType[contracts.CasmClass](t, "./tests/hello_starknet_compiled.casm.json", "")
 
 	hash := hash.CompiledClassHash(casmClass)
 	require.Equal(t, expectedHash, hash.String())

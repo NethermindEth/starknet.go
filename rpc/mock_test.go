@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -228,17 +227,12 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	var InvokeTxnV3example BlockInvokeTxnV3
-	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(read, &InvokeTxnV3example)
+	invokeTxnV3example, err := utils.UnmarshallJSONToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 	if err != nil {
 		return err
 	}
 
-	txBytes, err := json.Marshal(InvokeTxnV3example)
+	txBytes, err := json.Marshal(invokeTxnV3example)
 	if err != nil {
 		return err
 	}
@@ -342,13 +336,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 	if arg0Felt.Equal(testTxnHash) {
 
-		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(read, &txnRec)
+		txnRec, err := utils.UnmarshallJSONToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 		if err != nil {
 			return err
 		}
@@ -360,13 +348,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(read, &txnRec)
+		txnRec, err := utils.UnmarshallJSONToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
@@ -801,12 +783,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	var output SimulateTransactionOutput
-	read, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(read, &output)
+	output, err := utils.UnmarshallJSONToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
@@ -1100,12 +1077,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 
 		return json.Unmarshal(pBlock, &r)
 	} else {
-		var fullBlockSepolia64159 Block
-		read, err := os.ReadFile("tests/block/sepoliaBlockTxs65083.json")
-		if err != nil {
-			return err
-		}
-		err = json.Unmarshal(read, &fullBlockSepolia64159)
+		fullBlockSepolia64159, err := utils.UnmarshallJSONToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
 		if err != nil {
 			return err
 		}
@@ -1313,16 +1285,11 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
-
-		var rawBlockTrace []Trace
-
-		read, err := os.ReadFile("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
+		rawBlockTrace, err := utils.UnmarshallJSONToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawBlockTrace) {
-			return err
-		}
+
 		BlockTrace, err := json.Marshal(rawBlockTrace)
 		if err != nil {
 			return err
@@ -1367,14 +1334,11 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
-		var rawTrace InvokeTxnTrace
-		read, err := os.ReadFile("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
+		rawTrace, err := utils.UnmarshallJSONToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawTrace) {
-			return err
-		}
+
 		txnTrace, err := json.Marshal(rawTrace)
 		if err != nil {
 			return err
@@ -1425,17 +1389,10 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Read the test data from file
-	read, err := os.ReadFile("tests/compiledCasm.json")
+	resp, err := utils.UnmarshallJSONToType[json.RawMessage]("tests/compiledCasm.json", "result")
 	if err != nil {
 		return err
 	}
 
-	var rpcResponse struct {
-		Result json.RawMessage `json:"result"`
-	}
-	if err := json.Unmarshal(read, &rpcResponse); err != nil {
-		return err
-	}
-
-	return json.Unmarshal(rpcResponse.Result, r)
+	return json.Unmarshal(*resp, r)
 }

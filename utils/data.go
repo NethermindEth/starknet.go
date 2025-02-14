@@ -49,16 +49,16 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 	return result, nil
 }
 
-// UnmarshallFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// UnmarshallJSONToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it returns an error.
 //
 // Parameters:
 // - filePath: string path to the JSON file
-// - isRPCResp: boolean indicating if the JSON file is in JSON-RPC response format
+// - subfield: string subfield to unmarshal from the JSON file
 // Returns:
 // - *T: pointer to the unmarshalled data of type T
 // - error: error if file reading or unmarshalling fails
-func UnmarshallFileToType[T any](filePath string, isRPCResp bool) (*T, error) {
+func UnmarshallJSONToType[T any](filePath string, subfield string) (*T, error) {
 	var result T
 
 	data, err := os.ReadFile(filePath)
@@ -66,14 +66,17 @@ func UnmarshallFileToType[T any](filePath string, isRPCResp bool) (*T, error) {
 		return nil, err
 	}
 
-	if isRPCResp {
-		var rpcResponse struct {
-			Result json.RawMessage `json:"result"`
-		}
-		if err := json.Unmarshal(data, &rpcResponse); err != nil {
+	if subfield != "" {
+		var tempMap map[string]json.RawMessage
+		if err := json.Unmarshal(data, &tempMap); err != nil {
 			return nil, err
 		}
-		data = rpcResponse.Result
+
+		if tempData, ok := tempMap[subfield]; ok {
+			data = tempData
+		} else {
+			return nil, fmt.Errorf("invalid subfield: missing field %s", subfield)
+		}
 	}
 
 	err = json.Unmarshal(data, &result)

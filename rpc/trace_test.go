@@ -24,7 +24,7 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	expectedResp := utils.TestUnmarshallFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", false)
+	expectedResp := utils.TestUnmarshallJSONToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -89,13 +89,13 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxIn = *utils.TestUnmarshallFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", false)
-		expectedResp = *utils.TestUnmarshallFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", false)
+		simulateTxIn = *utils.TestUnmarshallJSONToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
+		expectedResp = *utils.TestUnmarshallJSONToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
 	}
 
 	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxIn = *utils.TestUnmarshallFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", false)
-		expectedResp = *utils.TestUnmarshallFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", false)
+		simulateTxIn = *utils.TestUnmarshallJSONToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
+		expectedResp = *utils.TestUnmarshallJSONToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	}
 
 	type testSetType struct {
@@ -150,7 +150,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 	require := require.New(t)
 
-	blockTraceSepolia := *utils.TestUnmarshallFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", false)
+	blockTraceSepolia := *utils.TestUnmarshallJSONToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 
 	type testSetType struct {
 		BlockID      BlockID

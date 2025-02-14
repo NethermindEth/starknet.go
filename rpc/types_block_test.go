@@ -144,10 +144,10 @@ func TestBlockWithReceipts(t *testing.T) {
 	var blockWithReceipt BlockWithReceipts
 
 	if testEnv == "testnet" {
-		blockWithReceipt = *utils.TestUnmarshallFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", true)
+		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	} else if testEnv == "mainnet" {
 		// TODO: before merge, update the test json file to rpc v0.8.0 when available
-		blockWithReceipt = *utils.TestUnmarshallFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", true)
+		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")

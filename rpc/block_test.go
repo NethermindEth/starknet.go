@@ -82,7 +82,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	blockSepolia64159 := *utils.TestUnmarshallFileToType[BlockTxHashes](t, "./tests/blockWithHashes/sepoliaBlockWithHashes64159.json", true)
+	blockSepolia64159 := *utils.TestUnmarshallJSONToType[BlockTxHashes](t, "./tests/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
 
 	txHashes := utils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
@@ -204,9 +204,9 @@ func TestBlockWithTxs(t *testing.T) {
 		L1HandlerV0Index     int
 	}
 
-	fullBlockSepolia65083 := *utils.TestUnmarshallFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", true)
+	fullBlockSepolia65083 := *utils.TestUnmarshallJSONToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", "result")
 
-	fullBlockSepolia122476 := *utils.TestUnmarshallFileToType[Block](t, "./tests/block/sepoliaBlockTxs122476.json", true)
+	fullBlockSepolia122476 := *utils.TestUnmarshallJSONToType[Block](t, "./tests/block/sepoliaBlockTxs122476.json", "result")
 
 	testSet := map[string][]testSetType{
 		"mock": {

@@ -40,16 +40,16 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	return feltArr
 }
 
-// TestUnmarshallFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// TestUnmarshallJSONToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it fails the test.
 //
 // Parameters:
 // - t: testing.TB interface for test logging and error reporting
 // - filePath: string path to the JSON file
-// - isRPCResp: boolean indicating if the JSON file is in JSON-RPC response format
+// - subfield: string subfield to unmarshal from the JSON file
 // Returns:
 // - T: the unmarshalled data of type T
-func TestUnmarshallFileToType[T any](t testing.TB, filePath string, isRPCResp bool) *T {
+func TestUnmarshallJSONToType[T any](t testing.TB, filePath string, subfield string) *T {
 	t.Helper()
 	var result T
 
@@ -58,14 +58,17 @@ func TestUnmarshallFileToType[T any](t testing.TB, filePath string, isRPCResp bo
 		t.Fatalf("failed to read file %s: %v", filePath, err)
 	}
 
-	if isRPCResp {
-		var rpcResponse struct {
-			Result json.RawMessage `json:"result"`
+	if subfield != "" {
+		var tempMap map[string]json.RawMessage
+		if err := json.Unmarshal(data, &tempMap); err != nil {
+			t.Fatalf("failed to unmarshal JSON map from file %s: %v", filePath, err)
 		}
-		if err := json.Unmarshal(data, &rpcResponse); err != nil {
-			t.Fatalf("failed to unmarshal RPC response from file %s: %v", filePath, err)
+
+		if tempData, ok := tempMap[subfield]; ok {
+			data = tempData
+		} else {
+			t.Fatalf("invalid subfield: missing field %s in file %s", subfield, filePath)
 		}
-		data = rpcResponse.Result
 	}
 
 	err = json.Unmarshal(data, &result)
