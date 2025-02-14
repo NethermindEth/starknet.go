@@ -2,9 +2,7 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -206,15 +204,9 @@ func TestBlockWithTxs(t *testing.T) {
 		L1HandlerV0Index     int
 	}
 
-	var fullBlockSepolia65083 Block
-	read, err := os.ReadFile("tests/block/sepoliaBlockTxs65083.json")
-	require.NoError(err)
-	require.NoError(json.Unmarshal(read, &fullBlockSepolia65083))
+	fullBlockSepolia65083 := *utils.UnmarshallFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", true)
 
-	var fullBlockSepolia122476 Block
-	read, err = os.ReadFile("tests/block/sepoliaBlockTxs122476.json")
-	require.NoError(err)
-	require.NoError(json.Unmarshal(read, &fullBlockSepolia122476))
+	fullBlockSepolia122476 := *utils.UnmarshallFileToType[Block](t, "./tests/block/sepoliaBlockTxs122476.json", true)
 
 	testSet := map[string][]testSetType{
 		"mock": {
