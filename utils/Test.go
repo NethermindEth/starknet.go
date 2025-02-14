@@ -40,7 +40,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	return feltArr
 }
 
-// UnmarshallFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// TestUnmarshallFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it fails the test.
 //
 // Parameters:
@@ -49,7 +49,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 // - isRPCResp: boolean indicating if the JSON file is in JSON-RPC response format
 // Returns:
 // - T: the unmarshalled data of type T
-func UnmarshallFileToType[T any](t testing.TB, filePath string, isRPCResp bool) *T {
+func TestUnmarshallFileToType[T any](t testing.TB, filePath string, isRPCResp bool) *T {
 	t.Helper()
 	var result T
 
