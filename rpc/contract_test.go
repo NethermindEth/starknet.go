@@ -437,15 +437,15 @@ func TestEstimateMessageFee(t *testing.T) {
 		"testnet": {
 			{
 				MsgFromL1: l1Handler,
-				BlockID:   WithBlockNumber(122476),
+				BlockID:   WithBlockNumber(523066),
 				ExpectedFeeEst: &FeeEstimation{
-					L1GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
-					L1GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
-					L2GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
-					L2GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
-					L1DataGasConsumed: &felt.Zero,
-					L1DataGasPrice:    utils.TestHexToFelt(t, "0x216251c284"),
-					OverallFee:        utils.TestHexToFelt(t, "0xdd816d65a9ea"),
+					L1GasConsumed:     utils.TestHexToFelt(t, "0x4ed1"),
+					L1GasPrice:        utils.TestHexToFelt(t, "0x7e15d2b5"),
+					L2GasConsumed:     utils.TestHexToFelt(t, "0x0"),
+					L2GasPrice:        utils.TestHexToFelt(t, "0x0"),
+					L1DataGasConsumed: utils.TestHexToFelt(t, "0x80"),
+					L1DataGasPrice:    utils.TestHexToFelt(t, "0x1"),
+					OverallFee:        utils.TestHexToFelt(t, "0x26d196042c45"),
 					FeeUnit:           UnitWei,
 				},
 			},
@@ -456,7 +456,7 @@ func TestEstimateMessageFee(t *testing.T) {
 					Selector:    utils.RANDOM_FELT,
 					Payload:     []*felt.Felt{},
 				},
-				BlockID:       WithBlockNumber(122476),
+				BlockID:       WithBlockNumber(523066),
 				ExpectedError: ErrContractError,
 			},
 			{ // invalid block number
