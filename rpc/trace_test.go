@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -25,10 +24,7 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t)
 
-	var expectedResp InvokeTxnTrace
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
-	require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling testdata TestTraceTransaction")
+	expectedResp := utils.UnmarshallFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", false)
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -154,11 +150,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t)
 	require := require.New(t)
 
-	var blockTraceSepolia []Trace
-
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
-	require.NoError(err, "Error ReadFile for TestTraceBlockTransactions")
-	require.NoError(json.Unmarshal(expectedrespRaw, &blockTraceSepolia), "Error unmarshalling testdata TestTraceBlockTransactions")
+	blockTraceSepolia := *utils.UnmarshallFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", false)
 
 	type testSetType struct {
 		BlockID      BlockID

@@ -2,7 +2,6 @@ package account_test
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -1132,21 +1131,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	content, err := os.ReadFile("./tests/hello_world_compiled.sierra.json")
-	require.NoError(t, err)
-
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
+	class := *utils.UnmarshallFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", false)
 	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
-	require.NoError(t, err)
-
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content2, &casmClass)
-	require.NoError(t, err)
+	casmClass := *utils.UnmarshallFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", false)
 	compClassHash := hash.CompiledClassHash(casmClass)
 
 	tx := rpc.DeclareTxnV2{

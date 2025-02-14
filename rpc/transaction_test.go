@@ -2,8 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -93,11 +91,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	var InvokeTxnV3example BlockTransaction
-	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(read, &InvokeTxnV3example)
-	require.NoError(t, err)
+	InvokeTxnV3example := *utils.UnmarshallFileToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", false)
 
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -134,18 +128,11 @@ func TestTransactionReceipt(t *testing.T) {
 		TxnHash      *felt.Felt
 		ExpectedResp TransactionReceiptWithBlockInfo
 	}
-	var receiptTxn52767_16 TransactionReceiptWithBlockInfo
-	read, err := os.ReadFile("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(read, &receiptTxn52767_16)
-	require.NoError(t, err)
 
-	// // https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
-	var receiptL1Handler TransactionReceiptWithBlockInfo
-	read, err = os.ReadFile("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(read, &receiptL1Handler)
-	require.NoError(t, err)
+	receiptTxn52767_16 := *utils.UnmarshallFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", false)
+
+	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
+	receiptL1Handler := *utils.UnmarshallFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", false)
 
 	testSet := map[string][]testSetType{
 		"mock": {

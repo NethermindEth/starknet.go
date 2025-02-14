@@ -2,8 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -492,11 +490,7 @@ func TestEstimateFee(t *testing.T) {
 		expectedError error
 	}
 
-	var bradcastInvokeV1 BroadcastInvokev1Txn
-	expectedRespRaw, err := os.ReadFile("./tests/transactions/estimateFeeSepoliaInvokeV1.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(expectedRespRaw, &bradcastInvokeV1)
-	require.NoError(t, err)
+	bradcastInvokeV1 := *utils.UnmarshallFileToType[BroadcastInvokev1Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", false)
 
 	testSet := map[string][]testSetType{
 		"mainnet": {
