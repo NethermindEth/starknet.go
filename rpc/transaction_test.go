@@ -164,7 +164,7 @@ func TestTransactionReceipt(t *testing.T) {
 	}
 }
 
-// TestGetTransactionStatus tests starknet_getTransactionStatus
+// TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
 	testConfig := beforeEach(t)
 
@@ -201,6 +201,65 @@ func TestGetTransactionStatus(t *testing.T) {
 	}
 }
 
+// TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
-	t.Skip("TODO: create a test before merge")
+	testConfig := beforeEach(t)
+
+	type testSetType struct {
+		TxHash       NumAsHex
+		ExpectedResp []MessageStatusResp
+		ExpectedErr  error
+	}
+
+	testSet := map[string][]testSetType{
+		"mock": {
+			{
+				TxHash: "0x123",
+				ExpectedResp: []MessageStatusResp{
+					{
+						TransactionHash: utils.RANDOM_FELT,
+						FinalityStatus:  TxnStatus_Accepted_On_L2,
+					},
+					{
+						TransactionHash: utils.RANDOM_FELT,
+						FinalityStatus:  TxnStatus_Accepted_On_L2,
+					},
+				},
+			},
+			{
+				TxHash:      "0xdededededededededededededededededededededededededededededededede",
+				ExpectedErr: ErrHashNotFound,
+			},
+		},
+		"testnet": {
+			{
+				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
+				ExpectedResp: []MessageStatusResp{
+					{
+						TransactionHash: utils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
+						FinalityStatus:  TxnStatus_Accepted_On_L2,
+					},
+					{
+						TransactionHash: utils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
+						FinalityStatus:  TxnStatus_Accepted_On_L2,
+					},
+				},
+			},
+			{
+				TxHash:      "0xdededededededededededededededededededededededededededededededede",
+				ExpectedErr: ErrHashNotFound,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)
+		if test.ExpectedErr != nil {
+			require.EqualError(t, err, test.ExpectedErr.Error())
+		} else {
+			require.Nil(t, err)
+			require.Equal(t, test.ExpectedResp, resp)
+		}
+	}
 }

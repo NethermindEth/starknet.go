@@ -96,6 +96,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_traceBlockTransactions(result, args...)
 	case "starknet_traceTransaction":
 		return mock_starknet_traceTransaction(result, args...)
+	case "starknet_getMessagesStatus":
+		return mock_starknet_getMessagesStatus(result, args...)
 	default:
 		return errNotFound
 	}
@@ -1395,4 +1397,48 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	return json.Unmarshal(*resp, r)
+}
+
+// mock_starknet_getMessagesStatus mocks the behavior of getting the status of L1->L2 messages.
+//
+// Parameters:
+// - result: The result of the operation
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	txHash, ok := args[0].(NumAsHex)
+	if !ok {
+		return errWrongArgs
+	}
+
+	if txHash == "0xdededededededededededededededededededededededededededededededede" {
+		return ErrHashNotFound
+	}
+
+	// Return mock response for successful case
+	response := []MessageStatusResp{
+		{
+			TransactionHash: utils.RANDOM_FELT,
+			FinalityStatus:  TxnStatus_Accepted_On_L2,
+		},
+		{
+			TransactionHash: utils.RANDOM_FELT,
+			FinalityStatus:  TxnStatus_Accepted_On_L2,
+		},
+	}
+
+	outputContent, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(outputContent, r)
 }
