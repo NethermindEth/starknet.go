@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -142,18 +141,13 @@ func TestBlockWithReceipts(t *testing.T) {
 		ExpectedPendingBlockWithReceipts *PendingBlockWithReceipts
 	}
 
-	var blockWithReceipt struct {
-		Result BlockWithReceipts `json:"result"`
-	}
+	var blockWithReceipt BlockWithReceipts
 
 	if testEnv == "testnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/sepoliaBlockReceipts64159.json")
-		require.NoError(err)
-		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+		blockWithReceipt = *utils.UnmarshallFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", true)
 	} else if testEnv == "mainnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/mainnetBlockReceipts588763.json")
-		require.NoError(err)
-		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+		// TODO: before merge, update the test json file to rpc v0.8.0 when available
+		blockWithReceipt = *utils.UnmarshallFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", true)
 	}
 
 	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")
@@ -231,7 +225,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			},
 			{
 				BlockID:                   WithBlockNumber(64159),
-				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
 		"mainnet": {
@@ -240,7 +234,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			},
 			{
 				BlockID:                   WithBlockNumber(588763),
-				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
 	}[testEnv]
