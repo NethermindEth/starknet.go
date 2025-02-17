@@ -46,7 +46,7 @@ func StrToBig(str string) *big.Int {
 	return b
 }
 
-// StrToBig generates a hexadecimal from a string/number representation.
+// StrToHex converts a string/number representation to a hexadecimal string.
 //
 // Parameters:
 // - str: The string to convert to a hexadecimal
