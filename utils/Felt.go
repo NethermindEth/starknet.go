@@ -179,7 +179,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	if len(arr) < 3 {
-		return "", fmt.Errorf("invalid felt array, require at least 3 elements in array")
+		return "", fmt.Errorf("invalid felt array, require atleast 3 elements in array")
 	}
 
 	count := arr[0].Uint64()
