@@ -21,12 +21,37 @@ import (
 //
 //	none
 func TestUnmarshalCasmClassHash(t *testing.T) {
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.casm.json")
-	require.NoError(t, err)
+	type testSetType struct {
+		Description string
+		CasmPath    string
+	}
+	testSet := []testSetType{
+		{
+			Description: "Compile: 2.1.0, no 'bytecode_segment_lengths' field",
+			CasmPath:    "./tests/hello_starknet_compiled.casm.json",
+		},
+		{
+			Description: "Compile: 2.7.0, 'bytecode_segment_lengths' with uint64 values",
+			CasmPath:    "./tests/contract.casm.json",
+		},
+	}
 
-	var class contracts.CasmClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
+	for _, test := range testSet {
+		t.Run(test.Description, func(t *testing.T) {
+			content, err := os.ReadFile(test.CasmPath)
+			require.NoError(t, err)
+
+			var casmClass contracts.CasmClass
+			err = json.Unmarshal(content, &casmClass)
+			require.NoError(t, err)
+
+			// TODO: uncomment and test this when merged with v.0.8.0 (v.0.8.0 branch has the missing fields of this branch, like 'Hints')
+			// jsonResult, err := json.Marshal(casmClass)
+			// require.NoError(t, err)
+
+			// assert.JSONEq(t, string(content), string(jsonResult))
+		})
+	}
 }
 
 // TestClassHash is a test function that verifies the correctness of the ClassHash function.

@@ -73,6 +73,38 @@ func (ns *NestedUInts) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for NestedUInts.
+// It converts the NestedUInts structure back into a JSON array format.
+func (ns NestedUInts) MarshalJSON() ([]byte, error) {
+	if !ns.IsArray {
+		if ns.Value == nil {
+			return nil, errors.New("invalid NestedUInts: non-array type must have a value")
+		}
+		return json.Marshal(*ns.Value)
+	}
+
+	result := make([]interface{}, len(ns.Values))
+	for i, v := range ns.Values {
+		if !v.IsArray {
+			if v.Value == nil {
+				return nil, errors.New("invalid NestedUInts: non-array type must have a value")
+			}
+			result[i] = *v.Value
+		} else {
+			nestedJSON, err := v.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			var nestedValue interface{}
+			if err := json.Unmarshal(nestedJSON, &nestedValue); err != nil {
+				return nil, err
+			}
+			result[i] = nestedValue
+		}
+	}
+	return json.Marshal(result)
+}
+
 type CasmClass struct {
 	Prime                  string                     `json:"prime"`
 	Version                string                     `json:"compiler_version"`
