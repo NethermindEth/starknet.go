@@ -74,7 +74,22 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 		// For cairo compiler prior to 2.7.0, the ABI is a string
 		*ns = NestedString(value)
 	} else {
-		*ns = NestedString(data)
+
+		var out bytes.Buffer
+		err := json.Indent(&out, data, "", "")
+
+		if err != nil {
+			return err
+		}
+
+		// Replace '\n' to ''
+		out_str := bytes.ReplaceAll(out.Bytes(), []byte{10}, []byte{})
+		// Replace ',"' to ', "'
+		out_str = bytes.ReplaceAll(out_str, []byte{44, 34}, []byte{44, 32, 34})
+		// Replace ',{' to ', {'
+		out_str = bytes.ReplaceAll(out_str, []byte{44, 123}, []byte{44, 32, 123})
+
+		*ns = NestedString(out_str)
 	}
 
 	return nil
