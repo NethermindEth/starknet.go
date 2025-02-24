@@ -188,10 +188,12 @@
 				}
 			},
 			"fee_estimation": {
-				"gas_consumed": "0x123c",
-				"gas_price": "0x831211d3b",
-				"data_gas_consumed": "0x0",
-				"data_gas_price": "0x1b10c",
+				"l1_gas_consumed": "0x123c",
+				"l1_gas_price": "0x831211d3b",
+				"l2_gas_consumed": "0x0",
+				"l2_gas_price": "0x0",
+				"l1_data_gas_consumed": "0x0",
+				"l1_data_gas_price": "0x1b10c",
 				"overall_fee": "0x955fd7d0ffd4",
 				"unit": "WEI"
 			}

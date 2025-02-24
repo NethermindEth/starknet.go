@@ -2,9 +2,7 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -84,10 +82,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	var blockSepolia64159 BlockTxHashes
-	block, err := os.ReadFile("tests/blockWithHashes/sepoliaBlockWithHashes64159.json")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(block, &blockSepolia64159))
+	blockSepolia64159 := *utils.TestUnmarshallJSONFileToType[BlockTxHashes](t, "./tests/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
 
 	txHashes := utils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
@@ -209,15 +204,9 @@ func TestBlockWithTxs(t *testing.T) {
 		L1HandlerV0Index     int
 	}
 
-	var fullBlockSepolia65083 Block
-	read, err := os.ReadFile("tests/block/sepoliaBlockTxs65083.json")
-	require.NoError(err)
-	require.NoError(json.Unmarshal(read, &fullBlockSepolia65083))
+	fullBlockSepolia65083 := *utils.TestUnmarshallJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", "result")
 
-	var fullBlockSepolia122476 Block
-	read, err = os.ReadFile("tests/block/sepoliaBlockTxs122476.json")
-	require.NoError(err)
-	require.NoError(json.Unmarshal(read, &fullBlockSepolia122476))
+	fullBlockSepolia122476 := *utils.TestUnmarshallJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs122476.json", "result")
 
 	testSet := map[string][]testSetType{
 		"mock": {
