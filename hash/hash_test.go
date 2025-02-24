@@ -41,7 +41,7 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 //	none
 func TestClassHash(t *testing.T) {
 	//https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/class_hash_test.py
-	expectedClasshash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
+	expectedClassHash := "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944"
 
 	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestClassHash(t *testing.T) {
 	err = json.Unmarshal(content, &class)
 	require.NoError(t, err)
 	compClassHash := hash.ClassHash(class)
-	require.Equal(t, expectedClasshash, compClassHash.String())
+	require.Equal(t, expectedClassHash, compClassHash.String())
 }
 
 // TestCompiledClassHash is a test function that verifies the correctness of the CompiledClassHash function in the hash package.
