@@ -9,7 +9,7 @@ If you need starknet.go to support another API, open an issue on the project.
 
 ### Testing the RPC API
 
-To test the RPC API, you should simply go the the rpc directory and run
+To test the RPC API, you should simply go to the rpc directory and run
 `go test` like below:
 
 ```shell
@@ -31,7 +31,7 @@ Supported environments are `mock`, `testnet` and `mainnet`. The support for
 
 If you plan to specify an alternative URL to test the environment, you can set
 the `INTEGRATION_BASE` environment variable. In addition, tests load `.env.${env}`,
-and `.env` before relying on the environment variable. So for instanve if you want
+and `.env` before relying on the environment variable. So for instance if you want
 the URL to change only for the testnet environment, you could add the line below
 in `.env.testnet`:
 
