@@ -229,7 +229,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	invokeTxnV3example, err := utils.UnmarshallJSONToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	invokeTxnV3example, err := utils.UnmarshallJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 	if err != nil {
 		return err
 	}
@@ -338,7 +338,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 	if arg0Felt.Equal(testTxnHash) {
 
-		txnRec, err := utils.UnmarshallJSONToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 		if err != nil {
 			return err
 		}
@@ -350,7 +350,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		txnRec, err := utils.UnmarshallJSONToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
@@ -785,7 +785,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	output, err := utils.UnmarshallJSONToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
+	output, err := utils.UnmarshallJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
@@ -1079,7 +1079,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 
 		return json.Unmarshal(pBlock, &r)
 	} else {
-		fullBlockSepolia64159, err := utils.UnmarshallJSONToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
+		fullBlockSepolia64159, err := utils.UnmarshallJSONFileToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
 		if err != nil {
 			return err
 		}
@@ -1287,7 +1287,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
-		rawBlockTrace, err := utils.UnmarshallJSONToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
+		rawBlockTrace, err := utils.UnmarshallJSONFileToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 		if err != nil {
 			return err
 		}
@@ -1336,7 +1336,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
-		rawTrace, err := utils.UnmarshallJSONToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+		rawTrace, err := utils.UnmarshallJSONFileToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 		if err != nil {
 			return err
 		}
@@ -1391,7 +1391,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Read the test data from file
-	resp, err := utils.UnmarshallJSONToType[json.RawMessage]("tests/compiledCasm.json", "result")
+	resp, err := utils.UnmarshallJSONFileToType[json.RawMessage]("tests/compiledCasm.json", "result")
 	if err != nil {
 		return err
 	}

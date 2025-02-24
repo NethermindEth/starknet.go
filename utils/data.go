@@ -49,7 +49,7 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 	return result, nil
 }
 
-// UnmarshallJSONToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// UnmarshallJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it returns an error.
 //
 // Parameters:
@@ -58,7 +58,7 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 // Returns:
 // - *T: pointer to the unmarshalled data of type T
 // - error: error if file reading or unmarshalling fails
-func UnmarshallJSONToType[T any](filePath string, subfield string) (*T, error) {
+func UnmarshallJSONFileToType[T any](filePath string, subfield string) (*T, error) {
 	var result T
 
 	data, err := os.ReadFile(filePath)

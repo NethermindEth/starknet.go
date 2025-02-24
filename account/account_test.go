@@ -1131,11 +1131,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	class := *utils.TestUnmarshallJSONToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
+	class := *utils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
 	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
-	casmClass := *utils.TestUnmarshallJSONToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
+	casmClass := *utils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
 	compClassHash, err := hash.CompiledClassHash(casmClass)
 	require.NoError(t, err)
 

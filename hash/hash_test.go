@@ -108,7 +108,7 @@ func TestClassHashes(t *testing.T) {
 		for _, test := range testSet {
 
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *utils.TestUnmarshallJSONToType[rpc.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
+				sierraClass := *utils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
 				hash := hash.ClassHash(sierraClass)
 				assert.Equal(t, test.ExpectedClassHash, hash.String())
@@ -120,7 +120,7 @@ func TestClassHashes(t *testing.T) {
 		for _, test := range testSet {
 
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *utils.TestUnmarshallJSONToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
+				casmClass := *utils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
 
 				hash, err := hash.CompiledClassHash(casmClass)
 				require.NoError(t, err)

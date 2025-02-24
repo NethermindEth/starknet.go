@@ -144,9 +144,9 @@ func TestBlockWithReceipts(t *testing.T) {
 	var blockWithReceipt BlockWithReceipts
 
 	if testEnv == "testnet" {
-		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
+		blockWithReceipt = *utils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	} else if testEnv == "mainnet" {
-		blockWithReceipt = *utils.TestUnmarshallJSONToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
+		blockWithReceipt = *utils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")

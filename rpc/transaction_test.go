@@ -91,7 +91,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	InvokeTxnV3example := *utils.TestUnmarshallJSONToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	InvokeTxnV3example := *utils.TestUnmarshallJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -129,10 +129,10 @@ func TestTransactionReceipt(t *testing.T) {
 		ExpectedResp TransactionReceiptWithBlockInfo
 	}
 
-	receiptTxn52767_16 := *utils.TestUnmarshallJSONToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+	receiptTxn52767_16 := *utils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 
 	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
-	receiptL1Handler := *utils.TestUnmarshallJSONToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+	receiptL1Handler := *utils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 
 	testSet := map[string][]testSetType{
 		"mock": {

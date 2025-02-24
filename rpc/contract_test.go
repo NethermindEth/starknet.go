@@ -490,7 +490,7 @@ func TestEstimateFee(t *testing.T) {
 		expectedError error
 	}
 
-	bradcastInvokeV1 := *utils.TestUnmarshallJSONToType[BroadcastInvokev1Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", "")
+	bradcastInvokeV1 := *utils.TestUnmarshallJSONFileToType[BroadcastInvokev1Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", "")
 
 	testSet := map[string][]testSetType{
 		"mainnet": {
