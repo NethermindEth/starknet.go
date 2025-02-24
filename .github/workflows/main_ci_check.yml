@@ -43,8 +43,8 @@ jobs:
         run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          HTTP_PROVIDER_URL: "https://free-rpc.nethermind.io/sepolia-juno"
-          WS_PROVIDER_URL: "wss://ethereum-rpc.publicnode.com" # TODO: change to a Starknet ws node before merge
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
@@ -52,8 +52,8 @@ jobs:
         #run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          HTTP_PROVIDER_URL: "https://free-rpc.nethermind.io/mainnet-juno"
-          WS_PROVIDER_URL: "wss://ethereum-rpc.publicnode.com" # TODO: change to a Starknet ws node before merge
+          HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}
 
       # Test Account on devnet
       - name: Test Account on devnet
@@ -66,6 +66,10 @@ jobs:
       - name: Test Account with mocks
         run: cd account && go test -v . -env mock
 
+      # Test client on mock
+      - name: Test client with mocks
+        run: cd client && go test -v
+
       # Build examples
       - name: Build examples
         run: |
@@ -75,10 +79,3 @@ jobs:
           cd ../deployContractUDC && go build
           cd ../typedData && go build
           cd ../websocket && go build
-
-      # Test client on mock
-      - name: Test client with mocks
-        run: cd client && go test -v
-
-
-#TODO: handle websocket tests in the CI
