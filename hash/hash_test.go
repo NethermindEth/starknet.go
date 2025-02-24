@@ -29,11 +29,11 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 	testSet := []testSetType{
 		{
 			Description: "Compile: 2.1.0, no 'bytecode_segment_lengths' field",
-			CasmPath:    "./tests/hello_starknet_compiled.casm.json",
+			CasmPath:    "./tests/hello_starknet_compiled.compiled_contract_class.json",
 		},
 		{
 			Description: "Compile: 2.7.0, 'bytecode_segment_lengths' with uint64 values",
-			CasmPath:    "./tests/contract.casm.json",
+			CasmPath:    "./tests/contracts_v2_TestContract.compiled_contract_class.json",
 		},
 	}
 
