@@ -32,7 +32,7 @@ func TestCall(t *testing.T) {
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
-		ExpectedError         error
+		ExpectedError         *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
