@@ -15,11 +15,7 @@ import (
 func TestSubscribeNewHeads(t *testing.T) {
 	t.Parallel()
 
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, true)
 
 	type testSetType struct {
 		headers         chan *BlockHeader
@@ -109,11 +105,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 func TestSubscribeEvents(t *testing.T) {
 	t.Parallel()
 
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, true)
 
 	provider := testConfig.provider
 	blockNumber, err := provider.BlockNumber(context.Background())
@@ -342,11 +334,8 @@ func TestSubscribeEvents(t *testing.T) {
 
 func TestSubscribeTransactionStatus(t *testing.T) {
 	t.Parallel()
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, true)
 
 	provider := testConfig.provider
 	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
@@ -392,11 +381,8 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 func TestSubscribePendingTransactions(t *testing.T) {
 	t.Parallel()
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, true)
 
 	type testSetType struct {
 		pendingTxns   chan *SubPendingTxns
@@ -478,11 +464,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 func TestUnsubscribe(t *testing.T) {
 	t.Parallel()
 
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, true)
 
 	wsProvider := testConfig.wsProvider
 

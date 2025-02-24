@@ -24,7 +24,7 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		FunctionCall          FunctionCall

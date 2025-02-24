@@ -41,8 +41,8 @@ var (
 		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. Juno)
 		// (ref: https://github.com/NethermindEth/juno)
 		"testnet": {
-			base: "https://free-rpc.nethermind.io/sepolia-juno",
-			// wsBase: "ws://localhost:6061",
+			base:   "https://free-rpc.nethermind.io/sepolia-juno",
+			wsBase: "ws://localhost:6061",
 		},
 		// Requires a Devnet configuration running locally
 		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
@@ -79,20 +79,21 @@ func TestMain(m *testing.M) {
 //
 // Parameters:
 // - t: The testing.T object for testing purposes
+// - isWs: a boolean value to check if the test is for the websocket provider
 // Returns:
 // - *testConfiguration: a pointer to the testConfiguration struct
-func beforeEach(t *testing.T) *testConfiguration {
+func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
 	_ = godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
 	testConfig, ok := testConfigurations[testEnv]
 	if !ok {
-		t.Fatal("env supports mock, testnet, mainnet, devnet, integration")
+		t.Fatal("env supports mock, testnet, wsTestnet, mainnet, devnet, integration")
 	}
+
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
-		return &testConfig
 	}
 
 	base := os.Getenv("HTTP_PROVIDER_URL")
@@ -102,30 +103,29 @@ func beforeEach(t *testing.T) *testConfiguration {
 
 	client, err := NewProvider(testConfig.base)
 	if err != nil {
-		t.Fatal("connect should succeed, instead:", err)
+		t.Fatalf("failed to connect to the %s provider: %v", testConfig.base, err)
 	}
 	testConfig.provider = client
 	t.Cleanup(func() {
 		testConfig.provider.c.Close()
 	})
 
-	if testEnv == "devnet" {
-		return &testConfig
-	}
+	if isWs {
+		wsBase := os.Getenv("WS_PROVIDER_URL")
+		if wsBase != "" {
+			testConfig.wsBase = wsBase
 
-	wsBase := os.Getenv("WS_PROVIDER_URL")
-	if wsBase != "" {
-		testConfig.wsBase = wsBase
+		}
 
+		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+		if err != nil {
+			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.wsBase, err)
+		}
+		testConfig.wsProvider = wsClient
+		t.Cleanup(func() {
+			testConfig.wsProvider.c.Close()
+		})
 	}
-	wsClient, err := NewWebsocketProvider(testConfig.wsBase)
-	if err != nil {
-		t.Fatal("connect should succeed, instead:", err)
-	}
-	testConfig.wsProvider = wsClient
-	t.Cleanup(func() {
-		testConfig.wsProvider.c.Close()
-	})
 
 	return &testConfig
 }

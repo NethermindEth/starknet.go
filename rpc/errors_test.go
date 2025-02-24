@@ -10,7 +10,7 @@ import (
 func TestRPCError(t *testing.T) {
 	t.Skip("TODO: test the new RPCData field before merge")
 	if testEnv == "mock" {
-		testConfig := beforeEach(t)
+		testConfig := beforeEach(t, false)
 		_, err := testConfig.provider.ChainID(context.Background())
 		require.NoError(t, err)
 
