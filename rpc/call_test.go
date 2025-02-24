@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -27,6 +28,7 @@ func TestCall(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
+		name                  string
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
@@ -35,6 +37,7 @@ func TestCall(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"devnet": {
 			{
+				name: "Ok",
 				FunctionCall: FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
 					ContractAddress:    utils.TestHexToFelt(t, DevNetETHAddress),
@@ -47,6 +50,7 @@ func TestCall(t *testing.T) {
 		},
 		"mock": {
 			{
+				name: "Ok",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0xdeadbeef"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
@@ -58,6 +62,7 @@ func TestCall(t *testing.T) {
 		},
 		"testnet": {
 			{
+				name: "Ok",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
@@ -67,6 +72,7 @@ func TestCall(t *testing.T) {
 				ExpectedPatternResult: utils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
+				name: "ContractError",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
@@ -76,6 +82,7 @@ func TestCall(t *testing.T) {
 				ExpectedError: ErrContractError,
 			},
 			{
+				name: "BlockNotFound",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
@@ -85,6 +92,7 @@ func TestCall(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
+				name: "ContractNotFound",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.RANDOM_FELT,
 					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
@@ -96,6 +104,7 @@ func TestCall(t *testing.T) {
 		},
 		"mainnet": {
 			{
+				name: "Ok",
 				FunctionCall: FunctionCall{
 					ContractAddress:    utils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
@@ -108,17 +117,16 @@ func TestCall(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
-		output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
-		if test.ExpectedError != nil {
-			rpcErr, ok := err.(*RPCError)
-			require.True(ok)
-			require.Equal(test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(test.ExpectedError.Message, rpcErr.Message)
-		} else {
-			require.NoError(err)
-			require.NotEmpty(output, "should return an output")
-			require.Equal(test.ExpectedPatternResult, output[0])
-		}
+		t.Run(fmt.Sprintf("Network: %s, Test: %s", testEnv, test.name), func(t *testing.T) {
+			require := require.New(t)
+			output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
+			if err != nil {
+				require.EqualError(test.ExpectedError, err.Error())
+			} else {
+				require.NoError(err)
+				require.NotEmpty(output, "should return an output")
+				require.Equal(test.ExpectedPatternResult, output[0])
+			}
+		})
 	}
 }
