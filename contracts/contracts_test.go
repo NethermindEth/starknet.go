@@ -23,14 +23,36 @@ import (
 //
 //	none
 func TestUnmarshalContractClass(t *testing.T) {
-	content, err := os.ReadFile("./tests/hello_starknet_compiled.sierra.json")
-	require.NoError(t, err)
+	type testSetType struct {
+		CasmPath       string
+		SierraProgram0 string
+		SierraProgram1 string
+	}
 
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
-	assert.Equal(t, class.SierraProgram[0].String(), "0x1")
-	assert.Equal(t, class.SierraProgram[1].String(), "0x3")
+	testCases := []testSetType{
+		{
+			CasmPath:       "./tests/hello_starknet_compiled.sierra.json",
+			SierraProgram0: "0x1",
+			SierraProgram1: "0x3",
+		},
+		{
+			// Test that if abi is valid JSON object (not string), is is still unmarshallable
+			CasmPath:       "./tests/test_contract.sierra.json",
+			SierraProgram0: "0x1",
+			SierraProgram1: "0x6",
+		},
+	}
+
+	for _, testCase := range testCases {
+		content, err := os.ReadFile(testCase.CasmPath)
+		require.NoError(t, err)
+
+		var class rpc.ContractClass
+		err = json.Unmarshal(content, &class)
+		require.NoError(t, err)
+		assert.Equal(t, class.SierraProgram[0].String(), testCase.SierraProgram0)
+		assert.Equal(t, class.SierraProgram[1].String(), testCase.SierraProgram1)
+	}
 }
 
 // TestUnmarshalCasmClass tests the UnmarshalCasmClass function.
@@ -45,13 +67,88 @@ func TestUnmarshalContractClass(t *testing.T) {
 //
 //	none
 func TestUnmarshalCasmClass(t *testing.T) {
-	casmClass, err := UnmarshalCasmClass("./tests/hello_starknet_compiled.casm.json")
-	require.NoError(t, err)
-	assert.Equal(t, casmClass.Prime, "0x800000000000011000000000000000000000000000000000000000000000001")
-	assert.Equal(t, casmClass.Version, "2.1.0")
-	assert.Equal(t, casmClass.EntryPointByType.External[0].Selector.String(), "0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320")
-	assert.Equal(t, casmClass.EntryPointByType.External[1].Offset, 130)
-	assert.Equal(t, casmClass.EntryPointByType.External[1].Builtins[0], "range_check")
+	type ExpectedCasmClass struct {
+		Prime                  string
+		Version                string
+		EntryPointByType       CasmClassEntryPointsByType
+		BytecodeSegmentLengths *NestedUints
+	}
+
+	type testSetType struct {
+		CasmPath          string
+		ExpectedCasmClass ExpectedCasmClass
+	}
+
+	testCases := []testSetType{
+		{
+			CasmPath: "./tests/hello_starknet_compiled.casm.json",
+			ExpectedCasmClass: ExpectedCasmClass{
+				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
+				Version: "2.1.0",
+				EntryPointByType: CasmClassEntryPointsByType{
+					External: []CasmClassEntryPoint{
+						{
+							Selector: utils.TestHexToFelt(t, "0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320"),
+							Offset:   0,
+							Builtins: []string{"range_check"},
+						},
+						{
+							Selector: utils.TestHexToFelt(t, "0x39e11d48192e4333233c7eb19d10ad67c362bb28580c604d67884c85da39695"),
+							Offset:   130,
+							Builtins: []string{"range_check"},
+						},
+					},
+					Constructor: []CasmClassEntryPoint{},
+					L1Handler:   []CasmClassEntryPoint{},
+				},
+				BytecodeSegmentLengths: nil,
+			},
+		},
+		{
+			CasmPath: "./tests/test_contract.casm.json",
+			ExpectedCasmClass: ExpectedCasmClass{
+				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
+				Version: "2.7.0",
+				EntryPointByType: CasmClassEntryPointsByType{
+					External: []CasmClassEntryPoint{
+						{
+							Selector: utils.TestHexToFelt(t, "0x26813d396fdb198e9ead934e4f7a592a8b88a059e45ab0eb6ee53494e8d45b0"),
+							Offset:   0,
+							Builtins: []string{"range_check"},
+						},
+						{
+							Selector: utils.TestHexToFelt(t, "0x3d7905601c217734671143d457f0db37f7f8883112abd34b92c4abfeafde0c3"),
+							Offset:   162,
+							Builtins: []string{"range_check"},
+						},
+					},
+					Constructor: []CasmClassEntryPoint{},
+					L1Handler:   []CasmClassEntryPoint{},
+				},
+				BytecodeSegmentLengths: newNestedFieldArray(
+					newNestedFieldValue(162),
+					newNestedFieldValue(183),
+				),
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		casmClass, err := UnmarshalCasmClass(testCase.CasmPath)
+		require.NoError(t, err)
+
+		assert.Equal(t, casmClass.Prime, testCase.ExpectedCasmClass.Prime)
+		assert.Equal(t, casmClass.Version, testCase.ExpectedCasmClass.Version)
+
+		expectedEntryPoint := testCase.ExpectedCasmClass.EntryPointByType
+
+		assert.Equal(t, casmClass.EntryPointByType.External, expectedEntryPoint.External)
+		assert.Equal(t, casmClass.EntryPointByType.Constructor, expectedEntryPoint.Constructor)
+		assert.Equal(t, casmClass.EntryPointByType.L1Handler, expectedEntryPoint.L1Handler)
+
+		assert.Equal(t, testCase.ExpectedCasmClass.BytecodeSegmentLengths, casmClass.BytecodeSegmentLengths)
+	}
+
 }
 
 // TestPrecomputeAddress tests the PrecomputeAddress function.
@@ -112,5 +209,21 @@ func TestPrecomputeAddress(t *testing.T) {
 			test.ConstructorCalldata,
 		)
 		require.Equal(t, test.ExpectedPrecomputedAddress, precomputedAddress.String())
+	}
+}
+
+func newNestedFieldValue(val uint64) NestedUints {
+	return NestedUints{
+		IsArray: false,
+		Value:   &val,
+		Values:  nil,
+	}
+}
+
+func newNestedFieldArray(val ...NestedUints) *NestedUints {
+	return &NestedUints{
+		IsArray: true,
+		Value:   nil,
+		Values:  val,
 	}
 }
