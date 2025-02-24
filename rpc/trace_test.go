@@ -23,7 +23,7 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	var expectedResp InvokeTxnTrace
 	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
@@ -88,7 +88,7 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
@@ -161,7 +161,7 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
 	var blockTraceSepolia []Trace

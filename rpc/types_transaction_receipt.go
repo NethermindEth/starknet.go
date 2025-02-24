@@ -155,6 +155,11 @@ type TxnStatusResp struct {
 	FailureReason   string             `json:"failure_reason,omitempty"`
 }
 
+type NewTxnStatusResp struct {
+	TransactionHash *felt.Felt    `json:"transaction_hash"`
+	Status          TxnStatusResp `json:"status"`
+}
+
 type TransactionReceiptWithBlockInfo struct {
 	TransactionReceipt
 	BlockHash   *felt.Felt `json:"block_hash,omitempty"`

@@ -11,7 +11,7 @@ import (
 
 func TestDeclareTransaction(t *testing.T) {
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		DeclareTx     BroadcastDeclareTxnType
@@ -60,7 +60,7 @@ func TestDeclareTransaction(t *testing.T) {
 
 func TestAddInvokeTransaction(t *testing.T) {
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		InvokeTx      BroadcastInvokeTxnType
@@ -149,7 +149,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 
 func TestAddDeployAccountTansaction(t *testing.T) {
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		DeployTx      BroadcastAddDeployTxnType
