@@ -88,7 +88,6 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // - []*felt.Felt: an array of signed felt messages
 // - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
-
 	msgBig := utils.FeltToBigInt(msg)
 
 	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
@@ -188,7 +187,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 		}
 
 		// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
-		return hash.CalculateTransactionHashCommon(
+		return hash.CalculateDeprecatedTransactionHashCommon(
 			PREFIX_DEPLOY_ACCOUNT,
 			versionFelt,
 			contractAddress,
@@ -265,7 +264,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return hash.CalculateTransactionHashCommon(
+		return hash.CalculateDeprecatedTransactionHashCommon(
 			PREFIX_TRANSACTION,
 			txnVersionFelt,
 			txn.ContractAddress,
@@ -286,7 +285,7 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		if err != nil {
 			return nil, err
 		}
-		return hash.CalculateTransactionHashCommon(
+		return hash.CalculateDeprecatedTransactionHashCommon(
 			PREFIX_TRANSACTION,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -392,7 +391,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return hash.CalculateTransactionHashCommon(
+		return hash.CalculateDeprecatedTransactionHashCommon(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,
@@ -413,7 +412,8 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		if err != nil {
 			return nil, err
 		}
-		return hash.CalculateTransactionHashCommon(
+
+		return hash.CalculateDeprecatedTransactionHashCommon(
 			PREFIX_DECLARE,
 			txnVersionFelt,
 			txn.SenderAddress,

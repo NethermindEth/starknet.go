@@ -1,27 +1,32 @@
 package hash
 
 import (
+	"errors"
+	"slices"
+
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
-// CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
-// [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
+// CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
+// [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
 //
 // Parameters:
-// - txHashPrefix: The prefix of the transaction hash
-// - version: The version of the transaction
-// - contractAddress: The address of the contract
-// - entryPointSelector: The selector of the entry point
-// - calldata: The data of the transaction
-// - maxFee: The maximum fee for the transaction
-// - chainId: The ID of the blockchain
-// - additionalData: Additional data to be included in the hash
+//   - txHashPrefix: The prefix of the transaction hash
+//   - version: The version of the transaction
+//   - contractAddress: The address of the contract
+//   - entryPointSelector: The selector of the entry point
+//   - calldata: The data of the transaction
+//   - maxFee: The maximum fee for the transaction
+//   - chainId: The ID of the blockchain
+//   - additionalData: Additional data to be included in the hash
+//
 // Returns:
-// - *felt.Felt: the calculated transaction hash
-func CalculateTransactionHashCommon(
+//   - *felt.Felt: the calculated transaction hash
+func CalculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
 	contractAddress *felt.Felt,
@@ -53,10 +58,11 @@ func CalculateTransactionHashCommon(
 // Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgamHash are combined using the PoseidonArray function from the Curve package.
 //
 // Parameters:
-// - contract: A contract class object of type rpc.ContractClass.
+//   - contract: A contract class object of type rpc.ContractClass.
+//
 // Returns:
-// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-// - error: an error object if there was an error during the hash calculation.
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+//   - error: an error object if there was an error during the hash calculation.
 func ClassHash(contract rpc.ContractClass) *felt.Felt {
 	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/
 
@@ -75,9 +81,10 @@ func ClassHash(contract rpc.ContractClass) *felt.Felt {
 // hashEntryPointByType calculates the hash of an entry point by type.
 //
 // Parameters:
-// - entryPoint: A slice of rpc.SierraEntryPoint objects
+//   - entryPoint: A slice of rpc.SierraEntryPoint objects
+//
 // Returns:
-// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
@@ -86,29 +93,187 @@ func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
 	return curve.PoseidonArray(flattened...)
 }
 
+type hasherFunc = func() *felt.Felt
+
+type bytecodeSegment struct {
+	Hash hasherFunc
+	Size uint64
+}
+
+// getByteCodeSegmentHasher calculates hasher function for byte code array from casm file
+// this code is adaptation of:
+// https://github.com/starkware-libs/cairo-lang/blob/efa9648f57568aad8f8a13fbf027d2de7c63c2c0/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
+//
+// Parameters:
+//   - bytecode: Array of compiled bytecode values from casm file
+//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
+//   - visitedPcs: array pointer for tracking which bytecode bits were already processed, needed for recursive processing
+//   - bytecodeOffset: pointer at current offset in bytecode array, needed for recursive processing organisation
+//
+// Returns:
+//   - hasherFunc: closure that calculates hash for given bytecode array, or nil in case of error
+//   - uint64: size of the current processed bytecode array, or nil in case of error
+//   - error: error if any happened or nil if everything fine
+func getByteCodeSegmentHasher(
+	bytecode []*felt.Felt,
+	bytecodeSegmentLengths contracts.NestedUints,
+	visitedPcs *[]uint64,
+	bytecodeOffset uint64,
+) (hasherFunc, uint64, error) {
+	if !bytecodeSegmentLengths.IsArray {
+		segmentValue := *bytecodeSegmentLengths.Value
+		segmentEnd := bytecodeOffset + segmentValue
+
+		for {
+			visitedPcsData := *visitedPcs
+
+			if len(visitedPcsData) <= 0 {
+				break
+			}
+
+			lastVisitedPcs := visitedPcsData[len(visitedPcsData)-1]
+
+			if (bytecodeOffset > lastVisitedPcs) || (lastVisitedPcs >= segmentEnd) {
+				break
+			}
+
+			*visitedPcs = visitedPcsData[:len(visitedPcsData)-1]
+		}
+
+		bytecodePart := bytecode[bytecodeOffset:segmentEnd]
+
+		return func() *felt.Felt {
+			return curve.PoseidonArray(bytecodePart...)
+		}, segmentValue, nil
+	}
+
+	segments := []bytecodeSegment{}
+	totalLen := uint64(0)
+
+	for _, item := range bytecodeSegmentLengths.Values {
+		visitedPcsData := *visitedPcs
+		var visitedPcBefore *uint64
+
+		if len(visitedPcsData) > 0 {
+			visitedPcBefore = &visitedPcsData[len(visitedPcsData)-1]
+		}
+
+		segmentHash, segmentLen, err := getByteCodeSegmentHasher(
+			bytecode,
+			item,
+			visitedPcs,
+			bytecodeOffset,
+		)
+
+		if err != nil {
+			return nil, 0, err
+		}
+
+		var visitedPcAfter *uint64
+		if len(visitedPcsData) > 0 {
+			visitedPcAfter = &visitedPcsData[len(visitedPcsData)-1]
+		}
+
+		is_used := visitedPcAfter != visitedPcBefore
+
+		if is_used && *visitedPcBefore != bytecodeOffset {
+			return nil, 0, errors.New(
+				"invalid segment structure: PC {visited_pc_before} was visited, " +
+					"but the beginning of the segment ({bytecode_offset}) was not",
+			)
+		}
+
+		segments = append(segments, bytecodeSegment{
+			Hash: segmentHash,
+			Size: segmentLen,
+		})
+		bytecodeOffset += segmentLen
+		totalLen += segmentLen
+	}
+
+	return func() *felt.Felt {
+		components := make([]*felt.Felt, len(segments)*2)
+
+		for i, val := range segments {
+			components[i*2] = utils.Uint64ToFelt(val.Size)
+			components[i*2+1] = val.Hash()
+		}
+
+		return new(felt.Felt).Add(
+			utils.Uint64ToFelt(1),
+			curve.PoseidonArray(components...),
+		)
+	}, totalLen, nil
+}
+
+// getByteCodeSegmentHasher calculates hash for byte code array from casm file
+//
+// Parameters:
+//   - bytecode: Array of compiled bytecode values from casm file
+//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
+//
+// Returns:
+//   - *felt.Felt: Hash value
+//   - error: Error message
+func hashCasmClassByteCode(
+	bytecode []*felt.Felt,
+	bytecodeSegmentLengths contracts.NestedUints,
+) (*felt.Felt, error) {
+	visited := make([]uint64, len(bytecode))
+
+	for i := range len(bytecode) {
+		visited[i] = uint64(i)
+	}
+
+	slices.Reverse(visited)
+
+	hasher, _, err := getByteCodeSegmentHasher(
+		bytecode, bytecodeSegmentLengths, &visited, uint64(0),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return hasher(), nil
+}
+
 // CompiledClassHash calculates the hash of a compiled class in the Casm format.
 //
 // Parameters:
-// - casmClass: A `contracts.CasmClass` object
+//   - casmClass: A `contracts.CasmClass` object
+//
 // Returns:
-// - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+func CompiledClassHash(casmClass contracts.CasmClass) (*felt.Felt, error) {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
-	ByteCodeHasH := curve.PoseidonArray(casmClass.ByteCode...)
 
-	// https://github.com/software-mansion/starknet.py/blob/development/starknet_py/hash/casm_class_hash.py#L10
-	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
+	var ByteCodeHasH *felt.Felt
+	var err error
+
+	if casmClass.BytecodeSegmentLengths != nil {
+		ByteCodeHasH, err = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
+	}
+
+	// https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/hash/casm_class_hash.py#L18
+	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH), nil
 }
 
 // hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
 //
 // Parameters:
-// - entryPoint: An array of CasmClassEntryPoint objects
+//   - entryPoint: An array of CasmClassEntryPoint objects
+//
 // Returns:
-// - *felt.Felt: a pointer to a Felt type
+//   - *felt.Felt: a pointer to a Felt type
 func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
