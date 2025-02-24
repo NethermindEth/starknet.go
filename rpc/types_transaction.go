@@ -412,10 +412,10 @@ type SubPendingTxnsInput struct {
 
 // SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
 type SubPendingTxns struct {
-	// The hashes of the pending transactions. Only present if transactionDetails is false.
-	TransactionHashes []*felt.Felt
+	// The hash of the pending transaction. Always present.
+	TransactionHash *felt.Felt
 	// The full transaction details. Only present if transactionDetails is true.
-	Transactions []*BlockTransaction
+	Transaction *BlockTransaction
 }
 
 // UnmarshalJSON unmarshals the JSON data into a SubPendingTxns object.
@@ -425,14 +425,15 @@ type SubPendingTxns struct {
 // Returns:
 // - error: An error if the unmarshalling process fails
 func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
-	var txnsHashes []*felt.Felt
-	if err := json.Unmarshal(data, &txnsHashes); err == nil {
-		s.TransactionHashes = txnsHashes
+	var txns *BlockTransaction
+	if err := json.Unmarshal(data, &txns); err == nil {
+		s.Transaction = txns
+		s.TransactionHash = txns.Hash()
 		return nil
 	}
-	var txns []*BlockTransaction
-	if err := json.Unmarshal(data, &txns); err == nil {
-		s.Transactions = txns
+	var txnsHash *felt.Felt
+	if err := json.Unmarshal(data, &txnsHash); err == nil {
+		s.TransactionHash = txnsHash
 		return nil
 	}
 	return errors.New("failed to unmarshal SubPendingTxns")

@@ -480,11 +480,11 @@ func TestSubscribePendingTransactions(t *testing.T) {
 					require.IsType(t, &SubPendingTxns{}, resp)
 
 					if test.options == nil || !test.options.TransactionDetails {
-						require.NotEmpty(t, resp.TransactionHashes)
-						require.Empty(t, resp.Transactions)
+						require.NotEmpty(t, resp.TransactionHash)
+						require.Empty(t, resp.Transaction)
 					} else {
-						require.Empty(t, resp.TransactionHashes)
-						require.NotEmpty(t, resp.Transactions)
+						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Transaction)
 					}
 					return
 				case err := <-sub.Err():
