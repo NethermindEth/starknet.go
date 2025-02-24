@@ -1136,7 +1136,8 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	// Compiled Class Hash
 	casmClass := *utils.TestUnmarshallJSONToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
-	compClassHash := hash.CompiledClassHash(casmClass)
+	compClassHash, err := hash.CompiledClassHash(casmClass)
+	require.NoError(t, err)
 
 	tx := rpc.DeclareTxnV2{
 		Nonce:   utils.TestHexToFelt(t, "0xd"),
