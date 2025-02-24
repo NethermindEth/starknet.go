@@ -110,6 +110,10 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 
+	if testEnv == "devnet" {
+		return &testConfig
+	}
+
 	if isWs {
 		wsBase := os.Getenv("WS_PROVIDER_URL")
 		if wsBase != "" {
