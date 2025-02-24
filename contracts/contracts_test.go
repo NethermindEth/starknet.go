@@ -125,9 +125,9 @@ func TestUnmarshalCasmClass(t *testing.T) {
 					Constructor: []CasmClassEntryPoint{},
 					L1Handler:   []CasmClassEntryPoint{},
 				},
-				BytecodeSegmentLengths: NewNestedFieldArray(
-					NewNestedFieldValue(162),
-					NewNestedFieldValue(183),
+				BytecodeSegmentLengths: newNestedFieldArray(
+					newNestedFieldValue(162),
+					newNestedFieldValue(183),
 				),
 			},
 		},
@@ -212,7 +212,7 @@ func TestPrecomputeAddress(t *testing.T) {
 	}
 }
 
-func NewNestedFieldValue(val uint64) NestedUInts {
+func newNestedFieldValue(val uint64) NestedUInts {
 	return NestedUInts{
 		IsArray: false,
 		Value:   &val,
@@ -220,7 +220,7 @@ func NewNestedFieldValue(val uint64) NestedUInts {
 	}
 }
 
-func NewNestedFieldArray(val ...NestedUInts) *NestedUInts {
+func newNestedFieldArray(val ...NestedUInts) *NestedUInts {
 	return &NestedUInts{
 		IsArray: true,
 		Value:   nil,
