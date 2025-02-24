@@ -152,7 +152,6 @@ func (h *Hint) UnmarshalJSON(data []byte) error {
 	for k := range raw {
 		hintType = k
 		hintData = raw[k]
-		break
 	}
 
 	// Deprecated Hint
@@ -394,7 +393,6 @@ func (r *ResOperand) UnmarshalJSON(data []byte) error {
 	for k := range raw {
 		hintType = k
 		hintData = raw[k]
-		break
 	}
 
 	var err error
@@ -522,7 +520,6 @@ func (b *B) UnmarshalJSON(data []byte) error {
 	for k := range raw {
 		hintType = k
 		hintData = raw[k]
-		break
 	}
 
 	switch hintType {
