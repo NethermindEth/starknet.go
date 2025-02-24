@@ -94,6 +94,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
+		return &testConfig
 	}
 
 	base := os.Getenv("HTTP_PROVIDER_URL")

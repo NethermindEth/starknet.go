@@ -31,7 +31,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
-	testSet := map[string][]testSetType{
+	testSet, ok := map[string][]testSetType{
 		"testnet": {
 			{
 				headers:         make(chan *BlockHeader),
@@ -59,6 +59,10 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 		},
 	}[testEnv]
+
+	if !ok {
+		t.Skip("test environment not supported")
+	}
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
@@ -107,13 +111,30 @@ func TestSubscribeEvents(t *testing.T) {
 
 	testConfig := beforeEach(t, true)
 
+	type testSetType struct {
+		// Example values for the test
+		fromAddressExample *felt.Felt
+		keyExample         *felt.Felt
+	}
+
+	testSet, ok := map[string]testSetType{
+		"testnet": {
+			// sepolia StarkGate: ETH Token
+			fromAddressExample: utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			// random key from StarkGate: ETH Token
+			keyExample: utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+		},
+	}[testEnv]
+
+	if !ok {
+		t.Skip("test environment not supported")
+	}
+
 	provider := testConfig.provider
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1}                                                // for the case the latest block number is updated
-	fromAddress := utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7") // sepolia StarkGate: ETH Token
-	key := utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9")
+	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
 	t.Run("normal call, with empty args", func(t *testing.T) {
 		t.Parallel()
@@ -149,7 +170,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: fromAddress,
+			FromAddress: testSet.fromAddressExample,
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -164,7 +185,7 @@ func TestSubscribeEvents(t *testing.T) {
 				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
 
 				// Subscription with only fromAddress should return events from the specified address from the latest block onwards.
-				require.Equal(t, fromAddress, resp.FromAddress)
+				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -181,7 +202,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			Keys: [][]*felt.Felt{{key}},
+			Keys: [][]*felt.Felt{{testSet.keyExample}},
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -196,7 +217,7 @@ func TestSubscribeEvents(t *testing.T) {
 				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
 
 				// Subscription with only keys should return events with the specified keys from the latest block onwards.
-				require.Equal(t, key, resp.Keys[0])
+				require.Equal(t, testSet.keyExample, resp.Keys[0])
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -255,8 +276,8 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID:     SubscriptionBlockID{Number: blockNumber - 100},
-			FromAddress: fromAddress,
-			Keys:        [][]*felt.Felt{{key}},
+			FromAddress: testSet.fromAddressExample,
+			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -271,8 +292,8 @@ func TestSubscribeEvents(t *testing.T) {
 				require.Less(t, resp.BlockNumber, blockNumber)
 				// 'fromAddress' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, fromAddress, resp.FromAddress)
-				require.Equal(t, key, resp.Keys[0])
+				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				require.Equal(t, testSet.keyExample, resp.Keys[0])
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -293,7 +314,7 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		keys := make([][]*felt.Felt, 1025)
-		for i := 0; i < 1025; i++ {
+		for i := range 1025 {
 			keys[i] = []*felt.Felt{utils.TestHexToFelt(t, "0x1")}
 		}
 
@@ -336,6 +357,15 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
+
+	testSet := map[string]bool{
+		"testnet": true,
+		"mainnet": true,
+	}[testEnv]
+
+	if !testSet {
+		t.Skip("test environment not supported")
+	}
 
 	provider := testConfig.provider
 	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
@@ -392,11 +422,11 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	}
 
 	addresses := make([]*felt.Felt, 1025)
-	for i := 0; i < 1025; i++ {
+	for i := range 1025 {
 		addresses[i] = utils.TestHexToFelt(t, "0x1")
 	}
 
-	testSet := map[string][]testSetType{
+	testSet, ok := map[string][]testSetType{
 		"testnet": {
 			{
 				pendingTxns: make(chan *SubPendingTxns),
@@ -421,6 +451,10 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			},
 		},
 	}[testEnv]
+
+	if !ok {
+		t.Skip("test environment not supported")
+	}
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
@@ -465,6 +499,15 @@ func TestUnsubscribe(t *testing.T) {
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
+
+	testSet := map[string]bool{
+		"testnet": true,
+		"mainnet": true,
+	}[testEnv]
+
+	if !testSet {
+		t.Skip("test environment not supported")
+	}
 
 	wsProvider := testConfig.wsProvider
 
