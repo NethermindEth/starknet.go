@@ -71,7 +71,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 		Prime                  string
 		Version                string
 		EntryPointByType       CasmClassEntryPointsByType
-		BytecodeSegmentLengths *NestedUInts
+		BytecodeSegmentLengths *NestedUints
 	}
 
 	type testSetType struct {
@@ -212,16 +212,16 @@ func TestPrecomputeAddress(t *testing.T) {
 	}
 }
 
-func newNestedFieldValue(val uint64) NestedUInts {
-	return NestedUInts{
+func newNestedFieldValue(val uint64) NestedUints {
+	return NestedUints{
 		IsArray: false,
 		Value:   &val,
 		Values:  nil,
 	}
 }
 
-func newNestedFieldArray(val ...NestedUInts) *NestedUInts {
-	return &NestedUInts{
+func newNestedFieldArray(val ...NestedUints) *NestedUints {
+	return &NestedUints{
 		IsArray: true,
 		Value:   nil,
 		Values:  val,

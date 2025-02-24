@@ -11,20 +11,21 @@ import (
 
 var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
-type NestedUInts struct {
+type NestedUints struct {
 	IsArray bool
 	Value   *uint64
-	Values  []NestedUInts
+	Values  []NestedUints
 }
 
-func toNestedInts(values []interface{}) ([]NestedUInts, error) {
+func toNestedInts(values []any) ([]NestedUints, error) {
 
-	var res []NestedUInts = make([]NestedUInts, 0)
+	var res []NestedUints = make([]NestedUints, 0)
 
 	for _, value := range values {
+		// check if the value is a single number
 		if numeric, ok := value.(float64); ok {
 			intVal := uint64(numeric)
-			res = append(res, NestedUInts{
+			res = append(res, NestedUints{
 				IsArray: false,
 				Value:   &intVal,
 				Values:  nil,
@@ -32,13 +33,14 @@ func toNestedInts(values []interface{}) ([]NestedUInts, error) {
 			continue
 		}
 
-		if arrVal, ok := value.([]interface{}); ok {
+		// check if the value is an array
+		if arrVal, ok := value.([]any); ok {
 			nested, err := toNestedInts(arrVal)
 			if err != nil {
 				return nil, err
 			}
 
-			res = append(res, NestedUInts{
+			res = append(res, NestedUints{
 				IsArray: true,
 				Value:   nil,
 				Values:  nested,
@@ -46,14 +48,14 @@ func toNestedInts(values []interface{}) ([]NestedUInts, error) {
 			continue
 		}
 
-		return nil, errors.New("Invalid type")
+		return nil, errors.New("invalid NestedUint type")
 	}
 
 	return res, nil
 }
 
-func (ns *NestedUInts) UnmarshalJSON(data []byte) error {
-	var temp []interface{}
+func (ns *NestedUints) UnmarshalJSON(data []byte) error {
+	var temp []any
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
 	}
@@ -64,7 +66,7 @@ func (ns *NestedUInts) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*ns = NestedUInts{
+	*ns = NestedUints{
 		IsArray: true,
 		Value:   nil,
 		Values:  nested,
@@ -73,21 +75,21 @@ func (ns *NestedUInts) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON implements the json.Marshaler interface for NestedUInts.
-// It converts the NestedUInts structure back into a JSON array format.
-func (ns NestedUInts) MarshalJSON() ([]byte, error) {
+// MarshalJSON implements the json.Marshaler interface for NestedUints.
+// It converts the NestedUints structure back into a JSON array format.
+func (ns NestedUints) MarshalJSON() ([]byte, error) {
 	if !ns.IsArray {
 		if ns.Value == nil {
-			return nil, errors.New("invalid NestedUInts: non-array type must have a value")
+			return nil, errors.New("invalid NestedUints: non-array type must have a value")
 		}
 		return json.Marshal(*ns.Value)
 	}
 
-	result := make([]interface{}, len(ns.Values))
+	result := make([]any, len(ns.Values))
 	for i, v := range ns.Values {
 		if !v.IsArray {
 			if v.Value == nil {
-				return nil, errors.New("invalid NestedUInts: non-array type must have a value")
+				return nil, errors.New("invalid NestedUints: non-array type must have a value")
 			}
 			result[i] = *v.Value
 		} else {
@@ -95,7 +97,7 @@ func (ns NestedUInts) MarshalJSON() ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			var nestedValue interface{}
+			var nestedValue any
 			if err := json.Unmarshal(nestedJSON, &nestedValue); err != nil {
 				return nil, err
 			}
@@ -110,7 +112,7 @@ type CasmClass struct {
 	Version                string                     `json:"compiler_version"`
 	ByteCode               []*felt.Felt               `json:"bytecode"`
 	EntryPointByType       CasmClassEntryPointsByType `json:"entry_points_by_type"`
-	BytecodeSegmentLengths *NestedUInts               `json:"bytecode_segment_lengths,omitempty"`
+	BytecodeSegmentLengths *NestedUints               `json:"bytecode_segment_lengths,omitempty"`
 }
 
 type CasmClassEntryPointsByType struct {
