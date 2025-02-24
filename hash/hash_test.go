@@ -131,7 +131,8 @@ func TestClassHashes(t *testing.T) {
 				err = json.Unmarshal(content, &casmClass)
 				require.NoError(t, err)
 
-				hash := hash.CompiledClassHash(casmClass)
+				hash, err := hash.CompiledClassHash(casmClass)
+				require.NoError(t, err)
 				assert.Equal(t, test.ExpectedCompiledClassHash, hash.String())
 			})
 		}

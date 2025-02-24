@@ -245,22 +245,26 @@ func hashCasmClassByteCode(
 //
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-func CompiledClassHash(casmClass contracts.CasmClass) *felt.Felt {
+func CompiledClassHash(casmClass contracts.CasmClass) (*felt.Felt, error) {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
 	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
 
 	var ByteCodeHasH *felt.Felt
+	var err error
 
 	if casmClass.BytecodeSegmentLengths != nil {
-		ByteCodeHasH, _ = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
+		ByteCodeHasH, err = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
 	}
 
 	// https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/hash/casm_class_hash.py#L18
-	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH)
+	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH), nil
 }
 
 // hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
