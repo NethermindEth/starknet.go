@@ -192,6 +192,15 @@ func shortGetStructHash(
 		return hash, err
 	}
 
+	// This is not correct according to the SNIP-12 specification, but in order to be compatible with the Starknet.js library
+	// (and consequently other libraries and dapps), it will be kept this way until Starknet.js is updated.
+	// Ref: https://github.com/starknet-io/starknet.js/pull/1292
+	// Ref: https://github.com/starknet-io/starknet.js/issues/1278
+	// TODO: remove this once Starknet.js is updated.
+	if isEnum {
+		return typedData.Revision.HashMethod(encTypeData...), nil
+	}
+
 	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
