@@ -133,7 +133,7 @@ func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {
 	if len(path) == 0 {
 		return root.Cmp(leaf) == 0
 	}
-	nexLeaf := MerkleHash(leaf, path[0])
+	nextLeaf := MerkleHash(leaf, path[0])
 
 	return ProofMerklePath(root, nexLeaf, path[1:])
 }
