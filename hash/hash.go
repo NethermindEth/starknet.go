@@ -11,8 +11,8 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-// CalculateTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
-// [specification]: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/transaction_hash/transaction_hash.py#L27C5-L27C38
+// CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
+// [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
 //
 // Parameters:
 //   - txHashPrefix: The prefix of the transaction hash
@@ -26,7 +26,7 @@ import (
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
-func CalculateTransactionHashCommon(
+func CalculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
 	contractAddress *felt.Felt,
@@ -102,7 +102,7 @@ type bytecodeSegment struct {
 
 // getByteCodeSegmentHasher calculates hasher function for byte code array from casm file
 // this code is adaptation of:
-// https://github.com/starkware-libs/cairo-lang/blob/v0.13.1/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
+// https://github.com/starkware-libs/cairo-lang/blob/efa9648f57568aad8f8a13fbf027d2de7c63c2c0/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
 //
 // Parameters:
 //   - bytecode: Array of compiled bytecode values from casm file
@@ -152,7 +152,7 @@ func getByteCodeSegmentHasher(
 
 	for _, item := range bytecodeSegmentLengths.Values {
 		visitedPcsData := *visitedPcs
-		var visitedPcBefore *uint64 = nil
+		var visitedPcBefore *uint64
 
 		if len(visitedPcsData) > 0 {
 			visitedPcBefore = &visitedPcsData[len(visitedPcsData)-1]
