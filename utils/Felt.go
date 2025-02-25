@@ -178,43 +178,45 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
+	const SHORT_LENGTH = 31
+
 	if len(arr) < 3 {
 		return "", fmt.Errorf("invalid felt array, require atleast 3 elements in array")
 	}
 
-	count := FeltToBigInt(arr[0]).Uint64()
-	var index uint64
+	count := arr[0].Uint64()
+	pendingWordLength := arr[len(arr)-1].Uint64()
+
+	// pending word length is in the range [0, SHORT_LENGTH-1]
+	if pendingWordLength > SHORT_LENGTH-1 {
+		return "", fmt.Errorf("invalid felt array, invalid pending word length")
+	}
+
+	if uint64(len(arr)) != 3+count {
+		return "", fmt.Errorf("invalid felt array, invalid length got %d expected %d", len(arr), 3+count)
+	}
+
 	var res []string
-	for index = 0; index < count; index++ {
-		f := arr[1+index]
-		s, err := feltToString(f)
-		if err != nil {
-			return "", err
-		}
-		res = append(res, s)
+	if pendingWordLength == 0 {
+		res = make([]string, count)
+	} else {
+		res = make([]string, count+1)
 	}
 
-	pendingWordLength := arr[len(arr)-1]
-	if pendingWordLength.IsZero() {
-		return strings.Join(res, ""), nil
+	for index := range count {
+		res[index] = bytesFeltToString(arr[1+index], SHORT_LENGTH)
 	}
 
-	pendingWordFelt := arr[1+index]
-	s, err := feltToString(pendingWordFelt)
-	if err != nil {
-		return "", fmt.Errorf("invalid pending word")
+	if pendingWordLength != 0 {
+		res[count] = bytesFeltToString(arr[1+count], int(pendingWordLength))
 	}
 
-	res = append(res, s)
 	return strings.Join(res, ""), nil
 }
 
-func feltToString(f *felt.Felt) (string, error) {
-	b, err := hex.DecodeString(f.String()[2:])
-	if err != nil {
-		return "", fmt.Errorf("unable to decode to string")
-	}
-	return string(b), nil
+func bytesFeltToString(f *felt.Felt, length int) string {
+	b := f.Bytes()
+	return string(b[len(b)-length:])
 }
 
 // BigIntArrToFeltArr converts an array of big.Int objects to an array of Felt objects.
