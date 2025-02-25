@@ -183,7 +183,7 @@ func TestGetTransactionStatus(t *testing.T) {
 			{
 				TxnHash: utils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
 				ExpectedResp: TxnStatusResp{
-					FinalityStatus:  TxnStatus_Accepted_On_L2,
+					FinalityStatus:  TxnStatus_Accepted_On_L1,
 					ExecutionStatus: TxnExecutionStatusREVERTED,
 					FailureReason:   "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x036d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06, class hash: 0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError at pc=0:4835:\nCairo traceback (most recent call last):\nUnknown location (pc=0:67)\nUnknown location (pc=0:1835)\nUnknown location (pc=0:2554)\nUnknown location (pc=0:3436)\nUnknown location (pc=0:4040)\n\n1: Error in the called contract (contract address: 0x00000000000000000000000000000000000000000000000000000000ffffffff, class hash: 0x0000000000000000000000000000000000000000000000000000000000000000, selector: 0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354):\nRequested contract address 0x00000000000000000000000000000000000000000000000000000000ffffffff is not deployed.\n",
 				},
@@ -237,11 +237,11 @@ func TestGetMessagesStatus(t *testing.T) {
 				ExpectedResp: []MessageStatusResp{
 					{
 						TransactionHash: utils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
-						FinalityStatus:  TxnStatus_Accepted_On_L2,
+						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 					{
 						TransactionHash: utils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
-						FinalityStatus:  TxnStatus_Accepted_On_L2,
+						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 				},
 			},
