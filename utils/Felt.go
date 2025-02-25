@@ -187,7 +187,8 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	count := arr[0].Uint64()
 	pendingWordLength := arr[len(arr)-1].Uint64()
 
-	if pendingWordLength > SHORT_LENGTH {
+	// pending word length is in the range [0, SHORT_LENGTH-1]
+	if pendingWordLength > SHORT_LENGTH-1 {
 		return "", fmt.Errorf("invalid felt array, invalid pending word length")
 	}
 
