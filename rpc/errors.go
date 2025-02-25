@@ -84,11 +84,13 @@ func (e RPCError) Error() string {
 	return e.Message + ": " + e.Data.Message
 }
 
+// TODO: maybe make it a interface type in the future
 type RPCData struct {
 	Message                       string                         `json:",omitempty"`
 	CompilationErrorData          *CompilationErrorData          `json:",omitempty"`
 	ContractErrorData             *ContractErrorData             `json:",omitempty"`
 	TransactionExecutionErrorData *TransactionExecutionErrorData `json:",omitempty"`
+	TraceStatusData               *TraceStatusData               `json:",omitempty"`
 }
 
 func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
@@ -125,6 +127,15 @@ func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	var traceStatusData TraceStatusData
+	if err := json.Unmarshal(data, &traceStatusData); err == nil {
+		*rpcData = RPCData{
+			Message:         rpcData.Message + string(traceStatusData.Status),
+			TraceStatusData: &traceStatusData,
+		}
+		return nil
+	}
+
 	return fmt.Errorf("failed to unmarshal RPCData")
 }
 
@@ -146,6 +157,11 @@ func (rpcData *RPCData) MarshalJSON() ([]byte, error) {
 		return json.Marshal(temp)
 	}
 
+	if rpcData.TraceStatusData != nil {
+		temp = *rpcData.TraceStatusData
+		return json.Marshal(temp)
+	}
+
 	temp = rpcData.Message
 
 	return json.Marshal(temp)
@@ -159,6 +175,9 @@ var (
 	ErrNoTraceAvailable = &RPCError{
 		Code:    10,
 		Message: "No trace available for transaction",
+		Data: &RPCData{
+			TraceStatusData: &TraceStatusData{},
+		},
 	}
 	ErrContractNotFound = &RPCError{
 		Code:    20,
@@ -207,10 +226,16 @@ var (
 	ErrContractError = &RPCError{
 		Code:    40,
 		Message: "Contract error",
+		Data: &RPCData{
+			ContractErrorData: &ContractErrorData{},
+		},
 	}
 	ErrTxnExec = &RPCError{
 		Code:    41,
 		Message: "Transaction execution error",
+		Data: &RPCData{
+			TransactionExecutionErrorData: &TransactionExecutionErrorData{},
+		},
 	}
 	ErrStorageProofNotSupported = &RPCError{
 		Code:    42,
@@ -275,6 +300,9 @@ var (
 	ErrCompilationError = &RPCError{
 		Code:    100,
 		Message: "Failed to compile the contract",
+		Data: &RPCData{
+			CompilationErrorData: &CompilationErrorData{},
+		},
 	}
 )
 
@@ -342,4 +370,30 @@ type ContractExecutionErrorInner struct {
 	ClassHash       *felt.Felt              `json:"class_hash"`
 	Selector        *felt.Felt              `json:"selector"`
 	Error           *ContractExecutionError `json:"error"`
+}
+
+type TraceStatus string
+
+const (
+	TraceStatusReceived TraceStatus = "RECEIVED"
+	TraceStatusRejected TraceStatus = "REJECTED"
+)
+
+type TraceStatusData struct {
+	Status TraceStatus `json:"status,omitempty"`
+}
+
+func (s *TraceStatus) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+
+	switch TraceStatus(str) {
+	case TraceStatusReceived, TraceStatusRejected:
+		*s = TraceStatus(str)
+		return nil
+	default:
+		return fmt.Errorf("invalid trace status: %s", str)
+	}
 }
