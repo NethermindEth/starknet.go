@@ -8,6 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -483,6 +484,7 @@ func TestEstimateFee(t *testing.T) {
 	testConfig := beforeEach(t)
 
 	type testSetType struct {
+		description   string
 		txs           []BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
@@ -490,11 +492,12 @@ func TestEstimateFee(t *testing.T) {
 		expectedError error
 	}
 
-	bradcastInvokeV1 := *utils.TestUnmarshallJSONFileToType[BroadcastInvokev1Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", "")
+	bradcastInvokeV3 := *utils.TestUnmarshallJSONFileToType[BroadcastInvokev3Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", "")
 
 	testSet := map[string][]testSetType{
 		"mainnet": {
 			{
+				description: "invoke v0",
 				txs: []BroadcastTxn{
 					InvokeTxnV0{
 						Type:    TransactionType_Invoke,
@@ -538,6 +541,7 @@ func TestEstimateFee(t *testing.T) {
 				},
 			},
 			{
+				description: "deploy account",
 				txs: []BroadcastTxn{
 					DeployAccountTxn{
 
@@ -578,9 +582,10 @@ func TestEstimateFee(t *testing.T) {
 			},
 		},
 		"mock": {
-			{ // without flag
+			{
+				description: "without flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockTag("latest"),
@@ -598,9 +603,10 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 			},
-			{ // with flag
+			{
+				description: "with flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockTag("latest"),
@@ -620,9 +626,10 @@ func TestEstimateFee(t *testing.T) {
 			},
 		},
 		"testnet": {
-			{ // without flag
+			{
+				description: "without flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(100000),
@@ -640,9 +647,10 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 			},
-			{ // with flag
+			{
+				description: "with flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockNumber(100000),
@@ -660,7 +668,8 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 			},
-			{ // invalid transaction
+			{
+				description: "invalid transaction",
 				txs: []BroadcastTxn{
 					InvokeTxnV1{
 						MaxFee:        utils.RANDOM_FELT,
@@ -676,9 +685,10 @@ func TestEstimateFee(t *testing.T) {
 				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
-			{ // invalid block
+			{
+				description: "invalid block",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(9999999999999999999),
@@ -688,12 +698,16 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
-		if err != nil {
-			require.EqualError(t, test.expectedError, err.Error())
-		} else {
-			require.Exactly(t, test.expectedResp, resp)
-		}
+		t.Run(test.description, func(t *testing.T) {
+			resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
+			if test.expectedError != nil {
+				require.Equal(t, test.expectedError, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			assert.Exactly(t, test.expectedResp, resp)
+		})
 	}
 }
 
