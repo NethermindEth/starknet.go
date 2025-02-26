@@ -121,7 +121,9 @@ func TestCall(t *testing.T) {
 			require := require.New(t)
 			output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 			if err != nil {
-				require.EqualError(test.ExpectedError, err.Error())
+				rpcErr, ok := err.(*RPCError)
+				require.True(ok)
+				require.EqualError(test.ExpectedError, rpcErr.Message)
 			} else {
 				require.NoError(err)
 				require.NotEmpty(output, "should return an output")

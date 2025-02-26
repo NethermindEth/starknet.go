@@ -818,7 +818,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
-				unexpErr.Data = &RPCData{Message: "Something crazy happened"}
+				unexpErr.Data = StringErrData("Something crazy happened")
 				return &unexpErr
 			}
 		}
@@ -1350,7 +1350,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 		return &RPCError{
 			Code:    10,
 			Message: "No trace available for transaction",
-			Data:    &RPCData{Message: "REJECTED"},
+			Data:    &TraceStatusErrData{Status: TraceStatusRejected},
 		}
 	default:
 		return ErrHashNotFound
@@ -1381,7 +1381,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 		return &RPCError{
 			Code:    100,
 			Message: "Failed to compile the contract",
-			Data:    &RPCData{Message: "compilation error: invalid sierra class"},
+			Data:    &CompilationErrData{CompilationError: "compilation error: invalid sierra class"},
 		}
 	}
 

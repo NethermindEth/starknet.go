@@ -22,7 +22,7 @@ const (
 // - data: any data associated with the error.
 // Returns
 // - *RPCError: a pointer to an RPCError object.
-func Err(code int, data *RPCData) *RPCError {
+func Err(code int, data RPCData) *RPCError {
 	switch code {
 	case InvalidJSON:
 		return &RPCError{Code: InvalidJSON, Message: "Parse error", Data: data}
@@ -49,13 +49,13 @@ func Err(code int, data *RPCData) *RPCError {
 func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, err := json.Marshal(baseError)
 	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error()}
+		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
 	}
 
 	var nodeErr RPCError
 	err = json.Unmarshal(errBytes, &nodeErr)
 	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error()}
+		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
 	}
 
 	for _, rpcErr := range rpcErrors {
@@ -65,107 +65,106 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 	}
 
 	if nodeErr.Code == 0 {
-		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: &RPCData{Message: baseError.Error()}}
+		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
 	}
 
 	return Err(nodeErr.Code, nodeErr.Data)
 }
 
 type RPCError struct {
-	Code    int      `json:"code"`
-	Message string   `json:"message"`
-	Data    *RPCData `json:"data,omitempty"`
+	Code    int     `json:"code"`
+	Message string  `json:"message"`
+	Data    RPCData `json:"data,omitempty"`
 }
 
 func (e RPCError) Error() string {
-	if e.Data == nil || e.Data.Message == "" {
+	if e.Data == nil || e.Data.ErrorMessage() == "" {
 		return e.Message
 	}
-	return e.Message + ": " + e.Data.Message
+	return e.Message + ": " + e.Data.ErrorMessage()
 }
 
-// TODO: maybe make it a interface type in the future
-type RPCData struct {
-	Message                       string                         `json:",omitempty"`
-	CompilationErrorData          *CompilationErrorData          `json:",omitempty"`
-	ContractErrorData             *ContractErrorData             `json:",omitempty"`
-	TransactionExecutionErrorData *TransactionExecutionErrorData `json:",omitempty"`
-	TraceStatusData               *TraceStatusData               `json:",omitempty"`
+// UnmarshalJSON implements the json.Unmarshaler interface for RPCError.
+// It handles the deserialization of JSON into an RPCError struct,
+// with special handling for the Data field.
+func (e *RPCError) UnmarshalJSON(data []byte) error {
+	// First try to unmarshal into a temporary struct without the RPCData interface
+	var temp struct {
+		Code    int             `json:"code"`
+		Message string          `json:"message"`
+		Data    json.RawMessage `json:"data,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	e.Code = temp.Code
+	e.Message = temp.Message
+
+	// If there's no Data field, we're done
+	if len(temp.Data) == 0 {
+		e.Data = nil
+		return nil
+	}
+
+	// Try to determine the concrete type of Data based on the RPCError code
+	switch e.Code {
+	case 10: // ErrNoTraceAvailable
+		var data TraceStatusErrData
+		if err := json.Unmarshal(temp.Data, &data); err != nil {
+			return err
+		}
+		e.Data = &data
+	case 40: // ErrContractError
+		var data ContractErrData
+		if err := json.Unmarshal(temp.Data, &data); err != nil {
+			return err
+		}
+		e.Data = &data
+	case 41: // ErrTxnExec
+		var data TransactionExecErrData
+		if err := json.Unmarshal(temp.Data, &data); err != nil {
+			return err
+		}
+		e.Data = &data
+	case 55, 56, 63: // ErrValidationFailure, ErrCompilationFailed, ErrUnexpectedError
+		var strData string
+		if err := json.Unmarshal(temp.Data, &strData); err != nil {
+			return err
+		}
+		e.Data = StringErrData(strData)
+	case 100: // ErrCompilationError
+		var data CompilationErrData
+		if err := json.Unmarshal(temp.Data, &data); err != nil {
+			return err
+		}
+		e.Data = &data
+	default:
+		// For unknown error codes, try to unmarshal as string
+		var strData string
+		if err := json.Unmarshal(temp.Data, &strData); err == nil {
+			e.Data = StringErrData(strData)
+			return nil
+		}
+
+		// If not a string, set Data to nil and ignore the data field
+		e.Data = nil
+	}
+
+	return nil
 }
 
-func (rpcData *RPCData) UnmarshalJSON(data []byte) error {
-	var message string
-	if err := json.Unmarshal(data, &message); err == nil {
-		rpcData.Message = message
-		return nil
-	}
-
-	var compilationErrData CompilationErrorData
-	if err := json.Unmarshal(data, &compilationErrData); err == nil {
-		*rpcData = RPCData{
-			Message:              rpcData.Message + compilationErrData.CompilationError,
-			CompilationErrorData: &compilationErrData,
-		}
-		return nil
-	}
-
-	var contractErrData ContractErrorData
-	if err := json.Unmarshal(data, &contractErrData); err == nil {
-		*rpcData = RPCData{
-			Message:           rpcData.Message + contractErrData.RevertError.Message,
-			ContractErrorData: &contractErrData,
-		}
-		return nil
-	}
-
-	var txExErrData TransactionExecutionErrorData
-	if err := json.Unmarshal(data, &txExErrData); err == nil {
-		*rpcData = RPCData{
-			Message:                       rpcData.Message + txExErrData.ExecutionError.Message,
-			TransactionExecutionErrorData: &txExErrData,
-		}
-		return nil
-	}
-
-	var traceStatusData TraceStatusData
-	if err := json.Unmarshal(data, &traceStatusData); err == nil {
-		*rpcData = RPCData{
-			Message:         rpcData.Message + string(traceStatusData.Status),
-			TraceStatusData: &traceStatusData,
-		}
-		return nil
-	}
-
-	return fmt.Errorf("failed to unmarshal RPCData")
+// RPCData is the interface that all error data types must implement
+type RPCData interface {
+	ErrorMessage() string
 }
 
-func (rpcData *RPCData) MarshalJSON() ([]byte, error) {
-	var temp any
-
-	if rpcData.CompilationErrorData != nil {
-		temp = *rpcData.CompilationErrorData
-		return json.Marshal(temp)
-	}
-
-	if rpcData.ContractErrorData != nil {
-		temp = *rpcData.ContractErrorData
-		return json.Marshal(temp)
-	}
-
-	if rpcData.TransactionExecutionErrorData != nil {
-		temp = *rpcData.TransactionExecutionErrorData
-		return json.Marshal(temp)
-	}
-
-	if rpcData.TraceStatusData != nil {
-		temp = *rpcData.TraceStatusData
-		return json.Marshal(temp)
-	}
-
-	temp = rpcData.Message
-
-	return json.Marshal(temp)
-}
+var _ RPCData = StringErrData("")
+var _ RPCData = &CompilationErrData{}
+var _ RPCData = &ContractErrData{}
+var _ RPCData = &TransactionExecErrData{}
+var _ RPCData = &TraceStatusErrData{}
 
 var (
 	ErrFailedToReceiveTxn = &RPCError{
@@ -175,9 +174,7 @@ var (
 	ErrNoTraceAvailable = &RPCError{
 		Code:    10,
 		Message: "No trace available for transaction",
-		Data: &RPCData{
-			TraceStatusData: &TraceStatusData{},
-		},
+		Data:    &TraceStatusErrData{},
 	}
 	ErrContractNotFound = &RPCError{
 		Code:    20,
@@ -226,16 +223,12 @@ var (
 	ErrContractError = &RPCError{
 		Code:    40,
 		Message: "Contract error",
-		Data: &RPCData{
-			ContractErrorData: &ContractErrorData{},
-		},
+		Data:    &ContractErrData{},
 	}
 	ErrTxnExec = &RPCError{
 		Code:    41,
 		Message: "Transaction execution error",
-		Data: &RPCData{
-			TransactionExecutionErrorData: &TransactionExecutionErrorData{},
-		},
+		Data:    &TransactionExecErrData{},
 	}
 	ErrStorageProofNotSupported = &RPCError{
 		Code:    42,
@@ -264,10 +257,12 @@ var (
 	ErrValidationFailure = &RPCError{
 		Code:    55,
 		Message: "Account validation failed",
+		Data:    StringErrData(""),
 	}
 	ErrCompilationFailed = &RPCError{
 		Code:    56,
 		Message: "Compilation failed",
+		Data:    StringErrData(""),
 	}
 	ErrContractClassSizeTooLarge = &RPCError{
 		Code:    57,
@@ -296,55 +291,83 @@ var (
 	ErrUnexpectedError = &RPCError{
 		Code:    63,
 		Message: "An unexpected error occurred",
+		Data:    StringErrData(""),
 	}
 	ErrCompilationError = &RPCError{
 		Code:    100,
 		Message: "Failed to compile the contract",
-		Data: &RPCData{
-			CompilationErrorData: &CompilationErrorData{},
-		},
+		Data:    &CompilationErrData{},
 	}
 )
 
-type CompilationErrorData struct {
-	// More data about the compilation failure
+// StringErrData handles plain string data messages
+type StringErrData string
+
+func (s StringErrData) ErrorMessage() string {
+	return string(s)
+}
+
+// Structured type for the ErrCompilationError data
+type CompilationErrData struct {
 	CompilationError string `json:"compilation_error,omitempty"`
 }
 
-type ContractErrorData struct {
-	// the execution trace up to the point of failure
+func (c *CompilationErrData) ErrorMessage() string {
+	return c.CompilationError
+}
+
+// Structured type for the ErrContractError data
+type ContractErrData struct {
 	RevertError ContractExecutionError `json:"revert_error,omitempty"`
 }
 
-type TransactionExecutionErrorData struct {
-	// The index of the first transaction failing in a sequence of given transactions
-	TransactionIndex int `json:"transaction_index,omitempty"`
-	// the execution trace up to the point of failure
-	ExecutionError ContractExecutionError `json:"execution_error,omitempty"`
+func (c *ContractErrData) ErrorMessage() string {
+	return c.RevertError.Message
 }
 
+// Structured type for the ErrTransactionExecError data
+type TransactionExecErrData struct {
+	TransactionIndex int                    `json:"transaction_index,omitempty"`
+	ExecutionError   ContractExecutionError `json:"execution_error,omitempty"`
+}
+
+func (t *TransactionExecErrData) ErrorMessage() string {
+	return t.ExecutionError.Message
+}
+
+// Structured type for the ErrTraceStatusError data
+type TraceStatusErrData struct {
+	Status TraceStatus `json:"status,omitempty"`
+}
+
+func (t *TraceStatusErrData) ErrorMessage() string {
+	return string(t.Status)
+}
+
+// structured error that can later be processed by wallets or sdks
 type ContractExecutionError struct {
 	// the error raised during execution
-	Message                      string `json:",omitempty"`
-	*ContractExecutionErrorInner `json:",omitempty"`
+	Message              string                       `json:",omitempty"`
+	ContractExecErrInner *ContractExecutionErrorInner `json:",omitempty"`
 }
 
 func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
-	var contractErrStruct ContractExecutionErrorInner
 	var message string
 
 	if err := json.Unmarshal(data, &message); err == nil {
 		*contractEx = ContractExecutionError{
-			Message:                     message,
-			ContractExecutionErrorInner: &contractErrStruct,
+			Message:              message,
+			ContractExecErrInner: nil,
 		}
 		return nil
 	}
 
+	var contractErrStruct ContractExecutionErrorInner
+
 	if err := json.Unmarshal(data, &contractErrStruct); err == nil {
 		*contractEx = ContractExecutionError{
-			Message:                     "",
-			ContractExecutionErrorInner: &contractErrStruct,
+			Message:              contractErrStruct.Error.Message,
+			ContractExecErrInner: &contractErrStruct,
 		}
 		return nil
 	}
@@ -355,8 +378,8 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 	var temp any
 
-	if contractEx.ContractExecutionErrorInner != nil {
-		temp = contractEx.ContractExecutionErrorInner
+	if contractEx.ContractExecErrInner != nil {
+		temp = contractEx.ContractExecErrInner
 		return json.Marshal(temp)
 	}
 
@@ -378,10 +401,6 @@ const (
 	TraceStatusReceived TraceStatus = "RECEIVED"
 	TraceStatusRejected TraceStatus = "REJECTED"
 )
-
-type TraceStatusData struct {
-	Status TraceStatus `json:"status,omitempty"`
-}
 
 func (s *TraceStatus) UnmarshalJSON(data []byte) error {
 	var str string

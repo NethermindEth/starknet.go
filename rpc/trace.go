@@ -24,7 +24,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, Err(InternalError, &RPCData{Message: err.Error()})
+		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
 
 	switch rawTxnTrace["type"] {
@@ -32,32 +32,32 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return trace, nil
 	case string(TransactionType_Declare):
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return trace, nil
 	case string(TransactionType_DeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return trace, nil
 	case string(TransactionType_L1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return trace, nil
 	}
-	return nil, Err(InternalError, &RPCData{Message: "Unknown transaction type"})
+	return nil, Err(InternalError, StringErrData("Unknown transaction type"))
 
 }
 
