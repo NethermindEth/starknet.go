@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 	testEnv = internal.LoadEnv()
 
 	if testEnv == "mock" {
-		return
+		os.Exit(m.Run())
 	}
 	base = os.Getenv("HTTP_PROVIDER_URL")
 	if base == "" {
