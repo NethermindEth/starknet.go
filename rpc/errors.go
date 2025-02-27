@@ -381,8 +381,14 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 	var contractErrStruct ContractExecutionErrorInner
 
 	if err := json.Unmarshal(data, &contractErrStruct); err == nil {
+		message := fmt.Sprintf("Contract address= %s, Class hash= %s, Selector= %s, Nested error: ",
+			contractErrStruct.ContractAddress,
+			contractErrStruct.ClassHash,
+			contractErrStruct.Selector,
+		)
+
 		*contractEx = ContractExecutionError{
-			Message:              contractErrStruct.Error.Message,
+			Message:              message + contractErrStruct.Error.Message,
 			ContractExecErrInner: &contractErrStruct,
 		}
 		return nil
@@ -404,6 +410,7 @@ func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(temp)
 }
 
+// can be either this struct or a string. The parent type will handle the unmarshalling
 type ContractExecutionErrorInner struct {
 	ContractAddress *felt.Felt              `json:"contract_address"`
 	ClassHash       *felt.Felt              `json:"class_hash"`
