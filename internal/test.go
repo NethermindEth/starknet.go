@@ -15,7 +15,7 @@ var testEnv = ""
 
 func loadFlags() {
 	// set the environment for the test, default: mock
-	flag.StringVar(&testEnv, "env", "testnet", "set the test environment")
+	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
 	flag.Parse()
 }
 
