@@ -2,7 +2,6 @@ package account_test
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -33,7 +32,7 @@ var (
 //
 // It sets up the test environment by parsing command line flags and loading environment variables.
 // The test environment can be set using the "env" flag.
-// It then sets the base path for integration tests by reading the value from the "INTEGRATION_BASE" environment variable.
+// It then sets the base path for integration tests by reading the value from the "HTTP_PROVIDER_URL" environment variable.
 // If the base path is not set and the test environment is not "mock", it panics.
 // Finally, it exits with the return value of the test suite
 //
@@ -48,12 +47,12 @@ func TestMain(m *testing.M) {
 	if testEnv == "mock" {
 		return
 	}
-	base = os.Getenv("INTEGRATION_BASE")
+	base = os.Getenv("HTTP_PROVIDER_URL")
 	if base == "" {
 		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
 			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
 		}
-		base = os.Getenv("INTEGRATION_BASE")
+		base = os.Getenv("HTTP_PROVIDER_URL")
 	}
 	os.Exit(m.Run())
 }
@@ -991,7 +990,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, "UnExpectedErr"),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData("UnExpectedErr")),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -1010,7 +1009,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, context.DeadlineExceeded),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
 	}[testEnv]
@@ -1067,7 +1066,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     error
+		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
 	testSet := map[string][]testSetType{
@@ -1076,7 +1075,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, "Post \"http://0.0.0.0:5050/\": context deadline exceeded"),
+				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
 	}[testEnv]
@@ -1087,11 +1086,13 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
 		if test.ExpectedErr != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error())
+			rpcErr, ok := err.(*rpc.RPCError)
+			require.True(t, ok)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+			require.Contains(t, rpcErr.Data.ErrorMessage(), test.ExpectedErr.Data.ErrorMessage()) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
-
 	}
 }
 
@@ -1129,21 +1130,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	content, err := os.ReadFile("./tests/hello_world_compiled.sierra.json")
-	require.NoError(t, err)
-
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
+	class := *utils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
 	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
-	require.NoError(t, err)
-
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content2, &casmClass)
-	require.NoError(t, err)
+	casmClass := *utils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
 	compClassHash, err := hash.CompiledClassHash(casmClass)
 	require.NoError(t, err)
 

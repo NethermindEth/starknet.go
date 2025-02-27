@@ -145,10 +145,13 @@ type DeclareTxnV3 struct {
 type ResourceBoundsMapping struct {
 	// The max amount and max price per unit of L1 gas used in this tx
 	L1Gas ResourceBounds `json:"l1_gas"`
+	// The max amount and max price per unit of L1 blob gas used in this tx
+	L1DataGas ResourceBounds `json:"l1_data_gas"`
 	// The max amount and max price per unit of L2 gas used in this tx
 	L2Gas ResourceBounds `json:"l2_gas"`
 }
 
+// DA_MODE: Specifies a storage domain in Starknet. Each domain has different guarantees regarding availability
 type DataAvailabilityMode string
 
 const (
@@ -397,4 +400,41 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	default:
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
+}
+
+// SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
+type SubPendingTxnsInput struct {
+	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
+	TransactionDetails bool `json:"transaction_details,omitempty"`
+	// Optional: Filter transactions to only receive notification from address list
+	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+}
+
+// SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
+type SubPendingTxns struct {
+	// The hash of the pending transaction. Always present.
+	TransactionHash *felt.Felt
+	// The full transaction details. Only present if transactionDetails is true.
+	Transaction *BlockTransaction
+}
+
+// UnmarshalJSON unmarshals the JSON data into a SubPendingTxns object.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
+	var txns *BlockTransaction
+	if err := json.Unmarshal(data, &txns); err == nil {
+		s.Transaction = txns
+		s.TransactionHash = txns.Hash()
+		return nil
+	}
+	var txnsHash *felt.Felt
+	if err := json.Unmarshal(data, &txnsHash); err == nil {
+		s.TransactionHash = txnsHash
+		return nil
+	}
+	return errors.New("failed to unmarshal SubPendingTxns")
 }

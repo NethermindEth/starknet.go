@@ -25,14 +25,14 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		name                  string
 		FunctionCall          FunctionCall
 		BlockID               BlockID
 		ExpectedPatternResult *felt.Felt
-		ExpectedError         error
+		ExpectedError         *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {
@@ -71,6 +71,7 @@ func TestCall(t *testing.T) {
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: utils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
+			// TODO: create a case for the ErrEntrypointNotFound error when Juno implement it
 			{
 				name: "ContractError",
 				FunctionCall: FunctionCall{
@@ -121,7 +122,9 @@ func TestCall(t *testing.T) {
 			require := require.New(t)
 			output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
 			if err != nil {
-				require.EqualError(test.ExpectedError, err.Error())
+				rpcErr, ok := err.(*RPCError)
+				require.True(ok)
+				require.EqualError(test.ExpectedError, rpcErr.Message)
 			} else {
 				require.NoError(err)
 				require.NotEmpty(output, "should return an output")
