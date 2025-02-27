@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -75,6 +74,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getClassAt(result, args...)
 	case "starknet_getClassHashAt":
 		return mock_starknet_getClassHashAt(result, args...)
+	case "starknet_getCompiledCasm":
+		return mock_starknet_getCompiledCasm(result, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, args...)
 	case "starknet_getNonce":
@@ -95,6 +96,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_traceBlockTransactions(result, args...)
 	case "starknet_traceTransaction":
 		return mock_starknet_traceTransaction(result, args...)
+	case "starknet_getMessagesStatus":
+		return mock_starknet_getMessagesStatus(result, args...)
 	default:
 		return errNotFound
 	}
@@ -226,17 +229,12 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	var InvokeTxnV3example BlockInvokeTxnV3
-	read, err := os.ReadFile("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(read, &InvokeTxnV3example)
+	invokeTxnV3example, err := utils.UnmarshallJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 	if err != nil {
 		return err
 	}
 
-	txBytes, err := json.Marshal(InvokeTxnV3example)
+	txBytes, err := json.Marshal(invokeTxnV3example)
 	if err != nil {
 		return err
 	}
@@ -340,13 +338,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 	if arg0Felt.Equal(testTxnHash) {
 
-		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json")
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(read, &txnRec)
+		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 		if err != nil {
 			return err
 		}
@@ -358,13 +350,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		var txnRec TransactionReceiptWithBlockInfo
-		read, err := os.ReadFile("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json")
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(read, &txnRec)
+		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
@@ -799,12 +785,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	var output SimulateTransactionOutput
-	read, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(read, &output)
+	output, err := utils.UnmarshallJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
@@ -837,7 +818,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		if invokeTx.SenderAddress != nil {
 			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
 				unexpErr := *ErrUnexpectedError
-				unexpErr.Data = &RPCData{Message: "Something crazy happened"}
+				unexpErr.Data = StringErrData("Something crazy happened")
 				return &unexpErr
 			}
 		}
@@ -1098,12 +1079,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 
 		return json.Unmarshal(pBlock, &r)
 	} else {
-		var fullBlockSepolia64159 Block
-		read, err := os.ReadFile("tests/block/sepoliaBlockTxs65083.json")
-		if err != nil {
-			return err
-		}
-		err = json.Unmarshal(read, &fullBlockSepolia64159)
+		fullBlockSepolia64159, err := utils.UnmarshallJSONFileToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
 		if err != nil {
 			return err
 		}
@@ -1311,16 +1287,11 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
-
-		var rawBlockTrace []Trace
-
-		read, err := os.ReadFile("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
+		rawBlockTrace, err := utils.UnmarshallJSONFileToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawBlockTrace) {
-			return err
-		}
+
 		BlockTrace, err := json.Marshal(rawBlockTrace)
 		if err != nil {
 			return err
@@ -1365,14 +1336,11 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
-		var rawTrace InvokeTxnTrace
-		read, err := os.ReadFile("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
+		rawTrace, err := utils.UnmarshallJSONFileToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawTrace) {
-			return err
-		}
+
 		txnTrace, err := json.Marshal(rawTrace)
 		if err != nil {
 			return err
@@ -1382,9 +1350,95 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 		return &RPCError{
 			Code:    10,
 			Message: "No trace available for transaction",
-			Data:    &RPCData{Message: "REJECTED"},
+			Data:    &TraceStatusErrData{Status: TraceStatusRejected},
 		}
 	default:
 		return ErrHashNotFound
 	}
+}
+
+// mock_starknet_getCompiledCasm mocks the behavior of getting compiled CASM for a contract class.
+//
+// Parameters:
+// - result: The result of the operation
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	classHash, ok := args[0].(*felt.Felt)
+	if !ok {
+		return errWrongArgs
+	}
+
+	if classHash.String() == "0xbad" {
+		return &RPCError{
+			Code:    100,
+			Message: "Failed to compile the contract",
+			Data:    &CompilationErrData{CompilationError: "compilation error: invalid sierra class"},
+		}
+	}
+
+	// Return error for specific test case
+	if classHash != utils.RANDOM_FELT {
+		return ErrClassHashNotFound
+	}
+
+	// Read the test data from file
+	resp, err := utils.UnmarshallJSONFileToType[json.RawMessage]("tests/compiledCasm.json", "result")
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(*resp, r)
+}
+
+// mock_starknet_getMessagesStatus mocks the behavior of getting the status of L1->L2 messages.
+//
+// Parameters:
+// - result: The result of the operation
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	txHash, ok := args[0].(NumAsHex)
+	if !ok {
+		return errWrongArgs
+	}
+
+	if txHash == "0xdededededededededededededededededededededededededededededededede" {
+		return ErrHashNotFound
+	}
+
+	// Return mock response for successful case
+	response := []MessageStatusResp{
+		{
+			TransactionHash: utils.RANDOM_FELT,
+			FinalityStatus:  TxnStatus_Accepted_On_L2,
+		},
+		{
+			TransactionHash: utils.RANDOM_FELT,
+			FinalityStatus:  TxnStatus_Accepted_On_L2,
+		},
+	}
+
+	outputContent, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(outputContent, r)
 }

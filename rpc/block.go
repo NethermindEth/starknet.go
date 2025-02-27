@@ -184,20 +184,20 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 
 	var m map[string]interface{}
 	if err := json.Unmarshal(result, &m); err != nil {
-		return nil, Err(InternalError, &RPCData{Message: err.Error()})
+		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
 
 	// PendingBlockWithReceipts doesn't contain a "status" field
 	if _, ok := m["status"]; ok {
 		var block BlockWithReceipts
 		if err := json.Unmarshal(result, &block); err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return &block, nil
 	} else {
 		var pendingBlock PendingBlockWithReceipts
 		if err := json.Unmarshal(result, &pendingBlock); err != nil {
-			return nil, Err(InternalError, &RPCData{Message: err.Error()})
+			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return &pendingBlock, nil
 	}

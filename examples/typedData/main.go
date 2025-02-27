@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"os"
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/curve"
@@ -24,12 +22,7 @@ func main() {
 	fmt.Println("Account address:", accnt.AccountAddress)
 
 	// This is how you can initialize a typed data from a JSON file
-	var ttd typedData.TypedData
-	content, err := os.ReadFile("./baseExample.json")
-	if err != nil {
-		panic(fmt.Errorf("fail to read file: %w", err))
-	}
-	err = json.Unmarshal(content, &ttd)
+	ttd, err := utils.UnmarshallJSONFileToType[typedData.TypedData]("./baseExample.json", "")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 	}

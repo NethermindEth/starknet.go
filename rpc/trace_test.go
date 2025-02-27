@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -25,10 +24,7 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	var expectedResp InvokeTxnTrace
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
-	require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling testdata TestTraceTransaction")
+	expectedResp := utils.TestUnmarshallJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -53,7 +49,7 @@ func TestTransactionTrace(t *testing.T) {
 				ExpectedError: &RPCError{
 					Code:    10,
 					Message: "No trace available for transaction",
-					Data:    &RPCData{Message: "REJECTED"},
+					Data:    &TraceStatusErrData{Status: TraceStatusRejected},
 				},
 			},
 		},
@@ -93,23 +89,13 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *utils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
+		expectedResp = *utils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
 	}
 
 	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *utils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
+		expectedResp = *utils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	}
 
 	type testSetType struct {
@@ -164,11 +150,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
-	var blockTraceSepolia []Trace
-
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
-	require.NoError(err, "Error ReadFile for TestTraceBlockTransactions")
-	require.NoError(json.Unmarshal(expectedrespRaw, &blockTraceSepolia), "Error unmarshalling testdata TestTraceBlockTransactions")
+	blockTraceSepolia := *utils.TestUnmarshallJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 
 	type testSetType struct {
 		BlockID      BlockID

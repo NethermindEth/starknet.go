@@ -77,7 +77,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 				ExpectedError: &RPCError{
 					Code:    ErrUnexpectedError.Code,
 					Message: ErrUnexpectedError.Message,
-					Data:    &RPCData{Message: "Something crazy happened"},
+					Data:    StringErrData("Something crazy happened"),
 				},
 			},
 			{

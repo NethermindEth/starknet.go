@@ -1,6 +1,9 @@
 package rpc
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -14,10 +17,55 @@ type CasmCompiledContractClass struct {
 	BytecodeSegmentLengths []int `json:"bytecode_segment_lengths,omitempty"`
 }
 
+// Validate ensures all required fields are present and valid
+func (c *CasmCompiledContractClass) Validate() error {
+	if c.ByteCode == nil {
+		return fmt.Errorf("bytecode is required")
+	}
+	if c.Prime == "" {
+		return fmt.Errorf("prime is required")
+	}
+	if c.CompilerVersion == "" {
+		return fmt.Errorf("compiler_version is required")
+	}
+	if c.Hints == nil {
+		return fmt.Errorf("hints is required")
+	}
+	if err := c.EntryPointsByType.Validate(); err != nil {
+		return fmt.Errorf("entry_points_by_type validation failed: %w", err)
+	}
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (c *CasmCompiledContractClass) UnmarshalJSON(data []byte) error {
+	type Alias CasmCompiledContractClass
+	aux := &Alias{}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	*c = CasmCompiledContractClass(*aux)
+	return c.Validate()
+}
+
 type CasmEntryPointsByType struct {
 	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
 	External    []CasmEntryPoint `json:"EXTERNAL"`
 	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+
+// Validate ensures all required fields are present and valid
+func (e *CasmEntryPointsByType) Validate() error {
+	if e.Constructor == nil {
+		return fmt.Errorf("CONSTRUCTOR is required")
+	}
+	if e.External == nil {
+		return fmt.Errorf("EXTERNAL is required")
+	}
+	if e.L1Handler == nil {
+		return fmt.Errorf("L1_HANDLER is required")
+	}
+	return nil
 }
 
 type CasmEntryPoint struct {
@@ -32,6 +80,35 @@ type Hints struct {
 	HintArr []Hint
 }
 
+// UnmarshalJSON implements json.Unmarshaler interface
+func (h *Hints) UnmarshalJSON(data []byte) error {
+	var tuple []json.RawMessage
+	if err := json.Unmarshal(data, &tuple); err != nil {
+		return err
+	}
+
+	if len(tuple) != 2 {
+		return fmt.Errorf("expected tuple of length 2, got %d", len(tuple))
+	}
+
+	// Unmarshal the first element (integer)
+	if err := json.Unmarshal(tuple[0], &h.Int); err != nil {
+		return fmt.Errorf("failed to unmarshal Int: %w", err)
+	}
+
+	// Unmarshal the second element (array of hints)
+	if err := json.Unmarshal(tuple[1], &h.HintArr); err != nil {
+		return fmt.Errorf("failed to unmarshal HintArr: %w", err)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler interface
+func (h Hints) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]interface{}{h.Int, h.HintArr})
+}
+
 func (hints *Hints) Values() (int, []Hint) {
 	return hints.Int, hints.HintArr
 }
@@ -40,56 +117,182 @@ func (hints *Hints) Tuple() [2]any {
 	return [2]any{hints.Int, hints.HintArr}
 }
 
+// Can be one of the following hints
 type Hint struct {
-	DeprecatedHint
-	CoreHint
-	StarknetHint
+	Type string
+	Data interface{}
 }
 
-type DeprecatedHint struct {
-	DeprecatedHintEnum
-	AssertAllAccessesUsed    AssertAllAccessesUsed    `json:",omitempty"`
-	AssertLtAssertValidInput AssertLtAssertValidInput `json:",omitempty"`
-	Felt252DictRead          Felt252DictRead          `json:",omitempty"`
-	Felt252DictWrite         Felt252DictWrite         `json:",omitempty"`
+// UnmarshalJSON implements json.Unmarshaler
+func (h *Hint) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as string enum first
+	var enumVal string
+	if err := json.Unmarshal(data, &enumVal); err == nil {
+		switch DeprecatedHintEnum(enumVal) {
+		case AssertCurrentAccessIndicesIsEmpty, AssertAllKeysUsed, AssertLeAssertThirdArcExcluded:
+			h.Type = "enum"
+			h.Data = DeprecatedHintEnum(enumVal)
+			return nil
+		}
+	}
+
+	// If not an enum, try to unmarshal as an object
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if len(raw) != 1 {
+		return fmt.Errorf("hint must have exactly one field, got %d", len(raw))
+	}
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+	}
+
+	// Deprecated Hint
+	switch hintType {
+	case "AssertAllAccessesUsed":
+		return unmarshalJSON[AssertAllAccessesUsed](hintData, hintType, h)
+	case "AssertLtAssertValidInput":
+		return unmarshalJSON[AssertLtAssertValidInput](hintData, hintType, h)
+	case "Felt252DictRead":
+		return unmarshalJSON[Felt252DictRead](hintData, hintType, h)
+	case "Felt252DictWrite":
+		return unmarshalJSON[Felt252DictWrite](hintData, hintType, h)
+	}
+
+	// Core Hint
+	switch hintType {
+	case "AllocConstantSize":
+		return unmarshalJSON[AllocConstantSize](hintData, hintType, h)
+	case "AllocFelt252Dict":
+		return unmarshalJSON[AllocFelt252Dict](hintData, hintType, h)
+	case "AllocSegment":
+		return unmarshalJSON[AllocSegment](hintData, hintType, h)
+	case "AssertLeFindSmallArcs":
+		return unmarshalJSON[AssertLeFindSmallArcs](hintData, hintType, h)
+	case "AssertLeIsFirstArcExcluded":
+		return unmarshalJSON[AssertLeIsFirstArcExcluded](hintData, hintType, h)
+	case "AssertLeIsSecondArcExcluded":
+		return unmarshalJSON[AssertLeIsSecondArcExcluded](hintData, hintType, h)
+	case "DebugPrint":
+		return unmarshalJSON[DebugPrint](hintData, hintType, h)
+	case "DivMod":
+		return unmarshalJSON[DivMod](hintData, hintType, h)
+	case "EvalCircuit":
+		return unmarshalJSON[EvalCircuit](hintData, hintType, h)
+	case "Felt252DictEntryInit":
+		return unmarshalJSON[Felt252DictEntryInit](hintData, hintType, h)
+	case "Felt252DictEntryUpdate":
+		return unmarshalJSON[Felt252DictEntryUpdate](hintData, hintType, h)
+	case "FieldSqrt":
+		return unmarshalJSON[FieldSqrt](hintData, hintType, h)
+	case "GetCurrentAccessDelta":
+		return unmarshalJSON[GetCurrentAccessDelta](hintData, hintType, h)
+	case "GetCurrentAccessIndex":
+		return unmarshalJSON[GetCurrentAccessIndex](hintData, hintType, h)
+	case "GetNextDictKey":
+		return unmarshalJSON[GetNextDictKey](hintData, hintType, h)
+	case "GetSegmentArenaIndex":
+		return unmarshalJSON[GetSegmentArenaIndex](hintData, hintType, h)
+	case "InitSquashData":
+		return unmarshalJSON[InitSquashData](hintData, hintType, h)
+	case "LinearSplit":
+		return unmarshalJSON[LinearSplit](hintData, hintType, h)
+	case "RandomEcPoint":
+		return unmarshalJSON[RandomEcPoint](hintData, hintType, h)
+	case "ShouldContinueSquashLoop":
+		return unmarshalJSON[ShouldContinueSquashLoop](hintData, hintType, h)
+	case "ShouldSkipSquashLoop":
+		return unmarshalJSON[ShouldSkipSquashLoop](hintData, hintType, h)
+	case "SquareRoot":
+		return unmarshalJSON[SquareRoot](hintData, hintType, h)
+	case "TestLessThan":
+		return unmarshalJSON[TestLessThan](hintData, hintType, h)
+	case "TestLessThanOrEqual":
+		return unmarshalJSON[TestLessThanOrEqual](hintData, hintType, h)
+	case "TestLessThanOrEqualAddress":
+		return unmarshalJSON[TestLessThanOrEqualAddress](hintData, hintType, h)
+	case "U256InvModN":
+		return unmarshalJSON[U256InvModN](hintData, hintType, h)
+	case "Uint256DivMod":
+		return unmarshalJSON[Uint256DivMod](hintData, hintType, h)
+	case "Uint256SquareRoot":
+		return unmarshalJSON[Uint256SquareRoot](hintData, hintType, h)
+	case "Uint512DivModByUint256":
+		return unmarshalJSON[Uint512DivModByUint256](hintData, hintType, h)
+	case "WideMul128":
+		return unmarshalJSON[WideMul128](hintData, hintType, h)
+	}
+
+	// Starknet Hint
+	switch hintType {
+	case "Cheatcode":
+		return unmarshalJSON[Cheatcode](hintData, hintType, h)
+	case "SystemCall":
+		return unmarshalJSON[SystemCall](hintData, hintType, h)
+	}
+
+	return fmt.Errorf("unknown hint type: %s", hintType)
 }
 
-type CoreHint struct {
-	AllocConstantSize           AllocConstantSize           `json:",omitempty"`
-	AllocFelt252Dict            AllocFelt252Dict            `json:",omitempty"`
-	AllocSegment                AllocSegment                `json:",omitempty"`
-	AssertLeFindSmallArcs       AssertLeFindSmallArcs       `json:",omitempty"`
-	AssertLeIsFirstArcExcluded  AssertLeIsFirstArcExcluded  `json:",omitempty"`
-	AssertLeIsSecondArcExcluded AssertLeIsSecondArcExcluded `json:",omitempty"`
-	DebugPrint                  DebugPrint                  `json:",omitempty"`
-	DivMod                      DivMod                      `json:",omitempty"`
-	EvalCircuit                 EvalCircuit                 `json:",omitempty"`
-	Felt252DictEntryInit        Felt252DictEntryInit        `json:",omitempty"`
-	Felt252DictEntryUpdate      Felt252DictEntryUpdate      `json:",omitempty"`
-	FieldSqrt                   FieldSqrt                   `json:",omitempty"`
-	GetCurrentAccessDelta       GetCurrentAccessDelta       `json:",omitempty"`
-	GetCurrentAccessIndex       GetCurrentAccessIndex       `json:",omitempty"`
-	GetNextDictKey              GetNextDictKey              `json:",omitempty"`
-	GetSegmentArenaIndex        GetSegmentArenaIndex        `json:",omitempty"`
-	InitSquashData              InitSquashData              `json:",omitempty"`
-	LinearSplit                 LinearSplit                 `json:",omitempty"`
-	RandomEcPoint               RandomEcPoint               `json:",omitempty"`
-	ShouldContinueSquashLoop    ShouldContinueSquashLoop    `json:",omitempty"`
-	ShouldSkipSquashLoop        ShouldSkipSquashLoop        `json:",omitempty"`
-	SquareRoot                  SquareRoot                  `json:",omitempty"`
-	TestLessThan                TestLessThan                `json:",omitempty"`
-	TestLessThanOrEqual         TestLessThanOrEqual         `json:",omitempty"`
-	TestLessThanOrEqualAddress  TestLessThanOrEqualAddress  `json:",omitempty"`
-	U256InvModN                 U256InvModN                 `json:",omitempty"`
-	Uint256DivMod               Uint256DivMod               `json:",omitempty"`
-	Uint256SquareRoot           Uint256SquareRoot           `json:",omitempty"`
-	Uint512DivModByUint256      Uint512DivModByUint256      `json:",omitempty"`
-	WideMul128                  WideMul128                  `json:",omitempty"`
+func unmarshalJSON[T any](hintData []byte, hintType string, h *Hint) error {
+	var hint T
+	if err := json.Unmarshal(hintData, &hint); err != nil {
+		return fmt.Errorf("failed to unmarshal %T: %w", hint, err)
+	}
+	h.Type = hintType
+	h.Data = hint
+	return nil
 }
 
-type StarknetHint struct {
-	Cheatcode  Cheatcode  `json:",omitempty"`
-	SystemCall SystemCall `json:",omitempty"`
+// MarshalJSON implements json.Marshaler
+func (h Hint) MarshalJSON() ([]byte, error) {
+	if h.Type == "" || h.Data == nil {
+		return nil, fmt.Errorf("hint type and data must be set")
+	}
+
+	// For enum types, marshal directly as string
+	if h.Type == "enum" {
+		return json.Marshal(h.Data)
+	}
+
+	// Handle types that contain ResOperand or B fields which require custom JSON marshaling.
+	// These types need special handling due to their polymorphic field types.
+	// For all other types, default JSON marshaling will be used.
+	switch typedHint := h.Data.(type) {
+	// Deprecated Hint
+	case AssertLtAssertValidInput, Felt252DictRead, Felt252DictWrite:
+		return marshalJSON(typedHint, &h)
+	// Core Hint
+	case TestLessThan, TestLessThanOrEqual, TestLessThanOrEqualAddress,
+		WideMul128, DivMod, LinearSplit, AllocFelt252Dict,
+		Felt252DictEntryInit, Felt252DictEntryUpdate, GetSegmentArenaIndex,
+		InitSquashData, GetCurrentAccessIndex, AssertLeFindSmallArcs,
+		FieldSqrt, DebugPrint, AllocConstantSize, U256InvModN, EvalCircuit:
+		return marshalJSON(typedHint, &h)
+	// Starknet Hint
+	case Cheatcode, SystemCall:
+		return marshalJSON(typedHint, &h)
+	default:
+		// For all other types, use default marshaling
+		return json.Marshal(map[string]interface{}{
+			h.Type: h.Data,
+		})
+	}
+}
+
+func marshalJSON[T any](typedHint T, h *Hint) ([]byte, error) {
+	rawHint, err := json.Marshal(typedHint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal %T: %w", typedHint, err)
+	}
+	return json.Marshal(map[string]json.RawMessage{h.Type: rawHint})
 }
 
 type DeprecatedHintEnum string
@@ -115,6 +318,30 @@ const (
 	AP Register = "AP"
 	FP Register = "FP"
 )
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *Register) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	switch Register(s) {
+	case AP, FP:
+		*r = Register(s)
+		return nil
+	default:
+		return fmt.Errorf("invalid register value: %s, must be either AP or FP", s)
+	}
+}
+
+// MarshalJSON implements json.Marshaler
+func (r Register) MarshalJSON() ([]byte, error) {
+	if r != AP && r != FP {
+		return nil, fmt.Errorf("invalid register value: %s, must be either AP or FP", r)
+	}
+	return json.Marshal(string(r))
+}
 
 type AssertLtAssertValidInput struct {
 	A ResOperand `json:"a"`
@@ -143,11 +370,71 @@ type Felt252DictEntryUpdate struct {
 	Value   ResOperand `json:"value"`
 }
 
+// Can be one of the following values
 type ResOperand struct {
-	BinOp       BinOp       `json:",omitempty"`
-	Deref       Deref       `json:",omitempty"`
-	DoubleDeref DoubleDeref `json:",omitempty"`
-	Immediate   Immediate   `json:",omitempty"`
+	Type string
+	Data interface{}
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *ResOperand) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if len(raw) != 1 {
+		return fmt.Errorf("res operand must have exactly one field, got %d", len(raw))
+	}
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+	}
+
+	var err error
+
+	switch hintType {
+	case "BinOp":
+		var binOp BinOp
+		err = json.Unmarshal(hintData, &binOp)
+		r.Data = binOp
+	case "Deref":
+		var deref Deref
+		err = json.Unmarshal(hintData, &deref)
+		r.Data = deref
+	case "DoubleDeref":
+		var doubleDeref DoubleDeref
+		err = json.Unmarshal(hintData, &doubleDeref)
+		r.Data = doubleDeref
+	case "Immediate":
+		var immediate Immediate
+		err = json.Unmarshal(hintData, &immediate)
+		r.Data = immediate
+	default:
+		return fmt.Errorf("unknown res operand type: %s", hintType)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal res operand as any known type: %w", err)
+	}
+
+	r.Type = hintType
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (r ResOperand) MarshalJSON() ([]byte, error) {
+	if r.Type == "" || r.Data == nil {
+		return nil, fmt.Errorf("res operand type and data must be set")
+	}
+
+	return json.Marshal(map[string]interface{}{
+		r.Type: r.Data,
+	})
 }
 
 type Deref CellRef
@@ -156,6 +443,35 @@ type Deref CellRef
 type DoubleDeref struct {
 	CellRef CellRef
 	Offset  int
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (dd *DoubleDeref) UnmarshalJSON(data []byte) error {
+	var tuple []json.RawMessage
+	if err := json.Unmarshal(data, &tuple); err != nil {
+		return err
+	}
+
+	if len(tuple) != 2 {
+		return fmt.Errorf("expected tuple of length 2, got %d", len(tuple))
+	}
+
+	// Unmarshal CellRef
+	if err := json.Unmarshal(tuple[0], &dd.CellRef); err != nil {
+		return fmt.Errorf("failed to unmarshal CellRef: %w", err)
+	}
+
+	// Unmarshal offset
+	if err := json.Unmarshal(tuple[1], &dd.Offset); err != nil {
+		return fmt.Errorf("failed to unmarshal Offset: %w", err)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (dd DoubleDeref) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]interface{}{dd.CellRef, dd.Offset})
 }
 
 func (dd *DoubleDeref) Values() (CellRef, int) {
@@ -181,9 +497,61 @@ type BinOp struct {
 	B         B         `json:"b"`
 }
 
+// Can be one of the following values
 type B struct {
-	Deref     Deref     `json:",omitempty"`
-	Immediate Immediate `json:",omitempty"`
+	Type string
+	Data interface{}
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (b *B) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	if len(raw) != 1 {
+		return fmt.Errorf("B must have exactly one field, got %d", len(raw))
+	}
+
+	// Get the single key and value
+	var hintType string
+	var hintData json.RawMessage
+	for k := range raw {
+		hintType = k
+		hintData = raw[k]
+	}
+
+	switch hintType {
+	case "Deref":
+		var deref Deref
+		if err := json.Unmarshal(hintData, &deref); err != nil {
+			return err
+		}
+		b.Data = deref
+	case "Immediate":
+		var immediate Immediate
+		if err := json.Unmarshal(hintData, &immediate); err != nil {
+			return err
+		}
+		b.Data = immediate
+	default:
+		return fmt.Errorf("unknown B type: %s", hintType)
+	}
+
+	b.Type = hintType
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler
+func (b B) MarshalJSON() ([]byte, error) {
+	if b.Type == "" || b.Data == nil {
+		return nil, fmt.Errorf("B type and data must be set")
+	}
+
+	return json.Marshal(map[string]interface{}{
+		b.Type: b.Data,
+	})
 }
 
 type AllocSegment struct {
@@ -272,7 +640,7 @@ type InitSquashData struct {
 	PtrDiff    ResOperand `json:"ptr_diff"`
 	NAccesses  ResOperand `json:"n_accesses"`
 	BigKeys    CellRef    `json:"big_keys"`
-	FirstKeys  CellRef    `json:"first_key"`
+	FirstKey   CellRef    `json:"first_key"`
 }
 
 type GetCurrentAccessIndex struct {
@@ -338,8 +706,8 @@ type U256InvModN struct {
 	G1Option  CellRef    `json:"g1_option"`
 	SOrR0     CellRef    `json:"s_or_r0"`
 	SOrR1     CellRef    `json:"s_or_r1"`
-	TOrR0     CellRef    `json:"t_or_k0"`
-	TOrR1     CellRef    `json:"t_or_k1"`
+	TOrK0     CellRef    `json:"t_or_k0"`
+	TOrK1     CellRef    `json:"t_or_k1"`
 }
 
 type EvalCircuit struct {

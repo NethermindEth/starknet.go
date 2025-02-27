@@ -2,7 +2,6 @@ package account_test
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -991,7 +990,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "UnExpectedErr"}),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData("UnExpectedErr")),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -1010,7 +1009,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, &rpc.RPCData{Message: context.DeadlineExceeded.Error()}),
+				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
 	}[testEnv]
@@ -1076,7 +1075,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, &rpc.RPCData{Message: "context deadline exceeded"}),
+				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
 	}[testEnv]
@@ -1090,7 +1089,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			rpcErr, ok := err.(*rpc.RPCError)
 			require.True(t, ok)
 			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-			require.Contains(t, rpcErr.Data.Message, test.ExpectedErr.Data.Message) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+			require.Contains(t, rpcErr.Data.ErrorMessage(), test.ExpectedErr.Data.ErrorMessage()) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
@@ -1131,21 +1130,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class Hash
-	content, err := os.ReadFile("./tests/hello_world_compiled.sierra.json")
-	require.NoError(t, err)
-
-	var class rpc.ContractClass
-	err = json.Unmarshal(content, &class)
-	require.NoError(t, err)
+	class := *utils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
 	classHash := hash.ClassHash(class)
 
 	// Compiled Class Hash
-	content2, err := os.ReadFile("./tests/hello_world_compiled.casm.json")
-	require.NoError(t, err)
-
-	var casmClass contracts.CasmClass
-	err = json.Unmarshal(content2, &casmClass)
-	require.NoError(t, err)
+	casmClass := *utils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
 	compClassHash, err := hash.CompiledClassHash(casmClass)
 	require.NoError(t, err)
 
