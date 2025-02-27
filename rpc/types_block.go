@@ -27,6 +27,13 @@ type BlockID struct {
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
+// Block hash, number or tag, same as BLOCK_ID, but without 'pending'
+type SubscriptionBlockID struct {
+	Number uint64     `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    string     `json:"block_tag,omitempty"`
+}
+
 // MarshalJSON marshals the BlockID to JSON format.
 //
 // It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
@@ -57,7 +64,34 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	return nil, ErrInvalidBlockID
+}
 
+// MarshalJSON marshals the SubscriptionBlockID to JSON format.
+//
+// It returns a byte slice and an error. The byte slice contains the JSON representation of the SubscriptionBlockID,
+// while the error indicates any error that occurred during the marshaling process.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+// - []byte: the JSON representation of the SubscriptionBlockID
+// - error: any error that occurred during the marshaling process
+func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
+	if b.Number != 0 {
+		return []byte(fmt.Sprintf(`{"block_number":%d}`, b.Number)), nil
+	}
+
+	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
+		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
+	}
+
+	if b.Tag == "latest" || b.Tag == "" {
+		return []byte(strconv.Quote("latest")), nil
+	}
+
+	return nil, ErrInvalidBlockID
 }
 
 type BlockStatus string

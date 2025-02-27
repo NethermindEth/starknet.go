@@ -58,6 +58,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 - [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
 - [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/) on testnet.
 - [typed data example](./examples/typedData) to sign and verify a typed data.
+- [websocket example](./examples/websocket) to learn how to subscribe to WebSocket methods.
 
 ### Run Examples
 
@@ -104,6 +105,15 @@ go run main.go
 ```
 
 > Check [here](examples/typedData/README.md) for more details.
+
+***starknet websocket***
+
+```sh
+cd examples/websocket
+go run main.go
+```
+
+> Check [here](examples/websocket/README.md) for more details.
 
 <br/> Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ answered by these examples.
 

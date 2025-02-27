@@ -149,7 +149,6 @@ func BigToHex(in *big.Int) string {
 // - funcName: the name of the function
 // Returns:
 // - *big.Int: the selector
-// TODO: this is used by the signer. Should it return a felt?
 func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 

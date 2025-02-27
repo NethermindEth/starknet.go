@@ -164,6 +164,10 @@ var (
 		Code:    20,
 		Message: "Contract not found",
 	}
+	ErrEntrypointNotFound = &RPCError{
+		Code:    21,
+		Message: "Requested entrypoint does not exist in the contract",
+	}
 	ErrBlockNotFound = &RPCError{
 		Code:    24,
 		Message: "Block not found",
@@ -271,6 +275,18 @@ var (
 	ErrUnexpectedError = &RPCError{
 		Code:    63,
 		Message: "An unexpected error occurred",
+	}
+	ErrInvalidSubscriptionID = &RPCError{
+		Code:    66,
+		Message: "Invalid subscription id",
+	}
+	ErrTooManyAddressesInFilter = &RPCError{
+		Code:    67,
+		Message: "Too many addresses in filter sender_address filter",
+	}
+	ErrTooManyBlocksBack = &RPCError{
+		Code:    68,
+		Message: "Cannot go back more than 1024 blocks",
 	}
 	ErrCompilationError = &RPCError{
 		Code:    100,

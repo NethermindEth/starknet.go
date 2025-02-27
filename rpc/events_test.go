@@ -29,7 +29,7 @@ import (
 //
 //	none
 func TestEvents(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		eventFilter  EventFilter

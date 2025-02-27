@@ -7,7 +7,8 @@ import (
 	"net/http/cookiejar"
 
 	"github.com/NethermindEth/juno/core/felt"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
+	"github.com/NethermindEth/starknet.go/client"
+	"github.com/gorilla/websocket"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -22,22 +23,51 @@ type Provider struct {
 	chainID string
 }
 
-// NewProvider creates a new rpc Provider instance.
-func NewProvider(url string, options ...ethrpc.ClientOption) (*Provider, error) {
+// WsProvider provides the provider for websocket starknet.go/rpc implementation.
+type WsProvider struct {
+	c wsConn
+}
+
+// Close closes the client, aborting any in-flight requests.
+func (p *WsProvider) Close() {
+	p.c.Close()
+}
+
+// NewProvider creates a new HTTP rpc Provider instance.
+func NewProvider(url string, options ...client.ClientOption) (*Provider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{Jar: jar}
+	httpClient := &http.Client{Jar: jar}
 	// prepend the custom client to allow users to override
-	options = append([]ethrpc.ClientOption{ethrpc.WithHTTPClient(client)}, options...)
-	c, err := ethrpc.DialOptions(context.Background(), url, options...)
+	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
+	c, err := client.DialOptions(context.Background(), url, options...)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &Provider{c: c}, nil
+}
+
+// NewWebsocketProvider creates a new Websocket rpc Provider instance.
+func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvider, error) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	dialer := websocket.Dialer{Jar: jar}
+
+	// prepend the custom client to allow users to override
+	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
+	c, err := client.DialOptions(context.Background(), url, options...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &WsProvider{c: c}, nil
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
@@ -76,4 +106,12 @@ type RpcProvider interface {
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 }
 
+type WebsocketProvider interface {
+	SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error)
+	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID *SubscriptionBlockID) (*client.ClientSubscription, error)
+	SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *SubPendingTxns, options *SubPendingTxnsInput) (*client.ClientSubscription, error)
+	SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatusResp, transactionHash *felt.Felt) (*client.ClientSubscription, error)
+}
+
 var _ RpcProvider = &Provider{}
+var _ WebsocketProvider = &WsProvider{}
