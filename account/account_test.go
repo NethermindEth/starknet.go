@@ -13,9 +13,9 @@ import (
 	"github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )

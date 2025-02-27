@@ -7,8 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.

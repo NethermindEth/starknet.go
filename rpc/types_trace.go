@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type SimulateTransactionInput struct {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // Class retrieves the class information from the Provider with the given hash.

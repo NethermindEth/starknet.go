@@ -18,7 +18,7 @@ import (
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 var Curve StarkCurve
