@@ -2,8 +2,6 @@ package account_test
 
 import (
 	"context"
-	"flag"
-	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -14,18 +12,19 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/internal"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
-	base    = ""
+	// the environment for the test, default: mock
+	testEnv = ""
+	// the base url for the test
+	base = ""
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
@@ -42,17 +41,14 @@ var (
 //
 //	none
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.Parse()
+	testEnv = internal.LoadEnv()
+
 	if testEnv == "mock" {
 		return
 	}
 	base = os.Getenv("HTTP_PROVIDER_URL")
 	if base == "" {
-		if err := godotenv.Load(fmt.Sprintf(".env.%s", testEnv)); err != nil {
-			panic(fmt.Sprintf("Failed to load .env.%s, err: %s", testEnv, err))
-		}
-		base = os.Getenv("HTTP_PROVIDER_URL")
+		panic("Failed to load HTTP_PROVIDER_URL, empty string")
 	}
 	os.Exit(m.Run())
 }
