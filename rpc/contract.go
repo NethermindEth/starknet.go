@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // Class retrieves the class information from the Provider with the given hash.
@@ -106,7 +106,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 // - error: An error if any occurred during the execution
 func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error) {
 	var value string
-	hashKey := fmt.Sprintf("0x%x", utils.GetSelectorFromName(key))
+	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
 
 		return "", tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)

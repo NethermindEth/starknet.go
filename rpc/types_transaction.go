@@ -8,7 +8,7 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // https://github.com/starkware-libs/starknet-specs/blob/a789ccc3432c57777beceaa53a34a7ae2f25fda0/api/starknet_api_openrpc.json#L1252
@@ -196,7 +196,7 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 		return nil, err
 	}
 	maxPriceBytes := maxPricePerUnitFelt.Bytes()
-	return utils.Flatten(
+	return internalUtils.Flatten(
 		[]byte{0},
 		[]byte(resource),
 		maxAmountBytes,
@@ -265,7 +265,7 @@ func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	// BlockWithReceipts swrap transaction in the Transaction field.
-	dec, err := utils.UnwrapJSON(dec, "Transaction")
+	dec, err := internalUtils.UnwrapJSON(dec, "Transaction")
 	if err != nil {
 		return err
 	}
