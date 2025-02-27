@@ -1089,7 +1089,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			rpcErr, ok := err.(*rpc.RPCError)
 			require.True(t, ok)
 			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-			require.Contains(t, rpcErr.Data.Message, test.ExpectedErr.Data.Message) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+			require.Contains(t, rpcErr.Data.ErrorMessage(), test.ExpectedErr.Data.ErrorMessage()) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
 		} else {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}

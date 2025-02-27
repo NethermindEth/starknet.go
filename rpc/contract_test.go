@@ -396,7 +396,6 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
-	//TODO: upgrade the testnet test case before merge
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -482,7 +481,6 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
-	//TODO: upgrade the mainnet and testnet test cases before merge
 	t.Skip("TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type")
 
 	testConfig := beforeEach(t, false)
@@ -717,7 +715,7 @@ func TestEstimateFee(t *testing.T) {
 
 func TestGetStorageProof(t *testing.T) {
 	t.Skip("TODO: incomplete. Waiting for the websocket PR to be merged, so that we can change the behavior of the client.CallContext method")
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		Description       string

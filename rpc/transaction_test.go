@@ -166,8 +166,6 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
-	//TODO: implement a test case to 'failure_reason' before merge
-
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -205,7 +203,7 @@ func TestGetTransactionStatus(t *testing.T) {
 
 // TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		TxHash       NumAsHex
