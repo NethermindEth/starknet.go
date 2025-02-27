@@ -32,7 +32,7 @@ jobs:
         run: cd rpc && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050/"
+          HTTP_PROVIDER_URL: "http://localhost:5050/"
 
       # Test rpc on mock
       - name: Test RPC with mocks
@@ -43,7 +43,8 @@ jobs:
         run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://free-rpc.nethermind.io/sepolia-juno"
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
@@ -51,18 +52,23 @@ jobs:
         #run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://free-rpc.nethermind.io/mainnet-juno"
+          HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}
 
       # Test Account on devnet
       - name: Test Account on devnet
         run: cd account && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050"
+          HTTP_PROVIDER_URL: "http://localhost:5050"
 
       # Test Account on mock
       - name: Test Account with mocks
         run: cd account && go test -v . -env mock
+
+      # Test client on mock
+      - name: Test client with mocks
+        run: cd client && go test -v
 
       # Build examples
       - name: Build examples
@@ -71,3 +77,5 @@ jobs:
           cd ../simpleCall && go build
           cd ../simpleInvoke && go build
           cd ../deployContractUDC && go build
+          cd ../typedData && go build
+          cd ../websocket && go build

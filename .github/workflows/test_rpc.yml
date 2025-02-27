@@ -34,7 +34,7 @@ jobs:
         run: cd rpc && go test -timeout 600s -v -env devnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://localhost:5050/"
+          HTTP_PROVIDER_URL: "http://localhost:5050/"
 
       # Test rpc on mock
       - name: Test RPC with mocks
@@ -46,7 +46,8 @@ jobs:
         #run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://free-rpc.nethermind.io/sepolia-juno"
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
@@ -54,4 +55,5 @@ jobs:
         #run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "https://free-rpc.nethermind.io/mainnet-juno"
+          HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}

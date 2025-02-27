@@ -18,7 +18,7 @@ import (
 //
 //	none
 func TestBlockNumber(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
 	require.NoError(t, err, "BlockNumber should not return an error")
@@ -34,7 +34,7 @@ func TestBlockNumber(t *testing.T) {
 //
 //	none
 func TestBlockHashAndNumber(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
@@ -73,7 +73,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                          BlockID
@@ -185,7 +185,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 //	none
 func TestBlockWithTxs(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
 	type testSetType struct {
@@ -359,7 +359,7 @@ func TestBlockWithTxs(t *testing.T) {
 //
 //	none
 func TestBlockTransactionCount(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		BlockID       BlockID
@@ -407,7 +407,7 @@ func TestBlockTransactionCount(t *testing.T) {
 //
 //	none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		StartBlock uint64
@@ -466,7 +466,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 //	none
 func TestStateUpdate(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                   BlockID

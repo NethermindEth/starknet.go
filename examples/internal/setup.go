@@ -40,6 +40,11 @@ func GetRpcProviderUrl() string {
 	return getEnv("RPC_PROVIDER_URL")
 }
 
+// Validates whether the WS_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
+func GetWsProviderUrl() string {
+	return getEnv("WS_PROVIDER_URL")
+}
+
 // Validates whether the PRIVATE_KEY variable has been set in the '.env' file and returns it; panics otherwise.
 func GetPrivateKey() string {
 	return getEnv("PRIVATE_KEY")

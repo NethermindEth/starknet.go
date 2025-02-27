@@ -124,7 +124,7 @@ type FnInvocation struct {
 	// Resources consumed by the internal call
 	ExecutionResources InnerCallExecutionResources `json:"execution_resources"`
 
-	// true if this inner call panicked
+	// True if this inner call panicked
 	IsReverted bool `json:"is_reverted"`
 }
 

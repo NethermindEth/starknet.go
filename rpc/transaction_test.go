@@ -16,7 +16,7 @@ import (
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		TxHash      *felt.Felt
@@ -83,7 +83,7 @@ func TestTransactionByHash(t *testing.T) {
 //
 //	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		BlockID     BlockID
@@ -122,7 +122,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 func TestTransactionReceipt(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt
@@ -166,7 +166,9 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
-	testConfig := beforeEach(t)
+	//TODO: implement a test case to 'failure_reason' before merge
+
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt

@@ -22,7 +22,7 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	expectedResp := utils.TestUnmarshallJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
@@ -84,7 +84,7 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
@@ -147,7 +147,7 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
 	blockTraceSepolia := *utils.TestUnmarshallJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")

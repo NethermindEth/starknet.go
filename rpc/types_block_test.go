@@ -132,7 +132,7 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
 	type testSetType struct {

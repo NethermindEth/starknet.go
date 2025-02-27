@@ -142,8 +142,9 @@ type ContractsProof struct {
 // The nonce and class hash for each requested contract address, in the order in which
 // they appear in the request. These values are needed to construct the associated leaf node
 type ContractLeavesData struct {
-	Nonce     *felt.Felt `json:"nonce"`
-	ClassHash *felt.Felt `json:"class_hash"`
+	Nonce       *felt.Felt `json:"nonce"`
+	ClassHash   *felt.Felt `json:"class_hash"`
+	StorageRoot *felt.Felt `json:"storage_root"`
 }
 
 type GlobalRoots struct {
