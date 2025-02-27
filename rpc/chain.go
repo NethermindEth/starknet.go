@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/NethermindEth/starknet.go/internal/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // ChainID returns the chain ID for transaction replay protection.
@@ -21,7 +21,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	if err := do(ctx, provider.c, "starknet_chainId", &result); err != nil {
 		return "", tryUnwrapToRPCErr(err)
 	}
-	provider.chainID = utils.HexToShortStr(result)
+	provider.chainID = internalUtils.HexToShortStr(result)
 	return provider.chainID, nil
 }
 

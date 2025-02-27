@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/internal/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -144,12 +144,12 @@ func TestBlockWithReceipts(t *testing.T) {
 	var blockWithReceipt BlockWithReceipts
 
 	if testEnv == "testnet" {
-		blockWithReceipt = *utils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
+		blockWithReceipt = *internalUtils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	} else if testEnv == "mainnet" {
-		blockWithReceipt = *utils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
+		blockWithReceipt = *internalUtils.TestUnmarshallJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
-	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")
+	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 	var blockMock123 = BlockWithReceipts{
 		BlockHeader{
 			BlockHash: deadBeef,

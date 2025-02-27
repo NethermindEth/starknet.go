@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/internal/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type BlockTransactions []IBlockTransaction
@@ -174,7 +174,7 @@ func (txn *BlockTransaction) UnmarshalJSON(data []byte) error {
 	}
 
 	// BlockTransaction wrap transaction in the IBlockTransaction field.
-	dec, err := utils.UnwrapJSON(dec, "IBlockTransaction")
+	dec, err := internalUtils.UnwrapJSON(dec, "IBlockTransaction")
 	if err != nil {
 		return err
 	}

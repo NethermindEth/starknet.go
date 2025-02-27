@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/NethermindEth/starknet.go/internal/utils"
+import internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 
 // UnmarshallJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it returns an error.
@@ -12,5 +12,5 @@ import "github.com/NethermindEth/starknet.go/internal/utils"
 // - *T: pointer to the unmarshalled data of type T
 // - error: error if file reading or unmarshalling fails
 func UnmarshallJSONFileToType[T any](filePath string, subfield string) (*T, error) {
-	return utils.UnmarshallJSONFileToType[T](filePath, subfield)
+	return internalUtils.UnmarshallJSONFileToType[T](filePath, subfield)
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/internal/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
@@ -88,14 +88,14 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // - []*felt.Felt: an array of signed felt messages
 // - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
-	msgBig := utils.FeltToBigInt(msg)
+	msgBig := internalUtils.FeltToBigInt(msg)
 
 	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
 	if err != nil {
 		return nil, err
 	}
-	s1Felt := utils.BigIntToFelt(s1)
-	s2Felt := utils.BigIntToFelt(s2)
+	s1Felt := internalUtils.BigIntToFelt(s1)
+	s2Felt := internalUtils.BigIntToFelt(s2)
 
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }

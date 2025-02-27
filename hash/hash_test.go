@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/internal/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -108,7 +108,7 @@ func TestClassHashes(t *testing.T) {
 		for _, test := range testSet {
 
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *utils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
+				sierraClass := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
 				hash := hash.ClassHash(sierraClass)
 				assert.Equal(t, test.ExpectedClassHash, hash.String())
@@ -120,7 +120,7 @@ func TestClassHashes(t *testing.T) {
 		for _, test := range testSet {
 
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *utils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
+				casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
 
 				hash, err := hash.CompiledClassHash(casmClass)
 				require.NoError(t, err)
