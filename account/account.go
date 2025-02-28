@@ -86,20 +86,26 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - calldata: A slice of *felt.Felt representing the calldata for the transaction.
+//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
+//     multiple function calls in the same transaction.
 //   - resourceBounds: The rpc.ResourceBoundsMapping specifying the resource bounds for the transaction.
 //
 // Returns:
 //   - *rpc.BroadcastInvokev3Txn: A pointer to the built transaction.
 //   - error: An error if the transaction building fails.
-func (account *Account) BuildInvokeTxn(ctx context.Context, calldata []*felt.Felt, resourceBounds rpc.ResourceBoundsMapping) (*rpc.BroadcastInvokev3Txn, error) {
+func (account *Account) BuildInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, resourceBounds rpc.ResourceBoundsMapping) (*rpc.BroadcastInvokev3Txn, error) {
 	// TODO: add resource bounds automatic calculation with estimateFee, removing the need to pass resourceBounds
 	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, calldata, resourceBounds)
+	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
+	if err != nil {
+		return nil, err
+	}
+
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, resourceBounds)
 
 	// estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
 	// if err != nil {

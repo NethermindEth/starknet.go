@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -57,22 +56,6 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	// Getting the nonce from the account
-	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
-	if err != nil {
-		panic(err)
-	}
-
-	// Building the InvokeTx struct
-	InvokeTx := rpc.BroadcastInvokev1Txn{
-		InvokeTxnV1: rpc.InvokeTxnV1{
-			MaxFee:        new(felt.Felt).SetUint64(100000000000000),
-			Version:       rpc.TransactionV1,
-			Nonce:         nonce,
-			Type:          rpc.TransactionType_Invoke,
-			SenderAddress: accnt.AccountAddress,
-		}}
-
 	// Converting the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(someContract)
 	if err != nil {
@@ -80,48 +63,42 @@ func main() {
 	}
 
 	amount, _ := utils.HexToFelt("0xffffffff")
+
 	// Building the functionCall struct, where :
-	FnCall := rpc.FunctionCall{
-		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
-		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
-		Calldata:           []*felt.Felt{amount, &felt.Zero},              //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
+	FnCall := rpc.InvokeFunctionCall{
+		ContractAddress: contractAddress,                  //contractAddress is the contract that we want to call
+		FunctionName:    contractMethod,                   //this is the function that we want to call
+		CallData:        []*felt.Felt{amount, &felt.Zero}, //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
 	}
 
-	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
+	// Building the Broadcast Invoke Txn struct.
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
-	// To do this in Starknet.go, just group all the function calls in the same slice and pass it to FmtCalldata
-	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
-	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
+	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
+	InvokeTx, err := accnt.BuildInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, rpc.ResourceBoundsMapping{})
 	if err != nil {
 		panic(err)
 	}
 
-	// Signing of the transaction that is done by the account
-	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
-	if err != nil {
-		panic(err)
-	}
-
-	// Estimate the transaction fee
-	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
-	if err != nil {
-		setup.PanicRPC(err)
-	}
-	estimatedFee := feeRes[0].OverallFee
-	// If the estimated fee is higher than the current fee, let's override it and sign again
-	if estimatedFee.Cmp(InvokeTx.MaxFee) == 1 {
-		newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
-		if err != nil {
-			panic(err)
-		}
-		InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
-		// Signing the transaction again
-		err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
-		if err != nil {
-			panic(err)
-		}
-	}
+	// // Estimate the transaction fee
+	// feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	// if err != nil {
+	// 	setup.PanicRPC(err)
+	// }
+	// estimatedFee := feeRes[0].OverallFee
+	// // If the estimated fee is higher than the current fee, let's override it and sign again
+	// if estimatedFee.Cmp(InvokeTx.MaxFee) == 1 {
+	// 	newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
+	// 	// Signing the transaction again
+	// 	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
 	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
