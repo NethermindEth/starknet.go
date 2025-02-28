@@ -10,7 +10,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type Keystore interface {
@@ -147,8 +147,8 @@ func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 		fmt.Println("can't generate public key:", err)
 		os.Exit(1)
 	}
-	privFelt := utils.BigIntToFelt(privateKey)
-	pubFelt := utils.BigIntToFelt(pubX)
+	privFelt := internalUtils.BigIntToFelt(privateKey)
+	pubFelt := internalUtils.BigIntToFelt(pubX)
 
 	// set up keystore
 	ks := NewMemKeystore()

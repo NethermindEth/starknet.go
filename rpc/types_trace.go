@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type SimulateTransactionInput struct {
@@ -163,7 +163,7 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 	}
 
 	// SimulatedTransaction wraps transactions in the TxnTrace field.
-	rawTxnTrace, err := utils.UnwrapJSON(dec, "transaction_trace")
+	rawTxnTrace, err := internalUtils.UnwrapJSON(dec, "transaction_trace")
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 	}
 
 	// Trace wrap trace transactions in the TraceRoot field.
-	rawTraceTx, err := utils.UnwrapJSON(dec, "trace_root")
+	rawTraceTx, err := internalUtils.UnwrapJSON(dec, "trace_root")
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 		if !ok {
 			return fmt.Errorf("failed to unmarshal transaction hash, transaction_hash is not a string")
 		}
-		txHash, err = utils.HexToFelt(txHashString)
+		txHash, err = internalUtils.HexToFelt(txHashString)
 		if err != nil {
 			return err
 		}

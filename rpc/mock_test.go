@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/pkg/errors"
 )
 
@@ -145,7 +145,7 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 
 	blockData := BlockHashAndNumberOutput{
 		BlockNumber: 1234,
-		BlockHash:   utils.RANDOM_FELT,
+		BlockHash:   internalUtils.RANDOM_FELT,
 	}
 
 	resp, err := json.Marshal(blockData)
@@ -197,11 +197,11 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 	}
 
 	value := SyncStatus{
-		StartingBlockHash: utils.RANDOM_FELT,
+		StartingBlockHash: internalUtils.RANDOM_FELT,
 		StartingBlockNum:  "0x4c602",
-		CurrentBlockHash:  utils.RANDOM_FELT,
+		CurrentBlockHash:  internalUtils.RANDOM_FELT,
 		CurrentBlockNum:   "0x4c727",
-		HighestBlockHash:  utils.RANDOM_FELT,
+		HighestBlockHash:  internalUtils.RANDOM_FELT,
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
@@ -229,7 +229,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	invokeTxnV3example, err := utils.UnmarshallJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	invokeTxnV3example, err := internalUtils.UnmarshallJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 	if err != nil {
 		return err
 	}
@@ -332,13 +332,13 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	if err != nil {
 		return err
 	}
-	testTxnHash, err := utils.HexToFelt("0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b")
+	testTxnHash, err := internalUtils.HexToFelt("0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b")
 	if err != nil {
 		return err
 	}
 	if arg0Felt.Equal(testTxnHash) {
 
-		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+		txnRec, err := internalUtils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 		if err != nil {
 			return err
 		}
@@ -350,7 +350,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		txnRec, err := utils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+		txnRec, err := internalUtils.UnmarshallJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 		return json.Unmarshal(txnReceipt, &r)
 	}
 
-	fromAddressFelt, err := utils.HexToFelt("0xdeadbeef")
+	fromAddressFelt, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -404,7 +404,7 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	fakeSelector, err := utils.HexToFelt("0xdeadbeef")
+	fakeSelector, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error
 	if len(args) != 2 {
 		return errWrongArgs
 	}
-	classHash, err := utils.HexToFelt("0xdeadbeef")
+	classHash, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -537,11 +537,11 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 		return fmt.Errorf("-ChuckSize error message-")
 	}
 
-	blockHash, err := utils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
+	blockHash, err := internalUtils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
 	if err != nil {
 		return err
 	}
-	txHash, err := utils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	txHash, err := internalUtils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
 	if err != nil {
 		return err
 	}
@@ -612,7 +612,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 
 	switch args[0].(type) {
 	case BroadcastDeclareTxnV2, BroadcastDeclareTxnV3:
-		deadbeefFelt, err := utils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
+		deadbeefFelt, err := internalUtils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
 		if err != nil {
 			return err
 		}
@@ -679,13 +679,13 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 		}
 	} else {
 		output = FeeEstimation{
-			L1GasConsumed:     utils.RANDOM_FELT,
-			L1GasPrice:        utils.RANDOM_FELT,
-			L2GasConsumed:     utils.RANDOM_FELT,
-			L2GasPrice:        utils.RANDOM_FELT,
-			L1DataGasConsumed: utils.RANDOM_FELT,
-			L1DataGasPrice:    utils.RANDOM_FELT,
-			OverallFee:        utils.RANDOM_FELT,
+			L1GasConsumed:     internalUtils.RANDOM_FELT,
+			L1GasPrice:        internalUtils.RANDOM_FELT,
+			L2GasConsumed:     internalUtils.RANDOM_FELT,
+			L2GasPrice:        internalUtils.RANDOM_FELT,
+			L1DataGasConsumed: internalUtils.RANDOM_FELT,
+			L1DataGasPrice:    internalUtils.RANDOM_FELT,
+			OverallFee:        internalUtils.RANDOM_FELT,
 			FeeUnit:           UnitWei,
 		}
 	}
@@ -728,11 +728,11 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 	}
 
 	output := FeeEstimation{
-		L1GasConsumed: utils.RANDOM_FELT,
-		L1GasPrice:    utils.RANDOM_FELT,
-		L2GasConsumed: utils.RANDOM_FELT,
-		L2GasPrice:    utils.RANDOM_FELT,
-		OverallFee:    utils.RANDOM_FELT,
+		L1GasConsumed: internalUtils.RANDOM_FELT,
+		L1GasPrice:    internalUtils.RANDOM_FELT,
+		L2GasConsumed: internalUtils.RANDOM_FELT,
+		L2GasPrice:    internalUtils.RANDOM_FELT,
+		OverallFee:    internalUtils.RANDOM_FELT,
 	}
 	outputContent, err := json.Marshal(output)
 	if err != nil {
@@ -785,7 +785,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	output, err := utils.UnmarshallJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
+	output, err := internalUtils.UnmarshallJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
@@ -822,7 +822,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 				return &unexpErr
 			}
 		}
-		deadbeefFelt, err := utils.HexToFelt("0xdeadbeef")
+		deadbeefFelt, err := internalUtils.HexToFelt("0xdeadbeef")
 		if err != nil {
 			return err
 		}
@@ -838,7 +838,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		}
 		return nil
 	case BroadcastInvokev3Txn:
-		deadbeefFelt, err := utils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
+		deadbeefFelt, err := internalUtils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
 		if err != nil {
 			return err
 		}
@@ -868,7 +868,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 	switch args[0].(type) {
 	case BroadcastDeployAccountTxn, BroadcastDeployAccountTxnV3:
 
-		deadbeefFelt, err := utils.HexToFelt("0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e")
+		deadbeefFelt, err := internalUtils.HexToFelt("0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e")
 		if err != nil {
 			return err
 		}
@@ -953,7 +953,7 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 		return errWrongArgs
 	}
 
-	stateFeltArr, err := utils.HexArrToFelt([]string{
+	stateFeltArr, err := internalUtils.HexArrToFelt([]string{
 		"0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938",
 		"0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec",
 		"0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
@@ -1021,7 +1021,7 @@ func mock_starknet_getNonce(result interface{}, args ...interface{}) error {
 		fmt.Printf("args[0] should be *felt.Felt, got %T\n", args[1])
 		return errWrongArgs
 	}
-	output, err := utils.HexToFelt("0xdeadbeef")
+	output, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -1057,7 +1057,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return errWrongArgs
 	}
 
-	fakeFeltField, err := utils.HexToFelt("0xdeadbeef")
+	fakeFeltField, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -1079,7 +1079,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 
 		return json.Unmarshal(pBlock, &r)
 	} else {
-		fullBlockSepolia64159, err := utils.UnmarshallJSONFileToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
+		fullBlockSepolia64159, err := internalUtils.UnmarshallJSONFileToType[Block]("tests/block/sepoliaBlockTxs65083.json", "result")
 		if err != nil {
 			return err
 		}
@@ -1115,14 +1115,14 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	txHashes, err := utils.HexArrToFelt([]string{
+	txHashes, err := internalUtils.HexArrToFelt([]string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
 		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
 	if err != nil {
 		return err
 	}
-	fakeFelt, err := utils.HexToFelt("0xbeef")
+	fakeFelt, err := internalUtils.HexToFelt("0xbeef")
 
 	if blockId.Tag == "pending" {
 		pBlock, err := json.Marshal(
@@ -1180,7 +1180,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	fakeFeltField, err := utils.HexToFelt("0xdeadbeef")
+	fakeFeltField, err := internalUtils.HexToFelt("0xdeadbeef")
 	if err != nil {
 		return err
 	}
@@ -1287,7 +1287,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
-		rawBlockTrace, err := utils.UnmarshallJSONFileToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
+		rawBlockTrace, err := internalUtils.UnmarshallJSONFileToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 		if err != nil {
 			return err
 		}
@@ -1336,7 +1336,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
-		rawTrace, err := utils.UnmarshallJSONFileToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+		rawTrace, err := internalUtils.UnmarshallJSONFileToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 		if err != nil {
 			return err
 		}
@@ -1386,12 +1386,12 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Return error for specific test case
-	if classHash != utils.RANDOM_FELT {
+	if classHash != internalUtils.RANDOM_FELT {
 		return ErrClassHashNotFound
 	}
 
 	// Read the test data from file
-	resp, err := utils.UnmarshallJSONFileToType[json.RawMessage]("tests/compiledCasm.json", "result")
+	resp, err := internalUtils.UnmarshallJSONFileToType[json.RawMessage]("tests/compiledCasm.json", "result")
 	if err != nil {
 		return err
 	}
@@ -1426,11 +1426,11 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	// Return mock response for successful case
 	response := []MessageStatusResp{
 		{
-			TransactionHash: utils.RANDOM_FELT,
+			TransactionHash: internalUtils.RANDOM_FELT,
 			FinalityStatus:  TxnStatus_Accepted_On_L2,
 		},
 		{
-			TransactionHash: utils.RANDOM_FELT,
+			TransactionHash: internalUtils.RANDOM_FELT,
 			FinalityStatus:  TxnStatus_Accepted_On_L2,
 		},
 	}

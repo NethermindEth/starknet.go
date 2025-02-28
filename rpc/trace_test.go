@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +24,7 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	expectedResp := utils.TestUnmarshallJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	expectedResp := internalUtils.TestUnmarshallJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -34,17 +34,17 @@ func TestTransactionTrace(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedResp:    expectedResp,
 				ExpectedError:   nil,
 			},
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0xc0ffee"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0xc0ffee"),
 				ExpectedResp:    nil,
 				ExpectedError:   ErrHashNotFound,
 			},
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0xf00d"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0xf00d"),
 				ExpectedResp:    nil,
 				ExpectedError: &RPCError{
 					Code:    10,
@@ -56,7 +56,7 @@ func TestTransactionTrace(t *testing.T) {
 		"devnet": {},
 		"testnet": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedResp:    expectedResp,
 				ExpectedError:   nil,
 			},
@@ -89,13 +89,13 @@ func TestSimulateTransaction(t *testing.T) {
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxIn = *utils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
-		expectedResp = *utils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
+		simulateTxIn = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
+		expectedResp = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
 	}
 
 	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxIn = *utils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
-		expectedResp = *utils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
+		simulateTxIn = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
+		expectedResp = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	}
 
 	type testSetType struct {
@@ -150,7 +150,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
-	blockTraceSepolia := *utils.TestUnmarshallJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
+	blockTraceSepolia := *internalUtils.TestUnmarshallJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 
 	type testSetType struct {
 		BlockID      BlockID
@@ -169,7 +169,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		},
 		"mock": {
 			testSetType{
-				BlockID:      WithBlockHash(utils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
+				BlockID:      WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
 				ExpectedResp: blockTraceSepolia,
 				ExpectedErr:  nil,
 			},
@@ -245,7 +245,7 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 StateDiff) {
 		for _, diffElem := range mapDiff {
 			address, ok := diffElem["address"]
 			require.True(t, ok)
-			addressFelt := utils.TestHexToFelt(t, address.(string))
+			addressFelt := internalUtils.TestHexToFelt(t, address.(string))
 
 			if *addressFelt != *diff1.Address {
 				continue
