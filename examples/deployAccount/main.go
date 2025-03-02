@@ -115,7 +115,7 @@ func main() {
 	var input string
 
 	fmt.Println("\nThe `precomputedAddress` account needs to have enough ETH to perform a transaction.")
-	fmt.Printf("Use the starknet faucet to send ETH to your `precomputedAddress`. You need aproximately %f ETH. \n", feeInETH)
+	fmt.Printf("Use the starknet faucet to send ETH to your `precomputedAddress`. You need approximately %f ETH. \n", feeInETH)
 	fmt.Println("When your account has been funded by the faucet, press any key, then `enter` to continue : ")
 	fmt.Scan(&input)
 
