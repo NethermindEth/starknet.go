@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
@@ -143,160 +145,47 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 	return functionCalls
 }
 
-// TODO: remove this function before merge in case of no use
-// ToResourceBounds converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
-//
-// Calculates max amount as max_amount = overall_fee / gas_price (unless gas_price is 0,
-// then max_amount is 0). Calculates max price per unit as max_price_per_unit = gas_price.
-//
-// Then multiplies max_amount by amountMultiplier and max_price_per_unit by unitPriceMultiplier.
-//
+// FeeEstimationToResourceBoundsMapping converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
-//   - amountMultiplier: Multiplier for max amount, defaults to 1.5
-//   - unitPriceMultiplier: Multiplier for max price per unit, defaults to 1.5
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
 //
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
-// func ToResourceBounds(
-// 	feeEstimation *rpc.FeeEstimation,
-// 	amountMultiplier float64,
-// 	unitPriceMultiplier float64,
-// ) (rpc.ResourceBoundsMapping, error) {
-// 	if amountMultiplier <= 0 || unitPriceMultiplier <= 0 {
-// 		return rpc.ResourceBoundsMapping{}, fmt.Errorf("values of 'amountMultiplier' and 'unitPriceMultiplier' must be greater than 0")
-// 	}
+func FeeEstimationToResourceBoundsMapping(
+	feeEstimation rpc.FeeEstimation,
+	multiplier float64,
+) rpc.ResourceBoundsMapping {
 
-// 	// Convert felt.Felt values to big.Int for calculations
-// 	overallFee := feeEstimation.OverallFee.Uint64()
-// 	l1GasPrice := feeEstimation.L1GasPrice.Uint64()
-// 	// l1DataGasPrice := feeEstimation.L1DataGasPrice.Uint64()
-// 	// l2GasPrice := feeEstimation.L2GasPrice.Uint64()
-// 	// l2DataGasPrice := feeEstimation.L2DataGasPrice.Uint64()
+	// Create L1 resources bounds
+	l1Gas := toResourceBounds(feeEstimation.L1GasPrice.Uint64(), feeEstimation.L1GasConsumed.Uint64(), multiplier)
+	l1DataGas := toResourceBounds(feeEstimation.L1DataGasPrice.Uint64(), feeEstimation.L1DataGasConsumed.Uint64(), multiplier)
+	// Create L2 resource bounds
+	l2Gas := toResourceBounds(feeEstimation.L2GasPrice.Uint64(), feeEstimation.L2GasConsumed.Uint64(), multiplier)
 
-// 	// Calculate max amount
-// 	var maxAmount float64
-// 	if l1GasPrice != 0 {
-// 		maxAmount = (float64(overallFee) / float64(l1GasPrice)) * amountMultiplier
-// 	} else {
-// 		maxAmount = 0
-// 	}
+	return rpc.ResourceBoundsMapping{
+		L1Gas:     l1Gas,
+		L1DataGas: l1DataGas,
+		L2Gas:     l2Gas,
+	}
+}
 
-// 	// Apply unit price multiplier to gas price
-// 	maxPricePerUnit := float64(l1GasPrice) * unitPriceMultiplier
-
-// 	// Convert big.Int values to U64 and U128 strings
-// 	maxAmountHex := fmt.Sprintf("0x%x", maxAmount)
-// 	maxPricePerUnitHex := fmt.Sprintf("0x%x", maxPricePerUnit)
-
-// 	// Create L1 resource bounds
-// 	l1ResourceBounds := rpc.ResourceBounds{
-// 		MaxAmount:       rpc.U64(maxAmountHex),
-// 		MaxPricePerUnit: rpc.U128(maxPricePerUnitHex),
-// 	}
-
-// 	// Create empty L2 resource bounds
-// 	l2ResourceBounds := rpc.ResourceBounds{
-// 		MaxAmount:       "0x0",
-// 		MaxPricePerUnit: "0x0",
-// 	}
-
-// 	// Create resource bounds mapping
-// 	resourceBounds := rpc.ResourceBoundsMapping{
-// 		L1Gas: l1ResourceBounds,
-// 		L1DataGas: rpc.ResourceBounds{
-// 			MaxAmount:       "0x0",
-// 			MaxPricePerUnit: "0x0",
-// 		},
-// 		L2Gas: l2ResourceBounds,
-// 	}
-
-// 	return resourceBounds, nil
-// }
-
-// func calcResourceBounds(
-// 	overallFee uint64,
-// 	gasPrice uint64,
-// 	gasConsumed uint64,
-// 	amountMultiplier float64,
-// 	unitPriceMultiplier float64,
-// ) rpc.ResourceBounds {
-
-// 	var maxAmount float64
-// 	if gasPrice != 0 {
-// 		maxAmount = (float64(overallFee) / float64(gasPrice)) * amountMultiplier
-// 	}
-
-// 	maxPricePerUnit := float64(gasPrice) * unitPriceMultiplier
-
-// 	return rpc.ResourceBounds{
-// 		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", maxAmount)),
-// 		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", maxPricePerUnit)),
-// 	}
-// }
-
-// func ToResourceBoundsC(
-// 	feeEstimation *rpc.FeeEstimation,
-// 	amountMultiplier float64,
-// 	unitPriceMultiplier float64,
-// ) (rpc.ResourceBoundsMapping, error) {
-// 	if amountMultiplier <= 0 || unitPriceMultiplier <= 0 {
-// 		return rpc.ResourceBoundsMapping{}, fmt.Errorf("values of 'amountMultiplier' and 'unitPriceMultiplier' must be greater than 0")
-// 	}
-
-// 	// Convert felt.Felt values to big.Int for calculations
-// 	overallFee := feeEstimation.OverallFee.BigInt(nil)
-// 	gasPrice := feeEstimation.L1GasPrice.BigInt(nil)
-
-// 	// Calculate max amount
-// 	var maxAmount *big.Int
-// 	if gasPrice.Cmp(big.NewInt(0)) != 0 {
-// 		maxAmount = new(big.Int).Div(overallFee, gasPrice)
-
-// 		// Apply amount multiplier
-// 		amountMultiplierBig := new(big.Float).SetFloat64(amountMultiplier)
-// 		maxAmountFloat := new(big.Float).SetInt(maxAmount)
-// 		maxAmountFloat.Mul(maxAmountFloat, amountMultiplierBig)
-
-// 		maxAmount = new(big.Int)
-// 		maxAmountFloat.Int(maxAmount)
-// 	} else {
-// 		maxAmount = big.NewInt(0)
-// 	}
-
-// 	// Apply unit price multiplier to gas price
-// 	unitPriceMultiplierBig := new(big.Float).SetFloat64(unitPriceMultiplier)
-// 	maxPricePerUnitFloat := new(big.Float).SetInt(gasPrice)
-// 	maxPricePerUnitFloat.Mul(maxPricePerUnitFloat, unitPriceMultiplierBig)
-
-// 	maxPricePerUnit := new(big.Int)
-// 	maxPricePerUnitFloat.Int(maxPricePerUnit)
-
-// 	// Convert big.Int values to U64 and U128 strings
-// 	maxAmountHex := fmt.Sprintf("0x%x", maxAmount)
-// 	maxPricePerUnitHex := fmt.Sprintf("0x%x", maxPricePerUnit)
-
-// 	// Create L1 resource bounds
-// 	l1ResourceBounds := rpc.ResourceBounds{
-// 		MaxAmount:       rpc.U64(maxAmountHex),
-// 		MaxPricePerUnit: rpc.U128(maxPricePerUnitHex),
-// 	}
-
-// 	// Create empty L2 resource bounds
-// 	l2ResourceBounds := rpc.ResourceBounds{
-// 		MaxAmount:       "0x0",
-// 		MaxPricePerUnit: "0x0",
-// 	}
-
-// 	// Create resource bounds mapping
-// 	resourceBounds := rpc.ResourceBoundsMapping{
-// 		L1Gas: l1ResourceBounds,
-// 		L1DataGas: rpc.ResourceBounds{
-// 			MaxAmount:       "0x0",
-// 			MaxPricePerUnit: "0x0",
-// 		},
-// 		L2Gas: l2ResourceBounds,
-// 	}
-
-// 	return resourceBounds, nil
-// }
+// toResourceBounds converts a gas price and gas consumed to a ResourceBounds with applied multiplier.
+//
+// Parameters:
+//   - gasPrice: The gas price
+//   - gasConsumed: The gas consumed
+//   - multiplier: Multiplier for max amount and max price per unit
+//
+// Returns:
+//   - rpc.ResourceBounds: Resource bounds with applied multiplier
+func toResourceBounds(
+	gasPrice uint64,
+	gasConsumed uint64,
+	multiplier float64,
+) rpc.ResourceBounds {
+	return rpc.ResourceBounds{
+		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", float64(gasConsumed)*multiplier)),
+		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", float64(gasPrice)*multiplier)),
+	}
+}
