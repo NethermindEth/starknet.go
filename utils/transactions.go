@@ -37,8 +37,8 @@ func BuildInvokeTxn(
 			Tip:                   "0x0",
 			PayMasterData:         []*felt.Felt{},
 			AccountDeploymentData: []*felt.Felt{},
-			NonceDataMode:         "0x0",
-			FeeMode:               "0x0",
+			NonceDataMode:         rpc.DAModeL1,
+			FeeMode:               rpc.DAModeL1,
 		},
 	}
 
@@ -78,8 +78,8 @@ func BuildDeclareTxn(
 		Tip:                   "0x0",
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         "0x0",
-		FeeMode:               "0x0",
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
 	}
 
 	return declareTxn
@@ -117,8 +117,8 @@ func BuildDeployAccountTxn(
 			ResourceBounds:      resourceBounds,
 			Tip:                 "0x0",
 			PayMasterData:       []*felt.Felt{},
-			NonceDataMode:       "0x0",
-			FeeMode:             "0x0",
+			NonceDataMode:       rpc.DAModeL1,
+			FeeMode:             rpc.DAModeL1,
 		},
 	}
 

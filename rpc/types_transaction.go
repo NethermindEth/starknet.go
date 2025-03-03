@@ -159,6 +159,17 @@ const (
 	DAModeL2 DataAvailabilityMode = "L2"
 )
 
+// MarshalJSON implements the json.Marshaler interface.
+// It validates that the DataAvailabilityMode is either L1 or L2 before marshaling.
+func (da DataAvailabilityMode) MarshalJSON() ([]byte, error) {
+	switch da {
+	case DAModeL1, DAModeL2:
+		return json.Marshal(string(da))
+	default:
+		return nil, fmt.Errorf("invalid DataAvailabilityMode: %s, must be either L1 or L2", string(da))
+	}
+}
+
 func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 	switch *da {
 	case DAModeL1:
