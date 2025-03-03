@@ -34,7 +34,7 @@ type AccountInterface interface {
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
+	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
@@ -93,8 +93,8 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // Returns:
 //   - *rpc.BroadcastInvokev3Txn: A pointer to the built transaction.
 //   - error: An error if the transaction building fails.
-func (account *Account) BuildInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, resourceBounds rpc.ResourceBoundsMapping) (*rpc.BroadcastInvokev3Txn, error) {
-	// TODO: add resource bounds automatic calculation with estimateFee, removing the need to pass resourceBounds
+func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall) (*rpc.AddInvokeTransactionResponse, error) {
+	// TODO: need to test it. First implement BuildAndSendDeclareTxn to test it in devnet.
 	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 	if err != nil {
 		return nil, err
@@ -105,27 +105,33 @@ func (account *Account) BuildInvokeTxn(ctx context.Context, functionCalls []rpc.
 		return nil, err
 	}
 
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, resourceBounds)
-
-	// estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// txnFee := estimateFee[0]
-
-	txHash, err := account.TransactionHashInvoke(broadcastInvokeTxnV3.InvokeTxnV3)
+	// building and signing the txn, as it needs a signature to estimate the fee
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, rpc.ResourceBoundsMapping{})
+	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := account.Sign(ctx, txHash)
+	// estimate txn fee
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
 	if err != nil {
 		return nil, err
 	}
-	broadcastInvokeTxnV3.Signature = signature
+	txnFee := estimateFee[0]
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstimationToResourceBoundsMapping(txnFee, 1.5)
 
-	return &broadcastInvokeTxnV3, nil
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	txnResponse, err := account.provider.AddInvokeTransaction(ctx, broadcastInvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	return txnResponse, nil
 }
 
 // Sign signs the given felt message using the account's private key.
@@ -156,7 +162,8 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 // - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
 // Returns:
 // - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV3) error {
+	// TODO: make it available for all invoke versions
 
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {

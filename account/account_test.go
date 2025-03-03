@@ -432,7 +432,7 @@ func TestSignMOCK(t *testing.T) {
 //
 //	none
 func TestSendInvokeTxn(t *testing.T) {
-	t.Skip("TODO: update test to use v3 txn")
+	t.Skip("TODO: update this test to use InvokeTxnV3")
 
 	type testSetType struct {
 		ExpectedErr          error
@@ -519,14 +519,14 @@ func TestSendInvokeTxn(t *testing.T) {
 		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
-		require.NoError(t, err)
+		// err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
+		// require.NoError(t, err)
 
-		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
-		if err != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
-			require.Nil(t, resp)
-		}
+		// resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
+		// if err != nil {
+		// 	require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+		// 	require.Nil(t, resp)
+		// }
 
 	}
 }

@@ -71,39 +71,13 @@ func main() {
 		CallData:        []*felt.Felt{amount, &felt.Zero}, //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
 	}
 
-	// Building the Broadcast Invoke Txn struct.
+	// Building and sending the Broadcast Invoke Txn.
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	InvokeTx, err := accnt.BuildInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, rpc.ResourceBoundsMapping{})
+	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall})
 	if err != nil {
 		panic(err)
-	}
-
-	// // Estimate the transaction fee
-	// feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
-	// if err != nil {
-	// 	setup.PanicRPC(err)
-	// }
-	// estimatedFee := feeRes[0].OverallFee
-	// // If the estimated fee is higher than the current fee, let's override it and sign again
-	// if estimatedFee.Cmp(InvokeTx.MaxFee) == 1 {
-	// 	newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
-	// 	// Signing the transaction again
-	// 	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
-	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
-	if err != nil {
-		setup.PanicRPC(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
