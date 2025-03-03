@@ -15,8 +15,17 @@ import (
 // An integer number in hex format (0x...)
 type NumAsHex string
 
-// 64 bit integers, represented by hex string of length at most 16
+// 64 bit integers, represented by hex string of length at most 16. Zero value is "0x0"
 type U64 string
+
+// MarshalJSON implements the json.Marshaler interface for U64.
+// It marshals the U64 value to JSON, defaulting to "0x0" when not provided.
+func (u U64) MarshalJSON() ([]byte, error) {
+	if u == "" {
+		return []byte(`"0x0"`), nil
+	}
+	return json.Marshal(string(u))
+}
 
 // ToUint64 converts the U64 type to a uint64.
 func (u U64) ToUint64() (uint64, error) {
@@ -30,8 +39,17 @@ func (u U64) ToUint64() (uint64, error) {
 	return val, nil
 }
 
-// 64 bit integers, represented by hex string of length at most 32
+// 64 bit integers, represented by hex string of length at most 32. Zero value is "0x0"
 type U128 string
+
+// MarshalJSON implements the json.Marshaler interface for U128.
+// It marshals the U128 value to JSON, defaulting to "0x0" when not provided.
+func (u U128) MarshalJSON() ([]byte, error) {
+	if u == "" {
+		return []byte(`"0x0"`), nil
+	}
+	return json.Marshal(string(u))
+}
 
 type DeprecatedCairoEntryPoint struct {
 	// The offset of the entry point in the program
