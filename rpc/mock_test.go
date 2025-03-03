@@ -1312,8 +1312,8 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawBlockTrace) {
-			return err
+		if errJ := json.Unmarshal(read, &rawBlockTrace); errJ != nil {
+			return errJ
 		}
 		BlockTrace, err := json.Marshal(rawBlockTrace)
 		if err != nil {
@@ -1364,8 +1364,8 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 		if err != nil {
 			return err
 		}
-		if nil != json.Unmarshal(read, &rawTrace) {
-			return err
+		if errJ := json.Unmarshal(read, &rawTrace); errJ != nil {
+			return errJ
 		}
 		txnTrace, err := json.Marshal(rawTrace)
 		if err != nil {
