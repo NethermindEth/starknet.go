@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/crypto"
@@ -10,6 +11,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/hash"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -29,14 +31,15 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
+	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
+	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
-	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
-	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
-	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
+	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
+	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
@@ -79,6 +82,52 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	return account, nil
 }
 
+// BuildInvokeTxn builds a broadcast v3 invoke transaction with the given calldata and resource bounds.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
+//     multiple function calls in the same transaction.
+//   - resourceBounds: The rpc.ResourceBoundsMapping specifying the resource bounds for the transaction.
+//
+// Returns:
+//   - *rpc.BroadcastInvokev3Txn: A pointer to the built transaction.
+//   - error: An error if the transaction building fails.
+func (account *Account) BuildInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, resourceBounds rpc.ResourceBoundsMapping) (*rpc.BroadcastInvokev3Txn, error) {
+	// TODO: add resource bounds automatic calculation with estimateFee, removing the need to pass resourceBounds
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
+	if err != nil {
+		return nil, err
+	}
+
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, resourceBounds)
+
+	// estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// txnFee := estimateFee[0]
+
+	txHash, err := account.TransactionHashInvoke(broadcastInvokeTxnV3.InvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return nil, err
+	}
+	broadcastInvokeTxnV3.Signature = signature
+
+	return &broadcastInvokeTxnV3, nil
+}
+
 // Sign signs the given felt message using the account's private key.
 //
 // Parameters:
@@ -88,14 +137,14 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // - []*felt.Felt: an array of signed felt messages
 // - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
-	msgBig := utils.FeltToBigInt(msg)
+	msgBig := internalUtils.FeltToBigInt(msg)
 
 	s1, s2, err := account.ks.Sign(ctx, account.publicKey, msgBig)
 	if err != nil {
 		return nil, err
 	}
-	s1Felt := utils.BigIntToFelt(s1)
-	s2Felt := utils.BigIntToFelt(s2)
+	s1Felt := internalUtils.BigIntToFelt(s1)
+	s2Felt := internalUtils.BigIntToFelt(s2)
 
 	return []*felt.Felt{s1Felt, s2Felt}, nil
 }
@@ -239,12 +288,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 // TransactionHashInvoke calculates the transaction hash for the given invoke transaction.
 //
 // Parameters:
-// - tx: The invoke transaction to calculate the hash for.
-//     The transaction can be of type InvokeTxnV0 or InvokeTxnV1.
-//     For InvokeTxnV0:
-//         the function checks if all the required parameters are set and then computes the transaction hash using the provided data.
-//     For InvokeTxnV1:
-//         the function performs similar checks and computes the transaction hash using the provided data.
+// - tx: The invoke transaction to calculate the hash for. Can be of type InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
 // Returns:
 // - *felt.Felt: The calculated transaction hash as a *felt.Felt
 // - error: an error, if any
@@ -858,7 +902,6 @@ func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.
 //
 // Parameters:
 // - fnCalls: a slice of rpc.FunctionCall representing the function calls.
-// - cairoVersion: an integer representing the Cairo version.
 // Returns:
 // - a slice of *felt.Felt representing the formatted calldata.
 // - an error if Cairo version is not supported.
@@ -869,7 +912,7 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 	case 2:
 		return FmtCallDataCairo2(fnCalls), nil
 	default:
-		return nil, errors.New("cairo version not supported")
+		return nil, fmt.Errorf("account cairo version '%d' not supported", account.CairoVersion)
 	}
 }
 

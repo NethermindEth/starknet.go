@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +38,7 @@ func BenchmarkPedersenHash(b *testing.B) {
 
 	for _, test := range suite {
 		b.Run(fmt.Sprintf("input_size_%d_%d", len(test[0]), len(test[1])), func(b *testing.B) {
-			hexArr, err := utils.HexArrToFelt(test)
+			hexArr, err := internalUtils.HexArrToFelt(test)
 			require.NoError(b, err)
 			result = Pedersen(hexArr[0], hexArr[1])
 		})
@@ -100,10 +100,10 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	require.NoError(b, err)
 
 	hash := Pedersen(
-		utils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-		utils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
+		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
 	)
-	hashBigInt := utils.FeltToBigInt(hash)
+	hashBigInt := internalUtils.FeltToBigInt(hash)
 
 	r, s, err := Curve.Sign(hashBigInt, private)
 	require.NoError(b, err)
@@ -164,9 +164,9 @@ func TestGeneral_PedersenHash(t *testing.T) {
 	}
 
 	for _, test := range testPedersen {
-		elementsFelt, err := utils.HexArrToFelt(test.elements)
+		elementsFelt, err := internalUtils.HexArrToFelt(test.elements)
 		require.NoError(t, err)
-		expected := utils.TestHexToFelt(t, test.expected)
+		expected := internalUtils.TestHexToFelt(t, test.expected)
 
 		result := Pedersen(elementsFelt[0], elementsFelt[1])
 		require.Equal(t, expected, result)
@@ -193,14 +193,14 @@ func TestGeneral_DivMod(t *testing.T) {
 		expected *big.Int
 	}{
 		{
-			x:        utils.StrToBig("311379432064974854430469844112069886938521247361583891764940938105250923060"),
-			y:        utils.StrToBig("621253665351494585790174448601059271924288186997865022894315848222045687999"),
-			expected: utils.StrToBig("2577265149861519081806762825827825639379641276854712526969977081060187505740"),
+			x:        internalUtils.StrToBig("311379432064974854430469844112069886938521247361583891764940938105250923060"),
+			y:        internalUtils.StrToBig("621253665351494585790174448601059271924288186997865022894315848222045687999"),
+			expected: internalUtils.StrToBig("2577265149861519081806762825827825639379641276854712526969977081060187505740"),
 		},
 		{
 			x:        big.NewInt(1),
 			y:        big.NewInt(2),
-			expected: utils.HexToBN("0x0400000000000008800000000000000000000000000000000000000000000001"),
+			expected: internalUtils.HexToBN("0x0400000000000008800000000000000000000000000000000000000000000001"),
 		},
 	}
 
@@ -231,16 +231,16 @@ func TestGeneral_Add(t *testing.T) {
 		expectedY *big.Int
 	}{
 		{
-			x:         utils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
-			y:         utils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
-			expectedX: utils.StrToBig("2573054162739002771275146649287762003525422629677678278801887452213127777391"),
-			expectedY: utils.StrToBig("3086444303034188041185211625370405120551769541291810669307042006593736192813"),
+			x:         internalUtils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
+			y:         internalUtils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
+			expectedX: internalUtils.StrToBig("2573054162739002771275146649287762003525422629677678278801887452213127777391"),
+			expectedY: internalUtils.StrToBig("3086444303034188041185211625370405120551769541291810669307042006593736192813"),
 		},
 		{
 			x:         big.NewInt(1),
 			y:         big.NewInt(2),
-			expectedX: utils.StrToBig("225199957243206662471193729647752088571005624230831233470296838210993906468"),
-			expectedY: utils.StrToBig("190092378222341939862849656213289777723812734888226565973306202593691957981"),
+			expectedX: internalUtils.StrToBig("225199957243206662471193729647752088571005624230831233470296838210993906468"),
+			expectedY: internalUtils.StrToBig("190092378222341939862849656213289777723812734888226565973306202593691957981"),
 		},
 	}
 
@@ -274,11 +274,11 @@ func TestGeneral_MultAir(t *testing.T) {
 		expectedY *big.Int
 	}{
 		{
-			r:         utils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			x:         utils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
-			y:         utils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
-			expectedX: utils.StrToBig("182543067952221301675635959482860590467161609552169396182763685292434699999"),
-			expectedY: utils.StrToBig("3154881600662997558972388646773898448430820936643060392452233533274798056266"),
+			r:         internalUtils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
+			x:         internalUtils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
+			y:         internalUtils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
+			expectedX: internalUtils.StrToBig("182543067952221301675635959482860590467161609552169396182763685292434699999"),
+			expectedY: internalUtils.StrToBig("3154881600662997558972388646773898448430820936643060392452233533274798056266"),
 		},
 	}
 
@@ -304,9 +304,9 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
 	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
 
-	expectedHashEmmptyArray := utils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
+	expectedHashEmmptyArray := internalUtils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
 	require.Equal(t, hashEmptyArray, expectedHashEmmptyArray, "Hash empty array wrong value.")
-	require.Equal(t, utils.FeltToBigInt(hashEmptyArrayFelt), expectedHashEmmptyArray, "Hash empty array wrong value.")
+	require.Equal(t, internalUtils.FeltToBigInt(hashEmptyArrayFelt), expectedHashEmmptyArray, "Hash empty array wrong value.")
 
 	filledArray := []*big.Int{
 		big.NewInt(123782376),
@@ -315,11 +315,11 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	}
 
 	hashFilledArray := ComputeHashOnElements(filledArray)
-	hashFilledArrayFelt := PedersenArray(utils.BigIntArrToFeltArr(filledArray)...)
+	hashFilledArrayFelt := PedersenArray(internalUtils.BigIntArrToFeltArr(filledArray)...)
 
-	expectedHashFilledArray := utils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+	expectedHashFilledArray := internalUtils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
 	require.Equal(t, hashFilledArray, expectedHashFilledArray, "Hash filled array wrong value.")
-	require.Equal(t, utils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
+	require.Equal(t, internalUtils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
 }
 
 // TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
@@ -366,19 +366,19 @@ func TestGeneral_ComputeFact(t *testing.T) {
 		expected      *big.Int
 	}{
 		{
-			programHash:   utils.HexToBN("0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"),
+			programHash:   internalUtils.HexToBN("0x114952172aed91e59f870a314e75de0a437ff550e4618068cec2d832e48b0c7"),
 			programOutput: []*big.Int{big.NewInt(289)},
-			expected:      utils.HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4"),
+			expected:      internalUtils.HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4"),
 		},
 		{
-			programHash:   utils.HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
-			programOutput: []*big.Int{utils.StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441")},
-			expected:      utils.HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
+			programHash:   internalUtils.HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
+			programOutput: []*big.Int{internalUtils.StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441")},
+			expected:      internalUtils.HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
 		},
 	}
 
 	for _, tt := range testFacts {
-		hash := utils.ComputeFact(tt.programHash, tt.programOutput)
+		hash := internalUtils.ComputeFact(tt.programHash, tt.programOutput)
 		require.Equal(t, tt.expected, hash)
 	}
 }
@@ -391,8 +391,8 @@ func TestGeneral_ComputeFact(t *testing.T) {
 //
 //	none
 func TestGeneral_BadSignature(t *testing.T) {
-	hash := Pedersen(utils.TestHexToFelt(t, "0x12773"), utils.TestHexToFelt(t, "0x872362"))
-	hashBigInt := utils.FeltToBigInt(hash)
+	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
+	hashBigInt := internalUtils.FeltToBigInt(hash)
 
 	priv, err := Curve.GetRandomPrivateKey()
 	require.NoError(t, err)
@@ -436,24 +436,24 @@ func TestGeneral_Signature(t *testing.T) {
 		raw     string
 	}{
 		{
-			private: utils.StrToBig("104397037759416840641267745129360920341912682966983343798870479003077644689"),
-			publicX: utils.StrToBig("1913222325711601599563860015182907040361852177892954047964358042507353067365"),
-			publicY: utils.StrToBig("798905265292544287704154888908626830160713383708400542998012716235575472365"),
-			hash:    utils.StrToBig("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
-			rIn:     utils.StrToBig("607684330780324271206686790958794501662789535258258105407533051445036595885"),
-			sIn:     utils.StrToBig("453590782387078613313238308551260565642934039343903827708036287031471258875"),
+			private: internalUtils.StrToBig("104397037759416840641267745129360920341912682966983343798870479003077644689"),
+			publicX: internalUtils.StrToBig("1913222325711601599563860015182907040361852177892954047964358042507353067365"),
+			publicY: internalUtils.StrToBig("798905265292544287704154888908626830160713383708400542998012716235575472365"),
+			hash:    internalUtils.StrToBig("2680576269831035412725132645807649347045997097070150916157159360688041452746"),
+			rIn:     internalUtils.StrToBig("607684330780324271206686790958794501662789535258258105407533051445036595885"),
+			sIn:     internalUtils.StrToBig("453590782387078613313238308551260565642934039343903827708036287031471258875"),
 		},
 		{
-			hash: utils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-			rIn:  utils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			sIn:  utils.StrToBig("3439514492576562277095748549117516048613512930236865921315982886313695689433"),
+			hash: internalUtils.HexToBN("0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
+			rIn:  internalUtils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
+			sIn:  internalUtils.StrToBig("3439514492576562277095748549117516048613512930236865921315982886313695689433"),
 			raw:  "04033f45f07e1bd1a51b45fc24ec8c8c9908db9e42191be9e169bfcac0c0d997450319d0f53f6ca077c4fa5207819144a2a4165daef6ee47a7c1d06c0dcaa3e456",
 		},
 		{
-			hash:    utils.HexToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
-			publicX: utils.HexToBN("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10"),
-			rIn:     utils.StrToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
-			sIn:     utils.StrToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
+			hash:    internalUtils.HexToBN("0x324df642fcc7d98b1d9941250840704f35b9ac2e3e2b58b6a034cc09adac54c"),
+			publicX: internalUtils.HexToBN("0x4e52f2f40700e9cdd0f386c31a1f160d0f310504fc508a1051b747a26070d10"),
+			rIn:     internalUtils.StrToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
+			sIn:     internalUtils.StrToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
 		},
 	}
 
@@ -461,7 +461,7 @@ func TestGeneral_Signature(t *testing.T) {
 	for _, tt := range testSignature {
 		require := require.New(t)
 		if tt.raw != "" {
-			h, err := utils.HexToBytes(tt.raw)
+			h, err := internalUtils.HexToBytes(tt.raw)
 			require.NoError(err)
 			tt.publicX, tt.publicY = elliptic.Unmarshal(Curve, h) //nolint:all
 		} else if tt.private != nil {
@@ -496,7 +496,7 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 		{"input": "0x300000000000000000000000000000000", "h": "0x3", "l": "0x0"},
 	}
 	for _, d := range data {
-		l, h := utils.SplitFactStr(d["input"]) // 0x3
+		l, h := internalUtils.SplitFactStr(d["input"]) // 0x3
 		require.Equal(t, d["l"], l)
 		require.Equal(t, d["h"], h)
 	}

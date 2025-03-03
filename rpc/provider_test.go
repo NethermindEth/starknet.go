@@ -3,15 +3,13 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/joho/godotenv"
+	"github.com/NethermindEth/starknet.go/internal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,50 +25,23 @@ type testConfiguration struct {
 	wsBase     string
 }
 
-var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
+// the environment for the test, default: mock
+var testEnv = ""
 
-	// testConfigurations are predefined test configurations
-	testConfigurations = map[string]testConfiguration{
-		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. Juno)
-		// (ref: https://github.com/NethermindEth/juno)
-		"mainnet": {
-			base: "https://free-rpc.nethermind.io/mainnet-juno",
-		},
-		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. Juno)
-		// (ref: https://github.com/NethermindEth/juno)
-		"testnet": {
-			base:   "https://free-rpc.nethermind.io/sepolia-juno",
-			wsBase: "ws://localhost:6061",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
-		"devnet": {
-			base: "http://localhost:5050/",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock":        {},
-		"integration": {},
-	}
-)
-
-// TestMain is a Go function that serves as the entry point for running tests.
+// TestMain is used to trigger the tests and set up the test environment.
 //
-// It takes a pointer to the testing.M struct as its parameter and returns nothing.
-// The purpose of this function is to set up any necessary test environment
-// variables before running the tests and to clean up any resources afterwards.
-// It also parses command line flags and exits with the exit code returned by
-// the testing.M.Run() function.
+// It sets up the test environment by loading environment variables using the internal.LoadEnv() function,
+// which handles parsing command line flags and loading the appropriate .env files based on the
+// specified environment (mock, testnet, mainnet, or devnet).
+// After setting up the environment, it runs the tests and exits with the return value of the test suite.
 //
 // Parameters:
-// - m: the testing.M struct
+// - m: The testing.M object that provides the entry point for running tests
 // Returns:
 //
 //	none
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.Parse()
+	testEnv = internal.LoadEnv()
 
 	os.Exit(m.Run())
 }
@@ -84,11 +55,8 @@ func TestMain(m *testing.M) {
 // - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
-	_ = godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports mock, testnet, wsTestnet, mainnet, devnet, integration")
-	}
+
+	var testConfig testConfiguration
 
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{

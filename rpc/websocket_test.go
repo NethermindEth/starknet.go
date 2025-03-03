@@ -8,7 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -120,9 +120,9 @@ func TestSubscribeEvents(t *testing.T) {
 	testSet, ok := map[string]testSetType{
 		"testnet": {
 			// sepolia StarkGate: ETH Token
-			fromAddressExample: utils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 			// random key from StarkGate: ETH Token
-			keyExample: utils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 	}[testEnv]
 
@@ -315,7 +315,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		keys := make([][]*felt.Felt, 1025)
 		for i := range 1025 {
-			keys[i] = []*felt.Felt{utils.TestHexToFelt(t, "0x1")}
+			keys[i] = []*felt.Felt{internalUtils.TestHexToFelt(t, "0x1")}
 		}
 
 		testSet := []testSetType{
@@ -423,7 +423,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 	addresses := make([]*felt.Felt, 1025)
 	for i := range 1025 {
-		addresses[i] = utils.TestHexToFelt(t, "0x1")
+		addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
 	}
 
 	testSet, ok := map[string][]testSetType{

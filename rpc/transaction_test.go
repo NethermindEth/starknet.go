@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,19 +25,19 @@ func TestTransactionByHash(t *testing.T) {
 
 	var BlockDeclareTxnV2Example = BlockTransaction{
 		BlockDeclareTxnV2{
-			utils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 			DeclareTxnV2{
 				Type:              TransactionType_Declare,
 				Version:           TransactionV2,
-				MaxFee:            utils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
-				ClassHash:         utils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-				CompiledClassHash: utils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
-				Nonce:             utils.TestHexToFelt(t, "0x16e"),
+				MaxFee:            internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
+				ClassHash:         internalUtils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
+				CompiledClassHash: internalUtils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
+				Nonce:             internalUtils.TestHexToFelt(t, "0x16e"),
 				Signature: []*felt.Felt{
-					utils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
-					utils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
+					internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
+					internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
 				},
-				SenderAddress: utils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
+				SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
 			},
 		},
 	}
@@ -45,13 +45,13 @@ func TestTransactionByHash(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				TxHash:      utils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
 		"testnet": {
 			{
-				TxHash:      utils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
@@ -91,19 +91,19 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	InvokeTxnV3example := *utils.TestUnmarshallJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	InvokeTxnV3example := *internalUtils.TestUnmarshallJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
 				Index:       0,
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
 		"testnet": {
 			{
-				BlockID:     WithBlockHash(utils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
 				Index:       15,
 				ExpectedTxn: InvokeTxnV3example,
 			},
@@ -129,25 +129,25 @@ func TestTransactionReceipt(t *testing.T) {
 		ExpectedResp TransactionReceiptWithBlockInfo
 	}
 
-	receiptTxn52767_16 := *utils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+	receiptTxn52767_16 := *internalUtils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 
 	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
-	receiptL1Handler := *utils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+	receiptL1Handler := *internalUtils.TestUnmarshallJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				TxnHash:      utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
+				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: receiptTxn52767_16,
 			},
 			{
-				TxnHash:      utils.TestHexToFelt(t, "0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519"),
+				TxnHash:      internalUtils.TestHexToFelt(t, "0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519"),
 				ExpectedResp: receiptL1Handler,
 			},
 		},
 		"testnet": {
 			{
-				TxnHash:      utils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
+				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: receiptTxn52767_16,
 			},
 		},
@@ -177,11 +177,11 @@ func TestGetTransactionStatus(t *testing.T) {
 		"mock": {},
 		"testnet": {
 			{
-				TxnHash:      utils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedResp: TxnStatusResp{FinalityStatus: TxnStatus_Accepted_On_L1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
 			},
 			{
-				TxnHash: utils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
+				TxnHash: internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
 				ExpectedResp: TxnStatusResp{
 					FinalityStatus:  TxnStatus_Accepted_On_L1,
 					ExecutionStatus: TxnExecutionStatusREVERTED,
@@ -217,11 +217,11 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatusResp{
 					{
-						TransactionHash: utils.RANDOM_FELT,
+						TransactionHash: internalUtils.RANDOM_FELT,
 						FinalityStatus:  TxnStatus_Accepted_On_L2,
 					},
 					{
-						TransactionHash: utils.RANDOM_FELT,
+						TransactionHash: internalUtils.RANDOM_FELT,
 						FinalityStatus:  TxnStatus_Accepted_On_L2,
 					},
 				},
@@ -236,11 +236,11 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
 				ExpectedResp: []MessageStatusResp{
 					{
-						TransactionHash: utils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
+						TransactionHash: internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
 						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 					{
-						TransactionHash: utils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
+						TransactionHash: internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
 						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 				},
