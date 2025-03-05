@@ -127,14 +127,11 @@ func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *b
 
 // GetRandomKeys gets a random set of pub-priv keys.
 // Note: This should be used for testing purposes only, do NOT send real funds to these addresses.
-// Parameters:
-//
-//	none
 //
 // Returns:
-// - *MemKeystore: a pointer to a MemKeystore instance
-// - *felt.Felt: a pointer to a public key as a felt.Felt
-// - *felt.Felt: a pointer to a private key as a felt.Felt
+//   - *MemKeystore: a pointer to a MemKeystore instance
+//   - *felt.Felt: a pointer to a public key as a felt.Felt
+//   - *felt.Felt: a pointer to a private key as a felt.Felt
 func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 	// Get random keys
 	privateKey, err := curve.Curve.GetRandomPrivateKey()

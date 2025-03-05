@@ -31,11 +31,14 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndSendDeployAccountTxn(ctx context.Context, contractAddressSalt *felt.Felt, constructorCalldata []*felt.Felt, classHash *felt.Felt, multiplier float64) (*rpc.AddDeployAccountTransactionResponse, error)
 	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
-	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
+	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxnV3, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
@@ -221,6 +224,77 @@ func (account *Account) BuildAndSendDeclareTxn(
 	return txnResponse, nil
 }
 
+// BuildAndSendDeployAccountTxn builds and sends a v3 deploy account transaction.
+// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - contractAddressSalt: The salt for the address of the deployed contract
+//   - constructorCalldata: The parameters passed to the constructor
+//   - classHash: The class hash of the contract to be deployed
+//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
+//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
+//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//
+// Returns:
+//   - *rpc.AddDeployAccountTransactionResponse: the response of the submitted transaction.
+//   - error: An error if the transaction building fails.
+func (account *Account) BuildAndSendDeployAccountTxn(
+	ctx context.Context,
+	contractAddressSalt *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	classHash *felt.Felt,
+	multiplier float64,
+) (*rpc.AddDeployAccountTransactionResponse, error) {
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// building and signing the txn, as it needs a signature to estimate the fee
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(nonce, contractAddressSalt, constructorCalldata, classHash, rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+	})
+
+	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, classHash)
+	if err != nil {
+		return nil, err
+	}
+
+	// estimate txn fee
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	if err != nil {
+		return nil, err
+	}
+	txnFee := estimateFee[0]
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, classHash)
+	if err != nil {
+		return nil, err
+	}
+
+	txnResponse, err := account.provider.AddDeployAccountTransaction(ctx, broadcastDepAccTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	return txnResponse, nil
+}
+
 // Sign signs the given felt message using the account's private key.
 //
 // Parameters:
@@ -268,11 +342,11 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 //
 // Parameters:
 // - ctx: the context.Context for the function execution
-// - tx: the *rpc.DeployAccountTxn struct representing the transaction to be signed
+// - tx: the *rpc.DeployAccountTxnV3 struct representing the transaction to be signed
 // - precomputeAddress: the precomputed address for the transaction
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxnV3, precomputeAddress *felt.Felt) error {
 
 	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
