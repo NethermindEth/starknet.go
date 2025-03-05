@@ -34,7 +34,6 @@ type AccountInterface interface {
 	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
 	BuildAndSendDeployAccountTxn(ctx context.Context, contractAddressSalt *felt.Felt, constructorCalldata []*felt.Felt, classHash *felt.Felt, multiplier float64) (*rpc.AddDeployAccountTransactionResponse, error)
-	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
@@ -686,17 +685,14 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // ref: https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-address/
 //
 // Parameters:
-// - deployerAddress: the deployer address
-// - salt: the salt
-// - classHash: the class hash
-// - constructorCalldata: the constructor calldata
+// - salt: the salt for the address of the deployed contract
+// - classHash: the class hash of the contract to be deployed
+// - constructorCalldata: the parameters passed to the constructor
 // Returns:
 // - *felt.Felt: the precomputed address as a *felt.Felt
 // - error: an error if any
-func (account *Account) PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-	result := contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
-
-	return result, nil
+func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
 
 // WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
