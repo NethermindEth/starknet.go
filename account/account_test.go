@@ -9,9 +9,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
@@ -1105,74 +1103,73 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 //
 //	none
 func TestSendDeclareTxn(t *testing.T) {
-	t.Skip("TODO: update test to use v3 txn")
+	t.Skip("TODO: upgrade this test")
+	// if testEnv != "testnet" {
+	// 	t.Skip("Skipping test as it requires a testnet environment")
+	// }
+	// expectedTxHash := internalUtils.TestHexToFelt(t, "0x0272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255")
+	// expectedClassHash := internalUtils.TestHexToFelt(t, "0x05e507b062836a3d73e71686ee62bca69026df94e72a657cbe0b954e6d3a0ce6")
 
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
-	expectedTxHash := internalUtils.TestHexToFelt(t, "0x0272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255")
-	expectedClassHash := internalUtils.TestHexToFelt(t, "0x05e507b062836a3d73e71686ee62bca69026df94e72a657cbe0b954e6d3a0ce6")
+	// AccountAddress := internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
+	// PubKey := internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
+	// PrivKey := internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
 
-	AccountAddress := internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
-	PubKey := internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
-	PrivKey := internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
+	// ks := account.NewMemKeystore()
+	// fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	// require.True(t, ok)
+	// ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
-	require.True(t, ok)
-	ks.Put(PubKey.String(), fakePrivKeyBI)
+	// client, err := rpc.NewProvider(base)
+	// require.NoError(t, err, "Error in rpc.NewClient")
 
-	client, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	// acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
+	// require.NoError(t, err)
 
-	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
-	require.NoError(t, err)
+	// // Class Hash
+	// class := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
+	// classHash := hash.ClassHash(class)
 
-	// Class Hash
-	class := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
-	classHash := hash.ClassHash(class)
+	// // Compiled Class Hash
+	// casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
+	// compClassHash, err := hash.CompiledClassHash(casmClass)
+	// require.NoError(t, err)
 
-	// Compiled Class Hash
-	casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
-	compClassHash, err := hash.CompiledClassHash(casmClass)
-	require.NoError(t, err)
+	// tx := rpc.DeclareTxnV2{
+	// 	Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
+	// 	MaxFee:  internalUtils.TestHexToFelt(t, "0xc5cb22092551"),
+	// 	Type:    rpc.TransactionType_Declare,
+	// 	Version: rpc.TransactionV2,
+	// 	Signature: []*felt.Felt{
+	// 		internalUtils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
+	// 		internalUtils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
+	// 	},
+	// 	SenderAddress:     AccountAddress,
+	// 	CompiledClassHash: compClassHash,
+	// 	ClassHash:         classHash,
+	// }
 
-	tx := rpc.DeclareTxnV2{
-		Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-		MaxFee:  internalUtils.TestHexToFelt(t, "0xc5cb22092551"),
-		Type:    rpc.TransactionType_Declare,
-		Version: rpc.TransactionV2,
-		Signature: []*felt.Felt{
-			internalUtils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
-			internalUtils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
-		},
-		SenderAddress:     AccountAddress,
-		CompiledClassHash: compClassHash,
-		ClassHash:         classHash,
-	}
+	// err = acnt.SignDeclareTransaction(context.Background(), &tx)
+	// require.NoError(t, err)
 
-	err = acnt.SignDeclareTransaction(context.Background(), &tx)
-	require.NoError(t, err)
+	// broadcastTx := rpc.BroadcastDeclareTxnV2{
+	// 	Nonce:             tx.Nonce,
+	// 	MaxFee:            tx.MaxFee,
+	// 	Type:              tx.Type,
+	// 	Version:           tx.Version,
+	// 	Signature:         tx.Signature,
+	// 	SenderAddress:     tx.SenderAddress,
+	// 	CompiledClassHash: tx.CompiledClassHash,
+	// 	ContractClass:     class,
+	// }
 
-	broadcastTx := rpc.BroadcastDeclareTxnV2{
-		Nonce:             tx.Nonce,
-		MaxFee:            tx.MaxFee,
-		Type:              tx.Type,
-		Version:           tx.Version,
-		Signature:         tx.Signature,
-		SenderAddress:     tx.SenderAddress,
-		CompiledClassHash: tx.CompiledClassHash,
-		ContractClass:     class,
-	}
+	// resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
-	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
-
-	if err != nil {
-		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
-	} else {
-		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
-		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
-	}
+	// if err != nil {
+	// 	require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+	// } else {
+	// 	require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+	// 	require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
+	// }
 }
 
 // newDevnet creates a new devnet with the given URL.
@@ -1189,4 +1186,28 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return devnet, acnts, err
+}
+
+// TestBuildAndSendInvokeTxn is a test function that tests the BuildAndSendInvokeTxn method.
+//
+// This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+func TestBuildAndSendInvokeTxn(t *testing.T) {
+	t.Skip("TODO: implement this test")
+}
+
+// TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
+//
+// This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+func TestBuildAndSendDeclareTxn(t *testing.T) {
+	t.Skip("TODO: implement this test")
+}
+
+// TestBuildAndSendDeployAccount is a test function that tests the BuildAndSendDeployAccount method.
+//
+// This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+func TestBuildAndSendDeployAccTxn(t *testing.T) {
+	t.Skip("TODO: implement this test")
 }
