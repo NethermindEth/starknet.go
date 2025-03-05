@@ -82,18 +82,22 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	return account, nil
 }
 
-// BuildInvokeTxn builds a broadcast v3 invoke transaction with the given calldata and resource bounds.
+// BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
+// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - resourceBounds: The rpc.ResourceBoundsMapping specifying the resource bounds for the transaction.
+//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
+//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
+//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
 //
 // Returns:
 //   - *rpc.BroadcastInvokev3Txn: A pointer to the built transaction.
 //   - error: An error if the transaction building fails.
-func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
 	// TODO: need to test it. First implement BuildAndSendDeclareTxn to test it in devnet.
 	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 	if err != nil {
@@ -106,19 +110,32 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, rpc.ResourceBoundsMapping{})
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+	})
 	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
 	if err != nil {
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstimationToResourceBoundsMapping(txnFee, 1.5)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)

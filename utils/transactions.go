@@ -145,14 +145,14 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 	return functionCalls
 }
 
-// FeeEstimationToResourceBoundsMapping converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
+// FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
 //
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
-func FeeEstimationToResourceBoundsMapping(
+func FeeEstToResBoundsMap(
 	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
 ) rpc.ResourceBoundsMapping {
@@ -184,8 +184,11 @@ func toResourceBounds(
 	gasConsumed uint64,
 	multiplier float64,
 ) rpc.ResourceBounds {
+	maxAmount := float64(gasConsumed) * multiplier
+	maxPricePerUnit := float64(gasPrice) * multiplier
+
 	return rpc.ResourceBounds{
-		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", float64(gasConsumed)*multiplier)),
-		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", float64(gasPrice)*multiplier)),
+		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", uint64(maxAmount))),
+		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", uint64(maxPricePerUnit))),
 	}
 }

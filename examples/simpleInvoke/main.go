@@ -75,9 +75,9 @@ func main() {
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall})
+	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
 	if err != nil {
-		panic(err)
+		setup.PanicRPC(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
