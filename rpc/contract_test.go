@@ -299,7 +299,7 @@ func TestStorageAt(t *testing.T) {
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:    "ERC20_name",
 				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x2eaf7fd2f670d4dc46d0e1fce1fa5e29b6549b10c0d2ff2a4f8188767327f5d",
+				ExpectedValue: "0x537461726b4e657420546f6b656e",
 			},
 		},
 		"testnet": {
