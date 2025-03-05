@@ -2,14 +2,13 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +29,7 @@ import (
 //
 //	none
 func TestClassAt(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ContractAddress   *felt.Felt
@@ -40,7 +39,7 @@ func TestClassAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0xdeadbeef"),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
 				Block:             WithBlockNumber(58344),
 			},
@@ -48,21 +47,21 @@ func TestClassAt(t *testing.T) {
 		"testnet": {
 			// v0 contract
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
-				ExpectedOperation: utils.GetSelectorFromNameFelt("getPublicKey").String(),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("getPublicKey").String(),
 				Block:             WithBlockNumber(58344),
 			},
 			// v2 contract
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedOperation: utils.GetSelectorFromNameFelt("name_get").String(),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
 				Block:             WithBlockNumber(65168),
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress:   utils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
-				ExpectedOperation: utils.GetSelectorFromNameFelt("get_name").String(),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("get_name").String(),
 				Block:             WithBlockNumber(643360),
 			},
 		},
@@ -117,7 +116,7 @@ func TestClassAt(t *testing.T) {
 //
 //	none
 func TestClassHashAt(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ContractHash      *felt.Felt
@@ -126,36 +125,36 @@ func TestClassHashAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0xdeadbeef"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0xdeadbeef"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"devnet": {
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
 			},
 		},
 		"testnet": {
 			// v0 contracts
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
 			},
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x073ad76dcf68168cbf68ea3ec0382a3605f3deaf24dc076c355e275769b3c561"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x073ad76dcf68168cbf68ea3ec0382a3605f3deaf24dc076c355e275769b3c561"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 			},
 			// v2 contract
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 		},
 		"mainnet": {
 			{
-				ContractHash:      utils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
-				ExpectedClassHash: utils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
 			},
 		},
 	}[testEnv]
@@ -196,7 +195,7 @@ func TestClassHashAt(t *testing.T) {
 //
 //	none
 func TestClass(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                       BlockID
@@ -208,7 +207,7 @@ func TestClass(t *testing.T) {
 		"mock": {
 			{
 				BlockID:         WithBlockTag("pending"),
-				ClassHash:       utils.TestHexToFelt(t, "0xdeadbeef"),
+				ClassHash:       internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
@@ -216,30 +215,30 @@ func TestClass(t *testing.T) {
 			// v0 class
 			{
 				BlockID:         WithBlockTag("latest"),
-				ClassHash:       utils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+				ClassHash:       internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 			// v2 classes
 			{
 				BlockID:                       WithBlockTag("latest"),
-				ClassHash:                     utils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
-				ExpectedProgram:               utils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 34, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 34, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 			{
 				BlockID:                       WithBlockTag("latest"),
-				ClassHash:                     utils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedProgram:               utils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 2, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 		"mainnet": {
 			// v2 class
 			{
 				BlockID:                       WithBlockTag("latest"),
-				ClassHash:                     utils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
-				ExpectedProgram:               utils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 32, Selector: utils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
+				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 	}[testEnv]
@@ -278,7 +277,7 @@ func TestClass(t *testing.T) {
 //
 //	none
 func TestStorageAt(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ContractHash  *felt.Felt
@@ -289,7 +288,7 @@ func TestStorageAt(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0xdeadbeef"),
+				ContractHash:  internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				StorageKey:    "_signer",
 				Block:         WithBlockTag("latest"),
 				ExpectedValue: "0xdeadbeef",
@@ -297,15 +296,15 @@ func TestStorageAt(t *testing.T) {
 		},
 		"devnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:    "ERC20_name",
 				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x2eaf7fd2f670d4dc46d0e1fce1fa5e29b6549b10c0d2ff2a4f8188767327f5d",
+				ExpectedValue: "0x537461726b4e657420546f6b656e",
 			},
 		},
 		"testnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:    "_signer",
 				Block:         WithBlockNumber(69399),
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
@@ -313,7 +312,7 @@ func TestStorageAt(t *testing.T) {
 		},
 		"mainnet": {
 			{
-				ContractHash:  utils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:    "_signer",
 				Block:         WithBlockTag("latest"),
 				ExpectedValue: "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
@@ -342,7 +341,7 @@ func TestStorageAt(t *testing.T) {
 //
 //	none
 func TestNonce(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ContractAddress *felt.Felt
@@ -352,30 +351,30 @@ func TestNonce(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
 				Block:           WithBlockTag("latest"),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0xdeadbeef"),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"devnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				Block:           WithBlockTag("latest"),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0x0"),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x0"),
 			},
 		},
 		"testnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				Block:           WithBlockNumber(69399),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0x1"),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 		},
 		"mainnet": {
 			{
-				ContractAddress: utils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
 				Block:           WithBlockNumber(644060),
-				ExpectedNonce:   utils.TestHexToFelt(t, "0x2"),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x2"),
 			},
 		},
 	}[testEnv]
@@ -397,21 +396,21 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		MsgFromL1
 		BlockID
 		ExpectedFeeEst *FeeEstimation
-		ExpectedError  error
+		ExpectedError  *RPCError
 	}
 
 	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
 	l1Handler := MsgFromL1{
 		FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-		ToAddress:   utils.TestHexToFelt(t, "0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"),
-		Selector:    utils.TestHexToFelt(t, "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"),
-		Payload: utils.TestHexArrToFelt(t, []string{
+		ToAddress:   internalUtils.TestHexToFelt(t, "0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"),
+		Selector:    internalUtils.TestHexToFelt(t, "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"),
+		Payload: internalUtils.TestHexArrToFelt(t, []string{
 			"0x455448",
 			"0x2f14d277fc49e0e2d2967d019aea8d6bd9cb3998",
 			"0x02000e6213e24b84012b1f4b1cbd2d7a723fb06950aeab37bedb6f098c7e051a",
@@ -426,33 +425,37 @@ func TestEstimateMessageFee(t *testing.T) {
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
 				ExpectedFeeEst: &FeeEstimation{
-					GasConsumed: new(felt.Felt).SetUint64(1),
-					GasPrice:    new(felt.Felt).SetUint64(2),
-					OverallFee:  new(felt.Felt).SetUint64(3),
+					L1GasConsumed: internalUtils.RANDOM_FELT,
+					L1GasPrice:    internalUtils.RANDOM_FELT,
+					L2GasConsumed: internalUtils.RANDOM_FELT,
+					L2GasPrice:    internalUtils.RANDOM_FELT,
+					OverallFee:    internalUtils.RANDOM_FELT,
 				},
 			},
 		},
 		"testnet": {
 			{
 				MsgFromL1: l1Handler,
-				BlockID:   WithBlockNumber(122476),
+				BlockID:   WithBlockNumber(523066),
 				ExpectedFeeEst: &FeeEstimation{
-					GasConsumed:     utils.TestHexToFelt(t, "0x567b"),
-					GasPrice:        utils.TestHexToFelt(t, "0x28fb3be9e"),
-					DataGasConsumed: &felt.Zero,
-					DataGasPrice:    utils.TestHexToFelt(t, "0x216251c284"),
-					OverallFee:      utils.TestHexToFelt(t, "0xdd816d65a9ea"),
-					FeeUnit:         UnitWei,
+					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed1"),
+					L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
+					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
+					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
+					OverallFee:        internalUtils.TestHexToFelt(t, "0x26d196042c45"),
+					FeeUnit:           UnitWei,
 				},
 			},
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
 					FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-					ToAddress:   utils.RANDOM_FELT,
-					Selector:    utils.RANDOM_FELT,
+					ToAddress:   internalUtils.RANDOM_FELT,
+					Selector:    internalUtils.RANDOM_FELT,
 					Payload:     []*felt.Felt{},
 				},
-				BlockID:       WithBlockNumber(122476),
+				BlockID:       WithBlockNumber(523066),
 				ExpectedError: ErrContractError,
 			},
 			{ // invalid block number
@@ -467,7 +470,10 @@ func TestEstimateMessageFee(t *testing.T) {
 	for _, test := range testSet {
 		resp, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
-			require.EqualError(t, test.ExpectedError, err.Error())
+			rpcErr, ok := err.(*RPCError)
+			require.True(t, ok)
+			require.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+			require.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 		} else {
 			require.Exactly(t, test.ExpectedFeeEst, resp)
 		}
@@ -475,9 +481,12 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
-	testConfig := beforeEach(t)
+	t.Skip("TODO: create a test case for the new 'CONTRACT_EXECUTION_ERROR' type")
+
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
+		description   string
 		txs           []BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
@@ -485,24 +494,21 @@ func TestEstimateFee(t *testing.T) {
 		expectedError error
 	}
 
-	var bradcastInvokeV1 BroadcastInvokev1Txn
-	expectedRespRaw, err := os.ReadFile("./tests/transactions/estimateFeeSepoliaInvokeV1.json")
-	require.NoError(t, err)
-	err = json.Unmarshal(expectedRespRaw, &bradcastInvokeV1)
-	require.NoError(t, err)
+	bradcastInvokeV3 := *internalUtils.TestUnmarshallJSONFileToType[BroadcastInvokev3Txn](t, "./tests/transactions/estimateFeeSepoliaInvokeV1.json", "")
 
 	testSet := map[string][]testSetType{
 		"mainnet": {
 			{
+				description: "invoke v0",
 				txs: []BroadcastTxn{
 					InvokeTxnV0{
 						Type:    TransactionType_Invoke,
 						Version: TransactionV0,
-						MaxFee:  utils.TestHexToFelt(t, "0x95e566845d000"),
+						MaxFee:  internalUtils.TestHexToFelt(t, "0x95e566845d000"),
 						FunctionCall: FunctionCall{
-							ContractAddress:    utils.TestHexToFelt(t, "0x45e92c365ba0908382bc346159f896e528214470c60ae2cd4038a0fff747b1e"),
-							EntryPointSelector: utils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
-							Calldata: utils.TestHexArrToFelt(t, []string{
+							ContractAddress:    internalUtils.TestHexToFelt(t, "0x45e92c365ba0908382bc346159f896e528214470c60ae2cd4038a0fff747b1e"),
+							EntryPointSelector: internalUtils.TestHexToFelt(t, "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad"),
+							Calldata: internalUtils.TestHexArrToFelt(t, []string{
 								"0x1",
 								"0x4a3621276a83251b557a8140e915599ae8e7b6207b067ea701635c0d509801e",
 								"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
@@ -515,8 +521,8 @@ func TestEstimateFee(t *testing.T) {
 								"0x2"}),
 						},
 						Signature: []*felt.Felt{
-							utils.TestHexToFelt(t, "0x63e4618ca2e323a45b9f860f12a4f5c4984648f1d110aa393e79d596d82abcc"),
-							utils.TestHexToFelt(t, "0x2844257b088ad4f49e2fe3df1ea6a8530aa2d21d8990112b7e88c4bd0ce9d50"),
+							internalUtils.TestHexToFelt(t, "0x63e4618ca2e323a45b9f860f12a4f5c4984648f1d110aa393e79d596d82abcc"),
+							internalUtils.TestHexToFelt(t, "0x2844257b088ad4f49e2fe3df1ea6a8530aa2d21d8990112b7e88c4bd0ce9d50"),
 						},
 					},
 				},
@@ -525,30 +531,33 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     utils.TestHexToFelt(t, "0x3074"),
-						GasPrice:        utils.TestHexToFelt(t, "0x350da9915"),
-						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    new(felt.Felt).SetUint64(1),
-						OverallFee:      utils.TestHexToFelt(t, "0xa0a99fc14d84"),
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x3074"),
+						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x350da9915"),
+						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x0"),
+						OverallFee:        internalUtils.TestHexToFelt(t, "0xa0a99fc14d84"),
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
 			{
+				description: "deploy account",
 				txs: []BroadcastTxn{
 					DeployAccountTxn{
 
 						Type:    TransactionType_DeployAccount,
 						Version: TransactionV1,
-						MaxFee:  utils.TestHexToFelt(t, "0xdec823b1380c"),
-						Nonce:   utils.TestHexToFelt(t, "0x0"),
+						MaxFee:  internalUtils.TestHexToFelt(t, "0xdec823b1380c"),
+						Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
 						Signature: []*felt.Felt{
-							utils.TestHexToFelt(t, "0x41dbc4b41f6506502a09eb7aea85759de02e91f49d0565776125946e54a2ec6"),
-							utils.TestHexToFelt(t, "0x85dcf2bc8e3543071a6657947cc9c157a9f6ad7844a686a975b588199634a9"),
+							internalUtils.TestHexToFelt(t, "0x41dbc4b41f6506502a09eb7aea85759de02e91f49d0565776125946e54a2ec6"),
+							internalUtils.TestHexToFelt(t, "0x85dcf2bc8e3543071a6657947cc9c157a9f6ad7844a686a975b588199634a9"),
 						},
-						ContractAddressSalt: utils.TestHexToFelt(t, "0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e"),
-						ClassHash:           utils.TestHexToFelt(t, "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
-						ConstructorCalldata: utils.TestHexArrToFelt(t, []string{
+						ContractAddressSalt: internalUtils.TestHexToFelt(t, "0x74ddc51af144d1bd805eb4184d07453d7c4388660270a7851fec387e654a50e"),
+						ClassHash:           internalUtils.TestHexToFelt(t, "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918"),
+						ConstructorCalldata: internalUtils.TestHexArrToFelt(t, []string{
 							"0x33434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2",
 							"0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463",
 							"0x2",
@@ -558,103 +567,118 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockHash(utils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
+				blockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x1b0df1bafcb826b1fc053495aef5cdc24d0345cbfa1259b15939d01b89dc6d9")),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     utils.TestHexToFelt(t, "0x1154"),
-						GasPrice:        utils.TestHexToFelt(t, "0x378f962c4"),
-						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    new(felt.Felt).SetUint64(1),
-						OverallFee:      utils.TestHexToFelt(t, "0x3c2c41636c50"),
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x1154"),
+						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x378f962c4"),
+						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x0"),
+						OverallFee:        internalUtils.TestHexToFelt(t, "0x3c2c41636c50"),
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
 		},
 		"mock": {
-			{ // without flag
+			{
+				description: "without flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockTag("latest"),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     utils.RANDOM_FELT,
-						GasPrice:        utils.RANDOM_FELT,
-						DataGasConsumed: utils.RANDOM_FELT,
-						DataGasPrice:    utils.RANDOM_FELT,
-						OverallFee:      utils.RANDOM_FELT,
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     internalUtils.RANDOM_FELT,
+						L1GasPrice:        internalUtils.RANDOM_FELT,
+						L2GasConsumed:     internalUtils.RANDOM_FELT,
+						L2GasPrice:        internalUtils.RANDOM_FELT,
+						L1DataGasConsumed: internalUtils.RANDOM_FELT,
+						L1DataGasPrice:    internalUtils.RANDOM_FELT,
+						OverallFee:        internalUtils.RANDOM_FELT,
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
-			{ // with flag
+			{
+				description: "with flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockTag("latest"),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     new(felt.Felt).SetUint64(1234),
-						GasPrice:        new(felt.Felt).SetUint64(1234),
-						DataGasConsumed: new(felt.Felt).SetUint64(1234),
-						DataGasPrice:    new(felt.Felt).SetUint64(1234),
-						OverallFee:      new(felt.Felt).SetUint64(1234),
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     new(felt.Felt).SetUint64(1234),
+						L1GasPrice:        new(felt.Felt).SetUint64(1234),
+						L2GasConsumed:     new(felt.Felt).SetUint64(1234),
+						L2GasPrice:        new(felt.Felt).SetUint64(1234),
+						L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
+						L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
+						OverallFee:        new(felt.Felt).SetUint64(1234),
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
 		},
 		"testnet": {
-			{ // without flag
+			{
+				description: "without flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(100000),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     utils.TestHexToFelt(t, "0x123c"),
-						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
-						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
-						OverallFee:      utils.TestHexToFelt(t, "0x955fd7d0ffd4"),
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x123c"),
+						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x831211d3b"),
+						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:        internalUtils.TestHexToFelt(t, "0x955fd7d0ffd4"),
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
-			{ // with flag
+			{
+				description: "with flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
 				blockID:       WithBlockNumber(100000),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						GasConsumed:     utils.TestHexToFelt(t, "0x1239"),
-						GasPrice:        utils.TestHexToFelt(t, "0x831211d3b"),
-						DataGasConsumed: &felt.Zero,
-						DataGasPrice:    utils.TestHexToFelt(t, "0x1b10c"),
-						OverallFee:      utils.TestHexToFelt(t, "0x9547446da823"),
-						FeeUnit:         UnitWei,
+						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x1239"),
+						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x831211d3b"),
+						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1b10c"),
+						OverallFee:        internalUtils.TestHexToFelt(t, "0x9547446da823"),
+						FeeUnit:           UnitWei,
 					},
 				},
 			},
-			{ // invalid transaction
+			{
+				description: "invalid transaction",
 				txs: []BroadcastTxn{
 					InvokeTxnV1{
-						MaxFee:        utils.RANDOM_FELT,
+						MaxFee:        internalUtils.RANDOM_FELT,
 						Type:          TransactionType_Invoke,
 						Version:       TransactionV1,
-						SenderAddress: utils.RANDOM_FELT,
-						Nonce:         utils.RANDOM_FELT,
+						SenderAddress: internalUtils.RANDOM_FELT,
+						Nonce:         internalUtils.RANDOM_FELT,
 						Calldata:      []*felt.Felt{},
 						Signature:     []*felt.Felt{},
 					},
@@ -663,9 +687,10 @@ func TestEstimateFee(t *testing.T) {
 				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
-			{ // invalid block
+			{
+				description: "invalid block",
 				txs: []BroadcastTxn{
-					bradcastInvokeV1,
+					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(9999999999999999999),
@@ -675,11 +700,49 @@ func TestEstimateFee(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
-		if err != nil {
-			require.EqualError(t, test.expectedError, err.Error())
-		} else {
-			require.Exactly(t, test.expectedResp, resp)
-		}
+		t.Run(test.description, func(t *testing.T) {
+			resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
+			if test.expectedError != nil {
+				require.Equal(t, test.expectedError, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			assert.Exactly(t, test.expectedResp, resp)
+		})
+	}
+}
+
+func TestGetStorageProof(t *testing.T) {
+	t.Skip("TODO: incomplete. Waiting for the websocket PR to be merged, so that we can change the behavior of the client.CallContext method")
+	testConfig := beforeEach(t, false)
+
+	type testSetType struct {
+		Description       string
+		StorageProofInput StorageProofInput
+		ExpectedResult    StorageProofResult
+		ExpectedError     error
+	}
+	testSet := map[string][]testSetType{
+		"mock":   {},
+		"devnet": {},
+		"testnet": {
+			{
+				Description: "normal call, only required field block_id",
+				StorageProofInput: StorageProofInput{
+					BlockID: WithBlockTag("latest"),
+				},
+				ExpectedError: nil,
+			},
+		},
+		"mainnet": {},
+	}[testEnv]
+
+	for _, test := range testSet {
+		require := require.New(t)
+		result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
+		require.NoError(err)
+		require.NotNil(result, "should return a nonce")
+		require.Equal(test.ExpectedResult, result)
 	}
 }

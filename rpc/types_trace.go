@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type SimulateTransactionInput struct {
@@ -122,8 +122,18 @@ type FnInvocation struct {
 	L1Messages []OrderedMsg `json:"messages"`
 
 	// Resources consumed by the internal call
-	// https://github.com/starkware-libs/starknet-specs/blob/v0.7.0-rc0/api/starknet_trace_api_openrpc.json#L374C1-L374C29
-	ComputationResources ComputationResources `json:"execution_resources"`
+	ExecutionResources InnerCallExecutionResources `json:"execution_resources"`
+
+	// True if this inner call panicked
+	IsReverted bool `json:"is_reverted"`
+}
+
+// the resources consumed by an inner call (does not account for state diffs since data is squashed across the transaction)
+type InnerCallExecutionResources struct {
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	L1Gas uint `json:"l1_gas"`
+	// l2 gas consumed by this transaction, used for computation and calldata
+	L2Gas uint `json:"l2_gas"`
 }
 
 // A single pair of transaction hash and corresponding trace
@@ -153,7 +163,7 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 	}
 
 	// SimulatedTransaction wraps transactions in the TxnTrace field.
-	rawTxnTrace, err := utils.UnwrapJSON(dec, "transaction_trace")
+	rawTxnTrace, err := internalUtils.UnwrapJSON(dec, "transaction_trace")
 	if err != nil {
 		return err
 	}
@@ -197,7 +207,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 	}
 
 	// Trace wrap trace transactions in the TraceRoot field.
-	rawTraceTx, err := utils.UnwrapJSON(dec, "trace_root")
+	rawTraceTx, err := internalUtils.UnwrapJSON(dec, "trace_root")
 	if err != nil {
 		return err
 	}
@@ -213,7 +223,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 		if !ok {
 			return fmt.Errorf("failed to unmarshal transaction hash, transaction_hash is not a string")
 		}
-		txHash, err = utils.HexToFelt(txHashString)
+		txHash, err = internalUtils.HexToFelt(txHashString)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@ func PanicRPC(err error) {
 	err = errors.Join(
 		errors.New(fmt.Sprint(RPCErr.Code)),
 		errors.New(RPCErr.Message),
-		errors.New(fmt.Sprint(RPCErr.Data)),
+		errors.New(fmt.Sprint(RPCErr.Data.ErrorMessage())),
 	)
 	panic(err)
 }
@@ -38,6 +38,11 @@ func PanicRPC(err error) {
 // Validates whether the RPC_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
 func GetRpcProviderUrl() string {
 	return getEnv("RPC_PROVIDER_URL")
+}
+
+// Validates whether the WS_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
+func GetWsProviderUrl() string {
+	return getEnv("WS_PROVIDER_URL")
 }
 
 // Validates whether the PRIVATE_KEY variable has been set in the '.env' file and returns it; panics otherwise.

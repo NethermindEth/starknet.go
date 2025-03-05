@@ -18,7 +18,7 @@ import (
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 var Curve StarkCurve
@@ -527,7 +527,7 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 // Returns:
 // - hash: The hash of the list of elements
 func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
-	feltArr := utils.BigIntArrToFeltArr(elems)
+	feltArr := internalUtils.BigIntArrToFeltArr(elems)
 	if len(elems) == 0 {
 		feltArr = append(feltArr, new(felt.Felt))
 	}
@@ -537,7 +537,7 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 		feltHash = Pedersen(feltHash, felt)
 	}
 
-	hash = utils.FeltToBigInt(feltHash)
+	hash = internalUtils.FeltToBigInt(feltHash)
 	return
 }
 

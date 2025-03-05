@@ -3,11 +3,10 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,12 +22,9 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
-	var expectedResp InvokeTxnTrace
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json")
-	require.NoError(t, err, "Error ReadFile for TestTraceTransaction")
-	require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling testdata TestTraceTransaction")
+	expectedResp := internalUtils.TestUnmarshallJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
 
 	type testSetType struct {
 		TransactionHash *felt.Felt
@@ -38,29 +34,29 @@ func TestTransactionTrace(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedResp:    expectedResp,
 				ExpectedError:   nil,
 			},
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0xc0ffee"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0xc0ffee"),
 				ExpectedResp:    nil,
 				ExpectedError:   ErrHashNotFound,
 			},
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0xf00d"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0xf00d"),
 				ExpectedResp:    nil,
 				ExpectedError: &RPCError{
 					Code:    10,
 					Message: "No trace available for transaction",
-					Data:    "REJECTED",
+					Data:    &TraceStatusErrData{Status: TraceStatusRejected},
 				},
 			},
 		},
 		"devnet": {},
 		"testnet": {
 			testSetType{
-				TransactionHash: utils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedResp:    expectedResp,
 				ExpectedError:   nil,
 			},
@@ -88,28 +84,18 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	var simulateTxIn SimulateTransactionInput
 	var expectedResp SimulateTransactionOutput
 	if testEnv == "mainnet" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/mainnetSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
+		expectedResp = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
 	}
 
 	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxnRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTx.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTx")
-		require.NoError(t, json.Unmarshal(simulateTxnRaw, &simulateTxIn), "Error unmarshalling simulateInvokeTx")
-
-		expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaSimulateInvokeTxResp.json")
-		require.NoError(t, err, "Error ReadFile simulateInvokeTxResp")
-		require.NoError(t, json.Unmarshal(expectedrespRaw, &expectedResp), "Error unmarshalling simulateInvokeTxResp")
+		simulateTxIn = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
+		expectedResp = *internalUtils.TestUnmarshallJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	}
 
 	type testSetType struct {
@@ -161,14 +147,10 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
-	var blockTraceSepolia []Trace
-
-	expectedrespRaw, err := os.ReadFile("./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json")
-	require.NoError(err, "Error ReadFile for TestTraceBlockTransactions")
-	require.NoError(json.Unmarshal(expectedrespRaw, &blockTraceSepolia), "Error unmarshalling testdata TestTraceBlockTransactions")
+	blockTraceSepolia := *internalUtils.TestUnmarshallJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 
 	type testSetType struct {
 		BlockID      BlockID
@@ -187,7 +169,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		},
 		"mock": {
 			testSetType{
-				BlockID:      WithBlockHash(utils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
+				BlockID:      WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
 				ExpectedResp: blockTraceSepolia,
 				ExpectedErr:  nil,
 			},
@@ -263,7 +245,7 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 StateDiff) {
 		for _, diffElem := range mapDiff {
 			address, ok := diffElem["address"]
 			require.True(t, ok)
-			addressFelt := utils.TestHexToFelt(t, address.(string))
+			addressFelt := internalUtils.TestHexToFelt(t, address.(string))
 
 			if *addressFelt != *diff1.Address {
 				continue

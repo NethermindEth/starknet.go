@@ -7,6 +7,7 @@ type BroadcastTxn interface{}
 var (
 	_ BroadcastTxn = BroadcastInvokev0Txn{}
 	_ BroadcastTxn = BroadcastInvokev1Txn{}
+	_ BroadcastTxn = BroadcastInvokev3Txn{}
 	_ BroadcastTxn = BroadcastDeclareTxnV1{}
 	_ BroadcastTxn = BroadcastDeclareTxnV2{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}

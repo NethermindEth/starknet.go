@@ -1,13 +1,10 @@
 package utils
 
 import (
-	"encoding/hex"
-	"fmt"
 	"math/big"
-	"regexp"
-	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // Uint64ToFelt generates a new *felt.Felt from a given uint64 number.
@@ -17,7 +14,7 @@ import (
 // Returns:
 // - *felt.Felt: a *felt.Felt
 func Uint64ToFelt(num uint64) *felt.Felt {
-	return new(felt.Felt).SetUint64(num)
+	return internalUtils.Uint64ToFelt(num)
 }
 
 // HexToFelt converts a hexadecimal string to a *felt.Felt object.
@@ -28,7 +25,7 @@ func Uint64ToFelt(num uint64) *felt.Felt {
 // - *felt.Felt: a *felt.Felt object
 // - error: if conversion fails
 func HexToFelt(hex string) (*felt.Felt, error) {
-	return new(felt.Felt).SetString(hex)
+	return internalUtils.HexToFelt(hex)
 }
 
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
@@ -44,17 +41,7 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 // - []*felt.Felt: an array of *felt.Felt objects, or nil if there was
 // - error: an error if any
 func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
-
-	feltArr := make([]*felt.Felt, len(hexArr))
-	for i, e := range hexArr {
-		felt, err := HexToFelt(e)
-		if err != nil {
-			return nil, err
-		}
-		feltArr[i] = felt
-	}
-	return feltArr, nil
-
+	return internalUtils.HexArrToFelt(hexArr)
 }
 
 // FeltToBigInt converts a Felt value to a *big.Int.
@@ -64,8 +51,7 @@ func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
 // Returns:
 // - *big.Int: the converted value
 func FeltToBigInt(f *felt.Felt) *big.Int {
-	tmp := f.Bytes()
-	return new(big.Int).SetBytes(tmp[:])
+	return internalUtils.FeltToBigInt(f)
 }
 
 // BigIntToFelt converts a big integer to a felt.Felt.
@@ -75,7 +61,7 @@ func FeltToBigInt(f *felt.Felt) *big.Int {
 // Returns:
 // - *felt.Felt: the converted value
 func BigIntToFelt(big *big.Int) *felt.Felt {
-	return new(felt.Felt).SetBytes(big.Bytes())
+	return internalUtils.BigIntToFelt(big)
 }
 
 // FeltArrToBigIntArr converts an array of Felt objects to an array of big.Int objects.
@@ -85,11 +71,7 @@ func BigIntToFelt(big *big.Int) *felt.Felt {
 // Returns:
 // - []*big.Int: the array of big.Int objects
 func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
-	var bigArr []*big.Int
-	for _, felt := range f {
-		bigArr = append(bigArr, FeltToBigInt(felt))
-	}
-	return bigArr
+	return internalUtils.FeltArrToBigIntArr(f)
 }
 
 // FeltArrToStringArr converts an array of Felt objects to an array of string objects.
@@ -99,11 +81,7 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 // Returns:
 // - []string: the array of string objects
 func FeltArrToStringArr(f []*felt.Felt) []string {
-	stringArr := make([]string, len(f))
-	for i, felt := range f {
-		stringArr[i] = felt.String()
-	}
-	return stringArr
+	return internalUtils.FeltArrToStringArr(f)
 }
 
 // StringToByteArrFelt converts string to array of Felt objects.
@@ -125,38 +103,7 @@ func FeltArrToStringArr(f []*felt.Felt) []string {
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
-	const SHORT_LENGTH = 31
-	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
-	r := regexp.MustCompile(exp)
-
-	arr := r.FindAllString(s, -1)
-	if len(arr) == 0 {
-		return []*felt.Felt{&felt.Zero, &felt.Zero, &felt.Zero}, nil
-	}
-
-	hexarr := []string{}
-	var count, size uint64
-
-	for _, val := range arr {
-		if len(val) == SHORT_LENGTH {
-			count += 1
-		} else {
-			size = uint64(len(val))
-		}
-		hexarr = append(hexarr, "0x"+hex.EncodeToString([]byte(val)))
-	}
-
-	harr, err := HexArrToFelt(hexarr)
-	if err != nil {
-		return nil, err
-	}
-
-	if size == 0 {
-		harr = append(harr, new(felt.Felt).SetUint64(0))
-	}
-
-	harr = append(harr, new(felt.Felt).SetUint64(size))
-	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
+	return internalUtils.StringToByteArrFelt(s)
 }
 
 // ByteArrFeltToString converts array of Felts to string.
@@ -178,43 +125,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
-	if len(arr) < 3 {
-		return "", fmt.Errorf("invalid felt array, require atleast 3 elements in array")
-	}
-
-	count := FeltToBigInt(arr[0]).Uint64()
-	var index uint64
-	var res []string
-	for index = 0; index < count; index++ {
-		f := arr[1+index]
-		s, err := feltToString(f)
-		if err != nil {
-			return "", err
-		}
-		res = append(res, s)
-	}
-
-	pendingWordLength := arr[len(arr)-1]
-	if pendingWordLength.IsZero() {
-		return strings.Join(res, ""), nil
-	}
-
-	pendingWordFelt := arr[1+index]
-	s, err := feltToString(pendingWordFelt)
-	if err != nil {
-		return "", fmt.Errorf("invalid pending word")
-	}
-
-	res = append(res, s)
-	return strings.Join(res, ""), nil
-}
-
-func feltToString(f *felt.Felt) (string, error) {
-	b, err := hex.DecodeString(f.String()[2:])
-	if err != nil {
-		return "", fmt.Errorf("unable to decode to string")
-	}
-	return string(b), nil
+	return internalUtils.ByteArrFeltToString(arr)
 }
 
 // BigIntArrToFeltArr converts an array of big.Int objects to an array of Felt objects.
@@ -224,9 +135,5 @@ func feltToString(f *felt.Felt) (string, error) {
 // Returns:
 // - []*felt.Felt: the array of Felt objects
 func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
-	var feltArr []*felt.Felt
-	for _, big := range bigArr {
-		feltArr = append(feltArr, BigIntToFelt(big))
-	}
-	return feltArr
+	return internalUtils.BigIntArrToFeltArr(bigArr)
 }

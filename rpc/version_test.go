@@ -10,7 +10,7 @@ import (
 // TestSpecVersion tests starknet_specVersion
 func TestSpecVersion(t *testing.T) {
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string
@@ -20,7 +20,7 @@ func TestSpecVersion(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			ExpectedResp: "0.7.1",
+			ExpectedResp: "0.8.0",
 		}},
 	}[testEnv]
 
