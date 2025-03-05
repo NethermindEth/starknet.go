@@ -393,9 +393,14 @@ func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (
 	if err != nil {
 		return nil, err
 	}
+	l1DataGasBytes, err := resourceBounds.L1DataGas.Bytes(rpc.ResourceL1DataGas)
+	if err != nil {
+		return nil, err
+	}
 	l1Bounds := new(felt.Felt).SetBytes(l1Bytes)
 	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
-	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds), nil
+	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
+	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds, l1DataGasBounds), nil
 }
 
 func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {

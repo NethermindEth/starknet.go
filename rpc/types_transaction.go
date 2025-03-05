@@ -182,9 +182,12 @@ func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 
 type Resource string
 
+// Values used in the Resource Bounds hash calculation
+// Ref: https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
 const (
-	ResourceL1Gas Resource = "L1_GAS"
-	ResourceL2Gas Resource = "L2_GAS"
+	ResourceL1Gas     Resource = "L1_GAS"
+	ResourceL2Gas     Resource = "L2_GAS"
+	ResourceL1DataGas Resource = "L1_DATA"
 )
 
 type ResourceBounds struct {
