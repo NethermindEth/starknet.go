@@ -71,16 +71,25 @@ func TestCall(t *testing.T) {
 				BlockID:               WithBlockTag("latest"),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
-			// TODO: create a case for the ErrEntrypointNotFound error when Juno implement it
 			{
 				name: "ContractError",
+				FunctionCall: FunctionCall{
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{&felt.Zero},
+				},
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: ErrContractError,
+			},
+			{
+				name: "EntrypointNotFound",
 				FunctionCall: FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:       WithBlockTag("latest"),
-				ExpectedError: ErrContractError,
+				ExpectedError: ErrEntrypointNotFound,
 			},
 			{
 				name: "BlockNotFound",
