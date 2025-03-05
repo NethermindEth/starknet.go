@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,6 +25,7 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
+	t.Skip("TODO: wait Juno fix the bug. Ref: https://github.com/NethermindEth/juno/issues/2599")
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -40,53 +41,62 @@ func TestCall(t *testing.T) {
 				name: "Ok",
 				FunctionCall: FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
-					ContractAddress:    utils.TestHexToFelt(t, DevNetETHAddress),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
+					ContractAddress:    internalUtils.TestHexToFelt(t, DevNetETHAddress),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: utils.TestHexToFelt(t, "0x12"),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
 		"mock": {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0xdeadbeef"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: utils.TestHexToFelt(t, "0xdeadbeef"),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
 		"testnet": {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: utils.TestHexToFelt(t, "0x506f736974696f6e"),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
-			// TODO: create a case for the ErrEntrypointNotFound error when Juno implement it
 			{
 				name: "ContractError",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
-					Calldata:           []*felt.Felt{},
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{&felt.Zero},
 				},
 				BlockID:       WithBlockTag("latest"),
 				ExpectedError: ErrContractError,
 			},
 			{
+				name: "EntrypointNotFound",
+				FunctionCall: FunctionCall{
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:       WithBlockTag("latest"),
+				ExpectedError: ErrEntrypointNotFound,
+			},
+			{
 				name: "BlockNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:       WithBlockNumber(9999999999999999999),
@@ -95,8 +105,8 @@ func TestCall(t *testing.T) {
 			{
 				name: "ContractNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.RANDOM_FELT,
-					EntryPointSelector: utils.GetSelectorFromNameFelt("name"),
+					ContractAddress:    internalUtils.RANDOM_FELT,
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:       WithBlockTag("latest"),
@@ -107,12 +117,12 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    utils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
-					EntryPointSelector: utils.GetSelectorFromNameFelt("decimals"),
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: utils.TestHexToFelt(t, "0x12"),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
 	}[testEnv]

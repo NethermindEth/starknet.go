@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,17 +25,17 @@ func TestCompiledCasm(t *testing.T) {
 		"mock": {
 			{
 				Description:        "success - get compiled CASM",
-				ClassHash:          utils.RANDOM_FELT,
+				ClassHash:          internalUtils.RANDOM_FELT,
 				ExpectedResultPath: "./tests/compiledCasm.json",
 			},
 			{
 				Description:   "error - class hash not found",
-				ClassHash:     utils.TestHexToFelt(t, "0xdadadadada"),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0xdadadadada"),
 				ExpectedError: ErrClassHashNotFound,
 			},
 			{
 				Description:   "error - compilation error",
-				ClassHash:     utils.TestHexToFelt(t, "0xbad"),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0xbad"),
 				ExpectedError: ErrCompilationError,
 			},
 		},
@@ -43,12 +43,12 @@ func TestCompiledCasm(t *testing.T) {
 		"testnet": {
 			{
 				Description:        "normal call, with field class_hash",
-				ClassHash:          utils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
+				ClassHash:          internalUtils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
 				ExpectedResultPath: "./tests/compiledCasm.json",
 			},
 			{
 				Description:   "error call, inexistent class_hash",
-				ClassHash:     utils.TestHexToFelt(t, "0xdedededededede"),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0xdedededededede"),
 				ExpectedError: ErrClassHashNotFound,
 			},
 			// TODO: add test for compilation error. Need to find the invalid class hash.

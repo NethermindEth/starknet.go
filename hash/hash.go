@@ -7,8 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
@@ -195,12 +195,12 @@ func getByteCodeSegmentHasher(
 		components := make([]*felt.Felt, len(segments)*2)
 
 		for i, val := range segments {
-			components[i*2] = utils.Uint64ToFelt(val.Size)
+			components[i*2] = internalUtils.Uint64ToFelt(val.Size)
 			components[i*2+1] = val.Hash()
 		}
 
 		return new(felt.Felt).Add(
-			utils.Uint64ToFelt(1),
+			internalUtils.Uint64ToFelt(1),
 			curve.PoseidonArray(components...),
 		)
 	}, totalLen, nil
