@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
@@ -50,9 +52,9 @@ func BuildInvokeTxn(
 //
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
-//   - compiledClassHash: The hash of the casm contract class
-//   - nonce: The account's nonce
+//   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
+//   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
 //
 // Returns:
@@ -60,11 +62,15 @@ func BuildInvokeTxn(
 //     for signature, tip, paymaster data, etc. Need to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
-	compiledClassHash *felt.Felt,
-	nonce *felt.Felt,
+	casmClass contracts.CasmClass,
 	contractClass *rpc.ContractClass,
+	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-) rpc.BroadcastDeclareTxnV3 {
+) (rpc.BroadcastDeclareTxnV3, error) {
+	compiledClassHash, err := hash.CompiledClassHash(casmClass)
+	if err != nil {
+		return rpc.BroadcastDeclareTxnV3{}, err
+	}
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{
 		Type:                  rpc.TransactionType_Declare,
@@ -82,7 +88,7 @@ func BuildDeclareTxn(
 		FeeMode:               rpc.DAModeL1,
 	}
 
-	return declareTxn
+	return declareTxn, nil
 }
 
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
