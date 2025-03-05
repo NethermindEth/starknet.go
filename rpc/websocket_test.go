@@ -134,7 +134,9 @@ func TestSubscribeEvents(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
+	// 'blockNumber + 1' for the case the latest block number is updated
+	// '0' for the case of events from pending blocks
+	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1, 0}
 
 	t.Run("normal call, with empty args", func(t *testing.T) {
 		t.Parallel()
