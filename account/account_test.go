@@ -383,20 +383,8 @@ func TestSignMOCK(t *testing.T) {
 				},
 			},
 		},
-		"devnet": {},
-		"testnet": {
-			// Accepted on testnet https://sepolia.voyager.online/tx/0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b
-			{
-				Address:    internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-				PrivKey:    internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
-				ChainId:    "SN_SEPOLIA",
-				FeltToSign: internalUtils.TestHexToFelt(t, "0x4b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b"),
-				ExpectedSig: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0xfa671736285eb70057579532f0efb6fde09ecefe323755ffd126537234e9c5"),
-					internalUtils.TestHexToFelt(t, "0x27bf55daa78a3ccfb7a4ee6576a13adfc44af707c28588be8292b8476bb27ef"),
-				},
-			},
-		},
+		"devnet":  {},
+		"testnet": {},
 		"mainnet": {},
 	}[testEnv]
 
@@ -430,8 +418,6 @@ func TestSignMOCK(t *testing.T) {
 //
 //	none
 func TestSendInvokeTxn(t *testing.T) {
-	t.Skip("TODO: update this test to use InvokeTxnV3")
-
 	type testSetType struct {
 		ExpectedErr          error
 		CairoContractVersion int
@@ -439,59 +425,57 @@ func TestSendInvokeTxn(t *testing.T) {
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
 		PrivKey              *felt.Felt
-		InvokeTx             rpc.BroadcastInvokev1Txn
-		FnCall               rpc.FunctionCall
-		TxDetails            rpc.TxDetails
+		InvokeTx             rpc.BroadcastInvokev3Txn
 	}
 	testSet := map[string][]testSetType{
 		"mock":   {},
 		"devnet": {},
 		"testnet": {
 			{
-				// https://sepolia.voyager.online/tx/0x04b2e6743b03a0412f8450dd1d337f37a0e946603c3e6fbf4ba2469703c1705b
+				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
 				ExpectedErr:          rpc.ErrDuplicateTx,
 				CairoContractVersion: 2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
-				InvokeTx: rpc.BroadcastInvokev1Txn{
-					InvokeTxnV1: rpc.InvokeTxnV1{
-						Nonce:         new(felt.Felt).SetUint64(5),
-						MaxFee:        internalUtils.TestHexToFelt(t, "0x26112A960026"),
-						Version:       rpc.TransactionV1,
-						Type:          rpc.TransactionType_Invoke,
-						SenderAddress: internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-					}},
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
-					EntryPointSelector: internalUtils.TestHexToFelt(t, "0x166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
-					},
-				},
-			},
-			{
-				// https://sepolia.voyager.online/tx/0x32b46053f669fc198c2647bdc150c6a83d4a44a00e7d85fd10afca52706e6fa
-				ExpectedErr:          rpc.ErrDuplicateTx,
-				CairoContractVersion: 2,
-				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-				SetKS:                true,
-				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
-				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"),
-				InvokeTx: rpc.BroadcastInvokev1Txn{
-					InvokeTxnV1: rpc.InvokeTxnV1{
-						Nonce:         new(felt.Felt).SetUint64(8),
-						MaxFee:        internalUtils.TestHexToFelt(t, "0x1f6410500832"),
-						Version:       rpc.TransactionV1,
-						Type:          rpc.TransactionType_Invoke,
-						SenderAddress: internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
-					}},
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
-					EntryPointSelector: internalUtils.TestHexToFelt(t, "0x166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
+				InvokeTx: rpc.BroadcastInvokev3Txn{
+					InvokeTxnV3: rpc.InvokeTxnV3{
+						Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
+						Type:    rpc.TransactionType_Invoke,
+						Version: rpc.TransactionV3,
+						Signature: []*felt.Felt{
+							internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
+							internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
+						},
+						ResourceBounds: rpc.ResourceBoundsMapping{
+							L1Gas: rpc.ResourceBounds{
+								MaxAmount:       "0x0",
+								MaxPricePerUnit: "0x4305031628668",
+							},
+							L1DataGas: rpc.ResourceBounds{
+								MaxAmount:       "0x210",
+								MaxPricePerUnit: "0x948",
+							},
+							L2Gas: rpc.ResourceBounds{
+								MaxAmount:       "0x15cde0",
+								MaxPricePerUnit: "0x18955dc56",
+							},
+						},
+						Tip:                   "0x0",
+						PayMasterData:         []*felt.Felt{},
+						AccountDeploymentData: []*felt.Felt{},
+						SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
+						Calldata: internalUtils.TestHexArrToFelt(t, []string{
+							"0x1",
+							"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+							"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+							"0x2",
+							"0xffffffff",
+							"0x0",
+						}),
+						NonceDataMode: rpc.DAModeL1,
+						FeeMode:       rpc.DAModeL1,
 					},
 				},
 			},
@@ -514,17 +498,14 @@ func TestSendInvokeTxn(t *testing.T) {
 		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 2)
 		require.NoError(t, err)
 
-		test.InvokeTx.Calldata, err = acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV3)
 		require.NoError(t, err)
 
-		// err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV1)
-		// require.NoError(t, err)
-
-		// resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
-		// if err != nil {
-		// 	require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
-		// 	require.Nil(t, resp)
-		// }
+		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
+		if err != nil {
+			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+			require.Nil(t, resp)
+		}
 
 	}
 }
