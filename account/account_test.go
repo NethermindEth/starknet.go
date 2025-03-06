@@ -9,7 +9,9 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/devnet"
+	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
@@ -507,6 +509,92 @@ func TestSendInvokeTxn(t *testing.T) {
 			require.Nil(t, resp)
 		}
 
+	}
+}
+
+// TestAddDeclareTxn is a test function that verifies the behavior of the AddDeclareTransaction method.
+//
+// This function tests the AddDeclareTransaction method by setting up test data and invoking the method with different test sets.
+// It asserts that the expected hash and error values are returned for each test set.
+//
+// Parameters:
+//   - t: The testing.T instance for running the test
+//
+// Returns:
+//
+//	none
+func TestSendDeclareTxn(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("Skipping test as it requires a testnet environment")
+	}
+	expectedTxHash := internalUtils.TestHexToFelt(t, "0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0")
+	expectedClassHash := internalUtils.TestHexToFelt(t, "0x06ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17")
+
+	AccountAddress := internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
+	PubKey := internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
+	PrivKey := internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
+
+	ks := account.NewMemKeystore()
+	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
+	require.True(t, ok)
+	ks.Put(PubKey.String(), fakePrivKeyBI)
+
+	client, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
+	require.NoError(t, err)
+
+	// Class
+	class := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+	// Compiled Class Hash
+	casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	compClassHash, err := hash.CompiledClassHash(casmClass)
+	require.NoError(t, err)
+
+	broadcastTx := rpc.BroadcastDeclareTxnV3{
+		Type:              rpc.TransactionType_Declare,
+		SenderAddress:     AccountAddress,
+		CompiledClassHash: compClassHash,
+		Version:           rpc.TransactionV3,
+		Signature: []*felt.Felt{
+			internalUtils.TestHexToFelt(t, "0x74a20e84469ecf7bfaa7eb82a803621357b695af5ac6f857c0615c7e9fa94e3"),
+			internalUtils.TestHexToFelt(t, "0x3a79c411c05fc60fe6da68bd4a1cc57745a7e1e6cfa95dd7c3466fae384cfc3"),
+		},
+		Nonce:         internalUtils.TestHexToFelt(t, "0xe"),
+		ContractClass: &class,
+		ResourceBounds: rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x1597b3274d88",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x210",
+				MaxPricePerUnit: "0x997c",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x1115cde0",
+				MaxPricePerUnit: "0x11920d1317",
+			},
+		},
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+	}
+
+	err = acnt.SignDeclareTransaction(context.Background(), &broadcastTx)
+	require.NoError(t, err)
+
+	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
+
+	if err != nil {
+		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+	} else {
+		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
 
@@ -1023,87 +1111,6 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
 		}
 	}
-}
-
-// TestAddDeclareTxn is a test function that verifies the behavior of the AddDeclareTransaction method.
-//
-// This function tests the AddDeclareTransaction method by setting up test data and invoking the method with different test sets.
-// It asserts that the expected hash and error values are returned for each test set.
-//
-// Parameters:
-//   - t: The testing.T instance for running the test
-//
-// Returns:
-//
-//	none
-func TestSendDeclareTxn(t *testing.T) {
-	t.Skip("TODO: upgrade this test")
-	// if testEnv != "testnet" {
-	// 	t.Skip("Skipping test as it requires a testnet environment")
-	// }
-	// expectedTxHash := internalUtils.TestHexToFelt(t, "0x0272ebd99f5d0a275b4bc26781f76c4c4e48050ce5f1c1ddafcdee48f0297255")
-	// expectedClassHash := internalUtils.TestHexToFelt(t, "0x05e507b062836a3d73e71686ee62bca69026df94e72a657cbe0b954e6d3a0ce6")
-
-	// AccountAddress := internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
-	// PubKey := internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
-	// PrivKey := internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
-
-	// ks := account.NewMemKeystore()
-	// fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
-	// require.True(t, ok)
-	// ks.Put(PubKey.String(), fakePrivKeyBI)
-
-	// client, err := rpc.NewProvider(base)
-	// require.NoError(t, err, "Error in rpc.NewClient")
-
-	// acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
-	// require.NoError(t, err)
-
-	// // Class Hash
-	// class := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/hello_world_compiled.sierra.json", "")
-	// classHash := hash.ClassHash(class)
-
-	// // Compiled Class Hash
-	// casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/hello_world_compiled.casm.json", "")
-	// compClassHash, err := hash.CompiledClassHash(casmClass)
-	// require.NoError(t, err)
-
-	// tx := rpc.DeclareTxnV2{
-	// 	Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-	// 	MaxFee:  internalUtils.TestHexToFelt(t, "0xc5cb22092551"),
-	// 	Type:    rpc.TransactionType_Declare,
-	// 	Version: rpc.TransactionV2,
-	// 	Signature: []*felt.Felt{
-	// 		internalUtils.TestHexToFelt(t, "0x2975276c978f3cfbfa621b71085a910fe92ec32ba5995d8d70cfdd9c6db0ece"),
-	// 		internalUtils.TestHexToFelt(t, "0x2f6eb4f42809ae38c8dfea82018451330ddcb276b63dde3ca8c64815e8f2fc0"),
-	// 	},
-	// 	SenderAddress:     AccountAddress,
-	// 	CompiledClassHash: compClassHash,
-	// 	ClassHash:         classHash,
-	// }
-
-	// err = acnt.SignDeclareTransaction(context.Background(), &tx)
-	// require.NoError(t, err)
-
-	// broadcastTx := rpc.BroadcastDeclareTxnV2{
-	// 	Nonce:             tx.Nonce,
-	// 	MaxFee:            tx.MaxFee,
-	// 	Type:              tx.Type,
-	// 	Version:           tx.Version,
-	// 	Signature:         tx.Signature,
-	// 	SenderAddress:     tx.SenderAddress,
-	// 	CompiledClassHash: tx.CompiledClassHash,
-	// 	ContractClass:     class,
-	// }
-
-	// resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
-
-	// if err != nil {
-	// 	require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
-	// } else {
-	// 	require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
-	// 	require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
-	// }
 }
 
 // newDevnet creates a new devnet with the given URL.
