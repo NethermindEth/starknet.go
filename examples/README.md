@@ -44,4 +44,4 @@ To run an example:
 1. How to use WebSocket methods? How to subscribe, unsubscribe, handle errors, and read values from them?  
   R: See [websocket](./websocket/main.go).
 
-<!-- TODO: update examples and FAQ links to code -->
+<!-- TODO: update all examples and FAQ links to code -->

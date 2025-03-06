@@ -31,9 +31,9 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
-	BuildAndSendDeployAccountTxn(ctx context.Context, contractAddressSalt *felt.Felt, constructorCalldata []*felt.Felt, classHash *felt.Felt, multiplier float64) (*rpc.AddDeployAccountTransactionResponse, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
@@ -223,36 +223,31 @@ func (account *Account) BuildAndSendDeclareTxn(
 	return txnResponse, nil
 }
 
-// BuildAndSendDeployAccountTxn builds and sends a v3 deploy account transaction.
-// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+// BuildAndEstimateDeployAccountTxn builds and signs a v3 deploy account transaction, estimates the fee, and computes the address.
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - contractAddressSalt: The salt for the address of the deployed contract
-//   - constructorCalldata: The parameters passed to the constructor
-//   - classHash: The class hash of the contract to be deployed
+//   - salt: the salt for the address of the deployed contract
+//   - classHash: the class hash of the contract to be deployed
+//   - constructorCalldata: the parameters passed to the constructor
 //   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
 //
 // Returns:
-//   - *rpc.AddDeployAccountTransactionResponse: the response of the submitted transaction.
-//   - error: An error if the transaction building fails.
-func (account *Account) BuildAndSendDeployAccountTxn(
+// - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+// - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
+// - error: an error if any
+func (account *Account) BuildAndEstimateDeployAccountTxn(
 	ctx context.Context,
-	contractAddressSalt *felt.Felt,
-	constructorCalldata []*felt.Felt,
+	salt *felt.Felt,
 	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
 	multiplier float64,
-) (*rpc.AddDeployAccountTransactionResponse, error) {
-	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
-	if err != nil {
-		return nil, err
-	}
-
+) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(nonce, contractAddressSalt, constructorCalldata, classHash, rpc.ResourceBoundsMapping{
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, rpc.ResourceBoundsMapping{
 		L1Gas: rpc.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
@@ -267,31 +262,29 @@ func (account *Account) BuildAndSendDeployAccountTxn(
 		},
 	})
 
-	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, classHash)
+	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+
+	// signing the txn, as it needs a signature to estimate the fee
+	err := account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// estimate txn fee
 	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, classHash)
+	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	txnResponse, err := account.provider.AddDeployAccountTransaction(ctx, broadcastDepAccTxnV3)
-	if err != nil {
-		return nil, err
-	}
-
-	return txnResponse, nil
+	return &broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
 // Sign signs the given felt message using the account's private key.
@@ -728,11 +721,12 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
 //
 // Parameters:
-// - ctx: the context.Context object for the transaction.
-// - txn: the Broadcast Transaction to be sent.
+//   - ctx: the context.Context object for the transaction.
+//   - txn: the Broadcast Transaction to be sent.
+//
 // Returns:
-// - *rpc.TransactionResponse: the transaction response.
-// - error: an error if any.
+//   - *rpc.TransactionResponse: the transaction response.
+//   - error: an error if any.
 func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
 	case rpc.BroadcastInvokeTxnType:
