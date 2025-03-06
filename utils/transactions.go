@@ -2,10 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
@@ -197,4 +199,57 @@ func toResourceBounds(
 		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", uint64(maxAmount))),
 		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", uint64(maxPricePerUnit))),
 	}
+}
+
+// ResBoundsMapToOverallFee calculates the overall fee for a ResourceBoundsMapping with applied multipliers.
+// Parameters:
+//   - resBounds: The resource bounds to calculate the fee for
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
+//
+// Returns:
+//   - *big.Int: The overall fee in FRI
+func ResBoundsMapToOverallFee(
+	resBounds rpc.ResourceBoundsMapping,
+	multiplier float64,
+) *big.Int {
+
+	// get big int values
+	l1GasAmount := HexToBN(string(resBounds.L1Gas.MaxAmount))
+	l1GasPrice := HexToBN(string(resBounds.L1Gas.MaxPricePerUnit))
+	l1DataGasAmount := HexToBN(string(resBounds.L1DataGas.MaxAmount))
+	l1DataGasPrice := HexToBN(string(resBounds.L1DataGas.MaxPricePerUnit))
+	l2GasAmount := HexToBN(string(resBounds.L2Gas.MaxAmount))
+	l2GasPrice := HexToBN(string(resBounds.L2Gas.MaxPricePerUnit))
+
+	// calculate fee
+	l1GasFee := new(big.Int).Mul(l1GasAmount, l1GasPrice)
+	l1DataGasFee := new(big.Int).Mul(l1DataGasAmount, l1DataGasPrice)
+	l2GasFee := new(big.Int).Mul(l2GasAmount, l2GasPrice)
+
+	// return fee
+	return l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
+}
+
+// WeiToETH converts a Wei amount to ETH
+// Returns the ETH value as a float64
+func WeiToETH(wei *big.Int) float64 {
+	return internalUtils.WeiToETH(wei)
+}
+
+// ETHToWei converts an ETH amount to Wei
+// Returns the Wei value as a *big.Int
+func ETHToWei(eth float64) *big.Int {
+	return internalUtils.ETHToWei(eth)
+}
+
+// FRIToSTRK converts a FRI amount to STRK
+// Returns the STRK value as a float64
+func FRIToSTRK(fri *big.Int) float64 {
+	return internalUtils.WeiToETH(fri)
+}
+
+// STRKToFRI converts a STRK amount to FRI
+// Returns the FRI value as a *big.Int
+func STRKToFRI(strk float64) *big.Int {
+	return internalUtils.ETHToWei(strk)
 }
