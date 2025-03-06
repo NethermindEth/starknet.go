@@ -632,6 +632,43 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			account.ChainId,
 			[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
 		), nil
+	case rpc.DeclareTxnV3:
+		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+			txn.ClassHash == nil || txn.CompiledClassHash == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+		if err != nil {
+			return nil, err
+		}
+		tipUint64, err := txn.Tip.ToUint64()
+		if err != nil {
+			return nil, err
+		}
+
+		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+		if err != nil {
+			return nil, err
+		}
+		return crypto.PoseidonArray(
+			PREFIX_DECLARE,
+			txnVersionFelt,
+			txn.SenderAddress,
+			tipAndResourceHash,
+			crypto.PoseidonArray(txn.PayMasterData...),
+			account.ChainId,
+			txn.Nonce,
+			new(felt.Felt).SetUint64(DAUint64),
+			crypto.PoseidonArray(txn.AccountDeploymentData...),
+			txn.ClassHash,
+			txn.CompiledClassHash,
+		), nil
 	case rpc.BroadcastDeclareTxnV3:
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||

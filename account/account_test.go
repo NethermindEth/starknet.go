@@ -647,6 +647,42 @@ func TestTransactionHashDeclare(t *testing.T) {
 				ExpectedHash: internalUtils.TestHexToFelt(t, "0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3"),
 				ExpectedErr:  nil,
 			},
+			{
+				// https://sepolia.voyager.online/tx/0x30c852c522274765e1d681bc8a84ce7c41118370ef2ba7d18a427ed29f5b155
+				Txn: rpc.DeclareTxnV3{
+					Nonce:   internalUtils.TestHexToFelt(t, "0x2b"),
+					Type:    rpc.TransactionType_Declare,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x5c6a94302ef4b6d80a4c6a3eaf5ad30e11fa13aa78f7397a4f69901ceb12b7"),
+						internalUtils.TestHexToFelt(t, "0x25bf97f481061f8abf5eb93e67eaebe6bb74dda34d7378a506f5ee2ff1daef1"),
+					},
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x10968159929e",
+						},
+						L1DataGas: rpc.ResourceBounds{
+							MaxAmount:       "0x120",
+							MaxPricePerUnit: "0x99f",
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x1ff3ec0",
+							MaxPricePerUnit: "0x197aa1ce3",
+						},
+					},
+					Tip:                   "0x0",
+					PayMasterData:         []*felt.Felt{},
+					SenderAddress:         internalUtils.TestHexToFelt(t, "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06"),
+					ClassHash:             internalUtils.TestHexToFelt(t, "0x224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5"),
+					CompiledClassHash:     internalUtils.TestHexToFelt(t, "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17"),
+					AccountDeploymentData: []*felt.Felt{},
+					NonceDataMode:         rpc.DAModeL1,
+					FeeMode:               rpc.DAModeL1,
+				},
+				ExpectedHash: internalUtils.TestHexToFelt(t, "0x30c852c522274765e1d681bc8a84ce7c41118370ef2ba7d18a427ed29f5b155"),
+				ExpectedErr:  nil,
+			},
 		},
 		"testnet": {
 			{
