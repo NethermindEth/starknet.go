@@ -79,7 +79,7 @@ func getEnv(envName string) string {
 	return env
 }
 
-// PadZerosInFelt pads zeros to the left of a hex felt value to make it 64 characters long.
+// PadZerosInFelt it's a helper function that pads zeros to the left of a hex felt value to make sure it is 64 characters long.
 func PadZerosInFelt(hexFelt *felt.Felt) string {
 	length := 66
 	hexStr := hexFelt.String()
