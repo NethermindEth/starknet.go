@@ -100,7 +100,6 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
-	// TODO: need to test it. First implement BuildAndSendDeclareTxn to test it in devnet.
 	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
 	if err != nil {
 		return nil, err

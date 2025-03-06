@@ -1154,7 +1154,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	t.Skip("TODO: implement this test")
+	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -1162,7 +1162,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	t.Skip("TODO: implement this test")
+	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
 }
 
 // TestBuildAndSendDeployAccount is a test function that tests the BuildAndSendDeployAccount method.
@@ -1170,5 +1170,5 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeployAccTxn(t *testing.T) {
-	t.Skip("TODO: implement this test")
+	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
 }
