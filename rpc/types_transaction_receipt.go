@@ -181,24 +181,19 @@ func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
-	var aux struct {
-		TransactionReceipt
-		BlockHash   string `json:"block_hash,omitempty"`
-		BlockNumber uint   `json:"block_number,omitempty"`
-	}
+	type Alias TransactionReceiptWithBlockInfo
+	var txnResp Alias
 
-	if err := json.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &txnResp); err != nil {
 		return err
 	}
 
-	tr.TransactionReceipt = aux.TransactionReceipt
-
-	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
-	if err != nil {
-		return err
+	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
+	if txnResp.BlockHash == nil {
+		txnResp.BlockHash = new(felt.Felt)
 	}
-	tr.BlockHash = blockHash
-	tr.BlockNumber = aux.BlockNumber
+
+	*tr = TransactionReceiptWithBlockInfo(txnResp)
 
 	return nil
 }
