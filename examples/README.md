@@ -28,11 +28,11 @@ To run an example:
 1. How to deploy a smart contract using UDC?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to send an invoke transaction?  
-  R: See [simpleInvoke](./simpleInvoke/main.go).
+  R: See [invoke](./invoke/main.go).
 1. How to make multiple function calls in the same transaction?
-  R: See [simpleInvoke](./simpleInvoke/main.go), line 92.
+  R: See [invoke](./invoke/main.go), line 92.
 1. How to get the transaction status?  
-  R: See [simpleInvoke](./simpleInvoke/main.go), line 131.
+  R: See [invoke](./invoke/main.go), line 131.
 1. How to deploy an ERC20 token?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to get the balance of a ERC20 token?  
