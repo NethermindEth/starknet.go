@@ -12,19 +12,19 @@ The variables used vary from example to example, you'll see the required ones on
 To run an example:
 
 1. Make sure you are in the chosen example directory
-1. Execute `go run main.go` to run it
+1. Execute `go run FILE_NAME.go` to run it
 
 #### Some FAQ answered by these examples
 1. How to deploy an account via `DEPLOY_TRANSACTION`?  
   R: See [deployAccount](./deployAccount/main.go)
 1. How to estimate fees?  
-  R: See [deployAccount](./deployAccount/main.go), line 89.
+  R: See [invoke](./invoke/verboseInvoke.go), line 65.
 1. How to generate random public and private keys?  
   R: See [deployAccount](./deployAccount/main.go), line 46.
 1. How to use my existing account importing my account address, and public and private keys?  
   R: See [deployContractUDC](./deployContractUDC/main.go), lines 54 and 64.
 1. How to get my nonce?  
-  R: See [deployContractUDC](./deployContractUDC/main.go), line 70.
+  R: See [invoke](./invoke/verboseInvoke.go), line 20.
 1. How to deploy a smart contract using UDC?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to send an invoke transaction?  
