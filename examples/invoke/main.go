@@ -17,6 +17,10 @@ var (
 	contractMethod string = "mint"                                                               //Replace it with the function name that you want to invoke
 )
 
+// main is the main function that will be executed when the program is run.
+// It will load the variables from the '.env' file, initialize the connection to the RPC provider,
+// initialize the account, and then call the simpleInvoke and verboseInvoke functions passing the account,
+// the contract address, the contract method and the amount to be sent.
 func main() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
@@ -64,6 +68,10 @@ func main() {
 		panic(err)
 	}
 
+	// Here we have two examples of how to send an invoke transaction, one is simple and the other one is verbose.
+	// The simple example is more user-friendly and easier to use, while the verbose example is more detailed and informative.
+	// You can choose one of them to run, or both! Each one will send a different transaction, but with almost the same parameters.
 	simpleInvoke(accnt, contractAddress, contractMethod, amount)
+	fmt.Println("--------------------------------")
 	verboseInvoke(accnt, contractAddress, contractMethod, amount)
 }
