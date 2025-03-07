@@ -34,6 +34,7 @@ type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	Provider() rpc.RpcProvider
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
@@ -82,6 +83,11 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	account.ChainId = new(felt.Felt).SetBytes([]byte(chainID))
 
 	return account, nil
+}
+
+// Provider returns the provider of the account.
+func (account *Account) Provider() rpc.RpcProvider {
+	return account.provider
 }
 
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
