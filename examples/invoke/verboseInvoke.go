@@ -82,7 +82,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 		setup.PanicRPC(err)
 	}
 
-	fmt.Println("Descriptive Invoke : Waiting for the transaction receipt...")
+	fmt.Println("Verbose Invoke : Waiting for the transaction receipt...")
 
 	//Waiting for the transaction receipt
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
@@ -91,8 +91,8 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Descriptive Invoke : Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Descriptive Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
-	fmt.Printf("Descriptive Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
-	fmt.Printf("Descriptive Invoke : Block number: %d\n", txReceipt.BlockNumber)
+	fmt.Printf("Verbose Invoke : Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Verbose Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Verbose Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Verbose Invoke : Block number: %d\n", txReceipt.BlockNumber)
 }

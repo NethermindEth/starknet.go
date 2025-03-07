@@ -12,6 +12,7 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
+// simpleInvoke is a function that shows how to easily send an invoke transaction.
 func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
 	// Building the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
@@ -29,18 +30,17 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 		setup.PanicRPC(err)
 	}
 
-	fmt.Println("Waiting for the transaction status...")
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
+	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
 
-	//Getting the transaction status
-	txStatus, err := accnt.Provider().GetTransactionStatus(context.Background(), resp.TransactionHash)
+	//Waiting for the transaction receipt
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
-	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
-
+	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Simple Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Simple Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.BlockNumber)
 }
