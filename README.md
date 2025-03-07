@@ -70,6 +70,14 @@ go run main.go
 ```
 > Check [here](examples/simpleCall/README.md) for more details
 
+***starknet simpleDeclare***
+ 
+```sh
+cd examples/simpleDeclare
+go run main.go
+```
+> Check [here](examples/simpleDeclare/README.md) for more details
+
 ***starknet deployAccount***
 
 ```sh
@@ -79,7 +87,7 @@ go run main.go
 
 > Check [here](examples/deployAccount/README.md) for more details
 
-***starknet invokeTransaction***
+***starknet invoke***
 
 ```sh
 cd examples/invoke
