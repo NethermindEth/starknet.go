@@ -32,7 +32,6 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 
 	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
 
-	//Waiting for the transaction receipt
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
