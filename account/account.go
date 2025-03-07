@@ -106,7 +106,7 @@ func (account *Account) Provider() rpc.RpcProvider {
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
-	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *rpc.ContractClass,
 	multiplier float64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
-	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +276,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, nil, err
 	}
