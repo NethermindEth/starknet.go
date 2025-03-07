@@ -26,7 +26,7 @@ var (
 )
 
 // Example succesful transaction created from this example on Sepolia
-// https://sepolia.voyager.online/tx/0x9bc6f6352663aafd71a9ebe1bde9c042590d8f3c8c265e5826274708cf0133
+// https://sepolia.voyager.online/tx/0xa9a67a7cd8d218bd225335ea2ad4ea4d4c906a5806f14603c7036bfe49ca92
 
 func main() {
 	fmt.Println("Starting deployContractUDC example")
@@ -54,7 +54,7 @@ func main() {
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
-		panic("Fail to convert privKey to bitInt")
+		panic("Failed to convert privKey to bigInt")
 	}
 	ks.Put(publicKey, privKeyBI)
 
@@ -86,35 +86,29 @@ func main() {
 	}
 
 	fmt.Println("Waiting for the transaction status...")
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
-	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
 	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
-	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
+	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 }
 
 // getUDCCalldata is a simple helper to set the call data required by the UDCs deployContract function. Update as needed.
 func getUDCCalldata(data ...string) []*felt.Felt {
 
-	classHash, err := new(felt.Felt).SetString(someContractHash)
+	classHash, err := utils.HexToFelt(someContractHash)
 	if err != nil {
 		panic(err)
 	}
 
-	randomInt := rand.Uint64()
-	salt := new(felt.Felt).SetUint64(randomInt) // to prevent address clashes
+	salt := new(felt.Felt).SetUint64(rand.Uint64()) // to prevent address clashes
 
-	unique, err := new(felt.Felt).SetString("0x0") // see https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/#deployment_types
-	if err != nil {
-		panic(err)
-	}
+	unique := felt.Zero // see https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/#deployment_types
 
 	// As we are using an ERC20 token in this example, the calldata needs to have the ERC20 constructor required parameters.
 	// You must adjust these fields to match the constructor's parameters of your desired contract.
@@ -130,11 +124,7 @@ func getUDCCalldata(data ...string) []*felt.Felt {
 		panic(err)
 	}
 
-	length := int64(len(calldata))
-	calldataLen, err := new(felt.Felt).SetString(strconv.FormatInt(length, 16))
-	if err != nil {
-		panic(err)
-	}
+	calldataLen := new(felt.Felt).SetUint64(uint64(len(calldata)))
 
-	return append([]*felt.Felt{classHash, salt, unique, calldataLen}, calldata...)
+	return append([]*felt.Felt{classHash, salt, &unique, calldataLen}, calldata...)
 }

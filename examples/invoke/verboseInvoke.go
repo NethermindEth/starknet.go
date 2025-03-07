@@ -84,7 +84,6 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 
 	fmt.Println("Verbose Invoke : Waiting for the transaction receipt...")
 
-	//Waiting for the transaction receipt
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
