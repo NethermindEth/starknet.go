@@ -20,7 +20,7 @@ To run an example:
 1. How to estimate fees?  
   R: See [invoke](./invoke/verboseInvoke.go), line 65.
 1. How to generate random public and private keys?  
-  R: See [deployAccount](./deployAccount/main.go), line 46.
+  R: See [deployAccount](./deployAccount/main.go), line 38.
 1. How to use my existing account importing my account address, and public and private keys?  
   R: See [deployContractUDC](./deployContractUDC/main.go), lines 54 and 64.
 1. How to get my nonce?  

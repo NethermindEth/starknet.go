@@ -17,20 +17,12 @@ var (
 	predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"
 )
 
-// main initializes the client, sets up the account, deploys a contract, and sends a transaction to the network.
+// main initializes the client, sets up the temporary account, precomputes the address of the new account,
+// estimates deployment fees, and prepares for the account deployment transaction.
 //
-// It loads environment variables, dials the Starknet Sepolia RPC, creates a new account, casts the account address to a felt type,
-// sets up the account using the client, converts the predeployed class hash to a felt type, creates transaction data,
-// precomputes an address, prompts the user to add funds to the precomputed address, signs the transaction,
-// and finally sends the transaction to the network.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//
-//	none
+// It loads environment variables, initializes a Starknet RPC client, generates random cryptographic keys,
+// sets up an account with the generated keys, precomputes the address of a new account, estimates deployment fees,
+// and prepares for the account deployment transaction.
 func main() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
@@ -41,7 +33,8 @@ func main() {
 		panic(err)
 	}
 
-	// Get random keys for test purposes
+	// Get random keys for being able to sign the deploy transaction.
+	// These keys will always be used to sign transactions in the new account.
 	ks, pub, privKey := account.GetRandomKeys()
 	fmt.Printf("Generated public key: %v\n", pub)
 	fmt.Printf("Generated private key: %v\n", privKey)
@@ -58,8 +51,9 @@ func main() {
 		panic(err)
 	}
 
-	// Precompute the address of the new account
-	// In our case, the OZ account constructor requires the public key of the account as calldata, so we pass it as a parameter
+	// Build and estimate fees for the deploy account transaction, and precompute the address of the new account.
+	// In our case, the OZ account constructor requires the public key of the account as calldata, so we pass it as calldata.
+	// The multiplier for the fee estimation is 1.5, as we want to be sure that the transaction will be accepted.
 	deployAccountTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(context.Background(), pub, classHash, []*felt.Felt{pub}, 1.5)
 	if err != nil {
 		panic(err)
@@ -77,18 +71,18 @@ func main() {
 	var input string
 
 	fmt.Println("\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.")
-	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need aproximately %f STRK. \n", feeInSTRK)
-	fmt.Println("When your account has been funded, press any key, then `enter` to continue : ")
+	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n", feeInSTRK)
+	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
 	fmt.Scan(&input)
 
 	// Send transaction to the network
 	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)
 	if err != nil {
-		fmt.Println("Error returned from AddDeployAccountTransaction: ")
+		fmt.Println("Error returned from SendTransaction: ")
 		setup.PanicRPC(err)
 	}
 
-	fmt.Println("AddDeployAccountTransaction successfully submitted! Wait a few minutes to see it in Voyager.")
+	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
 	fmt.Printf("Transaction hash: %v \n", resp.TransactionHash)
 	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }
