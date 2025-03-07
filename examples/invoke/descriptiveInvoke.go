@@ -14,13 +14,7 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-// NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
-var (
-	someContract   string = "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54" //Replace it with the contract that you want to invoke. In this case, an ERC20
-	contractMethod string = "mint"                                                               //Replace it with the function name that you want to invoke
-)
-
-func main() {
+func descriptiveInvoke() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
 	accountAddress := setup.GetAccountAddress()
@@ -62,10 +56,7 @@ func main() {
 		panic(err)
 	}
 
-	amount, err := utils.HexToFelt("0xffffffff")
-	if err != nil {
-		panic(err)
-	}
+	amount, _ := utils.HexToFelt("0xffffffff")
 
 	// Building the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
