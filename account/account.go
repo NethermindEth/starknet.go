@@ -698,12 +698,13 @@ func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructor
 // WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
 //
 // Parameters:
-// - ctx: The context
-// - transactionHash: The hash
-// - pollInterval: The poll interval as parameters
+//   - ctx: The context
+//   - transactionHash: The hash
+//   - pollInterval: The time interval to poll the transaction receipt
+//
 // It returns:
-// - *rpc.TransactionReceipt: the transaction receipt
-// - error: an error
+//   - *rpc.TransactionReceipt: the transaction receipt
+//   - error: an error
 func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	t := time.NewTicker(pollInterval)
 	for {

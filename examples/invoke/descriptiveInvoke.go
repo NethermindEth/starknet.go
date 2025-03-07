@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -14,78 +13,86 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-func descriptiveInvoke() {
-	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
-	accountAddress := setup.GetAccountAddress()
-	accountCairoVersion := setup.GetAccountCairoVersion()
-	privateKey := setup.GetPrivateKey()
-	publicKey := setup.GetPublicKey()
-
-	// Initialize connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
-	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
-	}
-
-	// Initialize the account memkeyStore (set public and private keys)
-	ks := account.NewMemKeystore()
-	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
-	if !ok {
-		panic("Fail to convert privKey to bitInt")
-	}
-	ks.Put(publicKey, privKeyBI)
-
-	// Here we are converting the account address to felt
-	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
-	if err != nil {
-		fmt.Println("Failed to transform the account address, did you give the hex address?")
-		panic(err)
-	}
-	// Initialize the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+// descriptiveInvoke is a function that shows how to send an invoke transaction step by step, using only
+// a few helper functions.
+func descriptiveInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
+	// Getting the nonce from the account
+	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Established connection with the client")
-
-	// Converting the contractAddress from hex to felt
-	contractAddress, err := utils.HexToFelt(someContract)
-	if err != nil {
-		panic(err)
-	}
-
-	amount, _ := utils.HexToFelt("0xffffffff")
 
 	// Building the functionCall struct, where :
-	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                  //contractAddress is the contract that we want to call
-		FunctionName:    contractMethod,                   //this is the function that we want to call
-		CallData:        []*felt.Felt{amount, &felt.Zero}, //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
+	FnCall := rpc.FunctionCall{
+		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
+		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
+		Calldata:           []*felt.Felt{amount, &felt.Zero},              //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
 	}
 
-	// Building and sending the Broadcast Invoke Txn.
+	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
-	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
+	// To do this in Starknet.go, just group all the function calls in the same slice and pass it to FmtCalldata
+	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
+	calldata, err := accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
+	if err != nil {
+		panic(err)
+	}
+
+	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
+	InvokeTx := utils.BuildInvokeTxn(accnt.AccountAddress, nonce, calldata, rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+	})
+
+	// We need to sign the transaction to be able to estimate the fee
+	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV3)
+	if err != nil {
+		panic(err)
+	}
+
+	// Estimate the transaction fee
+	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
-	fmt.Println("Waiting for the transaction status...")
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
+	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
+	InvokeTx.InvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
 
-	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
+	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV3)
+	if err != nil {
+		panic(err)
+	}
+
+	// After signing, we finally send the transaction in order to invoke the contract function
+	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
+	if err != nil {
+		setup.PanicRPC(err)
+	}
+
+	fmt.Println("Descriptive Invoke : Waiting for the transaction receipt...")
+
+	//Waiting for the transaction receipt
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
-	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
-
+	fmt.Printf("Descriptive Invoke : Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Descriptive Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Descriptive Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Descriptive Invoke : Block number: %d\n", txReceipt.BlockNumber)
 }
