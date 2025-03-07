@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	sierraContractFilePath = "./HelloStarknet.sierra.json"
-	casmContractFilePath   = "./HelloStarknet.casm.json"
+	sierraContractFilePath = "./contract.sierra.json"
+	casmContractFilePath   = "./contract.casm.json"
 )
 
 // This example demonstrates how to declare a contract on Starknet.
