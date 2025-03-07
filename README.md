@@ -83,7 +83,7 @@ go run main.go
 
 ```sh
 cd examples/invoke
-go run main.go
+go run main.go simpleInvoke.go verboseInvoke.go
 ```
 
 > Check [here](examples/invoke/README.md) for more details
