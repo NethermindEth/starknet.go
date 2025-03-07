@@ -10,11 +10,11 @@ You can choose to run either example, or you can run both!
 
 Steps:
 1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
-1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
-1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
-1. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
-1. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
-1. Make sure you are in the "invoke" directory
-1. Execute `go run main.go simpleInvoke.go verboseInvoke.go`
+2. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+3. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
+4. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+5. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+6. Make sure you are in the "invoke" directory
+7. Execute `go run main.go simpleInvoke.go verboseInvoke.go`
 
 The transactions hashes and status will be returned at the end of the execution.

@@ -204,7 +204,7 @@ func toResourceBounds(
 // ResBoundsMapToOverallFee calculates the overall fee for a ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - resBounds: The resource bounds to calculate the fee for
-//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
+//   - multiplier: Multiplier for be used to calculate the overall fee
 //
 // Returns:
 //   - *big.Int: The overall fee in FRI

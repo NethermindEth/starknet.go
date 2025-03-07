@@ -39,7 +39,7 @@ func main() {
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
-		panic("Fail to convert privKey to bitInt")
+		panic("Failed to convert privKey to bigInt")
 	}
 	ks.Put(publicKey, privKeyBI)
 
