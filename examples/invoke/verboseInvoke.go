@@ -13,9 +13,9 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-// descriptiveInvoke is a function that shows how to send an invoke transaction step by step, using only
+// verboseInvoke is a function that shows how to send an invoke transaction step by step, using only
 // a few helper functions.
-func descriptiveInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
+func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
 	// Getting the nonce from the account
 	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
 	if err != nil {

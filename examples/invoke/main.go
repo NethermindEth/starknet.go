@@ -65,5 +65,5 @@ func main() {
 	}
 
 	simpleInvoke(accnt, contractAddress, contractMethod, amount)
-	descriptiveInvoke(accnt, contractAddress, contractMethod, amount)
+	verboseInvoke(accnt, contractAddress, contractMethod, amount)
 }
