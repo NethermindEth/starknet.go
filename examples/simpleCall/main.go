@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	someContract               string = "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7" // Sepolia ETH contract address
+	someContract               string = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" // Sepolia ETH contract address
 	contractMethod             string = "decimals"
 	contractMethodWithCalldata string = "balance_of"
 )
@@ -22,14 +23,6 @@ var (
 //
 // It initializes the environment and establishes a connection with the client.
 // It then makes two contract calls and prints the responses.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//
-//	none
 func main() {
 	fmt.Println("Starting simpleCall example")
 
@@ -58,7 +51,7 @@ func main() {
 		panic(err)
 	}
 
-	// Get token's decimals. Make read contract call without calldata
+	// Get token's decimals. As the contract method doesn't require any parameters, we can omit the calldata field.
 	getDecimalsTx := rpc.FunctionCall{
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
@@ -70,7 +63,7 @@ func main() {
 	decimals, _ := utils.FeltToBigInt(decimalsResp[0]).Float64()
 	fmt.Printf("Decimals: %v \n", decimals)
 
-	// Get balance from specified account address. Make read contract call with calldata
+	// Get balance from specified account address. As the contract method requires a parameter, we need to pass it in the calldata field.
 	tx := rpc.FunctionCall{
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethodWithCalldata),
@@ -80,10 +73,10 @@ func main() {
 	if rpcErr != nil {
 		panic(rpcErr)
 	}
-	balance, _ := utils.FeltToBigInt(balanceResp[0]).Float64()
-	fmt.Printf("Balance: %d \n", int(balance))
+	balance := balanceResp[0].BigInt(new(big.Int))
+	fmt.Printf("Balance: %v \n", balance)
 
 	// Getting result
-	balance = balance / (math.Pow(10, decimals))
-	fmt.Printf("Token balance of %s is %f ETH \n", accountAddress, balance)
+	balance = balance.Div(balance, big.NewInt(int64(math.Pow(10, decimals))))
+	fmt.Printf("Token balance of %s is %v STRK \n", accountAddress, balance)
 }
