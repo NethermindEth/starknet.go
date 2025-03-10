@@ -129,8 +129,8 @@ go run main.go
 
 ### RPC
 
-<!-- TODO: update readme -->
-`starknet.go` RPC implements the Starknet [RPC v0.7.1 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
+<!-- TODO: update spec link when v0.8.0 is released -->
+`starknet.go` RPC implements the Starknet [RPC v0.8.0 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.8.0-rc3)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |
@@ -163,6 +163,18 @@ go run main.go
 | `starknet_simulateTransaction`             | :heavy_check_mark: |
 | `starknet_specVersion`                     | :heavy_check_mark: |
 | `starknet_traceBlockTransactions`          | :heavy_check_mark: |
+| `starknet_getStorageProof`                 | :heavy_check_mark: |
+| `starknet_getMessagesStatus`               | :heavy_check_mark: |
+| `starknet_getCompiledCasm`                 | :heavy_check_mark: |
+
+#### WebSocket Methods
+
+| Method                                     | Implemented (*)    |
+| ------------------------------------------ | ------------------ |
+| `starknet_subscribeEvents`                 | :heavy_check_mark: |
+| `starknet_subscribeNewHeads`               | :heavy_check_mark: |
+| `starknet_subscribePendingTransactions`    | :heavy_check_mark: |
+| `starknet_subscribeTransactionStatus`      | :heavy_check_mark: |
 
 ### Run Tests
 
