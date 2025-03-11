@@ -75,14 +75,14 @@ func TestTransactionTrace(t *testing.T) {
 
 			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
 			require.Equal(t, test.ExpectedError, err)
-			assert.Equal(t, expectedResp, resp)
+			compareTraceTxs(t, expectedResp, resp)
 
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+			compareTraceTxnsJSON(t, rawExpectedResp, rawResp)
 		})
 	}
 }
@@ -102,50 +102,70 @@ func TestTransactionTrace(t *testing.T) {
 func TestSimulateTransaction(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	var simulateTxIn SimulateTransactionInput
-	var expectedResp SimulateTransactionOutput
-	if testEnv == "mainnet" {
-		simulateTxIn = *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, "./tests/trace/mainnetSimulateInvokeTx.json", "")
-		expectedResp = *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/mainnetSimulateInvokeTxResp.json", "")
-	}
-
-	if testEnv == "testnet" || testEnv == "mock" {
-		simulateTxIn = *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, "./tests/trace/sepoliaSimulateInvokeTx.json", "")
-		expectedResp = *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionOutput](t, "./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
-	}
-
 	type testSetType struct {
-		SimulateTxnInput SimulateTransactionInput
-		ExpectedResp     SimulateTransactionOutput
+		SimulateTxnInputFile string
+		ExpectedRespFile     string
 	}
 	testSet := map[string][]testSetType{
 		"devnet": {},
 		"mock": {testSetType{
-			SimulateTxnInput: simulateTxIn,
-			ExpectedResp:     expectedResp,
+			SimulateTxnInputFile: "./tests/trace/sepoliaSimulateInvokeTx.json",
+			ExpectedRespFile:     "./tests/trace/sepoliaSimulateInvokeTxResp.json",
 		}},
 		"testnet": {testSetType{
-			SimulateTxnInput: simulateTxIn,
-			ExpectedResp:     expectedResp,
+			SimulateTxnInputFile: "./tests/trace/sepoliaSimulateInvokeTx.json",
+			ExpectedRespFile:     "./tests/trace/sepoliaSimulateInvokeTxResp.json",
 		}},
 		"mainnet": {testSetType{
-			SimulateTxnInput: simulateTxIn,
-			ExpectedResp:     expectedResp,
+			SimulateTxnInputFile: "./tests/trace/mainnetSimulateInvokeTx.json",
+			ExpectedRespFile:     "./tests/trace/mainnetSimulateInvokeTxResp.json",
 		}},
 	}[testEnv]
 
 	for _, test := range testSet {
+		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
+		expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "")
 
 		resp, err := testConfig.provider.SimulateTransactions(
 			context.Background(),
-			test.SimulateTxnInput.BlockID,
-			test.SimulateTxnInput.Txns,
-			test.SimulateTxnInput.SimulationFlags)
+			simulateTxIn.BlockID,
+			simulateTxIn.Txns,
+			simulateTxIn.SimulationFlags)
 		require.NoError(t, err)
 
+		// read file to compare JSONs
+		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+		require.NoError(t, err)
+		expectedRespArr := make([]any, 0)
+		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+
 		for i, trace := range resp {
-			require.Equal(t, test.ExpectedResp.Txns[i].FeeEstimation, trace.FeeEstimation)
-			compareTraceTxs(t, test.ExpectedResp.Txns[i].TxnTrace, trace.TxnTrace)
+			require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
+			compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
+
+			// compare JSONs
+			// get fee_estimation and transaction_trace from expected response JSON file
+			expectedRespMap := expectedRespArr[i].(map[string]any)
+			expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
+			require.True(t, ok)
+			expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
+			require.True(t, ok)
+
+			// compare fee_estimation
+			rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
+			require.NoError(t, err)
+			rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
+
+			// compare transaction_trace
+			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+			require.NoError(t, err)
+			rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
+			require.NoError(t, err)
+
+			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
 		}
 	}
 }
@@ -211,6 +231,9 @@ func TestTraceBlockTransactions(t *testing.T) {
 	}
 }
 
+// compareTraceTxs compares two transaction traces.
+// It is necessary because the order of the fields in the transaction trace is not deterministic.
+// Hence, we need to compare the traces field by field.
 func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
 	require := require.New(t)
 
@@ -218,33 +241,40 @@ func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
 	case DeclareTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(DeclareTxnTrace).StateDiff)
+		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeclareTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
 	case DeployAccountTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(DeployAccountTxnTrace).StateDiff)
+		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeployAccountTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
 	case InvokeTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(InvokeTxnTrace).StateDiff)
+		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(InvokeTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
 	case L1HandlerTxnTrace:
 		require.Equal(traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
-		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(L1HandlerTxnTrace).StateDiff)
+		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(L1HandlerTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
 	default:
 		require.Failf("unknown trace", "type: %T", traceTx)
 	}
 }
 
-func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 StateDiff) {
+// compareStateDiffs compares two StateDiff objects.
+// It is necessary because the order of the 'storage_entries' fields in the StateDiff is not deterministic.
+// Hence, we need to compare the StateDiff field by field.
+func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
+	if stateDiff1 == nil {
+		return
+	}
+
 	require.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
 	require.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
 	require.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
@@ -277,4 +307,104 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 StateDiff) {
 		require.Equal(t, diff1.Address, diff2.Address)
 		require.ElementsMatch(t, diff1.StorageEntries, diff2.StorageEntries)
 	}
+}
+
+// compareTraceTxnsJSON compares two Marshaled JSON transaction traces to assert Marshaled JSON equality.
+// It is necessary because the order of the fields in the 'storage_diffs' > 'storage_entries' is not deterministic.
+func compareTraceTxnsJSON(t *testing.T, expectedResp, actualResp []byte) {
+	t.Helper()
+
+	expectedTxn, expectedStorageDiffs := splitJSONTraceTxn(t, expectedResp)
+	actualTxn, actualStorageDiffs := splitJSONTraceTxn(t, actualResp)
+
+	assert.JSONEq(t, string(expectedTxn), string(actualTxn))
+	compareStorageDiffs(t, expectedStorageDiffs, actualStorageDiffs)
+}
+
+// splitJSONTraceTxn splits a transaction trace into a transaction without storage diffs and the storage diffs.
+func splitJSONTraceTxn(t *testing.T, txn []byte) (txnWithoutStorageDiffs []byte, storageDiffs any) {
+	var txnMap map[string]any
+	require.NoError(t, json.Unmarshal(txn, &txnMap))
+
+	if txnMap["state_diff"] == nil {
+		return txn, nil
+	}
+
+	stateDiffMap, err := internalUtils.UnwrapJSON(txnMap, "state_diff")
+	require.NoError(t, err)
+
+	storageDiffs, ok := stateDiffMap["storage_diffs"]
+	require.True(t, ok)
+
+	delete(stateDiffMap, "storage_diffs")
+	txnMap["state_diff"] = stateDiffMap
+	txnWithoutStateDiff, err := json.Marshal(txnMap)
+	require.NoError(t, err)
+
+	return txnWithoutStateDiff, storageDiffs
+}
+
+// compareStorageDiffs compares the storage diffs of two Marshaled JSON transaction traces.
+func compareStorageDiffs(t *testing.T, expectedStorageDiffs, actualStorageDiffs any) {
+	t.Helper()
+
+	if expectedStorageDiffs == nil {
+		return
+	}
+
+	expectedStorageEntriesMap := getStorageEntries(t, expectedStorageDiffs)
+	actualStorageEntriesMap := getStorageEntries(t, actualStorageDiffs)
+
+	for address, expectedStorageEntries := range expectedStorageEntriesMap {
+		actualStorageEntries, ok := actualStorageEntriesMap[address]
+		require.True(t, ok)
+		assert.ElementsMatch(t, expectedStorageEntries, actualStorageEntries)
+	}
+}
+
+// getStorageEntries returns a map of storage entries for a given storage diffs array, classified by address.
+func getStorageEntries(t *testing.T, storageDiffs any) (storageEntriesMap map[string][]any) {
+	t.Helper()
+
+	// e.g:
+	// 	"storage_diffs": [
+	// 		{
+	//	   "address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+	//	   "storage_entries": [
+	//	     {
+	//	       "key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+	//	       "value": "0x1da15854fcce98a0660ba"
+	//	     },
+	//			...
+	//	   },
+	//	   ...
+	anyArr, ok := storageDiffs.([]any)
+	require.True(t, ok)
+	storageDiffsMapArr := make([]map[string]any, len(anyArr))
+
+	for i, diff := range anyArr {
+		diffMap, ok := diff.(map[string]any)
+		require.True(t, ok)
+
+		storageDiffsMapArr[i] = diffMap
+	}
+
+	// e.g:
+	//	   "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d": [
+	//	     {
+	//	       "key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+	//	       "value": "0x1da15854fcce98a0660ba"
+	//	     },
+	//			...
+	//	   ]
+	storageEntriesMap = make(map[string][]any)
+
+	for _, diff := range storageDiffsMapArr {
+		address, ok := diff["address"]
+		require.True(t, ok)
+
+		storageEntriesMap[address.(string)] = diff["storage_entries"].([]any)
+	}
+
+	return storageEntriesMap
 }
