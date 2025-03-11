@@ -3,10 +3,12 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,28 +26,26 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	expectedResp := internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
-
 	type testSetType struct {
-		TransactionHash *felt.Felt
-		ExpectedResp    TxnTrace
-		ExpectedError   error
+		TransactionHash  *felt.Felt
+		ExpectedRespFile string
+		ExpectedError    error
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
-				ExpectedResp:    expectedResp,
-				ExpectedError:   nil,
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
+				ExpectedError:    nil,
 			},
 			testSetType{
-				TransactionHash: internalUtils.TestHexToFelt(t, "0xc0ffee"),
-				ExpectedResp:    nil,
-				ExpectedError:   ErrHashNotFound,
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0xc0ffee"),
+				ExpectedRespFile: "",
+				ExpectedError:    ErrHashNotFound,
 			},
 			testSetType{
-				TransactionHash: internalUtils.TestHexToFelt(t, "0xf00d"),
-				ExpectedResp:    nil,
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0xf00d"),
+				ExpectedRespFile: "",
 				ExpectedError: &RPCError{
 					Code:    10,
 					Message: "No trace available for transaction",
@@ -55,19 +55,35 @@ func TestTransactionTrace(t *testing.T) {
 		},
 		"devnet": {},
 		"testnet": {
-			testSetType{
-				TransactionHash: internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
-				ExpectedResp:    expectedResp,
-				ExpectedError:   nil,
+			testSetType{ // with 5 out of 6 fields (without state diff)
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
+				ExpectedError:    nil,
+			},
+			testSetType{ // with 6 out of 6 fields
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
+				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
+				ExpectedError:    nil,
 			},
 		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
-		require.Equal(t, test.ExpectedError, err)
-		compareTraceTxs(t, test.ExpectedResp, resp)
+		t.Run(test.TransactionHash.String(), func(t *testing.T) {
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
+
+			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
+			require.Equal(t, test.ExpectedError, err)
+			assert.Equal(t, expectedResp, resp)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
@@ -202,27 +218,29 @@ func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
 	case DeclareTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeclareTxnTrace).StateDiff)
+		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(DeclareTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
 	case DeployAccountTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeployAccountTxnTrace).StateDiff)
+		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(DeployAccountTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
 	case InvokeTxnTrace:
 		require.Equal(traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
 		require.Equal(traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
 		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
-		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(InvokeTxnTrace).StateDiff)
+		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(InvokeTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
 		require.Equal(traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
 	case L1HandlerTxnTrace:
 		require.Equal(traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
-		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(L1HandlerTxnTrace).StateDiff)
+		compareStateDiffs(t, *traceTx.StateDiff, *traceTx2.(L1HandlerTxnTrace).StateDiff)
 		require.Equal(traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
+	default:
+		require.Failf("unknown trace", "type: %T", traceTx)
 	}
 }
 
