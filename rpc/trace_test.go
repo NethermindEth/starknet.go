@@ -145,7 +145,8 @@ func TestSimulateTransaction(t *testing.T) {
 
 			// compare JSONs
 			// get fee_estimation and transaction_trace from expected response JSON file
-			expectedRespMap := expectedRespArr[i].(map[string]any)
+			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+			require.True(t, ok)
 			expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
 			require.True(t, ok)
 			expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
@@ -216,14 +217,45 @@ func TestTraceBlockTransactions(t *testing.T) {
 	for _, test := range testSet {
 		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
 		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
-
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
-		} else {
-			for i, actualTrace := range resp {
-				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
-				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
-			}
+			continue
+		}
+
+		// read file to compare JSONs
+		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+		require.NoError(t, err)
+		expectedRespArr := make([]any, 0)
+		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+
+		for i, actualTrace := range resp {
+			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
+			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
+
+			// compare JSONs
+			// get transaction_hash and trace_root from expected response JSON file
+			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+			require.True(t, ok)
+			expectedTxHash, ok := expectedRespMap["transaction_hash"]
+			require.True(t, ok)
+			expectedTxnTrace, ok := expectedRespMap["trace_root"]
+			require.True(t, ok)
+
+			// compare transaction_hash
+			rawExpectedTxHash, err := json.Marshal(expectedTxHash)
+			require.NoError(t, err)
+			rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+
+			// compare trace_root
+			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+			require.NoError(t, err)
+			rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
+			require.NoError(t, err)
+
+			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
 		}
 	}
 }
