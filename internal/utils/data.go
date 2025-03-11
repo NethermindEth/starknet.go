@@ -88,3 +88,28 @@ func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error
 
 	return &result, nil
 }
+
+// RemoveFieldFromJSON removes a field from a JSON bytes slice.
+//
+// Parameters:
+//   - jsonData: pointer to the JSON data
+//   - field: string field to remove, it must be a direct child of the JSON object
+//
+// Returns:
+//   - error: error if any
+func RemoveFieldFromJSON(jsonData *[]byte, field string) error {
+	var data map[string]any
+	if err := json.Unmarshal(*jsonData, &data); err != nil {
+		return err
+	}
+
+	delete(data, field)
+
+	newJSONData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	*jsonData = newJSONData
+	return nil
+}
