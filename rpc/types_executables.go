@@ -117,6 +117,7 @@ func (hints *Hints) Tuple() [2]any {
 	return [2]any{hints.Int, hints.HintArr}
 }
 
+// TODO: improve descriptions like this:
 // Can be one of the following hints
 type Hint struct {
 	Type string
@@ -636,7 +637,7 @@ type GetSegmentArenaIndex struct {
 }
 
 type InitSquashData struct {
-	DictAccess ResOperand `json:"dict_access"`
+	DictAccess ResOperand `json:"dict_accesses"`
 	PtrDiff    ResOperand `json:"ptr_diff"`
 	NAccesses  ResOperand `json:"n_accesses"`
 	BigKeys    CellRef    `json:"big_keys"`
