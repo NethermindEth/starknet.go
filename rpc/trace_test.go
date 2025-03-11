@@ -184,50 +184,47 @@ func TestSimulateTransaction(t *testing.T) {
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := beforeEach(t, false)
-	require := require.New(t)
-
-	blockTraceSepolia := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
 
 	type testSetType struct {
-		BlockID      BlockID
-		ExpectedResp []Trace
-		ExpectedErr  *RPCError
+		BlockID          BlockID
+		ExpectedRespFile string
+		ExpectedErr      *RPCError
 	}
 	testSet := map[string][]testSetType{
 		"devnet":  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
 		"mainnet": {},
 		"testnet": {
 			testSetType{
-				BlockID:      WithBlockNumber(99433),
-				ExpectedResp: blockTraceSepolia,
-				ExpectedErr:  nil,
+				BlockID:          WithBlockNumber(99433),
+				ExpectedRespFile: "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+				ExpectedErr:      nil,
 			},
 		},
 		"mock": {
 			testSetType{
-				BlockID:      WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
-				ExpectedResp: blockTraceSepolia,
-				ExpectedErr:  nil,
+				BlockID:          WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
+				ExpectedRespFile: "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+				ExpectedErr:      nil,
 			},
 			testSetType{
-				BlockID:      WithBlockNumber(0),
-				ExpectedResp: nil,
-				ExpectedErr:  ErrBlockNotFound,
+				BlockID:          WithBlockNumber(0),
+				ExpectedRespFile: "",
+				ExpectedErr:      ErrBlockNotFound,
 			}},
 	}[testEnv]
 
 	for _, test := range testSet {
+		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
 		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
 
 		if err != nil {
-			require.Equal(test.ExpectedErr, err)
+			require.Equal(t, test.ExpectedErr, err)
 		} else {
-			for i, trace := range resp {
-				require.Equal(test.ExpectedResp[i].TxnHash, trace.TxnHash)
-				compareTraceTxs(t, test.ExpectedResp[i].TraceRoot, trace.TraceRoot)
+			for i, actualTrace := range resp {
+				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
+				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
 			}
 		}
-
 	}
 }
 
