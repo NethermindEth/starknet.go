@@ -745,14 +745,6 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 }
 
 // mock_starknet_simulateTransactions is a function that simulates transactions on the StarkNet network.
-// It takes a result interface{} and variadic args ...interface{} as input parameters.
-// The result parameter is expected to be of type *json.RawMessage, otherwise an error of type errWrongType is returned.
-// The args parameter is expected to have a length of 3, otherwise an error of type errWrongArgs is returned.
-// The first argument in args is expected to be of type BlockID, otherwise an error of type errWrongArgs is returned.
-// The second argument in args is expected to be of type []BroadcastTxn, otherwise an error of type errWrongArgs is returned.
-// The third argument in args is expected to be of type []SimulationFlag, otherwise an error of type errWrongArgs is returned.
-// The function reads a file named "sepoliaSimulateInvokeTxResp.json" and unmarshals its content into a variable of type SimulateTransactionOutput.
-// Then, it marshals the output variable into JSON format and unmarshals it into the result parameter.
 // If any error occurs during the process, it is returned.
 //
 // Parameters:
@@ -785,12 +777,12 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	output, err := internalUtils.UnmarshalJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
+	output, err := internalUtils.UnmarshalJSONFileToType[[]SimulatedTransaction]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
 
-	outputContent, err := json.Marshal(output.Txns)
+	outputContent, err := json.Marshal(output)
 	if err != nil {
 		return err
 	}

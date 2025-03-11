@@ -24,11 +24,6 @@ const (
 	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
 )
 
-// The execution trace and consumed resources of the required transactions
-type SimulateTransactionOutput struct {
-	Txns []SimulatedTransaction `json:"result"`
-}
-
 type SimulatedTransaction struct {
 	TxnTrace      `json:"transaction_trace"`
 	FeeEstimation `json:"fee_estimation"`
