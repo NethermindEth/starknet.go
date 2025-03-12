@@ -224,6 +224,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 
 // BuildAndEstimateDeployAccountTxn builds and signs a v3 deploy account transaction, estimates the fee, and computes the address.
 //
+// This function doesn't send the transaction because the precomputed account address requires funding first. This address is calculated
+// deterministically and returned by this function, and must be funded with the appropriate amount of STRK tokens. Without sufficient
+// funds, the transaction will fail. See the 'examples/deployAccount/' for more details on how to do this.
+//
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - salt: the salt for the address of the deployed contract
