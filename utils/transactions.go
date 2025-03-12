@@ -22,7 +22,7 @@ import (
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
-//     for signature, tip, paymaster data, etc. Need to be signed before being sent.
+//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
 func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
@@ -61,7 +61,7 @@ func BuildInvokeTxn(
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
-//     for signature, tip, paymaster data, etc. Need to be signed before being sent.
+//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass contracts.CasmClass,
@@ -105,7 +105,7 @@ func BuildDeclareTxn(
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
-//     for signature, tip, paymaster data, etc. Need to be signed before being sent.
+//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeployAccountTxn(
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
