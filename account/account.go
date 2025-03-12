@@ -111,20 +111,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, rpc.ResourceBoundsMapping{
-		L1Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L1DataGas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L2Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-	})
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, makeResourceBoundsMapWithZeroValues())
 	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
 	if err != nil {
 		return nil, err
@@ -178,20 +165,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.AccountAddress, casmClass, contractClass, nonce, rpc.ResourceBoundsMapping{
-		L1Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L1DataGas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L2Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-	})
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.AccountAddress, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
 	if err != nil {
 		return nil, err
 	}
@@ -250,20 +224,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	multiplier float64,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, rpc.ResourceBoundsMapping{
-		L1Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L1DataGas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L2Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-	})
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
@@ -1174,4 +1135,21 @@ func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	}
 
 	return result
+}
+
+func makeResourceBoundsMapWithZeroValues() rpc.ResourceBoundsMapping {
+	return rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+	}
 }
