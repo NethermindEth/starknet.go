@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -9,6 +10,11 @@ import (
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+var (
+	maxUint64  uint64 = math.MaxUint64
+	maxUint128        = "0xffffffffffffffffffffffffffffffff"
 )
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
@@ -166,10 +172,10 @@ func FeeEstToResBoundsMap(
 ) rpc.ResourceBoundsMapping {
 
 	// Create L1 resources bounds
-	l1Gas := toResourceBounds(feeEstimation.L1GasPrice.Uint64(), feeEstimation.L1GasConsumed.Uint64(), multiplier)
-	l1DataGas := toResourceBounds(feeEstimation.L1DataGasPrice.Uint64(), feeEstimation.L1DataGasConsumed.Uint64(), multiplier)
+	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier)
+	l1DataGas := toResourceBounds(feeEstimation.L1DataGasPrice, feeEstimation.L1DataGasConsumed, multiplier)
 	// Create L2 resource bounds
-	l2Gas := toResourceBounds(feeEstimation.L2GasPrice.Uint64(), feeEstimation.L2GasConsumed.Uint64(), multiplier)
+	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier)
 
 	return rpc.ResourceBoundsMapping{
 		L1Gas:     l1Gas,
@@ -188,16 +194,55 @@ func FeeEstToResBoundsMap(
 // Returns:
 //   - rpc.ResourceBounds: Resource bounds with applied multiplier
 func toResourceBounds(
-	gasPrice uint64,
-	gasConsumed uint64,
+	gasPrice *felt.Felt,
+	gasConsumed *felt.Felt,
 	multiplier float64,
 ) rpc.ResourceBounds {
-	maxAmount := float64(gasConsumed) * multiplier
-	maxPricePerUnit := float64(gasPrice) * multiplier
+	// negative multiplier is not allowed, default to 0
+	if multiplier < 0 {
+		return rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x0"),
+			MaxPricePerUnit: rpc.U128("0x0"),
+		}
+	}
+
+	// Convert felt to big.Int
+	gasPriceInt := gasPrice.BigInt(new(big.Int))
+	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
+
+	// Check for overflow
+	maxUint64 := new(big.Int).SetUint64(maxUint64)
+	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
+	// max_price_per_unit is U128 by the spec
+	if gasPriceInt.Cmp(maxUint128) > 0 {
+		gasPriceInt = maxUint128
+	}
+	// max_amount is U64 by the spec
+	if gasConsumedInt.Cmp(maxUint64) > 0 {
+		gasConsumedInt = maxUint64
+	}
+
+	maxAmount := new(big.Float)
+	maxPricePerUnit := new(big.Float)
+
+	maxAmount.Mul(new(big.Float).SetInt(gasConsumedInt), big.NewFloat(multiplier))
+	maxPricePerUnit.Mul(new(big.Float).SetInt(gasPriceInt), big.NewFloat(multiplier))
+
+	// Convert big.Float to big.Int for proper hex formatting. The result is a truncated int
+	maxAmountInt, _ := maxAmount.Int(new(big.Int))
+	maxPricePerUnitInt, _ := maxPricePerUnit.Int(new(big.Int))
+
+	// Check for overflow after mul operation
+	if maxAmountInt.Cmp(maxUint64) > 0 {
+		maxAmountInt = maxUint64
+	}
+	if maxPricePerUnitInt.Cmp(maxUint128) > 0 {
+		maxPricePerUnitInt = maxUint128
+	}
 
 	return rpc.ResourceBounds{
-		MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", uint64(maxAmount))),
-		MaxPricePerUnit: rpc.U128(fmt.Sprintf("0x%x", uint64(maxPricePerUnit))),
+		MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxAmountInt)),
+		MaxPricePerUnit: rpc.U128(fmt.Sprintf("%#x", maxPricePerUnitInt)),
 	}
 }
 
