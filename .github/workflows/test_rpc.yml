@@ -33,7 +33,6 @@ jobs:
       - name: Test RPC on devnet
         run: cd rpc && go test -timeout 600s -v -env devnet .
         env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           HTTP_PROVIDER_URL: "http://localhost:5050/"
 
       # Test rpc on mock
@@ -42,18 +41,16 @@ jobs:
 
       # Test rpc on testnet
       - name: Test RPC on testnet
-        run: echo "Skip for now - need public endpoint that follows rpc spec"
+        run: echo "Skip for now - TODO= need to finish rpc v08 test updates"
         #run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
           WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
-        run: echo "Skip for now - need public endpoint that follows rpc spec"
+        run: echo "Skip for now - TODO= need to finish rpc v08 test updates"
         #run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
           HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
           WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}

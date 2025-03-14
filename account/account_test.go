@@ -58,9 +58,9 @@ func TestMain(m *testing.M) {
 	}
 
 	// load the test account data, only required for some tests
-	privKey = os.Getenv("STRK_PRIVATE_KEY")
-	pubKey = os.Getenv("STRK_PUBLIC_KEY")
-	accountAddress = os.Getenv("STRK_CONTRACT_ADDRESS")
+	privKey = os.Getenv("STARKNET_PRIVATE_KEY")
+	pubKey = os.Getenv("STARKNET_PUBLIC_KEY")
+	accountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
 	os.Exit(m.Run())
 }
