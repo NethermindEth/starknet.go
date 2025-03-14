@@ -1205,7 +1205,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	acc, err := setupAcc(t, provider)
 	require.NoError(t, err, "Error in setupAcc")
 
-	//
+	// Build and send invoke txn
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
@@ -1235,7 +1235,49 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
+	t.Parallel()
+
+	testSet := map[string]bool{
+		"testnet": true,
+		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[testEnv]
+
+	if !testSet {
+		t.Skip("test environment not supported")
+	}
+
+	provider, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	acc, err := setupAcc(t, provider)
+	require.NoError(t, err, "Error in setupAcc")
+
+	// Class
+	class := *internalUtils.TestUnmarshallJSONFileToType[rpc.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+	// Casm Class
+	casmClass := *internalUtils.TestUnmarshallJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+
+	// Build and send declare txn
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), casmClass, &class, 1.5)
+	if err != nil {
+		require.EqualError(t, err, "Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
+		return
+	}
+
+	// check the transaction and class hash
+	require.NotNil(t, resp.TransactionHash)
+	require.NotNil(t, resp.ClassHash)
+
+	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
+	time.Sleep(time.Second * 3) // Waiting 3 seconds
+
+	//Getting the transaction status
+	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	require.NoError(t, err, "Error in provider.GetTransactionStatus")
+
+	assert.Equal(t, txStatus.ExecutionStatus, rpc.TxnExecutionStatusSUCCEEDED)
+	assert.Equal(t, txStatus.FinalityStatus, rpc.TxnStatus_Accepted_On_L2)
 }
 
 // TestBuildAndSendDeployAccount is a test function that tests the BuildAndSendDeployAccount method.
