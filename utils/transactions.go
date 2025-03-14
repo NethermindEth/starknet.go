@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"math/big"
@@ -13,8 +14,10 @@ import (
 )
 
 var (
-	maxUint64  uint64 = math.MaxUint64
-	maxUint128        = "0xffffffffffffffffffffffffffffffff"
+	maxUint64                 uint64 = math.MaxUint64
+	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
+	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
@@ -252,49 +255,106 @@ func toResourceBounds(
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
 //
 // Returns:
-//   - *big.Int: The overall fee in FRI
+//   - *felt.Felt: The overall fee in FRI
+//   - error: An error if any
 func ResBoundsMapToOverallFee(
 	resBounds rpc.ResourceBoundsMapping,
 	multiplier float64,
-) *big.Int {
+) (*felt.Felt, error) {
+	// negative multiplier is not allowed, default to 0
+	if multiplier < 0 {
+		return nil, errors.New("multiplier cannot be negative")
+	}
 
 	// get big int values
-	l1GasAmount := HexToBN(string(resBounds.L1Gas.MaxAmount))
-	l1GasPrice := HexToBN(string(resBounds.L1Gas.MaxPricePerUnit))
-	l1DataGasAmount := HexToBN(string(resBounds.L1DataGas.MaxAmount))
-	l1DataGasPrice := HexToBN(string(resBounds.L1DataGas.MaxPricePerUnit))
-	l2GasAmount := HexToBN(string(resBounds.L2Gas.MaxAmount))
-	l2GasPrice := HexToBN(string(resBounds.L2Gas.MaxPricePerUnit))
+	l1GasAmount, ok := new(big.Int).SetString(string(resBounds.L1Gas.MaxAmount), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1Gas.MaxAmount)
+	}
+	// Check for negative values
+	if l1GasAmount.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l1GasAmount)
+	}
+
+	l1GasPrice, ok := new(big.Int).SetString(string(resBounds.L1Gas.MaxPricePerUnit), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1Gas.MaxPricePerUnit)
+	}
+	if l1GasPrice.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l1GasPrice)
+	}
+
+	l1DataGasAmount, ok := new(big.Int).SetString(string(resBounds.L1DataGas.MaxAmount), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1DataGas.MaxAmount)
+	}
+	if l1DataGasAmount.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l1DataGasAmount)
+	}
+
+	l1DataGasPrice, ok := new(big.Int).SetString(string(resBounds.L1DataGas.MaxPricePerUnit), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1DataGas.MaxPricePerUnit)
+	}
+	if l1DataGasPrice.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l1DataGasPrice)
+	}
+
+	l2GasAmount, ok := new(big.Int).SetString(string(resBounds.L2Gas.MaxAmount), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L2Gas.MaxAmount)
+	}
+	if l2GasAmount.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l2GasAmount)
+	}
+
+	l2GasPrice, ok := new(big.Int).SetString(string(resBounds.L2Gas.MaxPricePerUnit), 0)
+	if !ok {
+		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L2Gas.MaxPricePerUnit)
+	}
+	if l2GasPrice.Sign() < 0 {
+		return nil, fmt.Errorf(negativeResourceBoundsErr, l2GasPrice)
+	}
 
 	// calculate fee
 	l1GasFee := new(big.Int).Mul(l1GasAmount, l1GasPrice)
 	l1DataGasFee := new(big.Int).Mul(l1DataGasAmount, l1DataGasPrice)
 	l2GasFee := new(big.Int).Mul(l2GasAmount, l2GasPrice)
+	overallFee := l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
 
-	// return fee
-	return l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
+	// multiply fee by multiplier
+	multipliedOverallFee := new(big.Float).Mul(new(big.Float).SetInt(overallFee), big.NewFloat(multiplier))
+	overallFeeInt, _ := multipliedOverallFee.Int(nil) // truncated int
+
+	// Convert big.Int to felt. SetString() validates if it's a valid felt
+	overallFeeFelt, err := new(felt.Felt).SetString(fmt.Sprintf("%#x", overallFeeInt))
+	if err != nil {
+		return nil, err
+	}
+
+	return overallFeeFelt, nil
 }
 
 // WeiToETH converts a Wei amount to ETH
 // Returns the ETH value as a float64
-func WeiToETH(wei *big.Int) float64 {
+func WeiToETH(wei *felt.Felt) float64 {
 	return internalUtils.WeiToETH(wei)
 }
 
 // ETHToWei converts an ETH amount to Wei
-// Returns the Wei value as a *big.Int
-func ETHToWei(eth float64) *big.Int {
+// Returns the Wei value as a *felt.Felt
+func ETHToWei(eth float64) *felt.Felt {
 	return internalUtils.ETHToWei(eth)
 }
 
 // FRIToSTRK converts a FRI amount to STRK
 // Returns the STRK value as a float64
-func FRIToSTRK(fri *big.Int) float64 {
+func FRIToSTRK(fri *felt.Felt) float64 {
 	return internalUtils.WeiToETH(fri)
 }
 
 // STRKToFRI converts a STRK amount to FRI
-// Returns the FRI value as a *big.Int
-func STRKToFRI(strk float64) *big.Int {
+// Returns the FRI value as a *felt.Felt
+func STRKToFRI(strk float64) *felt.Felt {
 	return internalUtils.ETHToWei(strk)
 }

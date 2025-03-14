@@ -87,6 +87,7 @@ func HexToShortStr(hexStr string) string {
 func HexToBN(hexString string) *big.Int {
 	numStr := strings.Replace(hexString, "0x", "", -1)
 
+	// TODO: maybe make this func return this ignored bool value
 	n, _ := new(big.Int).SetString(numStr, 16)
 	return n
 }

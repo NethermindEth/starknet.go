@@ -7,36 +7,38 @@ import (
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func TestResBoundsMapToOverallFee(t *testing.T) {
 	tests := []struct {
-		name       string
-		resBounds  rpc.ResourceBoundsMapping
-		multiplier float64
-		expected   *big.Int
+		name        string
+		resBounds   rpc.ResourceBoundsMapping
+		multiplier  float64
+		expectedRes string
+		expectedErr string
 	}{
 		{
 			name: "Basic calculation",
 			resBounds: rpc.ResourceBoundsMapping{
 				L1Gas: rpc.ResourceBounds{
 					MaxAmount:       "0x64", // 100
-					MaxPricePerUnit: "0xa",  // 10
+					MaxPricePerUnit: "0x64", // 100
 				},
 				L1DataGas: rpc.ResourceBounds{
-					MaxAmount:       "0x32", // 50
-					MaxPricePerUnit: "0x5",  // 5
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
 				},
 				L2Gas: rpc.ResourceBounds{
-					MaxAmount:       "0xc8", // 200
-					MaxPricePerUnit: "0x3",  // 3
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
 				},
 			},
 			multiplier: 1.0,
-			// Expected: (100*10) + (50*5) + (200*3) = 1000 + 250 + 600 = 1850
-			expected: big.NewInt(1850),
+			// Expected: (100*100) + (100*100) + (100*100) = 10000 + 10000 + 10000 = 30000
+			expectedRes: "30000",
 		},
 		{
 			name: "Zero values",
@@ -54,57 +56,162 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 					MaxPricePerUnit: "0x0",
 				},
 			},
-			multiplier: 1.0,
-			expected:   big.NewInt(0),
+			multiplier:  1.5,
+			expectedRes: "0",
 		},
 		{
-			name: "Large values",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
-					MaxAmount:       "0x3e8", // 1000
-					MaxPricePerUnit: "0x64",  // 100
-				},
-				L1DataGas: rpc.ResourceBounds{
-					MaxAmount:       "0x1f4", // 500
-					MaxPricePerUnit: "0x32",  // 50
-				},
-				L2Gas: rpc.ResourceBounds{
-					MaxAmount:       "0x7d0", // 2000
-					MaxPricePerUnit: "0x19",  // 25
-				},
-			},
-			multiplier: 1.0,
-			// Expected: (1000*100) + (500*50) + (2000*25) = 100000 + 25000 + 50000 = 175000
-			expected: big.NewInt(175000),
-		},
-		{
-			name: "With multiplier",
+			name: "With multiplier 1.5",
 			resBounds: rpc.ResourceBoundsMapping{
 				L1Gas: rpc.ResourceBounds{
 					MaxAmount:       "0x64", // 100
-					MaxPricePerUnit: "0xa",  // 10
+					MaxPricePerUnit: "0x64", // 100
 				},
 				L1DataGas: rpc.ResourceBounds{
-					MaxAmount:       "0x32", // 50
-					MaxPricePerUnit: "0x5",  // 5
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
 				},
 				L2Gas: rpc.ResourceBounds{
-					MaxAmount:       "0xc8", // 200
-					MaxPricePerUnit: "0x3",  // 3
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
 				},
 			},
 			multiplier: 1.5,
-			// Expected: (100*10) + (50*5) + (200*3) = 1000 + 250 + 600 = 1850
-			// Note: The multiplier doesn't seem to be used in the function implementation
-			expected: big.NewInt(1850),
+			// Expected: ((100*100) + (100*100) + (100*100)) * 1.5 = 30000 * 1.5 = 45000
+			expectedRes: "45000",
+		},
+		{
+			name: "Negative multiplier",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+			},
+			multiplier:  -1.0,
+			expectedErr: "multiplier cannot be negative",
+		},
+		{
+			name: "Multiplier less than 1",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+			},
+			multiplier: 0.5,
+			// Expected: ((100*100) + (100*100) + (100*100)) * 0.5 = 30000 * 0.5 = 15000
+			expectedRes: "15000",
+		},
+		{
+			name: "Extremely large values",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
+					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
+					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
+					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
+				},
+			},
+			multiplier:  1.5,
+			expectedRes: "45000000000000000000000000000000000000000000",
+		},
+		{
+			name: "Invalid resource bounds values",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "invalidValue", // Invalid format
+					MaxPricePerUnit: "0xa",          // 10
+				},
+			},
+			expectedErr: "invalid resource bounds: 'invalidValue' is not a valid big.Int",
+		},
+		{
+			name: "Empty fields",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "",
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+			},
+			multiplier:  1.0,
+			expectedErr: "invalid resource bounds: '' is not a valid big.Int",
+		},
+		{
+			name: "Overflow",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x64", // 100
+					MaxPricePerUnit: "0x64", // 100
+				},
+			},
+			multiplier:  1.0,
+			expectedErr: "can't fit in felt: 0x64000000000000000000000000000000000000000000000000000000000000000004dbc",
+		},
+		{
+			name: "Underflow",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "-0x64",
+					MaxPricePerUnit: "0x64", // 100
+				},
+			},
+			multiplier:  1.0,
+			expectedErr: "resource bounds cannot be negative, got '-0x64'",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ResBoundsMapToOverallFee(tt.resBounds, tt.multiplier)
+			got, err := ResBoundsMapToOverallFee(tt.resBounds, tt.multiplier)
 
-			assert.Equal(t, tt.expected, got, "ResBoundsMapToOverallFee() returned incorrect value")
+			if tt.expectedErr != "" {
+				require.Error(t, err)
+				assert.EqualError(t, err, tt.expectedErr)
+				return
+			}
+			require.NoError(t, err)
+
+			expectedBigInt, ok := new(big.Int).SetString(tt.expectedRes, 0)
+			require.True(t, ok)
+			assert.Equal(t, fmt.Sprintf("%#x", expectedBigInt), got.String(), "ResBoundsMapToOverallFee() returned incorrect value")
 		})
 	}
 }
