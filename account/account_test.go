@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -25,6 +27,10 @@ var (
 	testEnv = ""
 	// the base url for the test
 	base = ""
+	// the test account data
+	privKey        = ""
+	pubKey         = ""
+	accountAddress = ""
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
@@ -50,7 +56,35 @@ func TestMain(m *testing.M) {
 	if base == "" {
 		panic("Failed to load HTTP_PROVIDER_URL, empty string")
 	}
+
+	// load the test account data, only required for some tests
+	privKey = os.Getenv("STRK_PRIVATE_KEY")
+	pubKey = os.Getenv("STRK_PUBLIC_KEY")
+	accountAddress = os.Getenv("STRK_CONTRACT_ADDRESS")
+
 	os.Exit(m.Run())
+}
+
+func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) {
+	t.Helper()
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privKey, 0)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert privKey to big.Int")
+	}
+	ks.Put(pubKey, privKeyBI)
+
+	accAddress, err := internalUtils.HexToFelt(accountAddress)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert accountAddress to felt: %w", err)
+	}
+
+	acc, err := account.NewAccount(provider, accAddress, pubKey, ks, 2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create account: %w", err)
+	}
+	return acc, nil
 }
 
 // TestTransactionHashInvoke tests the TransactionHashInvoke function.
@@ -1154,7 +1188,46 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
+	t.Parallel()
+
+	testSet := map[string]bool{
+		"testnet": true,
+		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[testEnv]
+
+	if !testSet {
+		t.Skip("test environment not supported")
+	}
+
+	provider, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	acc, err := setupAcc(t, provider)
+	require.NoError(t, err, "Error in setupAcc")
+
+	//
+	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+		{
+			// same ERC20 contract as in examples/simpleInvoke
+			ContractAddress: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+			FunctionName:    "mint",
+			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+		},
+	}, 1.5)
+	require.NoError(t, err, "Error in acc.BuildAndSendInvokeTxn")
+
+	// check the transaction hash
+	require.NotNil(t, resp.TransactionHash)
+
+	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
+	time.Sleep(time.Second * 3) // Waiting 3 seconds
+
+	//Getting the transaction status
+	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	require.NoError(t, err, "Error in provider.GetTransactionStatus")
+
+	assert.Equal(t, txStatus.ExecutionStatus, rpc.TxnExecutionStatusSUCCEEDED)
+	assert.Equal(t, txStatus.FinalityStatus, rpc.TxnStatus_Accepted_On_L2)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
