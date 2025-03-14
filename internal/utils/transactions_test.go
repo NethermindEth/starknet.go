@@ -3,6 +3,8 @@ package utils
 import (
 	"math/big"
 	"testing"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 func TestWeiToETH(t *testing.T) {
@@ -35,7 +37,8 @@ func TestWeiToETH(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := WeiToETH(tt.wei)
+			weiFelt := new(felt.Felt).SetBigInt(tt.wei)
+			got := WeiToETH(weiFelt)
 
 			// For floating point comparison, use a small delta
 			delta := 0.0000001
@@ -86,7 +89,7 @@ func TestETHToWei(t *testing.T) {
 			got := ETHToWei(tt.eth)
 
 			// For big.Int comparison, we can use Cmp
-			if got.Cmp(tt.expected) != 0 {
+			if got.BigInt(new(big.Int)).Cmp(tt.expected) != 0 {
 				t.Errorf("ETHToWei() = %v, want %v", got.String(), tt.expected.String())
 			}
 		})

@@ -3,15 +3,17 @@ package utils
 import (
 	"math"
 	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // WeiToETH converts a Wei amount to ETH
 // Returns the ETH value as a float64
-func WeiToETH(wei *big.Int) float64 {
+func WeiToETH(wei *felt.Felt) float64 {
 	// Convert to ETH (1 ETH = 10^18 wei)
 
 	// Create a big.Float from the wei amount
-	weiFloat := new(big.Float).SetInt(wei)
+	weiFloat := new(big.Float).SetInt(wei.BigInt(new(big.Int)))
 	// Create a big.Float for the divisor (10^18)
 	divisor := new(big.Float).SetFloat64(math.Pow10(18))
 	// Divide to get ETH
@@ -23,8 +25,8 @@ func WeiToETH(wei *big.Int) float64 {
 }
 
 // ETHToWei converts an ETH amount to Wei
-// Returns the Wei value as a *big.Int
-func ETHToWei(eth float64) *big.Int {
+// Returns the Wei value as a *felt.Felt
+func ETHToWei(eth float64) *felt.Felt {
 	// Convert to Wei (1 ETH = 10^18 wei)
 
 	// Create a big.Float from the eth amount
@@ -38,5 +40,5 @@ func ETHToWei(eth float64) *big.Int {
 	weiInt := new(big.Int)
 	weiFloat.Int(weiInt)
 
-	return weiInt
+	return new(felt.Felt).SetBigInt(weiInt)
 }

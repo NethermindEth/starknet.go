@@ -67,7 +67,11 @@ func main() {
 
 	fmt.Println("PrecomputedAddress:", setup.PadZerosInFelt(precomputedAddress))
 
-	feeInSTRK := utils.FRIToSTRK(utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1.5))
+	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1.5)
+	if err != nil {
+		panic(err)
+	}
+	feeInSTRK := utils.FRIToSTRK(overallFee)
 
 	// At this point you need to add funds to precomputed address to use it.
 	var input string
