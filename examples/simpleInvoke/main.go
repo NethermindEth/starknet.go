@@ -62,7 +62,10 @@ func main() {
 		panic(err)
 	}
 
-	amount, _ := utils.HexToFelt("0xffffffff")
+	amount, err := utils.HexToFelt("0xffffffff")
+	if err != nil {
+		panic(err)
+	}
 
 	// Building the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
