@@ -100,7 +100,7 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
-	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *rpc.ContractClass,
 	multiplier float64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
-	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("latest"), account.AccountAddress)
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
@@ -213,9 +213,9 @@ func (account *Account) BuildAndSendDeclareTxn(
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
 //
 // Returns:
-// - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
-// - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
-// - error: an error if any
+//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
+//   - error: an error if any
 func (account *Account) BuildAndEstimateDeployAccountTxn(
 	ctx context.Context,
 	salt *felt.Felt,
@@ -235,7 +235,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, nil, err
 	}

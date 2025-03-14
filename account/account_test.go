@@ -17,6 +17,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -1188,8 +1189,6 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	t.Parallel()
-
 	testSet := map[string]bool{
 		"testnet": true,
 		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
@@ -1214,10 +1213,11 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
 	}, 1.5)
-	require.NoError(t, err, "Error in acc.BuildAndSendInvokeTxn")
+	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
 	require.NotNil(t, resp.TransactionHash)
+	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
 
 	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
 	time.Sleep(time.Second * 3) // Waiting 3 seconds
@@ -1226,8 +1226,8 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
 	require.NoError(t, err, "Error in provider.GetTransactionStatus")
 
-	assert.Equal(t, txStatus.ExecutionStatus, rpc.TxnExecutionStatusSUCCEEDED)
-	assert.Equal(t, txStatus.FinalityStatus, rpc.TxnStatus_Accepted_On_L2)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
+	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -1235,8 +1235,6 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	t.Parallel()
-
 	testSet := map[string]bool{
 		"testnet": true,
 		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
@@ -1262,6 +1260,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), casmClass, &class, 1.5)
 	if err != nil {
 		require.EqualError(t, err, "Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
+		t.Log("declare txn not sent: class already declared")
 		return
 	}
 
@@ -1274,16 +1273,108 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 
 	//Getting the transaction status
 	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	require.NoError(t, err, "Error in provider.GetTransactionStatus")
+	require.NoError(t, err, "Error getting declare transaction status")
 
-	assert.Equal(t, txStatus.ExecutionStatus, rpc.TxnExecutionStatusSUCCEEDED)
-	assert.Equal(t, txStatus.FinalityStatus, rpc.TxnStatus_Accepted_On_L2)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
+	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
 }
 
-// TestBuildAndSendDeployAccount is a test function that tests the BuildAndSendDeployAccount method.
+// BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
 //
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
-func TestBuildAndSendDeployAccTxn(t *testing.T) {
-	t.Skip("TODO: implement this test once devnet supports full v3 transaction type")
+func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
+	testSet := map[string]bool{
+		"testnet": true,
+		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[testEnv]
+
+	if !testSet {
+		t.Skip("test environment not supported")
+	}
+
+	provider, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	// we need this account to fund the new account with STRK tokens, in order to deploy it
+	acc, err := setupAcc(t, provider)
+	require.NoError(t, err, "Error in setupAcc")
+
+	// Get random keys to create the new account
+	ks, pub, _ := account.GetRandomKeys()
+
+	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
+	// as for this case we only need the 'ks' to sign the deploy transaction.
+	tempAcc, err := account.NewAccount(provider, pub, pub.String(), ks, 2)
+	if err != nil {
+		panic(err)
+	}
+
+	// OpenZeppelin Account Class Hash in Sepolia
+	classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+
+	// Build, estimate the fee and precompute the address of the new account
+	deployAccTxn, precomputedAddress, err := tempAcc.BuildAndEstimateDeployAccountTxn(
+		context.Background(),
+		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
+		classHash,
+		[]*felt.Felt{pub},
+		1.5)
+	require.NoError(t, err, "Error building and estimating deploy account txn")
+	require.NotNil(t, deployAccTxn)
+	require.NotNil(t, precomputedAddress)
+	t.Logf("Precomputed address: %s", precomputedAddress)
+
+	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccTxn.ResourceBounds, 1)
+	require.NoError(t, err, "Error converting resource bounds to overall fee")
+
+	// Fund the new account with STRK tokens
+	transferSTRKAndWaitConfirmation(t, provider, acc, overallFee, precomputedAddress)
+
+	// Deploy the new account
+	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
+	require.NoError(t, err, "Error deploying new account")
+
+	require.NotNil(t, resp.TransactionHash)
+	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.ContractAddress)
+
+	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
+	time.Sleep(time.Second * 3) // Waiting 3 seconds
+
+	//Getting the transaction status
+	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	require.NoError(t, err, "Error getting deploy account transaction status")
+
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
+	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
+}
+
+// a helper function that transfers STRK tokens to a given address and waits for confirmation,
+// used to fund the new account with STRK tokens in the TestBuildAndEstimateDeployAccountTxn test
+func transferSTRKAndWaitConfirmation(t *testing.T, provider rpc.RpcProvider, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
+	t.Helper()
+	// Build and send invoke txn
+	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+		{
+			// STRK contract address in Sepolia
+			ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+			FunctionName:    "transfer",
+			CallData:        []*felt.Felt{recipient, amount, &felt.Zero},
+		},
+	}, 1.5)
+	require.NoError(t, err, "Error transferring STRK tokens")
+
+	// check the transaction hash
+	require.NotNil(t, resp.TransactionHash)
+	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
+	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
+	time.Sleep(time.Second * 3) // Waiting 3 seconds
+
+	//Getting the transaction status
+	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	require.NoError(t, err, "Error getting transfer transaction status")
+
+	require.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
+	require.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
 }
