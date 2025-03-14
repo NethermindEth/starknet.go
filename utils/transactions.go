@@ -165,7 +165,9 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 // FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
-//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least greater than 0.
+//     If multiplier < 0, all resources bounds will be set to 0.
+//     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
@@ -252,7 +254,7 @@ func toResourceBounds(
 // ResBoundsMapToOverallFee calculates the overall fee for a ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - resBounds: The resource bounds to calculate the fee for
-//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least 1
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least greater than 0
 //
 // Returns:
 //   - *felt.Felt: The overall fee in FRI
@@ -261,7 +263,7 @@ func ResBoundsMapToOverallFee(
 	resBounds rpc.ResourceBoundsMapping,
 	multiplier float64,
 ) (*felt.Felt, error) {
-	// negative multiplier is not allowed, default to 0
+	// negative multiplier is not allowed
 	if multiplier < 0 {
 		return nil, errors.New("multiplier cannot be negative")
 	}
