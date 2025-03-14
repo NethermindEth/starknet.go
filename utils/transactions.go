@@ -268,54 +268,47 @@ func ResBoundsMapToOverallFee(
 		return nil, errors.New("multiplier cannot be negative")
 	}
 
-	// get big int values
-	l1GasAmount, ok := new(big.Int).SetString(string(resBounds.L1Gas.MaxAmount), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1Gas.MaxAmount)
-	}
-	// Check for negative values
-	if l1GasAmount.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l1GasAmount)
-	}
-
-	l1GasPrice, ok := new(big.Int).SetString(string(resBounds.L1Gas.MaxPricePerUnit), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1Gas.MaxPricePerUnit)
-	}
-	if l1GasPrice.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l1GasPrice)
+	parseBound := func(value string) (*big.Int, error) {
+		// get big int values
+		val, ok := new(big.Int).SetString(value, 0)
+		if !ok {
+			return nil, fmt.Errorf(invalidResourceBoundsErr, value)
+		}
+		// Check for negative values
+		if val.Sign() < 0 {
+			return nil, fmt.Errorf(negativeResourceBoundsErr, val)
+		}
+		return val, nil
 	}
 
-	l1DataGasAmount, ok := new(big.Int).SetString(string(resBounds.L1DataGas.MaxAmount), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1DataGas.MaxAmount)
-	}
-	if l1DataGasAmount.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l1DataGasAmount)
+	l1GasAmount, err := parseBound(string(resBounds.L1Gas.MaxAmount))
+	if err != nil {
+		return nil, err
 	}
 
-	l1DataGasPrice, ok := new(big.Int).SetString(string(resBounds.L1DataGas.MaxPricePerUnit), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L1DataGas.MaxPricePerUnit)
-	}
-	if l1DataGasPrice.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l1DataGasPrice)
+	l1GasPrice, err := parseBound(string(resBounds.L1Gas.MaxPricePerUnit))
+	if err != nil {
+		return nil, err
 	}
 
-	l2GasAmount, ok := new(big.Int).SetString(string(resBounds.L2Gas.MaxAmount), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L2Gas.MaxAmount)
-	}
-	if l2GasAmount.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l2GasAmount)
+	l1DataGasAmount, err := parseBound(string(resBounds.L1DataGas.MaxAmount))
+	if err != nil {
+		return nil, err
 	}
 
-	l2GasPrice, ok := new(big.Int).SetString(string(resBounds.L2Gas.MaxPricePerUnit), 0)
-	if !ok {
-		return nil, fmt.Errorf(invalidResourceBoundsErr, resBounds.L2Gas.MaxPricePerUnit)
+	l1DataGasPrice, err := parseBound(string(resBounds.L1DataGas.MaxPricePerUnit))
+	if err != nil {
+		return nil, err
 	}
-	if l2GasPrice.Sign() < 0 {
-		return nil, fmt.Errorf(negativeResourceBoundsErr, l2GasPrice)
+
+	l2GasAmount, err := parseBound(string(resBounds.L2Gas.MaxAmount))
+	if err != nil {
+		return nil, err
+	}
+
+	l2GasPrice, err := parseBound(string(resBounds.L2Gas.MaxPricePerUnit))
+	if err != nil {
+		return nil, err
 	}
 
 	// calculate fee
@@ -329,12 +322,7 @@ func ResBoundsMapToOverallFee(
 	overallFeeInt, _ := multipliedOverallFee.Int(nil) // truncated int
 
 	// Convert big.Int to felt. SetString() validates if it's a valid felt
-	overallFeeFelt, err := new(felt.Felt).SetString(fmt.Sprintf("%#x", overallFeeInt))
-	if err != nil {
-		return nil, err
-	}
-
-	return overallFeeFelt, nil
+	return new(felt.Felt).SetString(fmt.Sprintf("%#x", overallFeeInt))
 }
 
 // WeiToETH converts a Wei amount to ETH
