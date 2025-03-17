@@ -151,12 +151,13 @@ func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 // ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py
 //
 // Parameters:
-// - deployerAddress: the deployer address
-// - salt: the salt
-// - classHash: the class hash
-// - constructorCalldata: the constructor calldata
+//   - deployerAddress: the deployer address
+//   - salt: the salt
+//   - classHash: the class hash
+//   - constructorCalldata: the constructor calldata
+//
 // Returns:
-// - *felt.Felt: the precomputed address as a *felt.Felt
+//   - *felt.Felt: the precomputed address as a *felt.Felt
 func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
 	return curve.PedersenArray(
 		PREFIX_CONTRACT_ADDRESS,

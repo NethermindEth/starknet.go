@@ -66,22 +66,6 @@ func main() {
 		panic(err)
 	}
 
-	// Get the accounts nonce
-	nonce, err := accnt.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, accnt.AccountAddress)
-	if err != nil {
-		setup.PanicRPC(err)
-	}
-
-	// Build the InvokeTx struct
-	InvokeTx := rpc.BroadcastInvokev1Txn{
-		InvokeTxnV1: rpc.InvokeTxnV1{
-			MaxFee:        new(felt.Felt).SetUint64(100000000000000),
-			Version:       rpc.TransactionV1,
-			Nonce:         nonce,
-			Type:          rpc.TransactionType_Invoke,
-			SenderAddress: accnt.AccountAddress,
-		}}
-
 	// Convert the contractAddress from hex to felt
 	contractAddress, err := utils.HexToFelt(UDCAddress)
 	if err != nil {
@@ -89,46 +73,14 @@ func main() {
 	}
 
 	// Build the functionCall struct, where :
-	FnCall := rpc.FunctionCall{
-		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
-		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
-		Calldata:           getUDCCalldata(accountAddress),                //change this function content to your use case
-	}
-
-	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
-	InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
-	if err != nil {
-		panic(err)
-	}
-
-	// Sign the transaction
-	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
-	if err != nil {
-		panic(err)
-	}
-
-	// Estimate the transaction fee
-	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
-	if err != nil {
-		setup.PanicRPC(err)
-	}
-	estimatedFee := feeRes[0].OverallFee
-	// If the estimated fee is higher than the current fee, let's override it and sign again
-	if estimatedFee.Cmp(InvokeTx.MaxFee) == 1 {
-		newFee, err := strconv.ParseUint(estimatedFee.String(), 0, 64)
-		if err != nil {
-			panic(err)
-		}
-		InvokeTx.MaxFee = new(felt.Felt).SetUint64(newFee + newFee/5) // fee + 20% to be sure
-		// Signing the transaction again
-		err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV1)
-		if err != nil {
-			panic(err)
-		}
+	FnCall := rpc.InvokeFunctionCall{
+		ContractAddress: contractAddress,                //contractAddress is the contract that we want to call
+		FunctionName:    contractMethod,                 //this is the function that we want to call
+		CallData:        getUDCCalldata(accountAddress), //change this function content to your use case
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
+	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
 	if err != nil {
 		setup.PanicRPC(err)
 	}

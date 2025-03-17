@@ -4,6 +4,7 @@ import "github.com/NethermindEth/juno/core/felt"
 
 type BroadcastTxn interface{}
 
+// TODO: Remove the deprecated broadcast types, only keep the v3 types
 var (
 	_ BroadcastTxn = BroadcastInvokev0Txn{}
 	_ BroadcastTxn = BroadcastInvokev1Txn{}

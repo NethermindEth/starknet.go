@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/NethermindEth/juno/core/crypto"
@@ -12,6 +13,7 @@ import (
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
@@ -29,14 +31,17 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
+	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
+	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxnV3, precomputeAddress *felt.Felt) error
+	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV1) error
-	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error
-	SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error
-	PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
@@ -79,6 +84,173 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	return account, nil
 }
 
+// BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
+// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
+//     multiple function calls in the same transaction.
+//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
+//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
+//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//
+// Returns:
+//   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
+//   - error: An error if the transaction building fails.
+func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
+	if err != nil {
+		return nil, err
+	}
+
+	// building and signing the txn, as it needs a signature to estimate the fee
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, makeResourceBoundsMapWithZeroValues())
+	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	// estimate txn fee
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
+	if err != nil {
+		return nil, err
+	}
+	txnFee := estimateFee[0]
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	txnResponse, err := account.provider.AddInvokeTransaction(ctx, broadcastInvokeTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	return txnResponse, nil
+}
+
+// BuildAndSendDeclareTxn builds and sends a v3 declare transaction.
+// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - casmClass: The casm class of the contract to be declared
+//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
+//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
+//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//
+// Returns:
+//   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
+//   - error: An error if the transaction building fails.
+func (account *Account) BuildAndSendDeclareTxn(
+	ctx context.Context,
+	casmClass contracts.CasmClass,
+	contractClass *rpc.ContractClass,
+	multiplier float64,
+) (*rpc.AddDeclareTransactionResponse, error) {
+	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// building and signing the txn, as it needs a signature to estimate the fee
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.AccountAddress, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
+	if err != nil {
+		return nil, err
+	}
+	err = account.SignDeclareTransaction(ctx, &broadcastDeclareTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	// estimate txn fee
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
+	if err != nil {
+		return nil, err
+	}
+	txnFee := estimateFee[0]
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	err = account.SignDeclareTransaction(ctx, &broadcastDeclareTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	txnResponse, err := account.provider.AddDeclareTransaction(ctx, broadcastDeclareTxnV3)
+	if err != nil {
+		return nil, err
+	}
+
+	return txnResponse, nil
+}
+
+// BuildAndEstimateDeployAccountTxn builds and signs a v3 deploy account transaction, estimates the fee, and computes the address.
+//
+// This function doesn't send the transaction because the precomputed account address requires funding first. This address is calculated
+// deterministically and returned by this function, and must be funded with the appropriate amount of STRK tokens. Without sufficient
+// funds, the transaction will fail. See the 'examples/deployAccount/' for more details on how to do this.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - salt: the salt for the address of the deployed contract
+//   - classHash: the class hash of the contract to be deployed
+//   - constructorCalldata: the parameters passed to the constructor
+//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
+//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
+//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//
+// Returns:
+//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
+//   - error: an error if any
+func (account *Account) BuildAndEstimateDeployAccountTxn(
+	ctx context.Context,
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	multiplier float64,
+) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+	// building and signing the txn, as it needs a signature to estimate the fee
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
+
+	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+
+	// signing the txn, as it needs a signature to estimate the fee
+	err := account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// estimate txn fee
+	estimateFee, err := account.provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("pending"))
+	if err != nil {
+		return nil, nil, err
+	}
+	txnFee := estimateFee[0]
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &broadcastDepAccTxnV3, precomputedAddress, nil
+}
+
 // Sign signs the given felt message using the account's private key.
 //
 // Parameters:
@@ -104,10 +276,11 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 //
 // Parameters:
 // - ctx: the context.Context for the function execution.
-// - invokeTx: the InvokeTxnV1 struct representing the transaction to be invoked.
+// - invokeTx: the InvokeTxnV3 struct representing the transaction to be invoked.
 // Returns:
 // - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV1) error {
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV3) error {
+	// TODO: make it available for all invoke versions
 
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
@@ -125,11 +298,11 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc
 //
 // Parameters:
 // - ctx: the context.Context for the function execution
-// - tx: the *rpc.DeployAccountTxn struct representing the transaction to be signed
+// - tx: the *rpc.DeployAccountTxnV3 struct representing the transaction to be signed
 // - precomputeAddress: the precomputed address for the transaction
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxn, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxnV3, precomputeAddress *felt.Felt) error {
 
 	hash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
@@ -147,10 +320,10 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx *rp
 //
 // Parameters:
 // - ctx: the context.Context
-// - tx: the *rpc.DeclareTxnV2
+// - tx: the *rpc.DeclareTxnV3
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.DeclareTxnV2) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error {
 
 	hash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
@@ -239,12 +412,7 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 // TransactionHashInvoke calculates the transaction hash for the given invoke transaction.
 //
 // Parameters:
-// - tx: The invoke transaction to calculate the hash for.
-//     The transaction can be of type InvokeTxnV0 or InvokeTxnV1.
-//     For InvokeTxnV0:
-//         the function checks if all the required parameters are set and then computes the transaction hash using the provided data.
-//     For InvokeTxnV1:
-//         the function performs similar checks and computes the transaction hash using the provided data.
+// - tx: The invoke transaction to calculate the hash for. Can be of type InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
 // Returns:
 // - *felt.Felt: The calculated transaction hash as a *felt.Felt
 // - error: an error, if any
@@ -342,9 +510,14 @@ func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (
 	if err != nil {
 		return nil, err
 	}
+	l1DataGasBytes, err := resourceBounds.L1DataGas.Bytes(rpc.ResourceL1DataGas)
+	if err != nil {
+		return nil, err
+	}
 	l1Bounds := new(felt.Felt).SetBytes(l1Bytes)
 	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
-	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds), nil
+	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
+	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds, l1DataGasBounds), nil
 }
 
 func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
@@ -460,6 +633,43 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			txn.ClassHash,
 			txn.CompiledClassHash,
 		), nil
+	case rpc.BroadcastDeclareTxnV3:
+		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
+		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+			txn.ContractClass == nil || txn.CompiledClassHash == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+		if err != nil {
+			return nil, err
+		}
+		DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+		if err != nil {
+			return nil, err
+		}
+		tipUint64, err := txn.Tip.ToUint64()
+		if err != nil {
+			return nil, err
+		}
+
+		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+		if err != nil {
+			return nil, err
+		}
+		return crypto.PoseidonArray(
+			PREFIX_DECLARE,
+			txnVersionFelt,
+			txn.SenderAddress,
+			tipAndResourceHash,
+			crypto.PoseidonArray(txn.PayMasterData...),
+			account.ChainId,
+			txn.Nonce,
+			new(felt.Felt).SetUint64(DAUint64),
+			crypto.PoseidonArray(txn.AccountDeploymentData...),
+			hash.ClassHash(*txn.ContractClass),
+			txn.CompiledClassHash,
+		), nil
 	}
 
 	return nil, ErrTxnTypeUnSupported
@@ -469,17 +679,14 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // ref: https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-address/
 //
 // Parameters:
-// - deployerAddress: the deployer address
-// - salt: the salt
-// - classHash: the class hash
-// - constructorCalldata: the constructor calldata
+// - salt: the salt for the address of the deployed contract
+// - classHash: the class hash of the contract to be deployed
+// - constructorCalldata: the parameters passed to the constructor
 // Returns:
 // - *felt.Felt: the precomputed address as a *felt.Felt
 // - error: an error if any
-func (account *Account) PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) (*felt.Felt, error) {
-	result := contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
-
-	return result, nil
+func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
 
 // WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
@@ -515,11 +722,12 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
 //
 // Parameters:
-// - ctx: the context.Context object for the transaction.
-// - txn: the Broadcast Transaction to be sent.
+//   - ctx: the context.Context object for the transaction.
+//   - txn: the Broadcast Transaction to be sent.
+//
 // Returns:
-// - *rpc.TransactionResponse: the transaction response.
-// - error: an error if any.
+//   - *rpc.TransactionResponse: the transaction response.
+//   - error: an error if any.
 func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
 	case rpc.BroadcastInvokeTxnType:
@@ -858,7 +1066,6 @@ func (account *Account) GetTransactionStatus(ctx context.Context, Txnhash *felt.
 //
 // Parameters:
 // - fnCalls: a slice of rpc.FunctionCall representing the function calls.
-// - cairoVersion: an integer representing the Cairo version.
 // Returns:
 // - a slice of *felt.Felt representing the formatted calldata.
 // - an error if Cairo version is not supported.
@@ -869,7 +1076,7 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 	case 2:
 		return FmtCallDataCairo2(fnCalls), nil
 	default:
-		return nil, errors.New("cairo version not supported")
+		return nil, fmt.Errorf("account cairo version '%d' not supported", account.CairoVersion)
 	}
 }
 
@@ -928,4 +1135,21 @@ func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	}
 
 	return result
+}
+
+func makeResourceBoundsMapWithZeroValues() rpc.ResourceBoundsMapping {
+	return rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x0",
+			MaxPricePerUnit: "0x0",
+		},
+	}
 }
