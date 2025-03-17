@@ -79,8 +79,9 @@ jobs:
       - name: Build examples
         run: |
           cd examples/deployAccount && go build
-          cd ../simpleCall && go build
-          cd ../invoke && go build
           cd ../deployContractUDC && go build
+          cd ../invoke && go build
+          cd ../simpleCall && go build
+          cd ../simpleDeclare && go build
           cd ../typedData && go build
           cd ../websocket && go build
