@@ -61,7 +61,8 @@ func main() {
 
 	fmt.Println("PrecomputedAddress:", setup.PadZerosInFelt(precomputedAddress))
 
-	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1.5)
+	// Convert the estimated fee to STRK. The multiplier is 1, as we already estimated the fee in BuildAndEstimateDeployAccountTxn multiplying by 1.5.
+	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1)
 	if err != nil {
 		panic(err)
 	}

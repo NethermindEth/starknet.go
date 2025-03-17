@@ -22,7 +22,7 @@ To run an example:
 1. How to interact with a deployed Cairo contract? How to send an `INVOKE_TXN`?  
   R: See [invoke](./invoke/main.go).
 1. How to make multiple function calls in the same transaction?  
-  R: See [invoke](./invoke/main.go), line 92.
+  R: See [invoke](./invoke/simpleInvoke.go), line 28.
 1. How to estimate fees?  
   R: See [invoke](./invoke/verboseInvoke.go), line 65.
 1. How to generate random public and private keys?  
@@ -33,8 +33,8 @@ To run an example:
   R: See [invoke](./invoke/verboseInvoke.go), line 20.
 1. How to deploy a smart contract using UDC?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
-1. How to get the transaction status?  
-  R: See [invoke](./invoke/main.go), line 131.
+1. How to get the transaction receipt?  
+  R: See [invoke](./invoke/verboseInvoke.go), line 87.
 1. How to deploy an ERC20 token?  
   R: See [deployContractUDC](./deployContractUDC/main.go).
 1. How to get the balance of a ERC20 token?  
