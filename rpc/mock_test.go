@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/pkg/errors"
 )
@@ -408,17 +409,17 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	var class = DeprecatedContractClass{
+	var class = contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
-		DeprecatedEntryPointsByType: DeprecatedEntryPointsByType{
-			Constructor: []DeprecatedCairoEntryPoint{},
-			External: []DeprecatedCairoEntryPoint{
+		DeprecatedEntryPointsByType: contracts.DeprecatedEntryPointsByType{
+			Constructor: []contracts.DeprecatedCairoEntryPoint{},
+			External: []contracts.DeprecatedCairoEntryPoint{
 				{
 					Offset:   "0x0xdeadbeef",
 					Selector: fakeSelector,
 				},
 			},
-			L1Handler: []DeprecatedCairoEntryPoint{},
+			L1Handler: []contracts.DeprecatedCairoEntryPoint{},
 		},
 	}
 	outputContent, err := json.Marshal(class)
@@ -500,7 +501,7 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = DeprecatedContractClass{
+	var class = contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, err := json.Marshal(class)

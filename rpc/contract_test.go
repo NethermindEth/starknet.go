@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -73,7 +74,7 @@ func TestClassAt(t *testing.T) {
 		require.NoError(err)
 
 		switch class := resp.(type) {
-		case *DeprecatedContractClass:
+		case *contracts.DeprecatedContractClass:
 			require.NotEmpty(class.Program, "code should exist")
 
 			require.Condition(func() bool {
@@ -84,7 +85,7 @@ func TestClassAt(t *testing.T) {
 				}
 				return false
 			}, "operation not found in the class")
-		case *ContractClass:
+		case *contracts.ContractClass:
 			require.NotEmpty(class.SierraProgram, "code should exist")
 
 			require.Condition(func() bool {
@@ -201,7 +202,7 @@ func TestClass(t *testing.T) {
 		BlockID                       BlockID
 		ClassHash                     *felt.Felt
 		ExpectedProgram               string
-		ExpectedEntryPointConstructor SierraEntryPoint
+		ExpectedEntryPointConstructor contracts.SierraEntryPoint
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
@@ -223,13 +224,13 @@ func TestClass(t *testing.T) {
 				BlockID:                       WithBlockTag("latest"),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 34, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 34, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 			{
 				BlockID:                       WithBlockTag("latest"),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 		"mainnet": {
@@ -238,7 +239,7 @@ func TestClass(t *testing.T) {
 				BlockID:                       WithBlockTag("latest"),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
-				ExpectedEntryPointConstructor: SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 	}[testEnv]
@@ -249,11 +250,11 @@ func TestClass(t *testing.T) {
 		require.NoError(err)
 
 		switch class := resp.(type) {
-		case *DeprecatedContractClass:
+		case *contracts.DeprecatedContractClass:
 			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
 				t.Fatal("code should exist")
 			}
-		case *ContractClass:
+		case *contracts.ContractClass:
 			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
 			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:

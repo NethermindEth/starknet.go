@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// CasmClass (AKA CASM_COMPILED_CONTRACT_CLASS) is the struct that represents the compiled contract class.
+// CasmClass (AKA CASM_COMPILED_CONTRACT_CLASS) is the struct that represents the compiled Cairo contract class.
 type CasmClass struct {
 	EntryPointsByType CasmEntryPointsByType `json:"entry_points_by_type"`
 	ByteCode          []*felt.Felt          `json:"bytecode"`

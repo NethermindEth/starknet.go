@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 // CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
@@ -58,12 +57,12 @@ func CalculateDeprecatedTransactionHashCommon(
 // Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgamHash are combined using the PoseidonArray function from the Curve package.
 //
 // Parameters:
-//   - contract: A contract class object of type rpc.ContractClass.
+//   - contract: A contract class object of type contracts.ContractClass.
 //
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 //   - error: an error object if there was an error during the hash calculation.
-func ClassHash(contract rpc.ContractClass) *felt.Felt {
+func ClassHash(contract contracts.ContractClass) *felt.Felt {
 	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
@@ -81,11 +80,11 @@ func ClassHash(contract rpc.ContractClass) *felt.Felt {
 // hashEntryPointByType calculates the hash of an entry point by type.
 //
 // Parameters:
-//   - entryPoint: A slice of rpc.SierraEntryPoint objects
+//   - entryPoint: A slice of contracts.SierraEntryPoint objects
 //
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-func hashEntryPointByType(entryPoint []rpc.SierraEntryPoint) *felt.Felt {
+func hashEntryPointByType(entryPoint []contracts.SierraEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))

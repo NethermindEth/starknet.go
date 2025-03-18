@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -110,7 +109,7 @@ func TestClassHashes(t *testing.T) {
 		for _, test := range testSet {
 
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[rpc.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
+				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
 				hash := hash.ClassHash(sierraClass)
 				assert.Equal(t, test.ExpectedClassHash, hash.String())

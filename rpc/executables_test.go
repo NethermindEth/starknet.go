@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,7 +58,7 @@ func TestCompiledCasm(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		var expectedResult *CasmCompiledContractClass
+		var expectedResult *contracts.CasmClass
 		var rawFile []byte
 		var err error
 
