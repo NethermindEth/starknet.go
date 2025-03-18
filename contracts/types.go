@@ -2,12 +2,14 @@ package contracts
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-type CasmCompiledContractClass struct {
+// CasmClass (AKA CASM_COMPILED_CONTRACT_CLASS) is the struct that represents the compiled contract class.
+type CasmClass struct {
 	EntryPointsByType CasmEntryPointsByType `json:"entry_points_by_type"`
 	ByteCode          []*felt.Felt          `json:"bytecode"`
 	Prime             NumAsHex              `json:"prime"`
@@ -18,7 +20,7 @@ type CasmCompiledContractClass struct {
 }
 
 // Validate ensures all required fields are present and valid
-func (c *CasmCompiledContractClass) Validate() error {
+func (c *CasmClass) Validate() error {
 	if c.ByteCode == nil {
 		return fmt.Errorf("bytecode is required")
 	}
@@ -38,13 +40,13 @@ func (c *CasmCompiledContractClass) Validate() error {
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (c *CasmCompiledContractClass) UnmarshalJSON(data []byte) error {
-	type Alias CasmCompiledContractClass
+func (c *CasmClass) UnmarshalJSON(data []byte) error {
+	type Alias CasmClass
 	aux := &Alias{}
 	if err := json.Unmarshal(data, aux); err != nil {
 		return err
 	}
-	*c = CasmCompiledContractClass(*aux)
+	*c = CasmClass(*aux)
 	return c.Validate()
 }
 
@@ -53,9 +55,15 @@ func (c *CasmCompiledContractClass) UnmarshalJSON(data []byte) error {
 type NumAsHex string
 
 type CasmEntryPointsByType struct {
-	Constructor []CasmClassEntryPoint `json:"CONSTRUCTOR"`
-	External    []CasmClassEntryPoint `json:"EXTERNAL"`
-	L1Handler   []CasmClassEntryPoint `json:"L1_HANDLER"`
+	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
+	External    []CasmEntryPoint `json:"EXTERNAL"`
+	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+
+type CasmEntryPoint struct {
+	Selector *felt.Felt `json:"selector"`
+	Offset   int        `json:"offset"`
+	Builtins []string   `json:"builtins"`
 }
 
 // Validate ensures all required fields are present and valid
@@ -70,6 +78,102 @@ func (e *CasmEntryPointsByType) Validate() error {
 		return fmt.Errorf("L1_HANDLER is required")
 	}
 	return nil
+}
+
+type NestedUints struct {
+	IsArray bool
+	Value   *uint64
+	Values  []NestedUints
+}
+
+func toNestedInts(values []any) ([]NestedUints, error) {
+
+	var res []NestedUints = make([]NestedUints, 0)
+
+	for _, value := range values {
+		// check if the value is a single number
+		if numeric, ok := value.(float64); ok {
+			intVal := uint64(numeric)
+			res = append(res, NestedUints{
+				IsArray: false,
+				Value:   &intVal,
+				Values:  nil,
+			})
+			continue
+		}
+
+		// check if the value is an array
+		if arrVal, ok := value.([]any); ok {
+			nested, err := toNestedInts(arrVal)
+			if err != nil {
+				return nil, err
+			}
+
+			res = append(res, NestedUints{
+				IsArray: true,
+				Value:   nil,
+				Values:  nested,
+			})
+			continue
+		}
+
+		return nil, errors.New("invalid NestedUint type")
+	}
+
+	return res, nil
+}
+
+func (ns *NestedUints) UnmarshalJSON(data []byte) error {
+	var temp []any
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	nested, err := toNestedInts(temp)
+
+	if err != nil {
+		return err
+	}
+
+	*ns = NestedUints{
+		IsArray: true,
+		Value:   nil,
+		Values:  nested,
+	}
+
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface for NestedUints.
+// It converts the NestedUints structure back into a JSON array format.
+func (ns NestedUints) MarshalJSON() ([]byte, error) {
+	if !ns.IsArray {
+		if ns.Value == nil {
+			return nil, errors.New("invalid NestedUints: non-array type must have a value")
+		}
+		return json.Marshal(*ns.Value)
+	}
+
+	result := make([]any, len(ns.Values))
+	for i, v := range ns.Values {
+		if !v.IsArray {
+			if v.Value == nil {
+				return nil, errors.New("invalid NestedUints: non-array type must have a value")
+			}
+			result[i] = *v.Value
+		} else {
+			nestedJSON, err := v.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			var nestedValue any
+			if err := json.Unmarshal(nestedJSON, &nestedValue); err != nil {
+				return nil, err
+			}
+			result[i] = nestedValue
+		}
+	}
+	return json.Marshal(result)
 }
 
 // 2-tuple of pc value and an array of hints to execute, but adapted to a golang struct

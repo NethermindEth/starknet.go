@@ -247,9 +247,9 @@ func hashCasmClassByteCode(
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 func CompiledClassHash(casmClass contracts.CasmClass) (*felt.Felt, error) {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
-	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.External)
-	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.L1Handler)
-	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointByType.Constructor)
+	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.External)
+	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.L1Handler)
+	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.Constructor)
 
 	var ByteCodeHasH *felt.Felt
 	var err error
@@ -274,7 +274,7 @@ func CompiledClassHash(casmClass contracts.CasmClass) (*felt.Felt, error) {
 //
 // Returns:
 //   - *felt.Felt: a pointer to a Felt type
-func hashCasmClassEntryPointByType(entryPoint []contracts.CasmClassEntryPoint) *felt.Felt {
+func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
 		builtInFlat := []*felt.Felt{}

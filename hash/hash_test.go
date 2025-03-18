@@ -43,8 +43,7 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 			content, err := os.ReadFile(test.CasmPath)
 			require.NoError(t, err)
 
-			//TODO: change this type (CasmCompiledContractClass) to the chosen one after finishing this feature (you better remember what this means)
-			var casmClass contracts.CasmCompiledContractClass
+			var casmClass contracts.CasmClass
 			err = json.Unmarshal(content, &casmClass)
 			require.NoError(t, err)
 

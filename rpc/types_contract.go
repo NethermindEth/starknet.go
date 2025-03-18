@@ -393,37 +393,16 @@ type FunctionABIEntry struct {
 }
 
 // IsType returns the ABIType of the StructABIEntry.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - ABIType: the ABIType
 func (s *StructABIEntry) IsType() ABIType {
 	return s.Type
 }
 
 // IsType returns the ABIType of the EventABIEntry.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - ABIType: the ABIType
 func (e *EventABIEntry) IsType() ABIType {
 	return e.Type
 }
 
 // IsType returns the ABIType of the FunctionABIEntry.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - ABIType: the ABIType
 func (f *FunctionABIEntry) IsType() ABIType {
 	return f.Type
 }
