@@ -1,4 +1,4 @@
-This example sends an invoke transaction with calldata. It uses an ERC20 token, but it can be any smart contract.
+This example demonstrates how to declare a contract on Starknet. It uses a simple Hello Starknet contract, but it can be any smart contract.
 
 Steps:
 1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
@@ -6,9 +6,12 @@ Steps:
 1. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
 1. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
 1. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
-1. Make sure you are in the "simpleInvoke" directory
+1. Make sure you are in the "simpleDeclare" directory
+1. Ensure you have the contract files (`contract.casm.json` and `contract.sierra.json`) in the directory (override them with new ones)
 1. Execute `go run main.go`
 
-The transaction hash and status will be returned at the end of the execution.
+NOTE: you need to replace the contract files for another ones. If not, this example WILL RETURN AN ERROR.
+This is expected, since the `contract.sierra.json` contract was already declared, and there can be only one contract class
+in starknet( ref: https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-classes/#contract_classes_2).
 
-<!-- TODO: update this -->
+After successful declaration, the transaction hash, status, and the class hash will be returned at the end of the execution.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/NethermindEth/starknet.go/account"
@@ -14,10 +15,12 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-// TODO: improve this example
+const (
+	sierraContractFilePath = "./contract.sierra.json"
+	casmContractFilePath   = "./contract.casm.json"
+)
 
-// NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
-
+// This example demonstrates how to declare a contract on Starknet.
 func main() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
@@ -36,7 +39,7 @@ func main() {
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
-		panic("Fail to convert privKey to bitInt")
+		panic("Failed to convert privKey to bigInt")
 	}
 	ks.Put(publicKey, privKeyBI)
 
@@ -54,12 +57,14 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	casmClass, err := utils.UnmarshallJSONFileToType[contracts.CasmClass]("./contracts_v2_HelloStarknet.casm.json", "")
+	// Unmarshalling the casm contract class from a JSON file.
+	casmClass, err := utils.UnmarshalJSONFileToType[contracts.CasmClass](casmContractFilePath, "")
 	if err != nil {
 		panic(err)
 	}
 
-	contractClass, err := utils.UnmarshallJSONFileToType[rpc.ContractClass]("./contracts_v2_HelloStarknet.sierra.json", "")
+	// Unmarshalling the sierra contract class from a JSON file.
+	contractClass, err := utils.UnmarshalJSONFileToType[rpc.ContractClass](sierraContractFilePath, "")
 	if err != nil {
 		panic(err)
 	}
@@ -70,21 +75,31 @@ func main() {
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
 	resp, err := accnt.BuildAndSendDeclareTxn(context.Background(), *casmClass, contractClass, 1.5)
 	if err != nil {
+		if strings.Contains(err.Error(), "is already declared") {
+			fmt.Println("")
+			fmt.Println("Error: ooops, this contract class was already declared.")
+			fmt.Println("You need to: ")
+			fmt.Println("- create a different Cairo contract,")
+			fmt.Println("- compile it,")
+			fmt.Println("- paste the new casm and sierra json files in this 'examples/simpleDeclare' folder,")
+			fmt.Println("- change the 'casmContractFilePath' and 'sierraContractFilePath' variables to the new files names,")
+			fmt.Println("and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/")
+			return
+		}
 		setup.PanicRPC(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
-	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
 		setup.PanicRPC(err)
 	}
 
 	// This returns us with the transaction hash and status
 	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
-	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
+	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Class hash: %s\n", resp.ClassHash)
 
 }

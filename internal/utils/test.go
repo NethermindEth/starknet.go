@@ -38,7 +38,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	return feltArr
 }
 
-// TestUnmarshallJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// TestUnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
 // If any error occurs during file reading or unmarshalling, it fails the test.
 //
 // Parameters:
@@ -47,8 +47,8 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 // - subfield: string subfield to unmarshal from the JSON file
 // Returns:
 // - T: the unmarshalled data of type T
-func TestUnmarshallJSONFileToType[T any](t testing.TB, filePath string, subfield string) *T {
-	result, err := UnmarshallJSONFileToType[T](filePath, subfield)
+func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath string, subfield string) *T {
+	result, err := UnmarshalJSONFileToType[T](filePath, subfield)
 	require.NoError(t, err)
 	return result
 }

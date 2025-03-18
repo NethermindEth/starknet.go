@@ -1,12 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"math/big"
-	"time"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -20,6 +17,10 @@ var (
 	contractMethod string = "mint"                                                               //Replace it with the function name that you want to invoke
 )
 
+// main is the main function that will be executed when the program is run.
+// It will load the variables from the '.env' file, initialize the connection to the RPC provider,
+// initialize the account, and then call the simpleInvoke and verboseInvoke functions passing the account,
+// the contract address, the contract method and the amount to be sent.
 func main() {
 	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
@@ -38,7 +39,7 @@ func main() {
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
-		panic("Fail to convert privKey to bitInt")
+		panic("Failed to convert privKey to bigInt")
 	}
 	ks.Put(publicKey, privKeyBI)
 
@@ -67,34 +68,10 @@ func main() {
 		panic(err)
 	}
 
-	// Building the functionCall struct, where :
-	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                  //contractAddress is the contract that we want to call
-		FunctionName:    contractMethod,                   //this is the function that we want to call
-		CallData:        []*felt.Felt{amount, &felt.Zero}, //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
-	}
-
-	// Building and sending the Broadcast Invoke Txn.
-	//
-	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
-	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
-	if err != nil {
-		setup.PanicRPC(err)
-	}
-
-	fmt.Println("Waiting for the transaction status...")
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
-
-	//Getting the transaction status
-	txStatus, err := client.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	if err != nil {
-		setup.PanicRPC(err)
-	}
-
-	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
-	fmt.Printf("Transaction execution status: %s\n", txStatus.ExecutionStatus)
-	fmt.Printf("Transaction status: %s\n", txStatus.FinalityStatus)
-
+	// Here we have two examples of how to send an invoke transaction, one is simple and the other one is verbose.
+	// The simple example is more user-friendly and easier to use, while the verbose example is more detailed and informative.
+	// You can choose one of them to run, or both! Each one will send a different transaction, but with almost the same parameters.
+	simpleInvoke(accnt, contractAddress, contractMethod, amount)
+	fmt.Println("--------------------------------")
+	verboseInvoke(accnt, contractAddress, contractMethod, amount)
 }

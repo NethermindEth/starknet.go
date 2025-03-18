@@ -22,26 +22,26 @@ func main() {
 	fmt.Println("Account address:", accnt.AccountAddress)
 
 	// This is how you can initialize a typed data from a JSON file
-	ttd, err := utils.UnmarshallJSONFileToType[typedData.TypedData]("./baseExample.json", "")
+	ttd, err := utils.UnmarshalJSONFileToType[typedData.TypedData]("./baseExample.json", "")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 	}
 
-	// This is how you can get the message hash linked to your account address
+	// get the message hash linked to your account address
 	messageHash, err := ttd.GetMessageHash(accnt.AccountAddress.String())
 	if err != nil {
 		panic(fmt.Errorf("fail to get message hash: %w", err))
 	}
 	fmt.Println("Message hash:", messageHash)
 
-	// This is how you can sign the message hash
+	// sign the message hash
 	signature, err := accnt.Sign(context.Background(), messageHash)
 	if err != nil {
 		panic(fmt.Errorf("fail to sign message: %w", err))
 	}
 	fmt.Println("Signature:", signature)
 
-	// This is how you can verify the signature
+	// verify the signature
 	isValid := curve.VerifySignature(messageHash.String(), signature[0].String(), signature[1].String(), setup.GetPublicKey())
 	fmt.Println("Verification result:", isValid)
 }

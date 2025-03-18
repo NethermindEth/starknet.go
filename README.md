@@ -55,7 +55,8 @@ operations on the wallets. The package has excellent documentation for a smooth
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
 - [simple call example](./examples/simpleCall) to make a contract call to a testnet contract.
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
-- [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
+- [invoke transaction example](./examples/invoke) to add a new invoke transaction on testnet.
+- [declare transaction example](./examples/simpleDeclare) to add a new contract on testnet.
 - [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/) on testnet.
 - [typed data example](./examples/typedData) to sign and verify a typed data.
 - [websocket example](./examples/websocket) to learn how to subscribe to WebSocket methods.
@@ -70,6 +71,14 @@ go run main.go
 ```
 > Check [here](examples/simpleCall/README.md) for more details
 
+***starknet simpleDeclare***
+ 
+```sh
+cd examples/simpleDeclare
+go run main.go
+```
+> Check [here](examples/simpleDeclare/README.md) for more details
+
 ***starknet deployAccount***
 
 ```sh
@@ -79,14 +88,14 @@ go run main.go
 
 > Check [here](examples/deployAccount/README.md) for more details
 
-***starknet invokeTransaction***
+***starknet invoke***
 
 ```sh
-cd examples/simpleInvoke
-go run main.go
+cd examples/invoke
+go run main.go simpleInvoke.go verboseInvoke.go
 ```
 
-> Check [here](examples/simpleInvoke/README.md) for more details
+> Check [here](examples/invoke/README.md) for more details
 
 ***starknet deployContractUDC***
 
@@ -120,6 +129,7 @@ go run main.go
 
 ### RPC
 
+<!-- TODO: update readme -->
 `starknet.go` RPC implements the Starknet [RPC v0.7.1 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
 
 | Method                                     | Implemented (*)    |
