@@ -26,6 +26,8 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
+	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
+
 	type testSetType struct {
 		TransactionHash  *felt.Felt
 		ExpectedRespFile string
@@ -35,17 +37,17 @@ func TestTransactionTrace(t *testing.T) {
 		"mock": {
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
-				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
+				ExpectedRespFile: expectedFile1,
 				ExpectedError:    nil,
 			},
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0xc0ffee"),
-				ExpectedRespFile: "",
+				ExpectedRespFile: expectedFile1,
 				ExpectedError:    ErrHashNotFound,
 			},
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0xf00d"),
-				ExpectedRespFile: "",
+				ExpectedRespFile: expectedFile1,
 				ExpectedError: &RPCError{
 					Code:    10,
 					Message: "No trace available for transaction",
@@ -57,7 +59,7 @@ func TestTransactionTrace(t *testing.T) {
 		"testnet": {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
-				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
+				ExpectedRespFile: expectedFile1,
 				ExpectedError:    nil,
 			},
 			testSetType{ // with 6 out of 6 fields
@@ -74,7 +76,10 @@ func TestTransactionTrace(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
 			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
-			require.Equal(t, test.ExpectedError, err)
+			if test.ExpectedError != nil {
+				assert.EqualError(t, test.ExpectedError, err.Error())
+				return
+			}
 			compareTraceTxs(t, expectedResp, resp)
 
 			rawResp, err := json.Marshal(resp)
@@ -106,19 +111,23 @@ func TestSimulateTransaction(t *testing.T) {
 		SimulateTxnInputFile string
 		ExpectedRespFile     string
 	}
+
+	expectedInputFile := "./tests/trace/sepoliaSimulateInvokeTx.json"
+	expectedRespFile := "./tests/trace/sepoliaSimulateInvokeTxResp.json"
+
 	testSet := map[string][]testSetType{
 		"devnet": {},
 		"mock": {testSetType{
-			SimulateTxnInputFile: "./tests/trace/sepoliaSimulateInvokeTx.json",
-			ExpectedRespFile:     "./tests/trace/sepoliaSimulateInvokeTxResp.json",
+			SimulateTxnInputFile: expectedInputFile,
+			ExpectedRespFile:     expectedRespFile,
 		}},
 		"testnet": {testSetType{
-			SimulateTxnInputFile: "./tests/trace/sepoliaSimulateInvokeTx.json",
-			ExpectedRespFile:     "./tests/trace/sepoliaSimulateInvokeTxResp.json",
+			SimulateTxnInputFile: expectedInputFile,
+			ExpectedRespFile:     expectedRespFile,
 		}},
 		"mainnet": {testSetType{
-			SimulateTxnInputFile: "./tests/trace/mainnetSimulateInvokeTx.json",
-			ExpectedRespFile:     "./tests/trace/mainnetSimulateInvokeTxResp.json",
+			SimulateTxnInputFile: expectedInputFile,
+			ExpectedRespFile:     expectedRespFile,
 		}},
 	}[testEnv]
 
@@ -191,25 +200,28 @@ func TestTraceBlockTransactions(t *testing.T) {
 		ExpectedRespFile string
 		ExpectedErr      *RPCError
 	}
+
+	expectedRespFile := "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
+
 	testSet := map[string][]testSetType{
 		"devnet":  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
 		"mainnet": {},
 		"testnet": {
 			testSetType{
 				BlockID:          WithBlockNumber(99433),
-				ExpectedRespFile: "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
 		},
 		"mock": {
 			testSetType{
 				BlockID:          WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
-				ExpectedRespFile: "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
 			testSetType{
 				BlockID:          WithBlockNumber(0),
-				ExpectedRespFile: "",
+				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
 			}},
 	}[testEnv]
