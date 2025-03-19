@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 )
 
-// Get the contract class definition in the given block associated with the given hash
+// Get the CASM code resulting from compiling a given class
 //
 // Parameters:
 //   - ctx: The context.Context used for the request
