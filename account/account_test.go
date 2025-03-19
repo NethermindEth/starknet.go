@@ -1219,15 +1219,11 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NotNil(t, resp.TransactionHash)
 	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
 
-	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
-	//Getting the transaction status
-	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	require.NoError(t, err, "Error in provider.GetTransactionStatus")
-
-	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
-	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -1267,16 +1263,14 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	// check the transaction and class hash
 	require.NotNil(t, resp.TransactionHash)
 	require.NotNil(t, resp.ClassHash)
+	t.Logf("Declare transaction hash: %s", resp.TransactionHash)
+	t.Logf("Class hash: %s", resp.ClassHash)
 
-	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
-	//Getting the transaction status
-	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	require.NoError(t, err, "Error getting declare transaction status")
-
-	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
-	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -1329,7 +1323,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NoError(t, err, "Error converting resource bounds to overall fee")
 
 	// Fund the new account with STRK tokens
-	transferSTRKAndWaitConfirmation(t, provider, acc, overallFee, precomputedAddress)
+	transferSTRKAndWaitConfirmation(t, acc, overallFee, precomputedAddress)
 
 	// Deploy the new account
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
@@ -1339,20 +1333,16 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
 	require.NotNil(t, resp.ContractAddress)
 
-	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
-	//Getting the transaction status
-	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	require.NoError(t, err, "Error getting deploy account transaction status")
-
-	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
-	assert.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
 // used to fund the new account with STRK tokens in the TestBuildAndEstimateDeployAccountTxn test
-func transferSTRKAndWaitConfirmation(t *testing.T, provider rpc.RpcProvider, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
+func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
 	t.Helper()
 	// Build and send invoke txn
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
@@ -1368,13 +1358,10 @@ func transferSTRKAndWaitConfirmation(t *testing.T, provider rpc.RpcProvider, acc
 	// check the transaction hash
 	require.NotNil(t, resp.TransactionHash)
 	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
-	// Waiting for the transaction status (TODO: update this for use WaitForTransactionReceipt when merged with PR 677 that fixed it)
-	time.Sleep(time.Second * 3) // Waiting 3 seconds
 
-	//Getting the transaction status
-	txStatus, err := provider.GetTransactionStatus(context.Background(), resp.TransactionHash)
-	require.NoError(t, err, "Error getting transfer transaction status")
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
-	require.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txStatus.ExecutionStatus)
-	require.Equal(t, rpc.TxnStatus_Accepted_On_L2, txStatus.FinalityStatus)
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
