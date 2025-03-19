@@ -4,7 +4,7 @@
 		"entry_points_by_type": {
 			"CONSTRUCTOR": [
 				{
-					"offset": "0x746",
+					"offset": 1862,
 					"selector": "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194",
 					"builtins": [
 						"range_check"
@@ -13,7 +13,7 @@
 			],
 			"EXTERNAL": [
 				{
-					"offset": "0x48b",
+					"offset": 1163,
 					"selector": "0x3bb42b339d678e8d57233747d96de8cf844bf52506ff9a4364a0ab847a4311",
 					"builtins": [
 						"pedersen",
@@ -21,14 +21,14 @@
 					]
 				},
 				{
-					"offset": "0x598",
+					"offset": 1432,
 					"selector": "0xa872e07a111ac568a7b2fc73af9355fc9d9a2b21aae78f38f97ed50ce32465",
 					"builtins": [
 						"range_check"
 					]
 				},
 				{
-					"offset": "0x0",
+					"offset": 0,
 					"selector": "0xb758361d5e84380ef1e632f89d8e76a8677dbc3f4b93a4f9d75d2a6048f312",
 					"builtins": [
 						"pedersen",
@@ -36,7 +36,7 @@
 					]
 				},
 				{
-					"offset": "0x315",
+					"offset": 789,
 					"selector": "0xe1e5b234a446a71b0db6d0022afd4031a23de379ed34f6b4ebada7ee228165",
 					"builtins": [
 						"pedersen",
@@ -44,7 +44,7 @@
 					]
 				},
 				{
-					"offset": "0x3d0",
+					"offset": 976,
 					"selector": "0x18665d04c4d5ed286044810898966cb97f1d6a696c2d14679d35983e28850bd",
 					"builtins": [
 						"pedersen",
@@ -52,7 +52,7 @@
 					]
 				},
 				{
-					"offset": "0x71",
+					"offset": 113,
 					"selector": "0x1a6848c1c58f47dda92679a27ddfcb13544f586d915fd7989d9ebfcb10533c7",
 					"builtins": [
 						"pedersen",
@@ -60,7 +60,7 @@
 					]
 				},
 				{
-					"offset": "0x260",
+					"offset": 608,
 					"selector": "0x1bb69a96c7eef7f1c23dfb62765147cbd1b89c36ba012a0a23c40eb1e81daa0",
 					"builtins": [
 						"pedersen",
@@ -68,7 +68,7 @@
 					]
 				},
 				{
-					"offset": "0x6d8",
+					"offset": 1752,
 					"selector": "0x1d1316ce9af02a24d8ab8429ed912204671a224d392dda75317fce66a470c16",
 					"builtins": [
 						"pedersen",
@@ -76,7 +76,7 @@
 					]
 				},
 				{
-					"offset": "0x638",
+					"offset": 1592,
 					"selector": "0x3ee0bfaf5b124501fef19bbd1312e71f6966d186c42eeb91d1bff729b91d1d4",
 					"builtins": [
 						"range_check"

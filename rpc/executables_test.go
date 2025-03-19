@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -73,22 +75,20 @@ func TestCompiledCasm(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 
-		//TODO: uncomment this when the Juno's issue is fixed (returing the offset as a string instead of a number)
+		// asserting equality of the json results
+		resultJSON, err := json.Marshal(result)
+		require.NoError(t, err)
 
-		// // asserting equality of the json results
-		// resultJSON, err := json.Marshal(result)
-		// require.NoError(t, err)
+		rawFile, err := os.ReadFile(test.ExpectedResultPath)
+		require.NoError(t, err)
+		var rpcResponse struct {
+			Result json.RawMessage `json:"result"`
+		}
+		err = json.Unmarshal(rawFile, &rpcResponse)
+		require.NoError(t, err)
+		expectedResultJSON, err := json.Marshal(rpcResponse.Result)
+		require.NoError(t, err)
 
-		// rawFile, err := os.ReadFile(test.ExpectedResultPath)
-		// require.NoError(t, err)
-		// var rpcResponse struct {
-		// 	Result json.RawMessage `json:"result"`
-		// }
-		// err = json.Unmarshal(rawFile, &rpcResponse)
-		// require.NoError(t, err)
-		// expectedResultJSON, err := json.Marshal(rpcResponse.Result)
-		// require.NoError(t, err)
-
-		// assert.JSONEq(t, string(expectedResultJSON), string(resultJSON))
+		assert.JSONEq(t, string(expectedResultJSON), string(resultJSON))
 	}
 }

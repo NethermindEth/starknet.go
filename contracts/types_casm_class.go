@@ -66,26 +66,6 @@ type CasmEntryPoint struct {
 	Builtins []string   `json:"builtins"`
 }
 
-// TODO: this is a temporary solution to unmarshal the offset as a int
-// while Juno fixes it.
-func (e *CasmEntryPoint) UnmarshalJSON(data []byte) error {
-	var aux struct {
-		Selector *felt.Felt `json:"selector"`
-		Offset   *felt.Felt `json:"offset"`
-		Builtins []string   `json:"builtins"`
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	e.Selector = aux.Selector
-	e.Offset = int(aux.Offset.Uint64())
-	e.Builtins = aux.Builtins
-
-	return nil
-}
-
 // Validate ensures all required fields are present and valid
 func (e *CasmEntryPointsByType) Validate() error {
 	if e.Constructor == nil {
