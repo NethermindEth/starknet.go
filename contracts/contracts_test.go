@@ -144,7 +144,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 		// compare JSONs
 		rawExpectedCasmClass, err := os.ReadFile(testCase.CasmPath)
 		require.NoError(t, err)
-		internalUtils.RemoveFieldFromJSON(&rawExpectedCasmClass, "pythonic_hints")
+		require.NoError(t, internalUtils.RemoveFieldFromJSON(&rawExpectedCasmClass, "pythonic_hints"))
 
 		rawActualCasmClass, err := json.Marshal(casmClass)
 		require.NoError(t, err)
