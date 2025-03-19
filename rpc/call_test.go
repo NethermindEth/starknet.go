@@ -25,7 +25,6 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	t.Skip("TODO: wait Juno fix the bug. Ref: https://github.com/NethermindEth/juno/issues/2599")
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
