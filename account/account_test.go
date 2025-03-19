@@ -1251,7 +1251,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[rpc.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Casm Class
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
