@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -715,13 +716,11 @@ func TestEstimateFee(t *testing.T) {
 }
 
 func TestGetStorageProof(t *testing.T) {
-	t.Skip("TODO: incomplete. Waiting for the websocket PR to be merged, so that we can change the behavior of the client.CallContext method")
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		Description       string
 		StorageProofInput StorageProofInput
-		ExpectedResult    StorageProofResult
 		ExpectedError     error
 	}
 	testSet := map[string][]testSetType{
@@ -731,19 +730,35 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag("latest"),
+					BlockID: BlockIDWithoutPending{Tag: "latest"},
 				},
 				ExpectedError: nil,
 			},
+			// TODO: add more test cases
 		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
-		require.NoError(err)
-		require.NotNil(result, "should return a nonce")
-		require.Equal(test.ExpectedResult, result)
+		if test.ExpectedError != nil {
+			require.EqualError(t, test.ExpectedError, err.Error())
+			continue
+		}
+		require.NoError(t, err)
+		require.NotNil(t, result, "empty result from starknet_getStorageProof")
+
+		// verify JSON equality
+		var rawResult any
+		// call the RPC method directly to get the raw result
+		err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
+		require.NoError(t, err)
+		//marshal the results to JSON
+		rawResultJSON, err := json.Marshal(rawResult)
+		require.NoError(t, err)
+		resultJSON, err := json.Marshal(result)
+		require.NoError(t, err)
+
+		require.JSONEq(t, string(rawResultJSON), string(resultJSON))
 	}
 }

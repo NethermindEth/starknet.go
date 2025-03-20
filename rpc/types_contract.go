@@ -37,7 +37,7 @@ var _ ClassOutput = &contracts.ContractClass{}
 
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
-	BlockID BlockID `json:"block_id"`
+	BlockID BlockIDWithoutPending `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
 	// Optional. A list of contracts for which we want to prove membership in the global state trie
@@ -55,15 +55,15 @@ type ContractStorageKeys struct {
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf,
 // thus effecitvely proving non-membership
 type StorageProofResult struct {
-	ClassesProof           NodeHashToNode   `json:"classes_proof"`
-	ContractsProof         ContractsProof   `json:"contracts_proof"`
-	ContractsStorageProofs []NodeHashToNode `json:"contracts_storage_proofs"`
-	GlobalRoots            []GlobalRoots    `json:"global_roots"`
+	ClassesProof           []NodeHashToNode   `json:"classes_proof"`
+	ContractsProof         ContractsProof     `json:"contracts_proof"`
+	ContractsStorageProofs [][]NodeHashToNode `json:"contracts_storage_proofs"`
+	GlobalRoots            GlobalRoots        `json:"global_roots"`
 }
 
 type ContractsProof struct {
 	// The nodes in the union of the paths from the contracts tree root to the requested leaves
-	Nodes              NodeHashToNode       `json:"nodes"`
+	Nodes              []NodeHashToNode     `json:"nodes"`
 	ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
 }
 
@@ -72,7 +72,7 @@ type ContractsProof struct {
 type ContractLeavesData struct {
 	Nonce       *felt.Felt `json:"nonce"`
 	ClassHash   *felt.Felt `json:"class_hash"`
-	StorageRoot *felt.Felt `json:"storage_root"`
+	StorageRoot *felt.Felt `json:"storage_root,omitempty"`
 }
 
 type GlobalRoots struct {

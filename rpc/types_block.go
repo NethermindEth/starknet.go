@@ -27,6 +27,9 @@ type BlockID struct {
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
+// Used in the 'starknet_getStorageProof' RPC method, as it doesn't support pending blocks
+type BlockIDWithoutPending BlockID
+
 // Block hash, number or tag, same as BLOCK_ID, but without 'pending'
 type SubscriptionBlockID struct {
 	Number uint64     `json:"block_number,omitempty"`
@@ -49,6 +52,37 @@ type SubscriptionBlockID struct {
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
+	}
+
+	if b.Tag != "" {
+		return nil, ErrInvalidBlockID
+	}
+
+	if b.Number != nil {
+		return []byte(fmt.Sprintf(`{"block_number":%d}`, *b.Number)), nil
+	}
+
+	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
+		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
+	}
+
+	return nil, ErrInvalidBlockID
+}
+
+// MarshalJSON marshals the BlockIDWithoutPending to JSON format.
+//
+// It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
+// while the error indicates any error that occurred during the marshaling process.
+//
+// Returns:
+// - []byte: the JSON representation of the BlockID
+// - error: any error that occurred during the marshaling process
+func (b BlockIDWithoutPending) MarshalJSON() ([]byte, error) {
+	if b.Tag == "pending" {
+		return nil, errors.Join(ErrInvalidBlockID, errors.New("pending blocks are not supported on this method"))
+	}
+	if b.Tag == "latest" {
+		return []byte(strconv.Quote("latest")), nil
 	}
 
 	if b.Tag != "" {
