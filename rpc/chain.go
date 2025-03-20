@@ -34,8 +34,8 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 // - error: An error if any occurred during the execution
 func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
-	// Note: []interface{}{}...force an empty `params[]` in the jsonrpc request
-	if err := provider.c.CallContext(ctx, &result, "starknet_syncing", []interface{}{}...); err != nil {
+
+	if err := provider.c.CallContextWithSliceArgs(ctx, &result, "starknet_syncing"); err != nil {
 		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
 	switch res := result.(type) {

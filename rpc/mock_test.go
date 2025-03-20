@@ -31,6 +31,22 @@ func (r *rpcMock) Close() {
 	r.closed = true
 }
 
+// Call 'CallContext' with a slice of arguments.
+//
+// For RPC-Calls with optional arguments, use 'CallContext' instead and pass a struct containing
+// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
+//
+// Parameters:
+// - ctx: represents the current execution context
+// - result: the interface{} to store the result of the RPC call
+// - method: the name of the method to call
+// - args: variadic and can be used to pass additional arguments to the RPC method
+// Returns:
+// - error: an error if any occurred during the function call
+func (r *rpcMock) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+	return methodsSwitchList(result, method, args...)
+}
+
 // CallContext calls the RPC method with the specified parameters and returns an error.
 //
 // Parameters:
@@ -39,18 +55,31 @@ func (r *rpcMock) Close() {
 // - args: variadic and can be used to pass additional arguments to the RPC method
 // Returns:
 // - error: an error if any occurred during the function call
-func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args interface{}) error {
+	return methodsSwitchList(result, method, args)
+}
+
+// methodsSwitchList is a function that switches on the method name and calls the corresponding mock function.
+//
+// Parameters:
+//   - result: The result of the RPC call
+//   - method: The name of the method to call
+//   - args: The arguments to pass to the method
+//
+// Returns:
+//   - error: An error if the method is not found or if the arguments are invalid
+func methodsSwitchList(result interface{}, method string, args ...interface{}) error {
 	switch method {
 	case "starknet_addDeclareTransaction":
 		return mock_starknet_addDeclareTransaction(result, args...)
-	case "starknet_addInvokeTransaction":
-		return mock_starknet_addInvokeTransaction(result, args...)
 	case "starknet_addDeployAccountTransaction":
 		return mock_starknet_addDeployAccountTransaction(result, args...)
-	case "starknet_blockNumber":
-		return mock_starknet_blockNumber(result, args...)
+	case "starknet_addInvokeTransaction":
+		return mock_starknet_addInvokeTransaction(result, args...)
 	case "starknet_blockHashAndNumber":
 		return mock_starknet_blockHashAndNumber(result, args...)
+	case "starknet_blockNumber":
+		return mock_starknet_blockNumber(result, args...)
 	case "starknet_call":
 		return mock_starknet_call(result, args...)
 	case "starknet_chainId":
@@ -59,16 +88,14 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_estimateFee(result, args...)
 	case "starknet_estimateMessageFee":
 		return mock_starknet_estimateMessageFee(result, args...)
-	case "starknet_simulateTransactions":
-		return mock_starknet_simulateTransactions(result, args...)
-	case "starknet_getBlockWithTxs":
-		return mock_starknet_getBlockWithTxs(result, args...)
 	case "starknet_getBlockTransactionCount":
 		return mock_starknet_getBlockTransactionCount(result, args...)
-	case "starknet_getBlockWithTxHashes":
-		return mock_starknet_getBlockWithTxHashes(result, args...)
 	case "starknet_getBlockWithReceipts":
 		return mock_starknet_getBlockWithReceipts(result, args...)
+	case "starknet_getBlockWithTxHashes":
+		return mock_starknet_getBlockWithTxHashes(result, args...)
+	case "starknet_getBlockWithTxs":
+		return mock_starknet_getBlockWithTxs(result, args...)
 	case "starknet_getClass":
 		return mock_starknet_getClass(result, args...)
 	case "starknet_getClassAt":
@@ -79,26 +106,30 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 		return mock_starknet_getCompiledCasm(result, args...)
 	case "starknet_getEvents":
 		return mock_starknet_getEvents(result, args...)
+	case "starknet_getMessagesStatus":
+		return mock_starknet_getMessagesStatus(result, args...)
 	case "starknet_getNonce":
 		return mock_starknet_getNonce(result, args...)
 	case "starknet_getStateUpdate":
 		return mock_starknet_getStateUpdate(result, args...)
 	case "starknet_getStorageAt":
 		return mock_starknet_getStorageAt(result, args...)
+	case "starknet_getStorageProof":
+		return mock_starknet_getStorageProof(result, args)
 	case "starknet_getTransactionByBlockIdAndIndex":
 		return mock_starknet_getTransactionByBlockIdAndIndex(result, args...)
 	case "starknet_getTransactionByHash":
 		return mock_starknet_getTransactionByHash(result, args...)
 	case "starknet_getTransactionReceipt":
 		return mock_starknet_getTransactionReceipt(result, args...)
+	case "starknet_simulateTransactions":
+		return mock_starknet_simulateTransactions(result, args...)
 	case "starknet_syncing":
 		return mock_starknet_syncing(result, args...)
 	case "starknet_traceBlockTransactions":
 		return mock_starknet_traceBlockTransactions(result, args...)
 	case "starknet_traceTransaction":
 		return mock_starknet_traceTransaction(result, args...)
-	case "starknet_getMessagesStatus":
-		return mock_starknet_getMessagesStatus(result, args...)
 	default:
 		return errNotFound
 	}
@@ -1434,4 +1465,33 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	}
 
 	return json.Unmarshal(outputContent, r)
+}
+
+// mock_starknet_getStorageProof is a function that mocks the behavior of getting a storage proof for a given storage key and block ID.
+//
+// Parameters:
+// - result: The result of the operation
+// - args: The arguments to be passed to the method
+// Returns:
+// - error: an error if any
+// TODO: verify correctness
+func mock_starknet_getStorageProof(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	storageProofInput, ok := args[0].(StorageProofInput)
+	if !ok {
+		return errWrongArgs
+	}
+
+	if storageProofInput.BlockID.Tag == "pending" {
+		return ErrHashNotFound
+	}
+
+	return nil
 }
