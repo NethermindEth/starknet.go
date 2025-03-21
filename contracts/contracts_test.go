@@ -7,7 +7,6 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +46,7 @@ func TestUnmarshalContractClass(t *testing.T) {
 		content, err := os.ReadFile(testCase.CasmPath)
 		require.NoError(t, err)
 
-		var class rpc.ContractClass
+		var class ContractClass
 		err = json.Unmarshal(content, &class)
 		require.NoError(t, err)
 		assert.Equal(t, class.SierraProgram[0].String(), testCase.SierraProgram0)
@@ -68,9 +67,9 @@ func TestUnmarshalContractClass(t *testing.T) {
 //	none
 func TestUnmarshalCasmClass(t *testing.T) {
 	type ExpectedCasmClass struct {
-		Prime                  string
+		Prime                  NumAsHex
 		Version                string
-		EntryPointByType       CasmClassEntryPointsByType
+		EntryPointByType       CasmEntryPointsByType
 		BytecodeSegmentLengths *NestedUints
 	}
 
@@ -85,8 +84,8 @@ func TestUnmarshalCasmClass(t *testing.T) {
 			ExpectedCasmClass: ExpectedCasmClass{
 				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
 				Version: "2.1.0",
-				EntryPointByType: CasmClassEntryPointsByType{
-					External: []CasmClassEntryPoint{
+				EntryPointByType: CasmEntryPointsByType{
+					External: []CasmEntryPoint{
 						{
 							Selector: internalUtils.TestHexToFelt(t, "0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320"),
 							Offset:   0,
@@ -98,8 +97,8 @@ func TestUnmarshalCasmClass(t *testing.T) {
 							Builtins: []string{"range_check"},
 						},
 					},
-					Constructor: []CasmClassEntryPoint{},
-					L1Handler:   []CasmClassEntryPoint{},
+					Constructor: []CasmEntryPoint{},
+					L1Handler:   []CasmEntryPoint{},
 				},
 				BytecodeSegmentLengths: nil,
 			},
@@ -109,8 +108,8 @@ func TestUnmarshalCasmClass(t *testing.T) {
 			ExpectedCasmClass: ExpectedCasmClass{
 				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
 				Version: "2.7.0",
-				EntryPointByType: CasmClassEntryPointsByType{
-					External: []CasmClassEntryPoint{
+				EntryPointByType: CasmEntryPointsByType{
+					External: []CasmEntryPoint{
 						{
 							Selector: internalUtils.TestHexToFelt(t, "0x26813d396fdb198e9ead934e4f7a592a8b88a059e45ab0eb6ee53494e8d45b0"),
 							Offset:   0,
@@ -122,8 +121,8 @@ func TestUnmarshalCasmClass(t *testing.T) {
 							Builtins: []string{"range_check"},
 						},
 					},
-					Constructor: []CasmClassEntryPoint{},
-					L1Handler:   []CasmClassEntryPoint{},
+					Constructor: []CasmEntryPoint{},
+					L1Handler:   []CasmEntryPoint{},
 				},
 				BytecodeSegmentLengths: newNestedFieldArray(
 					newNestedFieldValue(162),
@@ -138,17 +137,20 @@ func TestUnmarshalCasmClass(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, casmClass.Prime, testCase.ExpectedCasmClass.Prime)
-		assert.Equal(t, casmClass.Version, testCase.ExpectedCasmClass.Version)
-
-		expectedEntryPoint := testCase.ExpectedCasmClass.EntryPointByType
-
-		assert.Equal(t, casmClass.EntryPointByType.External, expectedEntryPoint.External)
-		assert.Equal(t, casmClass.EntryPointByType.Constructor, expectedEntryPoint.Constructor)
-		assert.Equal(t, casmClass.EntryPointByType.L1Handler, expectedEntryPoint.L1Handler)
-
+		assert.Equal(t, casmClass.CompilerVersion, testCase.ExpectedCasmClass.Version)
+		assert.EqualValues(t, casmClass.EntryPointsByType, testCase.ExpectedCasmClass.EntryPointByType)
 		assert.Equal(t, testCase.ExpectedCasmClass.BytecodeSegmentLengths, casmClass.BytecodeSegmentLengths)
-	}
 
+		// compare JSONs
+		rawExpectedCasmClass, err := os.ReadFile(testCase.CasmPath)
+		require.NoError(t, err)
+		require.NoError(t, internalUtils.RemoveFieldFromJSON(&rawExpectedCasmClass, "pythonic_hints"))
+
+		rawActualCasmClass, err := json.Marshal(casmClass)
+		require.NoError(t, err)
+
+		assert.JSONEq(t, string(rawExpectedCasmClass), string(rawActualCasmClass))
+	}
 }
 
 // TestPrecomputeAddress tests the PrecomputeAddress function.
@@ -225,5 +227,53 @@ func newNestedFieldArray(val ...NestedUints) *NestedUints {
 		IsArray: true,
 		Value:   nil,
 		Values:  val,
+	}
+}
+
+// TestDeprecatedContractClass_UnmarshalValidJSON_Successful is a test function that
+// tests the successful unmarshalling of valid JSON into a DeprecatedContractClass
+// object.
+//
+// It reads the content of a file, then unmarshals the content into a
+// DeprecatedContractClass object using the json.Unmarshal function. If any error
+// occurs during the process, the test fails.
+//
+// Parameters:
+// - t: The testing.T object used for reporting test failures and logging.
+// Returns:
+//
+//	none
+func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
+	content, err := os.ReadFile("./tests/0x01b661756bf7d16210fc611626e1af4569baa1781ffc964bd018f4585ae241c1.json")
+	if err != nil {
+		t.Fatal("should be able to read file", err)
+	}
+
+	contractClass := DeprecatedContractClass{}
+	if err := json.Unmarshal(content, &contractClass); err != nil {
+		t.Fatal("should be able unmarshall Class", err)
+	}
+}
+
+// TestContractClass_UnmarshalValidJSON_Successful is a test function that validates the successful unmarshalling of valid JSON data into a ContractClass object.
+//
+// The function does the following:
+// - Reads the content of a file specified by the validContractCompiledPath variable.
+// - Unmarshals the content into a ContractClass object using the json.Unmarshal function.
+//
+// Parameters:
+// - t: The testing.T object used for reporting test failures and logging.
+// Returns:
+//
+//	none
+func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
+	content, err := os.ReadFile("./tests/0x03e9b96873987da76121f74a3df71e38c44527d8ce2ad115bcfda3cba0548cc3.json")
+	if err != nil {
+		t.Fatal("should be able to read file", err)
+	}
+
+	contractClass := ContractClass{}
+	if err := json.Unmarshal(content, &contractClass); err != nil {
+		t.Fatal("should be able unmarshall Class", err)
 	}
 }

@@ -14,6 +14,8 @@ import (
 	reflect "reflect"
 
 	felt "github.com/NethermindEth/juno/core/felt"
+	client "github.com/NethermindEth/starknet.go/client"
+	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -22,6 +24,7 @@ import (
 type MockRpcProvider struct {
 	ctrl     *gomock.Controller
 	recorder *MockRpcProviderMockRecorder
+	isgomock struct{}
 }
 
 // MockRpcProviderMockRecorder is the mock recorder for MockRpcProvider.
@@ -252,10 +255,10 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 }
 
 // CompiledCasm mocks base method.
-func (m *MockRpcProvider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*rpc.CasmCompiledContractClass, error) {
+func (m *MockRpcProvider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CompiledCasm", ctx, classHash)
-	ret0, _ := ret[0].(*rpc.CasmCompiledContractClass)
+	ret0, _ := ret[0].(*contracts.CasmClass)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -519,4 +522,88 @@ func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHas
 func (mr *MockRpcProviderMockRecorder) TransactionReceipt(ctx, transactionHash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockRpcProvider)(nil).TransactionReceipt), ctx, transactionHash)
+}
+
+// MockWebsocketProvider is a mock of WebsocketProvider interface.
+type MockWebsocketProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockWebsocketProviderMockRecorder
+	isgomock struct{}
+}
+
+// MockWebsocketProviderMockRecorder is the mock recorder for MockWebsocketProvider.
+type MockWebsocketProviderMockRecorder struct {
+	mock *MockWebsocketProvider
+}
+
+// NewMockWebsocketProvider creates a new mock instance.
+func NewMockWebsocketProvider(ctrl *gomock.Controller) *MockWebsocketProvider {
+	mock := &MockWebsocketProvider{ctrl: ctrl}
+	mock.recorder = &MockWebsocketProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWebsocketProvider) EXPECT() *MockWebsocketProviderMockRecorder {
+	return m.recorder
+}
+
+// SubscribeEvents mocks base method.
+func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEvent, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeEvents", ctx, events, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeEvents indicates an expected call of SubscribeEvents.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeEvents", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeEvents), ctx, events, options)
+}
+
+// SubscribeNewHeads mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID *rpc.SubscriptionBlockID) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeNewHeads indicates an expected call of SubscribeNewHeads.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, subBlockID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, subBlockID)
+}
+
+// SubscribePendingTransactions mocks base method.
+func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.SubPendingTxns, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribePendingTransactions", ctx, pendingTxns, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribePendingTransactions indicates an expected call of SubscribePendingTransactions.
+func (mr *MockWebsocketProviderMockRecorder) SubscribePendingTransactions(ctx, pendingTxns, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribePendingTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribePendingTransactions), ctx, pendingTxns, options)
+}
+
+// SubscribeTransactionStatus mocks base method.
+func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatusResp, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeTransactionStatus", ctx, newStatus, transactionHash)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeTransactionStatus indicates an expected call of SubscribeTransactionStatus.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeTransactionStatus(ctx, newStatus, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeTransactionStatus", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeTransactionStatus), ctx, newStatus, transactionHash)
 }

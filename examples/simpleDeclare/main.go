@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// Unmarshalling the sierra contract class from a JSON file.
-	contractClass, err := utils.UnmarshalJSONFileToType[rpc.ContractClass](sierraContractFilePath, "")
+	contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](sierraContractFilePath, "")
 	if err != nil {
 		panic(err)
 	}

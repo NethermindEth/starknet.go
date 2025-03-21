@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,21 +58,8 @@ func TestCompiledCasm(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		var expectedResult *CasmCompiledContractClass
-		var rawFile []byte
-		var err error
-
+		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](test.ExpectedResultPath, "result")
 		if test.ExpectedResultPath != "" {
-			// getting the expected result from the file
-			rawFile, err = os.ReadFile(test.ExpectedResultPath)
-			require.NoError(t, err)
-			var rpcResponse struct {
-				Result json.RawMessage `json:"result"`
-			}
-			err = json.Unmarshal(rawFile, &rpcResponse)
-			require.NoError(t, err)
-			rawFile = rpcResponse.Result
-			err = json.Unmarshal(rawFile, &expectedResult)
 			require.NoError(t, err)
 		}
 
@@ -80,16 +68,27 @@ func TestCompiledCasm(t *testing.T) {
 		if test.ExpectedError != nil {
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)
+			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
 			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 			continue
 		}
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 
 		// asserting equality of the json results
-		jsonResult, err := json.Marshal(result)
-		assert.NoError(t, err)
+		resultJSON, err := json.Marshal(result)
+		require.NoError(t, err)
 
-		assert.JSONEq(t, string(rawFile), string(jsonResult))
+		rawFile, err := os.ReadFile(test.ExpectedResultPath)
+		require.NoError(t, err)
+		var rpcResponse struct {
+			Result json.RawMessage `json:"result"`
+		}
+		err = json.Unmarshal(rawFile, &rpcResponse)
+		require.NoError(t, err)
+		expectedResultJSON, err := json.Marshal(rpcResponse.Result)
+		require.NoError(t, err)
+
+		assert.JSONEq(t, string(expectedResultJSON), string(resultJSON))
 	}
 }

@@ -74,7 +74,7 @@ func BuildInvokeTxn(
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass contracts.CasmClass,
-	contractClass *rpc.ContractClass,
+	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
 ) (rpc.BroadcastDeclareTxnV3, error) {

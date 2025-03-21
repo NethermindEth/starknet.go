@@ -1,6 +1,9 @@
 package rpc
 
-import "github.com/NethermindEth/juno/core/felt"
+import (
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+)
 
 type BroadcastTxn interface{}
 
@@ -71,12 +74,12 @@ func (tx BroadcastInvokev3Txn) GetCalldata() []*felt.Felt {
 type BroadcastDeclareTxnV1 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt              `json:"sender_address"`
-	MaxFee        *felt.Felt              `json:"max_fee"`
-	Version       TransactionVersion      `json:"version"`
-	Signature     []*felt.Felt            `json:"signature"`
-	Nonce         *felt.Felt              `json:"nonce"`
-	ContractClass DeprecatedContractClass `json:"contract_class"`
+	SenderAddress *felt.Felt                        `json:"sender_address"`
+	MaxFee        *felt.Felt                        `json:"max_fee"`
+	Version       TransactionVersion                `json:"version"`
+	Signature     []*felt.Felt                      `json:"signature"`
+	Nonce         *felt.Felt                        `json:"nonce"`
+	ContractClass contracts.DeprecatedContractClass `json:"contract_class"`
 }
 
 func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
@@ -86,13 +89,13 @@ func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
 type BroadcastDeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt         `json:"sender_address"`
-	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
-	MaxFee            *felt.Felt         `json:"max_fee"`
-	Version           TransactionVersion `json:"version"`
-	Signature         []*felt.Felt       `json:"signature"`
-	Nonce             *felt.Felt         `json:"nonce"`
-	ContractClass     ContractClass      `json:"contract_class"`
+	SenderAddress     *felt.Felt              `json:"sender_address"`
+	CompiledClassHash *felt.Felt              `json:"compiled_class_hash"`
+	MaxFee            *felt.Felt              `json:"max_fee"`
+	Version           TransactionVersion      `json:"version"`
+	Signature         []*felt.Felt            `json:"signature"`
+	Nonce             *felt.Felt              `json:"nonce"`
+	ContractClass     contracts.ContractClass `json:"contract_class"`
 }
 
 func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
@@ -100,15 +103,15 @@ func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
 }
 
 type BroadcastDeclareTxnV3 struct {
-	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
-	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           TransactionVersion    `json:"version"`
-	Signature         []*felt.Felt          `json:"signature"`
-	Nonce             *felt.Felt            `json:"nonce"`
-	ContractClass     *ContractClass        `json:"contract_class"`
-	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               U64                   `json:"tip"`
+	Type              TransactionType          `json:"type"`
+	SenderAddress     *felt.Felt               `json:"sender_address"`
+	CompiledClassHash *felt.Felt               `json:"compiled_class_hash"`
+	Version           TransactionVersion       `json:"version"`
+	Signature         []*felt.Felt             `json:"signature"`
+	Nonce             *felt.Felt               `json:"nonce"`
+	ContractClass     *contracts.ContractClass `json:"contract_class"`
+	ResourceBounds    ResourceBoundsMapping    `json:"resource_bounds"`
+	Tip               U64                      `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated

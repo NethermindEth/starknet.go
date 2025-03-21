@@ -256,7 +256,7 @@ var (
 	}
 	ErrInsufficientAccountBalance = &RPCError{
 		Code:    54,
-		Message: "Account balance is smaller than the transaction's max_fee",
+		Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
 	}
 	ErrValidationFailure = &RPCError{
 		Code:    55,

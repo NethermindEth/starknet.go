@@ -9,12 +9,12 @@ import (
 // UnwrapJSON unwraps a JSON value from a map into a new map.
 //
 // Parameters:
-// - data: A map containing JSON raw messages
-// - tag: The key to look up in the map
+//  - data: A map containing JSON raw messages
+//  - tag: The key to look up in the map
 
-func UnwrapJSON(data map[string]interface{}, tag string) (map[string]interface{}, error) {
+func UnwrapJSON(data map[string]any, tag string) (map[string]any, error) {
 	if data[tag] != nil {
-		var unwrappedData map[string]interface{}
+		var unwrappedData map[string]any
 		dataInner, err := json.Marshal(data[tag])
 		if err != nil {
 			return nil, err
@@ -30,11 +30,12 @@ func UnwrapJSON(data map[string]interface{}, tag string) (map[string]interface{}
 // GetAndUnmarshalJSONFromMap retrieves and unmarshals a JSON value from a map into the specified type T.
 //
 // Parameters:
-// - aMap: A map containing JSON raw messages
-// - key: The key to look up in the map
+//   - aMap: A map containing JSON raw messages
+//   - key: The key to look up in the map
+//
 // Returns:
-// - T: The unmarshaled value of type T
-// - error: An error if the key is not found or unmarshaling fails
+//   - T: The unmarshaled value of type T
+//   - error: An error if the key is not found or unmarshaling fails
 func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key string) (result T, err error) {
 	value, ok := aMap[key]
 	if !ok {
@@ -53,11 +54,12 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 // If any error occurs during file reading or unmarshalling, it returns an error.
 //
 // Parameters:
-// - filePath: string path to the JSON file
-// - subfield: string subfield to unmarshal from the JSON file
+//   - filePath: string path to the JSON file
+//   - subfield: string subfield to unmarshal from the JSON file
+//
 // Returns:
-// - *T: pointer to the unmarshalled data of type T
-// - error: error if file reading or unmarshalling fails
+//   - *T: pointer to the unmarshalled data of type T
+//   - error: error if file reading or unmarshalling fails
 func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error) {
 	var result T
 
@@ -85,4 +87,29 @@ func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error
 	}
 
 	return &result, nil
+}
+
+// RemoveFieldFromJSON removes a field from a JSON bytes slice.
+//
+// Parameters:
+//   - jsonData: pointer to the JSON data
+//   - field: string field to remove, it must be a direct child of the JSON object
+//
+// Returns:
+//   - error: error if any
+func RemoveFieldFromJSON(jsonData *[]byte, field string) error {
+	var data map[string]any
+	if err := json.Unmarshal(*jsonData, &data); err != nil {
+		return err
+	}
+
+	delete(data, field)
+
+	newJSONData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	*jsonData = newJSONData
+	return nil
 }

@@ -33,7 +33,7 @@ var (
 type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *rpc.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
 	Provider() rpc.RpcProvider
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -151,6 +151,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
+//   - contractClass: The sierra contract class of the contract to be declared
 //   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
@@ -162,7 +163,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
 	casmClass contracts.CasmClass,
-	contractClass *rpc.ContractClass,
+	contractClass *contracts.ContractClass,
 	multiplier float64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)

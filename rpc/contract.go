@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
@@ -61,14 +62,14 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 
 	// if contract_class_version exists, then it's a ContractClass type
 	if _, exists := (rawClass)["contract_class_version"]; exists {
-		var contractClass ContractClass
+		var contractClass contracts.ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 		return &contractClass, nil
 	}
-	var depContractClass DeprecatedContractClass
+	var depContractClass contracts.DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
 		return nil, Err(InternalError, StringErrData(err.Error()))

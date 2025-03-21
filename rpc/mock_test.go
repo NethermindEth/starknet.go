@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/pkg/errors"
 )
@@ -408,17 +409,17 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	var class = DeprecatedContractClass{
+	var class = contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
-		DeprecatedEntryPointsByType: DeprecatedEntryPointsByType{
-			Constructor: []DeprecatedCairoEntryPoint{},
-			External: []DeprecatedCairoEntryPoint{
+		DeprecatedEntryPointsByType: contracts.DeprecatedEntryPointsByType{
+			Constructor: []contracts.DeprecatedCairoEntryPoint{},
+			External: []contracts.DeprecatedCairoEntryPoint{
 				{
 					Offset:   "0x0xdeadbeef",
 					Selector: fakeSelector,
 				},
 			},
-			L1Handler: []DeprecatedCairoEntryPoint{},
+			L1Handler: []contracts.DeprecatedCairoEntryPoint{},
 		},
 	}
 	outputContent, err := json.Marshal(class)
@@ -500,7 +501,7 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 		fmt.Printf("%T\n", args[1])
 		return errWrongArgs
 	}
-	var class = DeprecatedContractClass{
+	var class = contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, err := json.Marshal(class)
@@ -745,14 +746,6 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 }
 
 // mock_starknet_simulateTransactions is a function that simulates transactions on the StarkNet network.
-// It takes a result interface{} and variadic args ...interface{} as input parameters.
-// The result parameter is expected to be of type *json.RawMessage, otherwise an error of type errWrongType is returned.
-// The args parameter is expected to have a length of 3, otherwise an error of type errWrongArgs is returned.
-// The first argument in args is expected to be of type BlockID, otherwise an error of type errWrongArgs is returned.
-// The second argument in args is expected to be of type []BroadcastTxn, otherwise an error of type errWrongArgs is returned.
-// The third argument in args is expected to be of type []SimulationFlag, otherwise an error of type errWrongArgs is returned.
-// The function reads a file named "sepoliaSimulateInvokeTxResp.json" and unmarshals its content into a variable of type SimulateTransactionOutput.
-// Then, it marshals the output variable into JSON format and unmarshals it into the result parameter.
 // If any error occurs during the process, it is returned.
 //
 // Parameters:
@@ -785,12 +778,12 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	output, err := internalUtils.UnmarshalJSONFileToType[SimulateTransactionOutput]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
+	output, err := internalUtils.UnmarshalJSONFileToType[[]SimulatedTransaction]("./tests/trace/sepoliaSimulateInvokeTxResp.json", "")
 	if err != nil {
 		return err
 	}
 
-	outputContent, err := json.Marshal(output.Txns)
+	outputContent, err := json.Marshal(output)
 	if err != nil {
 		return err
 	}
