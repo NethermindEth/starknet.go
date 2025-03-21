@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -88,10 +90,47 @@ type NodeHashToNode struct {
 	Node     MerkleNode `json:"node"`
 }
 
-// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node
+// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node (EdgeNode or BinaryNode types)
 type MerkleNode struct {
-	EdgeNode   `json:",omitempty"`
-	BinaryNode `json:",omitempty"`
+	Type string
+	Data any
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface for MerkleNode
+// It unmarshals the data into an EdgeNode or BinaryNode depending on the type
+func (m *MerkleNode) UnmarshalJSON(data []byte) error {
+	// Create a decoder with DisallowUnknownFields
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var edgeNode EdgeNode
+	if err := decoder.Decode(&edgeNode); err == nil {
+		m.Type = "EdgeNode"
+		m.Data = edgeNode
+		return nil
+	}
+
+	// Create a decoder with DisallowUnknownFields
+	decoder = json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var binaryNode BinaryNode
+	if err := decoder.Decode(&binaryNode); err == nil {
+		m.Type = "BinaryNode"
+		m.Data = binaryNode
+		return nil
+	}
+	return fmt.Errorf("invalid merkle node type")
+}
+
+// MarshalJSON implements the json.Marshaler interface for MerkleNode
+// It marshals the data into an EdgeNode or BinaryNode depending on the type
+func (m *MerkleNode) MarshalJSON() ([]byte, error) {
+	if m.Type == "EdgeNode" {
+		return json.Marshal(m.Data.(EdgeNode))
+	}
+	if m.Type == "BinaryNode" {
+		return json.Marshal(m.Data.(BinaryNode))
+	}
+	return nil, fmt.Errorf("invalid merkle node type")
 }
 
 // Represents a path to the highest non-zero descendant node
