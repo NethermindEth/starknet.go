@@ -73,7 +73,7 @@ func BuildInvokeTxn(
 //     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
-	casmClass contracts.CasmClass,
+	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,

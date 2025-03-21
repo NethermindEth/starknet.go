@@ -33,7 +33,7 @@ var (
 type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
 	Provider() rpc.RpcProvider
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -162,7 +162,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
-	casmClass contracts.CasmClass,
+	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	multiplier float64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
@@ -674,7 +674,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 			txn.Nonce,
 			new(felt.Felt).SetUint64(DAUint64),
 			crypto.PoseidonArray(txn.AccountDeploymentData...),
-			hash.ClassHash(*txn.ContractClass),
+			hash.ClassHash(txn.ContractClass),
 			txn.CompiledClassHash,
 		), nil
 	}
