@@ -184,7 +184,6 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
 	var raw StorageProofResult
 	if err := doAsObject(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
 	}
 	return &raw, nil

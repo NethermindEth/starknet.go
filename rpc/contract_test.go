@@ -728,37 +728,183 @@ func TestGetStorageProof(t *testing.T) {
 		"devnet": {},
 		"testnet": {
 			{
-				Description: "normal call, only required field block_id",
+				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
 					BlockID: BlockIDWithoutPending{Tag: "latest"},
 				},
 				ExpectedError: nil,
 			},
-			// TODO: add more test cases
+			{
+				Description: "block_id + class_hashes parameter",
+				StorageProofInput: StorageProofInput{
+					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					ClassHashes: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
+					},
+				},
+				ExpectedError: nil,
+			},
+			{
+				Description: "block_id + contract_addresses parameter",
+				StorageProofInput: StorageProofInput{
+					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					ContractAddresses: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					},
+				},
+				ExpectedError: nil,
+			},
+			{
+				Description: "block_id + contracts_storage_keys parameter",
+				StorageProofInput: StorageProofInput{
+					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					ContractsStorageKeys: []ContractStorageKeys{
+						{
+							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+							StorageKeys: []*felt.Felt{
+								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+							},
+						},
+					},
+				},
+				ExpectedError: nil,
+			},
+			{
+				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
+				StorageProofInput: StorageProofInput{
+					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					ClassHashes: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
+						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
+					},
+					ContractAddresses: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					},
+					ContractsStorageKeys: []ContractStorageKeys{
+						{
+							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+							StorageKeys: []*felt.Felt{
+								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							},
+						},
+						{
+							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+							StorageKeys: []*felt.Felt{
+								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							},
+						},
+					},
+				},
+				ExpectedError: nil,
+			},
+			{
+				Description: "error: using pending tag in block_id",
+				StorageProofInput: StorageProofInput{
+					BlockID: BlockIDWithoutPending{Tag: "pending"},
+				},
+				ExpectedError: ErrInvalidBlockID,
+			},
+			// TODO: uncomment this once Juno fix the GetStorageProof method, making it return an error for invalid block numbers
+			// {
+			// 	Description: "error: invalid block number",
+			// 	StorageProofInput: StorageProofInput{
+			// 		BlockID: func() BlockIDWithoutPending {
+			// 			num := uint64(999999999)
+			// 			return BlockIDWithoutPending{Number: &num}
+			// 		}(),
+			// 	},
+			// 	ExpectedError: ErrBlockNotFound,
+			// },
+			// TODO: uncomment this once Juno fix the ErrStorageProofNotSupported error, making it have a lowercase 't' instead of uppercase 'T' at the start
+			// {
+			// 	Description: "error: storage proof not supported",
+			// 	StorageProofInput: StorageProofInput{
+			// 		BlockID: func() BlockIDWithoutPending {
+			// 			num := uint64(123456)
+			// 			return BlockIDWithoutPending{Number: &num}
+			// 		}(),
+			// 	},
+			// 	ExpectedError: ErrStorageProofNotSupported,
+			// },
 		},
 		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
-		if test.ExpectedError != nil {
-			require.EqualError(t, test.ExpectedError, err.Error())
-			continue
-		}
-		require.NoError(t, err)
-		require.NotNil(t, result, "empty result from starknet_getStorageProof")
+		t.Run(test.Description, func(t *testing.T) {
+			result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.ExpectedError.Error())
+				return
+			}
 
-		// verify JSON equality
-		var rawResult any
-		// call the RPC method directly to get the raw result
-		err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
-		require.NoError(t, err)
-		//marshal the results to JSON
-		rawResultJSON, err := json.Marshal(rawResult)
-		require.NoError(t, err)
-		resultJSON, err := json.Marshal(result)
-		require.NoError(t, err)
+			require.NoError(t, err)
+			require.NotNil(t, result, "empty result from starknet_getStorageProof")
 
-		require.JSONEq(t, string(rawResultJSON), string(resultJSON))
+			// verify JSON equality
+			var rawResult any
+			// call the RPC method directly to get the raw result
+			err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
+			require.NoError(t, err)
+			//marshal the results to JSON
+			rawResultJSON, err := json.Marshal(rawResult)
+			require.NoError(t, err)
+			resultJSON, err := json.Marshal(result)
+			require.NoError(t, err)
+
+			assertStorageProofJSONEquality(t, rawResultJSON, resultJSON)
+		})
 	}
+}
+
+func assertStorageProofJSONEquality(t *testing.T, expectedResult, result []byte) {
+	// unmarshal to map[string]any
+	var expectedResultMap, resultMap map[string]any
+	require.NoError(t, json.Unmarshal(expectedResult, &expectedResultMap))
+	require.NoError(t, json.Unmarshal(result, &resultMap))
+
+	// compare 'classes_proof'
+	expectedClassesProof, ok := expectedResultMap["classes_proof"].([]any)
+	require.True(t, ok)
+	resultClassesProof, ok := resultMap["classes_proof"].([]any)
+	require.True(t, ok)
+	assert.ElementsMatch(t, expectedClassesProof, resultClassesProof)
+
+	// compare 'contracts_proof'
+	expectedContractsProof, ok := expectedResultMap["contracts_proof"].(map[string]any)
+	require.True(t, ok)
+	resultContractsProof, ok := resultMap["contracts_proof"].(map[string]any)
+	require.True(t, ok)
+	// compare 'contracts_proof.nodes'
+	expectedContractsProofNodes, ok := expectedContractsProof["nodes"].([]any)
+	require.True(t, ok)
+	resultContractsProofNodes, ok := resultContractsProof["nodes"].([]any)
+	require.True(t, ok)
+	assert.ElementsMatch(t, expectedContractsProofNodes, resultContractsProofNodes)
+	// compare 'contracts_proof.contract_leaves_data'
+	expectedContractsProofContractLeavesData, ok := expectedContractsProof["contract_leaves_data"].([]any)
+	require.True(t, ok)
+	resultContractsProofContractLeavesData, ok := resultContractsProof["contract_leaves_data"].([]any)
+	require.True(t, ok)
+	assert.ElementsMatch(t, expectedContractsProofContractLeavesData, resultContractsProofContractLeavesData)
+
+	// compare 'contracts_storage_proofs'
+	expectedContractsStorageProofs, ok := expectedResultMap["contracts_storage_proofs"].([]any)
+	require.True(t, ok)
+	resultContractsStorageProofs, ok := resultMap["contracts_storage_proofs"].([]any)
+	require.True(t, ok)
+	for i, expectedContractStorageProof := range expectedContractsStorageProofs {
+		expectedContractStorageProofArray, ok := expectedContractStorageProof.([]any)
+		require.True(t, ok)
+		resultContractStorageProofArray, ok := resultContractsStorageProofs[i].([]any)
+		require.True(t, ok)
+		assert.ElementsMatch(t, expectedContractStorageProofArray, resultContractStorageProofArray)
+	}
+
+	// compare 'global_roots'
+	assert.Equal(t, expectedResultMap["global_roots"], resultMap["global_roots"])
 }

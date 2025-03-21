@@ -220,6 +220,7 @@ func (hints *Hints) Tuple() [2]any {
 }
 
 // Can be one of the following hints
+// TODO: improve comments like this
 type Hint struct {
 	Type string
 	Data interface{}
