@@ -36,7 +36,7 @@ func main() {
 	// As the description says it's optional, we pass nil for the blockID value. That way, the latest block will be used by default.
 	sub, err := wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, nil)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 	fmt.Println()
 	fmt.Println("Successfully subscribed to the node. Subscription ID:", sub.ID())
@@ -55,7 +55,7 @@ loop1:
 			break loop1 // Let's exit the loop after receiving the first block header
 		case err := <-sub.Err():
 			// This case will be triggered when an error occurs.
-			setup.PanicRPC(err)
+			panic(err)
 		}
 	}
 
@@ -68,7 +68,7 @@ loop1:
 	// This way, the node will send us block headers from that block number onwards.
 	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, &rpc.SubscriptionBlockID{Number: latestBlockNumber - 10})
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 	fmt.Println()
 	fmt.Println("Successfully subscribed to the node. Subscription ID:", sub.ID())
@@ -89,7 +89,7 @@ loop2:
 				fmt.Printf("Unsubscribed from the subscription %s successfully\n", sub.ID())
 				break loop2
 			}
-			setup.PanicRPC(err)
+			panic(err)
 		}
 	}
 

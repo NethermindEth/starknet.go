@@ -8,8 +8,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // simpleInvoke is a function that shows how to easily send an invoke transaction.
@@ -27,14 +25,14 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
 	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
 
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// This returns us with the transaction hash and status

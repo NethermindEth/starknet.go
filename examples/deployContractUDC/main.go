@@ -82,14 +82,14 @@ func main() {
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
 	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
 
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// This returns us with the transaction hash and status

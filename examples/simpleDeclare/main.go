@@ -86,14 +86,14 @@ func main() {
 			fmt.Println("and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/")
 			return
 		}
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
 
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
