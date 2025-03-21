@@ -259,12 +259,12 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	invokeTxnV3example, err := internalUtils.UnmarshalJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	blockInvokeTxnV3example, err := internalUtils.UnmarshalJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 	if err != nil {
 		return err
 	}
 
-	txBytes, err := json.Marshal(invokeTxnV3example)
+	txBytes, err := json.Marshal(blockInvokeTxnV3example)
 	if err != nil {
 		return err
 	}
