@@ -621,10 +621,17 @@ func (r *unsubscribeRecorder) readBatch() ([]*jsonrpcMessage, bool, error) {
 	for _, msg := range msgs {
 		if msg.isUnsubscribe() {
 			var params []string
-			if err := json.Unmarshal(msg.Params, &params); err != nil {
-				panic("unsubscribe decode error: " + err.Error())
+			var err error
+			if err = json.Unmarshal(msg.Params, &params); err == nil {
+				r.unsubscribes[params[0]] = true
+			} else {
+				// Try to parse to single argument.
+				var param string
+				if err2 := json.Unmarshal(msg.Params, &param); err2 != nil {
+					panic("unsubscribe decode error: " + err.Error())
+				}
+				r.unsubscribes[param] = true
 			}
-			r.unsubscribes[params[0]] = true
 		}
 	}
 	return msgs, batch, err
