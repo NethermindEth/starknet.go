@@ -807,28 +807,26 @@ func TestGetStorageProof(t *testing.T) {
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
-			// TODO: uncomment this once Juno fix the GetStorageProof method, making it return an error for invalid block numbers
-			// {
-			// 	Description: "error: invalid block number",
-			// 	StorageProofInput: StorageProofInput{
-			// 		BlockID: func() BlockIDWithoutPending {
-			// 			num := uint64(999999999)
-			// 			return BlockIDWithoutPending{Number: &num}
-			// 		}(),
-			// 	},
-			// 	ExpectedError: ErrBlockNotFound,
-			// },
-			// TODO: uncomment this once Juno fix the ErrStorageProofNotSupported error, making it have a lowercase 't' instead of uppercase 'T' at the start
-			// {
-			// 	Description: "error: storage proof not supported",
-			// 	StorageProofInput: StorageProofInput{
-			// 		BlockID: func() BlockIDWithoutPending {
-			// 			num := uint64(123456)
-			// 			return BlockIDWithoutPending{Number: &num}
-			// 		}(),
-			// 	},
-			// 	ExpectedError: ErrStorageProofNotSupported,
-			// },
+			{
+				Description: "error: invalid block number",
+				StorageProofInput: StorageProofInput{
+					BlockID: func() BlockIDWithoutPending {
+						num := uint64(999999999)
+						return BlockIDWithoutPending{Number: &num}
+					}(),
+				},
+				ExpectedError: ErrBlockNotFound,
+			},
+			{
+				Description: "error: storage proof not supported",
+				StorageProofInput: StorageProofInput{
+					BlockID: func() BlockIDWithoutPending {
+						num := uint64(123456)
+						return BlockIDWithoutPending{Number: &num}
+					}(),
+				},
+				ExpectedError: ErrStorageProofNotSupported,
+			},
 		},
 		"mainnet": {},
 	}[testEnv]
