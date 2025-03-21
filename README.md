@@ -129,8 +129,7 @@ go run main.go
 
 ### RPC
 
-<!-- TODO: update spec link when v0.8.0 is released -->
-`starknet.go` RPC implements the Starknet [RPC v0.8.0 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.8.0-rc3)
+`starknet.go` RPC implements the Starknet [RPC v0.8.0 spec](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.8.0)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |

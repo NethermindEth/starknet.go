@@ -114,8 +114,6 @@ func methodsSwitchList(result interface{}, method string, args ...interface{}) e
 		return mock_starknet_getStateUpdate(result, args...)
 	case "starknet_getStorageAt":
 		return mock_starknet_getStorageAt(result, args...)
-	case "starknet_getStorageProof":
-		return mock_starknet_getStorageProof(result, args)
 	case "starknet_getTransactionByBlockIdAndIndex":
 		return mock_starknet_getTransactionByBlockIdAndIndex(result, args...)
 	case "starknet_getTransactionByHash":
@@ -1465,33 +1463,4 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	}
 
 	return json.Unmarshal(outputContent, r)
-}
-
-// mock_starknet_getStorageProof is a function that mocks the behavior of getting a storage proof for a given storage key and block ID.
-//
-// Parameters:
-// - result: The result of the operation
-// - args: The arguments to be passed to the method
-// Returns:
-// - error: an error if any
-// TODO: verify correctness
-func mock_starknet_getStorageProof(result interface{}, args ...interface{}) error {
-	r, ok := result.(*json.RawMessage)
-	if !ok || r == nil {
-		return errWrongType
-	}
-
-	if len(args) != 1 {
-		return errWrongArgs
-	}
-	storageProofInput, ok := args[0].(StorageProofInput)
-	if !ok {
-		return errWrongArgs
-	}
-
-	if storageProofInput.BlockID.Tag == "pending" {
-		return ErrHashNotFound
-	}
-
-	return nil
 }
