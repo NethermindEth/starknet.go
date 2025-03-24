@@ -1255,7 +1255,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5)
 	if err != nil {
-		require.EqualError(t, err, "Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
+		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
 		t.Log("declare txn not sent: class already declared")
 		return
 	}
