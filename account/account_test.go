@@ -117,6 +117,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 		FnCall         rpc.FunctionCall
 		TxDetails      rpc.TxDetails
 	}
+	// TODO: improve test cases to include invoke txns v0 and v3
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
@@ -194,19 +195,23 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
+			acc, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.BroadcastInvokev1Txn{
 				InvokeTxnV1: rpc.InvokeTxnV1{
 					Calldata:      test.FnCall.Calldata,
 					Nonce:         test.TxDetails.Nonce,
 					MaxFee:        test.TxDetails.MaxFee,
-					SenderAddress: account.AccountAddress,
+					SenderAddress: acc.AccountAddress,
 					Version:       test.TxDetails.Version,
 				}}
-			hash, err := account.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
+			hash, err := acc.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
+
+			hash2, err := account.TransactionHashInvokeV1(&invokeTxn.InvokeTxnV1, acc.ChainId)
+			require.NoError(t, err)
+			assert.Equal(t, hash, hash2)
 		})
 	}
 
@@ -846,7 +851,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	require.NoError(t, err)
 
 	type testSetType struct {
-		Txn          rpc.DeclareTxnType
+		Txn          rpc.InvokeTxnV3
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
@@ -935,9 +940,13 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashInvoke(test.Txn)
+		hash, err := acnt.TransactionHashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashInvoke not what expected")
+
+		hash2, err := account.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 

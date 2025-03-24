@@ -37,7 +37,7 @@ type AccountInterface interface {
 	Provider() rpc.RpcProvider
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx *rpc.InvokeTxnV3) error
+	SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx *rpc.DeployAccountTxnV3, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
@@ -282,23 +282,50 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 // SignInvokeTransaction signs and invokes a transaction.
 //
 // Parameters:
-// - ctx: the context.Context for the function execution.
-// - invokeTx: the InvokeTxnV3 struct representing the transaction to be invoked.
+//   - ctx: the context.Context for the function execution.
+//   - invokeTx: the InvokeTxnV3 pointer representing the transaction to be invoked.
+//
 // Returns:
-// - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx *rpc.InvokeTxnV3) error {
-	// TODO: make it available for all invoke versions
-
-	txHash, err := account.TransactionHashInvoke(*invokeTx)
+//   - error: an error if there was an error in the signing or invoking process
+func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnType) error {
+	switch invoke := invokeTx.(type) {
+	case *rpc.InvokeTxnV0:
+		signature, err := signInvokeTransaction(ctx, account, invoke)
 	if err != nil {
 		return err
+	}
+		invoke.Signature = signature
+	case *rpc.InvokeTxnV1:
+		signature, err := signInvokeTransaction(ctx, account, invoke)
+	if err != nil {
+		return err
+	}
+		invoke.Signature = signature
+	case *rpc.InvokeTxnV3:
+		signature, err := signInvokeTransaction(ctx, account, invoke)
+		if err != nil {
+			return err
+		}
+		invoke.Signature = signature
+	default:
+		return fmt.Errorf("invalid invoke tx of type %T, did you pass a valid invoke tx pointer?", invoke)
+	}
+
+	return nil
+}
+
+// TODO: make func description
+func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
+	txHash, err := account.TransactionHashInvoke(invokeTx)
+	if err != nil {
+		return nil, err
 	}
 	signature, err := account.Sign(ctx, txHash)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	invokeTx.Signature = signature
-	return nil
+
+	return signature, nil
 }
 
 // SignDeployAccountTransaction signs a deploy account transaction.
@@ -426,10 +453,30 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 
 // If the transaction type is unsupported, the function returns an error.
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
-
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 	switch txn := tx.(type) {
+	// invoke v0, pointer and struct
+	case *rpc.InvokeTxnV0:
+		return TransactionHashInvokeV0(txn, account.ChainId)
 	case rpc.InvokeTxnV0:
+		return TransactionHashInvokeV0(&txn, account.ChainId)
+	// invoke v1, pointer and struct
+	case *rpc.InvokeTxnV1:
+		return TransactionHashInvokeV1(txn, account.ChainId)
+	case rpc.InvokeTxnV1:
+		return TransactionHashInvokeV1(&txn, account.ChainId)
+	// invoke v3, pointer and struct
+	case *rpc.InvokeTxnV3:
+		return TransactionHashInvokeV3(txn, account.ChainId)
+	case rpc.InvokeTxnV3:
+		return TransactionHashInvokeV3(&txn, account.ChainId)
+	default:
+		return nil, fmt.Errorf("%w: got '%T' instead of a valid invoke txn type", ErrTxnTypeUnSupported, txn)
+	}
+}
+
+// TODO: descriptions for all these functions
+func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -446,11 +493,13 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			txn.EntryPointSelector,
 			calldataHash,
 			txn.MaxFee,
-			account.ChainId,
+		chainId,
 			[]*felt.Felt{},
 		), nil
+}
 
-	case rpc.InvokeTxnV1:
+func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
 		if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -467,11 +516,14 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			&felt.Zero,
 			calldataHash,
 			txn.MaxFee,
-			account.ChainId,
+		chainId,
 			[]*felt.Felt{txn.Nonce},
 		), nil
-	case rpc.InvokeTxnV3:
+}
+
+func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
 		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
 			return nil, ErrNotAllParametersSet
 		}
@@ -498,14 +550,12 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 			txn.SenderAddress,
 			tipAndResourceHash,
 			crypto.PoseidonArray(txn.PayMasterData...),
-			account.ChainId,
+		chainId,
 			txn.Nonce,
 			new(felt.Felt).SetUint64(DAUint64),
 			crypto.PoseidonArray(txn.AccountDeploymentData...),
 			crypto.PoseidonArray(txn.Calldata...),
 		), nil
-	}
-	return nil, ErrTxnTypeUnSupported
 }
 
 func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (*felt.Felt, error) {
