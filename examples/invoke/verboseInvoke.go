@@ -15,7 +15,7 @@ import (
 // a few helper functions.
 func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
 	// Getting the nonce from the account
-	nonce, err := accnt.Nonce(context.Background(), rpc.WithBlockTag("pending"), accnt.AccountAddress)
+	nonce, err := accnt.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), accnt.AccountAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +60,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// Estimate the transaction fee
-	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	feeRes, err := accnt.Provider.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		panic(err)
 	}
