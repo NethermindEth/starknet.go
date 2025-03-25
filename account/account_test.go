@@ -1031,7 +1031,17 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+
+		var hash2 *felt.Felt
+		switch txn := test.Txn.(type) {
+		case rpc.DeployAccountTxn:
+			hash2, err = account.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+		case rpc.DeployAccountTxnV3:
+			hash2, err = account.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+		}
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 
