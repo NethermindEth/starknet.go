@@ -106,7 +106,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
-	nonce, err := account.Provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
+	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *contracts.ContractClass,
 	multiplier float64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
-	nonce, err := account.Provider.Nonce(ctx, rpc.WithBlockTag("pending"), account.AccountAddress)
+	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
 	}
