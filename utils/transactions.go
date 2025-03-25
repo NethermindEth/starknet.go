@@ -37,8 +37,8 @@ func BuildInvokeTxn(
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-) rpc.BroadcastInvokev3Txn {
-	invokeTxn := rpc.BroadcastInvokev3Txn{
+) *rpc.BroadcastInvokeTxnV3 {
+	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		InvokeTxnV3: rpc.InvokeTxnV3{
 			Type:                  rpc.TransactionType_Invoke,
 			SenderAddress:         senderAddress,
@@ -55,7 +55,7 @@ func BuildInvokeTxn(
 		},
 	}
 
-	return invokeTxn
+	return &invokeTxn
 }
 
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
@@ -77,10 +77,10 @@ func BuildDeclareTxn(
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-) (rpc.BroadcastDeclareTxnV3, error) {
+) (*rpc.BroadcastDeclareTxnV3, error) {
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
-		return rpc.BroadcastDeclareTxnV3{}, err
+		return nil, err
 	}
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{
@@ -99,7 +99,7 @@ func BuildDeclareTxn(
 		FeeMode:               rpc.DAModeL1,
 	}
 
-	return declareTxn, nil
+	return &declareTxn, nil
 }
 
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
@@ -121,7 +121,7 @@ func BuildDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-) rpc.BroadcastDeployAccountTxnV3 {
+) *rpc.BroadcastDeployAccountTxnV3 {
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		DeployAccountTxnV3: rpc.DeployAccountTxnV3{
 			Type:                rpc.TransactionType_DeployAccount,
@@ -139,7 +139,7 @@ func BuildDeployAccountTxn(
 		},
 	}
 
-	return deployAccountTxn
+	return &deployAccountTxn
 }
 
 // InvokeFuncCallsToFunctionCalls converts a slice of InvokeFunctionCall to a slice of FunctionCall.

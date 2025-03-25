@@ -7,101 +7,17 @@ import (
 
 type BroadcastTxn interface{}
 
-// TODO: Remove the deprecated broadcast types, only keep the v3 types
+// Note: this allow all types to pass, but are to help users of starknet.go
+// understand which types are allowed where.
 var (
-	_ BroadcastTxn = BroadcastInvokev0Txn{}
-	_ BroadcastTxn = BroadcastInvokev1Txn{}
-	_ BroadcastTxn = BroadcastInvokev3Txn{}
-	_ BroadcastTxn = BroadcastDeclareTxnV1{}
-	_ BroadcastTxn = BroadcastDeclareTxnV2{}
+	_ BroadcastTxn = BroadcastInvokeTxnV3{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}
-	_ BroadcastTxn = BroadcastDeployAccountTxn{}
+	_ BroadcastTxn = BroadcastDeployAccountTxnV3{}
 )
 
-type BroadcastInvokeTxnType interface {
-	GetCalldata() []*felt.Felt
-}
-
-var (
-	_ BroadcastInvokeTxnType = BroadcastInvokev0Txn{}
-	_ BroadcastInvokeTxnType = BroadcastInvokev1Txn{}
-	_ BroadcastInvokeTxnType = BroadcastInvokev3Txn{}
-)
-
-type BroadcastDeclareTxnType interface {
-	GetContractClass() interface{}
-}
-
-var (
-	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV1{}
-	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV2{}
-	_ BroadcastDeclareTxnType = BroadcastDeclareTxnV3{}
-)
-
-type BroadcastAddDeployTxnType interface {
-	GetConstructorCalldata() []*felt.Felt
-}
-
-var (
-	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxn{}
-	_ BroadcastAddDeployTxnType = BroadcastDeployAccountTxnV3{}
-)
-
-type BroadcastInvokev0Txn struct {
-	InvokeTxnV0
-}
-
-func (tx BroadcastInvokev0Txn) GetCalldata() []*felt.Felt {
-	return tx.Calldata
-}
-
-type BroadcastInvokev1Txn struct {
-	InvokeTxnV1
-}
-
-func (tx BroadcastInvokev1Txn) GetCalldata() []*felt.Felt {
-	return tx.Calldata
-}
-
-type BroadcastInvokev3Txn struct {
+type BroadcastInvokeTxnV3 struct {
 	InvokeTxnV3
 }
-
-func (tx BroadcastInvokev3Txn) GetCalldata() []*felt.Felt {
-	return tx.Calldata
-}
-
-type BroadcastDeclareTxnV1 struct {
-	Type TransactionType `json:"type"`
-	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt                        `json:"sender_address"`
-	MaxFee        *felt.Felt                        `json:"max_fee"`
-	Version       TransactionVersion                `json:"version"`
-	Signature     []*felt.Felt                      `json:"signature"`
-	Nonce         *felt.Felt                        `json:"nonce"`
-	ContractClass contracts.DeprecatedContractClass `json:"contract_class"`
-}
-
-func (tx BroadcastDeclareTxnV1) GetContractClass() interface{} {
-	return tx.ContractClass
-}
-
-type BroadcastDeclareTxnV2 struct {
-	Type TransactionType `json:"type"`
-	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt              `json:"sender_address"`
-	CompiledClassHash *felt.Felt              `json:"compiled_class_hash"`
-	MaxFee            *felt.Felt              `json:"max_fee"`
-	Version           TransactionVersion      `json:"version"`
-	Signature         []*felt.Felt            `json:"signature"`
-	Nonce             *felt.Felt              `json:"nonce"`
-	ContractClass     contracts.ContractClass `json:"contract_class"`
-}
-
-func (tx BroadcastDeclareTxnV2) GetContractClass() interface{} {
-	return tx.ContractClass
-}
-
 type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType          `json:"type"`
 	SenderAddress     *felt.Felt               `json:"sender_address"`
@@ -122,22 +38,6 @@ type BroadcastDeclareTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-func (tx BroadcastDeclareTxnV3) GetContractClass() interface{} {
-	return *tx.ContractClass
-}
-
-type BroadcastDeployAccountTxn struct {
-	DeployAccountTxn
-}
-
-func (tx BroadcastDeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
-	return tx.ConstructorCalldata
-}
-
 type BroadcastDeployAccountTxnV3 struct {
 	DeployAccountTxnV3
-}
-
-func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
-	return tx.ConstructorCalldata
 }

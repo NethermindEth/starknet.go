@@ -255,7 +255,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 
-	return &broadcastDepAccTxnV3, precomputedAddress, nil
+	return broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
 // Sign signs the given felt message using the account's private key.
@@ -891,20 +891,41 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 //   - error: an error if any.
 func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
-	case rpc.BroadcastInvokeTxnType:
+	// broadcast invoke v3, pointer and struct
+	case *rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
 		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
-	case rpc.BroadcastDeclareTxnType:
+	case rpc.BroadcastInvokeTxnV3:
+		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+	// broadcast declare v3, pointer and struct
+	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
 		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
-	case rpc.BroadcastAddDeployTxnType:
+	case rpc.BroadcastDeclareTxnV3:
+		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+	// broadcast deploy account v3, pointer and struct
+	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
+		if err != nil {
+			return nil, err
+		}
+		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+	case rpc.BroadcastDeployAccountTxnV3:
+		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}

@@ -14,7 +14,7 @@ func TestDeclareTransaction(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
-		DeclareTx     BroadcastDeclareTxnType
+		DeclareTx     BroadcastDeclareTxnV3
 		ExpectedResp  AddDeclareTransactionResponse
 		ExpectedError *RPCError
 	}
@@ -23,29 +23,17 @@ func TestDeclareTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				DeclareTx: BroadcastDeclareTxnV2{},
-				ExpectedResp: AddDeclareTransactionResponse{
-					TransactionHash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
-				ExpectedError: nil,
-			},
-			{
 				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
 					TransactionHash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
 			},
 		},
-		"testnet": {{
-			DeclareTx: BroadcastDeclareTxnV1{},
-			ExpectedResp: AddDeclareTransactionResponse{
-				TransactionHash: internalUtils.TestHexToFelt(t, "0x55b094dc5c84c2042e067824f82da90988674314d37e45cb0032aca33d6e0b9")},
-			ExpectedError: &RPCError{Code: InvalidParams, Message: "Invalid Params"},
-		},
-		},
+		"testnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), test.DeclareTx)
+		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
 		if err != nil {
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)
@@ -63,7 +51,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
-		InvokeTx      BroadcastInvokeTxnType
+		InvokeTx      BroadcastInvokeTxnV3
 		ExpectedResp  AddInvokeTransactionResponse
 		ExpectedError *RPCError
 	}
@@ -72,21 +60,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		"mainnet": {},
 		"mock": {
 			{
-				InvokeTx:     BroadcastInvokev1Txn{InvokeTxnV1{SenderAddress: new(felt.Felt).SetUint64(123)}},
-				ExpectedResp: AddInvokeTransactionResponse{&felt.Zero},
-				ExpectedError: &RPCError{
-					Code:    ErrUnexpectedError.Code,
-					Message: ErrUnexpectedError.Message,
-					Data:    StringErrData("Something crazy happened"),
-				},
-			},
-			{
-				InvokeTx:      BroadcastInvokev1Txn{InvokeTxnV1{}},
-				ExpectedResp:  AddInvokeTransactionResponse{internalUtils.TestHexToFelt(t, "0xdeadbeef")},
-				ExpectedError: nil,
-			},
-			{
-				InvokeTx: BroadcastInvokev3Txn{
+				InvokeTx: BroadcastInvokeTxnV3{
 					InvokeTxnV3{
 						Type:    TransactionType_Invoke,
 						Version: TransactionV3,
@@ -137,7 +111,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), test.InvokeTx)
+		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
 		if test.ExpectedError != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
@@ -152,7 +126,7 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
-		DeployTx      BroadcastAddDeployTxnType
+		DeployTx      BroadcastDeployAccountTxnV3
 		ExpectedResp  AddDeployAccountTransactionResponse
 		ExpectedError error
 	}
@@ -160,14 +134,6 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 		"devnet":  {},
 		"mainnet": {},
 		"mock": {
-			{
-				DeployTx: BroadcastDeployAccountTxn{DeployAccountTxn{}},
-				ExpectedResp: AddDeployAccountTransactionResponse{
-					TransactionHash: internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x0"),
-				},
-				ExpectedError: nil,
-			},
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
 					DeployAccountTxnV3{
@@ -208,7 +174,7 @@ func TestAddDeployAccountTansaction(t *testing.T) {
 
 	for _, test := range testSet {
 
-		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), test.DeployTx)
+		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {

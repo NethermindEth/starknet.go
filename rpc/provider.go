@@ -73,9 +73,9 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
 type RpcProvider interface {
-	AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxnType) (*AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxnType) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastAddDeployTxnType) (*AddDeployAccountTransactionResponse, error)
+	AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (*AddDeclareTransactionResponse, error)
+	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *BroadcastDeployAccountTxnV3) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)

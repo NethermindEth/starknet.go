@@ -494,7 +494,7 @@ func TestEstimateFee(t *testing.T) {
 		expectedError *RPCError
 	}
 
-	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokev3Txn](t, "./tests/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
+	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./tests/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 
 	testSet, ok := map[string][]testSetType{
 		"mock": {

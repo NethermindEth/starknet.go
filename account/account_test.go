@@ -197,19 +197,18 @@ func TestTransactionHashInvoke(t *testing.T) {
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 			acc, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
-			invokeTxn := rpc.BroadcastInvokev1Txn{
-				InvokeTxnV1: rpc.InvokeTxnV1{
-					Calldata:      test.FnCall.Calldata,
-					Nonce:         test.TxDetails.Nonce,
-					MaxFee:        test.TxDetails.MaxFee,
-					SenderAddress: acc.AccountAddress,
-					Version:       test.TxDetails.Version,
-				}}
-			hash, err := acc.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
+			invokeTxn := rpc.InvokeTxnV1{
+				Calldata:      test.FnCall.Calldata,
+				Nonce:         test.TxDetails.Nonce,
+				MaxFee:        test.TxDetails.MaxFee,
+				SenderAddress: acc.AccountAddress,
+				Version:       test.TxDetails.Version,
+			}
+			hash, err := acc.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
 
-			hash2, err := account.TransactionHashInvokeV1(&invokeTxn.InvokeTxnV1, acc.ChainId)
+			hash2, err := account.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
 			require.NoError(t, err)
 			assert.Equal(t, hash, hash2)
 		})
@@ -467,7 +466,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
 		PrivKey              *felt.Felt
-		InvokeTx             rpc.BroadcastInvokev3Txn
+		InvokeTx             rpc.BroadcastInvokeTxnV3
 	}
 	testSet := map[string][]testSetType{
 		"mock":   {},
@@ -481,7 +480,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
-				InvokeTx: rpc.BroadcastInvokev3Txn{
+				InvokeTx: rpc.BroadcastInvokeTxnV3{
 					InvokeTxnV3: rpc.InvokeTxnV3{
 						Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
 						Type:    rpc.TransactionType_Invoke,
