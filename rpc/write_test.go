@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,14 +35,16 @@ func TestDeclareTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
-		if err != nil {
+		if test.ExpectedError != nil {
+			require.Error(t, err)
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)
-			require.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedError.Message, rpcErr.Message)
-		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+			continue
 		}
+		require.NoError(t, err)
+		assert.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
 
 	}
 }

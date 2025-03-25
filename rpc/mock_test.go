@@ -641,7 +641,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 	}
 
 	switch args[0].(type) {
-	case BroadcastDeclareTxnV3:
+	case *BroadcastDeclareTxnV3, BroadcastDeclareTxnV3:
 		deadbeefFelt, err := internalUtils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
 		if err != nil {
 			return err
@@ -659,7 +659,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 		}
 		return nil
 	}
-	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeclareTxnV3, got %T\n", args[0]))
+	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastDeclareTxnV3, got %T\n", args[0]))
 }
 
 // mock_starknet_estimateFee simulates the estimation of a fee in the StarkNet network.
