@@ -837,6 +837,16 @@ func TestTransactionHashDeclare(t *testing.T) {
 		hash, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+
+		var hash2 *felt.Felt
+		switch txn := test.Txn.(type) {
+		case rpc.DeclareTxnV2:
+			hash2, err = account.TransactionHashDeclareV2(&txn, acnt.ChainId)
+		case rpc.DeclareTxnV3:
+			hash2, err = account.TransactionHashDeclareV3(&txn, acnt.ChainId)
+		}
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 

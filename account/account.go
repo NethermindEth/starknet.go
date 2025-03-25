@@ -39,7 +39,7 @@ type AccountInterface interface {
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error
-	SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error
+	SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
@@ -357,6 +357,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 	return nil
 }
 
+// TODO: make func description
 func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
@@ -374,21 +375,54 @@ func signDeployAccountTransaction[T any](ctx context.Context, account *Account, 
 //
 // Parameters:
 // - ctx: the context.Context
-// - tx: the *rpc.DeclareTxnV3
+// - tx: the pointer to a Declare or BroadcastDeclare txn
 // Returns:
 // - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx *rpc.BroadcastDeclareTxnV3) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error {
+	switch declare := tx.(type) {
+	case *rpc.DeclareTxnV1:
+		signature, err := signDeclareTransaction(ctx, account, declare)
+		if err != nil {
+			return err
+		}
+		declare.Signature = signature
+	case *rpc.DeclareTxnV2:
+		signature, err := signDeclareTransaction(ctx, account, declare)
+		if err != nil {
+			return err
+		}
+		declare.Signature = signature
+	case *rpc.DeclareTxnV3:
+		signature, err := signDeclareTransaction(ctx, account, declare)
+		if err != nil {
+			return err
+		}
+		declare.Signature = signature
+	case *rpc.BroadcastDeclareTxnV3:
+		signature, err := signDeclareTransaction(ctx, account, declare)
+		if err != nil {
+			return err
+		}
+		declare.Signature = signature
+	default:
+		return fmt.Errorf("invalid declare txn of type %T, did you pass a valid declare txn pointer?", declare)
+	}
 
-	hash, err := account.TransactionHashDeclare(*tx)
-	if err != nil {
-		return err
-	}
-	signature, err := account.Sign(ctx, hash)
-	if err != nil {
-		return err
-	}
-	tx.Signature = signature
 	return nil
+}
+
+// TODO: make func description
+func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
+	txHash, err := account.TransactionHashDeclare(*tx)
+	if err != nil {
+		return nil, err
+	}
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	return signature, nil
 }
 
 // TransactionHashDeployAccount calculates the transaction hash for a deploy account transaction.
@@ -631,9 +665,10 @@ func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint
 // Parameters:
 // - tx: The `tx` parameter of type `rpc.DeclareTxnType`
 // Can be one of the following types:
-//   - `rpc.DeclareTxnV0`
 //   - `rpc.DeclareTxnV1`
 //   - `rpc.DeclareTxnV2`
+//   - `rpc.DeclareTxnV3`
+//   - `rpc.BroadcastDeclareTxnV3`
 //
 // Returns:
 // - *felt.Felt: the calculated transaction hash as `*felt.Felt` value
@@ -641,131 +676,163 @@ func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint
 //
 // If the `tx` parameter is not one of the supported types, the function returns an error `ErrTxnTypeUnSupported`.
 func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
-
 	switch txn := tx.(type) {
-	case rpc.DeclareTxnV0:
-		// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
+	// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
+	case *rpc.DeclareTxnV0, rpc.DeclareTxnV0:
 		return nil, ErrTxnVersionUnSupported
+	// declare v1, pointer and struct
+	case *rpc.DeclareTxnV1:
+		return TransactionHashDeclareV1(txn, account.ChainId)
 	case rpc.DeclareTxnV1:
-		if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		calldataHash := curve.PedersenArray(txn.ClassHash)
-
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		return hash.CalculateDeprecatedTransactionHashCommon(
-			PREFIX_DECLARE,
-			txnVersionFelt,
-			txn.SenderAddress,
-			&felt.Zero,
-			calldataHash,
-			txn.MaxFee,
-			account.ChainId,
-			[]*felt.Felt{txn.Nonce},
-		), nil
+		return TransactionHashDeclareV1(&txn, account.ChainId)
+	// declare v2, pointer and struct
+	case *rpc.DeclareTxnV2:
+		return TransactionHashDeclareV2(txn, account.ChainId)
 	case rpc.DeclareTxnV2:
-		if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		calldataHash := curve.PedersenArray(txn.ClassHash)
-
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-
-		return hash.CalculateDeprecatedTransactionHashCommon(
-			PREFIX_DECLARE,
-			txnVersionFelt,
-			txn.SenderAddress,
-			&felt.Zero,
-			calldataHash,
-			txn.MaxFee,
-			account.ChainId,
-			[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
-		), nil
+		return TransactionHashDeclareV2(&txn, account.ChainId)
+	// declare v3, pointer and struct
+	case *rpc.DeclareTxnV3:
+		return TransactionHashDeclareV3(txn, account.ChainId)
 	case rpc.DeclareTxnV3:
-		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
-			txn.ClassHash == nil || txn.CompiledClassHash == nil {
-			return nil, ErrNotAllParametersSet
-		}
-
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
-		if err != nil {
-			return nil, err
-		}
-		tipUint64, err := txn.Tip.ToUint64()
-		if err != nil {
-			return nil, err
-		}
-
-		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
-		if err != nil {
-			return nil, err
-		}
-		return crypto.PoseidonArray(
-			PREFIX_DECLARE,
-			txnVersionFelt,
-			txn.SenderAddress,
-			tipAndResourceHash,
-			crypto.PoseidonArray(txn.PayMasterData...),
-			account.ChainId,
-			txn.Nonce,
-			new(felt.Felt).SetUint64(DAUint64),
-			crypto.PoseidonArray(txn.AccountDeploymentData...),
-			txn.ClassHash,
-			txn.CompiledClassHash,
-		), nil
+		return TransactionHashDeclareV3(&txn, account.ChainId)
+	// broadcast declare v3, pointer and struct
+	case *rpc.BroadcastDeclareTxnV3:
+		return TransactionHashBroadcastDeclareV3(txn, account.ChainId)
 	case rpc.BroadcastDeclareTxnV3:
-		// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-		if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
-			txn.ContractClass == nil || txn.CompiledClassHash == nil {
-			return nil, ErrNotAllParametersSet
-		}
+		return TransactionHashBroadcastDeclareV3(&txn, account.ChainId)
+	default:
+		return nil, fmt.Errorf("%w: got '%T' instead of a valid declare txn type", ErrTxnTypeUnSupported, txn)
+	}
+}
 
-		txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-		if err != nil {
-			return nil, err
-		}
-		DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
-		if err != nil {
-			return nil, err
-		}
-		tipUint64, err := txn.Tip.ToUint64()
-		if err != nil {
-			return nil, err
-		}
-
-		tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
-		if err != nil {
-			return nil, err
-		}
-		return crypto.PoseidonArray(
-			PREFIX_DECLARE,
-			txnVersionFelt,
-			txn.SenderAddress,
-			tipAndResourceHash,
-			crypto.PoseidonArray(txn.PayMasterData...),
-			account.ChainId,
-			txn.Nonce,
-			new(felt.Felt).SetUint64(DAUint64),
-			crypto.PoseidonArray(txn.AccountDeploymentData...),
-			hash.ClassHash(txn.ContractClass),
-			txn.CompiledClassHash,
-		), nil
+// TODO: descriptions for all these functions
+func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
+	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+		return nil, ErrNotAllParametersSet
 	}
 
-	return nil, ErrTxnTypeUnSupported
+	calldataHash := curve.PedersenArray(txn.ClassHash)
+
+	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+	if err != nil {
+		return nil, err
+	}
+	return hash.CalculateDeprecatedTransactionHashCommon(
+		PREFIX_DECLARE,
+		txnVersionFelt,
+		txn.SenderAddress,
+		&felt.Zero,
+		calldataHash,
+		txn.MaxFee,
+		chainId,
+		[]*felt.Felt{txn.Nonce},
+	), nil
+}
+
+func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
+	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	calldataHash := curve.PedersenArray(txn.ClassHash)
+
+	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+	if err != nil {
+		return nil, err
+	}
+
+	return hash.CalculateDeprecatedTransactionHashCommon(
+		PREFIX_DECLARE,
+		txnVersionFelt,
+		txn.SenderAddress,
+		&felt.Zero,
+		calldataHash,
+		txn.MaxFee,
+		chainId,
+		[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
+	), nil
+}
+
+func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
+	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
+	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+		txn.ClassHash == nil || txn.CompiledClassHash == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+	if err != nil {
+		return nil, err
+	}
+	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	if err != nil {
+		return nil, err
+	}
+	tipUint64, err := txn.Tip.ToUint64()
+	if err != nil {
+		return nil, err
+	}
+
+	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	if err != nil {
+		return nil, err
+	}
+	return crypto.PoseidonArray(
+		PREFIX_DECLARE,
+		txnVersionFelt,
+		txn.SenderAddress,
+		tipAndResourceHash,
+		crypto.PoseidonArray(txn.PayMasterData...),
+		chainId,
+		txn.Nonce,
+		new(felt.Felt).SetUint64(DAUint64),
+		crypto.PoseidonArray(txn.AccountDeploymentData...),
+		txn.ClassHash,
+		txn.CompiledClassHash,
+	), nil
+}
+
+func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
+	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
+	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+		txn.ContractClass == nil || txn.CompiledClassHash == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+	if err != nil {
+		return nil, err
+	}
+	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	if err != nil {
+		return nil, err
+	}
+	tipUint64, err := txn.Tip.ToUint64()
+	if err != nil {
+		return nil, err
+	}
+
+	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	if err != nil {
+		return nil, err
+	}
+	return crypto.PoseidonArray(
+		PREFIX_DECLARE,
+		txnVersionFelt,
+		txn.SenderAddress,
+		tipAndResourceHash,
+		crypto.PoseidonArray(txn.PayMasterData...),
+		chainId,
+		txn.Nonce,
+		new(felt.Felt).SetUint64(DAUint64),
+		crypto.PoseidonArray(txn.AccountDeploymentData...),
+		hash.ClassHash(txn.ContractClass),
+		txn.CompiledClassHash,
+	), nil
 }
 
 // PrecomputeAccountAddress calculates the precomputed address for an account.
