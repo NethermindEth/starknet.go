@@ -60,13 +60,14 @@ type Account struct {
 // NewAccount creates a new Account instance.
 //
 // Parameters:
-// - provider: is the provider of type rpc.RpcProvider
-// - accountAddress: is the account address of type *felt.Felt
-// - publicKey: is the public key of type string
-// - keystore: is the keystore of type Keystore
+//   - provider: is the provider of type rpc.RpcProvider
+//   - accountAddress: is the account address of type *felt.Felt
+//   - publicKey: is the public key of type string
+//   - keystore: is the keystore of type Keystore
+//
 // It returns:
-// - *Account: a pointer to newly created Account
-// - error: an error if any
+//   - *Account: a pointer to newly created Account
+//   - error: an error if any
 func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
 	account := &Account{
 		Provider:       provider,
@@ -261,11 +262,12 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // Sign signs the given felt message using the account's private key.
 //
 // Parameters:
-// - ctx: is the context used for the signing operation
-// - msg: is the felt message to be signed
+//   - ctx: is the context used for the signing operation
+//   - msg: is the felt message to be signed
+//
 // Returns:
-// - []*felt.Felt: an array of signed felt messages
-// - error: an error, if any
+//   - []*felt.Felt: an array of signed felt messages
+//   - error: an error, if any
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error) {
 	msgBig := internalUtils.FeltToBigInt(msg)
 
@@ -314,7 +316,7 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 	return nil
 }
 
-// TODO: make func description
+// signInvokeTransaction is a generic helper function that signs an invoke transaction.
 func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashInvoke(invokeTx)
 	if err != nil {
@@ -358,7 +360,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 	return nil
 }
 
-// TODO: make func description
+// signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
 func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
@@ -375,10 +377,11 @@ func signDeployAccountTransaction[T any](ctx context.Context, account *Account, 
 // SignDeclareTransaction signs a declare transaction using the provided Account.
 //
 // Parameters:
-// - ctx: the context.Context
-// - tx: the pointer to a Declare or BroadcastDeclare txn
+//   - ctx: the context.Context
+//   - tx: the pointer to a Declare or BroadcastDeclare txn
+//
 // Returns:
-// - error: an error if any
+//   - error: an error if any
 func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error {
 	switch declare := tx.(type) {
 	case *rpc.DeclareTxnV1:
@@ -412,7 +415,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 	return nil
 }
 
-// TODO: make func description
+// signDeclareTransaction is a generic helper function that signs a declare transaction.
 func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
@@ -429,11 +432,12 @@ func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T)
 // TransactionHashDeployAccount calculates the transaction hash for a deploy account transaction.
 //
 // Parameters:
-// - tx: The deploy account transaction to calculate the hash for
-// - contractAddress: The contract address as parameters as a *felt.Felt
+//   - tx: The deploy account transaction to calculate the hash for. Can be of type DeployAccountTxn or DeployAccountTxnV3.
+//   - contractAddress: The contract address as parameters as a *felt.Felt
+//
 // Returns:
-// - *felt.Felt: the calculated transaction hash
-// - error: an error if any
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
@@ -453,7 +457,16 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 	}
 }
 
-// TODO: descriptions for all these functions
+// TransactionHashDeployAccountV1 calculates the transaction hash for a deploy account V1 transaction.
+//
+// Parameters:
+//   - txn: The deploy account V1 transaction to calculate the hash for
+//   - contractAddress: The contract address as parameters as a *felt.Felt
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxn, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
 	calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
@@ -477,6 +490,16 @@ func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxn, contractAddress, 
 	), nil
 }
 
+// TransactionHashDeployAccountV3 calculates the transaction hash for a deploy account V3 transaction.
+//
+// Parameters:
+//   - txn: The deploy account V3 transaction to calculate the hash for
+//   - contractAddress: The contract address as parameters as a *felt.Felt
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
 	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
@@ -517,11 +540,12 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 // TransactionHashInvoke calculates the transaction hash for the given invoke transaction.
 //
 // Parameters:
-// - tx: The invoke transaction to calculate the hash for. Can be of type InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
+//   - tx: The invoke transaction to calculate the hash for. Can be of type InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
+//
 // Returns:
-// - *felt.Felt: The calculated transaction hash as a *felt.Felt
-// - error: an error, if any
-
+//   - *felt.Felt: The calculated transaction hash as a *felt.Felt
+//   - error: an error, if any
+//
 // If the transaction type is unsupported, the function returns an error.
 func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 	switch txn := tx.(type) {
@@ -545,7 +569,15 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	}
 }
 
-// TODO: descriptions for all these functions
+// TransactionHashInvokeV0 calculates the transaction hash for a invoke V0 transaction.
+//
+// Parameters:
+//   - txn: The invoke V0 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 	if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
@@ -569,6 +601,15 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 	), nil
 }
 
+// TransactionHashInvokeV1 calculates the transaction hash for a invoke V1 transaction.
+//
+// Parameters:
+//   - txn: The invoke V1 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
 	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
@@ -592,6 +633,15 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 	), nil
 }
 
+// TransactionHashInvokeV3 calculates the transaction hash for a invoke V3 transaction.
+//
+// Parameters:
+//   - txn: The invoke V3 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
@@ -664,16 +714,11 @@ func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint
 // TransactionHashDeclare calculates the transaction hash for declaring a transaction type.
 //
 // Parameters:
-// - tx: The `tx` parameter of type `rpc.DeclareTxnType`
-// Can be one of the following types:
-//   - `rpc.DeclareTxnV1`
-//   - `rpc.DeclareTxnV2`
-//   - `rpc.DeclareTxnV3`
-//   - `rpc.BroadcastDeclareTxnV3`
+//   - tx: The `tx` parameter of type `rpc.DeclareTxnType`. Can be one of the types DeclareTxnV1/V2/V3, and BroadcastDeclareTxnV3
 //
 // Returns:
-// - *felt.Felt: the calculated transaction hash as `*felt.Felt` value
-// - error: an error, if any
+//   - *felt.Felt: the calculated transaction hash as `*felt.Felt` value
+//   - error: an error, if any
 //
 // If the `tx` parameter is not one of the supported types, the function returns an error `ErrTxnTypeUnSupported`.
 func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
@@ -706,7 +751,15 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 	}
 }
 
-// TODO: descriptions for all these functions
+// TransactionHashDeclareV1 calculates the transaction hash for a declare V1 transaction.
+//
+// Parameters:
+//   - txn: The declare V1 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
 	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
@@ -731,6 +784,15 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 	), nil
 }
 
+// TransactionHashDeclareV2 calculates the transaction hash for a declare V2 transaction.
+//
+// Parameters:
+//   - txn: The declare V2 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
 	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
@@ -756,6 +818,15 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 	), nil
 }
 
+// TransactionHashDeclareV3 calculates the transaction hash for a declare V3 transaction.
+//
+// Parameters:
+//   - txn: The declare V3 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
@@ -796,6 +867,15 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	), nil
 }
 
+// TransactionHashBroadcastDeclareV3 calculates the transaction hash for a broadcast declare V3 transaction.
+//
+// Parameters:
+//   - txn: The broadcast declare V3 transaction to calculate the hash for
+//   - chainId: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
 func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
@@ -840,12 +920,13 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 // ref: https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-address/
 //
 // Parameters:
-// - salt: the salt for the address of the deployed contract
-// - classHash: the class hash of the contract to be deployed
-// - constructorCalldata: the parameters passed to the constructor
+//   - salt: the salt for the address of the deployed contract
+//   - classHash: the class hash of the contract to be deployed
+//   - constructorCalldata: the parameters passed to the constructor
+//
 // Returns:
-// - *felt.Felt: the precomputed address as a *felt.Felt
-// - error: an error if any
+//   - *felt.Felt: the precomputed address as a *felt.Felt
+//   - error: an error if any
 func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
 	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
@@ -939,10 +1020,11 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 // FmtCalldata generates the formatted calldata for the given function calls and Cairo version.
 //
 // Parameters:
-// - fnCalls: a slice of rpc.FunctionCall representing the function calls.
+//   - fnCalls: a slice of rpc.FunctionCall representing the function calls.
+//
 // Returns:
-// - a slice of *felt.Felt representing the formatted calldata.
-// - an error if Cairo version is not supported.
+//   - a slice of *felt.Felt representing the formatted calldata.
+//   - an error if Cairo version is not supported.
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error) {
 	switch account.CairoVersion {
 	case 0:
@@ -957,10 +1039,11 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 // FmtCallDataCairo0 generates a slice of *felt.Felt that represents the calldata for the given function calls in Cairo 0 format.
 //
 // Parameters:
-// - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//   - fnCalls: a slice of rpc.FunctionCall containing the function calls.
 //
 // Returns:
-// - a slice of *felt.Felt representing the generated calldata.
+//   - a slice of *felt.Felt representing the generated calldata.
+//
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L27
 func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 	var calldata []*felt.Felt
@@ -989,9 +1072,11 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 // FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
 //
 // Parameters:
-// - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//   - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//
 // Returns:
-// - a slice of *felt.Felt representing the generated calldata.
+//   - a slice of *felt.Felt representing the generated calldata.
+//
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L22
 func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	var result []*felt.Felt
