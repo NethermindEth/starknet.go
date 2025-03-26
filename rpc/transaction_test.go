@@ -91,20 +91,20 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaTx_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
+				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:       0,
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
 		"testnet": {
 			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x4ae5d52c75e4dea5694f456069f830cfbc7bec70427eee170c3385f751b8564")),
-				Index:       15,
+				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				Index:       3,
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},

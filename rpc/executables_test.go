@@ -52,7 +52,7 @@ func TestCompiledCasm(t *testing.T) {
 				ClassHash:     internalUtils.TestHexToFelt(t, "0xdedededededede"),
 				ExpectedError: ErrClassHashNotFound,
 			},
-			// TODO: add test for compilation error. Need to find the invalid class hash.
+			// TODO: add test for compilation error when Juno implements it (maybe the class hash from block 1 could be a valid input)
 		},
 		"mainnet": {},
 	}[testEnv]

@@ -133,7 +133,7 @@ func TestCall(t *testing.T) {
 			if err != nil {
 				rpcErr, ok := err.(*RPCError)
 				require.True(ok)
-				require.EqualError(test.ExpectedError, rpcErr.Message)
+				require.ErrorContains(test.ExpectedError, rpcErr.Message)
 			} else {
 				require.NoError(err)
 				require.NotEmpty(output, "should return an output")

@@ -387,7 +387,7 @@ func testClientCancel(transport string, t *testing.T) {
 
 			// Now perform a call with the context.
 			// The key thing here is that no call will ever complete successfully.
-			err := client.CallContext(ctx, nil, "test_block")
+			err := client.CallContextWithSliceArgs(ctx, nil, "test_block")
 			switch {
 			case err == nil:
 				_, hasDeadline := ctx.Deadline()
@@ -621,10 +621,17 @@ func (r *unsubscribeRecorder) readBatch() ([]*jsonrpcMessage, bool, error) {
 	for _, msg := range msgs {
 		if msg.isUnsubscribe() {
 			var params []string
-			if err := json.Unmarshal(msg.Params, &params); err != nil {
-				panic("unsubscribe decode error: " + err.Error())
+			var err error
+			if err = json.Unmarshal(msg.Params, &params); err == nil {
+				r.unsubscribes[params[0]] = true
+			} else {
+				// Try to parse to single argument.
+				var param string
+				if err2 := json.Unmarshal(msg.Params, &param); err2 != nil {
+					panic("unsubscribe decode error: " + err.Error())
+				}
+				r.unsubscribes[param] = true
 			}
-			r.unsubscribes[params[0]] = true
 		}
 	}
 	return msgs, batch, err
@@ -861,7 +868,7 @@ func TestClientReconnect(t *testing.T) {
 
 	// Perform a call. This should work because the server is up.
 	var resp echoResult
-	if err := client.CallContext(ctx, &resp, "test_echo", "", 1, nil); err != nil {
+	if err := client.CallContextWithSliceArgs(ctx, &resp, "test_echo", "", 1, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -872,7 +879,7 @@ func TestClientReconnect(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Try calling again. It shouldn't work.
-	if err := client.CallContext(ctx, &resp, "test_echo", "", 2, nil); err == nil {
+	if err := client.CallContextWithSliceArgs(ctx, &resp, "test_echo", "", 2, nil); err == nil {
 		t.Error("successful call while the server is down")
 		t.Logf("resp: %#v", resp)
 	}
@@ -889,7 +896,7 @@ func TestClientReconnect(t *testing.T) {
 		go func() {
 			<-start
 			var resp echoResult
-			errors <- client.CallContext(ctx, &resp, "test_echo", "", 3, nil)
+			errors <- client.CallContextWithSliceArgs(ctx, &resp, "test_echo", "", 3, nil)
 		}()
 	}
 	close(start)

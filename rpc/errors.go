@@ -79,9 +79,9 @@ type RPCError struct {
 
 func (e RPCError) Error() string {
 	if e.Data == nil || e.Data.ErrorMessage() == "" {
-		return e.Message
+		return fmt.Sprintf("%d %s", e.Code, e.Message)
 	}
-	return e.Message + ": " + e.Data.ErrorMessage()
+	return fmt.Sprintf("%d %s: %s", e.Code, e.Message, e.Data.ErrorMessage())
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for RPCError.

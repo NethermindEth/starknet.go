@@ -117,6 +117,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 		FnCall         rpc.FunctionCall
 		TxDetails      rpc.TxDetails
 	}
+	// TODO: improve test cases to include invoke txns v0 and v3
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
@@ -194,19 +195,23 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			account, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
+			acc, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
 			invokeTxn := rpc.BroadcastInvokev1Txn{
 				InvokeTxnV1: rpc.InvokeTxnV1{
 					Calldata:      test.FnCall.Calldata,
 					Nonce:         test.TxDetails.Nonce,
 					MaxFee:        test.TxDetails.MaxFee,
-					SenderAddress: account.AccountAddress,
+					SenderAddress: acc.AccountAddress,
 					Version:       test.TxDetails.Version,
 				}}
-			hash, err := account.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
+			hash, err := acc.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
+
+			hash2, err := account.TransactionHashInvokeV1(&invokeTxn.InvokeTxnV1, acc.ChainId)
+			require.NoError(t, err)
+			assert.Equal(t, hash, hash2)
 		})
 	}
 
@@ -585,7 +590,7 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	// Compiled Class Hash
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
-	compClassHash, err := hash.CompiledClassHash(casmClass)
+	compClassHash, err := hash.CompiledClassHash(&casmClass)
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV3{
@@ -832,6 +837,16 @@ func TestTransactionHashDeclare(t *testing.T) {
 		hash, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+
+		var hash2 *felt.Felt
+		switch txn := test.Txn.(type) {
+		case rpc.DeclareTxnV2:
+			hash2, err = account.TransactionHashDeclareV2(&txn, acnt.ChainId)
+		case rpc.DeclareTxnV3:
+			hash2, err = account.TransactionHashDeclareV3(&txn, acnt.ChainId)
+		}
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 
@@ -846,7 +861,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	require.NoError(t, err)
 
 	type testSetType struct {
-		Txn          rpc.DeclareTxnType
+		Txn          rpc.InvokeTxnV3
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
@@ -935,9 +950,13 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashInvoke(test.Txn)
+		hash, err := acnt.TransactionHashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashInvoke not what expected")
+
+		hash2, err := account.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 
@@ -1022,7 +1041,17 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	for _, test := range testSet {
 		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+
+		var hash2 *felt.Felt
+		switch txn := test.Txn.(type) {
+		case rpc.DeployAccountTxn:
+			hash2, err = account.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+		case rpc.DeployAccountTxnV3:
+			hash2, err = account.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+		}
+		require.NoError(t, err)
+		assert.Equal(t, hash, hash2)
 	}
 }
 
@@ -1253,9 +1282,9 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), casmClass, &class, 1.5)
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5)
 	if err != nil {
-		require.EqualError(t, err, "Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
+		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
 		t.Log("declare txn not sent: class already declared")
 		return
 	}

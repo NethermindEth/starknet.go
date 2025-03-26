@@ -73,7 +73,7 @@ func main() {
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	resp, err := accnt.BuildAndSendDeclareTxn(context.Background(), *casmClass, contractClass, 1.5)
+	resp, err := accnt.BuildAndSendDeclareTxn(context.Background(), casmClass, contractClass, 1.5)
 	if err != nil {
 		if strings.Contains(err.Error(), "is already declared") {
 			fmt.Println("")
@@ -86,14 +86,14 @@ func main() {
 			fmt.Println("and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/")
 			return
 		}
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
 
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// This returns us with the transaction hash and status

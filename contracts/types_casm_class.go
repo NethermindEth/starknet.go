@@ -219,7 +219,8 @@ func (hints *Hints) Tuple() [2]any {
 	return [2]any{hints.Int, hints.HintArr}
 }
 
-// Can be one of the following hints
+// Can be one of various hint types described in the spec and in the UnmarshalJSON method
+// Spec ref: https://github.com/starkware-libs/starknet-specs/blob/d70a2e57c9a66db1bbf86c388f38d6295a6a2a75/api/starknet_executables.json#L276
 type Hint struct {
 	Type string
 	Data interface{}
@@ -472,7 +473,11 @@ type Felt252DictEntryUpdate struct {
 	Value   ResOperand `json:"value"`
 }
 
-// Can be one of the following values
+// Can be one of the following values:
+//   - BinOp
+//   - Deref
+//   - DoubleDeref
+//   - Immediate
 type ResOperand struct {
 	Type string
 	Data interface{}
@@ -599,7 +604,9 @@ type BinOp struct {
 	B         B         `json:"b"`
 }
 
-// Can be one of the following values
+// Can be one of the following values:
+//   - Deref
+//   - Immediate
 type B struct {
 	Type string
 	Data interface{}

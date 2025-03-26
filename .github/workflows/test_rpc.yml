@@ -41,16 +41,14 @@ jobs:
 
       # Test rpc on testnet
       - name: Test RPC on testnet
-        run: echo "Skip for now - TODO= need to finish rpc v08 test updates"
-        #run: cd rpc && go test -timeout 1200s -v -env testnet .
+        run: cd rpc && go test -timeout 1200s -v -env testnet .
         env:
           HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
           WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
 
       # Test rpc on mainnet
       - name: Test RPC with mainnet
-        run: echo "Skip for now - TODO= need to finish rpc v08 test updates"
-        #run: cd rpc && go test -timeout 600s -v -env mainnet .
+        run: cd rpc && go test -timeout 600s -v -env mainnet .
         env:
           HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
           WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}

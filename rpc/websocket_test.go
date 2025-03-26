@@ -362,7 +362,6 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 	testSet := map[string]bool{
 		"testnet": true,
-		"mainnet": true,
 	}[testEnv]
 
 	if !testSet {
@@ -504,7 +503,6 @@ func TestUnsubscribe(t *testing.T) {
 
 	testSet := map[string]bool{
 		"testnet": true,
-		"mainnet": true,
 	}[testEnv]
 
 	if !testSet {

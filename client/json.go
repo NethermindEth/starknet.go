@@ -337,6 +337,13 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 		if args, err = parseArgumentArray(dec, types); err != nil {
 			return nil, err
 		}
+	case len(types) == 1 && tok != json.Delim('['):
+		// Read single argument.
+		// Create a new decoder to avoid EOF errors when parsing a single character argument.
+		dec := json.NewDecoder(bytes.NewReader(rawArgs))
+		if args, err = parseSingleArgument(dec, types); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, errors.New("non-array args")
 	}
@@ -368,6 +375,23 @@ func parseArgumentArray(dec *json.Decoder, types []reflect.Type) ([]reflect.Valu
 	// Read end of args array.
 	_, err := dec.Token()
 	return args, err
+}
+
+func parseSingleArgument(dec *json.Decoder, types []reflect.Type) ([]reflect.Value, error) {
+	args := make([]reflect.Value, 0, len(types))
+	if len(types) > 1 {
+		return args, fmt.Errorf("too many arguments, want at most %d", 1)
+	}
+	argval := reflect.New(types[0])
+	if err := dec.Decode(argval.Interface()); err != nil {
+		return args, fmt.Errorf("invalid argument: %v", err)
+	}
+	if argval.IsNil() && types[0].Kind() != reflect.Ptr {
+		return args, fmt.Errorf("missing value for required argument")
+	}
+	args = append(args, argval.Elem())
+
+	return args, nil
 }
 
 // parseSubscriptionName extracts the subscription name from an encoded argument array.

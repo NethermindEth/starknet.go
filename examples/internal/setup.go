@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -18,21 +17,6 @@ func init() {
 	if err != nil {
 		panic(errors.Join(errors.New("error loading '.env' file"), err))
 	}
-}
-
-// Default "panic" but printing all RPCError fields (code, message, and data)
-func PanicRPC(err error) {
-
-	RPCErr, ok := err.(*rpc.RPCError)
-	if !ok {
-		panic("failed to cast to RPCError. This error is not a RPCError")
-	}
-	err = errors.Join(
-		errors.New(fmt.Sprint(RPCErr.Code)),
-		errors.New(RPCErr.Message),
-		errors.New(fmt.Sprint(RPCErr.Data.ErrorMessage())),
-	)
-	panic(err)
 }
 
 // Validates whether the RPC_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.

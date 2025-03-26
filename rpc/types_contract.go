@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -37,7 +39,7 @@ var _ ClassOutput = &contracts.ContractClass{}
 
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
-	BlockID BlockID `json:"block_id"`
+	BlockID BlockIDWithoutPending `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
 	// Optional. A list of contracts for which we want to prove membership in the global state trie
@@ -55,15 +57,15 @@ type ContractStorageKeys struct {
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf,
 // thus effecitvely proving non-membership
 type StorageProofResult struct {
-	ClassesProof           NodeHashToNode   `json:"classes_proof"`
-	ContractsProof         ContractsProof   `json:"contracts_proof"`
-	ContractsStorageProofs []NodeHashToNode `json:"contracts_storage_proofs"`
-	GlobalRoots            []GlobalRoots    `json:"global_roots"`
+	ClassesProof           []NodeHashToNode   `json:"classes_proof"`
+	ContractsProof         ContractsProof     `json:"contracts_proof"`
+	ContractsStorageProofs [][]NodeHashToNode `json:"contracts_storage_proofs"`
+	GlobalRoots            GlobalRoots        `json:"global_roots"`
 }
 
 type ContractsProof struct {
 	// The nodes in the union of the paths from the contracts tree root to the requested leaves
-	Nodes              NodeHashToNode       `json:"nodes"`
+	Nodes              []NodeHashToNode     `json:"nodes"`
 	ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
 }
 
@@ -72,7 +74,7 @@ type ContractsProof struct {
 type ContractLeavesData struct {
 	Nonce       *felt.Felt `json:"nonce"`
 	ClassHash   *felt.Felt `json:"class_hash"`
-	StorageRoot *felt.Felt `json:"storage_root"`
+	StorageRoot *felt.Felt `json:"storage_root,omitempty"`
 }
 
 type GlobalRoots struct {
@@ -88,10 +90,47 @@ type NodeHashToNode struct {
 	Node     MerkleNode `json:"node"`
 }
 
-// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node
+// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node (EdgeNode or BinaryNode types)
 type MerkleNode struct {
-	EdgeNode   `json:",omitempty"`
-	BinaryNode `json:",omitempty"`
+	Type string
+	Data any
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface for MerkleNode
+// It unmarshals the data into an EdgeNode or BinaryNode depending on the type
+func (m *MerkleNode) UnmarshalJSON(data []byte) error {
+	// Create a decoder with DisallowUnknownFields
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var edgeNode EdgeNode
+	if err := decoder.Decode(&edgeNode); err == nil {
+		m.Type = "EdgeNode"
+		m.Data = edgeNode
+		return nil
+	}
+
+	// Create a decoder with DisallowUnknownFields
+	decoder = json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var binaryNode BinaryNode
+	if err := decoder.Decode(&binaryNode); err == nil {
+		m.Type = "BinaryNode"
+		m.Data = binaryNode
+		return nil
+	}
+	return fmt.Errorf("invalid merkle node type")
+}
+
+// MarshalJSON implements the json.Marshaler interface for MerkleNode
+// It marshals the data into an EdgeNode or BinaryNode depending on the type
+func (m *MerkleNode) MarshalJSON() ([]byte, error) {
+	if m.Type == "EdgeNode" {
+		return json.Marshal(m.Data.(EdgeNode))
+	}
+	if m.Type == "BinaryNode" {
+		return json.Marshal(m.Data.(BinaryNode))
+	}
+	return nil, fmt.Errorf("invalid merkle node type")
 }
 
 // Represents a path to the highest non-zero descendant node

@@ -62,7 +62,7 @@ func CalculateDeprecatedTransactionHashCommon(
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
 //   - error: an error object if there was an error during the hash calculation.
-func ClassHash(contract contracts.ContractClass) *felt.Felt {
+func ClassHash(contract *contracts.ContractClass) *felt.Felt {
 	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/
 
 	Version := "CONTRACT_CLASS_V" + contract.ContractClassVersion
@@ -244,7 +244,7 @@ func hashCasmClassByteCode(
 //
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-func CompiledClassHash(casmClass contracts.CasmClass) (*felt.Felt, error) {
+func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
 	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.External)
 	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.L1Handler)

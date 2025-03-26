@@ -125,10 +125,8 @@ func TestSimulateTransaction(t *testing.T) {
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
-		"mainnet": {testSetType{
-			SimulateTxnInputFile: expectedInputFile,
-			ExpectedRespFile:     expectedRespFile,
-		}},
+		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
+		"mainnet": {},
 	}[testEnv]
 
 	for _, test := range testSet {

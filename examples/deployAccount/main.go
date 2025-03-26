@@ -80,7 +80,7 @@ func main() {
 	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)
 	if err != nil {
 		fmt.Println("Error returned from SendTransaction: ")
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")

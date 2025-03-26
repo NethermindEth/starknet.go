@@ -286,7 +286,7 @@ func (c *Client) SupportedModules() (map[string]string, error) {
 	var result map[string]string
 	ctx, cancel := context.WithTimeout(context.Background(), subscribeTimeout)
 	defer cancel()
-	err := c.CallContext(ctx, &result, "rpc_modules")
+	err := c.CallContext(ctx, &result, "rpc_modules", nil)
 	return result, err
 }
 
@@ -322,7 +322,15 @@ func (c *Client) SetHeader(key, value string) {
 // can also pass nil, in which case the result is ignored.
 func (c *Client) Call(result interface{}, method string, args ...interface{}) error {
 	ctx := context.Background()
-	return c.CallContext(ctx, result, method, args...)
+	return c.CallContextWithSliceArgs(ctx, result, method, args...)
+}
+
+// Call 'CallContext' with a slice of arguments.
+//
+// For RPC-Calls with optional arguments, use 'CallContext' instead and pass a struct containing
+// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
+func (c *Client) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+	return c.CallContext(ctx, result, method, args)
 }
 
 // CallContext performs a JSON-RPC call with the given arguments. If the context is
@@ -330,7 +338,7 @@ func (c *Client) Call(result interface{}, method string, args ...interface{}) er
 //
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
-func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args interface{}) error {
 	if result != nil && reflect.TypeOf(result).Kind() != reflect.Ptr {
 		return fmt.Errorf("call result parameter must be pointer or nil interface: %v", result)
 	}
@@ -483,6 +491,10 @@ func (c *Client) EthSubscribe(ctx context.Context, channel interface{}, args ...
 	return c.SubscribeWithSliceArgs(ctx, "eth", subscribeMethodSuffix, channel, args)
 }
 
+// Call 'Subscribe' with a slice of arguments.
+//
+// For RPC-Subscriptions with optional arguments, use 'Subscribe' instead and pass a struct containing
+// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
 func (c *Client) SubscribeWithSliceArgs(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
 	return c.Subscribe(ctx, namespace, methodSuffix, channel, args)
 }

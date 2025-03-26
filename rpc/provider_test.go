@@ -79,7 +79,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 
-	if testEnv == "devnet" {
+	if testEnv == "devnet" || testEnv == "mainnet" {
 		return &testConfig
 	}
 

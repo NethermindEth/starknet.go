@@ -9,15 +9,13 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // verboseInvoke is a function that shows how to send an invoke transaction step by step, using only
 // a few helper functions.
 func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
 	// Getting the nonce from the account
-	nonce, err := accnt.Nonce(context.Background(), rpc.WithBlockTag("pending"), accnt.AccountAddress)
+	nonce, err := accnt.Nonce(context.Background())
 	if err != nil {
 		panic(err)
 	}
@@ -62,9 +60,9 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// Estimate the transaction fee
-	feeRes, err := accnt.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	feeRes, err := accnt.Provider.EstimateFee(context.Background(), []rpc.BroadcastTxn{InvokeTx}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
@@ -79,14 +77,14 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	// After signing, we finally send the transaction in order to invoke the contract function
 	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	fmt.Println("Verbose Invoke : Waiting for the transaction receipt...")
 
 	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
 	if err != nil {
-		setup.PanicRPC(err)
+		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
