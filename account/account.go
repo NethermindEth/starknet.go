@@ -176,7 +176,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if err != nil {
 		return nil, err
 	}
-	err = account.SignDeclareTransaction(ctx, &broadcastDeclareTxnV3)
+	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignDeclareTransaction(ctx, &broadcastDeclareTxnV3)
+	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return nil, err
 	}
@@ -331,11 +331,12 @@ func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeT
 // SignDeployAccountTransaction signs a deploy account transaction.
 //
 // Parameters:
-// - ctx: the context.Context for the function execution
-// - tx: the *rpc.DeployAccountTxnV3 pointer representing the transaction to be signed
-// - precomputeAddress: the precomputed address for the transaction
+//   - ctx: the context.Context for the function execution
+//   - tx: the *rpc.DeployAccountTxnV3 pointer representing the transaction to be signed
+//   - precomputeAddress: the precomputed address for the transaction
+//
 // Returns:
-// - error: an error if any
+//   - error: an error if any
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error {
 	switch deployAcc := tx.(type) {
 	case *rpc.DeployAccountTxn:
@@ -371,7 +372,7 @@ func signDeployAccountTransaction[T any](ctx context.Context, account *Account, 
 	return signature, nil
 }
 
-// SignDeclareTransaction signs a DeclareTxnV2 transaction using the provided Account.
+// SignDeclareTransaction signs a declare transaction using the provided Account.
 //
 // Parameters:
 // - ctx: the context.Context
