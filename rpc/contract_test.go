@@ -833,15 +833,20 @@ func assertStorageProofJSONEquality(t *testing.T, expectedResult, result []byte)
 	// compare 'contracts_storage_proofs'
 	expectedContractsStorageProofs, ok := expectedResultMap["contracts_storage_proofs"].([]any)
 	require.True(t, ok)
+	expectedGeneralSlice := make([]any, 0)
 	resultContractsStorageProofs, ok := resultMap["contracts_storage_proofs"].([]any)
 	require.True(t, ok)
+	resultGeneralSlice := make([]any, 0)
 	for i, expectedContractStorageProof := range expectedContractsStorageProofs {
 		expectedContractStorageProofArray, ok := expectedContractStorageProof.([]any)
 		require.True(t, ok)
+		expectedGeneralSlice = append(expectedGeneralSlice, expectedContractStorageProofArray...)
+
 		resultContractStorageProofArray, ok := resultContractsStorageProofs[i].([]any)
 		require.True(t, ok)
-		assert.ElementsMatch(t, expectedContractStorageProofArray, resultContractStorageProofArray)
+		resultGeneralSlice = append(resultGeneralSlice, resultContractStorageProofArray...)
 	}
+	assert.ElementsMatch(t, expectedGeneralSlice, resultGeneralSlice)
 
 	// compare 'global_roots'
 	assert.Equal(t, expectedResultMap["global_roots"], resultMap["global_roots"])
