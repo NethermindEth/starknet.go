@@ -204,13 +204,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 				SenderAddress: acc.AccountAddress,
 				Version:       test.TxDetails.Version,
 			}
-			hash, err := acc.TransactionHashInvoke(invokeTxn)
+			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
-			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
+			require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "transaction hash does not match expected")
 
-			hash2, err := account.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
+			hash2, err := hash.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
 			require.NoError(t, err)
-			assert.Equal(t, hash, hash2)
+			assert.Equal(t, hashResp, hash2)
 		})
 	}
 
@@ -833,19 +833,19 @@ func TestTransactionHashDeclare(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeclare(test.Txn)
+		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeclare not what expected")
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeclareTxnV2:
-			hash2, err = account.TransactionHashDeclareV2(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV2(&txn, acnt.ChainId)
 		case rpc.DeclareTxnV3:
-			hash2, err = account.TransactionHashDeclareV3(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV3(&txn, acnt.ChainId)
 		}
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
@@ -949,13 +949,13 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashInvoke(&test.Txn)
+		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashInvoke not what expected")
+		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
 
-		hash2, err := account.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
+		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
@@ -1038,19 +1038,19 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
+		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
-		assert.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeployAccount not what expected")
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeployAccountTxn:
-			hash2, err = account.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
 		case rpc.DeployAccountTxnV3:
-			hash2, err = account.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
 		}
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
