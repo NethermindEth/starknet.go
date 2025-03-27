@@ -182,6 +182,11 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 // - error: an error if any occurred during the execution
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
+	err := checkForPending(storageProofInput.BlockID)
+	if err != nil {
+		return nil, err
+	}
+
 	var raw StorageProofResult
 	if err := doAsObject(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)

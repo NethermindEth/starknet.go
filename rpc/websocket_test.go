@@ -19,7 +19,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		headers         chan *BlockHeader
-		subBlockID      *SubscriptionBlockID
+		subBlockID      BlockID
 		counter         int
 		isErrorExpected bool
 		description     string
@@ -40,20 +40,20 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Tag: "latest"},
+				subBlockID:      WithBlockTag("latest"),
 				isErrorExpected: false,
 				description:     "with tag latest",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 100},
+				subBlockID:      WithBlockNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 1025},
+				subBlockID:      WithBlockNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -165,7 +165,48 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("normal call, fromAddress only", func(t *testing.T) {
+	t.Run("normal call, blockID only", func(t *testing.T) {
+		t.Parallel()
+
+		wsProvider := testConfig.wsProvider
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+			BlockID: WithBlockNumber(blockNumber - 100),
+		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		uniqueAddresses := make(map[string]bool)
+		uniqueKeys := make(map[string]bool)
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Less(t, resp.BlockNumber, blockNumber)
+				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
+				// As none filters are applied, the events should be from all addresses and keys.
+
+				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueKeys[resp.Keys[0].String()] = true
+
+				// check if there are at least 3 different addresses and keys in the received events
+				if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(4 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
+	t.Run("normal call, fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.wsProvider
@@ -173,6 +214,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: testSet.fromAddressExample,
+			BlockID:     WithBlockNumber(blockNumber - 100),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -229,47 +271,6 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("normal call, blockID only", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.wsProvider
-
-		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: SubscriptionBlockID{Number: blockNumber - 100},
-		})
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		uniqueAddresses := make(map[string]bool)
-		uniqueKeys := make(map[string]bool)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
-				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
-				// As none filters are applied, the events should be from all addresses and keys.
-
-				uniqueAddresses[resp.FromAddress.String()] = true
-				uniqueKeys[resp.Keys[0].String()] = true
-
-				// check if there are at least 3 different addresses and keys in the received events
-				if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
-					return
-				}
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
 	t.Run("normal call, with all arguments, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
@@ -277,7 +278,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     SubscriptionBlockID{Number: blockNumber - 100},
+			BlockID:     WithBlockNumber(blockNumber - 100),
 			FromAddress: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
@@ -329,13 +330,13 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: SubscriptionBlockID{Number: blockNumber - 1025},
+					BlockID: WithBlockNumber(blockNumber - 1025),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: SubscriptionBlockID{Number: blockNumber + 100},
+					BlockID: WithBlockNumber(blockNumber + 100),
 				},
 				expectedError: ErrBlockNotFound,
 			},

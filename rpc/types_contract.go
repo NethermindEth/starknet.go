@@ -39,7 +39,7 @@ var _ ClassOutput = &contracts.ContractClass{}
 
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
-	BlockID BlockIDWithoutPending `json:"block_id"`
+	BlockID BlockID `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
 	// Optional. A list of contracts for which we want to prove membership in the global state trie
