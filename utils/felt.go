@@ -137,3 +137,17 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
 	return internalUtils.BigIntArrToFeltArr(bigArr)
 }
+
+// HexToU256Felt converts a hexadecimal string to a Cairo u256 representation.
+// The Cairo u256 is represented as two felt.Felt values:
+// - The first felt.Felt contains the 128 least significant bits (low part)
+// - The second felt.Felt contains the 128 most significant bits (high part)
+//
+// Parameters:
+// - hexStr: the hexadecimal string to convert to a Cairo u256
+// Returns:
+// - []*felt.Felt: a slice containing two felt.Felt values [low, high]
+// - error: if conversion fails
+func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
+	return internalUtils.HexToU256Felt(hexStr)
+}

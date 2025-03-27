@@ -3,6 +3,7 @@ package utils
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,5 +94,78 @@ func TestByteArrFeltToString(t *testing.T) {
 		res, err := ByteArrFeltToString(in)
 		require.NoError(t, err, "error returned from ByteArrFeltToString")
 		require.Equal(t, tc.out, res, "invalid conversion: output does not match")
+	}
+}
+
+func TestHexToU256Felt(t *testing.T) {
+	var tests = []struct {
+		name       string
+		hexInput   string
+		wantLow    string
+		wantHigh   string
+		shouldFail bool
+	}{
+		{
+			name:     "simple decimal 2",
+			hexInput: "0x2",
+			wantLow:  "0x2",
+			wantHigh: "0x0",
+		},
+		{
+			name:     "2^128",
+			hexInput: "0x100000000000000000000000000000000",
+			wantLow:  "0x0",
+			wantHigh: "0x1",
+		},
+		{
+			name:     "2^129 + 2^128 + 20",
+			hexInput: "0x300000000000000000000000000000014",
+			wantLow:  "0x14",
+			wantHigh: "0x3",
+		},
+		{
+			name:     "max uint128 in low part",
+			hexInput: "0xffffffffffffffffffffffffffffffff",
+			wantLow:  "0xffffffffffffffffffffffffffffffff",
+			wantHigh: "0x0",
+		},
+		{
+			name:     "max uint128 in high part",
+			hexInput: "0xffffffffffffffffffffffffffffffff00000000000000000000000000000000",
+			wantLow:  "0x0",
+			wantHigh: "0xffffffffffffffffffffffffffffffff",
+		},
+		{
+			name:     "hex without 0x prefix",
+			hexInput: "abcdef",
+			wantLow:  "0xabcdef",
+			wantHigh: "0x0",
+		},
+		{
+			name:       "invalid hex string",
+			hexInput:   "0xZZZ",
+			shouldFail: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := HexToU256Felt(tc.hexInput)
+
+			if tc.shouldFail {
+				require.Error(t, err, "expected error but got none")
+				return
+			}
+
+			require.NoError(t, err, "unexpected error")
+			require.Len(t, result, 2, "result should contain exactly 2 felt values")
+
+			// Convert the result felts to hex strings for comparison
+			lowHex := result[0].String()
+			highHex := result[1].String()
+
+			assert.Equal(t, tc.wantLow, lowHex, "low bits do not match expected value")
+			assert.Equal(t, tc.wantHigh, highHex, "high bits do not match expected value")
+		})
 	}
 }
