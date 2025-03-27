@@ -383,7 +383,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 	if err != nil {
 		return nil, err
 	}
-	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +391,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 	if err != nil {
 		return nil, err
 	}
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	if err != nil {
 		return nil, err
 	}
-	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +506,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 		return nil, err
 	}
 
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
 	if err != nil {
 		return nil, err
 	}
@@ -546,7 +546,7 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 	if err != nil {
 		return nil, err
 	}
-	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -555,7 +555,7 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 		return nil, err
 	}
 
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
 	if err != nil {
 		return nil, err
 	}
@@ -627,7 +627,7 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	if err != nil {
 		return nil, err
 	}
-	DAUint64, err := dataAvailabilityMode(txn.FeeMode, txn.NonceDataMode)
+	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -635,7 +635,7 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	if err != nil {
 		return nil, err
 	}
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, txn.ResourceBounds)
+	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
 	if err != nil {
 		return nil, err
 	}
@@ -654,7 +654,7 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	), nil
 }
 
-func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (*felt.Felt, error) {
+func TipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (*felt.Felt, error) {
 	l1Bytes, err := resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas)
 	if err != nil {
 		return nil, err
@@ -673,7 +673,7 @@ func tipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (
 	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds, l1DataGasBounds), nil
 }
 
-func dataAvailabilityMode(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
+func DataAvailabilityModeConc(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
 	const dataAvailabilityModeBits = 32
 	fee64, err := feeDAMode.UInt64()
 	if err != nil {

@@ -569,10 +569,11 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 }
 
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
+// It can only send v3 transactions.
 //
 // Parameters:
 //   - ctx: the context.Context object for the transaction.
-//   - txn: the Broadcast Transaction to be sent.
+//   - txn: the Broadcast V3 Transaction to be sent.
 //
 // Returns:
 //   - *rpc.TransactionResponse: the transaction response.
@@ -619,7 +620,7 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		}
 		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
 	default:
-		return nil, errors.New("unsupported transaction type")
+		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}
 }
 
