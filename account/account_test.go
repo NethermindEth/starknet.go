@@ -1373,12 +1373,14 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
 	t.Helper()
 	// Build and send invoke txn
+	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
+	require.NoError(t, err, "Error converting amount to u256")
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
 			ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
 			FunctionName:    "transfer",
-			CallData:        []*felt.Felt{recipient, amount, &felt.Zero},
+			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
 	}, 1.5)
 	require.NoError(t, err, "Error transferring STRK tokens")

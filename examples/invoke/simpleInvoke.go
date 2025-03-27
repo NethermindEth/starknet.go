@@ -8,15 +8,20 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // simpleInvoke is a function that shows how to easily send an invoke transaction.
 func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
+	u256Amount, err := utils.HexToU256Felt(amount.String())
+	if err != nil {
+		panic(err)
+	}
 	// Building the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                  //contractAddress is the contract that we want to call
-		FunctionName:    contractMethod,                   //this is the function that we want to call
-		CallData:        []*felt.Felt{amount, &felt.Zero}, //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
+		ContractAddress: contractAddress, //contractAddress is the contract that we want to call
+		FunctionName:    contractMethod,  //this is the function that we want to call
+		CallData:        u256Amount,      //the calldata necessary to call the function. Here we are passing the "amount" value (a u256 cairo variable) for the "mint" function
 	}
 
 	// Building and sending the Broadcast Invoke Txn.
