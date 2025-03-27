@@ -121,7 +121,7 @@ func TestSubscribeEvents(t *testing.T) {
 		"testnet": {
 			// sepolia StarkGate: ETH Token
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			// random key from StarkGate: ETH Token
+			// "Transfer" event key from StarkGate: ETH Token
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 	}[testEnv]
@@ -214,7 +214,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: testSet.fromAddressExample,
-			BlockID:     WithBlockNumber(blockNumber - 100),
+			BlockID:     WithBlockNumber(blockNumber - 1023),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -222,15 +222,25 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		uniqueKeys := make(map[string]bool)
+
 		for {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
+				require.Less(t, resp.BlockNumber, blockNumber)
 
-				// Subscription with only fromAddress should return events from the specified address from the latest block onwards.
+				// Subscription with fromAddress should return events from the specified address.
+				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
+				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
-				return
+
+				uniqueKeys[resp.Keys[0].String()] = true
+
+				// check if there are at least 2 different keys in the received events
+				if len(uniqueKeys) >= 2 {
+					return
+				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-time.After(20 * time.Second):
@@ -293,7 +303,7 @@ func TestSubscribeEvents(t *testing.T) {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
-				// 'fromAddress' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
+				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
