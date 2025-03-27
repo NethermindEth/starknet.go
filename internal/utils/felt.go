@@ -273,3 +273,35 @@ func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 	// Return as a slice [low, high]
 	return []*felt.Felt{lowFelt, highFelt}, nil
 }
+
+// U256FeltToHex converts a Cairo u256 representation (two felt.Felt values) back to a hexadecimal string.
+// The Cairo u256 is represented as two felt.Felt values:
+// - The first felt.Felt contains the 128 least significant bits (low part)
+// - The second felt.Felt contains the 128 most significant bits (high part)
+//
+// Parameters:
+// - u256: a slice containing two felt.Felt values [low, high]
+// Returns:
+// - string: the hexadecimal representation of the combined value
+// - error: if conversion fails
+func U256FeltToHex(u256 []*felt.Felt) (string, error) {
+	// Check if the input is valid
+	if len(u256) != 2 {
+		return "", fmt.Errorf("expected 2 felt values for u256, got %d", len(u256))
+	}
+
+	// Extract low and high parts
+	lowFelt, highFelt := u256[0], u256[1]
+
+	// Convert to big.Int
+	lowBits := FeltToBigInt(lowFelt)
+	highBits := FeltToBigInt(highFelt)
+
+	// Combine the parts: result = highBits << 128 + lowBits
+	result := new(big.Int).Lsh(highBits, 128)  // Shift high bits left by 128 bits
+	result = new(big.Int).Add(result, lowBits) // Add low bits
+
+	// Convert to hex string with "0x" prefix
+	hexStr := fmt.Sprintf("%#x", result)
+	return hexStr, nil
+}
