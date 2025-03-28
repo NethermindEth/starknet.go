@@ -198,6 +198,7 @@ type TxDetails struct {
 	Version TransactionVersion
 }
 
+// a sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
 type FeeEstimation struct {
 	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
 	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`

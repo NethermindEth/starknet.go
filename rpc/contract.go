@@ -135,7 +135,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 
 // Estimates the resources required by a given sequence of transactions when applied on a given state.
 // If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error),
-// a TRANSACTION_EXECUTION_ERROR is returned. For v0-2 transactions the estimate is given in wei, and for v3 transactions it is given in fri.
+// a TRANSACTION_EXECUTION_ERROR is returned.  The estimate is given in fri.
 //
 // Parameters:
 // - ctx: The context of the function call
@@ -182,6 +182,11 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 // - error: an error if any occurred during the execution
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
+	err := checkForPending(storageProofInput.BlockID)
+	if err != nil {
+		return nil, err
+	}
+
 	var raw StorageProofResult
 	if err := doAsObject(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)

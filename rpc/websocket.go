@@ -20,7 +20,7 @@ import (
 //
 //   - fromAddress: Filter events by from_address which emitted the event
 //   - keys: Per key (by position), designate the possible values to be matched for events to be returned. Empty array designates 'any' value
-//   - blockID: The block to get notifications from, limited to 1024 blocks back. If set to nil, the latest block will be used
+//   - blockID: The block to get notifications from, limited to 1024 blocks back. If empty, the latest block will be used
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
@@ -28,6 +28,16 @@ import (
 func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error) {
 	if options == nil {
 		options = &EventSubscriptionInput{}
+		options.BlockID = WithBlockTag("latest")
+	} else {
+		if options.BlockID == (BlockID{}) {
+			options.BlockID = WithBlockTag("latest")
+		} else {
+			err := checkForPending(options.BlockID)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
@@ -43,13 +53,22 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //   - headers: The channel to send the new block headers to
-//   - subBlockID (optional): The block to get notifications from, limited to 1024 blocks back. If set to nil, the latest block will be used
+//   - blockID (optional): The block to get notifications from, limited to 1024 blocks back. If empty, the latest block will be used
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID *SubscriptionBlockID) (*client.ClientSubscription, error) {
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
+func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error) {
+	if blockID == (BlockID{}) {
+		blockID = WithBlockTag("latest")
+	} else {
+		err := checkForPending(blockID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, blockID)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}

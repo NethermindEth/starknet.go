@@ -27,14 +27,13 @@ type BlockID struct {
 	Tag    string     `json:"block_tag,omitempty"`
 }
 
-// Used in the 'starknet_getStorageProof' RPC method, as it doesn't support pending blocks
-type BlockIDWithoutPending BlockID
-
-// Block hash, number or tag, same as BLOCK_ID, but without 'pending'
-type SubscriptionBlockID struct {
-	Number uint64     `json:"block_number,omitempty"`
-	Hash   *felt.Felt `json:"block_hash,omitempty"`
-	Tag    string     `json:"block_tag,omitempty"`
+// checkForPending checks if the block ID has the 'pending' tag. If it does, it returns an error.
+// This is used to prevent the user from using the 'pending' tag on methods that do not support it.
+func checkForPending(b BlockID) error {
+	if b.Tag == "pending" {
+		return errors.Join(ErrInvalidBlockID, errors.New("'pending' tag is not supported on this method"))
+	}
+	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
@@ -64,65 +63,6 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 
 	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
 		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
-	}
-
-	return nil, ErrInvalidBlockID
-}
-
-// MarshalJSON marshals the BlockIDWithoutPending to JSON format.
-//
-// It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
-// while the error indicates any error that occurred during the marshaling process.
-//
-// Returns:
-// - []byte: the JSON representation of the BlockID
-// - error: any error that occurred during the marshaling process
-func (b BlockIDWithoutPending) MarshalJSON() ([]byte, error) {
-	if b.Tag == "pending" {
-		return nil, errors.Join(ErrInvalidBlockID, errors.New("pending blocks are not supported on this method"))
-	}
-	if b.Tag == "latest" {
-		return []byte(strconv.Quote("latest")), nil
-	}
-
-	if b.Tag != "" {
-		return nil, ErrInvalidBlockID
-	}
-
-	if b.Number != nil {
-		return []byte(fmt.Sprintf(`{"block_number":%d}`, *b.Number)), nil
-	}
-
-	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
-		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
-	}
-
-	return nil, ErrInvalidBlockID
-}
-
-// MarshalJSON marshals the SubscriptionBlockID to JSON format.
-//
-// It returns a byte slice and an error. The byte slice contains the JSON representation of the SubscriptionBlockID,
-// while the error indicates any error that occurred during the marshaling process.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-// - []byte: the JSON representation of the SubscriptionBlockID
-// - error: any error that occurred during the marshaling process
-func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
-	if b.Number != 0 {
-		return []byte(fmt.Sprintf(`{"block_number":%d}`, b.Number)), nil
-	}
-
-	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
-		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
-	}
-
-	if b.Tag == "latest" || b.Tag == "" {
-		return []byte(strconv.Quote("latest")), nil
 	}
 
 	return nil, ErrInvalidBlockID

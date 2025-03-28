@@ -1,8 +1,12 @@
 package utils
 
 import (
+	"fmt"
+	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,5 +97,169 @@ func TestByteArrFeltToString(t *testing.T) {
 		res, err := ByteArrFeltToString(in)
 		require.NoError(t, err, "error returned from ByteArrFeltToString")
 		require.Equal(t, tc.out, res, "invalid conversion: output does not match")
+	}
+}
+
+func TestHexToU256Felt(t *testing.T) {
+	var tests = []struct {
+		name       string
+		hexInput   string
+		wantLow    string
+		wantHigh   string
+		shouldFail bool
+	}{
+		{
+			name:     "simple decimal 2",
+			hexInput: "0x2",
+			wantLow:  "0x2",
+			wantHigh: "0x0",
+		},
+		{
+			name:     "2^128",
+			hexInput: "0x100000000000000000000000000000000",
+			wantLow:  "0x0",
+			wantHigh: "0x1",
+		},
+		{
+			name:     "2^129 + 2^128 + 20",
+			hexInput: "0x300000000000000000000000000000014",
+			wantLow:  "0x14",
+			wantHigh: "0x3",
+		},
+		{
+			name:     "max uint128 in low part",
+			hexInput: "0xffffffffffffffffffffffffffffffff",
+			wantLow:  "0xffffffffffffffffffffffffffffffff",
+			wantHigh: "0x0",
+		},
+		{
+			name:     "max uint128 in high part",
+			hexInput: "0xffffffffffffffffffffffffffffffff00000000000000000000000000000000",
+			wantLow:  "0x0",
+			wantHigh: "0xffffffffffffffffffffffffffffffff",
+		},
+		{
+			name:     "hex without 0x prefix",
+			hexInput: "abcdef",
+			wantLow:  "0xabcdef",
+			wantHigh: "0x0",
+		},
+		{
+			name:       "invalid hex string",
+			hexInput:   "0xZZZ",
+			shouldFail: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := HexToU256Felt(tc.hexInput)
+
+			if tc.shouldFail {
+				require.Error(t, err, "expected error but got none")
+				return
+			}
+
+			require.NoError(t, err, "unexpected error")
+			require.Len(t, result, 2, "result should contain exactly 2 felt values")
+
+			// Convert the result felts to hex strings for comparison
+			lowHex := result[0].String()
+			highHex := result[1].String()
+
+			assert.Equal(t, tc.wantLow, lowHex, "low bits do not match expected value")
+			assert.Equal(t, tc.wantHigh, highHex, "high bits do not match expected value")
+		})
+	}
+}
+
+func TestU256FeltToHex(t *testing.T) {
+	var tests = []struct {
+		name       string
+		lowHex     string
+		highHex    string
+		wantHex    string
+		shouldFail bool
+	}{
+		{
+			name:    "simple decimal 2",
+			lowHex:  "0x2",
+			highHex: "0x0",
+			wantHex: "0x2",
+		},
+		{
+			name:    "2^128",
+			lowHex:  "0x0",
+			highHex: "0x1",
+			wantHex: "0x100000000000000000000000000000000",
+		},
+		{
+			name:    "2^129 + 2^128 + 20",
+			lowHex:  "0x14",
+			highHex: "0x3",
+			wantHex: "0x300000000000000000000000000000014",
+		},
+		{
+			name:    "max uint128 in low part",
+			lowHex:  "0xffffffffffffffffffffffffffffffff",
+			highHex: "0x0",
+			wantHex: "0xffffffffffffffffffffffffffffffff",
+		},
+		{
+			name:    "max uint128 in high part",
+			lowHex:  "0x0",
+			highHex: "0xffffffffffffffffffffffffffffffff",
+			wantHex: "0xffffffffffffffffffffffffffffffff00000000000000000000000000000000",
+		},
+		{
+			name:    "zero value",
+			lowHex:  "0x0",
+			highHex: "0x0",
+			wantHex: "0x0",
+		},
+		{
+			name:       "invalid input length",
+			shouldFail: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var input []*felt.Felt
+
+			if tc.shouldFail {
+				// Test with empty slice for error case
+				result, err := U256FeltToHex(input)
+				assert.Error(t, err, "expected error but got none")
+				assert.Empty(t, result, "expected empty result on error")
+				return
+			}
+
+			// Parse the low and high hex values into felt.Felt objects
+			lowFelt, err := HexToFelt(tc.lowHex)
+			require.NoError(t, err, "failed to parse low hex")
+
+			highFelt, err := HexToFelt(tc.highHex)
+			require.NoError(t, err, "failed to parse high hex")
+
+			input = []*felt.Felt{lowFelt, highFelt}
+
+			// Call the function under test
+			result, err := U256FeltToHex(input)
+			require.NoError(t, err, "unexpected error")
+
+			// Normalize expected value for comparison
+			// Convert hex to big.Int and back to normalized hex for consistent comparison
+			expectedBigInt, _ := new(big.Int).SetString(tc.wantHex[2:], 16)
+			expectedHex := fmt.Sprintf("%#x", expectedBigInt)
+
+			assert.Equal(t, expectedHex, result, "hex representation does not match expected value")
+
+			// Round-trip test: Convert back to u256 felt representation
+			roundTrip, err := HexToU256Felt(result)
+			require.NoError(t, err, "failed in round-trip conversion")
+			assert.Equal(t, lowFelt.String(), roundTrip[0].String(), "round-trip low bits do not match")
+			assert.Equal(t, highFelt.String(), roundTrip[1].String(), "round-trip high bits do not match")
+		})
 	}
 }

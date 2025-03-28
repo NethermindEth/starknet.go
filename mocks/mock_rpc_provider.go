@@ -45,7 +45,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 }
 
 // AddDeclareTransaction mocks base method.
-func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction *rpc.BroadcastDeclareTxnV3) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeclareTransaction", ctx, declareTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -60,7 +60,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeclareTransaction(ctx, declareTransac
 }
 
 // AddDeployAccountTransaction mocks base method.
-func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *rpc.BroadcastDeployAccountTxnV3) (*rpc.AddDeployAccountTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeployAccountTransaction", ctx, deployAccountTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeployAccountTransactionResponse)
@@ -75,7 +75,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeployAccountTransaction(ctx, deployAc
 }
 
 // AddInvokeTransaction mocks base method.
-func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn *rpc.BroadcastInvokeTxnV3) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, invokeTxn)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
@@ -564,18 +564,18 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, option
 }
 
 // SubscribeNewHeads mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID *rpc.SubscriptionBlockID) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, blockID rpc.BlockID) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
+	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, blockID)
 	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SubscribeNewHeads indicates an expected call of SubscribeNewHeads.
-func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, subBlockID any) *gomock.Call {
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blockID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, subBlockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, blockID)
 }
 
 // SubscribePendingTransactions mocks base method.

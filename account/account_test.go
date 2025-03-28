@@ -197,21 +197,20 @@ func TestTransactionHashInvoke(t *testing.T) {
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 			acc, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 			require.NoError(t, err, "error returned from account.NewAccount()")
-			invokeTxn := rpc.BroadcastInvokev1Txn{
-				InvokeTxnV1: rpc.InvokeTxnV1{
-					Calldata:      test.FnCall.Calldata,
-					Nonce:         test.TxDetails.Nonce,
-					MaxFee:        test.TxDetails.MaxFee,
-					SenderAddress: acc.AccountAddress,
-					Version:       test.TxDetails.Version,
-				}}
-			hash, err := acc.TransactionHashInvoke(invokeTxn.InvokeTxnV1)
+			invokeTxn := rpc.InvokeTxnV1{
+				Calldata:      test.FnCall.Calldata,
+				Nonce:         test.TxDetails.Nonce,
+				MaxFee:        test.TxDetails.MaxFee,
+				SenderAddress: acc.AccountAddress,
+				Version:       test.TxDetails.Version,
+			}
+			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
-			require.Equal(t, test.ExpectedHash.String(), hash.String(), "transaction hash does not match expected")
+			require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "transaction hash does not match expected")
 
-			hash2, err := account.TransactionHashInvokeV1(&invokeTxn.InvokeTxnV1, acc.ChainId)
+			hash2, err := hash.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
 			require.NoError(t, err)
-			assert.Equal(t, hash, hash2)
+			assert.Equal(t, hashResp, hash2)
 		})
 	}
 
@@ -467,7 +466,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
 		PrivKey              *felt.Felt
-		InvokeTx             rpc.BroadcastInvokev3Txn
+		InvokeTx             rpc.BroadcastInvokeTxnV3
 	}
 	testSet := map[string][]testSetType{
 		"mock":   {},
@@ -481,7 +480,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
-				InvokeTx: rpc.BroadcastInvokev3Txn{
+				InvokeTx: rpc.BroadcastInvokeTxnV3{
 					InvokeTxnV3: rpc.InvokeTxnV3{
 						Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
 						Type:    rpc.TransactionType_Invoke,
@@ -834,19 +833,19 @@ func TestTransactionHashDeclare(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeclare(test.Txn)
+		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeclare not what expected")
+		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeclare not what expected")
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeclareTxnV2:
-			hash2, err = account.TransactionHashDeclareV2(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV2(&txn, acnt.ChainId)
 		case rpc.DeclareTxnV3:
-			hash2, err = account.TransactionHashDeclareV3(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV3(&txn, acnt.ChainId)
 		}
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
@@ -950,13 +949,13 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashInvoke(&test.Txn)
+		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashInvoke not what expected")
+		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
 
-		hash2, err := account.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
+		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
@@ -1039,19 +1038,19 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hash, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
+		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
-		assert.Equal(t, test.ExpectedHash.String(), hash.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeployAccount not what expected")
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeployAccountTxn:
-			hash2, err = account.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
 		case rpc.DeployAccountTxnV3:
-			hash2, err = account.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
 		}
 		require.NoError(t, err)
-		assert.Equal(t, hash, hash2)
+		assert.Equal(t, hashResp, hash2)
 	}
 }
 
@@ -1374,12 +1373,14 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
 	t.Helper()
 	// Build and send invoke txn
+	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
+	require.NoError(t, err, "Error converting amount to u256")
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
 			ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
 			FunctionName:    "transfer",
-			CallData:        []*felt.Felt{recipient, amount, &felt.Zero},
+			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
 	}, 1.5)
 	require.NoError(t, err, "Error transferring STRK tokens")

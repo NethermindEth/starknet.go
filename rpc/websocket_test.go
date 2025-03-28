@@ -19,7 +19,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		headers         chan *BlockHeader
-		subBlockID      *SubscriptionBlockID
+		subBlockID      BlockID
 		counter         int
 		isErrorExpected bool
 		description     string
@@ -40,20 +40,20 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Tag: "latest"},
+				subBlockID:      WithBlockTag("latest"),
 				isErrorExpected: false,
 				description:     "with tag latest",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 100},
+				subBlockID:      WithBlockNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      &SubscriptionBlockID{Number: blockNumber - 1025},
+				subBlockID:      WithBlockNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -121,7 +121,7 @@ func TestSubscribeEvents(t *testing.T) {
 		"testnet": {
 			// sepolia StarkGate: ETH Token
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-			// random key from StarkGate: ETH Token
+			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 	}[testEnv]
@@ -138,7 +138,7 @@ func TestSubscribeEvents(t *testing.T) {
 	// '0' for the case of events from pending blocks
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1, 0}
 
-	t.Run("normal call, with empty args", func(t *testing.T) {
+	t.Run("with empty args", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.wsProvider
@@ -165,78 +165,14 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("normal call, fromAddress only", func(t *testing.T) {
+	t.Run("blockID only", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: testSet.fromAddressExample,
-		})
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
-				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
-
-				// Subscription with only fromAddress should return events from the specified address from the latest block onwards.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
-	t.Run("normal call, keys only", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.wsProvider
-
-		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			Keys: [][]*felt.Felt{{testSet.keyExample}},
-		})
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
-				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
-
-				// Subscription with only keys should return events with the specified keys from the latest block onwards.
-				require.Equal(t, testSet.keyExample, resp.Keys[0])
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
-	t.Run("normal call, blockID only", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.wsProvider
-
-		events := make(chan *EmittedEvent)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: SubscriptionBlockID{Number: blockNumber - 100},
+			BlockID: WithBlockNumber(blockNumber - 100),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -270,14 +206,97 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("normal call, with all arguments, within the range of 1024 blocks", func(t *testing.T) {
+	t.Run("fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.wsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     SubscriptionBlockID{Number: blockNumber - 100},
+			FromAddress: testSet.fromAddressExample,
+			BlockID:     WithBlockNumber(blockNumber - 1023),
+		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		uniqueKeys := make(map[string]bool)
+
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Less(t, resp.BlockNumber, blockNumber)
+
+				// Subscription with fromAddress should only return events from the specified address.
+				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
+				// so we can use it to verify the events are returned correctly.
+				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+
+				uniqueKeys[resp.Keys[0].String()] = true
+
+				// check if there are at least 2 different keys in the received events
+				if len(uniqueKeys) >= 2 {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(20 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
+	t.Run("keys only, within the range of 1024 blocks", func(t *testing.T) {
+		t.Parallel()
+
+		wsProvider := testConfig.wsProvider
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+			Keys:    [][]*felt.Felt{{testSet.keyExample}},
+			BlockID: WithBlockNumber(blockNumber - 1023),
+		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		uniqueAddresses := make(map[string]bool)
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				require.Less(t, resp.BlockNumber, blockNumber)
+
+				// Subscription with keys should only return events with the specified keys.
+				require.Equal(t, testSet.keyExample, resp.Keys[0])
+
+				uniqueAddresses[resp.FromAddress.String()] = true
+
+				// check if there are at least 2 different addresses in the received events
+				if len(uniqueAddresses) >= 2 {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(20 * time.Second):
+				t.Fatal("timeout waiting for events")
+			}
+		}
+	})
+
+	t.Run("with all arguments, within the range of 1024 blocks", func(t *testing.T) {
+		t.Parallel()
+
+		wsProvider := testConfig.wsProvider
+
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+			BlockID:     WithBlockNumber(blockNumber - 100),
 			FromAddress: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
@@ -292,7 +311,7 @@ func TestSubscribeEvents(t *testing.T) {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
-				// 'fromAddress' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
+				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
@@ -329,13 +348,13 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: SubscriptionBlockID{Number: blockNumber - 1025},
+					BlockID: WithBlockNumber(blockNumber - 1025),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: SubscriptionBlockID{Number: blockNumber + 100},
+					BlockID: WithBlockNumber(blockNumber + 100),
 				},
 				expectedError: ErrBlockNotFound,
 			},

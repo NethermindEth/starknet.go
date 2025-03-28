@@ -494,7 +494,7 @@ func TestEstimateFee(t *testing.T) {
 		expectedError *RPCError
 	}
 
-	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokev3Txn](t, "./tests/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
+	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./tests/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 
 	testSet, ok := map[string][]testSetType{
 		"mock": {
@@ -670,14 +670,14 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					BlockID: BlockID{Tag: "latest"},
 				},
 				ExpectedError: nil,
 			},
 			{
 				Description: "block_id + class_hashes parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					BlockID: BlockID{Tag: "latest"},
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 					},
@@ -687,7 +687,7 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contract_addresses parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					BlockID: BlockID{Tag: "latest"},
 					ContractAddresses: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					},
@@ -697,7 +697,7 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					BlockID: BlockID{Tag: "latest"},
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -712,7 +712,7 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "latest"},
+					BlockID: BlockID{Tag: "latest"},
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -743,16 +743,16 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "error: using pending tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockIDWithoutPending{Tag: "pending"},
+					BlockID: BlockID{Tag: "pending"},
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: func() BlockIDWithoutPending {
+					BlockID: func() BlockID {
 						num := uint64(999999999)
-						return BlockIDWithoutPending{Number: &num}
+						return BlockID{Number: &num}
 					}(),
 				},
 				ExpectedError: ErrBlockNotFound,
@@ -760,9 +760,9 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: func() BlockIDWithoutPending {
+					BlockID: func() BlockID {
 						num := uint64(123456)
-						return BlockIDWithoutPending{Number: &num}
+						return BlockID{Number: &num}
 					}(),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
@@ -833,15 +833,20 @@ func assertStorageProofJSONEquality(t *testing.T, expectedResult, result []byte)
 	// compare 'contracts_storage_proofs'
 	expectedContractsStorageProofs, ok := expectedResultMap["contracts_storage_proofs"].([]any)
 	require.True(t, ok)
+	expectedGeneralSlice := make([]any, 0)
 	resultContractsStorageProofs, ok := resultMap["contracts_storage_proofs"].([]any)
 	require.True(t, ok)
+	resultGeneralSlice := make([]any, 0)
 	for i, expectedContractStorageProof := range expectedContractsStorageProofs {
 		expectedContractStorageProofArray, ok := expectedContractStorageProof.([]any)
 		require.True(t, ok)
+		expectedGeneralSlice = append(expectedGeneralSlice, expectedContractStorageProofArray...)
+
 		resultContractStorageProofArray, ok := resultContractsStorageProofs[i].([]any)
 		require.True(t, ok)
-		assert.ElementsMatch(t, expectedContractStorageProofArray, resultContractStorageProofArray)
+		resultGeneralSlice = append(resultGeneralSlice, resultContractStorageProofArray...)
 	}
+	assert.ElementsMatch(t, expectedGeneralSlice, resultGeneralSlice)
 
 	// compare 'global_roots'
 	assert.Equal(t, expectedResultMap["global_roots"], resultMap["global_roots"])

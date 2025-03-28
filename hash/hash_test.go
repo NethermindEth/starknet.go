@@ -130,3 +130,5 @@ func TestClassHashes(t *testing.T) {
 		}
 	})
 }
+
+// Note: Tests for TransactionHash... methods are located in the account_test.go file from the account package

@@ -20,11 +20,15 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 		panic(err)
 	}
 
+	u256Amount, err := utils.HexToU256Felt(amount.String())
+	if err != nil {
+		panic(err)
+	}
 	// Building the functionCall struct, where :
 	FnCall := rpc.FunctionCall{
 		ContractAddress:    contractAddress,                               //contractAddress is the contract that we want to call
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), //this is the function that we want to call
-		Calldata:           []*felt.Felt{amount, &felt.Zero},              //the calldata necessary to call the function. Here we are passing the "amount" value for the "mint" function
+		Calldata:           u256Amount,                                    //the calldata necessary to call the function. Here we are passing the "amount" value (a u256 cairo variable) for the "mint" function
 	}
 
 	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version

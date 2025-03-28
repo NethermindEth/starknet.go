@@ -641,7 +641,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 	}
 
 	switch args[0].(type) {
-	case BroadcastDeclareTxnV2, BroadcastDeclareTxnV3:
+	case *BroadcastDeclareTxnV3, BroadcastDeclareTxnV3:
 		deadbeefFelt, err := internalUtils.HexToFelt("0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")
 		if err != nil {
 			return err
@@ -659,7 +659,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 		}
 		return nil
 	}
-	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeclareTxnV2 or DeclareTxnV3, got %T\n", args[0]))
+	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastDeclareTxnV3, got %T\n", args[0]))
 }
 
 // mock_starknet_estimateFee simulates the estimation of a fee in the StarkNet network.
@@ -835,31 +835,8 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 	if len(args) != 1 {
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
-	switch invokeTx := args[0].(type) {
-	case BroadcastInvokev1Txn:
-		if invokeTx.SenderAddress != nil {
-			if invokeTx.SenderAddress.Equal(new(felt.Felt).SetUint64(123)) {
-				unexpErr := *ErrUnexpectedError
-				unexpErr.Data = StringErrData("Something crazy happened")
-				return &unexpErr
-			}
-		}
-		deadbeefFelt, err := internalUtils.HexToFelt("0xdeadbeef")
-		if err != nil {
-			return err
-		}
-		output := AddInvokeTransactionResponse{
-			TransactionHash: deadbeefFelt,
-		}
-		outputContent, err := json.Marshal(output)
-		if err != nil {
-			return err
-		}
-		if err := json.Unmarshal(outputContent, r); err != nil {
-			return err
-		}
-		return nil
-	case BroadcastInvokev3Txn:
+	switch args[0].(type) {
+	case *BroadcastInvokeTxnV3, BroadcastInvokeTxnV3:
 		deadbeefFelt, err := internalUtils.HexToFelt("0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")
 		if err != nil {
 			return err
@@ -876,9 +853,10 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		}
 		return nil
 	default:
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV1 or InvokeTxnV3, got %T\n", args[0]))
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV3, got %T\n", args[0]))
 	}
 }
+
 func mock_starknet_addDeployAccountTransaction(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok {
@@ -888,7 +866,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
 	}
 	switch args[0].(type) {
-	case BroadcastDeployAccountTxn, BroadcastDeployAccountTxnV3:
+	case *BroadcastDeployAccountTxnV3, BroadcastDeployAccountTxnV3:
 
 		deadbeefFelt, err := internalUtils.HexToFelt("0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e")
 		if err != nil {
@@ -907,7 +885,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 		}
 		return nil
 	default:
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxn or DeployAccountTxnV3, got %T\n", args[0]))
+		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxnV3, got %T\n", args[0]))
 	}
 
 }
