@@ -3,15 +3,13 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/joho/godotenv"
+	"github.com/NethermindEth/starknet.go/internal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,53 +19,29 @@ const (
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	provider *Provider
-	base     string
+	provider   *Provider
+	wsProvider *WsProvider
+	base       string
+	wsBase     string
 }
 
-var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
+// the environment for the test, default: mock
+var testEnv = ""
 
-	// testConfigurations are predefined test configurations
-	testConfigurations = map[string]testConfiguration{
-		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"mainnet": {
-			base: "https://free-rpc.nethermind.io/mainnet-juno",
-		},
-		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base: "https://free-rpc.nethermind.io/sepolia-juno",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/0xSpaceShard/starknet-devnet-rs)
-		"devnet": {
-			base: "http://localhost:5050/",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock":        {},
-		"integration": {},
-	}
-)
-
-// TestMain is a Go function that serves as the entry point for running tests.
+// TestMain is used to trigger the tests and set up the test environment.
 //
-// It takes a pointer to the testing.M struct as its parameter and returns nothing.
-// The purpose of this function is to set up any necessary test environment
-// variables before running the tests and to clean up any resources afterwards.
-// It also parses command line flags and exits with the exit code returned by
-// the testing.M.Run() function.
+// It sets up the test environment by loading environment variables using the internal.LoadEnv() function,
+// which handles parsing command line flags and loading the appropriate .env files based on the
+// specified environment (mock, testnet, mainnet, or devnet).
+// After setting up the environment, it runs the tests and exits with the return value of the test suite.
 //
 // Parameters:
-// - m: the testing.M struct
+// - m: The testing.M object that provides the entry point for running tests
 // Returns:
 //
 //	none
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.Parse()
+	testEnv = internal.LoadEnv()
 
 	os.Exit(m.Run())
 }
@@ -76,15 +50,14 @@ func TestMain(m *testing.M) {
 //
 // Parameters:
 // - t: The testing.T object for testing purposes
+// - isWs: a boolean value to check if the test is for the websocket provider
 // Returns:
 // - *testConfiguration: a pointer to the testConfiguration struct
-func beforeEach(t *testing.T) *testConfiguration {
+func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
-	_ = godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports mock, testnet, mainnet, devnet, integration")
-	}
+
+	var testConfig testConfiguration
+
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
@@ -92,19 +65,41 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	base := os.Getenv("INTEGRATION_BASE")
+	base := os.Getenv("HTTP_PROVIDER_URL")
 	if base != "" {
 		testConfig.base = base
 	}
-	c, err := NewProvider(testConfig.base)
-	if err != nil {
-		t.Fatal("connect should succeed, instead:", err)
-	}
 
-	testConfig.provider = c
+	client, err := NewProvider(testConfig.base)
+	if err != nil {
+		t.Fatalf("failed to connect to the %s provider: %v", testConfig.base, err)
+	}
+	testConfig.provider = client
 	t.Cleanup(func() {
 		testConfig.provider.c.Close()
 	})
+
+	if testEnv == "devnet" || testEnv == "mainnet" {
+		return &testConfig
+	}
+
+	if isWs {
+		wsBase := os.Getenv("WS_PROVIDER_URL")
+		if wsBase != "" {
+			testConfig.wsBase = wsBase
+
+		}
+
+		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+		if err != nil {
+			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.wsBase, err)
+		}
+		testConfig.wsProvider = wsClient
+		t.Cleanup(func() {
+			testConfig.wsProvider.c.Close()
+		})
+	}
+
 	return &testConfig
 }
 

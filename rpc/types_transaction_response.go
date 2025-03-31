@@ -19,8 +19,12 @@ type AddInvokeTransactionResponse struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 
+// TransactionResponse is a generic response for all transaction types sent to the network.
 type TransactionResponse struct {
+	// Present for all transaction types
 	TransactionHash *felt.Felt `json:"transaction_hash"`
-	ClassHash       *felt.Felt `json:"class_hash,omitempty"`
+	// Present only for declare transactions
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+	// Present only for deploy transactions
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 }

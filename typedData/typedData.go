@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type TypedData struct {
@@ -123,7 +123,7 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 	//signed_data = encode(PREFIX_MESSAGE, Enc[domain_separator], account, Enc[message])
 
 	//PREFIX_MESSAGE
-	prefixMessage, err := utils.HexToFelt(utils.StrToHex("StarkNet Message"))
+	prefixMessage, err := internalUtils.HexToFelt(internalUtils.StrToHex("StarkNet Message"))
 	if err != nil {
 		return hash, err
 	}
@@ -135,7 +135,7 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 	}
 
 	//account
-	accountFelt, err := utils.HexToFelt(account)
+	accountFelt, err := internalUtils.HexToFelt(account)
 	if err != nil {
 		return hash, err
 	}
@@ -212,7 +212,6 @@ func shortGetStructHash(
 // - hash: A pointer to a felt.Felt representing the calculated hash.
 // - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
-	//TODO: create/update methods descriptions
 	typeDef, ok := td.Types[typeName]
 	if !ok {
 		if typeDef, ok = td.Revision.Types().Preset[typeName]; !ok {
@@ -379,7 +378,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 	newTypeDef = TypeDefinition{
 		Name:               typeDef.Name,
 		Parameters:         typeDef.Parameters,
-		Enconding:          utils.GetSelectorFromNameFelt(fullEncString),
+		Enconding:          internalUtils.GetSelectorFromNameFelt(fullEncString),
 		EncoddingString:    fullEncString,
 		SingleEncString:    singleEncString,
 		ReferencedTypesEnc: referencedTypesEnc,
@@ -703,8 +702,8 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 				return fmt.Sprintf("%v", v)
 			}
 		}(data)
-		hexValue := utils.StrToHex(strValue)
-		feltValue, err = utils.HexToFelt(hexValue)
+		hexValue := internalUtils.StrToHex(strValue)
+		feltValue, err = internalUtils.HexToFelt(hexValue)
 		if err != nil {
 			return feltValue, err
 		}
@@ -745,7 +744,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 			return resp, nil
 		} else {
 			value := fmt.Sprintf("%v", data)
-			byteArr, err := utils.StringToByteArrFelt(value)
+			byteArr, err := internalUtils.StringToByteArrFelt(value)
 			if err != nil {
 				return resp, err
 			}
@@ -753,7 +752,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 		}
 	case "selector":
 		value := fmt.Sprintf("%v", data)
-		return utils.GetSelectorFromNameFelt(value), nil
+		return internalUtils.GetSelectorFromNameFelt(value), nil
 	default:
 		return resp, fmt.Errorf("invalid type '%s'", typeName)
 	}
@@ -767,19 +766,19 @@ func (td *TypedData) UnmarshalJSON(data []byte) error {
 	}
 
 	// primaryType
-	primaryType, err := utils.GetAndUnmarshalJSONFromMap[string](dec, "primaryType")
+	primaryType, err := internalUtils.GetAndUnmarshalJSONFromMap[string](dec, "primaryType")
 	if err != nil {
 		return err
 	}
 
 	// domain
-	domain, err := utils.GetAndUnmarshalJSONFromMap[Domain](dec, "domain")
+	domain, err := internalUtils.GetAndUnmarshalJSONFromMap[Domain](dec, "domain")
 	if err != nil {
 		return err
 	}
 
 	// types
-	rawTypes, err := utils.GetAndUnmarshalJSONFromMap[map[string]json.RawMessage](dec, "types")
+	rawTypes, err := internalUtils.GetAndUnmarshalJSONFromMap[map[string]json.RawMessage](dec, "types")
 	if err != nil {
 		return err
 	}
