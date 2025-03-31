@@ -30,11 +30,11 @@ Supported environments are `mock`, `testnet` and `mainnet`. The support for
 `devnet` is planned but might require some dedicated condition since it is empty. 
 
 If you plan to specify an alternative URL to test the environment, you can set
-the `INTEGRATION_BASE` environment variable. In addition, tests load `.env.${env}`,
+the `HTTP_PROVIDER_URL` environment variable. In addition, tests load `.env.${env}`,
 and `.env` before relying on the environment variable. So for instanve if you want
 the URL to change only for the testnet environment, you could add the line below
 in `.env.testnet`:
 
 ```text
-INTEGRATION_BASE=http://localhost:9546
+HTTP_PROVIDER_URL=http://localhost:6060
 ```

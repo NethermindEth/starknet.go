@@ -28,6 +28,15 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
+type MessageStatusResp struct {
+	// The hash of a L1 handler transaction
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+	FinalityStatus TxnStatus `json:"finality_status"`
+	// The failure reason, only appears if finality_status is REJECTED
+	FailureReason string `json:"failure_reason,omitempty"`
+}
+
 type OrderedMsg struct {
 	// The order of the message within the transaction
 	Order   int `json:"order"`
@@ -122,48 +131,13 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }
 
-type ComputationResources struct {
-	// The number of Cairo steps used
-	Steps int `json:"steps"`
-	// The number of unused memory cells (each cell is roughly equivalent to a step)
-	MemoryHoles int `json:"memory_holes,omitempty"`
-	// The number of RANGE_CHECK builtin instances
-	RangeCheckApps int `json:"range_check_builtin_applications,omitempty"`
-	// The number of Pedersen builtin instances
-	PedersenApps int `json:"pedersen_builtin_applications,omitempty"`
-	// The number of Poseidon builtin instances
-	PoseidonApps int `json:"poseidon_builtin_applications,omitempty"`
-	// The number of EC_OP builtin instances
-	ECOPApps int `json:"ec_op_builtin_applications,omitempty"`
-	// The number of ECDSA builtin instances
-	ECDSAApps int `json:"ecdsa_builtin_applications,omitempty"`
-	// The number of BITWISE builtin instances
-	BitwiseApps int `json:"bitwise_builtin_applications,omitempty"`
-	// The number of KECCAK builtin instances
-	KeccakApps int `json:"keccak_builtin_applications,omitempty"`
-	// The number of accesses to the segment arena
-	SegmentArenaBuiltin int `json:"segment_arena_builtin,omitempty"`
-}
-
-func (er *ComputationResources) Validate() bool {
-	if er.Steps == 0 || er.MemoryHoles == 0 || er.RangeCheckApps == 0 || er.PedersenApps == 0 ||
-		er.PoseidonApps == 0 || er.ECOPApps == 0 || er.ECDSAApps == 0 || er.BitwiseApps == 0 ||
-		er.KeccakApps == 0 || er.SegmentArenaBuiltin == 0 {
-		return false
-	}
-	return true
-}
-
 type ExecutionResources struct {
-	ComputationResources
-	DataAvailability `json:"data_availability"`
-}
-
-type DataAvailability struct {
-	// the gas consumed by this transaction's data, 0 if it uses data gas for DA
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
 	L1Gas uint `json:"l1_gas"`
-	// the data gas consumed by this transaction's data, 0 if it uses gas for DA
+	// data gas consumed by this transaction, 0 if blobs are not used
 	L1DataGas uint `json:"l1_data_gas"`
+	// l2 gas consumed by this transaction, used for computation and calldata
+	L2Gas uint `json:"l2_gas"`
 }
 
 type TxnStatus string
@@ -176,8 +150,14 @@ const (
 )
 
 type TxnStatusResp struct {
-	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
 	FinalityStatus  TxnStatus          `json:"finality_status"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FailureReason   string             `json:"failure_reason,omitempty"`
+}
+
+type NewTxnStatusResp struct {
+	TransactionHash *felt.Felt    `json:"transaction_hash"`
+	Status          TxnStatusResp `json:"status"`
 }
 
 type TransactionReceiptWithBlockInfo struct {
@@ -201,24 +181,19 @@ func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 }
 
 func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
-	var aux struct {
-		TransactionReceipt
-		BlockHash   string `json:"block_hash,omitempty"`
-		BlockNumber uint   `json:"block_number,omitempty"`
-	}
+	type Alias TransactionReceiptWithBlockInfo
+	var txnResp Alias
 
-	if err := json.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &txnResp); err != nil {
 		return err
 	}
 
-	tr.TransactionReceipt = aux.TransactionReceipt
-
-	blockHash, err := new(felt.Felt).SetString(aux.BlockHash)
-	if err != nil {
-		return err
+	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
+	if txnResp.BlockHash == nil {
+		txnResp.BlockHash = new(felt.Felt)
 	}
-	tr.BlockHash = blockHash
-	tr.BlockNumber = aux.BlockNumber
+
+	*tr = TransactionReceiptWithBlockInfo(txnResp)
 
 	return nil
 }
