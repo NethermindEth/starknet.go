@@ -30,6 +30,7 @@ func TestMain(m *testing.M) {
 		"session_MerkleTree",
 		"v1Nested",
 		"allInOne",
+		"example_enumNested",
 	}
 
 	for _, fileName := range fileNames {
@@ -279,6 +280,11 @@ func TestEncodeType(t *testing.T) {
 			TypedData:      typedDataExamples["example_enum"],
 			TypeName:       "Example",
 			ExpectedEncode: `"Example"("someEnum1":"EnumA","someEnum2":"EnumB")"EnumA"("Variant 1":(),"Variant 2":("u128","u128*"),"Variant 3":("u128"))"EnumB"("Variant 1":(),"Variant 2":("u128"))`,
+		},
+		{
+			TypedData:      typedDataExamples["example_enumNested"],
+			TypeName:       "Example",
+			ExpectedEncode: `"Example"("someEnum":"EnumA")"EnumA"("Variant 1":(),"Variant 2":("u128","StructA"))"EnumB"("Variant A":(),"Variant B":("StructB*"))"StructA"("nestedEnum":"EnumB")"StructB"("flag":"bool")`,
 		},
 	}
 	for _, test := range testSet {

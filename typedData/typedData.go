@@ -342,6 +342,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 		return typeDef, fmt.Errorf("can't parse type %s from types %v", typeName, types)
 	}
 
+	// check if the type is already encoded
 	if newTypeDef = types[typeName]; newTypeDef.EncoddingString != "" {
 		return newTypeDef, nil
 	}
@@ -363,7 +364,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 		}
 		// clear the array
 		referencedTypesEnc = make([]string, 0, len(uniqueMap))
-		// fill it again
+		// fill it again, but now without duplicates
 		for typeEncStr := range uniqueMap {
 			referencedTypesEnc = append(referencedTypesEnc, typeEncStr)
 		}
