@@ -134,6 +134,11 @@ func TestGetMessageHash(t *testing.T) {
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x8fa4e453de78c2762493760efd449a38eb46f85b2e02b116b77b3daa9075c8",
 		},
+		{
+			TypedDataName:       "example_enumNested",
+			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+			ExpectedMessageHash: "0x691fc54567306a8ea5431130f1b98299e74a748ac391540a86736f20ef5f2b7",
+		},
 	}
 
 	for _, test := range testSet {
@@ -211,6 +216,11 @@ func TestGetTypeHash(t *testing.T) {
 			TypedDataName: "session_MerkleTree",
 			TypeName:      "Session",
 			ExpectedHash:  "0x1aa0e1c56b45cf06a54534fa1707c54e520b842feb21d03b7deddb6f1e340c",
+		},
+		{
+			TypedDataName: "example_enumNested",
+			TypeName:      "Example",
+			ExpectedHash:  "0x2143bb787fabace39d62e9acf8b6e97d9a369000516c3e6ffd963dc1370fc1a",
 		},
 	}
 	for _, test := range testSet {
