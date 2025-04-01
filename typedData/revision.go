@@ -73,7 +73,6 @@ func init() {
 }
 
 type revision struct {
-	//TODO: create a enum
 	version          uint8
 	domain           string
 	hashMethod       func(felts ...*felt.Felt) *felt.Felt

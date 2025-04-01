@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +22,7 @@ import (
 //
 //	none
 func TestChainID(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ChainID string
@@ -56,7 +56,7 @@ func TestChainID(t *testing.T) {
 //
 //	none
 func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ChainID string
@@ -75,11 +75,11 @@ func TestSyncing(t *testing.T) {
 
 		if testEnv == "mock" {
 			value := SyncStatus{
-				StartingBlockHash: utils.RANDOM_FELT,
+				StartingBlockHash: internalUtils.RANDOM_FELT,
 				StartingBlockNum:  "0x4c602",
-				CurrentBlockHash:  utils.RANDOM_FELT,
+				CurrentBlockHash:  internalUtils.RANDOM_FELT,
 				CurrentBlockNum:   "0x4c727",
-				HighestBlockHash:  utils.RANDOM_FELT,
+				HighestBlockHash:  internalUtils.RANDOM_FELT,
 				HighestBlockNum:   "0x4c727",
 			}
 			require.Exactly(t, &value, sync)

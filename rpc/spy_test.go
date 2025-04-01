@@ -52,12 +52,48 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 // - ctx: the context.Context to be used.
 // - result: the interface{} to store the result of the function call.
 // - method: the string representing the method to be called.
+// - arg: argument to be passed to the function call.
+// Returns:
+// - error: an error if any occurred during the function call
+func (s *spy) CallContext(ctx context.Context, result interface{}, method string, arg interface{}) error {
+	if s.mock {
+		return s.callCloser.CallContext(ctx, result, method, arg)
+	}
+	raw := json.RawMessage{}
+	if s.debug {
+		fmt.Printf("... in parameters\n")
+		fmt.Printf("   arg.(%T): %+v\n", arg, arg)
+	}
+	err := s.callCloser.CallContext(ctx, &raw, method, arg)
+	if err != nil {
+		return err
+	}
+	if s.debug {
+		fmt.Printf("... output\n")
+		data, err := raw.MarshalJSON()
+		if err != nil {
+			return err
+		}
+		fmt.Println("output:", string(data))
+	}
+
+	err = json.Unmarshal(raw, result)
+	s.s = []byte(raw)
+	return err
+}
+
+// CallContextWithSliceArgs calls the spy CallContext function with args as a slice.
+//
+// Parameters:
+// - ctx: the context.Context to be used.
+// - result: the interface{} to store the result of the function call.
+// - method: the string representing the method to be called.
 // - args: variadic arguments to be passed to the function call.
 // Returns:
 // - error: an error if any occurred during the function call
-func (s *spy) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	if s.mock {
-		return s.callCloser.CallContext(ctx, result, method, args...)
+		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
 	}
 	raw := json.RawMessage{}
 	if s.debug {
@@ -66,7 +102,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 			fmt.Printf("   arg[%d].(%T): %+v\n", k, v, v)
 		}
 	}
-	err := s.callCloser.CallContext(ctx, &raw, method, args...)
+	err := s.callCloser.CallContextWithSliceArgs(ctx, &raw, method, args...)
 	if err != nil {
 		return err
 	}
@@ -103,7 +139,7 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
-		return "", Err(InternalError, err)
+		return "", Err(InternalError, StringErrData(err.Error()))
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
 	if debug {
