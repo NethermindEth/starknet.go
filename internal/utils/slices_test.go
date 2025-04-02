@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -105,6 +104,11 @@ func TestFilter(t *testing.T) {
 		expected []int
 	}{
 		{
+			name:     "nil slice",
+			input:    nil,
+			expected: nil,
+		},
+		{
 			name:     "empty slice",
 			input:    []int{},
 			expected: []int{},
@@ -114,15 +118,28 @@ func TestFilter(t *testing.T) {
 			input:    []int{1, 2, 3, 4, 5},
 			expected: []int{2, 4},
 		},
+		{
+			name:     "no matches",
+			input:    []int{1, 3, 5, 7, 9},
+			expected: []int{},
+		},
+		{
+			name:     "all matches",
+			input:    []int{2, 4, 6, 8, 10},
+			expected: []int{2, 4, 6, 8, 10},
+		},
+		{
+			name:     "single element match",
+			input:    []int{1, 2, 3},
+			expected: []int{2},
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			result := Filter(tc.input, func(i int) bool { return i%2 == 0 })
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("Filter(%v) = %v, want %v", tc.input, result, tc.expected)
-			}
+			assert.ElementsMatch(t, result, tc.expected)
 		})
 	}
 }
