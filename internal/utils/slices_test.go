@@ -143,3 +143,65 @@ func TestFilter(t *testing.T) {
 		})
 	}
 }
+
+func TestAll(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    []int
+		pred     func(int) bool
+		expected bool
+	}{
+		{
+			name:     "nil slice",
+			input:    nil,
+			pred:     func(i int) bool { return true },
+			expected: true,
+		},
+		{
+			name:     "empty slice",
+			input:    []int{},
+			pred:     func(i int) bool { return true },
+			expected: true,
+		},
+		{
+			name:     "all even numbers",
+			input:    []int{2, 4, 6, 8, 10},
+			pred:     func(i int) bool { return i%2 == 0 },
+			expected: true,
+		},
+		{
+			name:     "mixed numbers",
+			input:    []int{2, 3, 4, 6, 8},
+			pred:     func(i int) bool { return i%2 == 0 },
+			expected: false,
+		},
+		{
+			name:     "all odd numbers",
+			input:    []int{1, 3, 5, 7, 9},
+			pred:     func(i int) bool { return i%2 == 1 },
+			expected: true,
+		},
+		{
+			name:     "single element true",
+			input:    []int{2},
+			pred:     func(i int) bool { return i%2 == 0 },
+			expected: true,
+		},
+		{
+			name:     "single element false",
+			input:    []int{1},
+			pred:     func(i int) bool { return i%2 == 0 },
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			result := All(tc.input, tc.pred)
+			assert.Equal(t, result, tc.expected)
+		})
+	}
+}
