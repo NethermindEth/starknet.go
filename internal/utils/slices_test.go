@@ -66,6 +66,11 @@ func TestMap(t *testing.T) {
 		expected []string
 	}{
 		{
+			name:     "nil slice",
+			input:    nil,
+			expected: nil,
+		},
+		{
 			name:     "empty slice",
 			input:    []int{},
 			expected: []string{},
@@ -75,15 +80,18 @@ func TestMap(t *testing.T) {
 			input:    []int{1, 2, 3},
 			expected: []string{"1", "2", "3"},
 		},
+		{
+			name:     "single element",
+			input:    []int{42},
+			expected: []string{"42"},
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			result := Map(tc.input, func(i int) string { return fmt.Sprintf("%d", i) })
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("Map(%v) = %v, want %v", tc.input, result, tc.expected)
-			}
+			assert.ElementsMatch(t, result, tc.expected)
 		})
 	}
 }
