@@ -12,8 +12,8 @@
     <a href="https://github.com/nethermindeth/starknet.go/blob/main/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-black">
     </a>
-    <a href="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml">
-        <img src="https://github.com/nethermindeth/starknet.go/actions/workflows/test.yml/badge.svg?branch=main" alt="test">
+    <a href="https://github.com/NethermindEth/starknet.go/actions">
+        <img src="https://github.com/NethermindEth/starknet.go/actions/workflows/github-code-scanning/codeql/badge.svg" alt="Code QL">
     </a>
     <a href="https://github.com/NethermindEth/starknet.go/stargazers">
       <img src="https://img.shields.io/github/stars/nethermindeth/starknet.go?style=social"/>
