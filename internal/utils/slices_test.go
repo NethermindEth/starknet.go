@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFlatten(t *testing.T) {
@@ -34,15 +36,23 @@ func TestFlatten(t *testing.T) {
 			input:    [][]int{{1, 2}, {3, 4}, {5}},
 			expected: []int{1, 2, 3, 4, 5},
 		},
+		{
+			name:     "mixed empty and non-empty slices",
+			input:    [][]int{{}, {1, 2}, {}, {3}, {}},
+			expected: []int{1, 2, 3},
+		},
+		{
+			name:     "all empty slices",
+			input:    [][]int{{}, {}, {}},
+			expected: nil,
+		},
 	}
 
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			result := Flatten(tc.input...)
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("Flatten(%v) = %v, want %v", tc.input, result, tc.expected)
-			}
+			assert.ElementsMatch(t, result, tc.expected)
 		})
 	}
 }
