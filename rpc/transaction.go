@@ -2,67 +2,9 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
-
-var (
-	feltZero = new(felt.Felt).SetUint64(0)
-	feltOne  = new(felt.Felt).SetUint64(1)
-	feltTwo  = new(felt.Felt).SetUint64(2)
-)
-
-// adaptTransaction adapts a TXN to a Transaction and returns it, along with any error encountered.
-//
-// Parameters:
-// - t: the TXN to be adapted to a Transaction
-// Returns:
-// - Transaction: a Transaction
-// - error: an error if the adaptation failed.
-func adaptTransaction(t TXN) (Transaction, error) {
-	txMarshalled, err := json.Marshal(t)
-	if err != nil {
-		return nil, err
-	}
-	switch t.Type {
-	case TransactionType_Invoke:
-		var tx InvokeTxnV1
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	case TransactionType_Declare:
-		switch {
-		case t.Version.Equal(feltZero):
-			var tx DeclareTxnV0
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
-		case t.Version.Equal(feltOne):
-			var tx DeclareTxnV1
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
-		case t.Version.Equal(feltTwo):
-			var tx DeclareTxnV2
-			json.Unmarshal(txMarshalled, &tx)
-			return tx, nil
-		}
-	case TransactionType_Deploy:
-		var tx DeployTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	case TransactionType_DeployAccount:
-		var tx DeployAccountTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	case TransactionType_L1Handler:
-		var tx L1HandlerTxn
-		json.Unmarshal(txMarshalled, &tx)
-		return tx, nil
-	}
-	return nil, errors.New(fmt.Sprint("internal error with adaptTransaction() : unknown transaction type ", t.Type))
-
-}
 
 // TransactionByHash retrieves the details and status of a transaction by its hash.
 //
@@ -70,15 +12,14 @@ func adaptTransaction(t TXN) (Transaction, error) {
 // - ctx: The context.Context object for the request.
 // - hash: The hash of the transaction.
 // Returns:
-// - Transaction: The retrieved Transaction
+// - BlockTransaction: The retrieved Transaction
 // - error: An error if any
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (Transaction, error) {
-	// todo: update to return a custom Transaction type, then use adapt function
-	var tx TXN
+func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error) {
+	var tx BlockTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-			return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)	
-}
-	return adaptTransaction(tx)
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+	}
+	return &tx, nil
 }
 
 // TransactionByBlockIdAndIndex retrieves a transaction by its block ID and index.
@@ -88,16 +29,14 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 // - blockID: The ID of the block containing the transaction.
 // - index: The index of the transaction within the block.
 // Returns:
-// - Transaction: The retrieved Transaction object
+// - BlockTransaction: The retrieved Transaction object
 // - error: An error, if any
-func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (Transaction, error) {
-	var tx TXN
+func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error) {
+	var tx BlockTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
-		
-		return nil,tryUnwrapToRPCErr(err,  ErrInvalidTxnIndex ,ErrBlockNotFound)
-
+		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}
-	return adaptTransaction(tx)
+	return &tx, nil
 }
 
 // TransactionReceipt fetches the transaction receipt for a given transaction hash.
@@ -108,13 +47,13 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 // Returns:
 // - TransactionReceipt: the transaction receipt
 // - error: an error if any
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (TransactionReceipt, error) {
-	var receipt UnknownTransactionReceipt
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error) {
+	var receipt TransactionReceiptWithBlockInfo
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err,ErrHashNotFound)
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
-	return receipt.TransactionReceipt, nil
+	return &receipt, nil
 }
 
 // GetTransactionStatus gets the transaction status (possibly reflecting that the tx is still in the mempool, or dropped from it)
@@ -131,4 +70,21 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
 	return &receipt, nil
+}
+
+// Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages sent by the l1 transaction, ordered by the L1 tx sending order
+//
+// Parameters:
+// - ctx: the context.Context object for cancellation and timeouts.
+// - transactionHash: The hash of the L1 transaction that sent L1->L2 messages
+// Returns:
+// - [] MessageStatusResp: An array containing the status of the messages sent by the L1 transaction
+// - error, if one arose.
+func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatusResp, error) {
+	var response []MessageStatusResp
+	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
+	if err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+	}
+	return response, nil
 }

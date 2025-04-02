@@ -13,7 +13,7 @@ jobs:
 
     services:
       devnet:
-        image: shardlabs/starknet-devnet:0.5.5
+        image: shardlabs/starknet-devnet-rs:0.2.4
         ports:
           - 5050:5050
 
@@ -29,12 +29,20 @@ jobs:
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 
+      # Test Account on testnet
+      - name: Test Account on testnet
+        run: cd account && go test -timeout 600s -v -env testnet .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.TESTNET_ACCOUNT_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
+
       # Test Account on devnet
       - name: Test Account on devnet
         run: cd account && go test -timeout 600s -v -env devnet .
         env:
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          INTEGRATION_BASE: "http://0.0.0.0:5050"
+          HTTP_PROVIDER_URL: "http://localhost:5050"
 
       # Test Account on mock
       - name: Test Account with mocks

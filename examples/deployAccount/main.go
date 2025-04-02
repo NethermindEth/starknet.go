@@ -3,53 +3,45 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
-	"github.com/joho/godotenv"
+
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 var (
-	network              string = "testnet"
-	predeployedClassHash        = "0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a"
-	accountAddress              = "0xdeadbeef"
+	// OpenZeppelin Account Class Hash in Sepolia
+	predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"
 )
 
-// main initializes the client, sets up the account, deploys a contract, and sends a transaction to the network.
+// main initializes the client, sets up the temporary account, precomputes the address of the new account,
+// estimates deployment fees, and prepares for the account deployment transaction.
 //
-// It loads environment variables, dials the Ethereum RPC, creates a new account, casts the account address to a felt type,
-// sets up the account using the client, converts the predeployed class hash to a felt type, creates transaction data,
-// precomputes an address, prompts the user to add funds to the precomputed address, signs the transaction,
-// and finally sends the transaction to the network.
-//
-// Parameters:
-//   none
-// Returns:
-//  none
+// It loads environment variables, initializes a Starknet RPC client, generates random cryptographic keys,
+// sets up an account with the generated keys, precomputes the address of a new account, estimates deployment fees,
+// and prepares for the account deployment transaction.
 func main() {
+	// Load variables from '.env' file
+	rpcProviderUrl := setup.GetRpcProviderUrl()
+
 	// Initialise the client.
-	godotenv.Load(fmt.Sprintf(".env.%s", network))
-	base := os.Getenv("INTEGRATION_BASE")
-	c, err := ethrpc.DialContext(context.Background(), base)
+	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic("You need to specify the testnet url in .env.testnet")
-	}
-	clientv02 := rpc.NewProvider(c)
-
-	// Get random keys for test purposes
-	ks, pub, _ := account.GetRandomKeys()
-
-	accountAddressFelt, err := new(felt.Felt).SetString(accountAddress)
-	if err != nil {
-		panic("Error casting accountAddress to felt")
+		panic(err)
 	}
 
-	// Set up account
-	acnt, err := account.NewAccount(clientv02, accountAddressFelt, pub.String(), ks)
+	// Get random keys for being able to sign the deploy transaction.
+	// These keys will always be used to sign transactions in the new account.
+	ks, pub, privKey := account.GetRandomKeys()
+	fmt.Printf("Generated public key: %v\n", pub)
+	fmt.Printf("Generated private key: %v\n", privKey)
+
+	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
+	// as for this case we only need the 'ks' to sign the deploy transaction.
+	accnt, err := account.NewAccount(client, pub, pub.String(), ks, 2)
 	if err != nil {
 		panic(err)
 	}
@@ -59,39 +51,39 @@ func main() {
 		panic(err)
 	}
 
-	// Create transaction data
-	tx := rpc.DeployAccountTxn{
-		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
-		MaxFee:              new(felt.Felt).SetUint64(4724395326064),
-		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{},
-		ClassHash:           classHash,
-		ContractAddressSalt: pub,
-		ConstructorCalldata: []*felt.Felt{pub},
-	}
-
-	precomputedAddress, err := acnt.PrecomputeAddress(&felt.Zero, pub, classHash, tx.ConstructorCalldata)
-	fmt.Println("precomputedAddress:", precomputedAddress)
-
-	// At this point you need to add funds to precomputed address to use it.
-	var input string
-
-	fmt.Println("The `precomputedAddress` account needs to have enough ETH to perform a transaction.")
-	fmt.Println("Use the starknet faucet to send ETH to your `precomputedAddress`")
-	fmt.Println("When your account has been funded by the faucet, press any key, then `enter` to continue : ")
-	fmt.Scan(&input)
-
-	// Sign the transaction
-	err = acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress)
+	// Build and estimate fees for the deploy account transaction, and precompute the address of the new account.
+	// In our case, the OZ account constructor requires the public key of the account as calldata, so we pass it as calldata.
+	// The multiplier for the fee estimation is 1.5, as we want to be sure that the transaction will be accepted.
+	deployAccountTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(context.Background(), pub, classHash, []*felt.Felt{pub}, 1.5)
 	if err != nil {
 		panic(err)
 	}
 
-	// Send transaction to the network
-	resp, err := acnt.AddDeployAccountTransaction(context.Background(), rpc.BroadcastDeployAccountTxn{DeployAccountTxn: tx})
+	fmt.Println("PrecomputedAddress:", setup.PadZerosInFelt(precomputedAddress))
+
+	// Convert the estimated fee to STRK. The multiplier is 1, as we already estimated the fee in BuildAndEstimateDeployAccountTxn multiplying by 1.5.
+	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1)
 	if err != nil {
-		panic(fmt.Sprint("Error returned from AddDeployAccountTransaction: ", err))
+		panic(err)
 	}
-	fmt.Println("AddDeployAccountTransaction response:", resp)
+	feeInSTRK := utils.FRIToSTRK(overallFee)
+
+	// At this point you need to add funds to precomputed address to use it.
+	var input string
+
+	fmt.Println("\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.")
+	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n", feeInSTRK)
+	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
+	fmt.Scan(&input)
+
+	// Send transaction to the network
+	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)
+	if err != nil {
+		fmt.Println("Error returned from SendTransaction: ")
+		panic(err)
+	}
+
+	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
+	fmt.Printf("Transaction hash: %v \n", resp.TransactionHash)
+	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }

@@ -1,10 +1,12 @@
 package rpc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -23,6 +25,15 @@ type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
 	Tag    string     `json:"block_tag,omitempty"`
+}
+
+// checkForPending checks if the block ID has the 'pending' tag. If it does, it returns an error.
+// This is used to prevent the user from using the 'pending' tag on methods that do not support it.
+func checkForPending(b BlockID) error {
+	if b.Tag == "pending" {
+		return errors.Join(ErrInvalidBlockID, errors.New("'pending' tag is not supported on this method"))
+	}
+	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
@@ -55,7 +66,6 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	return nil, ErrInvalidBlockID
-
 }
 
 type BlockStatus string
@@ -123,6 +133,28 @@ type PendingBlock struct {
 	BlockTransactions
 }
 
+// encoding/json doesn't support inlining fields
+type BlockWithReceipts struct {
+	BlockHeader
+	Status BlockStatus `json:"status"`
+	BlockBodyWithReceipts
+}
+
+type BlockBodyWithReceipts struct {
+	Transactions []TransactionWithReceipt `json:"transactions"`
+}
+
+type TransactionWithReceipt struct {
+	Transaction BlockTransaction   `json:"transaction"`
+	Receipt     TransactionReceipt `json:"receipt"`
+}
+
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+type PendingBlockWithReceipts struct {
+	PendingBlockHeader
+	BlockBodyWithReceipts
+}
+
 type BlockTxHashes struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
@@ -150,8 +182,48 @@ type BlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
+}
+
+type L1DAMode int
+
+const (
+	L1DAModeBlob L1DAMode = iota
+	L1DAModeCalldata
+)
+
+func (mode L1DAMode) String() string {
+	switch mode {
+	case L1DAModeBlob:
+		return "BLOB"
+	case L1DAModeCalldata:
+		return "CALLDATA"
+	default:
+		return "Unknown L1DAMode"
+	}
+}
+
+func (mode *L1DAMode) UnmarshalJSON(b []byte) error {
+	str := strings.Trim(string(b), "\"")
+	switch str {
+	case "BLOB":
+		*mode = L1DAModeBlob
+	case "CALLDATA":
+		*mode = L1DAModeCalldata
+	default:
+		return fmt.Errorf("unknown L1DAMode: %s", str)
+	}
+	return nil
+}
+func (mode L1DAMode) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mode.String())
 }
 
 type PendingBlockHeader struct {
@@ -163,13 +235,19 @@ type PendingBlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
 }
 
 type ResourcePrice struct {
 	// the price of one unit of the given resource, denominated in fri (10^-18 strk)
-	PriceInFRI *felt.Felt `json:"price_in_strk,omitempty"`
+	PriceInFRI *felt.Felt `json:"price_in_fri,omitempty"`
 	// The price of one unit of the given resource, denominated in wei
 	PriceInWei *felt.Felt `json:"price_in_wei"`
 }

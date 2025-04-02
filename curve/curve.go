@@ -18,6 +18,7 @@ import (
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 var Curve StarkCurve
@@ -71,11 +72,14 @@ type StarkCurvePayload struct {
 //
 // Note: Not all operations require a stark curve initialization including the provided constant points.
 // This function can be used to initialize the curve without the constant points.
-// 
+//
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
-//  none
+//
+//	none
 func init() {
 	if err := json.Unmarshal(PedersenParamsRaw, &PedersenParams); err != nil {
 		log.Fatalf("unmarshalling pedersen params: %v", err)
@@ -200,7 +204,7 @@ func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
 	return x, y
 }
 
-// ScalarBaseMult returns the result of multiplying the base point of the StarkCurve 
+// ScalarBaseMult returns the result of multiplying the base point of the StarkCurve
 // by the given scalar value.
 //
 // Parameters:
@@ -493,8 +497,6 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 		s := sc.InvModCurveSize(w)
 		return r, s, nil
 	}
-
-	return x, y, nil
 }
 
 // SignFelt signs a message hash with a private key using the StarkCurve.
@@ -519,107 +521,89 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	return xFelt, yFelt, nil
 }
 
-// HashElements calculates the hash of a list of elements using the StarkCurve struct and a golang Pedersen Hash.
-// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-//
+// HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
 // Parameters:
 // - elems: slice of big.Int pointers to be hashed
 // Returns:
 // - hash: The hash of the list of elements
-// - err: An error if any
-func (sc StarkCurve) HashElements(elems []*big.Int) (hash *big.Int, err error) {
+func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
+	feltArr := internalUtils.BigIntArrToFeltArr(elems)
 	if len(elems) == 0 {
-		elems = append(elems, big.NewInt(0))
+		feltArr = append(feltArr, new(felt.Felt))
 	}
 
-	hash = big.NewInt(0)
-	for _, h := range elems {
-		hash, err = sc.PedersenHash([]*big.Int{hash, h})
-		if err != nil {
-			return hash, err
-		}
+	feltHash := new(felt.Felt)
+	for _, felt := range feltArr {
+		feltHash = Pedersen(feltHash, felt)
 	}
-	return hash, err
+
+	hash = internalUtils.FeltToBigInt(feltHash)
+	return
 }
 
 // ComputeHashOnElements computes the hash on the given elements using a golang Pedersen Hash implementation.
-// (ref: https://github.com/starkware-libs/cairo-lang/blob/13cef109cd811474de114925ee61fd5ac84a25eb/src/starkware/cairo/common/hash_state.py#L6)
 //
-// The function appends the length of `elems` to the slice and then calls the `HashElements` method of the
-// `Curve` struct, passing in `elems` as an argument. The resulting hash and
-// any error that occurred during computation are returned.
+// The function appends the length of `elems` to the slice and then calls the `HashPedersenElements` method
+// passing in `elems` as an argument. The resulting hash is returned.
 //
 // Parameters:
 // - elems: slice of big.Int pointers to be hashed
 // Returns:
 // - hash: The hash of the list of elements
-// - err: An error if any
-func (sc StarkCurve) ComputeHashOnElements(elems []*big.Int) (hash *big.Int, err error) {
+func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
-	return Curve.HashElements((elems))
+	return HashPedersenElements(elems)
 }
 
-// PedersenHash calculates the Pedersen hash of the given elements.
-// NOTE: This function assumes the curve has been initialized with constant points
-// (ref: https://github.com/seanjameshan/starknet.js/blob/main/src/utils/ellipticCurve.ts)
-//
-// The function requires that the precomputed constant points have been initiated.
-// If the length of `sc.ConstantPoints` is zero, an error is returned.
-// The function iterates over the elements in `elems` and performs the Pedersen hash calculation.
-// For each element, it checks if the value is within the valid range.
-// If the value is invalid, an error is returned.
-// For each bit in the element, the function performs an addition operation on `ptx` and `pty`
-// using the corresponding constant point from the precomputed constant points.
-// If the constant point is a duplicate of `ptx`, an error is returned.
-// The function returns the resulting hash and a nil error if the calculation is successful.
-// Otherwise, it returns `ptx` and an error describing the issue encountered.
+// Pedersen is a function that implements the Pedersen hash.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L20)
 //
 // Parameters:
-// - elems: An array of big integers representing the elements to hash.
+// - a: a pointers to felt.Felt to be hashed.
+// - b: a pointers to felt.Felt to be hashed.
 // Returns:
-// - hash: The resulting Pedersen hash as a big integer.
-// - err: An error, if any, encountered during the calculation.
-func (sc StarkCurve) PedersenHash(elems []*big.Int) (hash *big.Int, err error) {
-	if len(sc.ConstantPoints) == 0 {
-		return hash, fmt.Errorf("must initiate precomputed constant points")
-	}
-
-	ptx := new(big.Int).Set(sc.Gx)
-	pty := new(big.Int).Set(sc.Gy)
-	for i, elem := range elems {
-		x := new(big.Int).Set(elem)
-
-		if x.Cmp(big.NewInt(0)) != -1 && x.Cmp(sc.P) != -1 {
-			return ptx, fmt.Errorf("invalid x: %v", x)
-		}
-
-		for j := 0; j < 252; j++ {
-			idx := 2 + (i * 252) + j
-			xin := new(big.Int).Set(sc.ConstantPoints[idx][0])
-			yin := new(big.Int).Set(sc.ConstantPoints[idx][1])
-			if xin.Cmp(ptx) == 0 {
-				return hash, fmt.Errorf("constant point duplication: %v %v", ptx, xin)
-			}
-			if x.Bit(0) == 1 {
-				ptx, pty = sc.Add(ptx, pty, xin, yin)
-			}
-			x = x.Rsh(x, 1)
-		}
-	}
-
-	return ptx, nil
+// - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Pedersen(a, b *felt.Felt) *felt.Felt {
+	return junoCrypto.Pedersen(a, b)
 }
 
-// PoseidonArray is a function that takes a variadic number of felt.Felt pointers as parameters and
+// Poseidon is a function that implements the Poseidon hash.
 // NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
-// calls the PoseidonArray function from the junoCrypto package with the provided parameters.
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/poseidon_hash.go#L59)
+//
+// Parameters:
+// - a: a pointers to felt.Felt to be hashed.
+// - b: a pointers to felt.Felt to be hashed.
+// Returns:
+// - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Poseidon(a, b *felt.Felt) *felt.Felt {
+	return junoCrypto.Poseidon(a, b)
+}
+
+// PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
+// calls the PedersenArray function from the junoCrypto package with the provided parameters.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L12)
 //
 // Parameters:
 // - felts: A variadic number of pointers to felt.Felt
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
-func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
+func PedersenArray(felts ...*felt.Felt) *felt.Felt {
+	return junoCrypto.PedersenArray(felts...)
+}
+
+// PoseidonArray is a function that takes a variadic number of felt.Felt pointers as parameters and
+// calls the PoseidonArray function from the junoCrypto package with the provided parameters.
+// NOTE: This function just wraps the Juno implementation
+// (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
+//
+// Parameters:
+// - felts: A variadic number of pointers to felt.Felt
+// Returns:
+// - *felt.Felt: pointer to a felt.Felt
+func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PoseidonArray(felts...)
 }
 
@@ -632,7 +616,7 @@ func (sc StarkCurve) PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 // - *felt.Felt: pointer to a felt.Felt
 // - error: An error if any
-func (sc StarkCurve) StarknetKeccak(b []byte) (*felt.Felt, error) {
+func StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
 }
 
@@ -721,8 +705,8 @@ func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 
 // PrivateToPoint generates a point on the StarkCurve from a private key.
 //
-// It takes a private key as a parameter and returns the x and y coordinates of 
-// the generated point on the curve. If the private key is not within the range 
+// It takes a private key as a parameter and returns the x and y coordinates of
+// the generated point on the curve. If the private key is not within the range
 // of the curve, it returns an error.
 //
 // Parameters:
@@ -737,4 +721,49 @@ func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error)
 	}
 	x, y = sc.EcMult(privKey, sc.EcGenX, sc.EcGenY)
 	return x, y, nil
+}
+
+// VerifySignature verifies the ECDSA signature of a given message hash using the provided public key.
+//
+// It takes the message hash, the r and s values of the signature, and the public key as strings and
+// verifies the signature using the public key.
+//
+// Parameters:
+// - msgHash: The hash of the message to be verified as a string
+// - r: The r value (the first part) of the signature as a string
+// - s: The s value (the second part) of the signature as a string
+// - pubKey: The public key (only the x coordinate) as a string
+// Return values:
+// - bool: A boolean indicating whether the signature is valid
+// - error: An error if any occurred during the verification process
+func VerifySignature(msgHash, r, s, pubKey string) bool {
+	feltMsgHash, err := new(felt.Felt).SetString(msgHash)
+	if err != nil {
+		return false
+	}
+	feltR, err := new(felt.Felt).SetString(r)
+	if err != nil {
+		return false
+	}
+	feltS, err := new(felt.Felt).SetString(s)
+	if err != nil {
+		return false
+	}
+	pubKeyFelt, err := new(felt.Felt).SetString(pubKey)
+	if err != nil {
+		return false
+	}
+
+	signature := junoCrypto.Signature{
+		R: *feltR,
+		S: *feltS,
+	}
+
+	pubKeyStruct := junoCrypto.NewPublicKey(pubKeyFelt)
+	resp, err := pubKeyStruct.Verify(&signature, feltMsgHash)
+	if err != nil {
+		return false
+	}
+
+	return resp
 }
