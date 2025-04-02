@@ -124,7 +124,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 	}
 }
 
-func TestAddDeployAccountTansaction(t *testing.T) {
+func TestAddDeployAccountTransaction(t *testing.T) {
 
 	testConfig := beforeEach(t, false)
 
