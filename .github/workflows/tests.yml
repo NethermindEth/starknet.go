@@ -21,8 +21,13 @@ jobs:
         component: [rpc, account]
 
     steps:
-      - name: Branch and Go setup
-        uses: ./.github/actions
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
 
       - name: Run tests on testnet
         run: cd ${{ inputs.component }} && go test -timeout 120s -v -env testnet .
