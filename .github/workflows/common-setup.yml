@@ -18,10 +18,10 @@ jobs:
 
     services:
       devnet:
+        if: inputs.environment == 'devnet'
         image: shardlabs/starknet-devnet-rs:0.2.4
         ports:
           - 5050:5050
-        if: ${{ inputs.environment == 'devnet' }}
 
     steps:
       - name: Checkout branch
