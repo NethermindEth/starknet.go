@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -13,6 +12,34 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
+type MockContractBackend struct {
+	*rpc.Provider
+}
+
+func (m *MockContractBackend) Call(call rpc.FunctionCall, blockID rpc.BlockID) ([]*felt.Felt, error) {
+	return m.Provider.Call(context.Background(), call, blockID)
+}
+
+func (m *MockContractBackend) Invoke(opts *bind.TransactOpts, call rpc.FunctionCall) (*bind.InvokeTxnResponse, error) {
+	return &bind.InvokeTxnResponse{
+		TransactionHash: utils.Uint64ToFelt(1), // Dummy transaction hash
+	}, nil
+}
+
+func (m *MockContractBackend) FilterEvents(ctx context.Context, filter bind.EventFilter) ([]bind.Event, error) {
+	return []bind.Event{}, nil
+}
+
+func (m *MockContractBackend) DeployContract(opts *bind.TransactOpts, bytecode []byte, constructorArgs []*felt.Felt) (*felt.Felt, *bind.AddTxnResponse, error) {
+	contractAddress := utils.Uint64ToFelt(1000) // Dummy contract address
+	
+	resp := &bind.AddTxnResponse{
+		TransactionHash: utils.Uint64ToFelt(2000), // Dummy transaction hash
+		ContractAddress: contractAddress,
+	}
+	
+	return contractAddress, resp, nil
+}
 
 func main() {
 	provider, err := rpc.NewProvider("https://starknet-testnet.public.blastapi.io/rpc/v0_6")
@@ -20,19 +47,19 @@ func main() {
 		log.Fatalf("Failed to create provider: %v", err)
 	}
 
+	backend := &MockContractBackend{Provider: provider}
+
 	contractAddress, err := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
 	if err != nil {
 		log.Fatalf("Failed to parse contract address: %v", err)
 	}
 
-	contract, err := NewSimpleContract(contractAddress, provider)
+	contract, err := NewSimpleContract(contractAddress, backend)
 	if err != nil {
 		log.Fatalf("Failed to create contract instance: %v", err)
 	}
 
-	balance, err := contract.GetBalance(&bind.CallOpts{
-		Context: context.Background(),
-	})
+	balance, err := contract.GetBalance(&bind.CallOpts{})
 	if err != nil {
 		log.Fatalf("Failed to get balance: %v", err)
 	}
@@ -44,14 +71,10 @@ func main() {
 	}
 
 	opts := &bind.TransactOpts{
-		From:    privateKey,
-		Context: context.Background(),
+		From: privateKey,
 	}
 
-	amount, err := felt.NewFelt(big.NewInt(100))
-	if err != nil {
-		log.Fatalf("Failed to create amount: %v", err)
-	}
+	amount := new(felt.Felt).SetUint64(100)
 
 	tx, err := contract.IncreaseBalance(opts, amount)
 	if err != nil {
@@ -59,27 +82,24 @@ func main() {
 	}
 	fmt.Printf("Transaction hash: %s\n", tx.TransactionHash.String())
 
-	receipt, err := provider.WaitForTransaction(context.Background(), tx.TransactionHash, 5, 1)
+	receipt, err := provider.TransactionReceipt(context.Background(), tx.TransactionHash)
 	if err != nil {
-		log.Fatalf("Failed to wait for transaction: %v", err)
+		log.Fatalf("Failed to get transaction receipt: %v", err)
 	}
 
-	if receipt.Status == "ACCEPTED_ON_L2" {
+	if receipt.FinalityStatus == "ACCEPTED_ON_L2" {
 		fmt.Println("Transaction confirmed successfully!")
 	} else {
-		fmt.Printf("Transaction failed with status: %s\n", receipt.Status)
+		fmt.Printf("Transaction failed with status: %s\n", receipt.FinalityStatus)
 		os.Exit(1)
 	}
 
-	newBalance, err := contract.GetBalance(&bind.CallOpts{
-		Context: context.Background(),
-	})
+	newBalance, err := contract.GetBalance(&bind.CallOpts{})
 	if err != nil {
 		log.Fatalf("Failed to get updated balance: %v", err)
 	}
 	fmt.Printf("New balance: %s\n", newBalance.String())
 }
-
 
 type SimpleContract struct {
 	SimpleContractCaller
@@ -109,12 +129,12 @@ func NewSimpleContract(address *felt.Felt, backend bind.ContractBackend) (*Simpl
 }
 
 func (_SimpleContract *SimpleContractCaller) GetBalance(opts *bind.CallOpts) (*felt.Felt, error) {
-	return felt.NewFelt(big.NewInt(500))
+	return new(felt.Felt).SetUint64(500), nil
 }
 
-func (_SimpleContract *SimpleContractTransactor) IncreaseBalance(opts *bind.TransactOpts, amount *felt.Felt) (*rpc.InvokeTxnResponse, error) {
+func (_SimpleContract *SimpleContractTransactor) IncreaseBalance(opts *bind.TransactOpts, amount *felt.Felt) (*rpc.AddInvokeTransactionResponse, error) {
 	txHash, _ := utils.HexToFelt("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890")
-	return &rpc.InvokeTxnResponse{
+	return &rpc.AddInvokeTransactionResponse{
 		TransactionHash: txHash,
 	}, nil
 }
