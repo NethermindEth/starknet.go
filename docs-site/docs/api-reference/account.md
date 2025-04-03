@@ -17,18 +17,23 @@ StarkNet.go supports different account implementations:
 
 ## Account Interface
 
-The `account.Account` interface defines the methods that all account implementations must provide:
+The `account.AccountInterface` defines the methods that all account implementations must provide:
 
 ```go
-type Account interface {
-    Address() string
-    PublicKey() string
-    ChainID() string
-    Signer() Signer
-    Deployer() Deployer
-    Executor() Executor
-    Declarer() Declarer
-    Estimator() Estimator
+type AccountInterface interface {
+    BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+    BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
+    BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+    Nonce(ctx context.Context) (*felt.Felt, error)
+    SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
+    Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
+    SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
+    SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error
+    SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error
+    TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
+    TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
+    TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
+    WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 ```
 
@@ -54,9 +59,21 @@ func main() {
     }
     
     // Account details
-    accountAddress := "0x..." // Your account address
-    publicKey := "0x..."      // Your public key
-    privateKey := "0x..."     // Your private key
+    accountAddressHex := "0x..." // Your account address as hex string
+    publicKey := "0x..."         // Your public key
+    privateKeyHex := "0x..."     // Your private key as hex string
+    
+    // Convert address from hex string to felt.Felt
+    accountAddress, err := new(felt.Felt).SetString(accountAddressHex)
+    if err != nil {
+        panic(err)
+    }
+    
+    // Convert private key from hex string to big.Int
+    privateKey, ok := new(big.Int).SetString(privateKeyHex, 0)
+    if !ok {
+        panic("Error converting private key to big.Int")
+    }
     
     // Create a keystore for the account
     keystore := account.NewMemKeystore()
@@ -105,13 +122,44 @@ fmt.Printf("Precomputed account address: 0x%s\n", accountAddress.Text(16))
 To deploy an account contract:
 
 ```go
-// Deploy the account
-deployTx, err := acc.Deploy(context.Background(), salt, classHash, constructorCalldata)
+// Prepare deployment parameters
+salt, err := new(felt.Felt).SetString("0x01")
 if err != nil {
     panic(err)
 }
 
-fmt.Printf("Deploy transaction hash: 0x%s\n", deployTx.TransactionHash.Text(16))
+classHash, err := new(felt.Felt).SetString("0x123...") // Class hash of the account contract
+if err != nil {
+    panic(err)
+}
+
+// Convert constructor calldata to []*felt.Felt
+constructorCalldata := []*felt.Felt{
+    internalUtils.HexToFelt("0x456..."), // Public key
+}
+
+// Build and estimate the deploy account transaction
+deployTx, precomputedAddress, err := acc.BuildAndEstimateDeployAccountTxn(
+    context.Background(),
+    salt,
+    classHash,
+    constructorCalldata,
+    1.5, // Fee multiplier (50% buffer)
+)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("Precomputed account address: 0x%s\n", precomputedAddress.Text(16))
+fmt.Println("Fund this address with STRK tokens before sending the transaction")
+
+// After funding, send the transaction
+txResponse, err := acc.SendTransaction(context.Background(), deployTx)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("Deploy transaction hash: 0x%s\n", txResponse.TransactionHash.Text(16))
 ```
 
 ## Executing Transactions
@@ -120,18 +168,28 @@ To execute a transaction (invoke a contract function):
 
 ```go
 // Create a function call
-functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
+contractAddressFelt, err := new(felt.Felt).SetString("0x...")
+if err != nil {
+    panic(err)
+}
+
+// Create an invoke function call
+functionCall := rpc.InvokeFunctionCall{
+    ContractAddress:    contractAddressFelt,
     EntryPointSelector: utils.GetSelectorFromName("transfer"),
-    Calldata: []string{
-        "0x...", // Recipient address
-        "1000",  // Amount (in wei)
-        "0",     // Amount high bits (for large numbers)
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Recipient address
+        internalUtils.HexToFelt("1000"),  // Amount (in wei)
+        internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
     },
 }
 
-// Execute the transaction
-tx, err := acc.Execute(context.Background(), []rpc.FunctionCall{functionCall}, nil)
+// Build and send the invoke transaction
+tx, err := acc.BuildAndSendInvokeTxn(
+    context.Background(),
+    []rpc.InvokeFunctionCall{functionCall},
+    1.5, // Fee multiplier (50% buffer)
+)
 if err != nil {
     panic(err)
 }
@@ -155,14 +213,13 @@ if err != nil {
     panic(err)
 }
 
-// Calculate the compiled class hash
-compiledClassHash, err := contracts.ComputeCompiledClassHash(casm)
-if err != nil {
-    panic(err)
-}
-
-// Declare the contract
-tx, err := acc.Declare(context.Background(), sierra, compiledClassHash)
+// Build and send the declare transaction
+tx, err := acc.BuildAndSendDeclareTxn(
+    context.Background(),
+    casm,
+    sierra,
+    1.5, // Fee multiplier (50% buffer)
+)
 if err != nil {
     panic(err)
 }
@@ -237,8 +294,7 @@ StarkNet.go provides a keystore interface for managing private keys:
 
 ```go
 type Keystore interface {
-    Get(pubKey string) (*big.Int, error)
-    Put(pubKey string, privKey *big.Int) error
+    Sign(ctx context.Context, id string, msgHash *big.Int) (x *big.Int, y *big.Int, err error)
 }
 ```
 
@@ -293,56 +349,5 @@ factory := account.NewAccountFactory(provider, keystore)
 acc, err := factory.Create(accountAddress, publicKey, 1)
 if err != nil {
     panic(err)
-}
-```
-
-## Deployer Interface
-
-The deployer interface defines methods for deploying accounts:
-
-```go
-type Deployer interface {
-    Deploy(ctx context.Context, salt *big.Int, classHash string, constructorCalldata []string) (*rpc.DeployAccountTxnResponse, error)
-}
-```
-
-## Executor Interface
-
-The executor interface defines methods for executing transactions:
-
-```go
-type Executor interface {
-    Execute(ctx context.Context, calls []rpc.FunctionCall, opts *ExecuteOpts) (*rpc.InvokeTxnResponse, error)
-}
-```
-
-## Declarer Interface
-
-The declarer interface defines methods for declaring contracts:
-
-```go
-type Declarer interface {
-    Declare(ctx context.Context, contractClass *contracts.SierraContractClass, compiledClassHash *big.Int) (*rpc.DeclareTxnResponse, error)
-}
-```
-
-## Estimator Interface
-
-The estimator interface defines methods for estimating fees:
-
-```go
-type Estimator interface {
-    EstimateFee(ctx context.Context, calls []rpc.FunctionCall, opts *ExecuteOpts) (*rpc.FeeEstimate, error)
-}
-```
-
-## Signer Interface
-
-The signer interface defines methods for signing messages:
-
-```go
-type Signer interface {
-    SignMessage(ctx context.Context, message []string) ([]string, error)
-    VerifyMessageSignature(ctx context.Context, message []string, signature []string) (bool, error)
 }
 ```

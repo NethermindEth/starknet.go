@@ -49,7 +49,7 @@ func main() {
         panic(err)
     }
     
-    fmt.Printf("Compiled class hash: 0x%s\n", compiledClassHash.Text(16))
+    fmt.Printf("Compiled class hash: 0x%s\n", compiledClassHash.String())
 }
 ```
 
@@ -107,7 +107,7 @@ if err != nil {
     panic(err)
 }
 
-fmt.Printf("Class hash: 0x%s\n", classHash.Text(16))
+fmt.Printf("Class hash: 0x%s\n", classHash.String())
 
 // Compute the compiled class hash of a CASM contract
 compiledClassHash, err := contracts.ComputeCompiledClassHash(casm)
@@ -115,7 +115,7 @@ if err != nil {
     panic(err)
 }
 
-fmt.Printf("Compiled class hash: 0x%s\n", compiledClassHash.Text(16))
+fmt.Printf("Compiled class hash: 0x%s\n", compiledClassHash.String())
 ```
 
 ## Contract ABI
@@ -180,34 +180,43 @@ func main() {
     // ... (account setup code)
     
     // UDC contract address
-    udcAddress := "0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf"
+    udcAddressFelt, err := new(felt.Felt).SetString("0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf")
+    if err != nil {
+        panic(err)
+    }
     
     // Class hash of the contract to deploy
-    classHash := "0x..."
+    classHashFelt, err := new(felt.Felt).SetString("0x...")
+    if err != nil {
+        panic(err)
+    }
     
     // Constructor calldata
-    constructorCalldata := []string{
-        "0x...", // Constructor argument 1
-        "0x...", // Constructor argument 2
+    constructorCalldata := []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Constructor argument 1
+        internalUtils.HexToFelt("0x..."), // Constructor argument 2
     }
     
     // Salt for address generation
-    salt := "0x1"
+    saltFelt, err := new(felt.Felt).SetString("0x1")
+    if err != nil {
+        panic(err)
+    }
     
     // Prepare the calldata for the UDC
-    udcCalldata := []string{
-        classHash,           // Class hash
-        salt,                // Salt
-        "0",                 // Unique (0 for normal deployment)
-        fmt.Sprintf("%d", len(constructorCalldata)), // Constructor calldata length
+    udcCalldata := []*felt.Felt{
+        classHashFelt,                                      // Class hash
+        saltFelt,                                           // Salt
+        internalUtils.HexToFelt("0"),                       // Unique (0 for normal deployment)
+        internalUtils.HexToFelt(fmt.Sprintf("%d", len(constructorCalldata))), // Constructor calldata length
     }
     
     // Append constructor calldata
     udcCalldata = append(udcCalldata, constructorCalldata...)
     
     // Create a function call to the UDC
-    functionCall := rpc.FunctionCall{
-        ContractAddress:    udcAddress,
+    functionCall := rpc.InvokeFunctionCall{
+        ContractAddress:    udcAddressFelt,
         EntryPointSelector: utils.GetSelectorFromName("deployContract"),
         Calldata:           udcCalldata,
     }
@@ -218,7 +227,7 @@ func main() {
         panic(err)
     }
     
-    fmt.Printf("Transaction hash: 0x%s\n", tx.TransactionHash.Text(16))
+    fmt.Printf("Transaction hash: 0x%s\n", tx.TransactionHash.String())
     
     // Wait for the transaction to be accepted
     receipt, err := provider.WaitForTransaction(context.Background(), tx.TransactionHash, 5, 2)
@@ -253,8 +262,10 @@ import (
     "context"
     "fmt"
     
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/starknet.go/utils"
+    internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func main() {
@@ -265,14 +276,17 @@ func main() {
     }
     
     // ERC20 contract address
-    contractAddress := "0x..."
+    contractAddressFelt, err := new(felt.Felt).SetString("0x...")
+    if err != nil {
+        panic(err)
+    }
     
     // Create a function call to get the balance
     functionCall := rpc.FunctionCall{
-        ContractAddress:    contractAddress,
+        ContractAddress:    contractAddressFelt,
         EntryPointSelector: utils.GetSelectorFromName("balanceOf"),
-        Calldata: []string{
-            "0x...", // Account address to check balance for
+        Calldata: []*felt.Felt{
+            internalUtils.HexToFelt("0x..."), // Account address to check balance for
         },
     }
     
@@ -318,16 +332,19 @@ func main() {
     // ... (account setup code)
     
     // ERC20 contract address
-    contractAddress := "0x..."
+    contractAddressFelt, err := new(felt.Felt).SetString("0x...")
+    if err != nil {
+        panic(err)
+    }
     
     // Create a function call to transfer tokens
-    functionCall := rpc.FunctionCall{
-        ContractAddress:    contractAddress,
+    functionCall := rpc.InvokeFunctionCall{
+        ContractAddress:    contractAddressFelt,
         EntryPointSelector: utils.GetSelectorFromName("transfer"),
-        Calldata: []string{
-            "0x...", // Recipient address
-            "1000",  // Amount (in wei)
-            "0",     // Amount high bits (for large numbers)
+        Calldata: []*felt.Felt{
+            internalUtils.HexToFelt("0x..."), // Recipient address
+            internalUtils.HexToFelt("1000"),  // Amount (in wei)
+            internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
         },
     }
     
@@ -337,7 +354,7 @@ func main() {
         panic(err)
     }
     
-    fmt.Printf("Transaction hash: 0x%s\n", tx.TransactionHash.Text(16))
+    fmt.Printf("Transaction hash: 0x%s\n", tx.TransactionHash.String())
     
     // Wait for the transaction to be accepted
     receipt, err := provider.WaitForTransaction(context.Background(), tx.TransactionHash, 5, 2)
@@ -354,10 +371,10 @@ func main() {
 The `FunctionCall` struct represents a function call to a contract:
 
 ```go
-type FunctionCall struct {
-    ContractAddress    string
-    EntryPointSelector string
-    Calldata           []string
+type InvokeFunctionCall struct {
+    ContractAddress    *felt.Felt
+    EntryPointSelector *felt.Felt
+    Calldata           []*felt.Felt
 }
 ```
 
@@ -377,12 +394,12 @@ StarkNet contracts can emit events during execution. The `Event` struct represen
 
 ```go
 type Event struct {
-    FromAddress string
-    Keys        []string
-    Data        []string
-    BlockNumber uint64
-    BlockHash   string
-    TransactionHash string
+    FromAddress    *felt.Felt
+    Keys           []*felt.Felt
+    Data           []*felt.Felt
+    BlockNumber    uint64
+    BlockHash      *felt.Felt
+    TransactionHash *felt.Felt
 }
 ```
 
@@ -490,7 +507,7 @@ func main() {
         panic(err)
     }
     
-    fmt.Printf("Storage value: 0x%s\n", value.Text(16))
+    fmt.Printf("Storage value: 0x%s\n", value.String())
 }
 ```
 
@@ -532,14 +549,27 @@ func main() {
     }
     
     // Create an invoke transaction
-    invokeTx := rpc.InvokeTxnV1{
-        MaxFee:         maxFee,
-        Version:        1,
-        Signature:      signature,
-        Nonce:          nonce,
-        Type:           "INVOKE",
-        SenderAddress:  senderAddress,
-        CallData:       calldata,
+    invokeTx := rpc.InvokeTxnV3{
+        SenderAddress:  senderAddressFelt,
+        Calldata:       calldataFelts,
+        Signature:      signatureFelts,
+        MaxFee:         maxFeeFelt,
+        Nonce:          nonceFelt,
+        ResourceBounds: rpc.ResourceBounds{
+            L1Gas: rpc.ResourceBound{
+                MaxAmount: internalUtils.HexToFelt("0x1000"),
+                MaxPricePerUnit: internalUtils.HexToFelt("0x1000000"),
+            },
+            L2Gas: rpc.ResourceBound{
+                MaxAmount: internalUtils.HexToFelt("0x1000"),
+                MaxPricePerUnit: internalUtils.HexToFelt("0x1"),
+            },
+        },
+        TipPercentage: 0,
+        PaymasterData: []*felt.Felt{},
+        AccountDeploymentData: []*felt.Felt{},
+        NonceDataAvailabilityMode: rpc.DAModeL1,
+        FeeDataAvailabilityMode: rpc.DAModeL1,
     }
     
     // Simulate the transaction
@@ -587,11 +617,11 @@ The `FunctionInvocation` struct represents a function invocation in a trace:
 ```go
 type FunctionInvocation struct {
     CallType         string
-    ContractAddress  string
+    ContractAddress  *felt.Felt
     EntryPointType   string
-    EntryPointSelector string
-    Calldata         []string
-    Result           []string
+    EntryPointSelector *felt.Felt
+    Calldata         []*felt.Felt
+    Result           []*felt.Felt
     Calls            []*FunctionInvocation
     Events           []Event
     Messages         []Message

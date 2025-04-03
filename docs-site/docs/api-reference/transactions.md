@@ -24,11 +24,12 @@ package main
 import (
     "context"
     "fmt"
-    "math/big"
     
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/account"
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/starknet.go/utils"
+    internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func main() {
@@ -42,19 +43,29 @@ func main() {
     // ... (account setup code)
     
     // Create a function call to an ERC20 transfer
-    contractAddress := "0x..." // ERC20 contract address
-    functionCall := rpc.FunctionCall{
+    contractAddressHex := "0x..." // ERC20 contract address
+    contractAddress, err := new(felt.Felt).SetString(contractAddressHex)
+    if err != nil {
+        panic(err)
+    }
+    
+    // Create an invoke function call
+    functionCall := rpc.InvokeFunctionCall{
         ContractAddress:    contractAddress,
         EntryPointSelector: utils.GetSelectorFromName("transfer"),
-        Calldata: []string{
-            "0x...", // Recipient address
-            "1000",  // Amount (in wei)
-            "0",     // Amount high bits (for large numbers)
+        Calldata: []*felt.Felt{
+            internalUtils.HexToFelt("0x..."), // Recipient address
+            internalUtils.HexToFelt("1000"),  // Amount (in wei)
+            internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
         },
     }
     
-    // Execute the transaction
-    tx, err := acc.Execute(context.Background(), []rpc.FunctionCall{functionCall}, nil)
+    // Build and send the invoke transaction
+    tx, err := acc.BuildAndSendInvokeTxn(
+        context.Background(),
+        []rpc.InvokeFunctionCall{functionCall},
+        1.5, // Fee multiplier (50% buffer)
+    )
     if err != nil {
         panic(err)
     }
@@ -65,17 +76,26 @@ func main() {
 
 ### Invoke Transaction Structure
 
-The `InvokeTxnV1` struct represents an invoke transaction:
+The `InvokeTxnV3` struct represents the latest version of an invoke transaction:
 
 ```go
-type InvokeTxnV1 struct {
-    MaxFee         *big.Int
-    Version        uint64
-    Signature      []string
-    Nonce          *big.Int
-    Type           string
-    SenderAddress  *big.Int
-    CallData       []string
+type InvokeTxnV3 struct {
+    Type           TransactionType       `json:"type"`
+    SenderAddress  *felt.Felt            `json:"sender_address"`
+    Calldata       []*felt.Felt          `json:"calldata"`
+    Version        TransactionVersion    `json:"version"`
+    Signature      []*felt.Felt          `json:"signature"`
+    Nonce          *felt.Felt            `json:"nonce"`
+    ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
+    Tip            U64                   `json:"tip"`
+    // The data needed to allow the paymaster to pay for the transaction in native tokens
+    PayMasterData []*felt.Felt `json:"paymaster_data"`
+    // The data needed to deploy the account contract from which this tx will be initiated
+    AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+    // The storage domain of the account's nonce (an account has a nonce per DA mode)
+    NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+    // The storage domain of the account's balance from which fee will be charged
+    FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 ```
 
@@ -89,7 +109,7 @@ package main
 import (
     "context"
     "fmt"
-    "io/ioutil"
+    "os"
     
     "github.com/NethermindEth/starknet.go/account"
     "github.com/NethermindEth/starknet.go/contracts"
@@ -107,12 +127,12 @@ func main() {
     // ... (account setup code)
     
     // Load the contract Sierra and CASM files
-    sierraContent, err := ioutil.ReadFile("contract.sierra.json")
+    sierraContent, err := os.ReadFile("contract.sierra.json")
     if err != nil {
         panic(err)
     }
     
-    casmContent, err := ioutil.ReadFile("contract.casm.json")
+    casmContent, err := os.ReadFile("contract.casm.json")
     if err != nil {
         panic(err)
     }
@@ -128,14 +148,13 @@ func main() {
         panic(err)
     }
     
-    // Calculate the compiled class hash
-    compiledClassHash, err := contracts.ComputeCompiledClassHash(casm)
-    if err != nil {
-        panic(err)
-    }
-    
-    // Declare the contract
-    tx, err := acc.Declare(context.Background(), sierra, compiledClassHash)
+    // Build and send the declare transaction
+    tx, err := acc.BuildAndSendDeclareTxn(
+        context.Background(),
+        casm,
+        sierra,
+        1.5, // Fee multiplier (50% buffer)
+    )
     if err != nil {
         panic(err)
     }
@@ -147,18 +166,27 @@ func main() {
 
 ### Declare Transaction Structure
 
-The `DeclareTxnV2` struct represents a declare transaction:
+The `DeclareTxnV3` struct represents the latest version of a declare transaction:
 
 ```go
-type DeclareTxnV2 struct {
-    MaxFee           *big.Int
-    Version          uint64
-    Signature        []string
-    Nonce            *big.Int
-    Type             string
-    SenderAddress    *big.Int
-    CompiledClassHash *big.Int
-    ContractClass    *contracts.SierraContractClass
+type DeclareTxnV3 struct {
+    Type              TransactionType       `json:"type"`
+    SenderAddress     *felt.Felt            `json:"sender_address"`
+    CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
+    Version           TransactionVersion    `json:"version"`
+    Signature         []*felt.Felt          `json:"signature"`
+    Nonce             *felt.Felt            `json:"nonce"`
+    ClassHash         *felt.Felt            `json:"class_hash"`
+    ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
+    Tip               U64                   `json:"tip"`
+    // The data needed to allow the paymaster to pay for the transaction in native tokens
+    PayMasterData []*felt.Felt `json:"paymaster_data"`
+    // The data needed to deploy the account contract from which this tx will be initiated
+    AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+    // The storage domain of the account's nonce (an account has a nonce per DA mode)
+    NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+    // The storage domain of the account's balance from which fee will be charged
+    FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 ```
 
@@ -174,10 +202,12 @@ import (
     "fmt"
     "math/big"
     
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/account"
     "github.com/NethermindEth/starknet.go/curve"
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/starknet.go/utils"
+    internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func main() {
@@ -200,13 +230,30 @@ func main() {
     }
     
     // Class hash of the account contract (OpenZeppelin account contract)
-    classHash := "0x..." 
+    classHashHex := "0x..." 
+    classHash, err := new(felt.Felt).SetString(classHashHex)
+    if err != nil {
+        panic(err)
+    }
     
     // Constructor calldata (public key)
-    constructorCalldata := []string{publicKey.Text(16)}
+    publicKeyFelt, err := new(felt.Felt).SetString(publicKey.Text(16))
+    if err != nil {
+        panic(err)
+    }
+    constructorCalldata := []*felt.Felt{publicKeyFelt}
     
     // Salt for address generation
-    salt := big.NewInt(0)
+    salt, err := new(felt.Felt).SetUint64(0)
+    if err != nil {
+        panic(err)
+    }
+    
+    // Create a keystore for the account
+    keystore := account.NewMemKeystore()
+    if err := keystore.Put(publicKey.Text(16), privateKey); err != nil {
+        panic(err)
+    }
     
     // Precompute the account address
     accountAddress, err := account.PrecomputeAddress(
@@ -222,10 +269,6 @@ func main() {
     
     fmt.Printf("Account address: 0x%s\n", accountAddress.Text(16))
     
-    // Create a keystore for the account
-    keystore := account.NewMemKeystore()
-    keystore.Put(publicKey.Text(16), privateKey)
-    
     // Create a new account instance
     acc, err := account.NewAccount(
         provider,
@@ -238,30 +281,52 @@ func main() {
         panic(err)
     }
     
-    // Deploy the account
-    deployTx, err := acc.Deploy(context.Background(), salt, classHash, constructorCalldata)
+    // Build and estimate the deploy account transaction
+    deployTx, precomputedAddress, err := acc.BuildAndEstimateDeployAccountTxn(
+        context.Background(),
+        salt,
+        classHash,
+        constructorCalldata,
+        1.5, // Fee multiplier (50% buffer)
+    )
     if err != nil {
         panic(err)
     }
     
-    fmt.Printf("Deploy transaction hash: 0x%s\n", deployTx.TransactionHash.Text(16))
+    fmt.Printf("Precomputed account address: 0x%s\n", precomputedAddress.Text(16))
+    fmt.Println("Fund this address with STRK tokens before sending the transaction")
+    
+    // After funding, send the transaction
+    txResponse, err := acc.SendTransaction(context.Background(), deployTx)
+    if err != nil {
+        panic(err)
+    }
+    
+    fmt.Printf("Deploy transaction hash: 0x%s\n", txResponse.TransactionHash.Text(16))
 }
 ```
 
 ### Deploy Account Transaction Structure
 
-The `DeployAccountTxn` struct represents a deploy account transaction:
+The `DeployAccountTxnV3` struct represents the latest version of a deploy account transaction:
 
 ```go
-type DeployAccountTxn struct {
-    MaxFee              *big.Int
-    Version             uint64
-    Signature           []string
-    Nonce               *big.Int
-    Type                string
-    ContractAddressSalt *big.Int
-    ConstructorCalldata []string
-    ClassHash           *big.Int
+type DeployAccountTxnV3 struct {
+    Type                TransactionType       `json:"type"`
+    Version             TransactionVersion    `json:"version"`
+    Signature           []*felt.Felt          `json:"signature"`
+    Nonce               *felt.Felt            `json:"nonce"`
+    ContractAddressSalt *felt.Felt            `json:"contract_address_salt"`
+    ConstructorCalldata []*felt.Felt          `json:"constructor_calldata"`
+    ClassHash           *felt.Felt            `json:"class_hash"`
+    ResourceBounds      ResourceBoundsMapping `json:"resource_bounds"`
+    Tip                 U64                   `json:"tip"`
+    // The data needed to allow the paymaster to pay for the transaction in native tokens
+    PayMasterData []*felt.Felt `json:"paymaster_data"`
+    // The storage domain of the account's nonce (an account has a nonce per DA mode)
+    NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+    // The storage domain of the account's balance from which fee will be charged
+    FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 ```
 
@@ -269,52 +334,53 @@ type DeployAccountTxn struct {
 
 ### Invoke Transaction Response
 
-The `InvokeTxnResponse` struct represents the response from an invoke transaction:
+The `AddInvokeTransactionResponse` struct represents the response from an invoke transaction:
 
 ```go
-type InvokeTxnResponse struct {
-    TransactionHash *big.Int
+type AddInvokeTransactionResponse struct {
+    TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 ```
 
 ### Declare Transaction Response
 
-The `DeclareTxnResponse` struct represents the response from a declare transaction:
+The `AddDeclareTransactionResponse` struct represents the response from a declare transaction:
 
 ```go
-type DeclareTxnResponse struct {
-    TransactionHash *big.Int
-    ClassHash       *big.Int
+type AddDeclareTransactionResponse struct {
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+    ClassHash       *felt.Felt `json:"class_hash"`
 }
 ```
 
 ### Deploy Account Transaction Response
 
-The `DeployAccountTxnResponse` struct represents the response from a deploy account transaction:
+The `AddDeployAccountTransactionResponse` struct represents the response from a deploy account transaction:
 
 ```go
-type DeployAccountTxnResponse struct {
-    TransactionHash  *big.Int
-    ContractAddress  *big.Int
+type AddDeployAccountTransactionResponse struct {
+    TransactionHash  *felt.Felt `json:"transaction_hash"`
+    ContractAddress  *felt.Felt `json:"contract_address"`
 }
 ```
 
 ## Transaction Receipt
 
-The `TxnReceipt` struct represents a transaction receipt:
+The `TransactionReceiptWithBlockInfo` struct represents a transaction receipt:
 
 ```go
-type TxnReceipt struct {
-    TransactionHash  *big.Int
-    Status           string
-    ActualFee        *big.Int
-    ExecutionStatus  string
-    FinalityStatus   string
-    BlockHash        *big.Int
-    BlockNumber      uint64
-    Type             string
-    Events           []Event
-    ExecutionResources *ExecutionResources
+type TransactionReceiptWithBlockInfo struct {
+    TransactionHash  *felt.Felt                `json:"transaction_hash"`
+    Status           TransactionStatus         `json:"status"`
+    ActualFee        *felt.Felt                `json:"actual_fee"`
+    ExecutionStatus  TxnExecutionStatus       `json:"execution_status"`
+    FinalityStatus   TxnFinalityStatus        `json:"finality_status"`
+    BlockHash        *felt.Felt                `json:"block_hash"`
+    BlockNumber      U64                       `json:"block_number"`
+    Type             TransactionType           `json:"type"`
+    Events           []Event                   `json:"events"`
+    ExecutionResources *ExecutionResources     `json:"execution_resources"`
+    MessagesSent     []MsgToL1                 `json:"messages_sent"`
 }
 ```
 
@@ -386,23 +452,43 @@ To estimate the fee for a transaction:
 
 ```go
 // Create a function call
-functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
-    EntryPointSelector: utils.GetSelectorFromName("transfer"),
-    Calldata: []string{
-        "0x...", // Recipient address
-        "1000",  // Amount (in wei)
-        "0",     // Amount high bits (for large numbers)
-    },
-}
-
-// Estimate the fee
-feeEstimate, err := acc.EstimateFee(context.Background(), []rpc.FunctionCall{functionCall}, nil)
+contractAddressFelt, err := new(felt.Felt).SetString("0x...") // Contract address
 if err != nil {
     panic(err)
 }
 
-fmt.Printf("Estimated fee: %s wei\n", feeEstimate.OverallFee.Text(10))
+// Create an invoke function call
+functionCall := rpc.InvokeFunctionCall{
+    ContractAddress:    contractAddressFelt,
+    EntryPointSelector: utils.GetSelectorFromName("transfer"),
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Recipient address
+        internalUtils.HexToFelt("1000"),  // Amount (in wei)
+        internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
+    },
+}
+
+// Build the invoke transaction for fee estimation
+invokeTx, err := acc.BuildInvokeTxn(
+    context.Background(),
+    []rpc.InvokeFunctionCall{functionCall},
+    1.5, // Fee multiplier (50% buffer)
+)
+if err != nil {
+    panic(err)
+}
+
+// Estimate the fee
+feeEstimate, err := provider.EstimateFee(
+    context.Background(),
+    []rpc.BroadcastTxn{invokeTx},
+    rpc.BlockID{Tag: "latest"},
+)
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("Estimated fee: %s wei\n", feeEstimate[0].OverallFee.Text(10))
 ```
 
 ## Transaction Simulation
@@ -422,25 +508,30 @@ To simulate a transaction:
 
 ```go
 // Create a function call
-functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
+contractAddressFelt, err := new(felt.Felt).SetString("0x...") // Contract address
+if err != nil {
+    panic(err)
+}
+
+// Create an invoke function call
+functionCall := rpc.InvokeFunctionCall{
+    ContractAddress:    contractAddressFelt,
     EntryPointSelector: utils.GetSelectorFromName("transfer"),
-    Calldata: []string{
-        "0x...", // Recipient address
-        "1000",  // Amount (in wei)
-        "0",     // Amount high bits (for large numbers)
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Recipient address
+        internalUtils.HexToFelt("1000"),  // Amount (in wei)
+        internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
     },
 }
 
-// Create an invoke transaction
-invokeTx := rpc.InvokeTxnV1{
-    MaxFee:         maxFee,
-    Version:        1,
-    Signature:      signature,
-    Nonce:          nonce,
-    Type:           "INVOKE",
-    SenderAddress:  senderAddress,
-    CallData:       calldata,
+// Build the invoke transaction for simulation
+invokeTx, err := acc.BuildInvokeTxn(
+    context.Background(),
+    []rpc.InvokeFunctionCall{functionCall},
+    1.5, // Fee multiplier (50% buffer)
+)
+if err != nil {
+    panic(err)
 }
 
 // Simulate the transaction
@@ -448,7 +539,7 @@ result, err := provider.SimulateTransaction(
     context.Background(),
     []rpc.BroadcastTxn{invokeTx},
     rpc.BlockID{Tag: "latest"},
-    rpc.SimulationFlagSkipValidate,
+    []rpc.SimulationFlag{rpc.SimulationFlagSkipValidate},
 )
 if err != nil {
     panic(err)
@@ -475,6 +566,13 @@ type TransactionTrace struct {
 To trace a transaction:
 
 ```go
+// Convert transaction hash from hex string to felt.Felt
+txHashHex := "0x..."
+txHash, err := new(felt.Felt).SetString(txHashHex)
+if err != nil {
+    panic(err)
+}
+
 // Trace a transaction
 trace, err := provider.TraceTransaction(context.Background(), txHash)
 if err != nil {
@@ -489,8 +587,19 @@ fmt.Printf("Transaction trace: %+v\n", trace)
 To wait for a transaction to be accepted:
 
 ```go
+// Convert transaction hash from hex string to felt.Felt
+txHashHex := "0x..."
+txHash, err := new(felt.Felt).SetString(txHashHex)
+if err != nil {
+    panic(err)
+}
+
 // Wait for the transaction to be accepted
-receipt, err := provider.WaitForTransaction(context.Background(), txHash, 5, 2)
+receipt, err := acc.WaitForTransactionReceipt(
+    context.Background(),
+    txHash,
+    5 * time.Second, // Poll interval
+)
 if err != nil {
     panic(err)
 }
@@ -498,9 +607,8 @@ if err != nil {
 fmt.Printf("Transaction status: %s\n", receipt.Status)
 ```
 
-The `WaitForTransaction` method takes the following parameters:
+The `WaitForTransactionReceipt` method takes the following parameters:
 
 - `ctx`: The context
-- `txHash`: The transaction hash
-- `retryInterval`: The interval in seconds between retries
-- `maxRetries`: The maximum number of retries
+- `transactionHash`: The transaction hash as a `*felt.Felt`
+- `pollInterval`: The interval between polling attempts as a `time.Duration`

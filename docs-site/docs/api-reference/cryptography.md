@@ -17,28 +17,28 @@ import (
     "fmt"
     "math/big"
     
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/curve"
-    "github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
-    // Create a new Stark curve instance
-    starkCurve := curve.NewStarkCurve()
-    
-    // Generate a private key
-    privateKey, err := utils.GeneratePrivateKey()
+    // Generate a random private key
+    privateKey, err := curve.Curve.GetRandomPrivateKey()
     if err != nil {
         panic(err)
     }
     
     // Get the public key from the private key
-    publicKey, err := starkCurve.GetPublicKey(privateKey)
+    publicKeyX, publicKeyY, err := curve.Curve.PrivateToPoint(privateKey)
     if err != nil {
         panic(err)
     }
     
+    // Convert public key coordinates to felt
+    publicKeyFelt := new(felt.Felt).SetBytes(publicKeyX.Bytes())
+    
     fmt.Printf("Private key: 0x%s\n", privateKey.Text(16))
-    fmt.Printf("Public key: 0x%s\n", publicKey.Text(16))
+    fmt.Printf("Public key: 0x%s\n", publicKeyFelt.String())
 }
 ```
 
@@ -62,16 +62,16 @@ To sign a message using the Stark curve:
 
 ```go
 // Message to sign
-message := big.NewInt(123)
+messageFelt := internalUtils.HexToFelt("0x7b") // 123 in hex
 
 // Sign the message
-r, s, err := starkCurve.Sign(privateKey, message)
+signature, err := curve.Curve.SignFelt(privateKey, messageFelt)
 if err != nil {
     panic(err)
 }
 
-fmt.Printf("Signature (r): 0x%s\n", r.Text(16))
-fmt.Printf("Signature (s): 0x%s\n", s.Text(16))
+fmt.Printf("Signature (r): 0x%s\n", signature[0].String())
+fmt.Printf("Signature (s): 0x%s\n", signature[1].String())
 ```
 
 ### Verifying Signatures
@@ -80,10 +80,7 @@ To verify a signature using the Stark curve:
 
 ```go
 // Verify the signature
-isValid, err := starkCurve.Verify(publicKey, message, r, s)
-if err != nil {
-    panic(err)
-}
+isValid := curve.VerifySignature(publicKeyFelt, messageFelt, signature)
 
 if isValid {
     fmt.Println("Signature is valid")
@@ -101,23 +98,21 @@ package main
 
 import (
     "fmt"
-    "math/big"
     
-    "github.com/NethermindEth/starknet.go/hash"
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/curve"
+    internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func main() {
     // Values to hash
-    a := big.NewInt(123)
-    b := big.NewInt(456)
+    a := internalUtils.HexToFelt("0x7b") // 123 in hex
+    b := internalUtils.HexToFelt("0x1c8") // 456 in hex
     
     // Compute the Pedersen hash
-    result, err := hash.PedersenHash([]*big.Int{a, b})
-    if err != nil {
-        panic(err)
-    }
+    result := curve.PedersenArray(a, b)
     
-    fmt.Printf("Pedersen hash: 0x%s\n", result.Text(16))
+    fmt.Printf("Pedersen hash: 0x%s\n", result.String())
 }
 ```
 
@@ -127,19 +122,16 @@ To compute a Pedersen hash of multiple values:
 
 ```go
 // Values to hash
-values := []*big.Int{
-    big.NewInt(123),
-    big.NewInt(456),
-    big.NewInt(789),
+values := []*felt.Felt{
+    internalUtils.HexToFelt("0x7b"),   // 123 in hex
+    internalUtils.HexToFelt("0x1c8"),  // 456 in hex
+    internalUtils.HexToFelt("0x315"),  // 789 in hex
 }
 
 // Compute the Pedersen hash
-result, err := hash.PedersenHash(values)
-if err != nil {
-    panic(err)
-}
+result := curve.PedersenArray(values...)
 
-fmt.Printf("Pedersen hash: 0x%s\n", result.Text(16))
+fmt.Printf("Pedersen hash: 0x%s\n", result.String())
 ```
 
 ### Computing Array Pedersen Hashes
@@ -148,19 +140,16 @@ To compute a Pedersen hash of an array:
 
 ```go
 // Array to hash
-array := []*big.Int{
-    big.NewInt(123),
-    big.NewInt(456),
-    big.NewInt(789),
+array := []*felt.Felt{
+    internalUtils.HexToFelt("0x7b"),   // 123 in hex
+    internalUtils.HexToFelt("0x1c8"),  // 456 in hex
+    internalUtils.HexToFelt("0x315"),  // 789 in hex
 }
 
 // Compute the array Pedersen hash
-result, err := hash.ComputeArrayPedersenHash(array)
-if err != nil {
-    panic(err)
-}
+result := curve.PedersenArray(array...)
 
-fmt.Printf("Array Pedersen hash: 0x%s\n", result.Text(16))
+fmt.Printf("Array Pedersen hash: 0x%s\n", result.String())
 ```
 
 ## Typed Data
@@ -279,7 +268,7 @@ if err != nil {
     panic(err)
 }
 
-fmt.Printf("Message hash: 0x%s\n", messageHash.Text(16))
+fmt.Printf("Message hash: 0x%s\n", messageHash.String())
 ```
 
 ### Getting the Struct Hash
@@ -293,7 +282,7 @@ if err != nil {
     panic(err)
 }
 
-fmt.Printf("Struct hash: 0x%s\n", structHash.Text(16))
+fmt.Printf("Struct hash: 0x%s\n", structHash.String())
 ```
 
 ### Getting the Domain Hash
@@ -307,7 +296,7 @@ if err != nil {
     panic(err)
 }
 
-fmt.Printf("Domain hash: 0x%s\n", domainHash.Text(16))
+fmt.Printf("Domain hash: 0x%s\n", domainHash.String())
 ```
 
 ## Utilities
@@ -319,14 +308,16 @@ package main
 
 import (
     "fmt"
-    "math/big"
     
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/curve"
     "github.com/NethermindEth/starknet.go/utils"
+    internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func main() {
     // Generate a private key
-    privateKey, err := utils.GeneratePrivateKey()
+    privateKey, err := curve.Curve.GetRandomPrivateKey()
     if err != nil {
         panic(err)
     }
@@ -337,14 +328,14 @@ func main() {
     selector := utils.GetSelectorFromName("transfer")
     fmt.Printf("Selector: 0x%s\n", selector)
     
-    // Convert a hex string to a big.Int
+    // Convert a hex string to a felt.Felt
     hexString := "0x1234567890abcdef"
-    bigInt, err := utils.HexToBN(hexString)
+    feltValue, err := new(felt.Felt).SetString(hexString)
     if err != nil {
         panic(err)
     }
     
-    fmt.Printf("Big.Int: %s\n", bigInt.Text(10))
+    fmt.Printf("Felt value: %s\n", feltValue.String())
 }
 ```
 
@@ -354,7 +345,7 @@ To generate a private key:
 
 ```go
 // Generate a private key
-privateKey, err := utils.GeneratePrivateKey()
+privateKey, err := curve.Curve.GetRandomPrivateKey()
 if err != nil {
     panic(err)
 }
@@ -377,14 +368,14 @@ fmt.Printf("Selector: 0x%s\n", selector)
 To convert a hex string to a `big.Int`:
 
 ```go
-// Convert a hex string to a big.Int
+// Convert a hex string to a felt.Felt
 hexString := "0x1234567890abcdef"
-bigInt, err := utils.HexToBN(hexString)
+feltValue, err := new(felt.Felt).SetString(hexString)
 if err != nil {
     panic(err)
 }
 
-fmt.Printf("Big.Int: %s\n", bigInt.Text(10))
+fmt.Printf("Felt value: %s\n", feltValue.String())
 ```
 
 ### Converting Big.Int to Hex Strings
@@ -392,9 +383,9 @@ fmt.Printf("Big.Int: %s\n", bigInt.Text(10))
 To convert a `big.Int` to a hex string:
 
 ```go
-// Convert a big.Int to a hex string
-bigInt := big.NewInt(123456789)
-hexString := utils.GetHexString(bigInt)
+// Convert a felt.Felt to a hex string
+feltValue := internalUtils.HexToFelt("0x75bcd15")  // 123456789 in hex
+hexString := feltValue.String()
 
 fmt.Printf("Hex string: %s\n", hexString)
 ```

@@ -174,14 +174,19 @@ fmt.Printf("Transaction finality status: %s\n", status.FinalityStatus)
 
 ```go
 // Create an invoke transaction
-invokeTx := rpc.InvokeTxnV1{
-    MaxFee:         maxFee,
-    Version:        1,
+invokeTx := rpc.InvokeTxnV3{
+    Type:           rpc.TransactionType_Invoke,
+    SenderAddress:  senderAddress,
+    Calldata:       calldata,
+    Version:        rpc.TransactionV3,
     Signature:      signature,
     Nonce:          nonce,
-    Type:           "INVOKE",
-    SenderAddress:  senderAddress,
-    CallData:       calldata,
+    ResourceBounds: resourceBounds,
+    Tip:            0,
+    PayMasterData:  []*felt.Felt{},
+    AccountDeploymentData: []*felt.Felt{},
+    NonceDataMode:  rpc.DataAvailabilityMode_L1,
+    FeeMode:        rpc.DataAvailabilityMode_L1,
 }
 
 // Add the invoke transaction
@@ -196,15 +201,20 @@ fmt.Printf("Transaction hash: 0x%s\n", response.TransactionHash.Text(16))
 
 ```go
 // Create a declare transaction
-declareTx := rpc.DeclareTxnV2{
-    MaxFee:           maxFee,
-    Version:          2,
-    Signature:        signature,
-    Nonce:            nonce,
-    Type:             "DECLARE",
-    SenderAddress:    senderAddress,
+declareTx := rpc.DeclareTxnV3{
+    Type:              rpc.TransactionType_Declare,
+    SenderAddress:     senderAddress,
     CompiledClassHash: compiledClassHash,
-    ContractClass:    contractClass,
+    ClassHash:         classHash,
+    Version:           rpc.TransactionV3,
+    Signature:         signature,
+    Nonce:             nonce,
+    ResourceBounds:    resourceBounds,
+    Tip:               0,
+    PayMasterData:     []*felt.Felt{},
+    AccountDeploymentData: []*felt.Felt{},
+    NonceDataMode:     rpc.DataAvailabilityMode_L1,
+    FeeMode:           rpc.DataAvailabilityMode_L1,
 }
 
 // Add the declare transaction
@@ -220,15 +230,19 @@ fmt.Printf("Class hash: 0x%s\n", response.ClassHash.Text(16))
 
 ```go
 // Create a deploy account transaction
-deployAccountTx := rpc.DeployAccountTxn{
-    MaxFee:           maxFee,
-    Version:          1,
-    Signature:        signature,
-    Nonce:            nonce,
-    Type:             "DEPLOY_ACCOUNT",
+deployAccountTx := rpc.DeployAccountTxnV3{
+    Type:                rpc.TransactionType_DeployAccount,
+    Version:             rpc.TransactionV3,
+    Signature:           signature,
+    Nonce:               nonce,
     ContractAddressSalt: salt,
     ConstructorCalldata: constructorCalldata,
-    ClassHash:        classHash,
+    ClassHash:           classHash,
+    ResourceBounds:      resourceBounds,
+    Tip:                 0,
+    PayMasterData:       []*felt.Felt{},
+    NonceDataMode:       rpc.DataAvailabilityMode_L1,
+    FeeMode:             rpc.DataAvailabilityMode_L1,
 }
 
 // Add the deploy account transaction
@@ -246,11 +260,17 @@ fmt.Printf("Contract address: 0x%s\n", response.ContractAddress.Text(16))
 
 ```go
 // Create a function call
+contractAddressFelt, err := new(felt.Felt).SetString("0x...") // Contract address
+if err != nil {
+    panic(err)
+}
+
+// Create a function call
 functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
+    ContractAddress:    contractAddressFelt,
     EntryPointSelector: utils.GetSelectorFromName("balanceOf"),
-    Calldata: []string{
-        "0x...", // Account address to check balance for
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Account address to check balance for
     },
 }
 
@@ -266,25 +286,48 @@ fmt.Printf("Result: %v\n", result)
 
 ```go
 // Create a function call
-functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
+contractAddressFelt, err := new(felt.Felt).SetString("0x...") // Contract address
+if err != nil {
+    panic(err)
+}
+
+// Create an invoke function call
+functionCall := rpc.InvokeFunctionCall{
+    ContractAddress:    contractAddressFelt,
     EntryPointSelector: utils.GetSelectorFromName("transfer"),
-    Calldata: []string{
-        "0x...", // Recipient address
-        "1000",  // Amount (in wei)
-        "0",     // Amount high bits (for large numbers)
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Recipient address
+        internalUtils.HexToFelt("1000"),  // Amount (in wei)
+        internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
+    },
+}
+
+// Create resource bounds for the transaction
+resourceBounds := rpc.ResourceBoundsMapping{
+    L1Gas: rpc.ResourceBounds{
+        MaxAmount: 1000,
+        MaxPricePerUnit: 100000000,
+    },
+    L2Gas: rpc.ResourceBounds{
+        MaxAmount: 1000,
+        MaxPricePerUnit: 100000000,
     },
 }
 
 // Create an invoke transaction
-invokeTx := rpc.InvokeTxnV1{
-    MaxFee:         maxFee,
-    Version:        1,
+invokeTx := rpc.InvokeTxnV3{
+    Type:           rpc.TransactionType_Invoke,
+    SenderAddress:  senderAddress,
+    Calldata:       calldata,
+    Version:        rpc.TransactionV3,
     Signature:      signature,
     Nonce:          nonce,
-    Type:           "INVOKE",
-    SenderAddress:  senderAddress,
-    CallData:       calldata,
+    ResourceBounds: resourceBounds,
+    Tip:            0,
+    PayMasterData:  []*felt.Felt{},
+    AccountDeploymentData: []*felt.Felt{},
+    NonceDataMode:  rpc.DataAvailabilityMode_L1,
+    FeeMode:        rpc.DataAvailabilityMode_L1,
 }
 
 // Estimate the fee
@@ -586,25 +629,48 @@ fmt.Printf("Number of transaction traces: %d\n", len(traces))
 
 ```go
 // Create a function call
-functionCall := rpc.FunctionCall{
-    ContractAddress:    contractAddress,
+contractAddressFelt, err := new(felt.Felt).SetString("0x...") // Contract address
+if err != nil {
+    panic(err)
+}
+
+// Create an invoke function call
+functionCall := rpc.InvokeFunctionCall{
+    ContractAddress:    contractAddressFelt,
     EntryPointSelector: utils.GetSelectorFromName("transfer"),
-    Calldata: []string{
-        "0x...", // Recipient address
-        "1000",  // Amount (in wei)
-        "0",     // Amount high bits (for large numbers)
+    Calldata: []*felt.Felt{
+        internalUtils.HexToFelt("0x..."), // Recipient address
+        internalUtils.HexToFelt("1000"),  // Amount (in wei)
+        internalUtils.HexToFelt("0"),     // Amount high bits (for large numbers)
+    },
+}
+
+// Create resource bounds for the transaction
+resourceBounds := rpc.ResourceBoundsMapping{
+    L1Gas: rpc.ResourceBounds{
+        MaxAmount: 1000,
+        MaxPricePerUnit: 100000000,
+    },
+    L2Gas: rpc.ResourceBounds{
+        MaxAmount: 1000,
+        MaxPricePerUnit: 100000000,
     },
 }
 
 // Create an invoke transaction
-invokeTx := rpc.InvokeTxnV1{
-    MaxFee:         maxFee,
-    Version:        1,
+invokeTx := rpc.InvokeTxnV3{
+    Type:           rpc.TransactionType_Invoke,
+    SenderAddress:  senderAddress,
+    Calldata:       calldata,
+    Version:        rpc.TransactionV3,
     Signature:      signature,
     Nonce:          nonce,
-    Type:           "INVOKE",
-    SenderAddress:  senderAddress,
-    CallData:       calldata,
+    ResourceBounds: resourceBounds,
+    Tip:            0,
+    PayMasterData:  []*felt.Felt{},
+    AccountDeploymentData: []*felt.Felt{},
+    NonceDataMode:  rpc.DataAvailabilityMode_L1,
+    FeeMode:        rpc.DataAvailabilityMode_L1,
 }
 
 // Simulate the transaction
@@ -612,7 +678,7 @@ result, err := provider.SimulateTransaction(
     context.Background(),
     []rpc.BroadcastTxn{invokeTx},
     rpc.BlockID{Tag: "latest"},
-    rpc.SimulationFlagSkipValidate,
+    []rpc.SimulationFlag{rpc.SimulationFlagSkipValidate},
 )
 if err != nil {
     panic(err)
