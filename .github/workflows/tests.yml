@@ -15,20 +15,34 @@ on:
 
 jobs:
   test:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         component: [rpc, account]
-        environment: [testnet, mainnet]
+
     steps:
       - name: Repo setup
         uses: ./.github/workflows/setup_composite_action.yml
-      - name: Run tests
-        run: cd ${{ inputs.component }} && go test -timeout 600s -v -env ${{ inputs.environment }} .
+
+      - name: Run tests on testnet
+        run: cd ${{ inputs.component }} && go test -timeout 120s -v -env testnet .
         env:
-          TESTNET_HTTP_PROVIDER_URL: ${{ inputs.TESTNET_HTTP_PROVIDER_URL }}
-          TESTNET_WS_PROVIDER_URL: ${{ inputs.TESTNET_WS_PROVIDER_URL }}
-          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ inputs.TESTNET_ACCOUNT_PRIVATE_KEY }}
-          TESTNET_ACCOUNT_PUBLIC_KEY: ${{ inputs.TESTNET_ACCOUNT_PUBLIC_KEY }}
-          TESTNET_ACCOUNT_ADDRESS: ${{ inputs.TESTNET_ACCOUNT_ADDRESS }}
-          MAINNET_HTTP_PROVIDER_URL: ${{ inputs.MAINNET_HTTP_PROVIDER_URL }}
-          MAINNET_WS_PROVIDER_URL: ${{ inputs.MAINNET_WS_PROVIDER_URL }}
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.TESTNET_ACCOUNT_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
+
+      - name: Run tests on mainnet
+        run: cd ${{ inputs.component }} && go test -timeout 120s -v -env mainnet .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}
+      
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      - name: Run tests on devnet
+        run: cd ${{ inputs.component }} && go test -timeout 120s -v -env devnet .
+        env:
+          HTTP_PROVIDER_URL: "http://localhost:5050/"
