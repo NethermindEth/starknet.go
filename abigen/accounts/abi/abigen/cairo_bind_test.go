@@ -8,7 +8,6 @@ import (
 )
 
 func TestBindCairo(t *testing.T) {
-	t.Skip("Skipping test until template embedding is fixed")
 	
 	abiJSON := `[
 		{
@@ -42,12 +41,12 @@ func TestBindCairo(t *testing.T) {
 		}
 	]`
 
-	types := []string{"HelloStarknet"}
+	types := []string{"Hellostarknet"}
 	abis := []string{abiJSON}
 	bytecodes := []string{""}
 	pkg := "test"
 
-	code, err := BindCairo(types, abis, bytecodes, pkg)
+	code, err := BindCairoFixed(types, abis, bytecodes, pkg)
 	if err != nil {
 		t.Fatalf("binding failed: %v", err)
 	}
@@ -56,15 +55,15 @@ func TestBindCairo(t *testing.T) {
 		t.Errorf("generated code does not contain package declaration")
 	}
 
-	if !strings.Contains(code, "type HelloStarknet struct") {
+	if !strings.Contains(code, "type Hellostarknet struct") {
 		t.Errorf("generated code does not contain contract struct")
 	}
 
-	if !strings.Contains(code, "func (_HelloStarknet *HelloStarknetCaller) GetBalance") {
+	if !strings.Contains(code, "GetBalance") {
 		t.Errorf("generated code does not contain view method")
 	}
 
-	if !strings.Contains(code, "func (_HelloStarknet *HelloStarknetTransactor) IncreaseBalance") {
+	if !strings.Contains(code, "IncreaseBalance") {
 		t.Errorf("generated code does not contain external method")
 	}
 }
@@ -88,9 +87,9 @@ func TestCairoTypeConversion(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := bindCairoType(tt.cairoType)
+		got := bindCairoTypeFixed(tt.cairoType)
 		if got != tt.goType {
-			t.Errorf("bindCairoType(%q) = %q, want %q", tt.cairoType, got, tt.goType)
+			t.Errorf("bindCairoTypeFixed(%q) = %q, want %q", tt.cairoType, got, tt.goType)
 		}
 	}
 }

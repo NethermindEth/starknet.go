@@ -49,6 +49,7 @@ operations on the wallets. The package has excellent documentation for a smooth
 - Tight integration with Juno
 - Account management: Deploy accounts easily
 - Good concurrency support
+- Cairo ABI source code generation for type-safe contract bindings
 
 # Getting Started
 

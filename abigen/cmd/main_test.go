@@ -2,16 +2,16 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"io"
 )
 
 func TestGenerateCommand(t *testing.T) {
 	t.Skip("Skipping test until template embedding is fixed")
-	tempDir, err := ioutil.TempDir("", "abigen-test")
+	tempDir, err := os.MkdirTemp("", "abigen-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestGenerateCommand(t *testing.T) {
 		}
 	]`
 	abiFile := filepath.Join(tempDir, "test.abi.json")
-	if err := ioutil.WriteFile(abiFile, []byte(abiContent), 0644); err != nil {
+	if err := os.WriteFile(abiFile, []byte(abiContent), 0644); err != nil {
 		t.Fatalf("Failed to write ABI file: %v", err)
 	}
 
@@ -67,14 +67,17 @@ func TestGenerateCommand(t *testing.T) {
 	os.Stdout = oldStdout
 	
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, err = io.Copy(&buf, r)
+	if err != nil {
+		t.Fatalf("Failed to read from pipe: %v", err)
+	}
 	_ = buf.String() // Capture output but not used in this test
 	
 	if _, err := os.Stat(outFile); os.IsNotExist(err) {
 		t.Errorf("Output file was not created: %v", err)
 	}
 	
-	generatedCode, err := ioutil.ReadFile(outFile)
+	generatedCode, err := os.ReadFile(outFile)
 	if err != nil {
 		t.Fatalf("Failed to read generated file: %v", err)
 	}
@@ -99,7 +102,7 @@ func TestGenerateCommand(t *testing.T) {
 
 func TestGenerateStdout(t *testing.T) {
 	t.Skip("Skipping test until template embedding is fixed")
-	tempDir, err := ioutil.TempDir("", "abigen-test")
+	tempDir, err := os.MkdirTemp("", "abigen-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
@@ -124,7 +127,7 @@ func TestGenerateStdout(t *testing.T) {
 		}
 	]`
 	abiFile := filepath.Join(tempDir, "test.abi.json")
-	if err := ioutil.WriteFile(abiFile, []byte(abiContent), 0644); err != nil {
+	if err := os.WriteFile(abiFile, []byte(abiContent), 0644); err != nil {
 		t.Fatalf("Failed to write ABI file: %v", err)
 	}
 
@@ -145,7 +148,10 @@ func TestGenerateStdout(t *testing.T) {
 	os.Stdout = oldStdout
 	
 	var buf bytes.Buffer
-	buf.ReadFrom(r)
+	_, err = io.Copy(&buf, r)
+	if err != nil {
+		t.Fatalf("Failed to read from pipe: %v", err)
+	}
 	_ = buf.String() // Capture output but not used in this test
 	
 	if !strings.Contains(buf.String(), "package test") {

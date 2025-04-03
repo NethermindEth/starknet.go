@@ -1,0 +1,101 @@
+[
+  {
+    "type": "struct",
+    "name": "UserInfo",
+    "members": [
+      {
+        "name": "address",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "balance",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "active",
+        "type": "core::bool"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "TokenPair",
+    "members": [
+      {
+        "name": "token_a",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "token_b",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "liquidity",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "get_user_info",
+    "inputs": [
+      {
+        "name": "user_address",
+        "type": "core::starknet::ContractAddress"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "UserInfo"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "update_user_info",
+    "inputs": [
+      {
+        "name": "user_info",
+        "type": "UserInfo"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::bool"
+      }
+    ],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "get_all_pairs",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::array::Array<TokenPair>"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "UserUpdated",
+    "keys": [
+      {
+        "name": "user_address",
+        "type": "core::starknet::ContractAddress"
+      }
+    ],
+    "data": [
+      {
+        "name": "new_balance",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "active",
+        "type": "core::bool"
+      }
+    ]
+  }
+]

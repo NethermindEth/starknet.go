@@ -1,13 +1,13 @@
 package abigen
 
 import (
-	_ "embed"
+	"fmt"
 	"strings"
 
 	cairoabi "github.com/NethermindEth/starknet.go/abigen/accounts/abi"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
-
-var tmplCairoSource string
 
 type tmplCairoData struct {
 	Package   string
@@ -53,9 +53,12 @@ func newTmplCairoContract(name, abi, bin string, constructor cairoabi.Method, bi
 type tmplCairoMethod struct {
 	Original   cairoabi.Method
 	Normalized struct {
-		Name string
+		Name    string
+		Inputs  []tmplCairoField
+		Outputs []tmplCairoField
 	}
 	Const      bool
+	Structured bool
 	Inputs     []tmplCairoField
 	Outputs    []tmplCairoField
 }
@@ -64,6 +67,8 @@ type tmplCairoEvent struct {
 	Original   cairoabi.Event
 	Normalized struct {
 		Name string
+		Keys []tmplCairoField
+		Data []tmplCairoField
 	}
 	Keys       []tmplCairoField
 	Data       []tmplCairoField
@@ -81,16 +86,22 @@ type tmplCairoStruct struct {
 }
 
 func ToCamelCase(input string) string {
+	input = strings.ReplaceAll(input, "::", "_")
+	
+	if strings.Contains(input, "_") && strings.HasSuffix(input, "_Event") {
+		parts := strings.Split(input, "_")
+		if len(parts) > 2 {
+			input = parts[len(parts)-2] + "_Event"
+		}
+	}
+	
 	words := strings.FieldsFunc(input, func(r rune) bool {
 		return r == '_' || r == ' ' || r == '-'
 	})
 	
+	caser := cases.Title(language.English)
 	for i, word := range words {
-		if i == 0 {
-			words[i] = strings.Title(word)
-		} else {
-			words[i] = strings.Title(word)
-		}
+		words[i] = caser.String(word)
 	}
 	return strings.Join(words, "")
 }
@@ -106,8 +117,32 @@ func newCairoBinder(abi cairoabi.ABI) *cairoBinder {
 	events := make(map[string]tmplCairoEvent)
 
 	for name, method := range abi.Methods {
-		normalizedStruct := struct{ Name string }{
+		inputs := make([]tmplCairoField, len(method.Inputs))
+		for i, input := range method.Inputs {
+			inputs[i] = tmplCairoField{
+				Name:      input.Name,
+				Type:      input.Type,
+				CairoType: input.Type,
+			}
+		}
+		
+		outputs := make([]tmplCairoField, len(method.Outputs))
+		for i, output := range method.Outputs {
+			outputs[i] = tmplCairoField{
+				Name:      fmt.Sprintf("ret%d", i),
+				Type:      output.Type,
+				CairoType: output.Type,
+			}
+		}
+
+		normalizedStruct := struct{ 
+			Name string
+			Inputs []tmplCairoField
+			Outputs []tmplCairoField
+		}{
 			Name: ToCamelCase(name),
+			Inputs: inputs,
+			Outputs: outputs,
 		}
 
 		isConst := method.StateMutability == "view"
@@ -116,17 +151,45 @@ func newCairoBinder(abi cairoabi.ABI) *cairoBinder {
 			Original:   method,
 			Normalized: normalizedStruct,
 			Const:      isConst,
+			Inputs:     inputs,
+			Outputs:    outputs,
 		}
 	}
 
 	for name, event := range abi.Events {
-		normalizedStruct := struct{ Name string }{
+		keys := make([]tmplCairoField, len(event.Keys))
+		for i, key := range event.Keys {
+			keys[i] = tmplCairoField{
+				Name:      key.Name,
+				Type:      key.Type,
+				CairoType: key.Type,
+			}
+		}
+		
+		data := make([]tmplCairoField, len(event.Data))
+		for i, d := range event.Data {
+			data[i] = tmplCairoField{
+				Name:      d.Name,
+				Type:      d.Type,
+				CairoType: d.Type,
+			}
+		}
+
+		normalizedStruct := struct{ 
+			Name string
+			Keys []tmplCairoField
+			Data []tmplCairoField
+		}{
 			Name: ToCamelCase(name),
+			Keys: keys,
+			Data: data,
 		}
 
 		events[name] = tmplCairoEvent{
 			Original:   event,
 			Normalized: normalizedStruct,
+			Keys:       keys,
+			Data:       data,
 		}
 	}
 

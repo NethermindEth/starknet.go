@@ -104,7 +104,7 @@ func generate(c *cli.Context) error {
 		typeName = abigen.ToCamelCase(typeName)
 	}
 
-	code, err := abigen.BindCairo([]string{typeName}, []string{abiJSON}, []string{binJSON}, c.String(pkgFlag.Name))
+	code, err := abigen.BindCairoFixed([]string{typeName}, []string{abiJSON}, []string{binJSON}, c.String(pkgFlag.Name))
 	if err != nil {
 		return fmt.Errorf("failed to generate binding: %v", err)
 	}

@@ -1,0 +1,114 @@
+[
+  {
+    "type": "function",
+    "name": "transfer",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::bool"
+      }
+    ],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "get_balances",
+    "inputs": [
+      {
+        "name": "addresses",
+        "type": "core::array::Array<core::starknet::ContractAddress>"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::array::Array<core::integer::u256>"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "swap",
+    "inputs": [
+      {
+        "name": "token_in",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "token_out",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "amount_in",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "min_amount_out",
+        "type": "core::integer::u256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::integer::u256"
+      }
+    ],
+    "state_mutability": "external"
+  },
+  {
+    "type": "event",
+    "name": "Transfer",
+    "keys": [
+      {
+        "name": "from",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "to",
+        "type": "core::starknet::ContractAddress"
+      }
+    ],
+    "data": [
+      {
+        "name": "amount",
+        "type": "core::integer::u256"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Swap",
+    "keys": [
+      {
+        "name": "user",
+        "type": "core::starknet::ContractAddress"
+      }
+    ],
+    "data": [
+      {
+        "name": "token_in",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "token_out",
+        "type": "core::starknet::ContractAddress"
+      },
+      {
+        "name": "amount_in",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "amount_out",
+        "type": "core::integer::u256"
+      }
+    ]
+  }
+]

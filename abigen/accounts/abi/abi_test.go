@@ -1,6 +1,9 @@
 package abi
 
 import (
+	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -9,39 +12,18 @@ import (
 )
 
 func TestCairoABIParsing(t *testing.T) {
-	abiJSON := `[
-		{
-			"type": "function",
-			"name": "increase_balance",
-			"inputs": [
-				{
-					"name": "amount",
-					"type": "core::felt252"
-				}
-			],
-			"outputs": [],
-			"state_mutability": "external"
-		},
-		{
-			"type": "function",
-			"name": "get_balance",
-			"inputs": [],
-			"outputs": [
-				{
-					"type": "core::felt252"
-				}
-			],
-			"state_mutability": "view"
-		},
-		{
-			"type": "event",
-			"name": "contracts_v2::hello_starknet::HelloStarknet::Event",
-			"kind": "enum",
-			"variants": []
-		}
-	]`
-
-	reader := strings.NewReader(abiJSON)
+	abiFile, err := os.Open(filepath.Join("testdata", "simple_contract.json"))
+	if err != nil {
+		t.Fatalf("Failed to open ABI file: %v", err)
+	}
+	defer abiFile.Close()
+	
+	abiBytes, err := io.ReadAll(abiFile)
+	if err != nil {
+		t.Fatalf("Failed to read ABI file: %v", err)
+	}
+	
+	reader := strings.NewReader(string(abiBytes))
 	parsedABI, err := JSON(reader)
 	if err != nil {
 		t.Fatalf("ABI parsing failed: %v", err)
@@ -88,7 +70,7 @@ func TestCairoABIParsing(t *testing.T) {
 	if len(parsedABI.Events) != 1 {
 		t.Fatalf("expected 1 event, got %d", len(parsedABI.Events))
 	}
-	eventName := "contracts_v2::hello_starknet::HelloStarknet::Event"
+	eventName := "BalanceIncreased"
 	_, exists = parsedABI.Events[eventName]
 	if !exists {
 		t.Fatalf("event '%s' not found in parsed ABI", eventName)
@@ -96,70 +78,33 @@ func TestCairoABIParsing(t *testing.T) {
 }
 
 func TestCairoABIWithComplexTypes(t *testing.T) {
-	abiJSON := `[
-		{
-			"type": "function",
-			"name": "test_complex_types",
-			"inputs": [
-				{
-					"name": "felt_param",
-					"type": "core::felt252"
-				},
-				{
-					"name": "u256_param",
-					"type": "core::integer::u256"
-				},
-				{
-					"name": "bool_param",
-					"type": "core::bool"
-				},
-				{
-					"name": "array_param",
-					"type": "core::array::Array<core::felt252>"
-				}
-			],
-			"outputs": [
-				{
-					"type": "core::felt252"
-				}
-			],
-			"state_mutability": "view"
-		},
-		{
-			"type": "struct",
-			"name": "MyStruct",
-			"members": [
-				{
-					"name": "field1",
-					"type": "core::felt252"
-				},
-				{
-					"name": "field2",
-					"type": "core::integer::u256"
-				}
-			]
-		}
-	]`
-
-	reader := strings.NewReader(abiJSON)
+	abiFile, err := os.Open(filepath.Join("testdata", "struct_contract.json"))
+	if err != nil {
+		t.Fatalf("Failed to open ABI file: %v", err)
+	}
+	defer abiFile.Close()
+	
+	abiBytes, err := io.ReadAll(abiFile)
+	if err != nil {
+		t.Fatalf("Failed to read ABI file: %v", err)
+	}
+	
+	reader := strings.NewReader(string(abiBytes))
 	parsedABI, err := JSON(reader)
 	if err != nil {
 		t.Fatalf("ABI parsing failed: %v", err)
 	}
 
-	method, exists := parsedABI.Methods["test_complex_types"]
+	method, exists := parsedABI.Methods["get_user_info"]
 	if !exists {
-		t.Fatalf("method 'test_complex_types' not found in parsed ABI")
+		t.Fatalf("method 'get_user_info' not found in parsed ABI")
 	}
 
 	expectedInputs := []struct {
 		name string
 		typ  string
 	}{
-		{"felt_param", "core::felt252"},
-		{"u256_param", "core::integer::u256"},
-		{"bool_param", "core::bool"},
-		{"array_param", "core::array::Array<core::felt252>"},
+		{"user_address", "core::starknet::ContractAddress"},
 	}
 
 	if len(method.Inputs) != len(expectedInputs) {
@@ -175,28 +120,28 @@ func TestCairoABIWithComplexTypes(t *testing.T) {
 		}
 	}
 
-	if len(parsedABI.Structs) != 1 {
-		t.Fatalf("expected 1 struct, got %d", len(parsedABI.Structs))
+	if len(parsedABI.Structs) != 2 {
+		t.Fatalf("expected 2 structs, got %d", len(parsedABI.Structs))
 	}
 
-	structType, exists := parsedABI.Structs["MyStruct"]
+	structType, exists := parsedABI.Structs["UserInfo"]
 	if !exists {
-		t.Fatalf("struct 'MyStruct' not found in parsed ABI")
+		t.Fatalf("struct 'UserInfo' not found in parsed ABI")
 	}
 
-	if len(structType.Members) != 2 {
-		t.Fatalf("expected 2 struct members, got %d", len(structType.Members))
+	if len(structType.Members) != 3 {
+		t.Fatalf("expected 3 struct members, got %d", len(structType.Members))
 	}
 
-	if structType.Members[0].Name != "field1" {
-		t.Errorf("expected struct member name 'field1', got '%s'", structType.Members[0].Name)
+	if structType.Members[0].Name != "address" {
+		t.Errorf("expected struct member name 'address', got '%s'", structType.Members[0].Name)
 	}
-	if structType.Members[0].Type != "core::felt252" {
-		t.Errorf("expected struct member type 'core::felt252', got '%s'", structType.Members[0].Type)
+	if structType.Members[0].Type != "core::starknet::ContractAddress" {
+		t.Errorf("expected struct member type 'core::starknet::ContractAddress', got '%s'", structType.Members[0].Type)
 	}
 
-	if structType.Members[1].Name != "field2" {
-		t.Errorf("expected struct member name 'field2', got '%s'", structType.Members[1].Name)
+	if structType.Members[1].Name != "balance" {
+		t.Errorf("expected struct member name 'balance', got '%s'", structType.Members[1].Name)
 	}
 	if structType.Members[1].Type != "core::integer::u256" {
 		t.Errorf("expected struct member type 'core::integer::u256', got '%s'", structType.Members[1].Type)

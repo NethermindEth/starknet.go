@@ -30,6 +30,15 @@ func BindCairo(types []string, abis []string, bytecodes []string, pkg string) (s
 			return r
 		}, abis[i])
 
+		for name, event := range cairoABI.Events {
+			sanitizedName := strings.ReplaceAll(name, "::", "_")
+			if sanitizedName != name {
+				event.Name = sanitizedName
+				cairoABI.Events[sanitizedName] = event
+				delete(cairoABI.Events, name)
+			}
+		}
+
 		binder := newCairoBinder(cairoABI)
 		methods := make(map[string]*tmplCairoMethod)
 		events := make(map[string]*tmplCairoEvent)
@@ -65,12 +74,16 @@ func BindCairo(types []string, abis []string, bytecodes []string, pkg string) (s
 	funcs := map[string]interface{}{
 		"bindtype": bindCairoType,
 	}
+	fmt.Printf("Template content length: %d\n", len(tmplCairoSource))
+	if len(tmplCairoSource) == 0 {
+		return "", fmt.Errorf("template content is empty")
+	}
 	tmpl := template.Must(template.New("").Funcs(funcs).Parse(tmplCairoSource))
 	if err := tmpl.Execute(buffer, data); err != nil {
-		return "", err
+		return "", fmt.Errorf("template execution error: %v", err)
 	}
 	
-	fmt.Printf("Generated code: %s\n", buffer.String())
+	// fmt.Printf("Generated code: %s\n", buffer.String())
 	
 	code, err := format.Source(buffer.Bytes())
 	if err != nil {
@@ -121,7 +134,7 @@ func bindCairoType(cairoType string) string {
 	return "*felt.Felt"
 }
 
-func hasCairoStruct(t string) bool {
+func IsCairoStruct(t string) bool {
 	if strings.HasPrefix(t, "Array<") || strings.Contains(t, "[") {
 		return true
 	}
@@ -144,7 +157,7 @@ func hasCairoStruct(t string) bool {
 	}
 }
 
-func bindCairoStructType(typeName string, name string, members []cairoabi.Argument, structs map[string]*tmplCairoStruct) string {
+func BindCairoStructType(typeName string, name string, members []cairoabi.Argument, structs map[string]*tmplCairoStruct) string {
 	id := typeName
 	if s, exist := structs[id]; exist {
 		return s.Name
