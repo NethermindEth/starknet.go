@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+    tags-ignore:
+      - '**'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        component: [rpc, account, contracts]
+        environment: [devnet, testnet, mainnet, mock]
+        exclude:
+          - component: contracts
+            environment: testnet
+          - component: contracts
+            environment: mainnet
+          - component: contracts
+            environment: mock
+
+    uses: ./.github/workflows/common-setup.yml
+    with:
+      environment: ${{ matrix.environment }}
+      component: ${{ matrix.component }}
+    secrets: inherit 

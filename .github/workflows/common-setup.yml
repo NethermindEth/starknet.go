@@ -1,0 +1,46 @@
+name: Common Setup
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Environment to test against (devnet, testnet, mainnet, mock)'
+      component:
+        required: true
+        type: string
+        description: 'Component to test (rpc, account, contracts)'
+
+jobs:
+  setup:
+    runs-on: ubuntu-22.04
+
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet-rs:0.2.4
+        ports:
+          - 5050:5050
+        if: ${{ inputs.environment == 'devnet' }}
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Wait for devnet
+        if: ${{ inputs.environment == 'devnet' }}
+        run: ./.bin/devnet.sh
+
+      - name: Run Tests
+        run: cd ${{ inputs.component }} && go test -timeout 600s -v -env ${{ inputs.environment }} .
+        env:
+          HTTP_PROVIDER_URL: ${{ inputs.environment == 'devnet' && 'http://localhost:5050/' || secrets[format('{0}_HTTP_PROVIDER_URL', inputs.environment)] }}
+          WS_PROVIDER_URL: ${{ secrets[format('{0}_WS_PROVIDER_URL', inputs.environment)] }}
+          STARKNET_PRIVATE_KEY: ${{ secrets[format('{0}_ACCOUNT_PRIVATE_KEY', inputs.environment)] }}
+          STARKNET_PUBLIC_KEY: ${{ secrets[format('{0}_ACCOUNT_PUBLIC_KEY', inputs.environment)] }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets[format('{0}_ACCOUNT_ADDRESS', inputs.environment)] }} 
