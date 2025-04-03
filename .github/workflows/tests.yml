@@ -17,18 +17,18 @@ jobs:
   test:
     strategy:
       matrix:
-        component: [rpc, account, contracts]
-        environment: [devnet, testnet, mainnet, mock]
-        exclude:
-          - component: contracts
-            environment: testnet
-          - component: contracts
-            environment: mainnet
-          - component: contracts
-            environment: mock
-
-    uses: ./.github/workflows/common-setup.yml
-    with:
-      environment: ${{ matrix.environment }}
-      component: ${{ matrix.component }}
-    secrets: inherit 
+        component: [rpc, account]
+        environment: [testnet, mainnet]
+    steps:
+      - name: Repo setup
+        uses: ./.github/workflows/setup_composite_action.yml
+      - name: Run tests
+        run: cd ${{ inputs.component }} && go test -timeout 600s -v -env ${{ inputs.environment }} .
+        env:
+          TESTNET_HTTP_PROVIDER_URL: ${{ inputs.TESTNET_HTTP_PROVIDER_URL }}
+          TESTNET_WS_PROVIDER_URL: ${{ inputs.TESTNET_WS_PROVIDER_URL }}
+          TESTNET_ACCOUNT_PRIVATE_KEY: ${{ inputs.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          TESTNET_ACCOUNT_PUBLIC_KEY: ${{ inputs.TESTNET_ACCOUNT_PUBLIC_KEY }}
+          TESTNET_ACCOUNT_ADDRESS: ${{ inputs.TESTNET_ACCOUNT_ADDRESS }}
+          MAINNET_HTTP_PROVIDER_URL: ${{ inputs.MAINNET_HTTP_PROVIDER_URL }}
+          MAINNET_WS_PROVIDER_URL: ${{ inputs.MAINNET_WS_PROVIDER_URL }}

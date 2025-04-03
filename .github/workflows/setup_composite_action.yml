@@ -1,0 +1,12 @@
+name: 'Hello World'
+description: 'Greet someone'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout branch
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
