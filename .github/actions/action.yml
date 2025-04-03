@@ -1,5 +1,4 @@
-name: 'Hello World'
-description: 'Greet someone'
+name: 'Checkout and setup Go'
 runs:
   using: "composite"
   steps:

@@ -14,15 +14,15 @@ on:
       - 'main'
 
 jobs:
-  test:
+  test-with-provider:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
         component: [rpc, account]
 
     steps:
-      - name: Repo setup
-        uses: ./.github/workflows/setup_composite_action.yml
+      - name: Branch and Go setup
+        uses: ./.github/actions
 
       - name: Run tests on testnet
         run: cd ${{ inputs.component }} && go test -timeout 120s -v -env testnet .
