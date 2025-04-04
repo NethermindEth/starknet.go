@@ -81,6 +81,11 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          to: '/blog',
+          label: 'Blog',
+          position: 'left',
+        },
+        {
           href: 'https://pkg.go.dev/github.com/NethermindEth/starknet.go',
           label: 'Go Reference',
           position: 'left',
