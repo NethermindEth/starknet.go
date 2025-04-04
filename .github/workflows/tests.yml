@@ -5,13 +5,9 @@ permissions:
 
 on:
   push:
-    branches-ignore:
-      - 'main'
-    tags-ignore:
-      - '**'
-  pull_request:
     branches:
-      - 'main'
+      - main
+  pull_request:
 
 jobs:
   test-with-provider:
