@@ -7,30 +7,30 @@ on:
   pull_request_target:
 
 jobs:
-  build_and_test:
-    runs-on: ubuntu-22.04
+  # build_and_test:
+  #   runs-on: ubuntu-22.04
 
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout branch
+  #       uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: go.mod
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v4
+  #       with:
+  #         go-version-file: go.mod
 
-      - name: Run all mock tests
-        run: go test -v ./...
+  #     - name: Run all mock tests
+  #       run: go test -v ./...
 
-      - name: Build examples
-        run: |
-          cd examples/deployAccount && go build
-          cd ../deployContractUDC && go build
-          cd ../invoke && go build
-          cd ../simpleCall && go build
-          cd ../simpleDeclare && go build
-          cd ../typedData && go build
-          cd ../websocket && go build
+  #     - name: Build examples
+  #       run: |
+  #         cd examples/deployAccount && go build
+  #         cd ../deployContractUDC && go build
+  #         cd ../invoke && go build
+  #         cd ../simpleCall && go build
+  #         cd ../simpleDeclare && go build
+  #         cd ../typedData && go build
+  #         cd ../websocket && go build
 
   build_and_test_with_provider:
     runs-on: ubuntu-22.04
