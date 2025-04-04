@@ -27,7 +27,6 @@ import (
 	"errors"
 	"math/rand"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -430,16 +429,6 @@ func (sub *ClientSubscription) requestUnsubscribe() error {
 	ctx, cancel := context.WithTimeout(context.Background(), unsubscribeTimeout)
 	defer cancel()
 
-	var err error
-	if sub.namespace == "starknet" {
-		var subId uint64
-		subId, err = strconv.ParseUint(sub.subid, 10, 64)
-		if err != nil {
-			return err
-		}
-		err = sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, subId)
-	} else {
-		err = sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
-	}
+	err := sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
 	return err
 }
