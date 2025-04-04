@@ -16,6 +16,13 @@ on:
 jobs:
   test-with-provider:
     runs-on: ubuntu-22.04
+    
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet-rs:0.2.4
+        ports:
+          - 5050:5050
+
     strategy:
       matrix:
         component: [rpc, account]
