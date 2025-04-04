@@ -1,5 +1,8 @@
 name: (all branches) - all tests
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
