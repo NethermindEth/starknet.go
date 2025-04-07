@@ -192,6 +192,15 @@ func shortGetStructHash(
 		return hash, err
 	}
 
+	// This is not correct according to the SNIP-12 specification, but in order to be compatible with the Starknet.js library
+	// (and consequently other libraries and dapps), it will be kept this way until Starknet.js is updated.
+	// Ref: https://github.com/starknet-io/starknet.js/pull/1292
+	// Ref: https://github.com/starknet-io/starknet.js/issues/1278
+	// TODO: remove this once Starknet.js is updated.
+	if isEnum {
+		return typedData.Revision.HashMethod(encTypeData...), nil
+	}
+
 	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
 }
 
@@ -333,6 +342,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 		return typeDef, fmt.Errorf("can't parse type %s from types %v", typeName, types)
 	}
 
+	// check if the type is already encoded
 	if newTypeDef = types[typeName]; newTypeDef.EncoddingString != "" {
 		return newTypeDef, nil
 	}
@@ -354,7 +364,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 		}
 		// clear the array
 		referencedTypesEnc = make([]string, 0, len(uniqueMap))
-		// fill it again
+		// fill it again, but now without duplicates
 		for typeEncStr := range uniqueMap {
 			referencedTypesEnc = append(referencedTypesEnc, typeEncStr)
 		}
