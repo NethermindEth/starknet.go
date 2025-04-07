@@ -10,8 +10,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/mock v0.4.0
-	golang.org/x/crypto v0.26.0
-	golang.org/x/net v0.28.0
+	golang.org/x/crypto v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
@@ -29,4 +29,4 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-require golang.org/x/sys v0.24.0 // indirect
+require golang.org/x/sys v0.30.0 // indirect
