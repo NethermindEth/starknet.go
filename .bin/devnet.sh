@@ -9,10 +9,15 @@ while true; do
   curl --fail localhost:5050/is_alive 2>/dev/null 2>&1
   result=$?
   if [ $result -eq 0 ]; then
-    sleep 5
+    # Try to mint tokens
     curl --fail -H 'Content-Type: application/json' -XPOST http://localhost:5050/mint \
       -d '{ "address": "'${ACCOUNT_ADDRESS}'", "amount": 1000000000000000}'
-    exit 0
+    mint_result=$?
+    if [ $mint_result -eq 0 ]; then
+      exit 0
+    else
+      echo "Mint operation failed, retrying..."
+    fi
   fi
   if [ $i -gt 10 ]; then
     break

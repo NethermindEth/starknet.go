@@ -6,12 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,7 +132,7 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 	require := require.New(t)
 
 	type testSetType struct {
@@ -142,21 +141,15 @@ func TestBlockWithReceipts(t *testing.T) {
 		ExpectedPendingBlockWithReceipts *PendingBlockWithReceipts
 	}
 
-	var blockWithReceipt struct {
-		Result BlockWithReceipts `json:"result"`
-	}
+	var blockWithReceipt BlockWithReceipts
 
 	if testEnv == "testnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/sepoliaBlockReceipts64159.json")
-		require.NoError(err)
-		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	} else if testEnv == "mainnet" {
-		block, err := os.ReadFile("tests/blockWithReceipts/mainnetBlockReceipts588763.json")
-		require.NoError(err)
-		require.NoError(json.Unmarshal(block, &blockWithReceipt))
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
-	deadBeef := utils.TestHexToFelt(t, "0xdeadbeef")
+	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 	var blockMock123 = BlockWithReceipts{
 		BlockHeader{
 			BlockHash: deadBeef,
@@ -231,7 +224,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			},
 			{
 				BlockID:                   WithBlockNumber(64159),
-				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
 		"mainnet": {
@@ -240,7 +233,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			},
 			{
 				BlockID:                   WithBlockNumber(588763),
-				ExpectedBlockWithReceipts: &blockWithReceipt.Result,
+				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
 	}[testEnv]

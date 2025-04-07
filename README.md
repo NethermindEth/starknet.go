@@ -55,9 +55,11 @@ operations on the wallets. The package has excellent documentation for a smooth
 - library documentation available at [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go).
 - [simple call example](./examples/simpleCall) to make a contract call to a testnet contract.
 - [deploy account example](./examples/deployAccount) to deploy a new account contract on testnet.
-- [invoke transaction example](./examples/simpleInvoke) to add a new invoke transaction on testnet.
+- [invoke transaction example](./examples/invoke) to add a new invoke transaction on testnet.
+- [declare transaction example](./examples/simpleDeclare) to add a new contract on testnet.
 - [deploy contract UDC example](./examples/deployContractUDC) to deploy an ERC20 token using [UDC (Universal Deployer Contract)](https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/) on testnet.
 - [typed data example](./examples/typedData) to sign and verify a typed data.
+- [websocket example](./examples/websocket) to learn how to subscribe to WebSocket methods.
 
 ### Run Examples
 
@@ -69,6 +71,14 @@ go run main.go
 ```
 > Check [here](examples/simpleCall/README.md) for more details
 
+***starknet simpleDeclare***
+ 
+```sh
+cd examples/simpleDeclare
+go run main.go
+```
+> Check [here](examples/simpleDeclare/README.md) for more details
+
 ***starknet deployAccount***
 
 ```sh
@@ -78,14 +88,14 @@ go run main.go
 
 > Check [here](examples/deployAccount/README.md) for more details
 
-***starknet invokeTransaction***
+***starknet invoke***
 
 ```sh
-cd examples/simpleInvoke
-go run main.go
+cd examples/invoke
+go run main.go simpleInvoke.go verboseInvoke.go
 ```
 
-> Check [here](examples/simpleInvoke/README.md) for more details
+> Check [here](examples/invoke/README.md) for more details
 
 ***starknet deployContractUDC***
 
@@ -105,12 +115,21 @@ go run main.go
 
 > Check [here](examples/typedData/README.md) for more details.
 
+***starknet websocket***
+
+```sh
+cd examples/websocket
+go run main.go
+```
+
+> Check [here](examples/websocket/README.md) for more details.
+
 <br/> Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ answered by these examples.
 
 
 ### RPC
 
-`starknet.go` RPC implements the Starknet [RPC v0.7.1 spec](https://github.com/starkware-libs/starknet-specs/tree/v0.7.1)
+`starknet.go` RPC implements the Starknet [RPC v0.8.0 spec](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.8.0)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |
@@ -143,6 +162,18 @@ go run main.go
 | `starknet_simulateTransaction`             | :heavy_check_mark: |
 | `starknet_specVersion`                     | :heavy_check_mark: |
 | `starknet_traceBlockTransactions`          | :heavy_check_mark: |
+| `starknet_getStorageProof`                 | :heavy_check_mark: |
+| `starknet_getMessagesStatus`               | :heavy_check_mark: |
+| `starknet_getCompiledCasm`                 | :heavy_check_mark: |
+
+#### WebSocket Methods
+
+| Method                                     | Implemented (*)    |
+| ------------------------------------------ | ------------------ |
+| `starknet_subscribeEvents`                 | :heavy_check_mark: |
+| `starknet_subscribeNewHeads`               | :heavy_check_mark: |
+| `starknet_subscribePendingTransactions`    | :heavy_check_mark: |
+| `starknet_subscribeTransactionStatus`      | :heavy_check_mark: |
 
 ### Run Tests
 
