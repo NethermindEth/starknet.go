@@ -185,7 +185,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-
 		t.Run("Transaction hash", func(t *testing.T) {
 			ks := account.NewMemKeystore()
 			if test.SetKS {
@@ -194,9 +193,19 @@ func TestTransactionHashInvoke(t *testing.T) {
 				ks.Put(test.PubKey, privKeyBI)
 			}
 
-			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			acc, err := account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
-			require.NoError(t, err, "error returned from account.NewAccount()")
+			var acc *account.Account
+			var err error
+			if testEnv == "testnet" {
+				client, err := rpc.NewProvider(base)
+				require.NoError(t, err, "Error in rpc.NewClient")
+				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, 0)
+				require.NoError(t, err, "error returned from account.NewAccount()")
+			}
+			if testEnv == "mock" {
+				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
+				require.NoError(t, err, "error returned from account.NewAccount()")
+			}
 			invokeTxn := rpc.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
 				Nonce:         test.TxDetails.Nonce,
@@ -282,11 +291,21 @@ func TestFmtCallData(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
-		require.NoError(t, err)
+		var acc *account.Account
+		var err error
+		if testEnv == "testnet" {
+			client, err := rpc.NewProvider(base)
+			require.NoError(t, err, "Error in rpc.NewClient")
+			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
+			require.NoError(t, err)
+		}
+		if testEnv == "mock" {
+			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+			acc, err = account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
+			require.NoError(t, err)
+		}
 
-		fmtCallData, err := acnt.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		fmtCallData, err := acc.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 		require.Equal(t, fmtCallData, test.ExpectedCallData)
 	}
@@ -743,13 +762,22 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 //
 //	none
 func TestTransactionHashDeclare(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
-	require.NoError(t, err)
+	var acnt *account.Account
+	var err error
+	if testEnv == "mock" {
+		mockCtrl := gomock.NewController(t)
+		t.Cleanup(mockCtrl.Finish)
+		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
+	if testEnv == "testnet" {
+		client, err := rpc.NewProvider(base)
+		require.NoError(t, err, "Error in rpc.NewClient")
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
 
 	type testSetType struct {
 		Txn          rpc.DeclareTxnType
@@ -851,13 +879,22 @@ func TestTransactionHashDeclare(t *testing.T) {
 
 func TestTransactionHashInvokeV3(t *testing.T) {
 
-	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
-	require.NoError(t, err)
+	var acnt *account.Account
+	var err error
+	if testEnv == "mock" {
+		mockCtrl := gomock.NewController(t)
+		t.Cleanup(mockCtrl.Finish)
+		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
+	if testEnv == "testnet" {
+		client, err := rpc.NewProvider(base)
+		require.NoError(t, err, "Error in rpc.NewClient")
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
 
 	type testSetType struct {
 		Txn          rpc.InvokeTxnV3
@@ -961,14 +998,23 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 func TestTransactionHashdeployAccount(t *testing.T) {
 
-	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+	var acnt *account.Account
+	var err error
+	if testEnv == "mock" {
+		mockCtrl := gomock.NewController(t)
+		t.Cleanup(mockCtrl.Finish)
+		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
-	require.NoError(t, err)
-
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
+	if testEnv == "testnet" {
+		client, err := rpc.NewProvider(base)
+		require.NoError(t, err, "Error in rpc.NewClient")
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		require.NoError(t, err)
+	}
 	type testSetType struct {
 		Txn           rpc.DeployAccountType
 		SenderAddress *felt.Felt
@@ -1068,6 +1114,9 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
+	if testEnv != "mock" {
+		t.Skip("Skipping test as it requires a mock environment")
+	}
 	mockCtrl := gomock.NewController(t)
 	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
