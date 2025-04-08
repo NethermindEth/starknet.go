@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -59,6 +60,21 @@ type Account struct {
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
 func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
+	// This temporary check is to warn the user that Braavos account restricts transactions to have exactly two resource fields.
+	// This makes them incompatible with transactions sent via RPC 0.8.0
+	accClassHash, err := provider.ClassHashAt(context.Background(), rpc.WithBlockTag("latest"), accountAddress)
+	if err != nil {
+		return nil, err
+	}
+	braavosClassHashes := []string{
+		"0x02c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
+		"0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253",
+		"0x041bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
+	}
+	if slices.Contains(braavosClassHashes, accClassHash.String()) {
+		fmt.Println("WARNING: Currently, Braavos account restricts transactions to have exactly two resource fields. This makes them incompatible with transactions sent via RPC 0.8.0.")
+	}
+
 	account := &Account{
 		Provider:       provider,
 		AccountAddress: accountAddress,
