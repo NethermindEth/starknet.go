@@ -74,10 +74,7 @@ func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 func TestRecursiveProofFixedSizeMerkleTree(t *testing.T) {
 	// Create a Merkle tree with multiple leaves
 	leaves := []*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)}
-	merkleTree, err := NewFixedSizeMerkleTree(leaves...)
-	if err != nil {
-		t.Fatalf("Error creating a Merkle tree: %v", err)
-	}
+	merkleTree := NewFixedSizeMerkleTree(leaves...)
 
 	// Choose a leaf for which to generate the Merkle proof
 	targetLeaf := leaves[2] // Replace with the desired leaf
@@ -105,11 +102,7 @@ func TestRecursiveProofFixedSizeMerkleTree(t *testing.T) {
 func reconstructRootFromProof(leaf *big.Int, proof []*big.Int) (*big.Int, error) {
 	currentHash := leaf
 	for _, sibling := range proof {
-		var err error
-		currentHash, err = MerkleHash(currentHash, sibling)
-		if err != nil {
-			return nil, err
-		}
+		currentHash = MerkleHash(currentHash, sibling)
 	}
 	return currentHash, nil
 }
