@@ -11,7 +11,6 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-
 // main entry point of the program.
 //
 // It initializes the environment and establishes a connection with the client.
@@ -34,11 +33,10 @@ func main() {
 	// Initialize connection to RPC provider
 	provider, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialing the RPC provider: %v", err))
 	}
 
 	fmt.Println("Established connection with the RPC provider")
-
 
 	simpleExample(provider)
 
@@ -47,9 +45,9 @@ func main() {
 
 func simpleExample(provider *rpc.Provider) {
 	const (
-		CONTRACT_ADDRESS = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
-		FROM_BLOCK uint64 = 301886
-		TO_BLOCK   uint64 = 301887
+		CONTRACT_ADDRESS        = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
+		FROM_BLOCK       uint64 = 301886
+		TO_BLOCK         uint64 = 301887
 	)
 
 	fmt.Println("Starting readEvents simple example")
@@ -57,8 +55,7 @@ func simpleExample(provider *rpc.Provider) {
 	// contractAddress is the address of the contract whose events we want to read
 	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
 	if err != nil {
-		msg := fmt.Errorf("failed to create felt from the contract address %s, error %w", CONTRACT_ADDRESS, err)
-		panic(msg)
+		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
 	}
 
 	// create an EventFilter that specifies which events we want
@@ -72,16 +69,17 @@ func simpleExample(provider *rpc.Provider) {
 	resPageReq := rpc.ResultPageRequest{
 		ChunkSize: 1000,
 	}
+
+	// Create an EventsInput object with the event filter and result page request
 	eventsInput := rpc.EventsInput{
 		EventFilter:       eventFilter,
 		ResultPageRequest: resPageReq,
 	}
 
-	ctx := context.Background()
-	eventChunk, err := provider.Events(ctx, eventsInput)
+	// Read the events from the contract
+	eventChunk, err := provider.Events(context.Background(), eventsInput)
 	if err != nil {
-		msg := fmt.Errorf("error retrieving events: %w", err)
-		panic(msg)
+		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	events := eventChunk.Events
 	fmt.Printf("number of events from contract: %d\n", len(events))
@@ -94,9 +92,9 @@ func simpleExample(provider *rpc.Provider) {
 
 func moreComplexExample(provider *rpc.Provider) {
 	const (
-		CONTRACT_ADDRESS = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
-		FROM_BLOCK uint64 = 16206
-		TO_BLOCK   uint64 = 16208
+		CONTRACT_ADDRESS        = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
+		FROM_BLOCK       uint64 = 16206
+		TO_BLOCK         uint64 = 16208
 	)
 
 	fmt.Println("Starting readEvents more complex example")
@@ -104,8 +102,7 @@ func moreComplexExample(provider *rpc.Provider) {
 	// contractAddress is the address of the contract whose events we want to read
 	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
 	if err != nil {
-		msg := fmt.Errorf("failed to create felt from the contract address %s, error %w", CONTRACT_ADDRESS, err)
-		panic(msg)
+		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
 	}
 
 	// create an EventFilter that specifies which events we want
@@ -150,8 +147,7 @@ func moreComplexExample(provider *rpc.Provider) {
 		"0x2f1d2a0070a008fd312a2368776aca5b57c4a3cd734efdb619c616af7ab64f5",
 	)
 	if err != nil {
-		msg := fmt.Errorf("failed to create felt, error: %w", err)
-		panic(msg)
+		panic(fmt.Sprintf("failed to create felt, error: %v", err))
 	}
 	keyFilter = buildKeyFilter(eventTypes, [][]*felt.Felt{{data}})
 	// set the new filter on the Keys field of the eventsInput
@@ -173,8 +169,7 @@ func readEvents(eventsInput rpc.EventsInput, provider *rpc.Provider) []rpc.Emitt
 	for haveMoreToRead {
 		eventChunk, err := provider.Events(ctx, eventsInput)
 		if err != nil {
-			msg := fmt.Errorf("error retrieving events: %w", err)
-			panic(msg)
+			panic(fmt.Sprintf("error retrieving events: %v", err))
 		}
 		events = append(events, eventChunk.Events...)
 		if eventChunk.ContinuationToken == "" {
@@ -237,4 +232,3 @@ func printEvents(events []rpc.EmittedEvent) {
 		}
 	}
 }
-
