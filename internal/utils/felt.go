@@ -210,7 +210,11 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 }
 
 func feltToString(f *felt.Felt) (string, error) {
-	b, err := hex.DecodeString(f.String()[2:])
+	hexStr := f.String()[2:]
+	if len(hexStr)&1 == 1 {
+		hexStr = "0" + hexStr
+	}
+	b, err := hex.DecodeString(hexStr)
 	if err != nil {
 		return "", fmt.Errorf("unable to decode to string")
 	}
