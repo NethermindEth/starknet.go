@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/joho/godotenv"
 )
 
@@ -20,24 +19,14 @@ func init() {
 	}
 }
 
-// Default "panic" but printing all RPCError fields (code, message, and data)
-func PanicRPC(err error) {
-
-	RPCErr, ok := err.(*rpc.RPCError)
-	if !ok {
-		panic("failed to cast to RPCError. This error is not a RPCError")
-	}
-	err = errors.Join(
-		errors.New(fmt.Sprint(RPCErr.Code)),
-		errors.New(RPCErr.Message),
-		errors.New(fmt.Sprint(RPCErr.Data)),
-	)
-	panic(err)
-}
-
 // Validates whether the RPC_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
 func GetRpcProviderUrl() string {
 	return getEnv("RPC_PROVIDER_URL")
+}
+
+// Validates whether the WS_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
+func GetWsProviderUrl() string {
+	return getEnv("WS_PROVIDER_URL")
 }
 
 // Validates whether the PRIVATE_KEY variable has been set in the '.env' file and returns it; panics otherwise.
@@ -74,7 +63,7 @@ func getEnv(envName string) string {
 	return env
 }
 
-// PadZerosInFelt pads zeros to the left of a hex felt value to make it 64 characters long.
+// PadZerosInFelt it's a helper function that pads zeros to the left of a hex felt value to make sure it is 64 characters long.
 func PadZerosInFelt(hexFelt *felt.Felt) string {
 	length := 66
 	hexStr := hexFelt.String()
