@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -16,11 +17,11 @@ import (
 // - error: An error if any
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
-	if err := provider.c.CallContext(ctx, &blockNumber, "starknet_blockNumber"); err != nil {
+	if err := do(ctx, provider.c, "starknet_blockNumber", &blockNumber); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
-		return 0, err
+		return 0, tryUnwrapToRPCErr(err)
 	}
 	return blockNumber, nil
 }
@@ -34,8 +35,8 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // - error: An error if any
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
-	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {		
-		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks )
+	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
 	}
 	return &block, nil
 }
@@ -44,6 +45,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 //
 // Parameters:
 //   - n: The block number to use for the BlockID.
+//
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
@@ -96,7 +98,12 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
-				SequencerAddress: result.SequencerAddress},
+				SequencerAddress: result.SequencerAddress,
+				L1GasPrice:       result.L1GasPrice,
+				StarknetVersion:  result.StarknetVersion,
+				L1DataGasPrice:   result.L1DataGasPrice,
+				L1DAMode:         result.L1DAMode,
+			},
 			result.Transactions,
 		}, nil
 	}
@@ -115,8 +122,8 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // - error: An error, if any
 func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
-	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {		
-		return nil,tryUnwrapToRPCErr(err,ErrBlockNotFound )
+	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return &state, nil
 }
@@ -132,10 +139,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
-		if errors.Is(err, errNotFound) {
-			return 0, ErrBlockNotFound
-		}
-		return 0, err
+		return 0, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	return result, nil
 }
@@ -151,7 +155,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err,ErrBlockNotFound )
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
 	if result.BlockHeader.BlockHash == nil {
@@ -159,9 +163,43 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
-				SequencerAddress: result.SequencerAddress},
+				SequencerAddress: result.SequencerAddress,
+				L1GasPrice:       result.L1GasPrice,
+				StarknetVersion:  result.StarknetVersion,
+				L1DataGasPrice:   result.L1DataGasPrice,
+				L1DAMode:         result.L1DAMode,
+			},
 			result.Transactions,
 		}, nil
 	}
 	return &result, nil
+}
+
+// Get block information with full transactions and receipts given the block id
+func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
+	var result json.RawMessage
+	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+	}
+
+	var m map[string]interface{}
+	if err := json.Unmarshal(result, &m); err != nil {
+		return nil, Err(InternalError, StringErrData(err.Error()))
+	}
+
+	// PendingBlockWithReceipts doesn't contain a "status" field
+	if _, ok := m["status"]; ok {
+		var block BlockWithReceipts
+		if err := json.Unmarshal(result, &block); err != nil {
+			return nil, Err(InternalError, StringErrData(err.Error()))
+		}
+		return &block, nil
+	} else {
+		var pendingBlock PendingBlockWithReceipts
+		if err := json.Unmarshal(result, &pendingBlock); err != nil {
+			return nil, Err(InternalError, StringErrData(err.Error()))
+		}
+		return &pendingBlock, nil
+	}
+
 }

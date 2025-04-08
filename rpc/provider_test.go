@@ -2,75 +2,46 @@ package rpc
 
 import (
 	"context"
-	"flag"
-	"fmt"
-	"math/big"
+	"encoding/json"
+	"log"
+	"net/http"
+	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
-	"github.com/joho/godotenv"
-	"github.com/test-go/testify/require"
+	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	TestPublicKey            = "0x783318b2cc1067e5c06d374d2bb9a0382c39aabd009b165d7a268b882971d6"
-	DevNetETHAddress         = "0x62230ea046a9a5fbc261ac77d03c8d41e5d442db2284587570ab46455fd2488"
-	TestNetETHAddress        = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-	DevNetAccount032Address  = "0x06bb9425718d801fd06f144abb82eced725f0e81db61d2f9f4c9a26ece46a829"
-	TestNetAccount032Address = "0x6ca4fdd437dffde5253ba7021ef7265c88b07789aa642eafda37791626edf00"
-	DevNetAccount040Address  = "0x080dff79c6216ad300b872b73ff41e271c63f213f8a9dc2017b164befa53b9"
-	TestNetAccount040Address = "0x6cbfa37f409610fee26eeb427ed854b3a4b24580d9b9ef6c3e38db7b3f7322c"
+	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 )
 
 // testConfiguration is a type that is used to configure tests
 type testConfiguration struct {
-	provider *Provider
-	base     string
+	provider   *Provider
+	wsProvider *WsProvider
+	base       string
+	wsBase     string
 }
 
-var (
-	// set the environment for the test, default: mock
-	testEnv = "mock"
+// the environment for the test, default: mock
+var testEnv = ""
 
-	// testConfigurations are predefined test configurations
-	testConfigurations = map[string]testConfiguration{
-		// Requires a Mainnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"mainnet": {
-			base: "http://localhost:9545/v0.2/rpc",
-		},
-		// Requires a Testnet Starknet JSON-RPC compliant node (e.g. pathfinder)
-		// (ref: https://github.com/eqlabs/pathfinder)
-		"testnet": {
-			base: "http://localhost:9545/v0.2/rpc",
-		},
-		// Requires a Devnet configuration running locally
-		// (ref: https://github.com/Shard-Labs/starknet-devnet)
-		"devnet": {
-			base: "http://localhost:5050/rpc",
-		},
-		// Used with a mock as a standard configuration, see `mock_test.go``
-		"mock": {},
-	}
-)
-
-// TestMain is a Go function that serves as the entry point for running tests.
+// TestMain is used to trigger the tests and set up the test environment.
 //
-// It takes a pointer to the testing.M struct as its parameter and returns nothing.
-// The purpose of this function is to set up any necessary test environment
-// variables before running the tests and to clean up any resources afterwards.
-// It also parses command line flags and exits with the exit code returned by
-// the testing.M.Run() function.
+// It sets up the test environment by loading environment variables using the internal.LoadEnv() function,
+// which handles parsing command line flags and loading the appropriate .env files based on the
+// specified environment (mock, testnet, mainnet, or devnet).
+// After setting up the environment, it runs the tests and exits with the return value of the test suite.
 //
 // Parameters:
-// - m: the testing.M struct
+// - m: The testing.M object that provides the entry point for running tests
 // Returns:
-//   none
+//
+//	none
 func TestMain(m *testing.M) {
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.Parse()
+	testEnv = internal.LoadEnv()
 
 	os.Exit(m.Run())
 }
@@ -79,15 +50,14 @@ func TestMain(m *testing.M) {
 //
 // Parameters:
 // - t: The testing.T object for testing purposes
+// - isWs: a boolean value to check if the test is for the websocket provider
 // Returns:
 // - *testConfiguration: a pointer to the testConfiguration struct
-func beforeEach(t *testing.T) *testConfiguration {
+func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
-	godotenv.Load(fmt.Sprintf(".env.%s", testEnv), ".env")
-	testConfig, ok := testConfigurations[testEnv]
-	if !ok {
-		t.Fatal("env supports mock, testnet, mainnet or devnet")
-	}
+
+	var testConfig testConfiguration
+
 	if testEnv == "mock" {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
@@ -95,116 +65,89 @@ func beforeEach(t *testing.T) *testConfiguration {
 		return &testConfig
 	}
 
-	testConfig.base = "https://starknet-goerli.cartridge.gg"
-	base := os.Getenv("INTEGRATION_BASE")
+	base := os.Getenv("HTTP_PROVIDER_URL")
 	if base != "" {
 		testConfig.base = base
 	}
-	c, err := ethrpc.DialContext(context.Background(), testConfig.base)
+
+	client, err := NewProvider(testConfig.base)
 	if err != nil {
-		t.Fatal("connect should succeed, instead:", err)
+		t.Fatalf("failed to connect to the %s provider: %v", testConfig.base, err)
 	}
-	client := NewProvider(c)
 	testConfig.provider = client
 	t.Cleanup(func() {
 		testConfig.provider.c.Close()
 	})
+
+	if testEnv == "devnet" || testEnv == "mainnet" {
+		return &testConfig
+	}
+
+	if isWs {
+		wsBase := os.Getenv("WS_PROVIDER_URL")
+		if wsBase != "" {
+			testConfig.wsBase = wsBase
+
+		}
+
+		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+		if err != nil {
+			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.wsBase, err)
+		}
+		testConfig.wsProvider = wsClient
+		t.Cleanup(func() {
+			testConfig.wsProvider.c.Close()
+		})
+	}
+
 	return &testConfig
 }
 
-// TestChainID is a function that tests the ChainID function in the Go test file.
-//
-// The function initializes a test configuration and defines a test set with different chain IDs for different environments.
-// It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
-// The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
-// If there is a mismatch or an error occurs, the function logs a fatal error.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//  none
-func TestChainID(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ChainID string
-	}
-	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "SN_GOERLI"}},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "SN_GOERLI"}},
-		"testnet": {{ChainID: "SN_GOERLI"}},
-	}[testEnv]
-
-	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		chain, err := testConfig.provider.ChainID(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := spy.Compare(chain, false); err != nil {
-			t.Fatal("expecting to match", err)
-		}
-		if chain != test.ChainID {
-			t.Fatalf("expecting %s, instead: %s", test.ChainID, chain)
-		}
-	}
-}
-
-// TestSyncing tests the syncing functionality.
-//
-// It initializes a test configuration and sets up a test set. Then it loops
-// through the test set and creates a spy object. It calls the Syncing function
-// of the provider using the test configuration. It checks if there is any
-// error during syncing, and if so, it fails the test. If the starting block
-// hash is not nil, it compares the sync object with the spy object. It checks
-// if the current block number is a positive number and if the current block
-// hash starts with "0x". If the starting block hash is nil, it compares the
-// sync object with the spy object and checks if the current block hash is nil.
-//
-// Parameters:
-// - t: the testing object for running the test cases
-// Returns:
-//  none
-func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t)
-
-	type testSetType struct {
-		ChainID string
-	}
-
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_GOERLI"}},
-	}[testEnv]
-
-	for range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		sync, err := testConfig.provider.Syncing(context.Background())
-		if err != nil {
-			t.Fatal("Syncing error:", err)
-		}
-		if sync.StartingBlockHash != nil {
-			if diff, err := spy.Compare(sync, false); err != nil || diff != "FullMatch" {
-				spy.Compare(sync, true)
-				t.Fatal("expecting to match", err)
-			}
-			i, ok := big.NewInt(0).SetString(string(sync.CurrentBlockNum), 0)
-			if !ok || i.Cmp(big.NewInt(0)) <= 0 {
-				t.Fatal("CurrentBlockNum should be positive number, instead: ", sync.CurrentBlockNum)
-			}
-			if !strings.HasPrefix(sync.CurrentBlockHash.String(), "0x") {
-				t.Fatal("current block hash should return a string starting with 0x")
-			}
+func TestCookieManagement(t *testing.T) {
+	// Don't return anything unless cookie is set.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := r.Cookie("session_id"); err == http.ErrNoCookie {
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session_id",
+				Value: "12345",
+				Path:  "/",
+			})
 		} else {
-			spy.Compare(sync, false)
-			require.Nil(t, sync.CurrentBlockHash)
-
+			var rawResp json.RawMessage
+			err := mock_starknet_chainId(&rawResp)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			var result string
+			if err := json.Unmarshal(rawResp, &result); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			data := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"result":  result,
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
+			}
 		}
+	}))
+	defer server.Close()
 
-	}
+	client, err := NewProvider(server.URL)
+	require.Nil(t, err)
+
+	resp, err := client.ChainID(context.Background())
+	require.NotNil(t, err)
+	require.Equal(t, resp, "")
+
+	resp, err = client.ChainID(context.Background())
+	require.Nil(t, err)
+	require.Equal(t, resp, "SN_SEPOLIA")
+
+	resp, err = client.ChainID(context.Background())
+	require.Nil(t, err)
+	require.Equal(t, resp, "SN_SEPOLIA")
 }

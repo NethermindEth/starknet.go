@@ -99,7 +99,7 @@ type PendingStateUpdate struct {
 
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
-	SyncStatus        bool       // todo(remove? not in spec)
+	SyncStatus        *bool
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
 	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
@@ -115,12 +115,14 @@ type SyncStatus struct {
 // occurred during the marshaling process.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: the JSON encoding of the SyncStatus struct
 // - error: any error that occurred during the marshaling process
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
-	if !s.SyncStatus {
+	if !*s.SyncStatus {
 		return []byte("false"), nil
 	}
 	output := map[string]interface{}{}
@@ -136,7 +138,9 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals the JSON data into the SyncStatus struct.
 //
 // Parameters:
-//  -data: It takes a byte slice as input representing the JSON data to be unmarshaled.
+//
+//	-data: It takes a byte slice as input representing the JSON data to be unmarshaled.
+//
 // Returns:
 // - error: an error if the unmarshaling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
@@ -176,6 +180,17 @@ type FunctionCall struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
+// InvokeFunctionCall represents a function call to be invoked on a contract.
+// It's a helper type used to build a FunctionCall for a v3 Invoke transaction.
+type InvokeFunctionCall struct {
+	// The address of the contract to invoke
+	ContractAddress *felt.Felt
+	// The name of the function to invoke
+	FunctionName string
+	// The parameters passed to the function
+	CallData []*felt.Felt
+}
+
 // TxDetails contains details needed for computing transaction hashes
 type TxDetails struct {
 	Nonce   *felt.Felt
@@ -183,15 +198,31 @@ type TxDetails struct {
 	Version TransactionVersion
 }
 
-type FeeEstimate struct {
-	// GasConsumed the Ethereum gas cost of the transaction (see https://docs.starknet.io/docs/Fees/fee-mechanism for more info)
-	GasConsumed NumAsHex `json:"gas_consumed"`
+// a sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
+type FeeEstimation struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
 
-	// GasPrice the gas price (in gwei) that was used in the cost estimation
-	GasPrice NumAsHex `json:"gas_price"`
+	// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
 
-	// OverallFee the estimated fee for the transaction (in gwei), product of gas_consumed and gas_price
-	OverallFee NumAsHex `json:"overall_fee"`
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+
+	// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+
+	// Units in which the fee is given
+	FeeUnit FeePaymentUnit `json:"unit"`
 }
 
 type TxnExecutionStatus string
@@ -229,7 +260,9 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 // The function returns the marshaled byte slice and a nil error.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: the JSON encoding of the TxnExecutionStatus
 // - error: the error if there was an issue marshaling
@@ -240,7 +273,9 @@ func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 // String returns the string representation of the TxnExecutionStatus.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - string: the string representation of the TxnExecutionStatus
 func (s TxnExecutionStatus) String() string {
@@ -279,7 +314,9 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TxnFinalityStatus into JSON.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - []byte: a byte slice
 // - error: an error if any
@@ -290,7 +327,9 @@ func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 // String returns the string representation of the TxnFinalityStatus.
 //
 // Parameters:
-//  none
+//
+//	none
+//
 // Returns:
 // - string: the string representation of the TxnFinalityStatus
 func (s TxnFinalityStatus) String() string {

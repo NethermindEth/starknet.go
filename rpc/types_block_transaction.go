@@ -6,98 +6,76 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
-type BlockTransactions []BlockTransaction
+type BlockTransactions []IBlockTransaction
 
-type BlockTransaction interface {
+type BlockTransaction struct {
+	IBlockTransaction
+}
+
+type IBlockTransaction interface {
 	Hash() *felt.Felt
 }
 
-var _ BlockTransaction = BlockInvokeTxnV0{}
-var _ BlockTransaction = BlockInvokeTxnV1{}
-var _ BlockTransaction = BlockDeclareTxnV0{}
-var _ BlockTransaction = BlockDeclareTxnV1{}
-var _ BlockTransaction = BlockDeclareTxnV2{}
-var _ BlockTransaction = BlockDeployTxn{}
-var _ BlockTransaction = BlockDeployAccountTxn{}
-var _ BlockTransaction = BlockL1HandlerTxn{}
+var _ IBlockTransaction = BlockInvokeTxnV0{}
+var _ IBlockTransaction = BlockInvokeTxnV1{}
+var _ IBlockTransaction = BlockInvokeTxnV3{}
+var _ IBlockTransaction = BlockDeclareTxnV0{}
+var _ IBlockTransaction = BlockDeclareTxnV1{}
+var _ IBlockTransaction = BlockDeclareTxnV2{}
+var _ IBlockTransaction = BlockDeclareTxnV3{}
+var _ IBlockTransaction = BlockDeployTxn{}
+var _ IBlockTransaction = BlockDeployAccountTxn{}
+var _ IBlockTransaction = BlockL1HandlerTxn{}
 
 // Hash returns the transaction hash of the BlockInvokeTxnV0.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockInvokeTxnV1 transaction.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
+
+// Hash returns the hash of the BlockInvokeTxnV3 transaction.
+func (tx BlockInvokeTxnV3) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
 // Hash returns the transaction hash of the BlockDeclareTxnV0.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV0) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV1.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV1) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the transaction hash of the BlockDeclareTxnV2.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
+// Hash returns the transaction hash of the BlockDeclareTxnV3.
+func (tx BlockDeclareTxnV3) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
 // Hash returns the hash of the BlockDeployTxn.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeployTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the Felt hash of the BlockDeployAccountTxn.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
 // Hash returns the hash of the BlockL1HandlerTxn.
-//
-// Parameters:
-//  none
-// Returns:
-// - *felt.Felt: the transaction hash
 func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
@@ -110,6 +88,11 @@ type BlockInvokeTxnV0 struct {
 type BlockInvokeTxnV1 struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	InvokeTxnV1
+}
+
+type BlockInvokeTxnV3 struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	InvokeTxnV3
 }
 
 type BlockL1HandlerTxn struct {
@@ -130,6 +113,11 @@ type BlockDeclareTxnV1 struct {
 type BlockDeclareTxnV2 struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	DeclareTxnV2
+}
+
+type BlockDeclareTxnV3 struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	DeclareTxnV3
 }
 
 type BlockDeployTxn struct {
@@ -157,7 +145,7 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	unmarshalled := make([]BlockTransaction, len(dec))
+	unmarshalled := make([]IBlockTransaction, len(dec))
 	for i, t := range dec {
 		var err error
 		unmarshalled[i], err = unmarshalBlockTxn(t)
@@ -170,14 +158,44 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// unmarshalBlockTxn unmarshals a given interface and returns a BlockTransaction.
+// UnmarshalJSON unmarshals the data into a BlockTransaction object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (txn *BlockTransaction) UnmarshalJSON(data []byte) error {
+	var dec map[string]interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	// BlockTransaction wrap transaction in the IBlockTransaction field.
+	dec, err := internalUtils.UnwrapJSON(dec, "IBlockTransaction")
+	if err != nil {
+		return err
+	}
+
+	t, err := unmarshalBlockTxn(dec)
+	if err != nil {
+		return err
+	}
+
+	*txn = BlockTransaction{t}
+	return nil
+}
+
+// unmarshalBlockTxn unmarshals a given interface and returns a IBlockTransaction.
 //
 // Parameter:
 // - t: The interface{} to be unmarshalled
 // Returns:
-// - BlockTransaction: a BlockTransaction
+// - IBlockTransaction: a IBlockTransaction
 // - error: an error if the unmarshaling process fails
-func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
+func unmarshalBlockTxn(t interface{}) (IBlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
@@ -186,41 +204,49 @@ func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
 			switch TransactionType(casted["version"].(string)) {
 			case "0x0":
 				var txn BlockDeclareTxnV0
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x1":
 				var txn BlockDeclareTxnV1
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
 			case "0x2":
 				var txn BlockDeclareTxnV2
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
+			case "0x3":
+				var txn BlockDeclareTxnV3
+				err := remarshal(casted, &txn)
+				return txn, err
 			default:
-				return nil, errors.New("Internal error with Declare transaction version and unmarshalTxn()")
+				return nil, errors.New("internal error with Declare transaction version and unmarshalTxn()")
 			}
 		case TransactionType_Deploy:
 			var txn BlockDeployTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_DeployAccount:
 			var txn BlockDeployAccountTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		case TransactionType_Invoke:
 			if casted["version"].(string) == "0x0" {
 				var txn BlockInvokeTxnV0
-				remarshal(casted, &txn)
-				return txn, nil
-			} else {
+				err := remarshal(casted, &txn)
+				return txn, err
+			} else if casted["version"].(string) == "0x1" {
 				var txn BlockInvokeTxnV1
-				remarshal(casted, &txn)
-				return txn, nil
+				err := remarshal(casted, &txn)
+				return txn, err
+			} else {
+				var txn BlockInvokeTxnV3
+				err := remarshal(casted, &txn)
+				return txn, err
 			}
 		case TransactionType_L1Handler:
 			var txn BlockL1HandlerTxn
-			remarshal(casted, &txn)
-			return txn, nil
+			err := remarshal(casted, &txn)
+			return txn, err
 		}
 	}
 

@@ -12,18 +12,19 @@ import (
 // Returns:
 // - *AddInvokeTransactionResponse: the response of adding the invoke transaction
 // - error: an error if any
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn BroadcastInvokeTxn) (*AddInvokeTransactionResponse, error) {
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,
 			ErrDuplicateTx,
 			ErrUnsupportedTxVersion,
+			ErrUnexpectedError,
 		)
 	}
 	return &output, nil
@@ -37,15 +38,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn Br
 // Returns:
 // - *AddDeclareTransactionResponse: The response of submitting the declare transaction
 // - error: an error if any
-func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction BroadcastDeclareTxn) (*AddDeclareTransactionResponse, error) {
-
-	switch txn := declareTransaction.(type) {
-	case DeclareTxnV2:
-		// DeclareTxnV2 should not have a populated class hash field. It is only needed for signing.
-		txn.ClassHash = nil
-		declareTransaction = txn
-	}
-
+func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (*AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
 		return nil, tryUnwrapToRPCErr(
@@ -54,7 +47,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 			ErrCompilationFailed,
 			ErrCompiledClassHashMismatch,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,
@@ -74,13 +67,13 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 // - deployAccountTransaction: The deploy account transaction to be added
 // Returns:
 // - *AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
-func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction BroadcastDeployAccountTxn) (*AddDeployAccountTransactionResponse, error) {
+func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *BroadcastDeployAccountTxnV3) (*AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
 		return nil, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
-			ErrInsufficientMaxFee,
+			ErrInsufficientResourcesForValidate,
 			ErrInvalidTransactionNonce,
 			ErrValidationFailure,
 			ErrNonAccount,

@@ -4,13 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/test-go/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 // TestSpecVersion tests starknet_specVersion
 func TestSpecVersion(t *testing.T) {
 
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string
@@ -20,7 +20,7 @@ func TestSpecVersion(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			ExpectedResp: "0.5.0",
+			ExpectedResp: "0.8.0",
 		}},
 	}[testEnv]
 
