@@ -15,7 +15,6 @@
     <a href="https://github.com/NethermindEth/starknet.go/actions/workflows/ci_tests.yml">
         <img src="https://github.com/NethermindEth/starknet.go/actions/workflows/ci_tests.yml/badge.svg" alt="Main tests">
     </a>
-    </a>
     <a href="https://github.com/NethermindEth/starknet.go/stargazers">
       <img src="https://img.shields.io/github/stars/nethermindeth/starknet.go?style=social"/>
     </a>
