@@ -410,14 +410,7 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 			if msg.Error != nil {
 				op.err = msg.Error
 			} else {
-				// starknet returns a object with a subid field instead of a string
-				if op.sub.namespace == "starknet" {
-					var subid uint64
-					op.err = json.Unmarshal(msg.Result, &subid)
-					op.sub.subid = strconv.FormatUint(subid, 10)
-				} else {
-					op.err = json.Unmarshal(msg.Result, &op.sub.subid)
-				}
+				op.err = json.Unmarshal(msg.Result, &op.sub.subid)
 				if op.err == nil {
 					go op.sub.run()
 					h.clientSubs[op.sub.subid] = op.sub
@@ -463,9 +456,15 @@ func (h *handler) handleSubscriptionResult(msg *jsonrpcMessage) {
 		return
 	}
 
-	id := strconv.FormatUint(result.StarknetID, 10)
-	if id == "0" {
-		id = result.ID
+	id := result.StarknetID
+	// if the StarknetID is empty, means it could be subscription from the ethereum tests
+	// so we use the ID field instead (if not empty)
+	if id == "" {
+		if result.ID == "" {
+			h.log.Debug("Dropping invalid subscription message")
+			return
+		}
+		id = string(result.ID)
 	}
 
 	if h.clientSubs[id] != nil {
