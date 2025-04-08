@@ -1,0 +1,152 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "drspacemn",
+      "name": "drspacemn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16685321?v=4",
+      "profile": "https://github.com/drspacemn",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "gregoryguillou",
+      "name": "Gregory Guillou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10611760?v=4",
+      "profile": "https://github.com/gregoryguillou",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "tarrencev",
+      "name": "Tarrence van As",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4740651?v=4",
+      "profile": "https://github.com/tarrencev",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "alex-sumner",
+      "name": "Alex Sumner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46249612?v=4",
+      "profile": "https://github.com/alex-sumner",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "broody",
+      "name": "Yun",
+      "avatar_url": "https://avatars.githubusercontent.com/u/610224?v=4",
+      "profile": "https://github.com/broody",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "rzmahmood",
+      "name": "Zoraiz Mahmood",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35128199?v=4",
+      "profile": "https://github.com/rzmahmood",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "LucasLvy",
+      "name": "Lucas @ StarkWare",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70894690?v=4",
+      "profile": "https://github.com/LucasLvy",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "coburn24",
+      "name": "Coburn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29192260?v=4",
+      "profile": "https://github.com/coburn24",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Larkooo",
+      "name": "Larko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59736843?v=4",
+      "profile": "https://github.com/Larkooo",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "oxlime",
+      "name": "oxlime",
+      "avatar_url": "https://avatars.githubusercontent.com/u/93354898?v=4",
+      "profile": "https://github.com/oxlime",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "archseer",
+      "name": "Blaž Hrastnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1372918?v=4",
+      "profile": "http://mxxn.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "FlorianRichardSMT",
+      "name": "Florian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110891350?v=4",
+      "profile": "https://github.com/FlorianRichardSMT",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "greged93",
+      "name": "greged93",
+      "avatar_url": "https://avatars.githubusercontent.com/u/82421016?v=4",
+      "profile": "https://github.com/greged93",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jney",
+      "name": "Jean-Sébastien Ney",
+      "avatar_url": "https://avatars.githubusercontent.com/u/747?v=4",
+      "profile": "https://github.com/jney",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "krebernisak",
+      "name": "Kristijan Rebernisak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/615877?v=4",
+      "profile": "https://runningbeta.io",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "starknet.go",
+  "projectOwner": "NethermindEth"
+}
