@@ -20,7 +20,7 @@ func TestSpecVersion(t *testing.T) {
 		"mainnet": {},
 		"mock":    {},
 		"testnet": {{
-			ExpectedResp: "0.8.0",
+			ExpectedResp: "0.8.1",
 		}},
 	}[testEnv]
 
