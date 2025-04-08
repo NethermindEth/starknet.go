@@ -2,13 +2,18 @@ package curve
 
 import (
 	"crypto/elliptic"
+	"crypto/subtle"
 	"fmt"
+	"math"
 	"math/big"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
+	"gonum.org/v1/gonum/stat"
 )
 
 // package level variable to be used by the benchmarking code
@@ -433,6 +438,8 @@ func TestGeneral_Signature(t *testing.T) {
 		hash    *big.Int
 		rIn     *big.Int
 		sIn     *big.Int
+		rOut    *big.Int
+		sOut    *big.Int
 		raw     string
 	}{
 		{
@@ -455,6 +462,27 @@ func TestGeneral_Signature(t *testing.T) {
 			rIn:     internalUtils.StrToBig("2849277527182985104629156126825776904262411756563556603659114084811678482647"),
 			sIn:     internalUtils.StrToBig("3156340738553451171391693475354397094160428600037567299774561739201502791079"),
 		},
+		// Example ref: https://github.com/starkware-libs/crypto-cpp/blob/master/src/starkware/crypto/ecdsa_test.cc
+		// NOTICE: s component of the {r, s} signature is not available at source, but was manually computed/confirmed as
+		//   `s := sc.InvModCurveSize(w)` for w: 0x1f2c44a7798f55192f153b4c48ea5c1241fbb69e6132cc8a0da9c5b62a4286e
+		{
+			private: internalUtils.HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
+			hash:    internalUtils.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rIn:     internalUtils.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sIn:     internalUtils.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+		},
+		{
+			publicX: internalUtils.HexToBN("0x77a3b314db07c45076d11f62b6f9e748a39790441823307743cf00d6597ea43"),
+			hash:    internalUtils.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rIn:     internalUtils.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sIn:     internalUtils.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+		},
+		{
+			private: internalUtils.HexToBN("0x3c1e9550e66958296d11b60f8e8e7a7ad990d07fa65d5f7652c4a6c87d4e3cc"),
+			hash:    internalUtils.HexToBN("0x397e76d1667c4454bfb83514e120583af836f8e32a516765497823eabe16a3f"),
+			rOut:    internalUtils.HexToBN("0x173fd03d8b008ee7432977ac27d1e9d1a1f6c98b1a2f05fa84a21c84c44e882"),
+			sOut:    internalUtils.HexToBN("4b6d75385aed025aa222f28a0adc6d58db78ff17e51c3f59e259b131cd5a1cc"),
+		},
 	}
 
 	var err error
@@ -474,10 +502,247 @@ func TestGeneral_Signature(t *testing.T) {
 		if tt.rIn == nil && tt.private != nil {
 			tt.rIn, tt.sIn, err = Curve.Sign(tt.hash, tt.private)
 			require.NoError(err)
+			if tt.rOut != nil && tt.rOut.Cmp(tt.rIn) != 0 {
+				t.Errorf("Signature {r!, s} mismatch: %x != %x\n", tt.rIn, tt.rOut)
+			}
+			if tt.sOut != nil && tt.sOut.Cmp(tt.sIn) != 0 {
+				t.Errorf("Signature {r, s!} mismatch: %x != %x\n", tt.sIn, tt.sOut)
+			}
 		}
 
 		require.True(Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
 	}
+}
+
+type ecMultOption struct {
+	algo   string
+	fn     EcMultiFn
+	stddev float64
+}
+
+// Get multiple ec multiplication algo options to test and benchmark
+func (sc StarkCurve) ecMultOptions() []ecMultOption {
+	return []ecMultOption{
+		{
+			algo: "Double-And-Add",
+			fn:   sc.ecMult_DoubleAndAdd, // original algo
+		},
+		{
+			algo: "Double-And-Always-Add",
+			fn:   sc.EcMult, // best algo (currently used)
+		},
+		{
+			algo: "Montgomery-Ladder",
+			fn:   sc.ecMult_Montgomery,
+		},
+		{
+			algo: "Montgomery-Ladder-Lsh",
+			fn:   sc.ecMult_MontgomeryLsh,
+		},
+	}
+}
+
+func FuzzEcMult(f *testing.F) {
+	// Generate the scalar value k, where 0 < k < order(point)
+	var _genScalar = func(a int, b int) (k *big.Int) {
+		k = new(big.Int).Mul(big.NewInt(int64(a)), big.NewInt(int64(b)))
+		k = k.Mul(k, k).Mul(k, k) // generate moar big number
+		k = k.Abs(k)
+		k = k.Add(k, big.NewInt(1)) // edge case: avoid zero
+		k = k.Mod(k, Curve.N)
+		return
+	}
+
+	// Seed the fuzzer (examples)
+	f.Add(-12121501143923232, 142312310232324552) // negative numbers used as seeds but the resulting
+	f.Add(41289371293219038, -179566705053432322) // scalar is normalized to 0 < k < order(point)
+	f.Add(927302501143912223, 220390912389202149)
+	f.Add(874739451078007766, 868575557812948233)
+	f.Add(302150520188025637, 670505342647705232)
+	f.Add(778320444456588442, 932884823101831273)
+	f.Add(658844239552133924, 933442778319932884)
+	f.Add(494910213617956623, 976290247577832044)
+
+	f.Fuzz(func(t *testing.T, a int, b int) {
+		k := _genScalar(a, b)
+
+		var x0, y0 *big.Int
+		for _, tt := range Curve.ecMultOptions() {
+			x, y, err := Curve.privateToPoint(k, tt.fn)
+			if err != nil {
+				t.Errorf("EcMult err: %v, algo=%v\n", err, tt.algo)
+			}
+
+			// Store the initial result from the first algo and test against it
+			if x0 == nil {
+				x0 = x
+				y0 = y
+			} else if x0.Cmp(x) != 0 {
+				t.Errorf("EcMult x mismatch: %v != %v, algo=%v\n", x, x0, tt.algo)
+			} else if y0.Cmp(y) != 0 {
+				t.Errorf("EcMult y mismatch: %v != %v, algo=%v\n", y, y0, tt.algo)
+			}
+		}
+	})
+}
+
+func BenchmarkEcMultAll(b *testing.B) {
+	// Generate the scalar value k, where n number of bits are set, no trailing zeros
+	var _genScalarBits = func(n int) (k *big.Int) {
+		k = big.NewInt(1)
+		for i := 1; i < n; i++ {
+			k = k.Lsh(k, 1).Add(k, big.NewInt(1))
+		}
+		return
+	}
+
+	ecMultiBest := ecMultOption{
+		algo:   "",
+		stddev: math.MaxFloat64,
+	}
+
+	var out strings.Builder
+	for _, tt := range Curve.ecMultOptions() {
+		// test (+ time) injected ec multi fn performance via Curve.privateToPoint
+		var _test = func(k *big.Int) int64 {
+			start := time.Now()
+			Curve.privateToPoint(k, tt.fn)
+			return time.Since(start).Nanoseconds()
+		}
+
+		xs := []float64{}
+		// generate numbers with 1 to 251 bits set
+		for i := 1; i < Curve.N.BitLen(); i++ {
+			k := _genScalarBits(i)
+			b.Run(fmt.Sprintf("%s/input_bits_len/%d", tt.algo, k.BitLen()), func(b *testing.B) {
+				ns := _test(k)
+				xs = append(xs, float64(ns))
+			})
+		}
+
+		// generate numbers with 1 to 250 trailing zero bits set
+		k := _genScalarBits(Curve.N.BitLen() - 1)
+		for i := 1; i < Curve.N.BitLen()-1; i++ {
+			k.Rsh(k, uint(i)).Lsh(k, uint(i))
+			b.Run(fmt.Sprintf("%s/input_bits_len/%d#%d", tt.algo, k.BitLen(), k.TrailingZeroBits()), func(b *testing.B) {
+				ns := _test(k)
+				xs = append(xs, float64(ns))
+			})
+		}
+
+		// computes the weighted mean of the dataset.
+		// we don't have any weights (ie: all weights are 1) so we pass a nil slice.
+		mean := stat.Mean(xs, nil)
+		variance := stat.Variance(xs, nil)
+		stddev := math.Sqrt(variance)
+		// Keep track of the best one (min stddev)
+		if stddev < ecMultiBest.stddev {
+			ecMultiBest.stddev = stddev
+			ecMultiBest.algo = tt.algo
+		}
+
+		out.WriteString("-----------------------------\n")
+		out.WriteString(fmt.Sprintf("algo=       %v\n", tt.algo))
+		out.WriteString(fmt.Sprintf("stats(ns)\n"))
+		out.WriteString(fmt.Sprintf("  mean=     %v\n", mean))
+		out.WriteString(fmt.Sprintf("  variance= %v\n", variance))
+		out.WriteString(fmt.Sprintf("  std-dev=  %v\n", stddev))
+		out.WriteString("\n")
+	}
+
+	// final stats output
+	fmt.Println(out.String())
+	// assert benchmark result is as expected
+	expectedBest := "Double-And-Always-Add"
+	if ecMultiBest.algo != expectedBest {
+		b.Errorf("ecMultiBest.algo %v does not == expected %v\n", ecMultiBest.algo, expectedBest)
+	}
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/starkware/crypto/signature/math_utils.py)
+func (sc StarkCurve) ecMult_DoubleAndAdd(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMult func(m, x1, y1 *big.Int) (x, y *big.Int)
+	_ecMult = func(m, x1, y1 *big.Int) (x, y *big.Int) {
+		if m.BitLen() == 1 {
+			return x1, y1
+		}
+		mk := new(big.Int).Mod(m, big.NewInt(2))
+		if mk.Cmp(big.NewInt(0)) == 0 {
+			h := new(big.Int).Div(m, big.NewInt(2))
+			c, d := sc.Double(x1, y1)
+			return _ecMult(h, c, d)
+		}
+		n := new(big.Int).Sub(m, big.NewInt(1))
+		e, f := _ecMult(n, x1, y1)
+
+		return sc.Add(e, f, x1, y1)
+	}
+
+	// Notice: no need for scalar rewrite trick via `StarkCurve.rewriteScalar`
+	//   This algorithm is not affected, as it doesn't do a fixed number of operations,
+	//   nor directly depends on the binary representation of the scalar.
+	return _ecMult(m, x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) ecMult_Montgomery(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Do constant number of operations
+		for i := sc.N.BitLen() - 1; i >= 0; i-- {
+			// Check if next bit set
+			if m.Bit(i) == 0 {
+				x1, y1 = sc.Add(x0, y0, x1, y1)
+				x0, y0 = sc.Double(x0, y0)
+			} else {
+				x0, y0 = sc.Add(x0, y0, x1, y1)
+				x1, y1 = sc.Double(x1, y1)
+			}
+		}
+		return x0, y0
+	}
+
+	return _ecMultMontgomery(sc.rewriteScalar(m), big.NewInt(0), big.NewInt(0), x1, y1)
+}
+
+// Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
+// Assumes affine form (x, y) is spread (x1 *big.Int, y1 *big.Int) and that 0 < m < order(point).
+//
+// (ref: https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Montgomery_ladder)
+func (sc StarkCurve) ecMult_MontgomeryLsh(m, x1, y1 *big.Int) (x, y *big.Int) {
+	var _ecMultMontgomery = func(m, x0, y0, x1, y1 *big.Int) (x, y *big.Int) {
+		// Fill a fixed 32 byte buffer (2 ** 251)
+		// NOTICE: this will take an absolute value first
+		buf := m.FillBytes(make([]byte, 32))
+
+		for i, byte := range buf {
+			for bitNum := 0; bitNum < 8; bitNum++ {
+				// Skip first 4 bits, do constant 252 operations
+				if i == 0 && bitNum < 4 {
+					byte <<= 1
+					continue
+				}
+
+				// Check if next bit set
+				if subtle.ConstantTimeByteEq(byte&0x80, 0x80) == 0 {
+					x1, y1 = sc.Add(x0, y0, x1, y1)
+					x0, y0 = sc.Double(x0, y0)
+				} else {
+					x0, y0 = sc.Add(x0, y0, x1, y1)
+					x1, y1 = sc.Double(x1, y1)
+				}
+				byte <<= 1
+			}
+		}
+		return x0, y0
+	}
+
+	return _ecMultMontgomery(sc.rewriteScalar(m), big.NewInt(0), big.NewInt(0), x1, y1)
 }
 
 // TestGeneral_SplitFactStr is a test function that tests the SplitFactStr function.
