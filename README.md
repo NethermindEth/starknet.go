@@ -25,6 +25,9 @@
   <a href="https://x.com/NethermindStark">
     <img src="https://img.shields.io/twitter/follow/NethermindStark?style=social"/>
   </a>
+  <a href="https://discord.com/invite/PaCMRFdvWT">
+    <img src="https://img.shields.io/discord/629004402170134531">
+  </a>  
   <a href="https://t.me/StarknetGo">
     <img src="https://img.shields.io/badge/Telegram_group-gray?logo=telegram">
   </a>
