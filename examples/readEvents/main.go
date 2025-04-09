@@ -35,8 +35,37 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error dialing the RPC provider: %v", err))
 	}
-
 	fmt.Println("Established connection with the RPC provider")
+
+	// TODO: the plan is to make one function for each example
+	// and then call it with the provider as argument
+
+	// **********
+	// 1. call with ChunkSize only
+	// **********
+	fmt.Println(" ----- 1. call with ChunkSize only -----")
+
+	// The only required field is the 'ChunkSize' field, so let's fill it. This field is used
+	// to limit the number of events returned in one call. If the number of events is greater than
+	// the ChunkSize, the provider will return a continuation token in the 'ContinuationToken' field
+	// that can be used to retrieve the next chunk.
+	//
+	// This will return 1000 events starting from the block 0.
+	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 1000,
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("error retrieving events: %v", err))
+	}
+	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+
+	// **********
+	// 2. call with ChunkSize and ContinuationToken
+	// **********
+	fmt.Println(" ----- 2. call with ChunkSize and ContinuationToken -----")
 
 	simpleExample(provider)
 
@@ -52,17 +81,10 @@ func simpleExample(provider *rpc.Provider) {
 
 	fmt.Println("Starting readEvents simple example")
 
-	// contractAddress is the address of the contract whose events we want to read
-	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
-	}
-
 	// create an EventFilter that specifies which events we want
 	eventFilter := rpc.EventFilter{
 		FromBlock: rpc.WithBlockNumber(FROM_BLOCK),
 		ToBlock:   rpc.WithBlockNumber(TO_BLOCK),
-		Address:   contractAddress,
 	}
 
 	// ChunkSize is the maximum number of events to read in one call.
