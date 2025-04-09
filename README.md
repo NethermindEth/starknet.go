@@ -29,7 +29,7 @@
     <img src="https://img.shields.io/discord/629004402170134531?label=Nethermind%20Discord&logo=discord">
   </a>  
   <a href="https://t.me/StarknetGo">
-    <img src="https://img.shields.io/badge/Telegram_group-gray?logo=telegram">
+    <img src="https://img.shields.io/badge/Starknet.go_group-gray?logo=telegram">
   </a>
 </p>
 
