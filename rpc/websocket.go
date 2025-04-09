@@ -50,13 +50,9 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
 func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error) {
-	if blockID == (BlockID{}) {
-		blockID = WithBlockTag("latest")
-	} else {
-		err := checkForPending(blockID)
-		if err != nil {
-			return nil, err
-		}
+	err := checkForPending(blockID)
+	if err != nil {
+		return nil, err
 	}
 
 	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, blockID)
@@ -79,10 +75,6 @@ func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
 func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *SubPendingTxns, options *SubPendingTxnsInput) (*client.ClientSubscription, error) {
-	if options == nil {
-		options = &SubPendingTxnsInput{}
-	}
-
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribePendingTransactions", pendingTxns, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
