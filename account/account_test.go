@@ -202,6 +202,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 			if testEnv == "mock" {
 				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+				mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
@@ -349,6 +351,8 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedID, account.ChainId.String())
@@ -448,6 +452,8 @@ func TestSignMOCK(t *testing.T) {
 		ks.Put(test.Address.String(), privKeyBI)
 
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
@@ -762,6 +768,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 	}
@@ -879,6 +887,8 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
 	}
@@ -998,6 +1008,8 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
@@ -1114,6 +1126,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+	mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
