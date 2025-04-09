@@ -12,6 +12,7 @@ require (
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.35.0
 	golang.org/x/net v0.36.0
+	gonum.org/v1/gonum v0.14.0
 )
 
 require (
