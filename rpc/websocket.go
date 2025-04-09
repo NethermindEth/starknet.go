@@ -26,18 +26,9 @@ import (
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
 func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error) {
-	if options == nil {
-		options = &EventSubscriptionInput{}
-		options.BlockID = WithBlockTag("latest")
-	} else {
-		if options.BlockID == (BlockID{}) {
-			options.BlockID = WithBlockTag("latest")
-		} else {
-			err := checkForPending(options.BlockID)
-			if err != nil {
-				return nil, err
-			}
-		}
+	err := checkForPending(options.BlockID)
+	if err != nil {
+		return nil, err
 	}
 
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
