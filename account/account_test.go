@@ -1498,11 +1498,12 @@ func TestBraavosAccountWarning(t *testing.T) {
 
 			// Create a buffer to capture stdout
 			oldStdout := os.Stdout
-			r, w, _ := os.Pipe()
+			r, w, err := os.Pipe()
+			require.NoError(t, err)
 			os.Stdout = w
 
 			// Create the account
-			_, err := account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), 2)
+			_, err = account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), 2)
 			require.NoError(t, err)
 
 			// Close the writer and restore stdout
@@ -1511,7 +1512,8 @@ func TestBraavosAccountWarning(t *testing.T) {
 
 			// Read the captured output
 			var buf bytes.Buffer
-			io.Copy(&buf, r)
+			_, err = io.Copy(&buf, r)
+			require.NoError(t, err)
 
 			if test.ExpectedOutput {
 				// Check if the warning message was printed
