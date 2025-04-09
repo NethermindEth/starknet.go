@@ -104,7 +104,6 @@ func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) 
 //	none
 func TestTransactionHashInvoke(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
@@ -237,7 +236,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 //	none
 func TestFmtCallData(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
@@ -327,7 +325,6 @@ func TestFmtCallData(t *testing.T) {
 //	none
 func TestChainIdMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
@@ -370,9 +367,6 @@ func TestChainIdMOCK(t *testing.T) {
 //
 //	none
 func TestChainId(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
-
 	type testSetType struct {
 		ChainID    string
 		ExpectedID string
@@ -419,7 +413,6 @@ func TestChainId(t *testing.T) {
 //	none
 func TestSignMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
@@ -766,7 +759,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	var err error
 	if testEnv == "mock" {
 		mockCtrl := gomock.NewController(t)
-		t.Cleanup(mockCtrl.Finish)
+
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
@@ -883,7 +876,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	var err error
 	if testEnv == "mock" {
 		mockCtrl := gomock.NewController(t)
-		t.Cleanup(mockCtrl.Finish)
+
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
@@ -1002,7 +995,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	var err error
 	if testEnv == "mock" {
 		mockCtrl := gomock.NewController(t)
-		t.Cleanup(mockCtrl.Finish)
+
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
@@ -1118,7 +1111,6 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		t.Skip("Skipping test as it requires a mock environment")
 	}
 	mockCtrl := gomock.NewController(t)
-	t.Cleanup(mockCtrl.Finish)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
