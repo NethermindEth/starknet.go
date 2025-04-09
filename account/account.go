@@ -71,7 +71,7 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 			"0x041bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
 		}
 		if slices.Contains(braavosClassHashes, accClassHash.String()) {
-			fmt.Println("WARNING: Currently, Braavos account restricts transactions to have exactly two resource fields. This makes them incompatible with transactions sent via RPC 0.8.0.")
+			fmt.Println("WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3")
 		}
 	}
 
