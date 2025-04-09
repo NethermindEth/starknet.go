@@ -516,9 +516,9 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 	if err != nil {
 		return nil, nil, err
 	}
-	xFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(x))
-	yFelt := felt.NewFelt(new(felt.Felt).Impl().SetBigInt(y))
-	return xFelt, yFelt, nil
+	xFelt := felt.New(*new(felt.Felt).Impl().SetBigInt(x))
+	yFelt := felt.New(*new(felt.Felt).Impl().SetBigInt(y))
+	return &xFelt, &yFelt, nil
 }
 
 // HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
