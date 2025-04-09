@@ -36,7 +36,7 @@ type EmittedEvent struct {
 
 type EventFilter struct {
 	// FromBlock from block
-	FromBlock BlockID `json:"from_block"`
+	FromBlock BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
 	ToBlock BlockID `json:"to_block,omitempty"`
 	// Address from contract
@@ -45,6 +45,8 @@ type EventFilter struct {
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
 }
 
+// EventsInput is the input for the 'starknet_getEvents' method.
+// All fields are optional, except for the 'chunk_size' field.
 type EventsInput struct {
 	EventFilter
 	ResultPageRequest

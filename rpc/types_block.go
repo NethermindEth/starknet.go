@@ -61,11 +61,11 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"block_number":%d}`, *b.Number)), nil
 	}
 
-	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
+	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
 		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
 	}
 
-	return nil, ErrInvalidBlockID
+	return json.Marshal(nil)
 }
 
 type BlockStatus string
