@@ -1,9 +1,8 @@
 module github.com/NethermindEth/starknet.go
 
 go 1.23.4
-
 require (
-	github.com/NethermindEth/juno v0.14.0
+	github.com/NethermindEth/juno v0.14.3
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.4.0
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
@@ -15,9 +14,9 @@ require (
 )
 
 require (
-	github.com/bits-and-blooms/bitset v1.21.0 // indirect
-	github.com/consensys/bavard v0.1.27 // indirect
-	github.com/consensys/gnark-crypto v0.16.0 // indirect
+	github.com/bits-and-blooms/bitset v1.22.0 // indirect
+	github.com/consensys/bavard v0.1.29 // indirect
+	github.com/consensys/gnark-crypto v0.17.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
