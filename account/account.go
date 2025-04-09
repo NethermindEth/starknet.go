@@ -48,6 +48,8 @@ type Account struct {
 	ks             Keystore
 }
 
+var BRAAVOS_WARNING_MESSAGE = "WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3"
+
 // NewAccount creates a new Account instance.
 //
 // Parameters:
@@ -77,7 +79,7 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 			"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
 		}
 		if slices.Contains(braavosClassHashes, accClassHash.String()) {
-			fmt.Print("WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3\n\n")
+			fmt.Print(BRAAVOS_WARNING_MESSAGE + "\n\n")
 		}
 	}
 
