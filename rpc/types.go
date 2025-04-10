@@ -201,25 +201,25 @@ type TxDetails struct {
 // a sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
 type FeeEstimation struct {
 	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
-	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+	L1GasConsumed *U64 `json:"l1_gas_consumed"`
 
 	// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
-	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+	L1GasPrice *U128 `json:"l1_gas_price"`
 
 	// The L2 gas consumption of the transaction
-	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+	L2GasConsumed *U64 `json:"l2_gas_consumed"`
 
 	// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
-	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+	L2GasPrice *U128 `json:"l2_gas_price"`
 
 	// The Ethereum data gas consumption of the transaction.
-	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+	L1DataGasConsumed *U64 `json:"l1_data_gas_consumed"`
 
 	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
-	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+	L1DataGasPrice *U128 `json:"l1_data_gas_price"`
 
 	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
-	OverallFee *felt.Felt `json:"overall_fee"`
+	OverallFee *U128 `json:"overall_fee"`
 
 	// Units in which the fee is given
 	FeeUnit FeePaymentUnit `json:"unit"`
