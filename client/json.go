@@ -47,13 +47,13 @@ const (
 var null = json.RawMessage("null")
 
 type subscriptionResult struct {
-	StarknetID uint64          `json:"subscription_id"`
+	StarknetID string          `json:"subscription_id"`
 	ID         string          `json:"subscription,omitempty"` // ethereum field, kept for testing compatibility
 	Result     json.RawMessage `json:"result,omitempty"`
 }
 
 type subscriptionResultEnc struct {
-	StarknetID uint64 `json:"subscription_id"`
+	StarknetID string `json:"subscription_id"`
 	ID         string `json:"subscription,omitempty"` // ethereum field, kept for testing compatibility
 	Result     any    `json:"result"`
 }
