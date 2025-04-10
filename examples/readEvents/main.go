@@ -11,22 +11,17 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
+const (
+	CONTRACT_ADDRESS = "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7" // StarkGate: ETH Token
+)
+
 // main entry point of the program.
 //
 // It initializes the environment and establishes a connection with the client.
 // It then retrieves events from the contract and prints how many it found with
 // a series of more selective filters (all event types, just 2 event types, just
 // those 2 event types but with a specified key value).
-
-// Parameters:
-//
-//	none
-//
-// Returns:
-//
-//	none
 func main() {
-
 	// Read provider URL from .env file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
 
@@ -37,17 +32,15 @@ func main() {
 	}
 	fmt.Println("Established connection with the RPC provider")
 
-	// TODO: the plan is to make one function for each example
-	// and then call it with the provider as argument
+	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
+	}
 
-	// **********
 	// 1. call with ChunkSize and ContinuationToken
-	// **********
 	callWithChunkSizeAndContinuationToken(provider)
-	// **********
-	// 2. call with ChunkSize only
-	// **********
-	fmt.Println(" ----- 2. call with ChunkSize only -----")
+	// 2. call with Block and Address filters
+	callWithBlockAndAddressFilters(provider, contractAddress)
 
 	simpleExample(provider)
 
@@ -86,6 +79,34 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	}
 	fmt.Printf("number of returned events in the second chunk: %d\n", len(secondEventChunk.Events))
 	fmt.Printf("block number of the last event in the second chunk: %d\n", secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber)
+}
+
+func callWithBlockAndAddressFilters(provider *rpc.Provider, contractAddress *felt.Felt) {
+	fmt.Println(" ----- 2. call with Block and Address filters -----")
+	fmt.Println("Contract Address: ", contractAddress.String())
+
+	// We are using the following filters:
+	// - FromBlock: The starting block number (inclusive)
+	// - ToBlock: The ending block number (inclusive)
+	// - Address: The contract address to filter events from
+	//
+	// So, we are filtering events from block 0 to block 100 and only from the provided contract address.
+	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
+		EventFilter: rpc.EventFilter{
+			FromBlock: rpc.WithBlockNumber(0),
+			ToBlock:   rpc.WithBlockNumber(100),
+			Address:   contractAddress,
+		},
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 1000,
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("error retrieving events: %v", err))
+	}
+	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf("contract address of the last event: %s\n", eventChunk.Events[len(eventChunk.Events)-1].FromAddress.String())
 }
 
 func simpleExample(provider *rpc.Provider) {
