@@ -41,13 +41,14 @@ func main() {
 	callWithChunkSizeAndContinuationToken(provider)
 	// 2. call with Block and Address filters
 	callWithBlockAndAddressFilters(provider, contractAddress)
+	// 3. call with Keys filter
+	callWithKeysFilter(provider, contractAddress)
 
-	simpleExample(provider)
-
-	moreComplexExample(provider)
+	// moreComplexExample(provider)
 }
 
 func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
+	fmt.Println()
 	fmt.Println(" ----- 1. call with ChunkSize and ContinuationToken -----")
 
 	// The only required field is the 'ChunkSize' field, so let's fill it. This field is used
@@ -65,6 +66,7 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	fmt.Printf("number of returned events in the first chunk: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the first event in the first chunk: %d\n", eventChunk.Events[0].BlockNumber)
 	fmt.Printf("block number of the last event in the first chunk: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
 
 	// Now we will get the second chunk
@@ -78,10 +80,12 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	fmt.Printf("number of returned events in the second chunk: %d\n", len(secondEventChunk.Events))
+	fmt.Printf("block number of the first event in the second chunk: %d\n", secondEventChunk.Events[0].BlockNumber)
 	fmt.Printf("block number of the last event in the second chunk: %d\n", secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber)
 }
 
 func callWithBlockAndAddressFilters(provider *rpc.Provider, contractAddress *felt.Felt) {
+	fmt.Println()
 	fmt.Println(" ----- 2. call with Block and Address filters -----")
 	fmt.Println("Contract Address: ", contractAddress.String())
 
@@ -105,189 +109,99 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider, contractAddress *fel
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
 	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
-	fmt.Printf("contract address of the last event: %s\n", eventChunk.Events[len(eventChunk.Events)-1].FromAddress.String())
+	fmt.Printf("contract address of the first event: %s\n", eventChunk.Events[0].FromAddress.String())
 }
 
-func simpleExample(provider *rpc.Provider) {
-	const (
-		CONTRACT_ADDRESS        = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
-		FROM_BLOCK       uint64 = 301886
-		TO_BLOCK         uint64 = 301887
-	)
+func callWithKeysFilter(provider *rpc.Provider, contractAddress *felt.Felt) {
+	fmt.Println()
+	fmt.Println(" ----- 3. call with Keys filter -----")
+	fmt.Println(" --- step 1: filter all 'Transfer' events ---")
 
-	fmt.Println("Starting readEvents simple example")
-
-	// create an EventFilter that specifies which events we want
-	eventFilter := rpc.EventFilter{
-		FromBlock: rpc.WithBlockNumber(FROM_BLOCK),
-		ToBlock:   rpc.WithBlockNumber(TO_BLOCK),
-	}
-
-	// ChunkSize is the maximum number of events to read in one call.
-	resPageReq := rpc.ResultPageRequest{
-		ChunkSize: 1000,
-	}
-
-	// Create an EventsInput object with the event filter and result page request
-	eventsInput := rpc.EventsInput{
-		EventFilter:       eventFilter,
-		ResultPageRequest: resPageReq,
-	}
-
-	// Read the events from the contract
-	eventChunk, err := provider.Events(context.Background(), eventsInput)
+	// Firstly, we need to understand how the 'keys' filter works.
+	//
+	// If the we send an event filter containing [[k_1, k_2], [], [k_3]], then the node should return
+	// events whose first key is k_1 or k_2, the third key is k_3, and the second key is unconstrained and can take any value.
+	// Ref: https://community.starknet.io/t/snip-13-index-transfer-and-approval-events-in-erc20s/114212
+	//
+	// The keys are interpreted as follows:
+	// - The first key usually is the event selector
+	// - The remaining keys will vary depending on the event
+	//
+	// So here we are filtering all 'Transfer' events (to be more precise, all events with the 'Transfer' selector as the first key)
+	// from all addresses and contracts, from block 600000 to block 600100.
+	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
+		EventFilter: rpc.EventFilter{
+			FromBlock: rpc.WithBlockNumber(600000),
+			ToBlock:   rpc.WithBlockNumber(600100),
+			Keys: [][]*felt.Felt{
+				{
+					utils.GetSelectorFromNameFelt("Transfer"),
+				},
+			},
+		},
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 1000,
+		},
+	})
 	if err != nil {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
-	events := eventChunk.Events
-	fmt.Printf("number of events from contract: %d\n", len(events))
 
-	// print out the events read
-	fmt.Println("events read:")
-	printEvents(events)
+	fmt.Printf("'Transfer' hash selector: %s\n", utils.GetSelectorFromNameFelt("Transfer").String())
+
+	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
+	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf("first key of the first event: %s\n", eventChunk.Events[0].Keys[0].String())
+
 	fmt.Println()
-}
+	fmt.Println(" --- step 2: filter multiple events types ---")
 
-func moreComplexExample(provider *rpc.Provider) {
-	const (
-		CONTRACT_ADDRESS        = "0x04c1d9da136846ab084ae18cf6ce7a652df7793b666a16ce46b1bf5850cc739d"
-		FROM_BLOCK       uint64 = 16206
-		TO_BLOCK         uint64 = 16208
-	)
-
-	fmt.Println("Starting readEvents more complex example")
-
-	// contractAddress is the address of the contract whose events we want to read
-	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
+	// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
+	eventChunk, err = provider.Events(context.Background(), rpc.EventsInput{
+		EventFilter: rpc.EventFilter{
+			FromBlock: rpc.WithBlockNumber(600000),
+			ToBlock:   rpc.WithBlockNumber(600100),
+			Keys: [][]*felt.Felt{
+				{
+					utils.GetSelectorFromNameFelt("Transfer"),
+					utils.GetSelectorFromNameFelt("Approval"),
+					utils.GetSelectorFromNameFelt("GameStarted"),
+				},
+			},
+		},
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 1000,
+		},
+	})
 	if err != nil {
-		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
+		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 
-	// create an EventFilter that specifies which events we want
-	eventFilter := rpc.EventFilter{
-		FromBlock: rpc.WithBlockNumber(FROM_BLOCK),
-		ToBlock:   rpc.WithBlockNumber(TO_BLOCK),
-		Address:   contractAddress,
-	}
+	fmt.Printf("'Transfer' hash selector: %s\n", utils.GetSelectorFromNameFelt("Transfer").String())
+	fmt.Printf("'Approval' hash selector: %s\n", utils.GetSelectorFromNameFelt("Approval").String())
+	fmt.Printf("'GameStarted' hash selector: %s\n", utils.GetSelectorFromNameFelt("GameStarted").String())
 
-	// ChunkSize is the maximum number of events to read in one call.
-	// The readEvents function will make multiple calls to the provider
-	// when the number of matching events is larger than ChunkSize
-	resPageReq := rpc.ResultPageRequest{
-		ChunkSize: 1000,
-	}
-	eventsInput := rpc.EventsInput{
-		EventFilter:       eventFilter,
-		ResultPageRequest: resPageReq,
-	}
-
-	var events []rpc.EmittedEvent
-
-	// read all the events emitted by the contract in this range of blocks
-	events = readEvents(eventsInput, provider)
-	fmt.Printf("number of events from contract: %d\n", len(events))
-
-	// narrow the scope to event types AccountCreated and TransactionExecuted
-	eventTypes := []string{"AccountCreated", "TransactionExecuted"}
-	// eventData is an empty slice, so we are not filtering by any key data, just event type
-	eventData := [][]*felt.Felt{}
-	keyFilter := buildKeyFilter(eventTypes, eventData)
-	// set the filter on the Keys field of the eventsInput
-	eventsInput.Keys = keyFilter
-
-	// read the events with the new filter
-	events = readEvents(eventsInput, provider)
-	fmt.Printf("number of events of specified types: %d\n", len(events))
-
-	// narrow the scope to events with a particular key value
-	var data *felt.Felt
-	data, err = new(felt.Felt).SetString(
-		"0x2f1d2a0070a008fd312a2368776aca5b57c4a3cd734efdb619c616af7ab64f5",
-	)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create felt, error: %v", err))
-	}
-	keyFilter = buildKeyFilter(eventTypes, [][]*felt.Felt{{data}})
-	// set the new filter on the Keys field of the eventsInput
-	eventsInput.Keys = keyFilter
-
-	// read the events with this filter
-	events = readEvents(eventsInput, provider)
-	fmt.Printf("number of events of specified types with given key: %d\n", len(events))
-
-	fmt.Println("events read:")
-	printEvents(events)
+	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
+	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	transferEvent := findEventInChunk(eventChunk, "Transfer")
+	fmt.Printf("'Transfer' event found in block %d, tx hash: %s\n", transferEvent.BlockNumber, transferEvent.TransactionHash.String())
+	gameStartedEvent := findEventInChunk(eventChunk, "GameStarted")
+	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.TransactionHash.String())
+	approvalEvent := findEventInChunk(eventChunk, "Approval")
+	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
 }
 
-func readEvents(eventsInput rpc.EventsInput, provider *rpc.Provider) []rpc.EmittedEvent {
+func findEventInChunk(eventChunk *rpc.EventChunk, eventName string) rpc.EmittedEvent {
+	selector := utils.GetSelectorFromNameFelt(eventName)
 
-	ctx := context.Background()
-	events := []rpc.EmittedEvent{}
-	haveMoreToRead := true
-	for haveMoreToRead {
-		eventChunk, err := provider.Events(ctx, eventsInput)
-		if err != nil {
-			panic(fmt.Sprintf("error retrieving events: %v", err))
-		}
-		events = append(events, eventChunk.Events...)
-		if eventChunk.ContinuationToken == "" {
-			haveMoreToRead = false
-		} else {
-			eventsInput.ContinuationToken = eventChunk.ContinuationToken
+	for _, event := range eventChunk.Events {
+		if event.Keys[0].String() == selector.String() {
+			return event
 		}
 	}
-
-	return events
-
-}
-
-// function to build a filter for particular event types and/or key values
-//
-// for a description of how the key filter values are interpreted see:
-//
-// https://community.starknet.io/t/snip-14-index-transfer-and-approval-events-in-erc20s/114212
-//
-// in particular this part:
-//
-// "if the user sent an event filter containing [[k_1, k_2], [], [k_3]]
-// then the node should return events whose first key is k_1 or k_2
-// and the third key is k_3, and the second key is unconstrained and can
-// take any value"
-
-func buildKeyFilter(eventTypes []string, eventData [][]*felt.Felt) [][]*felt.Felt {
-
-	eventKeys := make([]*felt.Felt, 0, len(eventTypes))
-	for _, eventName := range eventTypes {
-		eventId := utils.GetSelectorFromName(eventName)
-		eventKeys = append(eventKeys, utils.BigIntToFelt(eventId))
-	}
-	keyFilter := make([][]*felt.Felt, 0, 2)
-	// first element of the key data is the event selector
-	keyFilter = append(keyFilter, eventKeys)
-	// this is followed by the key values
-	keyFilter = append(keyFilter, eventData...)
-	return keyFilter
-}
-
-func printEvents(events []rpc.EmittedEvent) {
-	accountCreatedFelt := utils.BigIntToFelt(utils.GetSelectorFromName("AccountCreated"))
-	transactionExecutedFelt := utils.BigIntToFelt(utils.GetSelectorFromName("TransactionExecuted"))
-	for _, event := range events {
-		if event.Keys[0].Cmp(accountCreatedFelt) == 0 {
-			fmt.Printf("AccountCreated %s\n", accountCreatedFelt.String())
-		} else if event.Keys[0].Cmp(transactionExecutedFelt) == 0 {
-			fmt.Printf("TransactionExecuted event %s\n", transactionExecutedFelt.String())
-		} else {
-			fmt.Printf("event type %s\n", event.Keys[0].String())
-		}
-		fmt.Printf("from: %s\n", event.FromAddress.String())
-		fmt.Printf("tx: %s\n", event.TransactionHash.String())
-		for i, key := range event.Keys {
-			fmt.Printf("key %d: %s\n", i, key.String())
-		}
-		for i, data := range event.Data {
-			fmt.Printf("data %d: %s\n", i, data.String())
-		}
-	}
+	return rpc.EmittedEvent{}
 }
