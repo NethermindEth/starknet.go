@@ -41,9 +41,21 @@ func main() {
 	// and then call it with the provider as argument
 
 	// **********
-	// 1. call with ChunkSize only
+	// 1. call with ChunkSize and ContinuationToken
 	// **********
-	fmt.Println(" ----- 1. call with ChunkSize only -----")
+	callWithChunkSizeAndContinuationToken(provider)
+	// **********
+	// 2. call with ChunkSize only
+	// **********
+	fmt.Println(" ----- 2. call with ChunkSize only -----")
+
+	simpleExample(provider)
+
+	moreComplexExample(provider)
+}
+
+func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
+	fmt.Println(" ----- 1. call with ChunkSize and ContinuationToken -----")
 
 	// The only required field is the 'ChunkSize' field, so let's fill it. This field is used
 	// to limit the number of events returned in one call. If the number of events is greater than
@@ -59,17 +71,21 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
-	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
-	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf("number of returned events in the first chunk: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the last event in the first chunk: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
 
-	// **********
-	// 2. call with ChunkSize and ContinuationToken
-	// **********
-	fmt.Println(" ----- 2. call with ChunkSize and ContinuationToken -----")
-
-	simpleExample(provider)
-
-	moreComplexExample(provider)
+	// Now we will get the second chunk
+	secondEventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize:         1000,
+			ContinuationToken: eventChunk.ContinuationToken,
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("error retrieving events: %v", err))
+	}
+	fmt.Printf("number of returned events in the second chunk: %d\n", len(secondEventChunk.Events))
+	fmt.Printf("block number of the last event in the second chunk: %d\n", secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber)
 }
 
 func simpleExample(provider *rpc.Provider) {
