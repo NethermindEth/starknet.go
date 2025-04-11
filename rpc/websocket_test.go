@@ -90,7 +90,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 					if test.counter != 0 {
 						if test.counter == 1 {
-							require.Contains(t, latestBlockNumbers, resp.BlockNumber+1)
+							require.Contains(t, latestBlockNumbers, resp.Number+1)
 							return
 						} else {
 							test.counter--
