@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -47,6 +48,8 @@ type Account struct {
 	ks             Keystore
 }
 
+var BRAAVOS_WARNING_MESSAGE = "WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3"
+
 // NewAccount creates a new Account instance.
 //
 // Parameters:
@@ -59,6 +62,27 @@ type Account struct {
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
 func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
+	// TODO: Remove this temporary check once solved (starknet v0.14.0 should do it)
+	// This temporary check is to warn the user that Braavos account restricts transactions to have exactly two resource fields.
+	// This makes them incompatible with transactions sent via RPC 0.8.0
+	accClassHash, err := provider.ClassHashAt(context.Background(), rpc.WithBlockTag("latest"), accountAddress)
+	// ignoring the error to not break mock tests (if the provider is not working, it will return an error in the next ChainID call anyway)
+	if err == nil {
+		// Since felt.Felt.String() returns a string without leading zeros, we need to remove them from the
+		// class hashes for the comparison
+		braavosClassHashes := []string{
+			// Original class hash: 0x02c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc
+			"0x2c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
+			// Original class hash: 0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253
+			"0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253",
+			// Original class hash: 0x041bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3
+			"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
+		}
+		if slices.Contains(braavosClassHashes, accClassHash.String()) {
+			fmt.Print(BRAAVOS_WARNING_MESSAGE + "\n\n")
+		}
+	}
+
 	account := &Account{
 		Provider:       provider,
 		AccountAddress: accountAddress,
