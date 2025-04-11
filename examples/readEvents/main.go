@@ -34,6 +34,9 @@ func main() {
 	}
 	fmt.Println("Established connection with the RPC provider")
 
+	// Now we will call some functions to demonstrate the different filters we can apply.
+	// Enter each function declaration to see the filters in action.
+
 	// 1. call with ChunkSize and ContinuationToken
 	callWithChunkSizeAndContinuationToken(provider)
 	// 2. call with Block and Address filters
