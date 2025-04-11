@@ -25,8 +25,9 @@ import (
 // The program progressively applies more selective filters to demonstrate
 // different ways of narrowing down event queries for efficient data retrieval.
 func main() {
-	// Read provider URL from .env file
+	// Load variables from '.env' file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
+	wsProviderUrl := setup.GetWsProviderUrl()
 
 	// Initialize connection to RPC provider
 	provider, err := rpc.NewProvider(rpcProviderUrl)
@@ -45,7 +46,7 @@ func main() {
 	// 3. call with Keys filter
 	callWithKeysFilter(provider)
 	// optional: filter with websocket
-	filterWithWebsocket(provider, "") // put your own websocket url here to test the websocket subscription endpoint
+	filterWithWebsocket(provider, wsProviderUrl) // if the wsProviderUrl is empty, the websocket example will be skipped
 
 	// after all, here is a call with all filters combined
 	fmt.Println("\n ----- 4. all filters -----")
