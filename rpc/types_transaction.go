@@ -18,11 +18,11 @@ type TXN struct {
 	Version               *felt.Felt            `json:"version,omitempty"`
 	Nonce                 *felt.Felt            `json:"nonce,omitempty"`
 	MaxFee                *felt.Felt            `json:"max_fee,omitempty"`
-	ContractAddress       *felt.Felt            `json:"contract_address,omitempty"`
+	Contract              *felt.Felt            `json:"contract_address,omitempty"`
 	ContractAddressSalt   *felt.Felt            `json:"contract_address_salt,omitempty"`
 	ClassHash             *felt.Felt            `json:"class_hash,omitempty"`
 	ConstructorCalldata   []*felt.Felt          `json:"constructor_calldata,omitempty"`
-	SenderAddress         *felt.Felt            `json:"sender_address,omitempty"`
+	Sender                *felt.Felt            `json:"sender_address,omitempty"`
 	Signature             *[]*felt.Felt         `json:"signature,omitempty"`
 	Calldata              *[]*felt.Felt         `json:"calldata,omitempty"`
 	EntryPointSelector    *felt.Felt            `json:"entry_point_selector,omitempty"`
@@ -49,14 +49,14 @@ type InvokeTxnV1 struct {
 	Signature     []*felt.Felt       `json:"signature"`
 	Nonce         *felt.Felt         `json:"nonce"`
 	Type          TransactionType    `json:"type"`
-	SenderAddress *felt.Felt         `json:"sender_address"`
+	Sender        *felt.Felt         `json:"sender_address"`
 	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
 type InvokeTxnV3 struct {
 	Type           TransactionType       `json:"type"`
-	SenderAddress  *felt.Felt            `json:"sender_address"`
+	Sender         *felt.Felt            `json:"sender_address"`
 	Calldata       []*felt.Felt          `json:"calldata"`
 	Version        TransactionVersion    `json:"version"`
 	Signature      []*felt.Felt          `json:"signature"`
@@ -91,7 +91,7 @@ const (
 type DeclareTxnV0 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt         `json:"sender_address"`
+	Sender        *felt.Felt         `json:"sender_address"`
 	MaxFee        *felt.Felt         `json:"max_fee"`
 	Version       TransactionVersion `json:"version"`
 	Signature     []*felt.Felt       `json:"signature"`
@@ -101,7 +101,7 @@ type DeclareTxnV0 struct {
 type DeclareTxnV1 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress *felt.Felt         `json:"sender_address"`
+	Sender        *felt.Felt         `json:"sender_address"`
 	MaxFee        *felt.Felt         `json:"max_fee"`
 	Version       TransactionVersion `json:"version"`
 	Signature     []*felt.Felt       `json:"signature"`
@@ -113,7 +113,7 @@ type DeclareTxnV1 struct {
 type DeclareTxnV2 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
-	SenderAddress     *felt.Felt         `json:"sender_address"`
+	Sender            *felt.Felt         `json:"sender_address"`
 	CompiledClassHash *felt.Felt         `json:"compiled_class_hash"`
 	MaxFee            *felt.Felt         `json:"max_fee"`
 	Version           TransactionVersion `json:"version"`
@@ -124,7 +124,7 @@ type DeclareTxnV2 struct {
 
 type DeclareTxnV3 struct {
 	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
+	Sender            *felt.Felt            `json:"sender_address"`
 	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
 	Version           TransactionVersion    `json:"version"`
 	Signature         []*felt.Felt          `json:"signature"`
@@ -421,13 +421,13 @@ type SubPendingTxnsInput struct {
 	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
 	TransactionDetails bool `json:"transaction_details,omitempty"`
 	// Optional: Filter transactions to only receive notification from address list
-	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+	Sender        []*felt.Felt `json:"sender_address,omitempty"`
 }
 
 // SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
 type SubPendingTxns struct {
 	// The hash of the pending transaction. Always present.
-	TransactionHash *felt.Felt
+	Hash *felt.Felt
 	// The full transaction details. Only present if transactionDetails is true.
 	Transaction *BlockTransaction
 }
@@ -442,12 +442,12 @@ func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
 	var txns *BlockTransaction
 	if err := json.Unmarshal(data, &txns); err == nil {
 		s.Transaction = txns
-		s.TransactionHash = txns.Hash()
+		s.Hash = txns.GetHash()
 		return nil
 	}
 	var txnsHash *felt.Felt
 	if err := json.Unmarshal(data, &txnsHash); err == nil {
-		s.TransactionHash = txnsHash
+		s.Hash = txnsHash
 		return nil
 	}
 	return errors.New("failed to unmarshal SubPendingTxns")

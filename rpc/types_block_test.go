@@ -152,7 +152,7 @@ func TestBlockWithReceipts(t *testing.T) {
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 	var blockMock123 = BlockWithReceipts{
 		BlockHeader{
-			BlockHash: deadBeef,
+			Block: deadBeef,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
@@ -160,16 +160,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -187,16 +187,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -246,7 +246,7 @@ func TestBlockWithReceipts(t *testing.T) {
 		case *BlockWithReceipts:
 			block, ok := result.(*BlockWithReceipts)
 			require.True(ok, fmt.Sprintf("should return *BlockWithReceipts, instead: %T\n", result))
-			require.True(strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.True(strings.HasPrefix(block.Block.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Block)
 			require.NotEmpty(block.Transactions, "the number of transactions should not be 0")
 
 			if test.ExpectedBlockWithReceipts != nil {

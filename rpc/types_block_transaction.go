@@ -16,7 +16,7 @@ type BlockTransaction struct {
 }
 
 type IBlockTransaction interface {
-	Hash() *felt.Felt
+	GetHash() *felt.Felt
 }
 
 var _ IBlockTransaction = BlockInvokeTxnV0{}
@@ -30,103 +30,93 @@ var _ IBlockTransaction = BlockDeployTxn{}
 var _ IBlockTransaction = BlockDeployAccountTxn{}
 var _ IBlockTransaction = BlockL1HandlerTxn{}
 
-// Hash returns the transaction hash of the BlockInvokeTxnV0.
-func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockInvokeTxnV0) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the hash of the BlockInvokeTxnV1 transaction.
-func (tx BlockInvokeTxnV1) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockInvokeTxnV1) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the hash of the BlockInvokeTxnV3 transaction.
-func (tx BlockInvokeTxnV3) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockInvokeTxnV3) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the transaction hash of the BlockDeclareTxnV0.
-func (tx BlockDeclareTxnV0) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeclareTxnV0) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the transaction hash of the BlockDeclareTxnV1.
-func (tx BlockDeclareTxnV1) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeclareTxnV1) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the transaction hash of the BlockDeclareTxnV2.
-func (tx BlockDeclareTxnV2) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeclareTxnV2) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the transaction hash of the BlockDeclareTxnV3.
-func (tx BlockDeclareTxnV3) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeclareTxnV3) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the hash of the BlockDeployTxn.
-func (tx BlockDeployTxn) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeployTxn) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the Felt hash of the BlockDeployAccountTxn.
-func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockDeployAccountTxn) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
-// Hash returns the hash of the BlockL1HandlerTxn.
-func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
-	return tx.TransactionHash
+func (tx BlockL1HandlerTxn) GetHash() *felt.Felt {
+	return tx.Hash
 }
 
 type BlockInvokeTxnV0 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	InvokeTxnV0
 }
 
 type BlockInvokeTxnV1 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	InvokeTxnV1
 }
 
 type BlockInvokeTxnV3 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	InvokeTxnV3
 }
 
 type BlockL1HandlerTxn struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	L1HandlerTxn
 }
 
 type BlockDeclareTxnV0 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeclareTxnV0
 }
 
 type BlockDeclareTxnV1 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeclareTxnV1
 }
 
 type BlockDeclareTxnV2 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeclareTxnV2
 }
 
 type BlockDeclareTxnV3 struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeclareTxnV3
 }
 
 type BlockDeployTxn struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeployTxn
 }
 
 type BlockDeployAccountTxn struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash            *felt.Felt `json:"transaction_hash"`
 	DeployAccountTxn
 }
 

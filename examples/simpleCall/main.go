@@ -53,7 +53,7 @@ func main() {
 
 	// Get token's decimals. As the contract method doesn't require any parameters, we can omit the calldata field.
 	getDecimalsTx := rpc.FunctionCall{
-		ContractAddress:    contractAddress,
+		Contract:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
 	}
 	decimalsResp, rpcErr := client.Call(context.Background(), getDecimalsTx, rpc.BlockID{Tag: "latest"})
@@ -65,7 +65,7 @@ func main() {
 
 	// Get balance from specified account address. As the contract method requires a parameter, we need to pass it in the calldata field.
 	tx := rpc.FunctionCall{
-		ContractAddress:    contractAddress,
+		Contract:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethodWithCalldata),
 		Calldata:           []*felt.Felt{accountAddressInFelt},
 	}

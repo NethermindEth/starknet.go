@@ -75,11 +75,11 @@ func TestSyncing(t *testing.T) {
 
 		if testEnv == "mock" {
 			value := SyncStatus{
-				StartingBlockHash: internalUtils.RANDOM_FELT,
+				StartingBlock: internalUtils.RANDOM_FELT,
 				StartingBlockNum:  "0x4c602",
-				CurrentBlockHash:  internalUtils.RANDOM_FELT,
+				CurrentBlock:  internalUtils.RANDOM_FELT,
 				CurrentBlockNum:   "0x4c727",
-				HighestBlockHash:  internalUtils.RANDOM_FELT,
+				HighestBlock:  internalUtils.RANDOM_FELT,
 				HighestBlockNum:   "0x4c727",
 			}
 			require.Exactly(t, &value, sync)
@@ -88,20 +88,20 @@ func TestSyncing(t *testing.T) {
 		}
 
 		if sync.SyncStatus == nil {
-			require.True(t, strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
-			require.NotZero(t, sync.StartingBlockHash)
+			require.True(t, strings.HasPrefix(sync.CurrentBlock.String(), "0x"), "current block hash should return a string starting with 0x")
+			require.NotZero(t, sync.StartingBlock)
 			require.NotZero(t, sync.StartingBlockNum)
-			require.NotZero(t, sync.CurrentBlockHash)
+			require.NotZero(t, sync.CurrentBlock)
 			require.NotZero(t, sync.CurrentBlockNum)
-			require.NotZero(t, sync.HighestBlockHash)
+			require.NotZero(t, sync.HighestBlock)
 			require.NotZero(t, sync.HighestBlockNum)
 		} else {
 			require.False(t, *sync.SyncStatus)
-			require.Zero(t, sync.StartingBlockHash)
+			require.Zero(t, sync.StartingBlock)
 			require.Zero(t, sync.StartingBlockNum)
-			require.Zero(t, sync.CurrentBlockHash)
+			require.Zero(t, sync.CurrentBlock)
 			require.Zero(t, sync.CurrentBlockNum)
-			require.Zero(t, sync.HighestBlockHash)
+			require.Zero(t, sync.HighestBlock)
 			require.Zero(t, sync.HighestBlockNum)
 		}
 

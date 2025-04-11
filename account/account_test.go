@@ -213,10 +213,10 @@ func TestTransactionHashInvoke(t *testing.T) {
 				Calldata:      test.FnCall.Calldata,
 				Nonce:         test.TxDetails.Nonce,
 				MaxFee:        test.TxDetails.MaxFee,
-				SenderAddress: acc.AccountAddress,
+				Sender: acc.Address,
 				Version:       test.TxDetails.Version,
 			}
-			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
+			hashResp, err := acc.HashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "transaction hash does not match expected")
 
@@ -256,7 +256,7 @@ func TestFmtCallData(t *testing.T) {
 				CairoVersion: 2,
 				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 					Calldata: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
@@ -274,7 +274,7 @@ func TestFmtCallData(t *testing.T) {
 				CairoVersion: 2,
 				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 					Calldata: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
@@ -526,7 +526,7 @@ func TestSendInvokeTxn(t *testing.T) {
 						Tip:                   "0x0",
 						PayMasterData:         []*felt.Felt{},
 						AccountDeploymentData: []*felt.Felt{},
-						SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
+						Sender:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
 						Calldata: internalUtils.TestHexArrToFelt(t, []string{
 							"0x1",
 							"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
@@ -614,7 +614,7 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	broadcastTx := rpc.BroadcastDeclareTxnV3{
 		Type:              rpc.TransactionType_Declare,
-		SenderAddress:     AccountAddress,
+		Sender:     AccountAddress,
 		CompiledClassHash: compClassHash,
 		Version:           rpc.TransactionV3,
 		Signature: []*felt.Felt{
@@ -652,7 +652,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
-		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
@@ -762,7 +762,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 // Returns:
 //
 //	none
-func TestTransactionHashDeclare(t *testing.T) {
+func TestHashDeclare(t *testing.T) {
 	var acnt *account.Account
 	var err error
 	if testEnv == "mock" {
@@ -798,7 +798,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
 						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
-					SenderAddress:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
+					Sender:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
 					CompiledClassHash: internalUtils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 					MaxFee:            internalUtils.TestHexToFelt(t, "0x177e06ff6cab2"),
@@ -832,7 +832,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 					},
 					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
-					SenderAddress:         internalUtils.TestHexToFelt(t, "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06"),
+					Sender:         internalUtils.TestHexToFelt(t, "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06"),
 					ClassHash:             internalUtils.TestHexToFelt(t, "0x224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5"),
 					CompiledClassHash:     internalUtils.TestHexToFelt(t, "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17"),
 					AccountDeploymentData: []*felt.Felt{},
@@ -853,7 +853,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
 						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
-					SenderAddress:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
+					Sender:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
 					CompiledClassHash: internalUtils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 					MaxFee:            internalUtils.TestHexToFelt(t, "0x177e06ff6cab2"),
@@ -864,7 +864,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
+		hashResp, err := acnt.HashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeclare not what expected")
 
@@ -880,7 +880,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	}
 }
 
-func TestTransactionHashInvokeV3(t *testing.T) {
+func TestHashInvokeV3(t *testing.T) {
 
 	var acnt *account.Account
 	var err error
@@ -934,7 +934,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
-					SenderAddress:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
+					Sender:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
 					Calldata: internalUtils.TestHexArrToFelt(t, []string{
 						"0x1",
 						"0x4138fd51f90d171df37e9d4419c8cdb67d525840c58f8a5c347be93a1c5277d",
@@ -975,7 +975,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Tip:                   "0x0",
 					PayMasterData:         []*felt.Felt{},
 					AccountDeploymentData: []*felt.Felt{},
-					SenderAddress:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
+					Sender:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
 					Calldata: internalUtils.TestHexArrToFelt(t, []string{
 						"0x1",
 						"0x4138fd51f90d171df37e9d4419c8cdb67d525840c58f8a5c347be93a1c5277d",
@@ -991,9 +991,9 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
+		hashResp, err := acnt.HashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
+		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "HashInvoke not what expected")
 
 		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
 		require.NoError(t, err)
@@ -1001,7 +1001,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	}
 }
 
-func TestTransactionHashdeployAccount(t *testing.T) {
+func TestHashDeployAccount(t *testing.T) {
 
 	var acnt *account.Account
 	var err error
@@ -1024,7 +1024,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	}
 	type testSetType struct {
 		Txn           rpc.DeployAccountType
-		SenderAddress *felt.Felt
+		Sender        *felt.Felt
 		ExpectedHash  *felt.Felt
 		ExpectedErr   error
 	}
@@ -1047,7 +1047,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 						internalUtils.TestHexToFelt(t, "0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e"),
 					},
 				},
-				SenderAddress: internalUtils.TestHexToFelt(t, "0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff"),
+				Sender: internalUtils.TestHexToFelt(t, "0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff"),
 				ExpectedHash:  internalUtils.TestHexToFelt(t, "0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188"),
 				ExpectedErr:   nil,
 			},
@@ -1084,23 +1084,23 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					}),
 					ContractAddressSalt: internalUtils.TestHexToFelt(t, "0x2e94ba2293dfa45f86dfcf9952d7a33dc50ce2b00b932999fbe0844772604f3"),
 				},
-				SenderAddress: internalUtils.TestHexToFelt(t, "0x48419d3cc27f158917b45255d5376c06a9524484e19a1102279cbdc715c5522"),
+				Sender: internalUtils.TestHexToFelt(t, "0x48419d3cc27f158917b45255d5376c06a9524484e19a1102279cbdc715c5522"),
 				ExpectedHash:  internalUtils.TestHexToFelt(t, "0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975"),
 				ExpectedErr:   nil,
 			},
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
+		hashResp, err := acnt.HashDeployAccount(test.Txn, test.Sender)
 		require.Equal(t, test.ExpectedErr, err)
-		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "HashDeployAccount not what expected")
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeployAccountTxn:
-			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.Sender, acnt.ChainId)
 		case rpc.DeployAccountTxnV3:
-			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.Sender, acnt.ChainId)
 		}
 		require.NoError(t, err)
 		assert.Equal(t, hashResp, hash2)
@@ -1155,7 +1155,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				ExpectedReceipt: &rpc.TransactionReceiptWithBlockInfo{
 					TransactionReceipt: rpc.TransactionReceipt{},
-					BlockHash:          new(felt.Felt).SetUint64(2),
+					Block:          new(felt.Felt).SetUint64(2),
 					BlockNumber:        2,
 				},
 
@@ -1293,7 +1293,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
-			ContractAddress: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+			Contract: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
@@ -1301,10 +1301,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1346,12 +1346,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	}
 
 	// check the transaction and class hash
-	require.NotNil(t, resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
 	require.NotNil(t, resp.ClassHash)
-	t.Logf("Declare transaction hash: %s", resp.TransactionHash)
+	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1414,11 +1414,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
-	require.NotNil(t, resp.ContractAddress)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Deploy account transaction hash: %s", resp.Hash)
+	require.NotNil(t, resp.Contract)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1435,7 +1435,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
-			ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+			Contract: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
@@ -1443,10 +1443,10 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
