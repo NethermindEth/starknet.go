@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -43,6 +44,8 @@ func main() {
 	callWithBlockAndAddressFilters(provider)
 	// 3. call with Keys filter
 	callWithKeysFilter(provider)
+	// optional: filter with websocket
+	filterWithWebsocket(provider, "") // put your own websocket url here to test the websocket subscription endpoint
 
 	// after all, here is a call with all filters combined
 	fmt.Println("\n ----- 4. all filters -----")
@@ -260,6 +263,70 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.TransactionHash.String())
 	approvalEvent := findEventInChunk(eventChunk, "Approval")
 	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
+
+}
+
+func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
+	if websocketUrl == "" {
+		fmt.Println("\nNo websocket URL provided. Skipping websocket filter...")
+		return
+	}
+
+	fmt.Println()
+	fmt.Println(" ----- 4. filter with websocket -----")
+
+	wsProvider, err := rpc.NewWebsocketProvider(websocketUrl)
+	if err != nil {
+		panic(fmt.Sprintf("error dialing the RPC provider: %v", err))
+	}
+	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
+	}
+
+	// Get the latest block number
+	blockNumber, err := provider.BlockNumber(context.Background())
+	if err != nil {
+		panic(fmt.Sprintf("error getting the latest block number: %v", err))
+	}
+
+	// Create a channel to receive events
+	eventsChan := make(chan *rpc.EmittedEvent)
+
+	// Subscribe to events
+	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
+		FromAddress: contractAddress,                       // only events from this contract address
+		BlockID:     rpc.WithBlockNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
+		// events from the last 10 blocks and progressively update as new blocks are added)
+		Keys: [][]*felt.Felt{
+			// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
+			// So this will return all events that have the 'Transfer' selector as the first key.
+			{
+				utils.GetSelectorFromNameFelt("Transfer"),
+			},
+		},
+	})
+	if err != nil {
+		panic(fmt.Sprintf("error subscribing to events: %v", err))
+	}
+
+	fmt.Println("Successfully subscribed to events")
+
+	// Read events from the channel
+	for {
+		select {
+		case event := <-eventsChan:
+			// This case will be triggered when a new event is received.
+			fmt.Printf("New event received: Block %d, Event tx hash: %s\n", event.BlockNumber, event.TransactionHash.String())
+		case err := <-sub.Err():
+			// This case will be triggered when an error occurs.
+			panic(err)
+		case <-time.After(5 * time.Second):
+			// stop the loop after 5 seconds
+			fmt.Println("Exiting...")
+			return
+		}
+	}
 
 }
 
