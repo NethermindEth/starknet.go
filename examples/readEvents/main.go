@@ -212,6 +212,9 @@ func callWithKeysFilter(provider *rpc.Provider) {
 			ChunkSize: 1000,
 		},
 	})
+	// NOTE: An event can be nested in a Cairo component (See the Cairo code of the contract to verify).
+	// In this case, the array of keys will start with additional hashes, and you will have to adapt your code in consequence
+	// Ref: https://starknetjs.com/docs/guides/events#without-transaction-hash
 	if err != nil {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
