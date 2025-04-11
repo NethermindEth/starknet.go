@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -11,16 +12,17 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-const (
-	CONTRACT_ADDRESS = "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7" // StarkGate: ETH Token
-)
-
-// main entry point of the program.
+// main is the entry point of the program that demonstrates how to query Starknet events.
 //
-// It initializes the environment and establishes a connection with the client.
-// It then retrieves events from the contract and prints how many it found with
-// a series of more selective filters (all event types, just 2 event types, just
-// those 2 event types but with a specified key value).
+// This example shows how to:
+// 1. Connect to a Starknet RPC provider
+// 2. Query events with pagination using ChunkSize and ContinuationToken
+// 3. Filter events by block range and contract address
+// 4. Filter events by specific event keys
+// 5. Combine multiple filters for precise event retrieval
+//
+// The program progressively applies more selective filters to demonstrate
+// different ways of narrowing down event queries for efficient data retrieval.
 func main() {
 	// Read provider URL from .env file
 	rpcProviderUrl := setup.GetRpcProviderUrl()
@@ -32,19 +34,68 @@ func main() {
 	}
 	fmt.Println("Established connection with the RPC provider")
 
-	contractAddress, err := utils.HexToFelt(CONTRACT_ADDRESS)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create felt from the contract address %s, error %v", CONTRACT_ADDRESS, err))
-	}
-
 	// 1. call with ChunkSize and ContinuationToken
 	callWithChunkSizeAndContinuationToken(provider)
 	// 2. call with Block and Address filters
-	callWithBlockAndAddressFilters(provider, contractAddress)
+	callWithBlockAndAddressFilters(provider)
 	// 3. call with Keys filter
-	callWithKeysFilter(provider, contractAddress)
+	callWithKeysFilter(provider)
 
-	// moreComplexExample(provider)
+	// after all, here is a call with all filters combined
+	fmt.Println("\n ----- 4. all filters -----")
+
+	contractAddress, err := utils.HexToFelt("0x1948e239f559bcbdf9388938a3c46bc79f52bcba7c4d5c9732568cb8eb6a53d") // a random contract address for our example
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
+	}
+	key3, err := utils.HexToFelt("0x1bfc84464f990c09cc0e5d64d18f54c3469fd5c467398bf31293051bade1c39")
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the provided key, error %v", err))
+	}
+	key5, err := utils.HexToFelt("0x0")
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the provided key, error %v", err))
+	}
+
+	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
+		EventFilter: rpc.EventFilter{
+			FromBlock: rpc.WithBlockNumber(660000), // from block 660000
+			ToBlock:   rpc.WithBlockNumber(660100), // to block 660100
+			Address:   contractAddress,             // sent from this contract address
+			Keys: [][]*felt.Felt{
+				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
+				// (all events that have one of these selectors as the first key)
+				{
+					utils.GetSelectorFromNameFelt("Transfer"),
+					utils.GetSelectorFromNameFelt("Approval"),
+					utils.GetSelectorFromNameFelt("GameStarted"),
+				},
+				{},     // here we are saying that the second key is unconstrained, it can take any value
+				{key3}, // the third key must be equal to key3
+				{},     // the fourth key is also unconstrained
+				{key5}, // the fifth key must be equal to key5
+			},
+		},
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 1000,
+		},
+	}) // so this will return all events, between block 660000 and 660100, sent from the specified contract address,
+	// that have one of the 'Transfer', 'Approval' or 'GameStarted' selectors as the first key,
+	// and the third key is equal to key3, and the fifth key is equal to key5; the second and fourth keys can be any value
+	if err != nil {
+		panic(fmt.Sprintf("error retrieving events: %v", err))
+	}
+
+	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
+	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
+	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	randomEvent := eventChunk.Events[rand.Intn(len(eventChunk.Events))] // get a random event from the chunk
+	fmt.Printf("random event block number: %d\n", randomEvent.BlockNumber)
+	fmt.Printf("random event tx hash: %s\n", randomEvent.TransactionHash.String())
+	fmt.Printf("random event sender address: %s\n", randomEvent.FromAddress.String())
+	fmt.Printf("random event first key: %v\n", randomEvent.Keys[0].String())
+	fmt.Printf("random event third key: %v\n", randomEvent.Keys[2].String())
+	fmt.Printf("random event fifth key: %v\n", randomEvent.Keys[4].String())
 }
 
 func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
@@ -84,9 +135,14 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	fmt.Printf("block number of the last event in the second chunk: %d\n", secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber)
 }
 
-func callWithBlockAndAddressFilters(provider *rpc.Provider, contractAddress *felt.Felt) {
+func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 2. call with Block and Address filters -----")
+	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
+	if err != nil {
+		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
+	}
+
 	fmt.Println("Contract Address: ", contractAddress.String())
 
 	// We are using the following filters:
@@ -114,12 +170,16 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider, contractAddress *fel
 	fmt.Printf("contract address of the first event: %s\n", eventChunk.Events[0].FromAddress.String())
 }
 
-func callWithKeysFilter(provider *rpc.Provider, contractAddress *felt.Felt) {
+func callWithKeysFilter(provider *rpc.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 3. call with Keys filter -----")
-	fmt.Println(" --- step 1: filter all 'Transfer' events ---")
+	fmt.Println(" --- step 1: filter all events with the 'Transfer' name ---")
 
 	// Firstly, we need to understand how the 'keys' filter works.
+	// (and of course, we need to know what 'keys' are, right? read more here:
+	// 	https://book.cairo-lang.org/ch101-03-contract-events.html,
+	// 	https://docs.starknet.io/architecture-and-concepts/smart-contracts/starknet-events/
+	// )
 	//
 	// If the we send an event filter containing [[k_1, k_2], [], [k_3]], then the node should return
 	// events whose first key is k_1 or k_2, the third key is k_3, and the second key is unconstrained and can take any value.
@@ -165,6 +225,10 @@ func callWithKeysFilter(provider *rpc.Provider, contractAddress *felt.Felt) {
 			FromBlock: rpc.WithBlockNumber(600000),
 			ToBlock:   rpc.WithBlockNumber(600100),
 			Keys: [][]*felt.Felt{
+				// Notice that we are passing all selectors together in the same array, meaning that
+				// the node will return events that match any of these values.
+				// Also notice that the array is in the first position of the array, so basically
+				// we are filtering all events that have one of these selectors as the first key.
 				{
 					utils.GetSelectorFromNameFelt("Transfer"),
 					utils.GetSelectorFromNameFelt("Approval"),
@@ -193,8 +257,10 @@ func callWithKeysFilter(provider *rpc.Provider, contractAddress *felt.Felt) {
 	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.TransactionHash.String())
 	approvalEvent := findEventInChunk(eventChunk, "Approval")
 	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
+
 }
 
+// simple function to find an event by name in a chunk of events
 func findEventInChunk(eventChunk *rpc.EventChunk, eventName string) rpc.EmittedEvent {
 	selector := utils.GetSelectorFromNameFelt(eventName)
 
