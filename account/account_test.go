@@ -216,7 +216,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				Sender: acc.Address,
 				Version:       test.TxDetails.Version,
 			}
-			hashResp, err := acc.HashInvoke(invokeTxn)
+			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
 			require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "transaction hash does not match expected")
 
@@ -864,7 +864,7 @@ func TestHashDeclare(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.HashDeclare(test.Txn)
+		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeclare not what expected")
 
@@ -991,7 +991,7 @@ func TestHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.HashInvoke(&test.Txn)
+		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "HashInvoke not what expected")
 
@@ -1091,7 +1091,7 @@ func TestHashDeployAccount(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.HashDeployAccount(test.Txn, test.Sender)
+		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.Sender)
 		require.Equal(t, test.ExpectedErr, err)
 		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "HashDeployAccount not what expected")
 
