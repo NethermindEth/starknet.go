@@ -41,6 +41,8 @@ To run an example:
   R: See [simpleCall](./simpleCall/main.go).
 1. How to make a function call?  
   R: See [simpleCall](./simpleCall/main.go).
+1. How to read event logs?
+  R: See [readEvents](./readEvents/main.go).
 1. How to sign and verify a typed data?  
   R: See [typedData](./typedData/main.go).
 1. How to use WebSocket methods? How to subscribe, unsubscribe, handle errors, and read values from them?  
