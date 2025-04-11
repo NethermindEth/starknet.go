@@ -227,11 +227,11 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 	}
 
 	value := SyncStatus{
-		StartingBlockHash: internalUtils.RANDOM_FELT,
+		StartingBlock: internalUtils.RANDOM_FELT,
 		StartingBlockNum:  "0x4c602",
-		CurrentBlockHash:  internalUtils.RANDOM_FELT,
+		CurrentBlock:  internalUtils.RANDOM_FELT,
 		CurrentBlockNum:   "0x4c727",
-		HighestBlockHash:  internalUtils.RANDOM_FELT,
+		HighestBlock:  internalUtils.RANDOM_FELT,
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
@@ -399,10 +399,10 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 
 	transaction := TransactionReceipt{
-		TransactionHash: arg0Felt,
+		Hash: arg0Felt,
 		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
-			FromAddress: fromAddressFelt,
+			From: fromAddressFelt,
 		}},
 	}
 	outputContent, err := json.Marshal(transaction)
@@ -580,9 +580,9 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 		EventChunk{
 			Events: []EmittedEvent{
 				{
-					BlockHash:       blockHash,
+					Block:       blockHash,
 					BlockNumber:     1472,
-					TransactionHash: txHash,
+					Hash: txHash,
 				},
 			},
 		}
@@ -647,7 +647,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 			return err
 		}
 		output := AddDeclareTransactionOutput{
-			TransactionHash: deadbeefFelt,
+			Hash: deadbeefFelt,
 			ClassHash:       deadbeefFelt,
 		}
 		outputContent, err := json.Marshal(output)
@@ -842,7 +842,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 			return err
 		}
 		output := AddInvokeTransactionResponse{
-			TransactionHash: deadbeefFelt,
+			Hash: deadbeefFelt,
 		}
 		outputContent, err := json.Marshal(output)
 		if err != nil {
@@ -873,8 +873,8 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 			return err
 		}
 		output := AddDeployAccountTransactionResponse{
-			TransactionHash: deadbeefFelt,
-			ContractAddress: new(felt.Felt).SetUint64(0),
+			Hash: deadbeefFelt,
+			Contract: new(felt.Felt).SetUint64(0),
 		}
 		outputContent, err := json.Marshal(output)
 		if err != nil {
@@ -966,7 +966,7 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 	}
 
 	output := StateUpdateOutput{
-		BlockHash: stateFeltArr[0],
+		Block: stateFeltArr[0],
 		NewRoot:   stateFeltArr[1],
 		PendingStateUpdate: PendingStateUpdate{
 			OldRoot: stateFeltArr[2],
@@ -1195,16 +1195,16 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 						{
 							Transaction: BlockTransaction{
 								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
+									Hash: fakeFeltField,
 									InvokeTxnV1: InvokeTxnV1{
 										Type:          "INVOKE",
 										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
+										Sender: fakeFeltField,
 									},
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash: fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1232,16 +1232,16 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 						{
 							Transaction: BlockTransaction{
 								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
+									Hash: fakeFeltField,
 									InvokeTxnV1: InvokeTxnV1{
 										Type:          "INVOKE",
 										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
+										Sender: fakeFeltField,
 									},
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash: fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1426,11 +1426,11 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	// Return mock response for successful case
 	response := []MessageStatusResp{
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
+			Hash: internalUtils.RANDOM_FELT,
 			FinalityStatus:  TxnStatus_Accepted_On_L2,
 		},
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
+			Hash: internalUtils.RANDOM_FELT,
 			FinalityStatus:  TxnStatus_Accepted_On_L2,
 		},
 	}

@@ -160,16 +160,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -187,16 +187,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},

@@ -191,7 +191,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
 				// As none filters are applied, the events should be from all addresses and keys.
 
-				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueAddresses[resp.From.String()] = true
 				uniqueKeys[resp.Keys[0].String()] = true
 
 				// check if there are at least 3 different addresses and keys in the received events
@@ -213,7 +213,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: testSet.fromAddressExample,
+			From: testSet.fromAddressExample,
 			BlockID:     WithBlockNumber(blockNumber - 1023),
 		})
 		if sub != nil {
@@ -233,7 +233,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// Subscription with fromAddress should only return events from the specified address.
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				require.Equal(t, testSet.fromAddressExample, resp.From)
 
 				uniqueKeys[resp.Keys[0].String()] = true
 
@@ -275,7 +275,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// Subscription with keys should only return events with the specified keys.
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 
-				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueAddresses[resp.From.String()] = true
 
 				// check if there are at least 2 different addresses in the received events
 				if len(uniqueAddresses) >= 2 {
@@ -297,7 +297,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID:     WithBlockNumber(blockNumber - 100),
-			FromAddress: testSet.fromAddressExample,
+			From: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
 		if sub != nil {
@@ -313,7 +313,7 @@ func TestSubscribeEvents(t *testing.T) {
 				require.Less(t, resp.BlockNumber, blockNumber)
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				require.Equal(t, testSet.fromAddressExample, resp.From)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 				return
 			case err := <-sub.Err():
@@ -417,7 +417,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &NewTxnStatusResp{}, resp)
-				require.Equal(t, txHash, resp.TransactionHash)
+				require.Equal(t, txHash, resp.Hash)
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
 				return
 			case err := <-sub.Err():
@@ -465,7 +465,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			},
 			{
 				pendingTxns:   make(chan *SubPendingTxns),
-				options:       &SubPendingTxnsInput{SenderAddress: addresses},
+				options:       &SubPendingTxnsInput{Sender: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
 				description:   "error: too many addresses",
 			},
@@ -500,10 +500,10 @@ func TestSubscribePendingTransactions(t *testing.T) {
 					require.IsType(t, &SubPendingTxns{}, resp)
 
 					if test.options == nil || !test.options.TransactionDetails {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.Empty(t, resp.Transaction)
 					} else {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.NotEmpty(t, resp.Transaction)
 					}
 					return

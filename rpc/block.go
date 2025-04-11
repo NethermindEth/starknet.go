@@ -93,7 +93,13 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 	}
 
 	// if header.Hash == nil it's a pending block
+<<<<<<< HEAD
 	if result.BlockHeader.Hash == nil {
+||||||| 890665d
+	if result.BlockHeader.BlockHash == nil {
+=======
+	if result.BlockHeader.Block == nil {
+>>>>>>> 30234538e2bfff93231d71f454bbb1f2f868b29d
 		return &PendingBlockTxHashes{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
@@ -158,7 +164,13 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
+<<<<<<< HEAD
 	if result.BlockHeader.Hash == nil {
+||||||| 890665d
+	if result.BlockHeader.BlockHash == nil {
+=======
+	if result.BlockHeader.Block == nil {
+>>>>>>> 30234538e2bfff93231d71f454bbb1f2f868b29d
 		return &PendingBlock{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,

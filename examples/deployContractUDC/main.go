@@ -74,7 +74,7 @@ func main() {
 
 	// Build the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                //contractAddress is the contract that we want to call
+		Contract: contractAddress,                //contractAddress is the contract that we want to call
 		FunctionName:    contractMethod,                 //this is the function that we want to call
 		CallData:        getUDCCalldata(accountAddress), //change this function content to your use case
 	}
@@ -87,13 +87,13 @@ func main() {
 
 	fmt.Println("Waiting for the transaction status...")
 
-	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
 	if err != nil {
 		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 }

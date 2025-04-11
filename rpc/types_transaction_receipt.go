@@ -10,9 +10,9 @@ import (
 
 type MsgToL1 struct {
 	// FromAddress The address of the L2 contract sending the message
-	FromAddress *felt.Felt `json:"from_address"`
+	From *felt.Felt `json:"from_address"`
 	// ToAddress The target L1 address the message is sent to
-	ToAddress *felt.Felt `json:"to_address"`
+	To *felt.Felt `json:"to_address"`
 	//Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
@@ -21,7 +21,7 @@ type MsgFromL1 struct {
 	// FromAddress The address of the L1 contract sending the message
 	FromAddress string `json:"from_address"`
 	// ToAddress The target L2 address the message is sent to
-	ToAddress *felt.Felt `json:"to_address"`
+	To *felt.Felt `json:"to_address"`
 	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
 	Selector *felt.Felt `json:"entry_point_selector"`
 	//Payload  The payload of the message
@@ -30,7 +30,7 @@ type MsgFromL1 struct {
 
 type MessageStatusResp struct {
 	// The hash of a L1 handler transaction
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash *felt.Felt `json:"transaction_hash"`
 	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
 	// The failure reason, only appears if finality_status is REJECTED
@@ -57,7 +57,7 @@ const (
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	TransactionHash    *felt.Felt         `json:"transaction_hash"`
+	Hash               *felt.Felt         `json:"transaction_hash"`
 	ActualFee          FeePayment         `json:"actual_fee"`
 	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
@@ -66,7 +66,7 @@ type TransactionReceipt struct {
 	RevertReason       string             `json:"revert_reason,omitempty"`
 	Events             []Event            `json:"events"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
+	Contract           *felt.Felt         `json:"contract_address,omitempty"`
 	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
 }
 
@@ -156,13 +156,13 @@ type TxnStatusResp struct {
 }
 
 type NewTxnStatusResp struct {
-	TransactionHash *felt.Felt    `json:"transaction_hash"`
+	Hash            *felt.Felt    `json:"transaction_hash"`
 	Status          TxnStatusResp `json:"status"`
 }
 
 type TransactionReceiptWithBlockInfo struct {
 	TransactionReceipt
-	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+	Block       *felt.Felt `json:"block_hash,omitempty"`
 	BlockNumber uint       `json:"block_number,omitempty"`
 }
 
@@ -173,7 +173,7 @@ func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 		BlockNumber uint   `json:"block_number,omitempty"`
 	}{
 		TransactionReceipt: t.TransactionReceipt,
-		BlockHash:          t.BlockHash.String(),
+		BlockHash:          t.Block.String(),
 		BlockNumber:        t.BlockNumber,
 	}
 
@@ -189,8 +189,8 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 	}
 
 	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
-	if txnResp.BlockHash == nil {
-		txnResp.BlockHash = new(felt.Felt)
+	if txnResp.Block == nil {
+		txnResp.Block = new(felt.Felt)
 	}
 
 	*tr = TransactionReceiptWithBlockInfo(txnResp)

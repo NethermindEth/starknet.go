@@ -41,7 +41,7 @@ func BuildInvokeTxn(
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		InvokeTxnV3: rpc.InvokeTxnV3{
 			Type:                  rpc.TransactionType_Invoke,
-			SenderAddress:         senderAddress,
+			Sender:         senderAddress,
 			Calldata:              calldata,
 			Version:               rpc.TransactionV3,
 			Signature:             []*felt.Felt{},
@@ -85,7 +85,7 @@ func BuildDeclareTxn(
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{
 		Type:                  rpc.TransactionType_Declare,
-		SenderAddress:         senderAddress,
+			Sender:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
 		Version:               rpc.TransactionV3,
 		Signature:             []*felt.Felt{},
@@ -153,7 +153,7 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 	functionCalls := make([]rpc.FunctionCall, len(invokeFuncCalls))
 	for i, call := range invokeFuncCalls {
 		functionCalls[i] = rpc.FunctionCall{
-			ContractAddress:    call.ContractAddress,
+			Contract:           call.Contract,
 			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
 			Calldata:           call.CallData,
 		}

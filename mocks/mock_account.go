@@ -177,62 +177,56 @@ func (mr *MockAccountInterfaceMockRecorder) SignInvokeTransaction(ctx, tx any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInvokeTransaction", reflect.TypeOf((*MockAccountInterface)(nil).SignInvokeTransaction), ctx, tx)
 }
 
-// TransactionHashDeclare mocks base method.
-func (m *MockAccountInterface) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
+func (m *MockAccountInterface) HashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionHashDeclare", tx)
+	ret := m.ctrl.Call(m, "HashDeclare", tx)
 	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// TransactionHashDeclare indicates an expected call of TransactionHashDeclare.
-func (mr *MockAccountInterfaceMockRecorder) TransactionHashDeclare(tx any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) HashDeclare(tx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionHashDeclare", reflect.TypeOf((*MockAccountInterface)(nil).TransactionHashDeclare), tx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashDeclare", reflect.TypeOf((*MockAccountInterface)(nil).HashDeclare), tx)
 }
 
-// TransactionHashDeployAccount mocks base method.
-func (m *MockAccountInterface) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (m *MockAccountInterface) HashDeployAccount(tx rpc.DeployAccountType, contract *felt.Felt) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionHashDeployAccount", tx, contractAddress)
+	ret := m.ctrl.Call(m, "HashDeployAccount", tx, contract)
 	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// TransactionHashDeployAccount indicates an expected call of TransactionHashDeployAccount.
-func (mr *MockAccountInterfaceMockRecorder) TransactionHashDeployAccount(tx, contractAddress any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) HashDeployAccount(tx, contract any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionHashDeployAccount", reflect.TypeOf((*MockAccountInterface)(nil).TransactionHashDeployAccount), tx, contractAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashDeployAccount", reflect.TypeOf((*MockAccountInterface)(nil).HashDeployAccount), tx, contract)
 }
 
-// TransactionHashInvoke mocks base method.
-func (m *MockAccountInterface) TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error) {
+func (m *MockAccountInterface) HashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionHashInvoke", invokeTxn)
+	ret := m.ctrl.Call(m, "HashInvoke", invokeTxn)
 	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// TransactionHashInvoke indicates an expected call of TransactionHashInvoke.
-func (mr *MockAccountInterfaceMockRecorder) TransactionHashInvoke(invokeTxn any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) HashInvoke(invokeTxn any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionHashInvoke", reflect.TypeOf((*MockAccountInterface)(nil).TransactionHashInvoke), invokeTxn)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashInvoke", reflect.TypeOf((*MockAccountInterface)(nil).HashInvoke), invokeTxn)
 }
 
 // WaitForTransactionReceipt mocks base method.
-func (m *MockAccountInterface) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
+func (m *MockAccountInterface) WaitForTransactionReceipt(ctx context.Context, txHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WaitForTransactionReceipt", ctx, transactionHash, pollInterval)
+	ret := m.ctrl.Call(m, "WaitForTransactionReceipt", ctx, txHash, pollInterval)
 	ret0, _ := ret[0].(*rpc.TransactionReceiptWithBlockInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // WaitForTransactionReceipt indicates an expected call of WaitForTransactionReceipt.
-func (mr *MockAccountInterfaceMockRecorder) WaitForTransactionReceipt(ctx, transactionHash, pollInterval any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) WaitForTransactionReceipt(ctx, txHash, pollInterval any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitForTransactionReceipt", reflect.TypeOf((*MockAccountInterface)(nil).WaitForTransactionReceipt), ctx, transactionHash, pollInterval)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitForTransactionReceipt", reflect.TypeOf((*MockAccountInterface)(nil).WaitForTransactionReceipt), ctx, txHash, pollInterval)
 }
