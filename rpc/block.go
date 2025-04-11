@@ -8,14 +8,13 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// BlockNumber returns the block number of the current block.
 //
 // Parameters:
 // - ctx: The context to use for the request
 // Returns:
 // - uint64: The block number
 // - error: An error if any
-func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
+func (provider *Provider) Number(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
 	if err := do(ctx, provider.c, "starknet_blockNumber", &blockNumber); err != nil {
 		if errors.Is(err, errNotFound) {
@@ -41,14 +40,13 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 	return &block, nil
 }
 
-// WithBlockNumber returns a BlockID with the given block number.
 //
 // Parameters:
 //   - n: The block number to use for the BlockID.
 //
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
-func WithBlockNumber(n uint64) BlockID {
+func WithNumber(n uint64) BlockID {
 	return BlockID{
 		Number: &n,
 	}
@@ -93,7 +91,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 	}
 
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.BlockHash == nil {
+	if result.BlockHeader.Hash == nil {
 		return &PendingBlockTxHashes{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
@@ -158,7 +156,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.BlockHash == nil {
+	if result.BlockHeader.Hash == nil {
 		return &PendingBlock{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,

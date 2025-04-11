@@ -48,7 +48,7 @@ func TestEvents(t *testing.T) {
 					{
 						BlockHash:       internalUtils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 						BlockNumber:     1472,
-						TransactionHash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
+						Hash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
 					},
 				},
 			},
@@ -56,8 +56,8 @@ func TestEvents(t *testing.T) {
 		"mainnet": {
 			{
 				eventFilter: EventFilter{
-					FromBlock: WithBlockNumber(1471),
-					ToBlock:   WithBlockNumber(1473),
+					FromBlock: WithNumber(1471),
+					ToBlock:   WithNumber(1473),
 					Address:   internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					Keys: [][]*felt.Felt{{
 						internalUtils.TestHexToFelt(t, "0x3774b0545aabb37c45c1eddc6a7dae57de498aae6d5e3589e362d4b4323a533"),
@@ -84,7 +84,7 @@ func TestEvents(t *testing.T) {
 							},
 							BlockHash:       internalUtils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 							BlockNumber:     1472,
-							TransactionHash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
+							Hash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
 						},
 					},
 				},
@@ -93,8 +93,8 @@ func TestEvents(t *testing.T) {
 		"testnet": {
 			{
 				eventFilter: EventFilter{
-					FromBlock: WithBlockNumber(144932),
-					ToBlock:   WithBlockNumber(144933),
+					FromBlock: WithNumber(144932),
+					ToBlock:   WithNumber(144933),
 					Address:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 					Keys: [][]*felt.Felt{{
 						internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
@@ -123,7 +123,7 @@ func TestEvents(t *testing.T) {
 							},
 							BlockHash:       internalUtils.TestHexToFelt(t, "0x18a38934263d8b27a15d2e170d90030daa3a66e589b545908f376a8fdc971c8"),
 							BlockNumber:     144933,
-							TransactionHash: internalUtils.TestHexToFelt(t, "0x622817859a37dedf36cfb1417247f93dcc5840845bb8969df47491ef33e088e"),
+							Hash: internalUtils.TestHexToFelt(t, "0x622817859a37dedf36cfb1417247f93dcc5840845bb8969df47491ef33e088e"),
 						},
 					},
 				},

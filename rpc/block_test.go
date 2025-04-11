@@ -10,18 +10,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
 // - t: the testing object for running the test cases
 // Returns:
 //
 //	none
-func TestBlockNumber(t *testing.T) {
+func TestNumber(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
-	require.NoError(t, err, "BlockNumber should not return an error")
+	blockNumber, err := testConfig.provider.Number(context.Background())
+	require.NoError(t, err, "Number should not return an error")
 	if testEnv == "mock" {
 		require.Equal(t, uint64(1234), blockNumber)
 	}
@@ -38,10 +37,10 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
 	if testEnv == "mock" {
-		require.Equal(t, &BlockHashAndNumberOutput{BlockNumber: 1234, BlockHash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
+		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
 
@@ -107,7 +106,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				BlockID: BlockID{Hash: fakeFelt},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						BlockHash:        fakeFelt,
+						Hash:        fakeFelt,
 						ParentHash:       fakeFelt,
 						Timestamp:        124,
 						SequencerAddress: fakeFelt},
@@ -131,7 +130,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
 			{
-				BlockID:                   WithBlockNumber(64159),
+				BlockID:                   WithNumber(64159),
 				ExpectedErr:               nil,
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
@@ -151,7 +150,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				continue
 			}
 
-			require.Truef(t, strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
 			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
 			if test.ExpectedBlockWithTxHashes != nil {
@@ -225,7 +224,7 @@ func TestBlockWithTxs(t *testing.T) {
 				},
 			},
 			{
-				BlockID:       WithBlockNumber(65083),
+				BlockID:       WithNumber(65083),
 				ExpectedBlock: &fullBlockSepolia65083,
 				InvokeV1Index: 1,
 			},
@@ -243,7 +242,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("pending"),
 			},
 			{
-				BlockID:              WithBlockNumber(65083),
+				BlockID:              WithNumber(65083),
 				ExpectedBlock:        &fullBlockSepolia65083,
 				InvokeV1Index:        1,
 				InvokeV3Index:        3,
@@ -273,7 +272,7 @@ func TestBlockWithTxs(t *testing.T) {
 			}
 		case *Block:
 			if test.ExpectedBlock == nil {
-				require.Equal(block.BlockHash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+				require.Equal(block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
 				require.NotEmpty(block.Transactions, "The number of transaction should not be 0.")
 			} else {
 				require.Exactly(test.ExpectedBlock, block)
@@ -369,21 +368,21 @@ func TestBlockTransactionCount(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID:       WithBlockNumber(300000),
+				BlockID:       WithNumber(300000),
 				ExpectedCount: 10,
 			},
 		},
 		"testnet": {
 			{
-				BlockID:       WithBlockNumber(30000),
+				BlockID:       WithNumber(30000),
 				ExpectedCount: 4,
 			},
 			{
-				BlockID:       WithBlockNumber(52959),
+				BlockID:       WithNumber(52959),
 				ExpectedCount: 58,
 			},
 			{
-				BlockID:       WithBlockNumber(7338746823462834783),
+				BlockID:       WithNumber(7338746823462834783),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -425,7 +424,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[testEnv]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithNumber(i))
 			if err != nil {
 				t.Fatal("BlockWithTxHashes match the expected error:", err)
 			}
@@ -476,7 +475,7 @@ func TestStateUpdate(t *testing.T) {
 	testSet := map[string][]testSetType{
 		"mock": {
 			{
-				BlockID: WithBlockNumber(30000),
+				BlockID: WithNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
@@ -501,7 +500,7 @@ func TestStateUpdate(t *testing.T) {
 		},
 		"testnet": {
 			{
-				BlockID: WithBlockNumber(30000),
+				BlockID: WithNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),

@@ -104,19 +104,17 @@ func (mr *MockRpcProviderMockRecorder) BlockHashAndNumber(ctx any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockHashAndNumber", reflect.TypeOf((*MockRpcProvider)(nil).BlockHashAndNumber), ctx)
 }
 
-// BlockNumber mocks base method.
-func (m *MockRpcProvider) BlockNumber(ctx context.Context) (uint64, error) {
+func (m *MockRpcProvider) Number(ctx context.Context) (uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockNumber", ctx)
+	ret := m.ctrl.Call(m, "Number", ctx)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// BlockNumber indicates an expected call of BlockNumber.
-func (mr *MockRpcProviderMockRecorder) BlockNumber(ctx any) *gomock.Call {
+func (mr *MockRpcProviderMockRecorder) Number(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockNumber", reflect.TypeOf((*MockRpcProvider)(nil).BlockNumber), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Number", reflect.TypeOf((*MockRpcProvider)(nil).Number), ctx)
 }
 
 // BlockTransactionCount mocks base method.

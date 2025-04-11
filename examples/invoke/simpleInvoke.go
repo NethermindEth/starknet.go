@@ -35,14 +35,14 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 
 	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
 
-	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
 	if err != nil {
 		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Simple Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Simple Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
-	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.BlockNumber)
+	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.Number)
 }

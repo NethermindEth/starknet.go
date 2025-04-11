@@ -167,7 +167,7 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
 type AddDeclareTransactionOutput struct {
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash *felt.Felt `json:"transaction_hash"`
 	ClassHash       *felt.Felt `json:"class_hash"`
 }
 

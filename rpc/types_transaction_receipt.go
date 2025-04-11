@@ -30,7 +30,7 @@ type MsgFromL1 struct {
 
 type MessageStatusResp struct {
 	// The hash of a L1 handler transaction
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash *felt.Felt `json:"transaction_hash"`
 	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
 	// The failure reason, only appears if finality_status is REJECTED
@@ -57,7 +57,7 @@ const (
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	TransactionHash    *felt.Felt         `json:"transaction_hash"`
+	Hash               *felt.Felt         `json:"transaction_hash"` // Renamed field, JSON tag unchanged
 	ActualFee          FeePayment         `json:"actual_fee"`
 	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
@@ -162,8 +162,8 @@ type NewTxnStatusResp struct {
 
 type TransactionReceiptWithBlockInfo struct {
 	TransactionReceipt
-	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
-	BlockNumber uint       `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Number uint       `json:"block_number,omitempty"`
 }
 
 func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
@@ -173,8 +173,8 @@ func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 		BlockNumber uint   `json:"block_number,omitempty"`
 	}{
 		TransactionReceipt: t.TransactionReceipt,
-		BlockHash:          t.BlockHash.String(),
-		BlockNumber:        t.BlockNumber,
+		BlockHash:          t.Hash.String(),
+		BlockNumber:        t.Number,
 	}
 
 	return json.Marshal(aux)
@@ -189,8 +189,8 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 	}
 
 	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
-	if txnResp.BlockHash == nil {
-		txnResp.BlockHash = new(felt.Felt)
+	if txnResp.Hash == nil {
+		txnResp.Hash = new(felt.Felt)
 	}
 
 	*tr = TransactionReceiptWithBlockInfo(txnResp)

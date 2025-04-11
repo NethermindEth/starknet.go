@@ -31,7 +31,7 @@ type EmittedEvent struct {
 	// BlockNumber the number of the block in which the event was emitted
 	BlockNumber uint64 `json:"block_number,omitempty"`
 	// TransactionHash the transaction that emitted the event
-	TransactionHash *felt.Felt `json:"transaction_hash"`
+	Hash *felt.Felt `json:"transaction_hash"`
 }
 
 type EventFilter struct {

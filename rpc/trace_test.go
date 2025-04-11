@@ -29,24 +29,24 @@ func TestTransactionTrace(t *testing.T) {
 	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
 	type testSetType struct {
-		TransactionHash  *felt.Felt
+		Hash  *felt.Felt
 		ExpectedRespFile string
 		ExpectedError    error
 	}
 	testSet := map[string][]testSetType{
 		"mock": {
 			testSetType{
-				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				Hash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
 				ExpectedError:    nil,
 			},
 			testSetType{
-				TransactionHash:  internalUtils.TestHexToFelt(t, "0xc0ffee"),
+				Hash:  internalUtils.TestHexToFelt(t, "0xc0ffee"),
 				ExpectedRespFile: expectedFile1,
 				ExpectedError:    ErrHashNotFound,
 			},
 			testSetType{
-				TransactionHash:  internalUtils.TestHexToFelt(t, "0xf00d"),
+				Hash:  internalUtils.TestHexToFelt(t, "0xf00d"),
 				ExpectedRespFile: expectedFile1,
 				ExpectedError: &RPCError{
 					Code:    10,
@@ -58,12 +58,12 @@ func TestTransactionTrace(t *testing.T) {
 		"devnet": {},
 		"testnet": {
 			testSetType{ // with 5 out of 6 fields (without state diff)
-				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
+				Hash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
 				ExpectedError:    nil,
 			},
 			testSetType{ // with 6 out of 6 fields
-				TransactionHash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
+				Hash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
 				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
 				ExpectedError:    nil,
 			},
@@ -72,10 +72,10 @@ func TestTransactionTrace(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		t.Run(test.TransactionHash.String(), func(t *testing.T) {
+		t.Run(test.Hash.String(), func(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
-			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
+			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.Hash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
 				return
@@ -206,7 +206,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		"mainnet": {},
 		"testnet": {
 			testSetType{
-				BlockID:          WithBlockNumber(99433),
+				BlockID:          WithNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
@@ -218,7 +218,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      nil,
 			},
 			testSetType{
-				BlockID:          WithBlockNumber(0),
+				BlockID:          WithNumber(0),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
 			}},

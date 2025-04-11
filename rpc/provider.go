@@ -77,7 +77,7 @@ type RpcProvider interface {
 	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (*AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *BroadcastDeployAccountTxnV3) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
-	BlockNumber(ctx context.Context) (uint64, error)
+	Number(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
 	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)

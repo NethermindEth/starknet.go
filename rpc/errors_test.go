@@ -40,7 +40,7 @@ func TestRPCError(t *testing.T) {
 			Payload:     []*felt.Felt{},
 		}
 
-		_, err := testConfig.provider.EstimateMessageFee(context.Background(), msgFromL1, WithBlockNumber(523066))
+		_, err := testConfig.provider.EstimateMessageFee(context.Background(), msgFromL1, WithNumber(523066))
 		require.Error(t, err)
 		rpcErr := err.(*RPCError)
 

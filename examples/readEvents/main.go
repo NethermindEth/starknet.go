@@ -66,8 +66,8 @@ func main() {
 
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(660000), // from block 660000
-			ToBlock:   rpc.WithBlockNumber(660100), // to block 660100
+			FromBlock: rpc.WithNumber(660000), // from block 660000
+			ToBlock:   rpc.WithNumber(660100), // to block 660100
 			Address:   contractAddress,             // sent from this contract address
 			Keys: [][]*felt.Felt{
 				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
@@ -98,7 +98,7 @@ func main() {
 	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
 	randomEvent := eventChunk.Events[rand.Intn(len(eventChunk.Events))] // get a random event from the chunk
 	fmt.Printf("random event block number: %d\n", randomEvent.BlockNumber)
-	fmt.Printf("random event tx hash: %s\n", randomEvent.TransactionHash.String())
+	fmt.Printf("random event tx hash: %s\n", randomEvent.Hash.String())
 	fmt.Printf("random event sender address: %s\n", randomEvent.FromAddress.String())
 	fmt.Printf("random event first key: %v\n", randomEvent.Keys[0].String())
 	fmt.Printf("random event third key: %v\n", randomEvent.Keys[2].String())
@@ -160,8 +160,8 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	// So, we are filtering events from block 0 to block 100 and only from the provided contract address.
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(0),
-			ToBlock:   rpc.WithBlockNumber(100),
+			FromBlock: rpc.WithNumber(0),
+			ToBlock:   rpc.WithNumber(100),
 			Address:   contractAddress,
 		},
 		ResultPageRequest: rpc.ResultPageRequest{
@@ -200,8 +200,8 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	// from all addresses and contracts, from block 600000 to block 600100.
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(600000),
-			ToBlock:   rpc.WithBlockNumber(600100),
+			FromBlock: rpc.WithNumber(600000),
+			ToBlock:   rpc.WithNumber(600100),
 			Keys: [][]*felt.Felt{
 				{
 					utils.GetSelectorFromNameFelt("Transfer"),
@@ -232,8 +232,8 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 	eventChunk, err = provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(600000),
-			ToBlock:   rpc.WithBlockNumber(600100),
+			FromBlock: rpc.WithNumber(600000),
+			ToBlock:   rpc.WithNumber(600100),
 			Keys: [][]*felt.Felt{
 				// Notice that we are passing all selectors together in the same array, meaning that
 				// the node will return events that match any of these values.
@@ -262,11 +262,11 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
 	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
 	transferEvent := findEventInChunk(eventChunk, "Transfer")
-	fmt.Printf("'Transfer' event found in block %d, tx hash: %s\n", transferEvent.BlockNumber, transferEvent.TransactionHash.String())
+	fmt.Printf("'Transfer' event found in block %d, tx hash: %s\n", transferEvent.BlockNumber, transferEvent.Hash.String())
 	gameStartedEvent := findEventInChunk(eventChunk, "GameStarted")
-	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.TransactionHash.String())
+	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.Hash.String())
 	approvalEvent := findEventInChunk(eventChunk, "Approval")
-	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
+	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.Hash.String())
 
 }
 
@@ -289,7 +289,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	}
 
 	// Get the latest block number
-	blockNumber, err := provider.BlockNumber(context.Background())
+	blockNumber, err := provider.Number(context.Background())
 	if err != nil {
 		panic(fmt.Sprintf("error getting the latest block number: %v", err))
 	}
@@ -300,7 +300,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
 		FromAddress: contractAddress,                       // only events from this contract address
-		BlockID:     rpc.WithBlockNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
+		BlockID:     rpc.WithNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
 		// events from the last 10 blocks and progressively update as new blocks are added)
 		Keys: [][]*felt.Felt{
 			// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
@@ -321,7 +321,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 		select {
 		case event := <-eventsChan:
 			// This case will be triggered when a new event is received.
-			fmt.Printf("New event received: Block %d, Event tx hash: %s\n", event.BlockNumber, event.TransactionHash.String())
+			fmt.Printf("New event received: Block %d, Event tx hash: %s\n", event.BlockNumber, event.Hash.String())
 		case err := <-sub.Err():
 			// This case will be triggered when an error occurs.
 			panic(err)

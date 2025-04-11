@@ -111,7 +111,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
 		SetKS          bool
-		AccountAddress *felt.Felt
+		Address *felt.Felt
 		PubKey         string
 		PrivKey        *felt.Felt
 		ChainID        string
@@ -125,7 +125,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
 				ExpectedHash:   internalUtils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
 				SetKS:          true,
-				AccountAddress: internalUtils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
+				Address: internalUtils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				PrivKey:        internalUtils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
 				PubKey:         "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d",
 				ChainID:        "SN_SEPOLIA",
@@ -157,7 +157,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
 				ExpectedHash:   internalUtils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
 				SetKS:          true,
-				AccountAddress: internalUtils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
+				Address: internalUtils.TestHexToFelt(t, "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d"),
 				PrivKey:        internalUtils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
 				PubKey:         "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d",
 				ChainID:        "SN_SEPOLIA",
@@ -199,21 +199,21 @@ func TestTransactionHashInvoke(t *testing.T) {
 			if testEnv == "testnet" {
 				client, err := rpc.NewProvider(base)
 				require.NoError(t, err, "Error in rpc.NewClient")
-				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, 0)
+				acc, err = account.NewAccount(client, test.Address, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			if testEnv == "mock" {
 				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 				mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
+				acc, err = account.NewAccount(mockRpcProvider, test.Address, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			invokeTxn := rpc.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
 				Nonce:         test.TxDetails.Nonce,
 				MaxFee:        test.TxDetails.MaxFee,
-				SenderAddress: acc.AccountAddress,
+				SenderAddress: acc.Address,
 				Version:       test.TxDetails.Version,
 			}
 			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
@@ -556,7 +556,7 @@ func TestSendInvokeTxn(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 2)
+		acnt, err := account.NewAccount(client, test.Address, test.PubKey.String(), ks, 2)
 		require.NoError(t, err)
 
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV3)
@@ -652,7 +652,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
-		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
@@ -1155,8 +1155,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				ExpectedReceipt: &rpc.TransactionReceiptWithBlockInfo{
 					TransactionReceipt: rpc.TransactionReceipt{},
-					BlockHash:          new(felt.Felt).SetUint64(2),
-					BlockNumber:        2,
+					Hash:          new(felt.Felt).SetUint64(2),
+					Number:        2,
 				},
 
 				ExpectedErr: nil,
@@ -1301,10 +1301,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1346,12 +1346,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	}
 
 	// check the transaction and class hash
-	require.NotNil(t, resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
 	require.NotNil(t, resp.ClassHash)
-	t.Logf("Declare transaction hash: %s", resp.TransactionHash)
+	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1414,11 +1414,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1443,10 +1443,10 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
