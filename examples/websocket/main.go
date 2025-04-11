@@ -50,8 +50,8 @@ loop1:
 		select {
 		case newHead := <-newHeadsChan:
 			// This case will be triggered when a new block header is received.
-			fmt.Println("New block header received:", newHead.BlockNumber)
-			latestBlockNumber = newHead.BlockNumber
+			fmt.Println("New block header received:", newHead.Number)
+			latestBlockNumber = newHead.Number
 			break loop1 // Let's exit the loop after receiving the first block header
 		case err := <-sub.Err():
 			// This case will be triggered when an error occurs.
@@ -83,7 +83,7 @@ loop2:
 	for {
 		select {
 		case newHead := <-newHeadsChan:
-			fmt.Println("New block header received:", newHead.BlockNumber)
+			fmt.Println("New block header received:", newHead.Number)
 		case err := <-sub.Err():
 			if err == nil { // when sub.Unsubscribe() is called a nil error is returned, so let's just break the loop if that's the case
 				fmt.Printf("Unsubscribed from the subscription %s successfully\n", sub.ID())

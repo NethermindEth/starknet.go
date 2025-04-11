@@ -37,7 +37,7 @@ func TestTransactionByHash(t *testing.T) {
 					internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
 					internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
 				},
-				SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
+				Sender: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
 			},
 		},
 	}
@@ -217,11 +217,11 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatusResp{
 					{
-						TransactionHash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.RANDOM_FELT,
 						FinalityStatus:  TxnStatus_Accepted_On_L2,
 					},
 					{
-						TransactionHash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.RANDOM_FELT,
 						FinalityStatus:  TxnStatus_Accepted_On_L2,
 					},
 				},
@@ -236,11 +236,11 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
 				ExpectedResp: []MessageStatusResp{
 					{
-						TransactionHash: internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
+						Hash: internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
 						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 					{
-						TransactionHash: internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
+						Hash: internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
 						FinalityStatus:  TxnStatus_Accepted_On_L1,
 					},
 				},

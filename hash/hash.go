@@ -322,7 +322,7 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
-		txn.ContractAddress,
+		txn.Contract,
 		txn.EntryPointSelector,
 		calldataHash,
 		txn.MaxFee,
@@ -342,7 +342,7 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 //   - error: an error if any
 func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
-	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
+	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.Sender == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -354,7 +354,7 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
@@ -375,7 +375,7 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
+	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.Sender == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -398,7 +398,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 	return crypto.PoseidonArray(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
 		chainId,
@@ -420,7 +420,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 //   - error: an error if any
 func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
-	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+	if txn.Sender == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -433,7 +433,7 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_DECLARE,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
@@ -453,7 +453,7 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 //   - error: an error if any
 func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
-	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+	if txn.CompiledClassHash == nil || txn.Sender == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -467,7 +467,7 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_DECLARE,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
@@ -488,7 +488,7 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.Sender == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 		txn.ClassHash == nil || txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
@@ -513,7 +513,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	return crypto.PoseidonArray(
 		PREFIX_DECLARE,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
 		chainId,
@@ -537,7 +537,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.Sender == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 		txn.ContractClass == nil || txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
@@ -562,7 +562,7 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 	return crypto.PoseidonArray(
 		PREFIX_DECLARE,
 		txnVersionFelt,
-		txn.SenderAddress,
+		txn.Sender,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
 		chainId,

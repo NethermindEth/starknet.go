@@ -35,7 +35,7 @@ func TestRPCError(t *testing.T) {
 		// invalid msg
 		msgFromL1 := MsgFromL1{
 			FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-			ToAddress:   internalUtils.RANDOM_FELT,
+			To:   internalUtils.RANDOM_FELT,
 			Selector:    internalUtils.RANDOM_FELT,
 			Payload:     []*felt.Felt{},
 		}

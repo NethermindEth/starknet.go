@@ -26,7 +26,7 @@ func TestDeclareTransaction(t *testing.T) {
 			{
 				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
-					TransactionHash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+					Hash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
 				ExpectedError: nil,
 			},
 		},
@@ -44,7 +44,7 @@ func TestDeclareTransaction(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		assert.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+		assert.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
 
 	}
 }
@@ -86,7 +86,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 						},
 						Tip:           "",
 						PayMasterData: []*felt.Felt{},
-						SenderAddress: internalUtils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
+						Sender: internalUtils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
 						Calldata: []*felt.Felt{
 							internalUtils.TestHexToFelt(t, "0x2"),
 							internalUtils.TestHexToFelt(t, "0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684"),
@@ -168,8 +168,8 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 						},
 					}},
 				ExpectedResp: AddDeployAccountTransactionResponse{
-					TransactionHash: internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x0")},
+					Hash: internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
+					Contract: internalUtils.TestHexToFelt(t, "0x0")},
 				ExpectedError: nil,
 			},
 		},
@@ -181,7 +181,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.TransactionHash).String(), (*test.ExpectedResp.TransactionHash).String())
+			require.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
 		}
 
 	}

@@ -19,7 +19,7 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 	}
 	// Building the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress, //contractAddress is the contract that we want to call
+		Contract: contractAddress, //contractAddress is the contract that we want to call
 		FunctionName:    contractMethod,  //this is the function that we want to call
 		CallData:        u256Amount,      //the calldata necessary to call the function. Here we are passing the "amount" value (a u256 cairo variable) for the "mint" function
 	}
@@ -35,13 +35,13 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 
 	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
 
-	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
 	if err != nil {
 		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Simple Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Simple Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
 	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.BlockNumber)

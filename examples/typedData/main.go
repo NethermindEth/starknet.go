@@ -19,7 +19,7 @@ import (
 func main() {
 	// Setup the account
 	accnt := localSetup()
-	fmt.Println("Account address:", accnt.AccountAddress)
+	fmt.Println("Account address:", accnt.Address)
 
 	// This is how you can initialize a typed data from a JSON file
 	ttd, err := utils.UnmarshalJSONFileToType[typedData.TypedData]("./baseExample.json", "")
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// get the message hash linked to your account address
-	messageHash, err := ttd.GetMessageHash(accnt.AccountAddress.String())
+	messageHash, err := ttd.GetMessageHash(accnt.Address.String())
 	if err != nil {
 		panic(fmt.Errorf("fail to get message hash: %w", err))
 	}

@@ -20,7 +20,7 @@ type BroadcastInvokeTxnV3 struct {
 }
 type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType          `json:"type"`
-	SenderAddress     *felt.Felt               `json:"sender_address"`
+	Sender            *felt.Felt               `json:"sender_address"`
 	CompiledClassHash *felt.Felt               `json:"compiled_class_hash"`
 	Version           TransactionVersion       `json:"version"`
 	Signature         []*felt.Felt             `json:"signature"`

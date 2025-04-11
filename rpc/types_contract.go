@@ -49,7 +49,7 @@ type StorageProofInput struct {
 }
 
 type ContractStorageKeys struct {
-	ContractAddress *felt.Felt   `json:"contract_address"`
+	Contract        *felt.Felt   `json:"contract_address"`
 	StorageKeys     []*felt.Felt `json:"storage_keys"`
 }
 
@@ -81,7 +81,7 @@ type GlobalRoots struct {
 	ContractsTreeRoot *felt.Felt `json:"contracts_tree_root"`
 	ClassesTreeRoot   *felt.Felt `json:"classes_tree_root"`
 	// the associated block hash (needed in case the caller used a block tag for the block_id parameter)
-	BlockHash *felt.Felt `json:"block_hash"`
+	Block     *felt.Felt `json:"block_hash"`
 }
 
 // A node_hash -> node mapping of all the nodes in the union of the paths between the requested leaves and the root
