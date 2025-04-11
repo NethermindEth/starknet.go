@@ -31,9 +31,9 @@ type AccountInterface interface {
 	SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error
 	SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error
-	HashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
-	HashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
-	HashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
+	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
+	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
 	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
@@ -332,7 +332,7 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
 func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
-	txHash, err := account.HashInvoke(invokeTx)
+	txHash, err := account.TransactionHashInvoke(invokeTx)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
 func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
-	txHash, err := account.HashDeployAccount(*tx, precomputeAddress)
+	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +431,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 
 // signDeclareTransaction is a generic helper function that signs a declare transaction.
 func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
-	txHash, err := account.HashDeclare(*tx)
+	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +451,7 @@ func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T)
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func (account *Account) HashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
 
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
@@ -479,7 +479,7 @@ func (account *Account) HashDeployAccount(tx rpc.DeployAccountType, contractAddr
 //   - error: an error, if any
 //
 // If the transaction type is unsupported, the function returns an error.
-func (account *Account) HashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
+func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 	switch txn := tx.(type) {
 	// invoke v0, pointer and struct
 	case *rpc.InvokeTxnV0:
@@ -510,7 +510,7 @@ func (account *Account) HashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error) {
 //   - error: an error, if any
 //
 // If the `tx` parameter is not one of the supported types, the function returns an error `ErrTxnTypeUnSupported`.
-func (account *Account) HashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
+func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error) {
 	switch txn := tx.(type) {
 	// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
 	case *rpc.DeclareTxnV0, rpc.DeclareTxnV0:
