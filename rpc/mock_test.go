@@ -1147,7 +1147,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		block, err := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					BlockHash:        fakeFelt,
+					Hash:             fakeFelt,
 					ParentHash:       fakeFelt,
 					Timestamp:        124,
 					SequencerAddress: fakeFelt,
@@ -1224,7 +1224,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		block, err := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
-					BlockHash: fakeFeltField,
+					Hash: fakeFeltField,
 				},
 				"ACCEPTED_ON_L1",
 				BlockBodyWithReceipts{
