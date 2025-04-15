@@ -1426,12 +1426,12 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	// Return mock response for successful case
 	response := []MessageStatusResp{
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
-			FinalityStatus:  TxnStatus_Accepted_On_L2,
+			Hash:           internalUtils.RANDOM_FELT,
+			FinalityStatus: TxnStatus_Accepted_On_L2,
 		},
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
-			FinalityStatus:  TxnStatus_Accepted_On_L2,
+			Hash:           internalUtils.RANDOM_FELT,
+			FinalityStatus: TxnStatus_Accepted_On_L2,
 		},
 	}
 
