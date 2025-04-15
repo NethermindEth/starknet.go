@@ -41,7 +41,7 @@ func main() {
 	fmt.Println()
 	fmt.Println("Successfully subscribed to the node. Subscription ID:", sub.ID())
 
-	var latestNumber uint64
+	var latestBlockNumber uint64
 
 	// Now we'll create the loop to continuously read the new heads from the channel.
 	// This will make the program wait indefinitely for new heads or errors if not interrupted.
@@ -51,7 +51,7 @@ loop1:
 		case newHead := <-newHeadsChan:
 			// This case will be triggered when a new block header is received.
 			fmt.Println("New block header received:", newHead.Number)
-			latestNumber = newHead.Number
+			latestBlockNumber = newHead.Number
 			break loop1 // Let's exit the loop after receiving the first block header
 		case err := <-sub.Err():
 			// This case will be triggered when an error occurs.
@@ -66,7 +66,7 @@ loop1:
 
 	// We'll now subscribe to the node again, but this time we'll pass in an older block number as the blockID.
 	// This way, the node will send us block headers from that block number onwards.
-	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.WithNumber(latestNumber-10))
+	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.WithBlockNumber(latestBlockNumber-10))
 	if err != nil {
 		panic(err)
 	}

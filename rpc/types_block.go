@@ -168,11 +168,9 @@ type PendingBlockTxHashes struct {
 }
 
 type BlockHeader struct {
-	// BlockHash The hash of this block
 	Hash *felt.Felt `json:"block_hash"`
 	// ParentHash The hash of this block's parent
 	ParentHash *felt.Felt `json:"parent_hash"`
-	// BlockNumber the block number (its height)
 	Number uint64 `json:"block_number"`
 	// NewRoot The new global state root
 	NewRoot *felt.Felt `json:"new_root"`

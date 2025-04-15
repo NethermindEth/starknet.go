@@ -11,7 +11,7 @@ type AddDeclareTransactionResponse struct {
 // AddDeployTransactionResponse provides the output for AddDeployTransaction.
 type AddDeployAccountTransactionResponse struct {
 	Hash *felt.Felt `json:"transaction_hash"`
-	ContractAddress *felt.Felt `json:"contract_address"`
+	Contract *felt.Felt `json:"contract_address"`
 }
 
 // AddInvokeTransactionResponse provides the output for AddInvokeTransaction.
@@ -26,5 +26,5 @@ type TransactionResponse struct {
 	// Present only for declare transactions
 	ClassHash *felt.Felt `json:"class_hash,omitempty"`
 	// Present only for deploy transactions
-	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+	Contract *felt.Felt `json:"contract_address,omitempty"`
 }

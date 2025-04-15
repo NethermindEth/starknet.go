@@ -26,10 +26,10 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 
 	provider := testConfig.provider
-	latestNumber, err := provider.Number(context.Background())
+	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{latestNumber, latestNumber + 1}
+	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
 	testSet, ok := map[string][]testSetType{
 		"testnet": {
@@ -46,14 +46,14 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithNumber(latestNumber - 100),
+				subBlockID:      WithBlockNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithNumber(latestNumber - 1025),
+				subBlockID:      WithBlockNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -90,7 +90,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 					if test.counter != 0 {
 						if test.counter == 1 {
-							require.Contains(t, latestBlockNumbers, resp.Number+1) // Variable name already correct here
+							require.Contains(t, latestBlockNumbers, resp.Number+1)
 							return
 						} else {
 							test.counter--
@@ -131,12 +131,12 @@ func TestSubscribeEvents(t *testing.T) {
 	}
 
 	provider := testConfig.provider
-	latestNumber, err := provider.Number(context.Background())
+	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
 	// 'blockNumber + 1' for the case the latest block number is updated
 	// '0' for the case of events from pending blocks
-	latestBlockNumbers := []uint64{latestNumber, latestNumber + 1, 0}
+	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1, 0}
 
 	t.Run("with empty args", func(t *testing.T) {
 		t.Parallel()
@@ -155,7 +155,7 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Contains(t, latestBlockNumbers, resp.BlockNumber) // Corrected: Use BlockNumber field
+				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithNumber(latestNumber - 100),
+			BlockID: WithBlockNumber(blockNumber - 100),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -187,11 +187,11 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, latestNumber) // Corrected: Use BlockNumber field
+				require.Less(t, resp.BlockNumber, blockNumber)
 				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
 				// As none filters are applied, the events should be from all addresses and keys.
 
-				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueAddresses[resp.From.String()] = true
 				uniqueKeys[resp.Keys[0].String()] = true
 
 				// check if there are at least 3 different addresses and keys in the received events
@@ -213,8 +213,8 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: testSet.fromAddressExample,
-			BlockID:     WithNumber(latestNumber - 1023),
+			From: testSet.fromAddressExample,
+			BlockID:     WithBlockNumber(blockNumber - 1023),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -228,12 +228,12 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, latestNumber) // Corrected: Use BlockNumber field
+				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with fromAddress should only return events from the specified address.
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				require.Equal(t, testSet.fromAddressExample, resp.From)
 
 				uniqueKeys[resp.Keys[0].String()] = true
 
@@ -257,7 +257,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys:    [][]*felt.Felt{{testSet.keyExample}},
-			BlockID: WithNumber(latestNumber - 1023),
+			BlockID: WithBlockNumber(blockNumber - 1023),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -270,12 +270,12 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, latestNumber) // Corrected: Use BlockNumber field
+				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with keys should only return events with the specified keys.
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 
-				uniqueAddresses[resp.FromAddress.String()] = true
+				uniqueAddresses[resp.From.String()] = true
 
 				// check if there are at least 2 different addresses in the received events
 				if len(uniqueAddresses) >= 2 {
@@ -296,8 +296,8 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithNumber(latestNumber - 100),
-			FromAddress: testSet.fromAddressExample,
+			BlockID:     WithBlockNumber(blockNumber - 100),
+			From: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
 		if sub != nil {
@@ -310,10 +310,10 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, latestNumber) // Corrected: Use BlockNumber field
+				require.Less(t, resp.BlockNumber, blockNumber)
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				require.Equal(t, testSet.fromAddressExample, resp.From)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 				return
 			case err := <-sub.Err():
@@ -348,13 +348,13 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithNumber(latestNumber - 1025),
+					BlockID: WithBlockNumber(blockNumber - 1025),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithNumber(latestNumber + 100),
+					BlockID: WithBlockNumber(blockNumber + 100),
 				},
 				expectedError: ErrBlockNotFound,
 			},
@@ -417,7 +417,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &NewTxnStatusResp{}, resp)
-				require.Equal(t, txHash, resp.TransactionHash) // Corrected: Use TransactionHash field
+				require.Equal(t, txHash, resp.Hash)
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
 				return
 			case err := <-sub.Err():
@@ -465,7 +465,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			},
 			{
 				pendingTxns:   make(chan *SubPendingTxns),
-				options:       &SubPendingTxnsInput{SenderAddress: addresses},
+				options:       &SubPendingTxnsInput{Sender: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
 				description:   "error: too many addresses",
 			},

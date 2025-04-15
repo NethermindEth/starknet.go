@@ -42,7 +42,7 @@ var _ AccountInterface = &Account{}
 type Account struct {
 	Provider       rpc.RpcProvider
 	ChainId        *felt.Felt
-	Address *felt.Felt
+	Address        *felt.Felt
 	publicKey      string
 	CairoVersion   int
 	ks             Keystore
@@ -85,7 +85,7 @@ func NewAccount(provider rpc.RpcProvider, address *felt.Felt, publicKey string, 
 
 	account := &Account{
 		Provider:       provider,
-		Address: address,
+		Address:        address,
 		publicKey:      publicKey,
 		ks:             keystore,
 		CairoVersion:   cairoVersion,
@@ -443,7 +443,6 @@ func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T)
 	return signature, nil
 }
 
-// TransactionHashDeployAccount calculates the transaction hash for a deploy account transaction.
 //
 // Parameters:
 //   - tx: The deploy account transaction to calculate the hash for. Can be of type DeployAccountTxn or DeployAccountTxnV3.
@@ -471,7 +470,6 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 	}
 }
 
-// TransactionHashInvoke calculates the transaction hash for the given invoke transaction.
 //
 // Parameters:
 //   - tx: The invoke transaction to calculate the hash for. Can be of type InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
@@ -503,7 +501,6 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	}
 }
 
-// TransactionHashDeclare calculates the transaction hash for declaring a transaction type.
 //
 // Parameters:
 //   - tx: The `tx` parameter of type `rpc.DeclareTxnType`. Can be one of the types DeclareTxnV1/V2/V3, and BroadcastDeclareTxnV3
@@ -562,20 +559,19 @@ func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructor
 //
 // Parameters:
 //   - ctx: The context
-//   - transactionHash: The hash
 //   - pollInterval: The time interval to poll the transaction receipt
 //
 // It returns:
 //   - *rpc.TransactionReceipt: the transaction receipt
 //   - error: an error
-func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
+func (account *Account) WaitForTransactionReceipt(ctx context.Context, txHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
-			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
+			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, txHash)
 			if err != nil {
 				rpcErr := err.(*rpc.RPCError)
 				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
@@ -633,13 +629,13 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, Contract: resp.Contract}, nil
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, Contract: resp.Contract}, nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}
@@ -681,7 +677,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 
 	offset := uint64(0)
 	for _, call := range callArray {
-		calldata = append(calldata, call.ContractAddress)
+		calldata = append(calldata, call.Contract)
 		calldata = append(calldata, call.EntryPointSelector)
 		calldata = append(calldata, new(felt.Felt).SetUint64(uint64(offset)))
 		callDataLen := uint64(len(call.Calldata))
@@ -712,7 +708,7 @@ func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	result = append(result, new(felt.Felt).SetUint64(uint64(len(callArray))))
 
 	for _, call := range callArray {
-		result = append(result, call.ContractAddress)
+		result = append(result, call.Contract)
 		result = append(result, call.EntryPointSelector)
 
 		callDataLen := uint64(len(call.Calldata))

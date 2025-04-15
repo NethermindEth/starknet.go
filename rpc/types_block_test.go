@@ -152,7 +152,7 @@ func TestBlockWithReceipts(t *testing.T) {
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 	var blockMock123 = BlockWithReceipts{
 		BlockHeader{
-			Hash: deadBeef, // Corrected: BlockHeader uses Hash
+			Hash: deadBeef,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
@@ -160,16 +160,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef, // Corrected: BlockInvokeTxnV1 uses TransactionHash
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-							Hash: deadBeef, // Corrected: TransactionReceipt uses Hash
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -187,16 +187,16 @@ func TestBlockWithReceipts(t *testing.T) {
 				{
 					Transaction: BlockTransaction{
 						BlockInvokeTxnV1{
-							TransactionHash: deadBeef, // Corrected: BlockInvokeTxnV1 uses TransactionHash
+							Hash: deadBeef,
 							InvokeTxnV1: InvokeTxnV1{
 								Type:          "INVOKE",
 								Version:       TransactionV1,
-								SenderAddress: deadBeef,
+								Sender: deadBeef,
 							},
 						},
 					},
 					Receipt: TransactionReceipt{
-							Hash: deadBeef, // Corrected: TransactionReceipt uses Hash
+							Hash: deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -223,7 +223,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag("pending"),
 			},
 			{
-				BlockID:                   WithNumber(64159),
+				BlockID:                   WithBlockNumber(64159),
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
@@ -232,7 +232,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag("pending"),
 			},
 			{
-				BlockID:                   WithNumber(588763),
+				BlockID:                   WithBlockNumber(588763),
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},

@@ -39,8 +39,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					// ContractAddress of predeployed devnet Feetoken
-					ContractAddress:    internalUtils.TestHexToFelt(t, DevNetETHAddress),
+					Contract:    internalUtils.TestHexToFelt(t, DevNetETHAddress),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -52,7 +51,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+					Contract:    internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -64,7 +63,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -74,7 +73,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "ContractError",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{&felt.Zero},
 				},
@@ -84,7 +83,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "EntrypointNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -94,7 +93,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "BlockNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -104,7 +103,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "ContractNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.RANDOM_FELT,
+					Contract:    internalUtils.RANDOM_FELT,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -116,7 +115,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
+					Contract:    internalUtils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},

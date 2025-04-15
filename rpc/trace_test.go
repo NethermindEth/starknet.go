@@ -29,7 +29,7 @@ func TestTransactionTrace(t *testing.T) {
 	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
 	type testSetType struct {
-		Hash  *felt.Felt
+		Hash             *felt.Felt
 		ExpectedRespFile string
 		ExpectedError    error
 	}
@@ -206,7 +206,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		"mainnet": {},
 		"testnet": {
 			testSetType{
-				BlockID:          WithNumber(99433),
+				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
@@ -218,7 +218,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      nil,
 			},
 			testSetType{
-				BlockID:          WithNumber(0),
+				BlockID:          WithBlockNumber(0),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
 			}},

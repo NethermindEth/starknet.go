@@ -74,7 +74,7 @@ func main() {
 
 	// Build the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                //contractAddress is the contract that we want to call
+		Contract: contractAddress,                //contractAddress is the contract that we want to call
 		FunctionName:    contractMethod,                 //this is the function that we want to call
 		CallData:        getUDCCalldata(accountAddress), //change this function content to your use case
 	}

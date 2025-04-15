@@ -9,7 +9,7 @@ type OrderedEvent struct {
 }
 
 type Event struct {
-	FromAddress *felt.Felt `json:"from_address"`
+	From *felt.Felt `json:"from_address"`
 	EventContent
 }
 
@@ -27,7 +27,7 @@ type EventChunk struct {
 type EmittedEvent struct {
 	Event
 	// BlockHash the hash of the block in which the event was emitted
-	BlockHash *felt.Felt `json:"block_hash,omitempty"`
+	Block *felt.Felt `json:"block_hash,omitempty"`
 	// BlockNumber the number of the block in which the event was emitted
 	BlockNumber uint64 `json:"block_number,omitempty"`
 	// TransactionHash the transaction that emitted the event
@@ -53,7 +53,7 @@ type EventsInput struct {
 }
 
 type EventSubscriptionInput struct {
-	FromAddress *felt.Felt     `json:"from_address,omitempty"` // Optional. Filter events by from_address which emitted the event
+	From *felt.Felt     `json:"from_address,omitempty"` // Optional. Filter events by from_address which emitted the event
 	Keys        [][]*felt.Felt `json:"keys,omitempty"`         // Optional. Per key (by position), designate the possible values to be matched for events to be returned. Empty array designates 'any' value
 	BlockID     BlockID        `json:"block_id,omitempty"`     // Optional. The block to get notifications from, default is latest, limited to 1024 blocks back
 }

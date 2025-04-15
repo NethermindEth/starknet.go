@@ -57,7 +57,7 @@ type ReplacedClassesItem struct {
 // ContractNonce is a the updated nonce per contract address
 type ContractNonce struct {
 	// ContractAddress is the address of the contract
-	ContractAddress *felt.Felt `json:"contract_address"`
+	Contract        *felt.Felt `json:"contract_address"`
 	// Nonce is the nonce for the given address at the end of the block"
 	Nonce *felt.Felt `json:"nonce"`
 }
@@ -82,7 +82,7 @@ type StateDiff struct {
 // STATE_UPDATE in spec
 type StateUpdateOutput struct {
 	// BlockHash is the block identifier,
-	BlockHash *felt.Felt `json:"block_hash"`
+	Block     *felt.Felt `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot *felt.Felt `json:"new_root"`
 	// Pending
@@ -100,11 +100,11 @@ type PendingStateUpdate struct {
 // SyncStatus is An object describing the node synchronization status
 type SyncStatus struct {
 	SyncStatus        *bool
-	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
+	StartingBlock     *felt.Felt `json:"starting_block_hash,omitempty"`
 	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
-	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
+	CurrentBlock      *felt.Felt `json:"current_block_hash,omitempty"`
 	CurrentBlockNum   NumAsHex   `json:"current_block_num,omitempty"`
-	HighestBlockHash  *felt.Felt `json:"highest_block_hash,omitempty"`
+	HighestBlock      *felt.Felt `json:"highest_block_hash,omitempty"`
 	HighestBlockNum   NumAsHex   `json:"highest_block_num,omitempty"`
 }
 
@@ -126,11 +126,11 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 		return []byte("false"), nil
 	}
 	output := map[string]interface{}{}
-	output["starting_block_hash"] = s.StartingBlockHash
+	output["starting_block_hash"] = s.StartingBlock
 	output["starting_block_num"] = s.StartingBlockNum
-	output["current_block_hash"] = s.CurrentBlockHash
+	output["current_block_hash"] = s.CurrentBlock
 	output["current_block_num"] = s.CurrentBlockNum
-	output["highest_block_hash"] = s.HighestBlockHash
+	output["highest_block_hash"] = s.HighestBlock
 	output["highest_block_num"] = s.HighestBlockNum
 	return json.Marshal(output)
 }
@@ -173,7 +173,7 @@ type AddDeclareTransactionOutput struct {
 
 // FunctionCall function call information
 type FunctionCall struct {
-	ContractAddress    *felt.Felt `json:"contract_address"`
+	Contract           *felt.Felt `json:"contract_address"`
 	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
 
 	// Calldata The parameters passed to the function
@@ -184,7 +184,7 @@ type FunctionCall struct {
 // It's a helper type used to build a FunctionCall for a v3 Invoke transaction.
 type InvokeFunctionCall struct {
 	// The address of the contract to invoke
-	ContractAddress *felt.Felt
+	Contract        *felt.Felt
 	// The name of the function to invoke
 	FunctionName string
 	// The parameters passed to the function

@@ -477,7 +477,7 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
+					Block: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
 					PendingStateUpdate: PendingStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
@@ -502,7 +502,7 @@ func TestStateUpdate(t *testing.T) {
 			{
 				BlockID: WithNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
+					Block: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
 					PendingStateUpdate: PendingStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x1d2922de7bb14766d0c3aa323876d9f5a4b1733f6dc199bbe596d06dd8f70e4"),
@@ -629,9 +629,9 @@ func TestStateUpdate(t *testing.T) {
 		require.NoError(t, err, "Unable to fetch the given block.")
 
 		require.Equal(t,
-			test.ExpectedStateUpdateOutput.BlockHash.String(),
-			stateUpdate.BlockHash.String(),
-			fmt.Sprintf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String()),
+			test.ExpectedStateUpdateOutput.Block.String(),
+			stateUpdate.Block.String(),
+			fmt.Sprintf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.Block.String(), stateUpdate.Block.String()),
 		)
 	}
 }
