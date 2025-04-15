@@ -169,7 +169,7 @@ func TestBlockWithReceipts(t *testing.T) {
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+						Hash:            deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},
@@ -196,7 +196,7 @@ func TestBlockWithReceipts(t *testing.T) {
 						},
 					},
 					Receipt: TransactionReceipt{
-						TransactionHash: deadBeef,
+						Hash:            deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 					},

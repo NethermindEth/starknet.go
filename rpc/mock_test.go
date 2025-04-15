@@ -399,8 +399,8 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 
 	transaction := TransactionReceipt{
-		TransactionHash: arg0Felt,
-		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+		Hash:           arg0Felt,
+		FinalityStatus: TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},
@@ -1204,7 +1204,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1241,7 +1241,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},

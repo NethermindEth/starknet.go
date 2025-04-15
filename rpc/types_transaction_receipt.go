@@ -57,7 +57,7 @@ const (
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	TransactionHash    *felt.Felt         `json:"transaction_hash"`
+	Hash               *felt.Felt         `json:"transaction_hash"`
 	ActualFee          FeePayment         `json:"actual_fee"`
 	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
