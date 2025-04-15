@@ -95,5 +95,5 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	fmt.Printf("Verbose Invoke : Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Verbose Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Verbose Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
-	fmt.Printf("Verbose Invoke : Block number: %d\n", txReceipt.Number)
+	fmt.Printf("Verbose Invoke : Block number: %d\n", txReceipt.BlockNumber)
 }

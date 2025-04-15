@@ -43,7 +43,7 @@ func TestClassAt(t *testing.T) {
 			{
 				Contract:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
-				Block:             WithBlockNumber(58344),
+				Block:             WithNumber(58344),
 			},
 		},
 		"testnet": {
@@ -51,20 +51,20 @@ func TestClassAt(t *testing.T) {
 			{
 				Contract:   internalUtils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("getPublicKey").String(),
-				Block:             WithBlockNumber(58344),
+				Block:             WithNumber(58344),
 			},
 			// v2 contract
 			{
 				Contract:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
-				Block:             WithBlockNumber(65168),
+				Block:             WithNumber(65168),
 			},
 		},
 		"mainnet": {
 			{
 				Contract:   internalUtils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("get_name").String(),
-				Block:             WithBlockNumber(643360),
+				Block:             WithNumber(643360),
 			},
 		},
 	}[testEnv]
@@ -308,7 +308,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:    "_signer",
-				Block:         WithBlockNumber(69399),
+				Block:         WithNumber(69399),
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 		},
@@ -368,14 +368,14 @@ func TestNonce(t *testing.T) {
 		"testnet": {
 			{
 				Contract: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           WithBlockNumber(69399),
+				Block:           WithNumber(69399),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 		},
 		"mainnet": {
 			{
 				Contract: internalUtils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
-				Block:           WithBlockNumber(644060),
+				Block:           WithNumber(644060),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x2"),
 			},
 		},
@@ -438,7 +438,7 @@ func TestEstimateMessageFee(t *testing.T) {
 		"testnet": {
 			{
 				MsgFromL1: l1Handler,
-				BlockID:   WithBlockNumber(523066),
+				BlockID:   WithNumber(523066),
 				ExpectedFeeEst: &FeeEstimation{
 					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed1"),
 					L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
@@ -457,12 +457,12 @@ func TestEstimateMessageFee(t *testing.T) {
 					Selector:    internalUtils.RANDOM_FELT,
 					Payload:     []*felt.Felt{},
 				},
-				BlockID:       WithBlockNumber(523066),
+				BlockID:       WithNumber(523066),
 				ExpectedError: ErrContractError,
 			},
 			{ // invalid block number
 				MsgFromL1:     l1Handler,
-				BlockID:       WithBlockNumber(9999999999999999999),
+				BlockID:       WithNumber(9999999999999999999),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -548,7 +548,7 @@ func TestEstimateFee(t *testing.T) {
 					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(574447),
+				blockID:       WithNumber(574447),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
@@ -569,7 +569,7 @@ func TestEstimateFee(t *testing.T) {
 					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
-				blockID:       WithBlockNumber(574447),
+				blockID:       WithNumber(574447),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
@@ -616,7 +616,7 @@ func TestEstimateFee(t *testing.T) {
 					},
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(100000),
+				blockID:       WithNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -625,7 +625,7 @@ func TestEstimateFee(t *testing.T) {
 					bradcastInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(9999999999999999999),
+				blockID:       WithNumber(9999999999999999999),
 				expectedError: ErrBlockNotFound,
 			},
 		},

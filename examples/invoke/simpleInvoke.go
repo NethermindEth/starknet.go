@@ -44,5 +44,5 @@ func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMe
 	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Simple Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Simple Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
-	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.Number)
+	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.BlockNumber)
 }

@@ -99,7 +99,7 @@ func main() {
 	randomEvent := eventChunk.Events[rand.Intn(len(eventChunk.Events))] // get a random event from the chunk
 	fmt.Printf("random event block number: %d\n", randomEvent.BlockNumber)
 	fmt.Printf("random event tx hash: %s\n", randomEvent.Hash.String())
-	fmt.Printf("random event sender address: %s\n", randomEvent.FromAddress.String())
+	fmt.Printf("random event sender address: %s\n", randomEvent.From.String())
 	fmt.Printf("random event first key: %v\n", randomEvent.Keys[0].String())
 	fmt.Printf("random event third key: %v\n", randomEvent.Keys[2].String())
 	fmt.Printf("random event fifth key: %v\n", randomEvent.Keys[4].String())
@@ -174,7 +174,7 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
 	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
-	fmt.Printf("contract address of the first event: %s\n", eventChunk.Events[0].FromAddress.String())
+	fmt.Printf("contract address of the first event: %s\n", eventChunk.Events[0].From.String())
 }
 
 func callWithKeysFilter(provider *rpc.Provider) {
@@ -299,7 +299,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
-		FromAddress: contractAddress,                       // only events from this contract address
+		From: contractAddress,                       // only events from this contract address
 		BlockID:     rpc.WithNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
 		// events from the last 10 blocks and progressively update as new blocks are added)
 		Keys: [][]*felt.Felt{
