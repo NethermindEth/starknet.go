@@ -223,7 +223,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag("pending"),
 			},
 			{
-				BlockID:                   WithBlockNumber(64159),
+				BlockID:                   WithNumber(64159),
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
@@ -232,7 +232,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag("pending"),
 			},
 			{
-				BlockID:                   WithBlockNumber(588763),
+				BlockID:                   WithNumber(588763),
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},

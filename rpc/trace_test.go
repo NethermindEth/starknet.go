@@ -206,7 +206,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		"mainnet": {},
 		"testnet": {
 			testSetType{
-				BlockID:          WithBlockNumber(99433),
+				BlockID:          WithNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
@@ -218,7 +218,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      nil,
 			},
 			testSetType{
-				BlockID:          WithBlockNumber(0),
+				BlockID:          WithNumber(0),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
 			}},

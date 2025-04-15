@@ -26,7 +26,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 
 	provider := testConfig.provider
-	blockNumber, err := provider.BlockNumber(context.Background())
+	blockNumber, err := provider.Number(context.Background())
 	require.NoError(t, err)
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
@@ -46,14 +46,14 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 100),
+				subBlockID:      WithNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 1025),
+				subBlockID:      WithNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -131,7 +131,7 @@ func TestSubscribeEvents(t *testing.T) {
 	}
 
 	provider := testConfig.provider
-	blockNumber, err := provider.BlockNumber(context.Background())
+	blockNumber, err := provider.Number(context.Background())
 	require.NoError(t, err)
 
 	// 'blockNumber + 1' for the case the latest block number is updated
@@ -172,7 +172,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithBlockNumber(blockNumber - 100),
+			BlockID: WithNumber(blockNumber - 100),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -214,7 +214,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			From: testSet.fromAddressExample,
-			BlockID:     WithBlockNumber(blockNumber - 1023),
+			BlockID:     WithNumber(blockNumber - 1023),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -257,7 +257,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys:    [][]*felt.Felt{{testSet.keyExample}},
-			BlockID: WithBlockNumber(blockNumber - 1023),
+			BlockID: WithNumber(blockNumber - 1023),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -296,7 +296,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithBlockNumber(blockNumber - 100),
+			BlockID:     WithNumber(blockNumber - 100),
 			From: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
@@ -348,13 +348,13 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber - 1025),
+					BlockID: WithNumber(blockNumber - 1025),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber + 100),
+					BlockID: WithNumber(blockNumber + 100),
 				},
 				expectedError: ErrBlockNotFound,
 			},
