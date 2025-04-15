@@ -174,8 +174,8 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 	}
 
 	blockData := BlockHashAndNumberOutput{
-		BlockNumber: 1234,
-		BlockHash:   internalUtils.RANDOM_FELT,
+		Number: 1234,
+		Hash:   internalUtils.RANDOM_FELT,
 	}
 
 	resp, err := json.Marshal(blockData)

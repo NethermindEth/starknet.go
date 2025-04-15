@@ -15,8 +15,8 @@ var ErrInvalidBlockID = errors.New("invalid blockid")
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
 type BlockHashAndNumberOutput struct {
-	BlockNumber uint64     `json:"block_number,omitempty"`
-	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+	Number uint64     `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
 }
 
 // BlockID is a struct that is used to choose between different

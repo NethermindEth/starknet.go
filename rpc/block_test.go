@@ -38,10 +38,10 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
 	if testEnv == "mock" {
-		require.Equal(t, &BlockHashAndNumberOutput{BlockNumber: 1234, BlockHash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
+		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
 
