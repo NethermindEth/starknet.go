@@ -50,11 +50,11 @@ type InvokeTxnV3 struct {
 }
 
 type L1HandlerTxn struct {
-	Type TransactionType `json:"type,omitempty"`
+	Type TransactionType `json:"type"`
 	// Version of the transaction scheme
 	Version TransactionVersion `json:"version"`
 	// Nonce
-	Nonce string `json:"nonce,omitempty"`
+	Nonce string `json:"nonce"`
 	FunctionCall
 }
 

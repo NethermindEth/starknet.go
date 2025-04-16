@@ -75,6 +75,11 @@ func (tx BlockDeployAccountTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
 }
 
+// Hash returns the Felt hash of the BlockDeployAccountTxn.
+func (tx BlockDeployAccountTxnV3) Hash() *felt.Felt {
+	return tx.TransactionHash
+}
+
 // Hash returns the hash of the BlockL1HandlerTxn.
 func (tx BlockL1HandlerTxn) Hash() *felt.Felt {
 	return tx.TransactionHash
@@ -128,6 +133,11 @@ type BlockDeployTxn struct {
 type BlockDeployAccountTxn struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	DeployAccountTxn
+}
+
+type BlockDeployAccountTxnV3 struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	DeployAccountTxnV3
 }
 
 // UnmarshalJSON unmarshals the data into a BlockTransactions object.
@@ -200,21 +210,20 @@ func unmarshalBlockTxn(t interface{}) (IBlockTransaction, error) {
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
-
-			switch TransactionType(casted["version"].(string)) {
-			case "0x0":
+			switch TransactionVersion(casted["version"].(string)) {
+			case TransactionV0:
 				var txn BlockDeclareTxnV0
 				err := remarshal(casted, &txn)
 				return txn, err
-			case "0x1":
+			case TransactionV1:
 				var txn BlockDeclareTxnV1
 				err := remarshal(casted, &txn)
 				return txn, err
-			case "0x2":
+			case TransactionV2:
 				var txn BlockDeclareTxnV2
 				err := remarshal(casted, &txn)
 				return txn, err
-			case "0x3":
+			case TransactionV3:
 				var txn BlockDeclareTxnV3
 				err := remarshal(casted, &txn)
 				return txn, err
@@ -226,19 +235,27 @@ func unmarshalBlockTxn(t interface{}) (IBlockTransaction, error) {
 			err := remarshal(casted, &txn)
 			return txn, err
 		case TransactionType_DeployAccount:
-			var txn BlockDeployAccountTxn
-			err := remarshal(casted, &txn)
-			return txn, err
+			switch TransactionVersion(casted["version"].(string)) {
+			case TransactionV0:
+				var txn BlockDeployAccountTxn
+				err := remarshal(casted, &txn)
+				return txn, err
+			case TransactionV3:
+				var txn BlockDeployAccountTxnV3
+				err := remarshal(casted, &txn)
+				return txn, err
+			}
 		case TransactionType_Invoke:
-			if casted["version"].(string) == "0x0" {
+			switch TransactionVersion(casted["version"].(string)) {
+			case TransactionV0:
 				var txn BlockInvokeTxnV0
 				err := remarshal(casted, &txn)
 				return txn, err
-			} else if casted["version"].(string) == "0x1" {
+			case TransactionV1:
 				var txn BlockInvokeTxnV1
 				err := remarshal(casted, &txn)
 				return txn, err
-			} else {
+			case TransactionV3:
 				var txn BlockInvokeTxnV3
 				err := remarshal(casted, &txn)
 				return txn, err

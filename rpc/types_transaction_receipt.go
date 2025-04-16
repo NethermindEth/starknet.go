@@ -120,7 +120,7 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	case "L1_HANDLER":
 		*tt = TransactionType_L1Handler
 	default:
-		return fmt.Errorf("unsupported type: %s", data)
+		return fmt.Errorf("unsupported transaction type: %s", data)
 	}
 
 	return nil
