@@ -842,7 +842,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 			return err
 		}
 		output := AddInvokeTransactionResponse{
-			TransactionHash: deadbeefFelt,
+			Hash: deadbeefFelt,
 		}
 		outputContent, err := json.Marshal(output)
 		if err != nil {
@@ -873,7 +873,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 			return err
 		}
 		output := AddDeployAccountTransactionResponse{
-			TransactionHash: deadbeefFelt,
+			Hash:            deadbeefFelt,
 			ContractAddress: new(felt.Felt).SetUint64(0),
 		}
 		outputContent, err := json.Marshal(output)

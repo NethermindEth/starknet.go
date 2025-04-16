@@ -607,39 +607,39 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}

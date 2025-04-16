@@ -652,7 +652,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
-		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
@@ -1301,10 +1301,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1346,12 +1346,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	}
 
 	// check the transaction and class hash
-	require.NotNil(t, resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
 	require.NotNil(t, resp.ClassHash)
-	t.Logf("Declare transaction hash: %s", resp.TransactionHash)
+	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1414,11 +1414,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1443,10 +1443,10 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)

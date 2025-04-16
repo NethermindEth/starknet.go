@@ -1,11 +1,5 @@
 package rpc
 
-type AddDeclareTxnInput interface{}
-
-var _ AddDeclareTxnInput = DeclareTxnV1{}
-var _ AddDeclareTxnInput = DeclareTxnV2{}
-var _ AddDeclareTxnInput = DeclareTxnV3{}
-
 type Transaction interface {
 	GetType() TransactionType
 }
