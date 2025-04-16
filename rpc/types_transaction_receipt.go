@@ -59,16 +59,19 @@ const (
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
 	Hash               *felt.Felt         `json:"transaction_hash"`
+	Type               TransactionType    `json:"type"`
 	ActualFee          FeePayment         `json:"actual_fee"`
-	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-	Type               TransactionType    `json:"type,omitempty"`
 	MessagesSent       []MsgToL1          `json:"messages_sent"`
-	RevertReason       string             `json:"revert_reason,omitempty"`
 	Events             []Event            `json:"events"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
-	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
+	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	// Only present in case of a Deploy or DeployAccount transaction receipt
+	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+	// Only appears if the transaction is a L1Handler transaction
+	MessageHash *felt.Felt `json:"message_hash,omitempty"`
+	// Only appears if execution_status is REVERTED
+	RevertReason string `json:"revert_reason,omitempty"`
 }
 
 type TransactionType string
