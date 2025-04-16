@@ -277,10 +277,6 @@ const (
 
 // BigInt returns a big integer corresponding to the transaction version.
 //
-// Parameters:
-//
-//	none
-//
 // Returns:
 // - *big.Int: a pointer to a big.Int
 // - error: an error if the conversion fails
@@ -290,9 +286,20 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 		return big.NewInt(0), nil
 	case TransactionV1:
 		return big.NewInt(1), nil
-	default:
+	case TransactionV2:
+		return big.NewInt(2), nil
+	case TransactionV3:
+		return big.NewInt(3), nil
+	}
+
+	// Handle versions with query bit.
+	// Remove the 0x prefix and convert to big.Int
+	version, ok := new(big.Int).SetString(string(*v)[2:], 16)
+	if !ok {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
+
+	return version, nil
 }
 
 // SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
