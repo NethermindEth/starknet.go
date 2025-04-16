@@ -331,8 +331,8 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 }
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashInvoke(invokeTx)
+func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
+	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +375,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 }
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
-func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
+func signDeployAccountTransaction[T rpc.DeployAccountType](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return nil, err
@@ -430,7 +430,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 }
 
 // signDeclareTransaction is a generic helper function that signs a declare transaction.
-func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
+func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return nil, err
