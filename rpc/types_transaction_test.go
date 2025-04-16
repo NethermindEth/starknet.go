@@ -85,3 +85,64 @@ func TestTransactionVersionBigInt(t *testing.T) {
 		})
 	}
 }
+
+func TestTransactionVersionInt(t *testing.T) {
+	tests := []struct {
+		name     string
+		version  TransactionVersion
+		expected int
+	}{
+		{
+			name:     "TransactionV0",
+			version:  TransactionV0,
+			expected: 0,
+		},
+		{
+			name:     "TransactionV1",
+			version:  TransactionV1,
+			expected: 1,
+		},
+		{
+			name:     "TransactionV2",
+			version:  TransactionV2,
+			expected: 2,
+		},
+		{
+			name:     "TransactionV3",
+			version:  TransactionV3,
+			expected: 3,
+		},
+		{
+			name:     "TransactionV0WithQueryBit",
+			version:  TransactionV0WithQueryBit,
+			expected: 0,
+		},
+		{
+			name:     "TransactionV1WithQueryBit",
+			version:  TransactionV1WithQueryBit,
+			expected: 1,
+		},
+		{
+			name:     "TransactionV2WithQueryBit",
+			version:  TransactionV2WithQueryBit,
+			expected: 2,
+		},
+		{
+			name:     "TransactionV3WithQueryBit",
+			version:  TransactionV3WithQueryBit,
+			expected: 3,
+		},
+		{
+			name:     "InvalidVersion",
+			version:  "0xinvalid",
+			expected: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.version.Int()
+			assert.Equal(t, tt.expected, got)
+		})
+	}
+}

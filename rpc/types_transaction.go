@@ -302,6 +302,28 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	return version, nil
 }
 
+// Int returns an integer corresponding to the transaction version.
+// For versions with query bit, it returns the base version number (e.g. TransactionV2WithQueryBit returns 2).
+// Returns -1 for invalid versions.
+//
+// Returns:
+// - int: the integer version, or -1 for invalid versions
+func (v *TransactionVersion) Int() int {
+	switch *v {
+	case TransactionV0, TransactionV0WithQueryBit:
+		return 0
+	case TransactionV1, TransactionV1WithQueryBit:
+		return 1
+	case TransactionV2, TransactionV2WithQueryBit:
+		return 2
+	case TransactionV3, TransactionV3WithQueryBit:
+		return 3
+	}
+
+	// Handle invalid versions
+	return -1
+}
+
 // SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
 type SubPendingTxnsInput struct {
 	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
