@@ -69,7 +69,7 @@ type TransactionReceipt struct {
 	// Only present in case of a Deploy or DeployAccount transaction receipt
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 	// Only appears if the transaction is a L1Handler transaction
-	MessageHash *felt.Felt `json:"message_hash,omitempty"`
+	MessageHash NumAsHex `json:"message_hash,omitempty"`
 	// Only appears if execution_status is REVERTED
 	RevertReason string `json:"revert_reason,omitempty"`
 }
