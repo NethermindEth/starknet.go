@@ -334,23 +334,23 @@ type PendingTxn struct {
 	Transaction *BlockTransaction
 }
 
-// UnmarshalJSON unmarshals the JSON data into a SubPendingTxns object.
+// UnmarshalJSON unmarshals the JSON data into a PendingTxn object.
 //
 // Parameters:
 // - data: The JSON data to be unmarshalled
 // Returns:
 // - error: An error if the unmarshalling process fails
 func (s *PendingTxn) UnmarshalJSON(data []byte) error {
-	var txns *BlockTransaction
-	if err := json.Unmarshal(data, &txns); err == nil {
-		s.Transaction = txns
-		s.Hash = txns.Hash()
+	var txn *BlockTransaction
+	if err := json.Unmarshal(data, &txn); err == nil {
+		s.Transaction = txn
+		s.Hash = txn.Hash()
 		return nil
 	}
-	var txnsHash *felt.Felt
-	if err := json.Unmarshal(data, &txnsHash); err == nil {
-		s.Hash = txnsHash
+	var txnHash *felt.Felt
+	if err := json.Unmarshal(data, &txnHash); err == nil {
+		s.Hash = txnHash
 		return nil
 	}
-	return errors.New("failed to unmarshal SubPendingTxns")
+	return errors.New("failed to unmarshal PendingTxn")
 }

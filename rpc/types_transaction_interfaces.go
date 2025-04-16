@@ -1,5 +1,10 @@
 package rpc
 
+import "github.com/NethermindEth/juno/core/felt"
+
+// Transaction is an interface that represents a Starknet transaction.
+// It is used to provide a common interface for all transaction types.
+// The 'Type' and 'Version' fields are present in all transaction types.
 type Transaction interface {
 	GetType() TransactionType
 	GetVersion() TransactionVersion
@@ -92,23 +97,77 @@ func (tx L1HandlerTxn) GetVersion() TransactionVersion {
 	return tx.Version
 }
 
-// Note: these allow all types to pass, but are to help users of starknet.go
-// understand which types are allowed where.
+// InvokeTxnType is an interface that represents a Starknet invoke transaction.
+// It is used to provide a common interface for all invoke transaction types.
+// The 'Calldata' field is present in all invoke transaction types.
+type InvokeTxnType interface {
+	GetCalldata() []*felt.Felt
+}
 
-type InvokeTxnType interface{}
+func (tx InvokeTxnV0) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+func (tx InvokeTxnV1) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+func (tx InvokeTxnV3) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+func (tx BroadcastInvokeTxnV3) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
 
 var _ InvokeTxnType = InvokeTxnV0{}
 var _ InvokeTxnType = InvokeTxnV1{}
 var _ InvokeTxnType = InvokeTxnV3{}
+var _ InvokeTxnType = BroadcastInvokeTxnV3{}
 
-type DeclareTxnType interface{}
+// DeclareTxnType is an interface that represents a Starknet declare transaction.
+// It is used to provide a common interface for all declare transaction types.
+// The 'SenderAddress' field is present in all declare transaction types.
+type DeclareTxnType interface {
+	GetSenderAddress() *felt.Felt
+}
+
+func (tx DeclareTxnV0) GetSenderAddress() *felt.Felt {
+	return tx.SenderAddress
+}
+func (tx DeclareTxnV1) GetSenderAddress() *felt.Felt {
+	return tx.SenderAddress
+}
+func (tx DeclareTxnV2) GetSenderAddress() *felt.Felt {
+	return tx.SenderAddress
+}
+func (tx DeclareTxnV3) GetSenderAddress() *felt.Felt {
+	return tx.SenderAddress
+}
+func (tx BroadcastDeclareTxnV3) GetSenderAddress() *felt.Felt {
+	return tx.SenderAddress
+}
 
 var _ DeclareTxnType = DeclareTxnV0{}
 var _ DeclareTxnType = DeclareTxnV1{}
 var _ DeclareTxnType = DeclareTxnV2{}
 var _ DeclareTxnType = DeclareTxnV3{}
+var _ DeclareTxnType = BroadcastDeclareTxnV3{}
 
-type DeployAccountType interface{}
+// DeployAccountType is an interface that represents a Starknet deploy account transaction.
+// It is used to provide a common interface for all deploy account transaction types.
+// The 'ConstructorCalldata' field is present in all deploy account transaction types.
+type DeployAccountType interface {
+	GetConstructorCalldata() []*felt.Felt
+}
+
+func (tx DeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
+func (tx DeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
+func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
+	return tx.ConstructorCalldata
+}
 
 var _ DeployAccountType = DeployAccountTxn{}
 var _ DeployAccountType = DeployAccountTxnV3{}
+var _ DeployAccountType = BroadcastDeployAccountTxnV3{}
