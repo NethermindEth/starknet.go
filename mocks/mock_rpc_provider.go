@@ -579,7 +579,7 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blo
 }
 
 // SubscribePendingTransactions mocks base method.
-func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.SubPendingTxns, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.PendingTxn, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribePendingTransactions", ctx, pendingTxns, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)

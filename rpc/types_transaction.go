@@ -424,10 +424,10 @@ type SubPendingTxnsInput struct {
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
-type SubPendingTxns struct {
+// PendingTxn is the response of the starknet_subscribePendingTransactions subscription.
+type PendingTxn struct {
 	// The hash of the pending transaction. Always present.
-	TransactionHash *felt.Felt
+	Hash *felt.Felt
 	// The full transaction details. Only present if transactionDetails is true.
 	Transaction *BlockTransaction
 }
@@ -438,16 +438,16 @@ type SubPendingTxns struct {
 // - data: The JSON data to be unmarshalled
 // Returns:
 // - error: An error if the unmarshalling process fails
-func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
+func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 	var txns *BlockTransaction
 	if err := json.Unmarshal(data, &txns); err == nil {
 		s.Transaction = txns
-		s.TransactionHash = txns.Hash()
+		s.Hash = txns.Hash()
 		return nil
 	}
 	var txnsHash *felt.Felt
 	if err := json.Unmarshal(data, &txnsHash); err == nil {
-		s.TransactionHash = txnsHash
+		s.Hash = txnsHash
 		return nil
 	}
 	return errors.New("failed to unmarshal SubPendingTxns")

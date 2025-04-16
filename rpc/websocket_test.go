@@ -435,7 +435,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	testConfig := beforeEach(t, true)
 
 	type testSetType struct {
-		pendingTxns   chan *SubPendingTxns
+		pendingTxns   chan *PendingTxn
 		options       *SubPendingTxnsInput
 		expectedError error
 		description   string
@@ -449,22 +449,22 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	testSet, ok := map[string][]testSetType{
 		"testnet": {
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     nil,
 				description: "nil input",
 			},
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     &SubPendingTxnsInput{},
 				description: "empty input",
 			},
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     &SubPendingTxnsInput{TransactionDetails: true},
 				description: "with transanctionDetails true",
 			},
 			{
-				pendingTxns:   make(chan *SubPendingTxns),
+				pendingTxns:   make(chan *PendingTxn),
 				options:       &SubPendingTxnsInput{SenderAddress: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
 				description:   "error: too many addresses",
@@ -497,13 +497,13 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			for {
 				select {
 				case resp := <-test.pendingTxns:
-					require.IsType(t, &SubPendingTxns{}, resp)
+					require.IsType(t, &PendingTxn{}, resp)
 
 					if test.options == nil || !test.options.TransactionDetails {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.Empty(t, resp.Transaction)
 					} else {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.NotEmpty(t, resp.Transaction)
 					}
 					return
