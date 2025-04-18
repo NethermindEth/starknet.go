@@ -259,12 +259,12 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	blockInvokeTxnV3example, err := internalUtils.UnmarshalJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	blockTxnexample, err := internalUtils.UnmarshalJSONFileToType[BlockTransaction]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 	if err != nil {
 		return err
 	}
 
-	txBytes, err := json.Marshal(blockInvokeTxnV3example)
+	txBytes, err := json.Marshal(blockTxnexample)
 	if err != nil {
 		return err
 	}
@@ -1070,7 +1070,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 					Timestamp:        123,
 					SequencerAddress: fakeFeltField,
 				},
-				BlockTransactions{},
+				[]BlockTransaction{},
 			},
 		)
 		if err != nil {
@@ -1194,13 +1194,11 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
-									InvokeTxnV1: InvokeTxnV1{
-										Type:          "INVOKE",
-										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
-									},
+								Hash: fakeFeltField,
+								Transaction: InvokeTxnV1{
+									Type:          "INVOKE",
+									Version:       TransactionV1,
+									SenderAddress: fakeFeltField,
 								},
 							},
 							Receipt: TransactionReceipt{
@@ -1232,13 +1230,11 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
-									InvokeTxnV1: InvokeTxnV1{
-										Type:          "INVOKE",
-										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
-									},
+								Hash: fakeFeltField,
+								Transaction: InvokeTxnV1{
+									Type:          "INVOKE",
+									Version:       TransactionV1,
+									SenderAddress: fakeFeltField,
 								},
 							},
 							Receipt: TransactionReceipt{

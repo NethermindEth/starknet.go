@@ -158,13 +158,11 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
-							InvokeTxnV1: InvokeTxnV1{
-								Type:          "INVOKE",
-								Version:       TransactionV1,
-								SenderAddress: deadBeef,
-							},
+						Hash: deadBeef,
+						Transaction: InvokeTxnV1{
+							Type:          "INVOKE",
+							Version:       TransactionV1,
+							SenderAddress: deadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
@@ -186,13 +184,11 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
-							InvokeTxnV1: InvokeTxnV1{
-								Type:          "INVOKE",
-								Version:       TransactionV1,
-								SenderAddress: deadBeef,
-							},
+						Hash: deadBeef,
+						Transaction: InvokeTxnV1{
+							Type:          "INVOKE",
+							Version:       TransactionV1,
+							SenderAddress: deadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
