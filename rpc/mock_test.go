@@ -1204,6 +1204,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
 								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -1241,6 +1242,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
 								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
