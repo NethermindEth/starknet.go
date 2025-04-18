@@ -236,7 +236,7 @@ func unmarshalBlockTxn(t interface{}) (IBlockTransaction, error) {
 			return txn, err
 		case TransactionType_DeployAccount:
 			switch TransactionVersion(casted["version"].(string)) {
-			case TransactionV0:
+			case TransactionV1:
 				var txn BlockDeployAccountTxn
 				err := remarshal(casted, &txn)
 				return txn, err
