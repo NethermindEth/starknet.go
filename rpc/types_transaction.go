@@ -370,16 +370,10 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 // Returns:
 // - error: An error if the unmarshalling process fails
 func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
-	var dec map[string]interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
+	type alias BlockTransaction
+	var aux alias
 
-	hash, ok := dec["transaction_hash"]
-	if !ok {
-		return errors.New("transaction_hash not found in block transaction")
-	}
-	err := json.Unmarshal(hash.([]byte), &blockTxn.Hash)
+	err := json.Unmarshal(data, &aux)
 	if err != nil {
 		return err
 	}
@@ -389,6 +383,30 @@ func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	blockTxn.Hash = aux.Hash
 	blockTxn.Transaction = txn
 	return nil
+}
+
+// MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
+//
+// It takes a pointer to a BlockTransaction object as the parameter.
+// The function returns a byte slice representing the JSON data and an error if the marshaling process fails.
+func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
+	// First marshal the transaction to get all its fields
+	txnData, err := json.Marshal(blockTxn.Transaction)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal into a map to add the hash field
+	var result map[string]interface{}
+	if err := json.Unmarshal(txnData, &result); err != nil {
+		return nil, err
+	}
+
+	// Add the hash field
+	result["transaction_hash"] = blockTxn.Hash
+
+	return json.Marshal(result)
 }

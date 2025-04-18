@@ -222,7 +222,7 @@ func TestBlockWithTxs(t *testing.T) {
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
-					nil,
+					[]BlockTransaction{},
 				},
 			},
 			{

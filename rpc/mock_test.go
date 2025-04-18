@@ -1084,12 +1084,12 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 			return err
 		}
 
-		blockBites, err := json.Marshal(fullBlockSepolia64159)
+		blockBytes, err := json.Marshal(fullBlockSepolia64159)
 		if err != nil {
 			return err
 		}
 
-		return json.Unmarshal(blockBites, &r)
+		return json.Unmarshal(blockBytes, &r)
 	}
 }
 
