@@ -28,10 +28,11 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
-type MessageStatusResp struct {
-	// The hash of a L1 handler transaction
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+// MessageStatus represents the status of a message sent from an L1 transaction to an L2 contract.
+type MessageStatus struct {
+	// The hash of the L1_HANDLER transaction in L2 that contains the message
+	Hash *felt.Felt `json:"transaction_hash"`
+	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
 	// The failure reason, only appears if finality_status is REJECTED
 	FailureReason string `json:"failure_reason,omitempty"`
@@ -57,7 +58,7 @@ const (
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	TransactionHash    *felt.Felt         `json:"transaction_hash"`
+	Hash               *felt.Felt         `json:"transaction_hash"`
 	ActualFee          FeePayment         `json:"actual_fee"`
 	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
@@ -149,15 +150,17 @@ const (
 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
 )
 
-type TxnStatusResp struct {
+// Transaction status result, including finality status and execution status
+type TxnStatusResult struct {
 	FinalityStatus  TxnStatus          `json:"finality_status"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
 	FailureReason   string             `json:"failure_reason,omitempty"`
 }
 
-type NewTxnStatusResp struct {
-	TransactionHash *felt.Felt    `json:"transaction_hash"`
-	Status          TxnStatusResp `json:"status"`
+// The response of the starknet_subscribeTransactionStatus subscription.
+type NewTxnStatus struct {
+	TransactionHash *felt.Felt      `json:"transaction_hash"`
+	Status          TxnStatusResult `json:"status"`
 }
 
 type TransactionReceiptWithBlockInfo struct {

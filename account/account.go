@@ -40,12 +40,12 @@ type AccountInterface interface {
 var _ AccountInterface = &Account{}
 
 type Account struct {
-	Provider       rpc.RpcProvider
-	ChainId        *felt.Felt
-	AccountAddress *felt.Felt
-	publicKey      string
-	CairoVersion   int
-	ks             Keystore
+	Provider     rpc.RpcProvider
+	ChainId      *felt.Felt
+	Address      *felt.Felt
+	publicKey    string
+	CairoVersion int
+	ks           Keystore
 }
 
 var BRAAVOS_WARNING_MESSAGE = "WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3"
@@ -84,11 +84,11 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 	}
 
 	account := &Account{
-		Provider:       provider,
-		AccountAddress: accountAddress,
-		publicKey:      publicKey,
-		ks:             keystore,
-		CairoVersion:   cairoVersion,
+		Provider:     provider,
+		Address:      accountAddress,
+		publicKey:    publicKey,
+		ks:           keystore,
+		CairoVersion: cairoVersion,
 	}
 
 	chainID, err := provider.ChainID(context.Background())
@@ -102,7 +102,7 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 
 // Nonce retrieves the nonce for the account's contract address.
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
-	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.AccountAddress)
+	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
 }
 
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
@@ -132,7 +132,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.AccountAddress, nonce, callData, makeResourceBoundsMapWithZeroValues())
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
 	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.AccountAddress, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
 	if err != nil {
 		return nil, err
 	}
