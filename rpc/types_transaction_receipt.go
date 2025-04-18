@@ -28,10 +28,11 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
-type MessageStatusResp struct {
-	// The hash of a L1 handler transaction
+// MessageStatus represents the status of a message sent from an L1 transaction to an L2 contract.
+type MessageStatus struct {
+	// The hash of the L1_HANDLER transaction in L2 that contains the message
 	Hash *felt.Felt `json:"transaction_hash"`
-	// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
 	// The failure reason, only appears if finality_status is REJECTED
 	FailureReason string `json:"failure_reason,omitempty"`

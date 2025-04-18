@@ -80,8 +80,8 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 // Returns:
 // - [] MessageStatusResp: An array containing the status of the messages sent by the L1 transaction
 // - error, if one arose.
-func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatusResp, error) {
-	var response []MessageStatusResp
+func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error) {
+	var response []MessageStatus
 	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)

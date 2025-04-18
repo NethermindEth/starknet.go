@@ -93,7 +93,7 @@ type RpcProvider interface {
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error)
-	GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatusResp, error)
+	GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)

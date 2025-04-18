@@ -207,7 +207,7 @@ func TestGetMessagesStatus(t *testing.T) {
 
 	type testSetType struct {
 		TxHash       NumAsHex
-		ExpectedResp []MessageStatusResp
+		ExpectedResp []MessageStatus
 		ExpectedErr  error
 	}
 
@@ -215,7 +215,7 @@ func TestGetMessagesStatus(t *testing.T) {
 		"mock": {
 			{
 				TxHash: "0x123",
-				ExpectedResp: []MessageStatusResp{
+				ExpectedResp: []MessageStatus{
 					{
 						Hash:           internalUtils.RANDOM_FELT,
 						FinalityStatus: TxnStatus_Accepted_On_L2,
@@ -234,7 +234,7 @@ func TestGetMessagesStatus(t *testing.T) {
 		"testnet": {
 			{
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
-				ExpectedResp: []MessageStatusResp{
+				ExpectedResp: []MessageStatus{
 					{
 						Hash:           internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
 						FinalityStatus: TxnStatus_Accepted_On_L1,
