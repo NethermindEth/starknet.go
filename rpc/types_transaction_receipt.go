@@ -150,15 +150,16 @@ const (
 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
 )
 
-type TxnStatusResp struct {
+// Transaction status result, including finality status and execution status
+type TxnStatusResult struct {
 	FinalityStatus  TxnStatus          `json:"finality_status"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
 	FailureReason   string             `json:"failure_reason,omitempty"`
 }
 
 type NewTxnStatusResp struct {
-	TransactionHash *felt.Felt    `json:"transaction_hash"`
-	Status          TxnStatusResp `json:"status"`
+	TransactionHash *felt.Felt      `json:"transaction_hash"`
+	Status          TxnStatusResult `json:"status"`
 }
 
 type TransactionReceiptWithBlockInfo struct {

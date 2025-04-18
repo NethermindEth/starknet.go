@@ -345,10 +345,10 @@ func (mr *MockRpcProviderMockRecorder) GetStorageProof(ctx, storageProofInput an
 }
 
 // GetTransactionStatus mocks base method.
-func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
+func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionStatus", ctx, transactionHash)
-	ret0, _ := ret[0].(*rpc.TxnStatusResp)
+	ret0, _ := ret[0].(*rpc.TxnStatusResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
