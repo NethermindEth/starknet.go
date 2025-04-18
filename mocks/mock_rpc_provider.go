@@ -594,7 +594,7 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribePendingTransactions(ctx, p
 }
 
 // SubscribeTransactionStatus mocks base method.
-func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatusResp, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeTransactionStatus", ctx, newStatus, transactionHash)
 	ret0, _ := ret[0].(*client.ClientSubscription)

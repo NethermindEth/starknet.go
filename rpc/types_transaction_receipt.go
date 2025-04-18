@@ -157,7 +157,8 @@ type TxnStatusResult struct {
 	FailureReason   string             `json:"failure_reason,omitempty"`
 }
 
-type NewTxnStatusResp struct {
+// The response of the starknet_subscribeTransactionStatus subscription.
+type NewTxnStatus struct {
 	TransactionHash *felt.Felt      `json:"transaction_hash"`
 	Status          TxnStatusResult `json:"status"`
 }
