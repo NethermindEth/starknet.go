@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,21 +25,19 @@ func TestTransactionByHash(t *testing.T) {
 	}
 
 	var BlockDeclareTxnV2Example = BlockTransaction{
-		BlockDeclareTxnV2{
-			internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-			DeclareTxnV2{
-				Type:              TransactionType_Declare,
-				Version:           TransactionV2,
-				MaxFee:            internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
-				ClassHash:         internalUtils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-				CompiledClassHash: internalUtils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
-				Nonce:             internalUtils.TestHexToFelt(t, "0x16e"),
-				Signature: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
-					internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
-				},
-				SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
+		Hash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+		Transaction: DeclareTxnV2{
+			Type:              TransactionType_Declare,
+			Version:           TransactionV2,
+			MaxFee:            internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
+			ClassHash:         internalUtils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
+			CompiledClassHash: internalUtils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
+			Nonce:             internalUtils.TestHexToFelt(t, "0x16e"),
+			Signature: []*felt.Felt{
+				internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
+				internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
 			},
+			SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
 		},
 	}
 
@@ -62,9 +61,7 @@ func TestTransactionByHash(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, tx)
 
-		txCasted, ok := (tx.IBlockTransaction).(BlockDeclareTxnV2)
-		require.True(t, ok)
-		require.Equal(t, test.ExpectedTxn.IBlockTransaction, txCasted)
+		assert.Equal(t, test.ExpectedTxn, *tx)
 	}
 }
 
@@ -115,9 +112,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		require.NoError(t, err)
 		require.NotNil(t, tx)
-		txCasted, ok := (tx.IBlockTransaction).(BlockInvokeTxnV3)
-		require.True(t, ok)
-		require.Equal(t, test.ExpectedTxn.IBlockTransaction, txCasted)
+		assert.Equal(t, test.ExpectedTxn, *tx)
 	}
 }
 

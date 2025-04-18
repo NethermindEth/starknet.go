@@ -331,8 +331,8 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 }
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashInvoke(invokeTx)
+func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
+	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +375,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 }
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
-func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
+func signDeployAccountTransaction[T rpc.DeployAccountType](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return nil, err
@@ -430,7 +430,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 }
 
 // signDeclareTransaction is a generic helper function that signs a declare transaction.
-func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
+func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return nil, err
@@ -607,39 +607,39 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}

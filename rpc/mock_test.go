@@ -259,12 +259,12 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	blockInvokeTxnV3example, err := internalUtils.UnmarshalJSONFileToType[BlockInvokeTxnV3]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	blockTxnexample, err := internalUtils.UnmarshalJSONFileToType[BlockTransaction]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 	if err != nil {
 		return err
 	}
 
-	txBytes, err := json.Marshal(blockInvokeTxnV3example)
+	txBytes, err := json.Marshal(blockTxnexample)
 	if err != nil {
 		return err
 	}
@@ -842,7 +842,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 			return err
 		}
 		output := AddInvokeTransactionResponse{
-			TransactionHash: deadbeefFelt,
+			Hash: deadbeefFelt,
 		}
 		outputContent, err := json.Marshal(output)
 		if err != nil {
@@ -873,7 +873,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 			return err
 		}
 		output := AddDeployAccountTransactionResponse{
-			TransactionHash: deadbeefFelt,
+			Hash:            deadbeefFelt,
 			ContractAddress: new(felt.Felt).SetUint64(0),
 		}
 		outputContent, err := json.Marshal(output)
@@ -1070,7 +1070,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 					Timestamp:        123,
 					SequencerAddress: fakeFeltField,
 				},
-				BlockTransactions{},
+				[]BlockTransaction{},
 			},
 		)
 		if err != nil {
@@ -1084,12 +1084,12 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 			return err
 		}
 
-		blockBites, err := json.Marshal(fullBlockSepolia64159)
+		blockBytes, err := json.Marshal(fullBlockSepolia64159)
 		if err != nil {
 			return err
 		}
 
-		return json.Unmarshal(blockBites, &r)
+		return json.Unmarshal(blockBytes, &r)
 	}
 }
 
@@ -1194,16 +1194,15 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
-									InvokeTxnV1: InvokeTxnV1{
-										Type:          "INVOKE",
-										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
-									},
+								Hash: fakeFeltField,
+								Transaction: InvokeTxnV1{
+									Type:          "INVOKE",
+									Version:       TransactionV1,
+									SenderAddress: fakeFeltField,
 								},
 							},
 							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
 								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -1231,16 +1230,15 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								BlockInvokeTxnV1{
-									TransactionHash: fakeFeltField,
-									InvokeTxnV1: InvokeTxnV1{
-										Type:          "INVOKE",
-										Version:       TransactionV1,
-										SenderAddress: fakeFeltField,
-									},
+								Hash: fakeFeltField,
+								Transaction: InvokeTxnV1{
+									Type:          "INVOKE",
+									Version:       TransactionV1,
+									SenderAddress: fakeFeltField,
 								},
 							},
 							Receipt: TransactionReceipt{
+								Type:            "INVOKE",
 								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,

@@ -87,13 +87,13 @@ func main() {
 
 	fmt.Println("Waiting for the transaction status...")
 
-	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
 	if err != nil {
 		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 }

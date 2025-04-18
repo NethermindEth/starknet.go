@@ -110,7 +110,7 @@ type RpcProvider interface {
 type WebsocketProvider interface {
 	SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error)
 	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
-	SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *SubPendingTxns, options *SubPendingTxnsInput) (*client.ClientSubscription, error)
+	SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *PendingTxn, options *SubPendingTxnsInput) (*client.ClientSubscription, error)
 	SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error)
 }
 
