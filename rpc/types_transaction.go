@@ -11,6 +11,11 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
+type BlockTransaction struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+	Transaction
+}
+
 type InvokeTxnV0 struct {
 	Type      TransactionType    `json:"type"`
 	MaxFee    *felt.Felt         `json:"max_fee"`
@@ -344,7 +349,7 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 	var txn *BlockTransaction
 	if err := json.Unmarshal(data, &txn); err == nil {
 		s.Transaction = txn
-		s.Hash = txn.Hash()
+		s.Hash = txn.Hash
 		return nil
 	}
 	var txnHash *felt.Felt
@@ -353,4 +358,37 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	return errors.New("failed to unmarshal PendingTxn")
+}
+
+// UnmarshalJSON unmarshals the data into a BlockTransaction object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
+	var dec map[string]interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	hash, ok := dec["transaction_hash"]
+	if !ok {
+		return errors.New("transaction_hash not found in block transaction")
+	}
+	err := json.Unmarshal(hash.([]byte), &blockTxn.Hash)
+	if err != nil {
+		return err
+	}
+
+	txn, err := unmarshalTxn(data)
+	if err != nil {
+		return err
+	}
+
+	blockTxn.Transaction = txn
+	return nil
 }

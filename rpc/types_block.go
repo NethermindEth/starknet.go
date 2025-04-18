@@ -17,12 +17,12 @@ type Block struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
 	// Transactions The transactions in this block
-	Transactions BlockTransactions `json:"transactions"`
+	Transactions []BlockTransaction `json:"transactions"`
 }
 
 type PendingBlock struct {
 	PendingBlockHeader
-	BlockTransactions
+	Transactions []BlockTransaction `json:"transactions"`
 }
 
 // encoding/json doesn't support inlining fields
