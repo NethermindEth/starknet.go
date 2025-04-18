@@ -213,7 +213,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				Calldata:      test.FnCall.Calldata,
 				Nonce:         test.TxDetails.Nonce,
 				MaxFee:        test.TxDetails.MaxFee,
-				SenderAddress: acc.AccountAddress,
+				SenderAddress: acc.Address,
 				Version:       test.TxDetails.Version,
 			}
 			hashResp, err := acc.TransactionHashInvoke(invokeTxn)

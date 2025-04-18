@@ -174,8 +174,8 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 	}
 
 	blockData := BlockHashAndNumberOutput{
-		BlockNumber: 1234,
-		BlockHash:   internalUtils.RANDOM_FELT,
+		Number: 1234,
+		Hash:   internalUtils.RANDOM_FELT,
 	}
 
 	resp, err := json.Marshal(blockData)
@@ -399,8 +399,8 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 
 	transaction := TransactionReceipt{
-		TransactionHash: arg0Felt,
-		FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+		Hash:           arg0Felt,
+		FinalityStatus: TxnFinalityStatusAcceptedOnL1,
 		Events: []Event{{
 			FromAddress: fromAddressFelt,
 		}},
@@ -1147,7 +1147,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		block, err := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					BlockHash:        fakeFelt,
+					Hash:             fakeFelt,
 					ParentHash:       fakeFelt,
 					Timestamp:        124,
 					SequencerAddress: fakeFelt,
@@ -1204,7 +1204,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1224,7 +1224,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		block, err := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
-					BlockHash: fakeFeltField,
+					Hash: fakeFeltField,
 				},
 				"ACCEPTED_ON_L1",
 				BlockBodyWithReceipts{
@@ -1241,7 +1241,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								},
 							},
 							Receipt: TransactionReceipt{
-								TransactionHash: fakeFeltField,
+								Hash:            fakeFeltField,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1424,14 +1424,14 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	}
 
 	// Return mock response for successful case
-	response := []MessageStatusResp{
+	response := []MessageStatus{
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
-			FinalityStatus:  TxnStatus_Accepted_On_L2,
+			Hash:           internalUtils.RANDOM_FELT,
+			FinalityStatus: TxnStatus_Accepted_On_L2,
 		},
 		{
-			TransactionHash: internalUtils.RANDOM_FELT,
-			FinalityStatus:  TxnStatus_Accepted_On_L2,
+			Hash:           internalUtils.RANDOM_FELT,
+			FinalityStatus: TxnStatus_Accepted_On_L2,
 		},
 	}
 

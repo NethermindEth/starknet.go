@@ -90,7 +90,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 					if test.counter != 0 {
 						if test.counter == 1 {
-							require.Contains(t, latestBlockNumbers, resp.BlockNumber+1)
+							require.Contains(t, latestBlockNumbers, resp.Number+1)
 							return
 						} else {
 							test.counter--
@@ -405,7 +405,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	t.Run("normal call", func(t *testing.T) {
 		wsProvider := testConfig.wsProvider
 
-		events := make(chan *NewTxnStatusResp)
+		events := make(chan *NewTxnStatus)
 		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), events, txHash)
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -416,7 +416,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &NewTxnStatusResp{}, resp)
+				require.IsType(t, &NewTxnStatus{}, resp)
 				require.Equal(t, txHash, resp.TransactionHash)
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
 				return

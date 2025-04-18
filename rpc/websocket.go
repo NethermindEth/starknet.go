@@ -94,7 +94,7 @@ func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pe
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatusResp, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
 	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err)
