@@ -59,12 +59,12 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 // GetTransactionStatus gets the transaction status (possibly reflecting that the tx is still in the mempool, or dropped from it)
 // Parameters:
 // - ctx: the context.Context object for cancellation and timeouts.
-// - transactionHash: the transaction hash as a felt
+// - transactionHash: The hash of the requested transaction
 // Returns:
-// - *GetTxnStatusResp: The transaction status
+// - *TxnStatusResult: Transaction status result, including finality status and execution status
 // - error, if one arose.
-func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResp, error) {
-	var receipt TxnStatusResp
+func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error) {
+	var receipt TxnStatusResult
 	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
@@ -80,8 +80,8 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 // Returns:
 // - [] MessageStatusResp: An array containing the status of the messages sent by the L1 transaction
 // - error, if one arose.
-func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatusResp, error) {
-	var response []MessageStatusResp
+func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error) {
+	var response []MessageStatus
 	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)

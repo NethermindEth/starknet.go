@@ -38,10 +38,10 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(t, strings.HasPrefix(blockHashAndNumber.BlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
 	if testEnv == "mock" {
-		require.Equal(t, &BlockHashAndNumberOutput{BlockNumber: 1234, BlockHash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
+		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
 
@@ -107,7 +107,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				BlockID: BlockID{Hash: fakeFelt},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						BlockHash:        fakeFelt,
+						Hash:             fakeFelt,
 						ParentHash:       fakeFelt,
 						Timestamp:        124,
 						SequencerAddress: fakeFelt},
@@ -151,7 +151,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				continue
 			}
 
-			require.Truef(t, strings.HasPrefix(block.BlockHash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.BlockHash)
+			require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
 			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
 			if test.ExpectedBlockWithTxHashes != nil {
@@ -273,7 +273,7 @@ func TestBlockWithTxs(t *testing.T) {
 			}
 		case *Block:
 			if test.ExpectedBlock == nil {
-				require.Equal(block.BlockHash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+				require.Equal(block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
 				require.NotEmpty(block.Transactions, "The number of transaction should not be 0.")
 			} else {
 				require.Exactly(test.ExpectedBlock, block)
