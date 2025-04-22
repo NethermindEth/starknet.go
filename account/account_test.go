@@ -673,6 +673,8 @@ func TestSendDeclareTxn(t *testing.T) {
 //
 //	none
 func TestSendDeployAccountDevnet(t *testing.T) {
+	t.Skip("TODO: update devnet to 0.4.0")
+
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
@@ -694,7 +696,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
 	require.NoError(t, err)
 
-	classHash := internalUtils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
+	classHash := internalUtils.TestHexToFelt(t, "0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c") // preDeployed classhash
 	require.NoError(t, err)
 
 	tx := rpc.DeployAccountTxnV3{
@@ -707,15 +709,15 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		ClassHash:           classHash,
 		ResourceBounds: rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       "0x0",
+				MaxAmount:       "0x997c",
 				MaxPricePerUnit: "0x1597b3274d88",
 			},
 			L1DataGas: rpc.ResourceBounds{
-				MaxAmount:       "0x210",
-				MaxPricePerUnit: "0x997c",
+				MaxAmount:       "0x2230",
+				MaxPricePerUnit: "0x9924327c",
 			},
 			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       "0x1115cde0",
+				MaxAmount:       "0x15cde0",
 				MaxPricePerUnit: "0x11920d1317",
 			},
 		},

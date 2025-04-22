@@ -261,7 +261,7 @@ func TestBlockWithTxs(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 
-	// TODO: refactor test to check the marshal result agains the expected json file
+	// TODO: refactor test to check the marshal result against the expected json file
 	for _, test := range testSet {
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
 		require.NoError(err, "Unable to fetch the given block.")
