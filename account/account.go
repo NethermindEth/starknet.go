@@ -251,7 +251,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
 	// signing the txn, as it needs a signature to estimate the fee
-	err := account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -265,7 +265,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}

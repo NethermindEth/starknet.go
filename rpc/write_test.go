@@ -138,34 +138,33 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		"mock": {
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
-					DeployAccountTxnV3{
-						Type:      TransactionType_DeployAccount,
-						Version:   TransactionV3,
-						ClassHash: internalUtils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-						Signature: []*felt.Felt{
-							internalUtils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-							internalUtils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
+					Type:      TransactionType_DeployAccount,
+					Version:   TransactionV3,
+					ClassHash: internalUtils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
+					Signature: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
+						internalUtils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
+					},
+					Nonce:         new(felt.Felt),
+					NonceDataMode: DAModeL1,
+					FeeMode:       DAModeL1,
+					ResourceBounds: ResourceBoundsMapping{
+						L1Gas: ResourceBounds{
+							MaxAmount:       "0x186a0",
+							MaxPricePerUnit: "0x5af3107a4000",
 						},
-						Nonce:         new(felt.Felt),
-						NonceDataMode: DAModeL1,
-						FeeMode:       DAModeL1,
-						ResourceBounds: ResourceBoundsMapping{
-							L1Gas: ResourceBounds{
-								MaxAmount:       "0x186a0",
-								MaxPricePerUnit: "0x5af3107a4000",
-							},
-							L2Gas: ResourceBounds{
-								MaxAmount:       "",
-								MaxPricePerUnit: "",
-							},
+						L2Gas: ResourceBounds{
+							MaxAmount:       "",
+							MaxPricePerUnit: "",
 						},
-						Tip:                 "",
-						PayMasterData:       []*felt.Felt{},
-						ContractAddressSalt: new(felt.Felt),
-						ConstructorCalldata: []*felt.Felt{
-							internalUtils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
-						},
-					}},
+					},
+					Tip:                 "",
+					PayMasterData:       []*felt.Felt{},
+					ContractAddressSalt: new(felt.Felt),
+					ConstructorCalldata: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
+					},
+				},
 				ExpectedResp: AddDeployAccountTransactionResponse{
 					Hash:            internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
 					ContractAddress: internalUtils.TestHexToFelt(t, "0x0")},

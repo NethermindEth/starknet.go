@@ -121,20 +121,18 @@ func BuildDeployAccountTxn(
 	resourceBounds rpc.ResourceBoundsMapping,
 ) *rpc.BroadcastDeployAccountTxnV3 {
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
-		DeployAccountTxnV3: rpc.DeployAccountTxnV3{
-			Type:                rpc.TransactionType_DeployAccount,
-			Version:             rpc.TransactionV3,
-			Signature:           []*felt.Felt{},
-			Nonce:               nonce,
-			ContractAddressSalt: contractAddressSalt,
-			ConstructorCalldata: constructorCalldata,
-			ClassHash:           classHash,
-			ResourceBounds:      resourceBounds,
-			Tip:                 "0x0",
-			PayMasterData:       []*felt.Felt{},
-			NonceDataMode:       rpc.DAModeL1,
-			FeeMode:             rpc.DAModeL1,
-		},
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV3,
+		Signature:           []*felt.Felt{},
+		Nonce:               nonce,
+		ContractAddressSalt: contractAddressSalt,
+		ConstructorCalldata: constructorCalldata,
+		ClassHash:           classHash,
+		ResourceBounds:      resourceBounds,
+		Tip:                 "0x0",
+		PayMasterData:       []*felt.Felt{},
+		NonceDataMode:       rpc.DAModeL1,
+		FeeMode:             rpc.DAModeL1,
 	}
 
 	return &deployAccountTxn

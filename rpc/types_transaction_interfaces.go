@@ -232,9 +232,6 @@ func (tx DeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
 func (tx DeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
-func (tx BroadcastDeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
-	return tx.ConstructorCalldata
-}
 
 var _ DeployAccountType = DeployAccountTxn{}
 var _ DeployAccountType = DeployAccountTxnV3{}
