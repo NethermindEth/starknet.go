@@ -15,9 +15,8 @@ var (
 	_ BroadcastTxn = BroadcastDeployAccountTxnV3{}
 )
 
-type BroadcastInvokeTxnV3 struct {
-	InvokeTxnV3
-}
+type BroadcastInvokeTxnV3 = InvokeTxnV3
+
 type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType          `json:"type"`
 	SenderAddress     *felt.Felt               `json:"sender_address"`

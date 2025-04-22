@@ -133,7 +133,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
-	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}

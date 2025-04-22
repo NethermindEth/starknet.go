@@ -184,9 +184,6 @@ func (tx InvokeTxnV1) GetCalldata() []*felt.Felt {
 func (tx InvokeTxnV3) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
-func (tx BroadcastInvokeTxnV3) GetCalldata() []*felt.Felt {
-	return tx.Calldata
-}
 
 var _ InvokeTxnType = InvokeTxnV0{}
 var _ InvokeTxnType = InvokeTxnV1{}

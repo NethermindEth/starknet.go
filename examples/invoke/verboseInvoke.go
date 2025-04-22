@@ -58,7 +58,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	})
 
 	// We need to sign the transaction to be able to estimate the fee
-	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV3)
+	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		panic(err)
 	}
@@ -70,10 +70,10 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
-	InvokeTx.InvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
+	InvokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
 
 	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
-	err = accnt.SignInvokeTransaction(context.Background(), &InvokeTx.InvokeTxnV3)
+	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)
 	if err != nil {
 		panic(err)
 	}

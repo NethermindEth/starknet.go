@@ -501,43 +501,41 @@ func TestSendInvokeTxn(t *testing.T) {
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.BroadcastInvokeTxnV3{
-					InvokeTxnV3: rpc.InvokeTxnV3{
-						Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-						Type:    rpc.TransactionType_Invoke,
-						Version: rpc.TransactionV3,
-						Signature: []*felt.Felt{
-							internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
-							internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
-						},
-						ResourceBounds: rpc.ResourceBoundsMapping{
-							L1Gas: rpc.ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x4305031628668",
-							},
-							L1DataGas: rpc.ResourceBounds{
-								MaxAmount:       "0x210",
-								MaxPricePerUnit: "0x948",
-							},
-							L2Gas: rpc.ResourceBounds{
-								MaxAmount:       "0x15cde0",
-								MaxPricePerUnit: "0x18955dc56",
-							},
-						},
-						Tip:                   "0x0",
-						PayMasterData:         []*felt.Felt{},
-						AccountDeploymentData: []*felt.Felt{},
-						SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
-						Calldata: internalUtils.TestHexArrToFelt(t, []string{
-							"0x1",
-							"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
-							"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-							"0x2",
-							"0xffffffff",
-							"0x0",
-						}),
-						NonceDataMode: rpc.DAModeL1,
-						FeeMode:       rpc.DAModeL1,
+					Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
+					Type:    rpc.TransactionType_Invoke,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
+						internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
 					},
+					ResourceBounds: rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x4305031628668",
+						},
+						L1DataGas: rpc.ResourceBounds{
+							MaxAmount:       "0x210",
+							MaxPricePerUnit: "0x948",
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x15cde0",
+							MaxPricePerUnit: "0x18955dc56",
+						},
+					},
+					Tip:                   "0x0",
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
+					Calldata: internalUtils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"0x2",
+						"0xffffffff",
+						"0x0",
+					}),
+					NonceDataMode: rpc.DAModeL1,
+					FeeMode:       rpc.DAModeL1,
 				},
 			},
 		},
@@ -559,7 +557,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 2)
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV3)
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
 		require.NoError(t, err)
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
@@ -947,11 +945,8 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 				ExpectedHash: internalUtils.TestHexToFelt(t, "0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea"),
 				ExpectedErr:  nil,
 			},
-		},
-		"testnet": {
-			{
-				// https://sepolia.voyager.online/tx/0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea
-				Txn: rpc.InvokeTxnV3{
+			{ // same as above but as Broadcast txn instead of InvokeTxnV3
+				Txn: rpc.BroadcastInvokeTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x9803"),
 					Type:    rpc.TransactionType_Invoke,
 					Version: rpc.TransactionV3,
@@ -991,7 +986,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
+		hashResp, err := acnt.TransactionHashInvoke(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
 
