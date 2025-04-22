@@ -355,7 +355,7 @@ func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Ac
 //   - error: an error if any
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error {
 	switch deployAcc := tx.(type) {
-	case *rpc.DeployAccountTxn:
+	case *rpc.DeployAccountTxnV1:
 		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
 		if err != nil {
 			return err
@@ -456,10 +456,10 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
-	// deployAccTxn v0, pointer and struct
-	case *rpc.DeployAccountTxn:
+	// deployAccTxn v1, pointer and struct
+	case *rpc.DeployAccountTxnV1:
 		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainId)
-	case rpc.DeployAccountTxn:
+	case rpc.DeployAccountTxnV1:
 		return hash.TransactionHashDeployAccountV1(&txn, contractAddress, account.ChainId)
 	// deployAccTxn v3, pointer and struct
 	case *rpc.DeployAccountTxnV3:

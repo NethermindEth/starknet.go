@@ -322,9 +322,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockDeployAccountV1 transaction
 				if test.DeployAccountV1Index > 0 {
-					deployAccountV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxn)
+					deployAccountV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
 					require.True(ok, "Expected declare v2 transaction.")
-					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxn)
+					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
 					require.True(ok, "Expected declare v2 transaction.")
 
 					require.Exactly(deployAccountV1Expected, deployAccountV1Block)
@@ -442,7 +442,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okdec2 := v.Transaction.(DeclareTxnV2)
 				_, okdec3 := v.Transaction.(DeclareTxnV3)
 				_, okdep := v.Transaction.(DeployTxn)
-				_, okdepac := v.Transaction.(DeployAccountTxn)
+				_, okdepac := v.Transaction.(DeployAccountTxnV1)
 				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}

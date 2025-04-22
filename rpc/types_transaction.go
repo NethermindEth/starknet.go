@@ -204,8 +204,8 @@ type DeployTxn struct {
 	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
 }
 
-// DeployAccountTxn The structure of a deployAccount transaction.
-type DeployAccountTxn struct {
+// DeployAccountTxnV1 The structure of a deployAccount transaction.
+type DeployAccountTxnV1 struct {
 	MaxFee    *felt.Felt         `json:"max_fee"`
 	Version   TransactionVersion `json:"version"`
 	Signature []*felt.Felt       `json:"signature"`

@@ -673,8 +673,6 @@ func TestSendDeclareTxn(t *testing.T) {
 //
 //	none
 func TestSendDeployAccountDevnet(t *testing.T) {
-	t.Skip("TODO: update devnet to 0.4.0")
-
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
@@ -1029,7 +1027,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		"mock": {
 			{
 				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
-				Txn: rpc.DeployAccountTxn{
+				Txn: rpc.DeployAccountTxnV1{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
 					Type:    rpc.TransactionType_DeployAccount,
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1d2109b99cf94"),
@@ -1094,7 +1092,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
-		case rpc.DeployAccountTxn:
+		case rpc.DeployAccountTxnV1:
 			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
 		case rpc.DeployAccountTxnV3:
 			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)

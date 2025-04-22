@@ -23,7 +23,7 @@ var _ Transaction = DeclareTxnV1{}
 var _ Transaction = DeclareTxnV2{}
 var _ Transaction = DeclareTxnV3{}
 var _ Transaction = DeployTxn{}
-var _ Transaction = DeployAccountTxn{}
+var _ Transaction = DeployAccountTxnV1{}
 var _ Transaction = DeployAccountTxnV3{}
 var _ Transaction = L1HandlerTxn{}
 
@@ -60,7 +60,7 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 	case TransactionType_DeployAccount:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV1:
-			return unmarshalTxnToType[DeployAccountTxn](data)
+			return unmarshalTxnToType[DeployAccountTxnV1](data)
 		case TransactionV3:
 			return unmarshalTxnToType[DeployAccountTxnV3](data)
 		}
@@ -147,10 +147,10 @@ func (tx DeployTxn) GetVersion() TransactionVersion {
 }
 
 // DeployAccount transactions
-func (tx DeployAccountTxn) GetType() TransactionType {
+func (tx DeployAccountTxnV1) GetType() TransactionType {
 	return tx.Type
 }
-func (tx DeployAccountTxn) GetVersion() TransactionVersion {
+func (tx DeployAccountTxnV1) GetVersion() TransactionVersion {
 	return tx.Version
 }
 func (tx DeployAccountTxnV3) GetType() TransactionType {
@@ -226,13 +226,13 @@ type DeployAccountType interface {
 	GetConstructorCalldata() []*felt.Felt
 }
 
-func (tx DeployAccountTxn) GetConstructorCalldata() []*felt.Felt {
+func (tx DeployAccountTxnV1) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
 func (tx DeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
 
-var _ DeployAccountType = DeployAccountTxn{}
+var _ DeployAccountType = DeployAccountTxnV1{}
 var _ DeployAccountType = DeployAccountTxnV3{}
 var _ DeployAccountType = BroadcastDeployAccountTxnV3{}

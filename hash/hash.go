@@ -584,7 +584,7 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxn, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxnV1, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
 	calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 	calldata = append(calldata, txn.ConstructorCalldata...)
