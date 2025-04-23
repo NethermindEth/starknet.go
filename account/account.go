@@ -2,8 +2,11 @@ package account
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"slices"
 	"time"
 
@@ -103,6 +106,77 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 // Nonce retrieves the nonce for the account's contract address.
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
+}
+
+// DeployContractUDC deploys a contract using the UDC.
+func (account *Account) DeployContractUDC(ctx context.Context,){
+	var UDCAddress string = "0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf" // UDC contract address
+
+	// Convert the contractAddress from hex to felt
+	contractAddress, err := utils.HexToFelt(UDCAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	// Build the functionCall struct, where :
+	FnCall := rpc.InvokeFunctionCall{
+		ContractAddress: contractAddress,                //contractAddress is the contract that we want to call
+		FunctionName:    "deployContract",                 //this is the function that we want to call
+		CallData:        getUDCCalldata(account.Address.String()), //change this function content to your use case
+	}
+
+	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
+	resp, err := account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Waiting for the transaction status...")
+
+	txReceipt, err := account.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	if err != nil {
+		panic(err)
+	}
+
+	// This returns us with the transaction hash and status
+	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
+}
+
+
+// getUDCCalldata is a simple helper to set the call data required by the UDCs deployContract function. Update as needed.
+func getUDCCalldata(data ...string) []*felt.Felt {
+	// parameter we need to receive the contract hash to be deployed
+	var someContractHash string = "0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0"; // The contract hash to be deployed (in this example, it's an ERC20 contract)
+
+	classHash, err := utils.HexToFelt(someContractHash)
+	if err != nil {
+		panic(err)
+	}
+
+	salt := new(felt.Felt).SetUint64(rand.Uint64()) // to prevent address clashes
+
+	unique := felt.Zero // see https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/#deployment_types
+
+	// NOTE: we need to know if the contract has constructor if so then we need to create the calldata for it
+	// As we are using an ERC20 token in this example, the calldata needs to have the ERC20 constructor required parameters.
+	// You must adjust these fields to match the constructor's parameters of your desired contract.
+	// https://docs.openzeppelin.com/contracts-cairo/0.8.1/api/erc20#ERC20-constructor-section
+	calldata, err := utils.HexArrToFelt([]string{
+		hex.EncodeToString([]byte("MyERC20Token")), //name
+		hex.EncodeToString([]byte("MET")),          //symbol
+		strconv.FormatInt(200000000000000000, 16),  //fixed_supply (u128 low). See https://book.cairo-lang.org/ch02-02-data-types.html#integer-types
+		strconv.FormatInt(0, 16),                   //fixed_supply (u128 high)
+		data[0],                                    //recipient
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	calldataLen := new(felt.Felt).SetUint64(uint64(len(calldata)))
+
+	return append([]*felt.Felt{classHash, salt, &unique, calldataLen}, calldata...)
 }
 
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
