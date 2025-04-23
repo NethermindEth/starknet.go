@@ -429,6 +429,6 @@ func (sub *ClientSubscription) requestUnsubscribe() error {
 	ctx, cancel := context.WithTimeout(context.Background(), unsubscribeTimeout)
 	defer cancel()
 
-	err := sub.client.CallContext(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
+	err := sub.client.CallContextWithSliceArgs(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
 	return err
 }
