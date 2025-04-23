@@ -1,0 +1,113 @@
+# Common Utilities
+
+The common utilities submodule provides functionality for common operations in Starknet.
+
+## Hex Encoding/Decoding
+
+### Encode Hex
+
+```go
+hex := utils.EncodeHex(bytes)
+```
+
+### Decode Hex
+
+```go
+bytes, err := utils.DecodeHex(hex)
+```
+
+## Field Element Conversion
+
+### To Field Element
+
+```go
+fe := utils.ToFieldElement(value)
+```
+
+### From Field Element
+
+```go
+value := utils.FromFieldElement(fe)
+```
+
+## Address Validation
+
+### Validate Address
+
+```go
+isValid := utils.ValidateAddress(address)
+```
+
+### Normalize Address
+
+```go
+normalized := utils.NormalizeAddress(address)
+```
+
+## Chain ID Validation
+
+### Validate Chain ID
+
+```go
+isValid := utils.ValidateChainID(chainID)
+```
+
+### Get Chain ID
+
+```go
+chainID := utils.GetChainID()
+```
+
+## Error Handling
+
+### Is Invalid Address Error
+
+```go
+isInvalid := utils.IsInvalidAddressError(err)
+```
+
+### Is Invalid Signature Error
+
+```go
+isInvalid := utils.IsInvalidSignatureError(err)
+```
+
+## Example Usage
+
+```go
+// Encode bytes to hex
+hex := utils.EncodeHex([]byte("Hello, Starknet!"))
+
+// Decode hex to bytes
+bytes, err := utils.DecodeHex(hex)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Convert to field element
+fe := utils.ToFieldElement("123")
+
+// Convert from field element
+value := utils.FromFieldElement(fe)
+
+// Validate address
+isValid := utils.ValidateAddress("0x123...")
+
+// Normalize address
+normalized := utils.NormalizeAddress("0x123...")
+
+// Validate chain ID
+isValid = utils.ValidateChainID("SN_MAIN")
+
+// Get chain ID
+chainID := utils.GetChainID()
+
+// Check for specific errors
+if err != nil {
+    if utils.IsInvalidAddressError(err) {
+        // Handle invalid address error
+    } else if utils.IsInvalidSignatureError(err) {
+        // Handle invalid signature error
+    }
+}
+``` 

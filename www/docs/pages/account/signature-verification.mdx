@@ -1,0 +1,65 @@
+# Signature Verification
+
+The signature verification submodule provides functionality for verifying signatures in Starknet.
+
+## Signature Types
+
+The package supports various signature types:
+
+- ECDSA signatures
+- Pedersen hash signatures
+- Stark signatures
+
+## Verification Methods
+
+### Verify ECDSA Signature
+
+```go
+isValid := account.VerifyECDSASignature(message, signature, publicKey)
+```
+
+### Verify Pedersen Signature
+
+```go
+isValid := account.VerifyPedersenSignature(message, signature, publicKey)
+```
+
+### Verify Stark Signature
+
+```go
+isValid := account.VerifyStarkSignature(message, signature, publicKey)
+```
+
+## Example Usage
+
+```go
+// Example message and signature
+message := []byte("Hello, Starknet!")
+signature := "0x123..." // Your signature
+publicKey := "0x456..." // Your public key
+
+// Verify ECDSA signature
+isValid := account.VerifyECDSASignature(message, signature, publicKey)
+fmt.Printf("ECDSA Signature valid: %v\n", isValid)
+
+// Verify Pedersen signature
+isValid = account.VerifyPedersenSignature(message, signature, publicKey)
+fmt.Printf("Pedersen Signature valid: %v\n", isValid)
+
+// Verify Stark signature
+isValid = account.VerifyStarkSignature(message, signature, publicKey)
+fmt.Printf("Stark Signature valid: %v\n", isValid)
+```
+
+## Signature Format
+
+Signatures in Starknet are typically represented as:
+
+- ECDSA: `(r, s)` pair
+- Pedersen: `(r, s)` pair
+- Stark: `(r, s)` pair
+
+Where:
+- `r` and `s` are field elements
+- Each element is represented as a hex string
+- The signature is typically concatenated as `r + s` 
