@@ -25,7 +25,7 @@ var (
 	contractMethod   string = "deployContract"                                                     // UDC method to deploy a contract (from pre-declared contracts)
 )
 
-// Example succesful transaction created from this example on Sepolia
+// Example successful transaction created from this example on Sepolia
 // https://sepolia.voyager.online/tx/0xa9a67a7cd8d218bd225335ea2ad4ea4d4c906a5806f14603c7036bfe49ca92
 
 func main() {
