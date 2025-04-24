@@ -1,0 +1,91 @@
+# Typed Data
+
+This guide demonstrates how to work with typed data for signing messages in Starknet using Starknet.go.
+
+## Prerequisites
+
+- Go 1.18 or higher
+- Starknet.go installed
+- A Starknet node URL
+- Account with private key
+
+## Code Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "github.com/NethermindEth/starknet.go"
+)
+
+func main() {
+    // Initialize client
+    client, err := starknet.NewClient("YOUR_NODE_URL")
+    if err != nil {
+        panic(err)
+    }
+
+    // Create account
+    account, err := client.NewAccount("YOUR_PRIVATE_KEY")
+    if err != nil {
+        panic(err)
+    }
+
+    // Define typed data
+    typedData := &starknet.TypedData{
+        Types: map[string][]starknet.Type{
+            "StarkNetDomain": {
+                {Name: "name", Type: "felt"},
+                {Name: "version", Type: "felt"},
+                {Name: "chainId", Type: "felt"},
+            },
+            "Message": {
+                {Name: "content", Type: "felt"},
+            },
+        },
+        PrimaryType: "Message",
+        Domain: map[string]interface{}{
+            "name":    "StarkNet",
+            "version": "1",
+            "chainId": "SN_MAIN",
+        },
+        Message: map[string]interface{}{
+            "content": "Hello, StarkNet!",
+        },
+    }
+
+    // Sign typed data
+    signature, err := account.SignTypedData(context.Background(), typedData)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Printf("Signature: %v\n", signature)
+}
+```
+
+## Explanation
+
+1. Initialize the Starknet client
+2. Create an account instance
+3. Define the typed data structure
+4. Sign the typed data
+5. The signature is returned upon successful signing
+
+## Best Practices
+
+- Use proper domain separation
+- Include chain ID in domain
+- Validate typed data structure
+- Use appropriate message formats
+- Store signatures securely
+
+## Common Issues
+
+- Invalid typed data structure
+- Missing required fields
+- Invalid domain parameters
+- Signing errors
+- Network connectivity issues 
