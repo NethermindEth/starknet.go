@@ -19,7 +19,7 @@ var (
 )
 
 var (
-	ErrNotAllParametersSet = errors.New("not all neccessary parameters have been set")
+	ErrNotAllParametersSet = errors.New("not all necessary parameters have been set")
 	ErrFeltToBigInt        = errors.New("felt to BigInt error")
 )
 
