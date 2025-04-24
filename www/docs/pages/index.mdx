@@ -1,34 +1,15 @@
 ---
 layout: landing
+content:
+  horizontalPadding: 0px
+  width: 100%
+  verticalPadding: 0px
+  forceLightMode: true
 ---
+ 
 
+import Home from "../components/Home"
 
-<div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
-  <div className="container mx-auto px-4 py-16">
-    <div className="text-center mb-16">
-      <h1 className="text-5xl font-bold mb-4">starknet.go</h1>
-      <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-        A Go library for Starknet integration, providing tools to interact with the Starknet network, manage accounts, and build decentralized applications.
-      </p>
-      <div className="flex justify-center gap-4 mt-8">
-        <a href="/introduction/getting-started" className="px-4 py-2 bg-[#ffc517] text-black font-medium rounded hover:bg-opacity-90 transition-colors">Get started</a>
-        <a href="https://github.com/NethermindEth/starknet.go" target="_blank" className="px-4 py-2 border border-white text-white font-medium rounded hover:bg-white hover:bg-opacity-10 transition-colors">GitHub</a>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="p-6 bg-gray-800 rounded-lg">
-        <h3 className="text-xl font-bold mb-2">Easy Integration</h3>
-        <p>Seamlessly integrate Starknet functionality into your Go applications with a clean, intuitive API.</p>
-      </div>
-      <div className="p-6 bg-gray-800 rounded-lg">
-        <h3 className="text-xl font-bold mb-2">Complete Toolkit</h3>
-        <p>Manage accounts, interact with contracts, and build transactions with a comprehensive set of tools.</p>
-      </div>
-      <div className="p-6 bg-gray-800 rounded-lg">
-        <h3 className="text-xl font-bold mb-2">Well Documented</h3>
-        <p>Extensive documentation and examples to help you get started quickly and solve common problems.</p>
-      </div>
-    </div>
-  </div>
-</div>
+<main className="relative mx-auto flex flex-col bg-white">
+  <Home />
+</main>

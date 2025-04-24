@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-
+/* 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -8,4 +8,4 @@ body {
     rgb(var(--background-start-rgb)),
     rgb(var(--background-end-rgb))
   );
-}
+} */
