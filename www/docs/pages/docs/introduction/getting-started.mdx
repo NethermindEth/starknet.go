@@ -1,0 +1,99 @@
+# Get started
+
+This guide will help you start using Starknet.go in your Go project. We'll walk through a simple example to demonstrate how to connect to Starknet and perform basic operations.
+
+## Prerequisites
+
+Before you begin, make sure you have:
+- Installed Go 1.20 or higher
+- [Installed Starknet.go](/docs/introduction/installation)
+- Basic understanding of Go programming
+
+## Creating Your First Starknet.go Application
+
+Let's create a simple application that connects to Starknet and retrieves the latest block number.
+
+### Step 1: Set up your project
+
+Create a new directory for your project and initialize a Go module:
+
+```bash [Terminal] 
+mkdir my-starknet-app
+cd my-starknet-app
+go mod init my-starknet-app
+```
+
+### Step 2: Install dependencies
+
+Add Starknet.go to your project:
+
+```bash [Terminal]
+go get github.com/NethermindEth/starknet.go
+```
+
+### Step 3: Create the main application
+
+Create a new file `main.go` with the following code:
+
+```go [main.go]
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Initialize connection to RPC provider
+    // Replace with your preferred Starknet node URL
+    client, err := rpc.NewProvider("https://your-starknet-node-url")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("Established connection with the client")
+
+    // Get the latest block number
+    blockNumber, err := client.BlockNumber(context.Background())
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Latest block number: %d\n", blockNumber)
+}
+```
+
+### Step 4: Run the application
+
+Run your application:
+
+```bash [Terminal]
+go run main.go
+```
+
+You should see output similar to:
+
+```
+Established connection with the client
+Latest block number: 123456
+```
+
+## Next Steps
+
+Now that you have a basic application working, you can explore more features:
+
+1. [Client Configuration](/docs/client/configuration) - Learn how to configure your Starknet client
+2. [Client Methods](/docs/client/methods) - Explore available methods for interacting with Starknet
+3. [Examples](/docs/client/examples) - See more examples of using Starknet.go
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure your Starknet node URL is correct and accessible
+2. Check that you have the latest version of Starknet.go installed
+3. Verify your Go version meets the minimum requirement (1.20 or higher)
+4. Check the [documentation](/docs/introduction/installation) for more detailed setup instructions
