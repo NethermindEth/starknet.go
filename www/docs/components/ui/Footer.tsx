@@ -4,8 +4,7 @@ import {
   RiTwitterXFill,
   RiYoutubeFill,
 } from "@remixicon/react"
-import Link from "next/link"
-import { SolarLogo } from "../../../public/SolarLogo"
+import { StarknetGoLogo } from "../../public/StarknetGoLogo"
 const CURRENT_YEAR = new Date().getFullYear()
 
 const Footer = () => {
@@ -13,29 +12,29 @@ const Footer = () => {
     solutions: {
       title: "Solutions",
       items: [
-        { label: "Crop Monitoring", href: "#" },
-        { label: "Irrigation Control", href: "#" },
-        { label: "Soil Analytics", href: "#" },
-        { label: "Weather Integration", href: "#" },
+        { label: "Starknet.go", href: "#" },
+        { label: "Smart Contracts", href: "#" },
+        { label: "Cairo Development", href: "#" },
+        { label: "Starknet Integration", href: "#" },
         { label: "Documentation", href: "#" },
-        { label: "Smart Farming Guide", href: "#" },
-        { label: "Equipment", href: "#" },
+        { label: "Developer Guide", href: "#" },
+        { label: "Tools", href: "#" },
       ],
     },
     company: {
       title: "Company",
       items: [
-        { label: "About us", href: "#" },
+        { label: "About Nethermind", href: "#" },
         { label: "Blog", href: "#" },
         { label: "Careers", href: "#" },
-        { label: "Success Stories", href: "#" },
-        { label: "Sustainability", href: "#" },
+        { label: "Case Studies", href: "#" },
+        { label: "Research", href: "#" },
       ],
     },
     resources: {
       title: "Resources",
       items: [
-        { label: "Farmer Network", href: "#" },
+        { label: "Developer Network", href: "#" },
         {
           label: "Community",
           href: "#",
@@ -48,11 +47,11 @@ const Footer = () => {
         { label: "Report an Issue", href: "#" },
       ],
     },
-    partners: {
-      title: "Partners",
+    ecosystem: {
+      title: "Ecosystem",
       items: [
-        { label: "Dealer Network", href: "#", external: true },
-        { label: "System Status", href: "#", external: true },
+        { label: "Starknet", href: "#", external: true },
+        { label: "Status", href: "#", external: true },
         { label: "Research Partners", href: "#", external: true },
         { label: "Integration Guide", href: "#" },
       ],
@@ -142,53 +141,53 @@ const Footer = () => {
           />
         </svg>
         <div className="mr-auto flex w-full justify-between lg:w-fit lg:flex-col">
-          <Link
+          <a
             href="/"
             className="flex items-center font-medium text-gray-700 select-none sm:text-sm"
           >
-            <SolarLogo className="ml-2 w-20" />
+            <StarknetGoLogo className="ml-2 w-48" />
 
-            <span className="sr-only">Solar Logo (go home)</span>
-          </Link>
+            <span className="sr-only">Starknet.go Logo (go home)</span>
+          </a>
 
           <div>
             <div className="mt-4 flex items-center">
               {/* Social Icons */}
-              <Link
+              <a
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
                 <RiTwitterXFill className="size-5" />
-              </Link>
-              <Link
+                  </a>
+              <a
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
                 <RiYoutubeFill className="size-5" />
-              </Link>
-              <Link
+              </a>
+              <a
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
                 <RiGithubFill className="size-5" />
-              </Link>
-              <Link
+              </a>
+              <a
                 href="#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
                 <RiSlackFill className="size-5" />
-              </Link>
+              </a>
             </div>
             <div className="ml-2 hidden text-sm text-gray-700 lg:inline">
-              &copy; {CURRENT_YEAR} Solar Technologies, Inc.
+              &copy; {CURRENT_YEAR} Nethermind
             </div>
           </div>
         </div>
@@ -202,12 +201,12 @@ const Footer = () => {
             <ul className="space-y-4">
               {section.items.map((item) => (
                 <li key={item.label} className="text-sm">
-                  <Link
+                  <a
                     href={item.href}
                     className="text-gray-600 transition-colors duration-200 hover:text-gray-900"
                   >
                     {item.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>

@@ -1,6 +1,7 @@
 import { CallToAction } from "./ui/CallToAction"
 import FeatureDivider from "./ui/FeatureDivider"
 import Features from "./ui/Features"
+import Footer from "./ui/Footer"
 import { Hero } from "./ui/Hero"
 import { Map } from "./ui/Map/Map"
 import { SolarAnalytics } from "./ui/SolarAnalytics"
@@ -28,6 +29,9 @@ export default function Home() {
       </div>
       <div className="mt-10 mb-40 px-4 xl:px-0">
         <CallToAction />
+      </div>
+      <div className="mt-10 mb-40 px-4 xl:px-0">
+        <Footer />
       </div>
     </main>
   )

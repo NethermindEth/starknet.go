@@ -26,12 +26,12 @@ export default defineConfig({
   ],
   theme: {
     accentColor: {
-      light: '#ff9318',
-      dark: '#ffc517',
-    }
+      light: '#FF4A04',
+      dark: '#FFE9CF',
+    },
   },
   topNav: [
-    { text: 'Docs', link: '/introduction/why-starknet-go', match: '/docs' }
+    { text: 'Docs', link: '/docs/introduction/why-starknet-go', match: '/docs' }
   ],
   
 })

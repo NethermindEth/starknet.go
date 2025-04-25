@@ -24,11 +24,11 @@ const buttonVariants = tv({
         // text color
         "text-white",
         // background color
-        "bg-orange-500",
+        "bg-[var(--stkgo-orange)]",
         // hover color
-        "hover:bg-orange-600",
+        "hover:bg-[var(--stkgo-orange)]",
         // disabled
-        "disabled:bg-orange-300 disabled:text-white",
+        "disabled:bg-[var(--stkgo-orange)] disabled:text-white",
       ],
       secondary: [
         // border

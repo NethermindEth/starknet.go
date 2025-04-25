@@ -33,7 +33,7 @@ export const sidebar: Sidebar = {
             collapsed: true,
             items: [
                 { text: 'Overview', link: '/docs/client/' },
-                { text: 'Client Configuration', link: '/docs/client/co  nfiguration' },
+                { text: 'Client Configuration', link: '/docs/client/configuration' },
                 { text: 'Client Methods', link: '/docs/client/methods' },
                 { text: 'Client Examples', link: '/docs/client/examples' },
             ]

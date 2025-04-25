@@ -17,10 +17,10 @@ export function CallToAction() {
           </p>
           <div className="flex flex-wrap gap-4">
             <Button asChild className="text-md">
-              <a href="./introduction/getting-started">Get started</a>
+              <a href="/docs/introduction/getting-started">Get started</a>
             </Button>
             <Button asChild className="text-md" variant="secondary">
-              <a href="./introduction/installation">View documentation</a>
+              <a href="/docs/introduction/installation">View documentation</a>
             </Button>
           </div>
         </div>
@@ -28,14 +28,14 @@ export function CallToAction() {
           <img
             aria-hidden
             alt="Starknet blockchain visualization"
-            src="/images/farm-footer.webp"
+            src="/golang_starknet_repo_banner.png"
             height={1000}
             width={1000}
             className="absolute inset-0 -z-10 rounded-2xl blur-xl"
           />
           <img
             alt="Starknet blockchain visualization"
-            src="/images/farm-footer.webp"
+            src="/golang_starknet_repo_banner.png"
             height={1000}
             width={1000}
             className="relative z-10 rounded-2xl"
