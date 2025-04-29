@@ -697,7 +697,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 	return calldata
 }
 
-// FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracs.
+// FmtCallDataCairo2 generates the calldata for the given function calls for Cairo 2 contracts.
 //
 // Parameters:
 //   - fnCalls: a slice of rpc.FunctionCall containing the function calls.
