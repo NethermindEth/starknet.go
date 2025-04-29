@@ -137,13 +137,14 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
-	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
-	if err != nil {
-		return nil, err
-	}
 
 	if len(hasQueryBitVersion) > 0 && hasQueryBitVersion[0] {
 		broadcastInvokeTxnV3.InvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
+	}
+
+	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	if err != nil {
+		return nil, err
 	}
 
 	// estimate txn fee
@@ -271,16 +272,16 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
 
+	if len(hasQueryBitVersion) > 0 && hasQueryBitVersion[0] {
+		broadcastDepAccTxnV3.DeployAccountTxnV3.Version = rpc.TransactionV3WithQueryBit
+	}
+
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
 	// signing the txn, as it needs a signature to estimate the fee
 	err := account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if len(hasQueryBitVersion) > 0 && hasQueryBitVersion[0] {
-		broadcastDepAccTxnV3.DeployAccountTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
 	// estimate txn fee
