@@ -686,7 +686,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	fakeUser := acnts[0]
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-	acnt, err := newDevnetAccount(t, client, fakeUser)
+	acnt, err := newDevnetAccount(t, client, fakeUser, 2)
 	require.NoError(t, err)
 
 	classHash := internalUtils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
@@ -1271,7 +1271,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // Returns:
 // - *account.Account: The new devnet account
 // - error: An error, if any
-func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount) (*account.Account, error) {
+func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion int) (*account.Account, error) {
 	t.Helper()
 	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
 	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
@@ -1280,7 +1280,7 @@ func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestA
 	ks := account.NewMemKeystore()
 	ks.Put(accData.PublicKey, fakeUserPriv.BigInt(new(big.Int)))
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, 0)
+	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, cairoVersion)
 	require.NoError(t, err)
 
 	return acnt, nil
@@ -1554,9 +1554,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	_, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
 
-	fakeUser := acnts[0]
-	acnt, err := newDevnetAccount(t, client, fakeUser)
+	acnt, err := newDevnetAccount(t, client, acnts[0], 2)
 	require.NoError(t, err)
+	acntaddr2 := internalUtils.TestHexToFelt(t, acnts[1].Address)
 
 	// Devnet returns an error when sending a txn with a query bit version
 	devnetQueryErrorMsg := "only-query transactions are not supported"
@@ -1573,13 +1573,19 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), devnetQueryErrorMsg)
 	})
-	// t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
-	// 	acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
-	// 		{
-	// 			ContractAddress: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
-	// 			FunctionName:    "mint",
-	// 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
-	// 		},
-	// 	}, 1.5)
-	// })
+	t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
+		// Build and send invoke txn
+		u256Amount, err := internalUtils.HexToU256Felt("0x10000")
+		require.NoError(t, err, "Error converting amount to u256")
+		_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+			{
+				// STRK contract address in Sepolia
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+				FunctionName:    "transfer",
+				CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
+			},
+		}, 1.5, true)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
 }
