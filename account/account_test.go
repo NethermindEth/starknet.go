@@ -1556,7 +1556,6 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 	acnt, err := newDevnetAccount(t, client, acnts[0], 2)
 	require.NoError(t, err)
-	acntaddr2 := internalUtils.TestHexToFelt(t, acnts[1].Address)
 
 	// Devnet returns an error when sending a txn with a query bit version
 	devnetQueryErrorMsg := "only-query transactions are not supported"
@@ -1573,10 +1572,13 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), devnetQueryErrorMsg)
 	})
+
 	t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
-		// Build and send invoke txn
 		u256Amount, err := internalUtils.HexToU256Felt("0x10000")
+		acntaddr2 := internalUtils.TestHexToFelt(t, acnts[1].Address)
+
 		require.NoError(t, err, "Error converting amount to u256")
+		// Build and send invoke txn
 		_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 			{
 				// STRK contract address in Sepolia
@@ -1587,5 +1589,22 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		}, 1.5, true)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+
+	t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
+		pubKey := internalUtils.TestHexToFelt(t, acnts[0].PublicKey)
+		classHash := internalUtils.TestHexToFelt(t, "0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c") // preDeployed OZ account classhash in devnet
+		// Build and send deploy account txn
+		txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
+			context.Background(),
+			pubKey,
+			classHash,
+			[]*felt.Felt{pubKey},
+			1.5,
+			true,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, txn)
+		require.Equal(t, rpc.TransactionV3WithQueryBit, txn.DeployAccountTxnV3.Version)
 	})
 }
