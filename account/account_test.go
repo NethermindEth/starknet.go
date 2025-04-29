@@ -1542,3 +1542,44 @@ func TestBraavosAccountWarning(t *testing.T) {
 		})
 	}
 }
+
+// TODO: add description
+func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	_, acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+
+	fakeUser := acnts[0]
+	acnt, err := newDevnetAccount(t, client, fakeUser)
+	require.NoError(t, err)
+
+	// Devnet returns an error when sending a txn with a query bit version
+	devnetQueryErrorMsg := "only-query transactions are not supported"
+
+	t.Run("TestBuildAndSendDeclareTxn", func(t *testing.T) {
+		// Class
+		class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+		// Casm Class
+		casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+
+		// Build and send declare txn
+		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+	// t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
+	// 	acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+	// 		{
+	// 			ContractAddress: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+	// 			FunctionName:    "mint",
+	// 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+	// 		},
+	// 	}, 1.5)
+	// })
+}
