@@ -683,17 +683,10 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
+
 	fakeUser := acnts[0]
-	fakeUserAddr := internalUtils.TestHexToFelt(t, fakeUser.Address)
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-
-	// Set up ks
-	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
-	require.True(t, ok)
-	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
-
-	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
+	acnt, err := newDevnetAccount(t, client, fakeUser)
 	require.NoError(t, err)
 
 	classHash := internalUtils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
@@ -1267,6 +1260,30 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 	devnet := devnet.NewDevNet(url)
 	acnts, err := devnet.Accounts()
 	return devnet, acnts, err
+}
+
+// newDevnetAccount creates a new devnet account from a test account.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// - provider: The RPC provider
+// - accData: The test account data
+// Returns:
+// - *account.Account: The new devnet account
+// - error: An error, if any
+func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount) (*account.Account, error) {
+	t.Helper()
+	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
+	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
+
+	// Set up ks
+	ks := account.NewMemKeystore()
+	ks.Put(accData.PublicKey, fakeUserPriv.BigInt(new(big.Int)))
+
+	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, 0)
+	require.NoError(t, err)
+
+	return acnt, nil
 }
 
 // TestBuildAndSendInvokeTxn is a test function that tests the BuildAndSendInvokeTxn method.
