@@ -1543,7 +1543,11 @@ func TestBraavosAccountWarning(t *testing.T) {
 	}
 }
 
-// TODO: add description
+// TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
+// and BuildAndEstimateDeployAccountTxn methods with a query bit version.
+//
+// This function tests these methods when called with the 'hasQueryBitVersion' parameter set to true, assuming that
+// the transaction indeed has the version with the query bit.
 func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
@@ -1570,7 +1574,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		// Build and send declare txn
 		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), devnetQueryErrorMsg)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
 	})
 
 	t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
@@ -1588,7 +1593,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			},
 		}, 1.5, true)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), devnetQueryErrorMsg)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
 	})
 
 	t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
