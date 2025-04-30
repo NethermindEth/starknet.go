@@ -84,6 +84,6 @@ func main() {
 	}
 
 	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
-	fmt.Printf("Transaction hash: %v \n", resp.TransactionHash)
+	fmt.Printf("Transaction hash: %v \n", resp.Hash)
 	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }

@@ -13,6 +13,96 @@ import (
 
 var ErrInvalidBlockID = errors.New("invalid blockid")
 
+type Block struct {
+	BlockHeader
+	Status BlockStatus `json:"status"`
+	// Transactions The transactions in this block
+	Transactions []BlockTransaction `json:"transactions"`
+}
+
+type PendingBlock struct {
+	PendingBlockHeader
+	Transactions []BlockTransaction `json:"transactions"`
+}
+
+// encoding/json doesn't support inlining fields
+type BlockWithReceipts struct {
+	BlockHeader
+	Status BlockStatus `json:"status"`
+	BlockBodyWithReceipts
+}
+
+type BlockBodyWithReceipts struct {
+	Transactions []TransactionWithReceipt `json:"transactions"`
+}
+
+type TransactionWithReceipt struct {
+	Transaction BlockTransaction   `json:"transaction"`
+	Receipt     TransactionReceipt `json:"receipt"`
+}
+
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+type PendingBlockWithReceipts struct {
+	PendingBlockHeader
+	BlockBodyWithReceipts
+}
+
+type BlockTxHashes struct {
+	BlockHeader
+	Status BlockStatus `json:"status"`
+	// Transactions The hashes of the transactions included in this block
+	Transactions []*felt.Felt `json:"transactions"`
+}
+
+type PendingBlockTxHashes struct {
+	PendingBlockHeader
+	Transactions []*felt.Felt `json:"transactions"`
+}
+
+type BlockHeader struct {
+	// Hash The hash of this block
+	Hash *felt.Felt `json:"block_hash"`
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Number the block number (its height)
+	Number uint64 `json:"block_number"`
+	// NewRoot The new global state root
+	NewRoot *felt.Felt `json:"new_root"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+
+type PendingBlockHeader struct {
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
+}
+
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
 type BlockHashAndNumberOutput struct {
 	Number uint64     `json:"block_number,omitempty"`
@@ -121,77 +211,6 @@ func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(bs))), nil
 }
 
-type Block struct {
-	BlockHeader
-	Status BlockStatus `json:"status"`
-	// Transactions The transactions in this block
-	Transactions BlockTransactions `json:"transactions"`
-}
-
-type PendingBlock struct {
-	PendingBlockHeader
-	BlockTransactions
-}
-
-// encoding/json doesn't support inlining fields
-type BlockWithReceipts struct {
-	BlockHeader
-	Status BlockStatus `json:"status"`
-	BlockBodyWithReceipts
-}
-
-type BlockBodyWithReceipts struct {
-	Transactions []TransactionWithReceipt `json:"transactions"`
-}
-
-type TransactionWithReceipt struct {
-	Transaction BlockTransaction   `json:"transaction"`
-	Receipt     TransactionReceipt `json:"receipt"`
-}
-
-// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
-type PendingBlockWithReceipts struct {
-	PendingBlockHeader
-	BlockBodyWithReceipts
-}
-
-type BlockTxHashes struct {
-	BlockHeader
-	Status BlockStatus `json:"status"`
-	// Transactions The hashes of the transactions included in this block
-	Transactions []*felt.Felt `json:"transactions"`
-}
-
-type PendingBlockTxHashes struct {
-	PendingBlockHeader
-	Transactions []*felt.Felt `json:"transactions"`
-}
-
-type BlockHeader struct {
-	// Hash The hash of this block
-	Hash *felt.Felt `json:"block_hash"`
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Number the block number (its height)
-	Number uint64 `json:"block_number"`
-	// NewRoot The new global state root
-	NewRoot *felt.Felt `json:"new_root"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// The price of l1 gas in the block
-	L1GasPrice ResourcePrice `json:"l1_gas_price"`
-	// The price of l2 gas in the block
-	L2GasPrice ResourcePrice `json:"l2_gas_price"`
-	// The price of l1 data gas in the block
-	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
-	// Specifies whether the data of this block is published via blob data or calldata
-	L1DAMode L1DAMode `json:"l1_da_mode"`
-	// Semver of the current Starknet protocol
-	StarknetVersion string `json:"starknet_version"`
-}
-
 type L1DAMode int
 
 const (
@@ -224,25 +243,6 @@ func (mode *L1DAMode) UnmarshalJSON(b []byte) error {
 }
 func (mode L1DAMode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mode.String())
-}
-
-type PendingBlockHeader struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
-	// The price of l1 gas in the block
-	L1GasPrice ResourcePrice `json:"l1_gas_price"`
-	// The price of l2 gas in the block
-	L2GasPrice ResourcePrice `json:"l2_gas_price"`
-	// Semver of the current Starknet protocol
-	StarknetVersion string `json:"starknet_version"`
-	// The price of l1 data gas in the block
-	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
-	// Specifies whether the data of this block is published via blob data or calldata
-	L1DAMode L1DAMode `json:"l1_da_mode"`
 }
 
 type ResourcePrice struct {

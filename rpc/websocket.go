@@ -74,7 +74,7 @@ func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *SubPendingTxns, options *SubPendingTxnsInput) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *PendingTxn, options *SubPendingTxnsInput) (*client.ClientSubscription, error) {
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribePendingTransactions", pendingTxns, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)

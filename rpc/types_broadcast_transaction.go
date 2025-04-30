@@ -15,9 +15,10 @@ var (
 	_ BroadcastTxn = BroadcastDeployAccountTxnV3{}
 )
 
-type BroadcastInvokeTxnV3 struct {
-	InvokeTxnV3
-}
+type BroadcastInvokeTxnV3 = InvokeTxnV3
+
+type BroadcastDeployAccountTxnV3 = DeployAccountTxnV3
+
 type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType          `json:"type"`
 	SenderAddress     *felt.Felt               `json:"sender_address"`
@@ -36,8 +37,4 @@ type BroadcastDeclareTxnV3 struct {
 	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
-}
-
-type BroadcastDeployAccountTxnV3 struct {
-	DeployAccountTxnV3
 }
