@@ -20,6 +20,7 @@ type FixedSizeMerkleTree struct {
 //
 // Parameters:
 //   - leaves: a slice of *big.Int representing the leaves of the tree.
+//
 // Returns:
 //   - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
 func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
@@ -36,6 +37,7 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 // Parameters:
 //   - x: the first big integer
 //   - y: the second big integer
+//
 // Returns:
 //   - *big.Int: the Merkle hash of the two big integers
 func MerkleHash(x, y *big.Int) *big.Int {
@@ -49,6 +51,7 @@ func MerkleHash(x, y *big.Int) *big.Int {
 //
 // Parameter(s):
 //   - leaves: a slice of *big.Int representing the leaves of the tree
+//
 // Return type(s):
 //   - *big.Int: the root hash of the Merkle tree
 func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
@@ -73,6 +76,7 @@ func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
 //
 // Parameters:
 //   - leaf: The leaf for which the Merkle proof is calculated
+//
 // Returns:
 //   - []*big.Int: The Merkle proof for the given leaf
 //   - error: An error if the calculation of the Merkle proof fails
@@ -86,6 +90,7 @@ func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error) {
 //   - leaf: is the value to be proven
 //   - branchIndex: the index of the current branch
 //   - hashPath: the path from the leaf to the root of the tree
+//
 // Returns:
 //   - []*big.Int: the Merkle proof for the given leaf
 //   - error: if the key is not found in the branch or there is an error in the nextproof calculation.
@@ -127,6 +132,7 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 //   - root: The root node of the Merkle tree as a *big.Int
 //   - leaf: The leaf node to be checked as a *big.Int
 //   - path: The path of nodes from the leaf to the root as a slice of *big.Int
+//
 // Returns:
 //   - bool: True if the leaf node is part of the Merkle tree path, false otherwise
 func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {

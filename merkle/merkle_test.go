@@ -10,6 +10,7 @@ import (
 // Parameters:
 //   - t: a pointer to the testing.T object
 //   - proofs: a slice of pointers to big.Int objects representing the proofs
+//
 // Returns:
 //
 //	none
@@ -26,6 +27,7 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 //
 // Parameters:
 //   - t: A testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none
@@ -68,6 +70,7 @@ func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 //
 // Parameters:
 //   - t: A testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none
