@@ -22,6 +22,10 @@ var (
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
+// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
+// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
+// in the returned transaction.
+//
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
@@ -58,6 +62,10 @@ func BuildInvokeTxn(
 
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
 // A declare transaction is used to declare a new contract class on the network.
+//
+// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
+// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
+// in the returned transaction.
 //
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
@@ -102,6 +110,10 @@ func BuildDeclareTxn(
 
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
 // A deploy account transaction is used to deploy a new account contract on the network.
+//
+// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
+// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
+// in the returned transaction.
 //
 // Parameters:
 //   - nonce: The account's nonce

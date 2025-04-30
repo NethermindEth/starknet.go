@@ -73,7 +73,7 @@ func main() {
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
-	resp, err := accnt.BuildAndSendDeclareTxn(context.Background(), casmClass, contractClass, 1.5)
+	resp, err := accnt.BuildAndSendDeclareTxn(context.Background(), casmClass, contractClass, 1.5, false)
 	if err != nil {
 		if strings.Contains(err.Error(), "is already declared") {
 			fmt.Println("")

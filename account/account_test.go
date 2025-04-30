@@ -681,17 +681,10 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	devnet, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
+
 	fakeUser := acnts[0]
-	fakeUserAddr := internalUtils.TestHexToFelt(t, fakeUser.Address)
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-
-	// Set up ks
-	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
-	require.True(t, ok)
-	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
-
-	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
+	acnt, err := newDevnetAccount(t, client, fakeUser, 2)
 	require.NoError(t, err)
 
 	classHash := internalUtils.TestHexToFelt(t, "0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c") // preDeployed classhash
@@ -1264,6 +1257,30 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 	return devnet, acnts, err
 }
 
+// newDevnetAccount creates a new devnet account from a test account.
+//
+// Parameters:
+// - t: The testing.T instance for running the test
+// - provider: The RPC provider
+// - accData: The test account data
+// Returns:
+// - *account.Account: The new devnet account
+// - error: An error, if any
+func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion int) (*account.Account, error) {
+	t.Helper()
+	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
+	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
+
+	// Set up ks
+	ks := account.NewMemKeystore()
+	ks.Put(accData.PublicKey, fakeUserPriv.BigInt(new(big.Int)))
+
+	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, cairoVersion)
+	require.NoError(t, err)
+
+	return acnt, nil
+}
+
 // TestBuildAndSendInvokeTxn is a test function that tests the BuildAndSendInvokeTxn method.
 //
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
@@ -1292,7 +1309,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -1333,7 +1350,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5)
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
 	if err != nil {
 		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
 		t.Log("declare txn not sent: class already declared")
@@ -1393,7 +1410,9 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5)
+		1.5,
+		false,
+	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
 	require.NotNil(t, precomputedAddress)
@@ -1434,7 +1453,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -1519,4 +1538,76 @@ func TestBraavosAccountWarning(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
+// and BuildAndEstimateDeployAccountTxn methods with a query bit version.
+//
+// This function tests these methods when called with the 'hasQueryBitVersion' parameter set to true, assuming that
+// the transaction indeed has the version with the query bit.
+func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	_, acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+
+	acnt, err := newDevnetAccount(t, client, acnts[0], 2)
+	require.NoError(t, err)
+
+	// Devnet returns an error when sending a txn with a query bit version
+	devnetQueryErrorMsg := "only-query transactions are not supported"
+
+	t.Run("TestBuildAndSendDeclareTxn", func(t *testing.T) {
+		// Class
+		class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+		// Casm Class
+		casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+
+		// Build and send declare txn
+		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+		require.Error(t, err)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+
+	t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
+		u256Amount, err := internalUtils.HexToU256Felt("0x10000")
+		acntaddr2 := internalUtils.TestHexToFelt(t, acnts[1].Address)
+
+		require.NoError(t, err, "Error converting amount to u256")
+		// Build and send invoke txn
+		_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+			{
+				// STRK contract address in Sepolia
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+				FunctionName:    "transfer",
+				CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
+			},
+		}, 1.5, true)
+		require.Error(t, err)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+
+	t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
+		pubKey := internalUtils.TestHexToFelt(t, acnts[0].PublicKey)
+		classHash := internalUtils.TestHexToFelt(t, "0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c") // preDeployed OZ account classhash in devnet
+		// Build and send deploy account txn
+		txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
+			context.Background(),
+			pubKey,
+			classHash,
+			[]*felt.Felt{pubKey},
+			1.5,
+			true,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, txn)
+		require.Equal(t, rpc.TransactionV3WithQueryBit, txn.DeployAccountTxnV3.Version)
+	})
 }
