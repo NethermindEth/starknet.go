@@ -46,6 +46,7 @@ var (
 //
 // Parameters:
 //   - m: is the test main
+//
 // Returns:
 //
 //	none
@@ -235,6 +236,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -324,6 +326,7 @@ func TestFmtCallData(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -369,6 +372,7 @@ func TestChainIdMOCK(t *testing.T) {
 // for different test environments.
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -414,6 +418,7 @@ func TestChainId(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -475,6 +480,7 @@ func TestSignMOCK(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -750,6 +756,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 //
 // Parameters:
 //   - t: reference to the testing.T object
+//
 // Returns:
 //
 //	none
@@ -1105,6 +1112,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for test assertions and logging
+//
 // Returns:
 //
 //	none
@@ -1195,6 +1203,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -1246,6 +1255,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // Parameters:
 //   - t: The testing.T instance for running the test
 //   - url: The URL of the devnet to be created
+//
 // Returns:
 //   - *devnet.DevNet: a pointer to a devnet object
 //   - []devnet.TestAccount: a slice of test accounts
@@ -1263,6 +1273,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 //   - t: The testing.T instance for running the test
 //   - provider: The RPC provider
 //   - accData: The test account data
+//
 // Returns:
 //   - *account.Account: The new devnet account
 //   - error: An error, if any

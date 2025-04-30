@@ -42,6 +42,7 @@ func NewMemKeystore() *MemKeystore {
 // Parameters:
 //   - pub: a string representing the public key
 //   - priv: a pointer to a big.Int representing the private key
+//
 // Returns:
 //   - *MemKeystore: a pointer to the newly created MemKeystore instance
 func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
@@ -67,6 +68,7 @@ var ErrSenderNoExist = errors.New("sender does not exist")
 //
 // Parameter:
 //   - senderAddress: The address of the sender
+//
 // Returns:
 //   - *big.Int: The value associated with the senderAddress
 //   - error: An error if the senderAddress does not exist in the keystore
@@ -86,6 +88,7 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 //   - ctx: the context of the operation.
 //   - id: is the identifier of the key.
 //   - msgHash: is the message hash to be signed.
+//
 // Returns:
 //   - *big.Int: the R component of the signature as *big.Int
 //   - *big.Int: the S component of the signature as *big.Int
@@ -107,6 +110,7 @@ func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*
 //   - ctx: the context.Context object for cancellation and timeouts
 //   - msgHash: the message hash to be signed as a *big.Int
 //   - key: the private key as a *big.Int
+//
 // Returns:
 //   - x: the X coordinate of the signature point as a *big.Int
 //   - y: the Y coordinate of the signature point as a *big.Int
