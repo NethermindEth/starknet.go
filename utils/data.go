@@ -8,6 +8,7 @@ import internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 // Parameters:
 //   - filePath: string path to the JSON file
 //   - subfield: string subfield to unmarshal from the JSON file
+//
 // Returns:
 //   - *T: pointer to the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails

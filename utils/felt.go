@@ -11,6 +11,7 @@ import (
 //
 // Parameters:
 //   - num: the uint64 number to convert to a *felt.Felt
+//
 // Returns:
 //   - *felt.Felt: a *felt.Felt
 func Uint64ToFelt(num uint64) *felt.Felt {
@@ -21,6 +22,7 @@ func Uint64ToFelt(num uint64) *felt.Felt {
 //
 // Parameters:
 //   - hex: the input hexadecimal string to be converted.
+//
 // Returns:
 //   - *felt.Felt: a *felt.Felt object
 //   - error: if conversion fails
@@ -37,6 +39,7 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 //
 // Parameters:
 //   - hexArr: an array of strings representing hexadecimal values
+//
 // Returns:
 //   - []*felt.Felt: an array of *felt.Felt objects, or nil if there was
 //   - error: an error if any
@@ -48,6 +51,7 @@ func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
 //
 // Parameters:
 //   - f: the Felt value to convert
+//
 // Returns:
 //   - *big.Int: the converted value
 func FeltToBigInt(f *felt.Felt) *big.Int {
@@ -58,6 +62,7 @@ func FeltToBigInt(f *felt.Felt) *big.Int {
 //
 // Parameters:
 //   - big: the big integer to convert
+//
 // Returns:
 //   - *felt.Felt: the converted value
 func BigIntToFelt(big *big.Int) *felt.Felt {
@@ -68,6 +73,7 @@ func BigIntToFelt(big *big.Int) *felt.Felt {
 //
 // Parameters:
 //   - f: the array of Felt objects to convert
+//
 // Returns:
 //   - []*big.Int: the array of big.Int objects
 func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
@@ -78,6 +84,7 @@ func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
 //
 // Parameters:
 //   - f: the array of Felt objects to convert
+//
 // Returns:
 //   - []string: the array of string objects
 func FeltArrToStringArr(f []*felt.Felt) []string {
@@ -132,6 +139,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 //
 // Parameters:
 //   - bigArr: the array of big.Int objects to convert
+//
 // Returns:
 //   - []*felt.Felt: the array of Felt objects
 func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
@@ -145,6 +153,7 @@ func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
 //
 // Parameters:
 //   - hexStr: the hexadecimal string to convert to a Cairo u256
+//
 // Returns:
 //   - []*felt.Felt: a slice containing two felt.Felt values [low, high]
 //   - error: if conversion fails
@@ -159,6 +168,7 @@ func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 //
 // Parameters:
 //   - u256: a slice containing two felt.Felt values [low, high]
+//
 // Returns:
 //   - string: the hexadecimal representation of the combined value
 //   - error: if conversion fails
