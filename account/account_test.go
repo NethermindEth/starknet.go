@@ -1608,6 +1608,6 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, txn)
-		require.Equal(t, rpc.TransactionV3WithQueryBit, txn.DeployAccountTxnV3.Version)
+		require.Equal(t, rpc.TransactionV3WithQueryBit, txn.Version)
 	})
 }
