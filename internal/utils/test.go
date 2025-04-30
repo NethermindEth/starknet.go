@@ -15,6 +15,7 @@ var RANDOM_FELT = new(felt.Felt).SetUint64(3735928559)
 // Parameters:
 //   - t: the testing.TB object for test logging and reporting
 //   - hex: the hexadecimal string to convert to a felt.Felt
+//
 // Returns:
 //   - *felt.Felt: the generated felt.Felt object
 func TestHexToFelt(t testing.TB, hex string) *felt.Felt {
@@ -29,6 +30,7 @@ func TestHexToFelt(t testing.TB, hex string) *felt.Felt {
 // Parameters:
 //   - t: A testing.TB interface used for test logging and error reporting
 //   - hexArr: A slice of strings representing hexadecimal values
+//
 // Returns:
 //   - []*felt.Felt: a slice of *felt.Felt
 func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
@@ -45,6 +47,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 //   - t: testing.TB interface for test logging and error reporting
 //   - filePath: string path to the JSON file
 //   - subfield: string subfield to unmarshal from the JSON file
+//
 // Returns:
 //   - T: the unmarshalled data of type T
 func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath string, subfield string) *T {
