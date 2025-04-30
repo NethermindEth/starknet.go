@@ -1314,7 +1314,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -1355,7 +1355,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5)
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
 	if err != nil {
 		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
 		t.Log("declare txn not sent: class already declared")
@@ -1415,7 +1415,9 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5)
+		1.5,
+		false,
+	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
 	require.NotNil(t, precomputedAddress)
@@ -1456,7 +1458,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
