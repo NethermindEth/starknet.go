@@ -22,9 +22,9 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64, withQueryBitVersion bool) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64, withQueryBitVersion bool) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -116,11 +116,20 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+//     If false, the transaction version will be rpc.TransactionV3 (0x3).
+//     In case of doubt, set to 'false'.
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
-func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) BuildAndSendInvokeTxn(
+	ctx context.Context,
+	functionCalls []rpc.InvokeFunctionCall,
+	multiplier float64,
+	withQueryBitVersion bool,
+) (*rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
@@ -133,6 +142,11 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
+
+	if withQueryBitVersion {
+		broadcastInvokeTxnV3.InvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
+	}
+
 	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
 	if err != nil {
 		return nil, err
@@ -171,6 +185,10 @@ func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+//     If false, the transaction version will be rpc.TransactionV3 (0x3).
+//     In case of doubt, set to 'false'.
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -180,6 +198,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	multiplier float64,
+	withQueryBitVersion bool,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
@@ -191,6 +210,11 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if err != nil {
 		return nil, err
 	}
+
+	if withQueryBitVersion {
+		broadcastDeclareTxnV3.Version = rpc.TransactionV3WithQueryBit
+	}
+
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return nil, err
@@ -233,6 +257,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+//     If false, the transaction version will be rpc.TransactionV3 (0x3).
+//     In case of doubt, set to 'false'.
 //
 // Returns:
 //   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
@@ -244,9 +272,14 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	multiplier float64,
+	withQueryBitVersion bool,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
+
+	if withQueryBitVersion {
+		broadcastDepAccTxnV3.DeployAccountTxnV3.Version = rpc.TransactionV3WithQueryBit
+	}
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
