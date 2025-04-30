@@ -19,7 +19,7 @@ import (
 // the response with the expected response.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none
@@ -100,7 +100,7 @@ func TestTransactionTrace(t *testing.T) {
 // The function uses the testing.T type to report any errors or failures during the test execution.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none
@@ -186,7 +186,7 @@ func TestSimulateTransaction(t *testing.T) {
 // the expected response.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none

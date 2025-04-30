@@ -243,10 +243,10 @@ type DeployAccountTxnV3 struct {
 // It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
 //
 // Parameters:
-// - v: The interface{} value to be marshaled
-// - dst: The interface{} value to be unmarshaled
+//   - v: The interface{} value to be marshaled
+//   - dst: The interface{} value to be unmarshaled
 // Returns:
-// - error: An error if the marshaling or unmarshaling process fails
+//   - error: An error if the marshaling or unmarshaling process fails
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -277,8 +277,8 @@ const (
 // BigInt returns a big integer corresponding to the transaction version.
 //
 // Returns:
-// - *big.Int: a pointer to a big.Int
-// - error: an error if the conversion fails
+//   - *big.Int: a pointer to a big.Int
+//   - error: an error if the conversion fails
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:
@@ -306,7 +306,7 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 // Returns -1 for invalid versions.
 //
 // Returns:
-// - int: the integer version, or -1 for invalid versions
+//   - int: the integer version, or -1 for invalid versions
 func (v *TransactionVersion) Int() int {
 	switch *v {
 	case TransactionV0, TransactionV0WithQueryBit:
@@ -342,9 +342,9 @@ type PendingTxn struct {
 // UnmarshalJSON unmarshals the JSON data into a PendingTxn object.
 //
 // Parameters:
-// - data: The JSON data to be unmarshalled
+//   - data: The JSON data to be unmarshalled
 // Returns:
-// - error: An error if the unmarshalling process fails
+//   - error: An error if the unmarshalling process fails
 func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 	var txn *BlockTransaction
 	if err := json.Unmarshal(data, &txn); err == nil {
@@ -366,9 +366,9 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 // The function returns an error if the unmarshalling process fails.
 //
 // Parameters:
-// - data: The JSON data to be unmarshalled
+//   - data: The JSON data to be unmarshalled
 // Returns:
-// - error: An error if the unmarshalling process fails
+//   - error: An error if the unmarshalling process fails
 func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 	type alias BlockTransaction
 	var aux alias

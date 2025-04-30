@@ -17,7 +17,7 @@ import (
 // Then it asserts the equality of certain values within the struct.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -61,7 +61,7 @@ func TestUnmarshalContractClass(t *testing.T) {
 // It is a test function and is meant to be used with the Go testing framework.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -160,7 +160,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 // It is a test function and is meant to be used with the Go testing framework.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -239,7 +239,7 @@ func newNestedFieldArray(val ...NestedUints) *NestedUints {
 // occurs during the process, the test fails.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging.
+//   - t: The testing.T object used for reporting test failures and logging.
 // Returns:
 //
 //	none
@@ -258,11 +258,11 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 // TestContractClass_UnmarshalValidJSON_Successful is a test function that validates the successful unmarshalling of valid JSON data into a ContractClass object.
 //
 // The function does the following:
-// - Reads the content of a file specified by the validContractCompiledPath variable.
-// - Unmarshals the content into a ContractClass object using the json.Unmarshal function.
+//   - Reads the content of a file specified by the validContractCompiledPath variable.
+//   - Unmarshals the content into a ContractClass object using the json.Unmarshal function.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging.
+//   - t: The testing.T object used for reporting test failures and logging.
 // Returns:
 //
 //	none

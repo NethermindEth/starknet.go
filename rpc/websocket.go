@@ -12,11 +12,11 @@ import (
 //
 // Parameters:
 //
-// - ctx: The context.Context object for controlling the function call
+//   - ctx: The context.Context object for controlling the function call
 //
-// - events: The channel to send the new events to
+//   - events: The channel to send the new events to
 //
-// - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
+//   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
 //
 //   - fromAddress: Filter events by from_address which emitted the event
 //   - keys: Per key (by position), designate the possible values to be matched for events to be returned. Empty array designates 'any' value

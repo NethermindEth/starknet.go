@@ -17,9 +17,9 @@ var typedDataExamples = make(map[string]TypedData)
 // before running the tests.
 //
 // Parameters:
-// - m: The testing.M object that provides the test runner
+//   - m: The testing.M object that provides the test runner
 // Returns:
-// - None (calls os.Exit directly)
+//   - None (calls os.Exit directly)
 func TestMain(m *testing.M) {
 	fileNames := []string{
 		"baseExample",
@@ -55,9 +55,9 @@ func TestMain(m *testing.M) {
 // TypedData from a JSON file.
 //
 // Parameters:
-// - b: The testing.B object used for benchmarking
+//   - b: The testing.B object used for benchmarking
 // Returns:
-// - ttd: A TypedData instance loaded from the base example file
+//   - ttd: A TypedData instance loaded from the base example file
 func BMockTypedData(b *testing.B) (ttd TypedData) {
 	b.Helper()
 	content, err := os.ReadFile("./tests/baseExample.json")
@@ -79,9 +79,9 @@ func BMockTypedData(b *testing.B) (ttd TypedData) {
 // If the values do not match, an error is reported using the t.Errorf function.
 //
 // Parameters:
-// - t: a testing.T object that provides methods for testing functions
+//   - t: a testing.T object that provides methods for testing functions
 // Returns:
-// - None
+//   - None
 func TestGetMessageHash(t *testing.T) {
 	type testSetType struct {
 		TypedDataName       string
@@ -159,7 +159,7 @@ func TestGetMessageHash(t *testing.T) {
 // a hexadecimal string to a big integer using the HexToBN function from the utils package.
 //
 // Parameters:
-// - b: a testing.B object that provides methods for benchmarking the function
+//   - b: a testing.B object that provides methods for benchmarking the function
 // Returns:
 //
 //	none
@@ -181,7 +181,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 // encoding of the types matches the expected values.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging test output
+//   - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
 //
 //	none
@@ -242,7 +242,7 @@ func TestGetTypeHash(t *testing.T) {
 // test.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging test output
+//   - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
 //
 //	none
@@ -320,7 +320,7 @@ func TestEncodeType(t *testing.T) {
 // test.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging test output
+//   - t: The testing.T object used for reporting test failures and logging test output
 // Returns:
 //
 //	none

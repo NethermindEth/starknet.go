@@ -153,9 +153,9 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	fmt.Println("Contract Address: ", contractAddress.String())
 
 	// We are using the following filters:
-	// - FromBlock: The starting block number (inclusive)
-	// - ToBlock: The ending block number (inclusive)
-	// - Address: The contract address to filter events from
+	//   - FromBlock: The starting block number (inclusive)
+	//   - ToBlock: The ending block number (inclusive)
+	//   - Address: The contract address to filter events from
 	//
 	// So, we are filtering events from block 0 to block 100 and only from the provided contract address.
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
@@ -193,8 +193,8 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	// Ref: https://community.starknet.io/t/snip-13-index-transfer-and-approval-events-in-erc20s/114212
 	//
 	// The keys are interpreted as follows:
-	// - The first key usually is the event selector
-	// - The remaining keys will vary depending on the event
+	//   - The first key usually is the event selector
+	//   - The remaining keys will vary depending on the event
 	//
 	// So here we are filtering all 'Transfer' events (to be more precise, all events with the 'Transfer' selector as the first key)
 	// from all addresses and contracts, from block 600000 to block 600100.

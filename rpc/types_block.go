@@ -136,8 +136,8 @@ func checkForPending(b BlockID) error {
 //	none
 //
 // Returns:
-// - []byte: the JSON representation of the BlockID
-// - error: any error that occurred during the marshaling process
+//   - []byte: the JSON representation of the BlockID
+//   - error: any error that occurred during the marshaling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
@@ -173,9 +173,9 @@ const (
 // The function returns an error if there is an issue unmarshaling the data.
 //
 // Parameters:
-// - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
 // Returns:
-// - error: an error if the unmarshaling fails
+//   - error: an error if the unmarshaling fails
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -205,8 +205,8 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 //	none
 //
 // Returns:
-// - []byte: a byte slice
-// - error: an error if any
+//   - []byte: a byte slice
+//   - error: an error if any
 func (bs BlockStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(bs))), nil
 }

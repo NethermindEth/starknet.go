@@ -45,7 +45,7 @@ var (
 // Finally, it exits with the return value of the test suite
 //
 // Parameters:
-// - m: is the test main
+//   - m: is the test main
 // Returns:
 //
 //	none
@@ -234,7 +234,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 // and comparing the output with the expected call data.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Return:
 //
 //	none
@@ -323,7 +323,7 @@ func TestFmtCallData(t *testing.T) {
 // account's ChainId matches the expected ID for each test case in the test set.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Return:
 //
 //	none
@@ -368,7 +368,7 @@ func TestChainIdMOCK(t *testing.T) {
 // It checks if the ChainId function returns the correct ChainID and ExpectedID values
 // for different test environments.
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Return:
 //
 //	none
@@ -405,15 +405,15 @@ func TestChainId(t *testing.T) {
 // It sets up a mock controller and a mock RPC provider, and defines a test set containing different scenarios.
 // Each scenario includes an address, private key, chain ID, a felt to sign, and the expected signatures.
 // The function iterates over the test set and performs the following steps for each test case:
-// - Converts the private key to a big.Int object and stores it in a memory keystore.
-// - Mocks the ChainID method of the RPC provider to return the specified chain ID.
-// - Creates an account using the mock RPC provider, the test address, the address string, and the keystore.
-// - Converts the felt to sign to a big.Int object.
-// - Calls the Sign method of the account with the felt to sign and retrieves the signature.
-// - Verifies that the obtained signature matches the expected signature.
+//   - Converts the private key to a big.Int object and stores it in a memory keystore.
+//   - Mocks the ChainID method of the RPC provider to return the specified chain ID.
+//   - Creates an account using the mock RPC provider, the test address, the address string, and the keystore.
+//   - Converts the felt to sign to a big.Int object.
+//   - Calls the Sign method of the account with the felt to sign and retrieves the signature.
+//   - Verifies that the obtained signature matches the expected signature.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -474,7 +474,7 @@ func TestSignMOCK(t *testing.T) {
 // It asserts that the expected hash and error values are returned for each test set.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -749,7 +749,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 // returned hash with the expected hash, ensuring they match.
 //
 // Parameters:
-// - t: reference to the testing.T object
+//   - t: reference to the testing.T object
 // Returns:
 //
 //	none
@@ -1104,7 +1104,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 // The function uses the testify package for assertions and the gomock package for creating mocks.
 //
 // Parameters:
-// - t: The testing.T object for test assertions and logging
+//   - t: The testing.T object for test assertions and logging
 // Returns:
 //
 //	none
@@ -1194,7 +1194,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // It then cleans up the test environment.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
 // Returns:
 //
 //	none
@@ -1244,12 +1244,12 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 // newDevnet creates a new devnet with the given URL.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
-// - url: The URL of the devnet to be created
+//   - t: The testing.T instance for running the test
+//   - url: The URL of the devnet to be created
 // Returns:
-// - *devnet.DevNet: a pointer to a devnet object
-// - []devnet.TestAccount: a slice of test accounts
-// - error: an error, if any
+//   - *devnet.DevNet: a pointer to a devnet object
+//   - []devnet.TestAccount: a slice of test accounts
+//   - error: an error, if any
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	t.Helper()
 	devnet := devnet.NewDevNet(url)
@@ -1260,12 +1260,12 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // newDevnetAccount creates a new devnet account from a test account.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
-// - provider: The RPC provider
-// - accData: The test account data
+//   - t: The testing.T instance for running the test
+//   - provider: The RPC provider
+//   - accData: The test account data
 // Returns:
-// - *account.Account: The new devnet account
-// - error: An error, if any
+//   - *account.Account: The new devnet account
+//   - error: An error, if any
 func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion int) (*account.Account, error) {
 	t.Helper()
 	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)

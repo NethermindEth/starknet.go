@@ -13,7 +13,7 @@ import (
 // TestTransactionByHash tests transaction by hash
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
@@ -75,7 +75,7 @@ func TestTransactionByHash(t *testing.T) {
 // that the transaction type is TransactionType_Invoke and that the transaction is equal to the expected transaction.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none

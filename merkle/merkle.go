@@ -19,9 +19,9 @@ type FixedSizeMerkleTree struct {
 // The function builds the Merkle tree using the given leaves and sets the tree's root.
 //
 // Parameters:
-// - leaves: a slice of *big.Int representing the leaves of the tree.
+//   - leaves: a slice of *big.Int representing the leaves of the tree.
 // Returns:
-// - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
+//   - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
 func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 	mt := &FixedSizeMerkleTree{
 		Leaves:   leaves,
@@ -34,10 +34,10 @@ func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
 // MerkleHash calculates the Merkle hash of two big integers.
 //
 // Parameters:
-// - x: the first big integer
-// - y: the second big integer
+//   - x: the first big integer
+//   - y: the second big integer
 // Returns:
-// - *big.Int: the Merkle hash of the two big integers
+//   - *big.Int: the Merkle hash of the two big integers
 func MerkleHash(x, y *big.Int) *big.Int {
 	if x.Cmp(y) <= 0 {
 		return curve.HashPedersenElements([]*big.Int{x, y})
@@ -48,9 +48,9 @@ func MerkleHash(x, y *big.Int) *big.Int {
 // build recursively constructs a Merkle tree from the given leaves.
 //
 // Parameter(s):
-// - leaves: a slice of *big.Int representing the leaves of the tree
+//   - leaves: a slice of *big.Int representing the leaves of the tree
 // Return type(s):
-// - *big.Int: the root hash of the Merkle tree
+//   - *big.Int: the root hash of the Merkle tree
 func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
 	if len(leaves) == 1 {
 		return leaves[0]
@@ -72,10 +72,10 @@ func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
 // Proof calculates the Merkle proof for a given leaf in the FixedSizeMerkleTree.
 //
 // Parameters:
-// - leaf: The leaf for which the Merkle proof is calculated
+//   - leaf: The leaf for which the Merkle proof is calculated
 // Returns:
-// - []*big.Int: The Merkle proof for the given leaf
-// - error: An error if the calculation of the Merkle proof fails
+//   - []*big.Int: The Merkle proof for the given leaf
+//   - error: An error if the calculation of the Merkle proof fails
 func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error) {
 	return mt.recursiveProof(leaf, 0, []*big.Int{})
 }
@@ -83,12 +83,12 @@ func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error) {
 // recursiveProof calculates the proof of a leaf in the fixed-size Merkle tree.
 //
 // Parameters:
-// - leaf: is the value to be proven
-// - branchIndex: the index of the current branch
-// - hashPath: the path from the leaf to the root of the tree
+//   - leaf: is the value to be proven
+//   - branchIndex: the index of the current branch
+//   - hashPath: the path from the leaf to the root of the tree
 // Returns:
-// - []*big.Int: the Merkle proof for the given leaf
-// - error: if the key is not found in the branch or there is an error in the nextproof calculation.
+//   - []*big.Int: the Merkle proof for the given leaf
+//   - error: if the key is not found in the branch or there is an error in the nextproof calculation.
 func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, hashPath []*big.Int) ([]*big.Int, error) {
 	if branchIndex >= len(mt.Branches) {
 		return hashPath, nil
@@ -124,11 +124,11 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 // the function returns true; otherwise, it returns false.
 //
 // Parameters:
-// - root: The root node of the Merkle tree as a *big.Int
-// - leaf: The leaf node to be checked as a *big.Int
-// - path: The path of nodes from the leaf to the root as a slice of *big.Int
+//   - root: The root node of the Merkle tree as a *big.Int
+//   - leaf: The leaf node to be checked as a *big.Int
+//   - path: The path of nodes from the leaf to the root as a slice of *big.Int
 // Returns:
-// - bool: True if the leaf node is part of the Merkle tree path, false otherwise
+//   - bool: True if the leaf node is part of the Merkle tree path, false otherwise
 func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {
 	if len(path) == 0 {
 		return root.Cmp(leaf) == 0

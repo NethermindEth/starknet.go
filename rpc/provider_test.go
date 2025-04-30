@@ -36,7 +36,7 @@ var testEnv = ""
 // After setting up the environment, it runs the tests and exits with the return value of the test suite.
 //
 // Parameters:
-// - m: The testing.M object that provides the entry point for running tests
+//   - m: The testing.M object that provides the entry point for running tests
 // Returns:
 //
 //	none
@@ -49,10 +49,10 @@ func TestMain(m *testing.M) {
 // beforeEach initializes the test environment configuration before running the script.
 //
 // Parameters:
-// - t: The testing.T object for testing purposes
-// - isWs: a boolean value to check if the test is for the websocket provider
+//   - t: The testing.T object for testing purposes
+//   - isWs: a boolean value to check if the test is for the websocket provider
 // Returns:
-// - *testConfiguration: a pointer to the testConfiguration struct
+//   - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
 

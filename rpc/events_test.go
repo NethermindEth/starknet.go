@@ -16,15 +16,15 @@ import (
 // In the "mock" scenario, it sets up the event filter, result page request, and expected response.
 // In the "mainnet" scenario, it sets up the event filter, result page request, and expected response.
 // It then iterates through the test set and performs the following steps for each test:
-// - Creates a spy object.
-// - Sets the provider's context to the spy object.
-// - Sets up the event input with the event filter and result page request.
-// - Calls the Events function with the event input.
-// - Checks if there is an error and fails the test if there is.
-// - Compares the events' block hash, block number, and transaction hash with the expected response.
+//   - Creates a spy object.
+//   - Sets the provider's context to the spy object.
+//   - Sets up the event input with the event filter and result page request.
+//   - Calls the Events function with the event input.
+//   - Checks if there is an error and fails the test if there is.
+//   - Compares the events' block hash, block number, and transaction hash with the expected response.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none

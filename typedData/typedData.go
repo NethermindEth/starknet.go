@@ -47,14 +47,14 @@ type TypeParameter struct {
 // NewTypedData creates a new instance of TypedData.
 //
 // Parameters:
-// - types: a slice of TypeDefinition representing the types used in the TypedData.
-// - primaryType: a string representing the primary type of the TypedData.
-// - domain: a Domain struct representing the domain information of the TypedData.
-// - message: a byte slice containing the JSON-encoded message.
+//   - types: a slice of TypeDefinition representing the types used in the TypedData.
+//   - primaryType: a string representing the primary type of the TypedData.
+//   - domain: a Domain struct representing the domain information of the TypedData.
+//   - message: a byte slice containing the JSON-encoded message.
 //
 // Returns:
-// - td: a pointer to the newly created TypedData instance.
-// - err: an error if any occurred during the creation of the TypedData.
+//   - td: a pointer to the newly created TypedData instance.
+//   - err: an error if any occurred during the creation of the TypedData.
 func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td *TypedData, err error) {
 	//types
 	typesMap := make(map[string]TypeDefinition)
@@ -116,9 +116,9 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 // (ref: https://github.com/starknet-io/SNIPs/blob/5d5a42c654c27b377d8b7f90b453065fd19ec2eb/SNIPS/snip-12.md#specification)
 //
 // Parameters:
-// - account: A string representing the account.
+//   - account: A string representing the account.
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
 func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error) {
 	//signed_data = encode(PREFIX_MESSAGE, Enc[domain_separator], account, Enc[message])
 
@@ -152,8 +152,8 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 // GetStructHash calculates the hash of a struct type and its respective data.
 //
 // Parameters:
-// - typeName: the name of the type to be hashed.
-// - context: optional context strings to be included in the hash calculation.
+//   - typeName: the name of the type to be hashed.
+//   - context: optional context strings to be included in the hash calculation.
 //
 // You can use 'context' to specify the path of the type you want to hash. Example: if you want to hash the type "ExampleInner"
 // that is within the "Example" primary type with the name of "example_inner", you can specify the context as ["example_inner"].
@@ -161,8 +161,8 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 // as ["example_inner", "example_inner_inner"].
 //
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
-// - err: an error if any occurred during the hash calculation.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error) {
 	typeDef, ok := td.Types[typeName]
 	if !ok {
@@ -207,10 +207,10 @@ func shortGetStructHash(
 // GetTypeHash returns the hash of the given type.
 //
 // Parameters:
-// - typeName: the name of the type to hash
+//   - typeName: the name of the type to hash
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
-// - err: an error if any occurred during the hash calculation.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 	typeDef, ok := td.Types[typeName]
 	if !ok {
@@ -223,13 +223,13 @@ func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 
 // encodeTypes encodes the given type name using the TypedData struct.
 // Parameters:
-// - typeName: name of the type to encode
-// - types: map of type definitions
-// - revision: revision information
-// - isEnum: optional boolean indicating if type is an enum
+//   - typeName: name of the type to encode
+//   - types: map of type definitions
+//   - revision: revision information
+//   - isEnum: optional boolean indicating if type is an enum
 // Returns:
-// - newTypeDef: the encoded type definition
-// - err: any error encountered during encoding
+//   - newTypeDef: the encoded type definition
+//   - err: any error encountered during encoding
 func encodeTypes(typeName string, types map[string]TypeDefinition, revision *revision, isEnum ...bool) (newTypeDef TypeDefinition, err error) {
 	getTypeEncodeString := func(typeName string, typeDef TypeDefinition, customTypesStringEnc *[]string, isEnum ...bool) (result string, err error) {
 		verifyTypeName := func(param TypeParameter, isEnum ...bool) error {
@@ -413,19 +413,19 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 // encodeData is a helper function that encodes the given type definition using the TypedData struct.
 //
 // Parameters:
-// - typeDef: a pointer to the TypeDefinition representing the type to be encoded.
-// - typedData: a pointer to the TypedData struct containing the data to be encoded.
-// - data: a map containing the data to be encoded.
-// - isEnum: a boolean indicating whether the type is an enum.
-// - context: optional context strings to be included in the encoding process.
+//   - typeDef: a pointer to the TypeDefinition representing the type to be encoded.
+//   - typedData: a pointer to the TypedData struct containing the data to be encoded.
+//   - data: a map containing the data to be encoded.
+//   - isEnum: a boolean indicating whether the type is an enum.
+//   - context: optional context strings to be included in the encoding process.
 //
 // The function first checks if the context is provided and updates the data map accordingly.
 // It then defines helper functions to handle standard types, object types, and arrays.
 // The main encoding logic is implemented within these helper functions.
 //
 // Returns:
-// - enc: a slice of pointers to felt.Felt representing the encoded data.
-// - err: an error if any occurred during the encoding process.
+//   - enc: a slice of pointers to felt.Felt representing the encoded data.
+//   - err: an error if any occurred during the encoding process.
 func encodeData(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
@@ -666,12 +666,12 @@ func encodeData(
 
 // encodePieceOfData encodes a single piece of data based on its type.
 // Parameters:
-// - typeName: the type of data to encode
-// - data: the actual data to encode
-// - rev: revision information
+//   - typeName: the type of data to encode
+//   - data: the actual data to encode
+//   - rev: revision information
 // Returns:
-// - resp: encoded data as a felt.Felt
-// - err: any error encountered during encoding
+//   - resp: encoded data as a felt.Felt
+//   - err: any error encountered during encoding
 func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
 	getFeltFromData := func() (feltValue *felt.Felt, err error) {
 		strValue := func(data any) string {

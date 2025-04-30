@@ -8,8 +8,8 @@ import (
 // debugProof is a function used for debugging purposes. It logs the proofs to the testing logger.
 //
 // Parameters:
-// - t: a pointer to the testing.T object
-// - proofs: a slice of pointers to big.Int objects representing the proofs
+//   - t: a pointer to the testing.T object
+//   - proofs: a slice of pointers to big.Int objects representing the proofs
 // Returns:
 //
 //	none
@@ -25,7 +25,7 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 // It creates a fixed-size Merkle tree with the given leaves and calculates the Merkle proof for a specific leaf. It then compares the manual proof generated with the expected proof and checks if the Merkle tree root matches the proof.
 //
 // Parameters:
-// - t: A testing.T object used for reporting test failures and logging.
+//   - t: A testing.T object used for reporting test failures and logging.
 // Returns:
 //
 //	none
@@ -67,7 +67,7 @@ func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 // The test then reconstructs the Merkle root using the generated proof and verifies that it matches the original root of the Merkle tree.
 //
 // Parameters:
-// - t: A testing.T object used for reporting test failures and logging.
+//   - t: A testing.T object used for reporting test failures and logging.
 // Returns:
 //
 //	none

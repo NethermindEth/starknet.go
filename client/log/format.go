@@ -277,8 +277,8 @@ func appendEscapeString(dst []byte, s string) []byte {
 			continue
 		}
 		// We need to escape it, if it contains
-		// - character " (0x22) and lower (except space)
-		// - characters above ~ (0x7E), plus equal-sign
+		//   - character " (0x22) and lower (except space)
+		//   - characters above ~ (0x7E), plus equal-sign
 		if r <= '"' || r > '~' {
 			needsEscaping = true
 			break

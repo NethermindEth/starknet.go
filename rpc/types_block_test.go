@@ -25,7 +25,7 @@ import (
 // during the execution of the test cases.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
 // Returns:
 //
 //	none
@@ -82,7 +82,7 @@ func TestBlockID_Marshal(t *testing.T) {
 // The test checks the behavior of the BlockStatus function by iterating through a list of test cases.
 //
 // Parameters:
-// - t: A testing.T object used for reporting test failures and logging.
+//   - t: A testing.T object used for reporting test failures and logging.
 // Returns:
 //
 //	none
@@ -120,7 +120,7 @@ var rawBlock []byte
 // fails with a fatal error message.
 //
 // Parameters:
-// - t: the testing object for running the test
+//   - t: the testing object for running the test
 // Returns:
 //
 //	none
