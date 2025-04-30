@@ -22,6 +22,7 @@ var result any
 //
 // Parameters:
 //   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -49,6 +50,7 @@ func BenchmarkPedersenHash(b *testing.B) {
 //
 // Parameters:
 //   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -90,6 +92,7 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 // Parameters:
 //   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -123,6 +126,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -141,6 +145,7 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -183,6 +188,7 @@ func TestGeneral_PedersenHash(t *testing.T) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -220,6 +226,7 @@ func TestGeneral_DivMod(t *testing.T) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -262,6 +269,7 @@ func TestGeneral_Add(t *testing.T) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -297,6 +305,7 @@ func TestGeneral_MultAir(t *testing.T) {
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -326,6 +335,7 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test.
+//
 // Returns:
 //
 //	none
@@ -356,6 +366,7 @@ func TestGeneral_HashAndSign(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -387,6 +398,7 @@ func TestGeneral_ComputeFact(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -422,6 +434,7 @@ func TestGeneral_BadSignature(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -487,6 +500,7 @@ func TestGeneral_Signature(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -509,6 +523,7 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none

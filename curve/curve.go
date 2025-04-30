@@ -132,6 +132,7 @@ func init() {
 // Parameters:
 //   - x1, y1: The coordinates of the first point as pointers to big.Int on the curve
 //   - x2, y2: The coordinates of the second point as pointers to big.Int on the curve
+//
 // Returns:
 //   - x, y: two pointers to big.Int, representing the x and y coordinates of the sum of the two input points
 func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
@@ -165,6 +166,7 @@ func (sc StarkCurve) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 //
 // Parameters:
 //   - x1, y1: The coordinates of the point to be doubled on the StarkCurve.
+//
 // Returns:
 //   - x, y: two pointers to big.Int, representing the x and y coordinates of the resulting point
 func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
@@ -195,6 +197,7 @@ func (sc StarkCurve) Double(x1, y1 *big.Int) (x, y *big.Int) {
 //   - x1: The x-coordinate of the point to be multiplied.
 //   - y1: The y-coordinate of the point to be multiplied.
 //   - k: The scalar value to multiply the point with.
+//
 // Returns:
 //   - x: The x-coordinate of the resulting point.
 //   - y: The y-coordinate of the resulting point.
@@ -209,6 +212,7 @@ func (sc StarkCurve) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
 //
 // Parameters:
 //   - k: The scalar value to multiply the base point by
+//
 // Returns:
 //   - x: The x-coordinate of the resulting point
 //   - y: The y-coordinate of the resulting point
@@ -221,6 +225,7 @@ func (sc StarkCurve) ScalarBaseMult(k []byte) (x, y *big.Int) {
 // Parameters:
 //   - x: the x-coordinate of the point
 //   - y: the y-coordinate of the point
+//
 // Return type: bool
 func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 	left := new(big.Int).Mul(y, y)
@@ -248,6 +253,7 @@ func (sc StarkCurve) IsOnCurve(x, y *big.Int) bool {
 //
 // Parameters:
 //   - x: The big integer to calculate the inverse modulus for
+//
 // Returns:
 //   - The inverse modulus of 'x' with respect to 'sc.N'
 func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
@@ -261,8 +267,10 @@ func (sc StarkCurve) InvModCurveSize(x *big.Int) *big.Int {
 //
 // Parameters:
 //   - starkX: The x-coordinate of the point
+//
 // Returns:
 //   - *big.Int: The calculated y-coordinate of the point
+//
 // a possible y coordinate such that together the point (x,y) is on the curve
 // Note: the real y coordinate is either y or -y
 func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
@@ -287,6 +295,7 @@ func (sc StarkCurve) GetYCoordinate(starkX *big.Int) *big.Int {
 //   - mout: a pointer to a big.Int variable
 //   - x1, y1: a pointer to a big.Int point on the curve
 //   - x2, y2: a pointer to a big.Int point on the curve
+//
 // Returns:
 //   - x, y: a pointer to a big.Int point on the curve
 //   - err: an error if any
@@ -321,6 +330,7 @@ func (sc StarkCurve) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, 
 // Parameters:
 //   - m: The scalar value to multiply the point by.
 //   - x1, y1: The coordinates of the point on the curve.
+//
 // Returns:
 //   - x, y: The coordinates of the resulting point after multiplication.
 func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
@@ -375,6 +385,7 @@ func (sc StarkCurve) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 //   - s: The s component of the signature
 //   - pubX: The x-coordinate of the public key used for verification
 //   - pubY: The y-coordinate of the public key used for verification
+//
 // Returns:
 //   - bool: true if the signature is valid, false otherwise
 func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
@@ -449,6 +460,7 @@ func (sc StarkCurve) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
 //   - msgHash: The hash of the message to be signed
 //   - privKey: The private key used for signing
 //   - seed: (Optional) Additional seed values used for generating the secret
+//
 // Returns:
 //   - x, y: The coordinates of the signature point on the curve
 //   - err: An error if any occurred during the signing process
@@ -505,6 +517,7 @@ func (sc StarkCurve) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *bi
 // Parameters:
 //   - msgHash: the message hash to be signed
 //   - privKey: the private key used for signing
+//
 // Returns:
 //   - xFelt: The x-coordinate of the signed message
 //   - yFelt: The y-coordinate of the signed message
@@ -524,6 +537,7 @@ func (sc StarkCurve) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Fe
 // HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
 // Parameters:
 //   - elems: slice of big.Int pointers to be hashed
+//
 // Returns:
 //   - hash: The hash of the list of elements
 func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
@@ -548,6 +562,7 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 //
 // Parameters:
 //   - elems: slice of big.Int pointers to be hashed
+//
 // Returns:
 //   - hash: The hash of the list of elements
 func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
@@ -562,6 +577,7 @@ func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 // Parameters:
 //   - a: a pointers to felt.Felt to be hashed.
 //   - b: a pointers to felt.Felt to be hashed.
+//
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
 func Pedersen(a, b *felt.Felt) *felt.Felt {
@@ -575,6 +591,7 @@ func Pedersen(a, b *felt.Felt) *felt.Felt {
 // Parameters:
 //   - a: a pointers to felt.Felt to be hashed.
 //   - b: a pointers to felt.Felt to be hashed.
+//
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
 func Poseidon(a, b *felt.Felt) *felt.Felt {
@@ -588,6 +605,7 @@ func Poseidon(a, b *felt.Felt) *felt.Felt {
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
+//
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PedersenArray(felts ...*felt.Felt) *felt.Felt {
@@ -601,6 +619,7 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
+//
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
@@ -613,6 +632,7 @@ func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 //
 // Parameters:
 //   - b: The byte slice to hash
+//
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 //   - error: An error if any
@@ -628,6 +648,7 @@ func StarknetKeccak(b []byte) *felt.Felt {
 //   - msgHash: a pointer to a big.Int representing the message hash
 //   - privKey: a pointer to a big.Int representing the private key
 //   - seed: a pointer to a big.Int representing the seed
+//
 // Returns:
 //   - secret: a pointer to a big.Int representing the generated secret
 func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
@@ -680,6 +701,7 @@ func (sc StarkCurve) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *bi
 //
 // Parameters:
 //   - none
+//
 // Returns:
 //   - priv: a pointer to a big.Int representing the generated private key
 //   - err: an error if any
@@ -711,6 +733,7 @@ func (sc StarkCurve) GetRandomPrivateKey() (priv *big.Int, err error) {
 //
 // Parameters:
 //   - privKey: The private key used to generate the point
+//
 // Return values:
 //   - x: The x coordinate of the generated point
 //   - y: The y coordinate of the generated point
@@ -733,6 +756,7 @@ func (sc StarkCurve) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error)
 //   - r: The r value (the first part) of the signature as a string
 //   - s: The s value (the second part) of the signature as a string
 //   - pubKey: The public key (only the x coordinate) as a string
+//
 // Return values:
 //   - bool: A boolean indicating whether the signature is valid
 //   - error: An error if any occurred during the verification process

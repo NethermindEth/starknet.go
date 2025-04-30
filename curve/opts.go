@@ -15,6 +15,7 @@ type funcCurveOption struct {
 //
 // Parameters:
 //   - fso: a pointer to funcCurveOption
+//
 // Returns:
 //
 //	none
@@ -26,6 +27,7 @@ func (fso *funcCurveOption) apply(do *curveOptions) {
 //
 // Parameters:
 //   - f: a function of type func(*curveOptions)
+//
 // Returns:
 //   - a pointer to funcCurveOption
 func newFuncCurveOption(f func(*curveOptions)) *funcCurveOption {
@@ -42,6 +44,7 @@ type CurveOption interface {
 //
 // Parameters:
 //   - paramsPath: a variadic parameter of type string, representing the path(s) to the parameters
+//
 // Returns:
 //   - a new instance of CurveOption
 func WithConstants(paramsPath ...string) CurveOption {

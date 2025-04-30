@@ -13,6 +13,7 @@ import (
 //   - n: a pointer to a big integer representing the dividend
 //   - m: a pointer to a big integer representing the divisor
 //   - p: a pointer to a big integer representing the modulus
+//
 // Returns:
 //   - *big.Int: a pointer to a big integer representing the remainder of the division operation.
 func DivMod(n, m, p *big.Int) *big.Int {
@@ -35,6 +36,7 @@ func DivMod(n, m, p *big.Int) *big.Int {
 // Parameters:
 //   - v: a pointer to a big.Int
 //   - rolen: the length of the resulting byte array
+//
 // Returns:
 //   - []byte: resulting byte array
 func int2octets(v *big.Int, rolen int) []byte {
@@ -70,6 +72,7 @@ func int2octets(v *big.Int, rolen int) []byte {
 //   - q: a pointer to a big.Int representing the divisor
 //   - qlen: an integer representing the desired length of the output octets
 //   - rolen: an integer representing the desired length of the output octets
+//
 // Returns:
 //   - []byte: a byte slice representing the octets.
 func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
@@ -87,6 +90,7 @@ func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 // Parameters:
 //   - in: a pointer to a big.Int representing the input bit string
 //   - qlen: an integer representing the desired length of the output integer
+//
 // Returns:
 //   - *big.Int: a pointer to a big.Int representing the converted integer
 func bits2int(in *big.Int, qlen int) *big.Int {
@@ -107,6 +111,7 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 //   - k: a byte slice representing the key to be used for the MAC calculation.
 //   - m: a byte slice representing the message to be used for the MAC calculation.
 //   - buf: a byte slice representing the buffer to be used for the MAC calculation.
+//
 // Returns:
 //   - []byte: a byte slice containing the calculated MAC
 func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
@@ -121,6 +126,7 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 //   - mask: is an integer representing the number of bits to mask
 //   - wordSize: is an integer representing the number of bits in each element of the slice
 //   - slice: is a byte slice on which the masking operation is performed
+//
 // Returns:
 //   - []byte: a new byte slice that contains the masked bits
 func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
@@ -145,6 +151,7 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 // Parameters:
 //   - in: a pointer to a big.Int
 //   - rolen: an integer representing the desired length of the output byte slice
+//
 // Returns:
 //   - buf: a byte slice containing the formatted Keccak hash
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
