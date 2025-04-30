@@ -21,7 +21,8 @@ var result any
 // it takes to execute the PedersenHash function for each test case.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -48,7 +49,8 @@ func BenchmarkPedersenHash(b *testing.B) {
 // BenchmarkCurveSign benchmarks the Curve.Sign function.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -89,7 +91,8 @@ func BenchmarkCurveSign(b *testing.B) {
 // perform the respective operation.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -122,7 +125,8 @@ func BenchmarkSignatureVerify(b *testing.B) {
 // TestGeneral_PrivateToPoint tests the PrivateToPoint function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -140,7 +144,8 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 // It uses the testing.T type from the testing package to report any errors encountered during the tests.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -182,7 +187,8 @@ func TestGeneral_PedersenHash(t *testing.T) {
 // The function is used to test the correctness of the DivMod function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -219,7 +225,8 @@ func TestGeneral_DivMod(t *testing.T) {
 // If the computed sum does not match the expected sum, an error is reported using the require.Equal function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -261,7 +268,8 @@ func TestGeneral_Add(t *testing.T) {
 // mismatches as test failures.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -296,7 +304,8 @@ func TestGeneral_MultAir(t *testing.T) {
 // It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -325,7 +334,8 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 // TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
 //
 // Parameters:
-// - t: The testing.T object for running the test.
+//   - t: The testing.T object for running the test.
+//
 // Returns:
 //
 //	none
@@ -355,7 +365,8 @@ func TestGeneral_HashAndSign(t *testing.T) {
 // and expected hash values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -386,7 +397,8 @@ func TestGeneral_ComputeFact(t *testing.T) {
 // TestGeneral_BadSignature tests the behavior of the function that checks for bad signatures.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -421,7 +433,8 @@ func TestGeneral_BadSignature(t *testing.T) {
 // variables.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -486,7 +499,8 @@ func TestGeneral_Signature(t *testing.T) {
 // The function takes no parameters and returns no values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -508,7 +522,8 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 // The function takes no parameters and returns no values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none

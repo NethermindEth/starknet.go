@@ -59,16 +59,19 @@ const (
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
 	Hash               *felt.Felt         `json:"transaction_hash"`
+	Type               TransactionType    `json:"type"`
 	ActualFee          FeePayment         `json:"actual_fee"`
-	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-	Type               TransactionType    `json:"type,omitempty"`
 	MessagesSent       []MsgToL1          `json:"messages_sent"`
-	RevertReason       string             `json:"revert_reason,omitempty"`
 	Events             []Event            `json:"events"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
-	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
+	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	// Only present in case of a Deploy or DeployAccount transaction receipt
+	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+	// Only appears if the transaction is a L1Handler transaction
+	MessageHash NumAsHex `json:"message_hash,omitempty"`
+	// Only appears if execution_status is REVERTED
+	RevertReason string `json:"revert_reason,omitempty"`
 }
 
 type TransactionType string
@@ -96,9 +99,10 @@ const (
 //	nil if the unmarshaling is successful.
 //
 // Parameters:
-// - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//
 // Returns:
-// - error: an error if the unmarshaling fails
+//   - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -117,7 +121,7 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	case "L1_HANDLER":
 		*tt = TransactionType_L1Handler
 	default:
-		return fmt.Errorf("unsupported type: %s", data)
+		return fmt.Errorf("unsupported transaction type: %s", data)
 	}
 
 	return nil
@@ -126,8 +130,8 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 //
 // Returns:
-// - []byte: a byte slice
-// - error: an error if any
+//   - []byte: a byte slice
+//   - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }

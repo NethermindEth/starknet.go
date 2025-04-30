@@ -17,7 +17,8 @@ import (
 // If there is a mismatch or an error occurs, the function logs a fatal error.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -51,7 +52,8 @@ func TestChainID(t *testing.T) {
 // The function uses the testing.T type for assertions and the context.Background() function for the context.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

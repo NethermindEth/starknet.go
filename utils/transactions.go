@@ -43,20 +43,18 @@ func BuildInvokeTxn(
 	resourceBounds rpc.ResourceBoundsMapping,
 ) *rpc.BroadcastInvokeTxnV3 {
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
-		InvokeTxnV3: rpc.InvokeTxnV3{
-			Type:                  rpc.TransactionType_Invoke,
-			SenderAddress:         senderAddress,
-			Calldata:              calldata,
-			Version:               rpc.TransactionV3,
-			Signature:             []*felt.Felt{},
-			Nonce:                 nonce,
-			ResourceBounds:        resourceBounds,
-			Tip:                   "0x0",
-			PayMasterData:         []*felt.Felt{},
-			AccountDeploymentData: []*felt.Felt{},
-			NonceDataMode:         rpc.DAModeL1,
-			FeeMode:               rpc.DAModeL1,
-		},
+		Type:                  rpc.TransactionType_Invoke,
+		SenderAddress:         senderAddress,
+		Calldata:              calldata,
+		Version:               rpc.TransactionV3,
+		Signature:             []*felt.Felt{},
+		Nonce:                 nonce,
+		ResourceBounds:        resourceBounds,
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
 	}
 
 	return &invokeTxn
@@ -135,20 +133,18 @@ func BuildDeployAccountTxn(
 	resourceBounds rpc.ResourceBoundsMapping,
 ) *rpc.BroadcastDeployAccountTxnV3 {
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
-		DeployAccountTxnV3: rpc.DeployAccountTxnV3{
-			Type:                rpc.TransactionType_DeployAccount,
-			Version:             rpc.TransactionV3,
-			Signature:           []*felt.Felt{},
-			Nonce:               nonce,
-			ContractAddressSalt: contractAddressSalt,
-			ConstructorCalldata: constructorCalldata,
-			ClassHash:           classHash,
-			ResourceBounds:      resourceBounds,
-			Tip:                 "0x0",
-			PayMasterData:       []*felt.Felt{},
-			NonceDataMode:       rpc.DAModeL1,
-			FeeMode:             rpc.DAModeL1,
-		},
+		Type:                rpc.TransactionType_DeployAccount,
+		Version:             rpc.TransactionV3,
+		Signature:           []*felt.Felt{},
+		Nonce:               nonce,
+		ContractAddressSalt: contractAddressSalt,
+		ConstructorCalldata: constructorCalldata,
+		ClassHash:           classHash,
+		ResourceBounds:      resourceBounds,
+		Tip:                 "0x0",
+		PayMasterData:       []*felt.Felt{},
+		NonceDataMode:       rpc.DAModeL1,
+		FeeMode:             rpc.DAModeL1,
 	}
 
 	return &deployAccountTxn

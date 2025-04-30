@@ -21,7 +21,8 @@ var (
 // It initializes the test environment and runs the test cases.
 //
 // Parameters:
-// - m: is the testing.M parameter
+//   - m: is the testing.M parameter
+//
 // Returns:
 //
 //	none
@@ -37,7 +38,8 @@ func TestMain(m *testing.M) {
 // It then uses the Fatalf method from the testing package to fail the test if the Devnet is not alive.
 //
 // Parameters:
-// - t: is the testing.T instance for running the test
+//   - t: is the testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -86,7 +88,8 @@ func TestDevnet_Accounts(t *testing.T) {
 // If the NewBalance returned by the Mint method is less than the amount, it fails the test with an error message.
 //
 // Parameters:
-// - t: is the testing.T instance for running the test
+//   - t: is the testing.T instance for running the test
+//
 // Returns:
 //
 //	none

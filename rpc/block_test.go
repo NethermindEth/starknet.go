@@ -13,7 +13,8 @@ import (
 // TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -29,7 +30,8 @@ func TestBlockNumber(t *testing.T) {
 
 // TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -59,16 +61,17 @@ func TestBlockHashAndNumber(t *testing.T) {
 // The "mainnet" key does not have any testSetType objects.
 //
 // The function then iterates over the testSet map and performs the following steps for each testSetType object:
-// - It creates a new Spy object and assigns it to the testConfig.provider.c field.
-// - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
-// - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
-// - It checks the type of the result variable and performs specific assertions based on the type.
+//   - It creates a new Spy object and assigns it to the testConfig.provider.c field.
+//   - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
+//   - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
+//   - It checks the type of the result variable and performs specific assertions based on the type.
 //   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
 //   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
 //   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -180,7 +183,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
 //
 // Parameters:
-// - t: The t testing object
+//   - t: The t testing object
+//
 // Returns:
 //
 //	none
@@ -202,6 +206,7 @@ func TestBlockWithTxs(t *testing.T) {
 		DeployAccountV1Index int
 		DeployAccountV3Index int //TODO: implement testcase
 		L1HandlerV0Index     int
+		DeployV0Index        int //TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", "result")
@@ -221,7 +226,7 @@ func TestBlockWithTxs(t *testing.T) {
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
-					nil,
+					[]BlockTransaction{},
 				},
 			},
 			{
@@ -260,6 +265,7 @@ func TestBlockWithTxs(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 
+	// TODO: refactor test to check the marshal result against the expected json file
 	for _, test := range testSet {
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
 		require.NoError(err, "Unable to fetch the given block.")
@@ -280,9 +286,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockInvokeV1 transaction
 				if test.InvokeV1Index > 0 {
-					invokeV1Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV1Index].(BlockInvokeTxnV1)
+					invokeV1Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
 					require.True(ok, "Expected invoke v1 transaction.")
-					invokeV1Block, ok := block.Transactions[test.InvokeV1Index].(BlockInvokeTxnV1)
+					invokeV1Block, ok := block.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
 					require.True(ok, "Expected invoke v1 transaction.")
 
 					require.Exactly(invokeV1Expected, invokeV1Block)
@@ -290,9 +296,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockInvokeV3 transaction
 				if test.InvokeV3Index > 0 {
-					invokeV3Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV3Index].(BlockInvokeTxnV3)
+					invokeV3Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
 					require.True(ok, "Expected invoke v3 transaction.")
-					invokeV3Block, ok := block.Transactions[test.InvokeV3Index].(BlockInvokeTxnV3)
+					invokeV3Block, ok := block.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
 					require.True(ok, "Expected invoke v3 transaction.")
 
 					require.Exactly(invokeV3Expected, invokeV3Block)
@@ -300,9 +306,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockDeclareV1 transaction
 				if test.DeclareV1Index > 0 {
-					declareV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV1Index].(BlockDeclareTxnV1)
+					declareV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
 					require.True(ok, "Expected declare v1 transaction.")
-					declareV1Block, ok := block.Transactions[test.DeclareV1Index].(BlockDeclareTxnV1)
+					declareV1Block, ok := block.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
 					require.True(ok, "Expected declare v1 transaction.")
 
 					require.Exactly(declareV1Expected, declareV1Block)
@@ -310,9 +316,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockDeclareV2 transaction
 				if test.DeclareV2Index > 0 {
-					declareV2Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV2Index].(BlockDeclareTxnV2)
+					declareV2Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
 					require.True(ok, "Expected declare v2 transaction.")
-					declareV2Block, ok := block.Transactions[test.DeclareV2Index].(BlockDeclareTxnV2)
+					declareV2Block, ok := block.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
 					require.True(ok, "Expected declare v2 transaction.")
 
 					require.Exactly(declareV2Expected, declareV2Block)
@@ -320,9 +326,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockDeployAccountV1 transaction
 				if test.DeployAccountV1Index > 0 {
-					deployAccountV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeployAccountV1Index].(BlockDeployAccountTxn)
+					deployAccountV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
 					require.True(ok, "Expected declare v2 transaction.")
-					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].(BlockDeployAccountTxn)
+					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
 					require.True(ok, "Expected declare v2 transaction.")
 
 					require.Exactly(deployAccountV1Expected, deployAccountV1Block)
@@ -330,9 +336,9 @@ func TestBlockWithTxs(t *testing.T) {
 
 				//validates an BlockL1HandlerV0 transaction
 				if test.L1HandlerV0Index > 0 {
-					l1HandlerV0Expected, ok := (*test.ExpectedBlock).Transactions[test.L1HandlerV0Index].(BlockL1HandlerTxn)
+					l1HandlerV0Expected, ok := (*test.ExpectedBlock).Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
 					require.True(ok, "Expected L1 handler transaction.")
-					l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].(BlockL1HandlerTxn)
+					l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
 					require.True(ok, "Expected L1 handler transaction.")
 
 					require.Exactly(l1HandlerV0Expected, l1HandlerV0Block)
@@ -354,7 +360,8 @@ func TestBlockWithTxs(t *testing.T) {
 // Finally, the function terminates if all test cases pass.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -402,7 +409,8 @@ func TestBlockTransactionCount(t *testing.T) {
 // TestCaptureUnsupportedBlockTxn tests the functionality of capturing unsupported block transactions.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -426,24 +434,21 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
 			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
-			if err != nil {
-				t.Fatal("BlockWithTxHashes match the expected error:", err)
-			}
+			require.NoError(t, err)
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
-			if !ok {
-				t.Fatalf("expecting *rpc.Block, instead %T", blockWithTxsInterface)
-			}
+			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
+
 			for k, v := range blockWithTxs.Transactions {
-				_, okv0 := v.(BlockInvokeTxnV0)
-				_, okv1 := v.(BlockInvokeTxnV1)
-				_, okv3 := v.(BlockInvokeTxnV3)
-				_, okl1 := v.(BlockL1HandlerTxn)
-				_, okdec0 := v.(BlockDeclareTxnV0)
-				_, okdec1 := v.(BlockDeclareTxnV1)
-				_, okdec2 := v.(BlockDeclareTxnV2)
-				_, okdec3 := v.(BlockDeclareTxnV3)
-				_, okdep := v.(BlockDeployTxn)
-				_, okdepac := v.(BlockDeployAccountTxn)
+				_, okv0 := v.Transaction.(InvokeTxnV0)
+				_, okv1 := v.Transaction.(InvokeTxnV1)
+				_, okv3 := v.Transaction.(InvokeTxnV3)
+				_, okl1 := v.Transaction.(L1HandlerTxn)
+				_, okdec0 := v.Transaction.(DeclareTxnV0)
+				_, okdec1 := v.Transaction.(DeclareTxnV1)
+				_, okdec2 := v.Transaction.(DeclareTxnV2)
+				_, okdec3 := v.Transaction.(DeclareTxnV3)
+				_, okdep := v.Transaction.(DeployTxn)
+				_, okdepac := v.Transaction.(DeployAccountTxnV1)
 				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
@@ -461,7 +466,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // If the returned block hash does not match the expected block hash, it fails the test.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

@@ -17,7 +17,8 @@ import (
 // It reads the content of the "./tests/hello_starknet_compiled.casm.json" file and unmarshals it into a contracts.CasmClass variable.
 // The function returns an assertion error if there is an error reading the file or unmarshaling the content.
 // Parameters:
-// - t: A testing.T object used for running the test and reporting any failures.
+//   - t: A testing.T object used for running the test and reporting any failures.
+//
 // Returns:
 //
 //	none

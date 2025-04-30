@@ -149,9 +149,10 @@ type ExecInvocation struct {
 // The function returns an error if the unmarshalling process fails.
 //
 // Parameters:
-// - data: The JSON data to be unmarshalled
+//   - data: The JSON data to be unmarshalled
+//
 // Returns:
-// - error: An error if the unmarshalling process fails
+//   - error: An error if the unmarshalling process fails
 func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -193,9 +194,10 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 // The function returns an error if the unmarshalling process fails.
 //
 // Parameters:
-// - data: The JSON data to be unmarshalled
+//   - data: The JSON data to be unmarshalled
+//
 // Returns:
-// - error: An error if the unmarshalling process fails
+//   - error: An error if the unmarshalling process fails
 func (txn *Trace) UnmarshalJSON(data []byte) error {
 	var dec map[string]interface{}
 	if err := json.Unmarshal(data, &dec); err != nil {
@@ -237,10 +239,11 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 // unmarshalTraceTxn unmarshals a given interface and returns a TxnTrace.
 //
 // Parameter:
-// - t: The interface{} to be unmarshalled
+//   - t: The interface{} to be unmarshalled
+//
 // Returns:
-// - TxnTrace: a TxnTrace
-// - error: an error if the unmarshaling process fails
+//   - TxnTrace: a TxnTrace
+//   - error: an error if the unmarshaling process fails
 func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:

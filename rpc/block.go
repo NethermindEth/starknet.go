@@ -11,10 +11,11 @@ import (
 // BlockNumber returns the block number of the current block.
 //
 // Parameters:
-// - ctx: The context to use for the request
+//   - ctx: The context to use for the request
+//
 // Returns:
-// - uint64: The block number
-// - error: An error if any
+//   - uint64: The block number
+//   - error: An error if any
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 	var blockNumber uint64
 	if err := do(ctx, provider.c, "starknet_blockNumber", &blockNumber); err != nil {
@@ -29,10 +30,11 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // BlockHashAndNumber retrieves the hash and number of the current block.
 //
 // Parameters:
-// - ctx: The context to use for the request.
+//   - ctx: The context to use for the request.
+//
 // Returns:
-// - *BlockHashAndNumberOutput: The hash and number of the current block
-// - error: An error if any
+//   - *BlockHashAndNumberOutput: The hash and number of the current block
+//   - error: An error if any
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
@@ -57,9 +59,10 @@ func WithBlockNumber(n uint64) BlockID {
 // WithBlockHash returns a BlockID with the given hash.
 //
 // Parameters:
-// - h: The hash to use for the BlockID.
+//   - h: The hash to use for the BlockID.
+//
 // Returns:
-// - BlockID: A BlockID struct with the specified hash
+//   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
 	return BlockID{
 		Hash: h,
@@ -69,9 +72,10 @@ func WithBlockHash(h *felt.Felt) BlockID {
 // WithBlockTag creates a new BlockID with the specified tag.
 //
 // Parameters:
-// - tag: The tag for the BlockID
+//   - tag: The tag for the BlockID
+//
 // Returns:
-// - BlockID: A BlockID struct with the specified tag
+//   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag string) BlockID {
 	return BlockID{
 		Tag: tag,
@@ -81,11 +85,12 @@ func WithBlockTag(tag string) BlockID {
 // BlockWithTxHashes retrieves the block with transaction hashes for the given block ID.
 //
 // Parameters:
-// - ctx: The context.Context object for controlling the function call
-// - blockID: The ID of the block to retrieve the transactions from
+//   - ctx: The context.Context object for controlling the function call
+//   - blockID: The ID of the block to retrieve the transactions from
+//
 // Returns:
-// - interface{}: The retrieved block
-// - error: An error, if any
+//   - interface{}: The retrieved block
+//   - error: An error, if any
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
@@ -115,11 +120,12 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // (gets the information about the result of executing the requested block).
 //
 // Parameters:
-// - ctx: The context.Context object for controlling the function call
-// - blockID: The ID of the block to retrieve the transactions from
+//   - ctx: The context.Context object for controlling the function call
+//   - blockID: The ID of the block to retrieve the transactions from
+//
 // Returns:
-// - *StateUpdateOutput: The retrieved state update
-// - error: An error, if any
+//   - *StateUpdateOutput: The retrieved state update
+//   - error: An error, if any
 func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
@@ -131,11 +137,12 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 // BlockTransactionCount returns the number of transactions in a specific block.
 //
 // Parameters:
-// - ctx: The context.Context object to handle cancellation signals and timeouts
-// - blockID: The ID of the block to retrieve the number of transactions from
+//   - ctx: The context.Context object to handle cancellation signals and timeouts
+//   - blockID: The ID of the block to retrieve the number of transactions from
+//
 // Returns:
-// - uint64: The number of transactions in the block
-// - error: An error, if any
+//   - uint64: The number of transactions in the block
+//   - error: An error, if any
 func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
@@ -147,11 +154,12 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // BlockWithTxs retrieves a block with its transactions given the block id.
 //
 // Parameters:
-// - ctx: The context.Context object for the request
-// - blockID: The ID of the block to retrieve
+//   - ctx: The context.Context object for the request
+//   - blockID: The ID of the block to retrieve
+//
 // Returns:
-// - interface{}: The retrieved block
-// - error: An error, if any
+//   - interface{}: The retrieved block
+//   - error: An error, if any
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {

@@ -144,10 +144,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
 
 	if withQueryBitVersion {
-		broadcastInvokeTxnV3.InvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
+		broadcastInvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
-	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignInvokeTransaction(ctx, &broadcastInvokeTxnV3.InvokeTxnV3)
+	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
 	}
@@ -278,13 +278,13 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
 
 	if withQueryBitVersion {
-		broadcastDepAccTxnV3.DeployAccountTxnV3.Version = rpc.TransactionV3WithQueryBit
+		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
 	// signing the txn, as it needs a signature to estimate the fee
-	err := account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -298,7 +298,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
-	err = account.SignDeployAccountTransaction(ctx, &broadcastDepAccTxnV3.DeployAccountTxnV3, precomputedAddress)
+	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -364,8 +364,8 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 }
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashInvoke(invokeTx)
+func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
+	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
 		return nil, err
 	}
@@ -388,7 +388,7 @@ func signInvokeTransaction[T any](ctx context.Context, account *Account, invokeT
 //   - error: an error if any
 func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error {
 	switch deployAcc := tx.(type) {
-	case *rpc.DeployAccountTxn:
+	case *rpc.DeployAccountTxnV1:
 		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
 		if err != nil {
 			return err
@@ -408,7 +408,7 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 }
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
-func signDeployAccountTransaction[T any](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
+func signDeployAccountTransaction[T rpc.DeployAccountType](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return nil, err
@@ -463,7 +463,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 }
 
 // signDeclareTransaction is a generic helper function that signs a declare transaction.
-func signDeclareTransaction[T any](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
+func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return nil, err
@@ -489,10 +489,10 @@ func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, c
 
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
-	// deployAccTxn v0, pointer and struct
-	case *rpc.DeployAccountTxn:
+	// deployAccTxn v1, pointer and struct
+	case *rpc.DeployAccountTxnV1:
 		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainId)
-	case rpc.DeployAccountTxn:
+	case rpc.DeployAccountTxnV1:
 		return hash.TransactionHashDeployAccountV1(&txn, contractAddress, account.ChainId)
 	// deployAccTxn v3, pointer and struct
 	case *rpc.DeployAccountTxnV3:
@@ -640,39 +640,39 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ClassHash: resp.ClassHash}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{TransactionHash: resp.TransactionHash, ContractAddress: resp.ContractAddress}, nil
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
 	default:
 		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}

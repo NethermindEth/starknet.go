@@ -18,10 +18,11 @@ const (
 // Err returns an RPCError based on the given code and data.
 //
 // Parameters:
-// - code: an integer representing the error code.
-// - data: any data associated with the error.
+//   - code: an integer representing the error code.
+//   - data: any data associated with the error.
+//
 // Returns
-// - *RPCError: a pointer to an RPCError object.
+//   - *RPCError: a pointer to an RPCError object.
 func Err(code int, data RPCData) *RPCError {
 	switch code {
 	case InvalidJSON:
@@ -42,10 +43,11 @@ func Err(code int, data RPCData) *RPCError {
 // If no match is found, the function returns an InternalError with the original error.
 //
 // Parameters:
-// - err: The error to be unwrapped
-// - rpcErrors: variadic list of *RPCError objects to be checked
+//   - err: The error to be unwrapped
+//   - rpcErrors: variadic list of *RPCError objects to be checked
+//
 // Returns:
-// - error: the original error
+//   - error: the original error
 func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, err := json.Marshal(baseError)
 	if err != nil {
