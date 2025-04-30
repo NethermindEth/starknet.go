@@ -1595,14 +1595,18 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	})
 
 	t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
-		pubKey := internalUtils.TestHexToFelt(t, acnts[0].PublicKey)
+		// Get random keys to create the new account
+		ks, pub, _ := account.GetRandomKeys()
+		tempAcc, err := account.NewAccount(client, pub, pub.String(), ks, 2)
+		require.NoError(t, err)
+
 		classHash := internalUtils.TestHexToFelt(t, "0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c") // preDeployed OZ account classhash in devnet
 		// Build and send deploy account txn
-		txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
+		txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
 			context.Background(),
-			pubKey,
+			pub,
 			classHash,
-			[]*felt.Felt{pubKey},
+			[]*felt.Felt{pub},
 			1.5,
 			true,
 		)
