@@ -1,0 +1,44 @@
+# Chain ID
+
+Returns the chain ID of the network.
+
+## Parameters
+
+None
+
+## Returns
+
+Returns the chain ID as a Felt.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	result, err := provider.ChainID(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Chain ID:", result)
+}
+```
+
+## Error Cases
+
+None 

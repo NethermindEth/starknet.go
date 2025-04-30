@@ -1,0 +1,65 @@
+# Estimate Fee
+
+Estimates the fee for a transaction.
+
+## Parameters
+
+- `request` - The transaction request object containing:
+  - Transaction type
+  - Transaction data
+  - Other transaction-specific data
+- `block_id` - The block identifier. Can be:
+  - Block hash
+  - Block number
+  - "latest" for the latest block
+  - "pending" for the pending block
+
+## Returns
+
+Returns a fee estimate object containing:
+- Gas price
+- Gas usage
+- Overall fee
+- Other fee-related data
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	// Create transaction request
+	request := rpc.BroadcastedTransaction{
+		Type: rpc.TransactionType_Invoke,
+		// Add other transaction data
+	}
+	
+	result, err := provider.EstimateFee(context.Background(), request, rpc.BlockID{Tag: "latest"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Fee Estimate:", result)
+}
+```
+
+## Error Cases
+
+- `INVALID_BLOCK_ID` - If the block identifier is invalid
+- `INVALID_TRANSACTION` - If the transaction is invalid
+- `CONTRACT_NOT_FOUND` - If the contract does not exist
+- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid 

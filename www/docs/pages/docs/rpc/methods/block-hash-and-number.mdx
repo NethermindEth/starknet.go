@@ -1,0 +1,47 @@
+# Block Hash And Number
+
+Returns the latest block hash and number.
+
+## Parameters
+
+None
+
+## Returns
+
+Returns an object containing:
+- Block hash
+- Block number
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	result, err := provider.BlockHashAndNumber(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Block Hash:", result.BlockHash)
+	fmt.Println("Block Number:", result.BlockNumber)
+}
+```
+
+## Error Cases
+
+None 
