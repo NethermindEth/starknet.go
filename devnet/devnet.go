@@ -29,6 +29,7 @@ type TestAccount struct {
 //
 // Parameters:
 //   - baseURL: a string representing the base URL of the DevNet server
+//
 // Returns:
 //   - *DevNet: a pointer to the newly created DevNet instance
 func NewDevNet(baseURL ...string) *DevNet {
@@ -46,6 +47,7 @@ func NewDevNet(baseURL ...string) *DevNet {
 //
 // Parameter:
 //   - uri: a string which represents the URI path
+//
 // Returns:
 //   - string which is the full URL constructed using the `devnet.baseURL` and `uri`
 func (devnet *DevNet) api(uri string) string {
@@ -122,6 +124,7 @@ type MintResponse struct {
 // Parameters:
 //   - address: is the address to mint tokens for
 //   - amount: is the amount of tokens to mint
+//
 // Returns:
 //   - *MintResponse: a MintResponse
 //   - error: an error if any
