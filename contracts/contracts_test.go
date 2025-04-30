@@ -18,6 +18,7 @@ import (
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -62,6 +63,7 @@ func TestUnmarshalContractClass(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -161,6 +163,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -240,6 +243,7 @@ func newNestedFieldArray(val ...NestedUints) *NestedUints {
 //
 // Parameters:
 //   - t: The testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none
@@ -263,6 +267,7 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none

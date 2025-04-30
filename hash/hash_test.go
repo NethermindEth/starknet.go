@@ -18,6 +18,7 @@ import (
 // The function returns an assertion error if there is an error reading the file or unmarshaling the content.
 // Parameters:
 //   - t: A testing.T object used for running the test and reporting any failures.
+//
 // Returns:
 //
 //	none

@@ -103,6 +103,7 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 //
 // Parameters:
 //   - content: byte array to be encoded
+//
 // Returns:
 //   - string: the encoded program
 //   - error: the error if any
