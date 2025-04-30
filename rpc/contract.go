@@ -17,6 +17,7 @@ import (
 //   - ctx: The context.Context object
 //   - blockID: The BlockID object
 //   - classHash: The *felt.Felt object
+//
 // Returns:
 //   - ClassOutput: The output of the class.
 //   - error: An error if any occurred during the execution.
@@ -36,6 +37,7 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 //   - ctx: The context.Context object for the function
 //   - blockID: The BlockID of the class
 //   - contractAddress: The address of the contract
+//
 // Returns:
 //   - ClassOutput: The output of the class
 //   - error: An error if any occurred during the execution
@@ -83,6 +85,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 //   - ctx: The context.Context used for the request
 //   - blockID: The ID of the block
 //   - contractAddress: The address of the contract
+//
 // Returns:
 //   - *felt.Felt: The class hash
 //   - error: An error if any occurred during the execution
@@ -102,6 +105,7 @@ func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, cont
 //   - contractAddress: The address of the contract
 //   - key: The key for which to retrieve the storage value
 //   - blockID: The ID of the block at which to retrieve the storage value
+//
 // Returns:
 //   - string: The value of the storage
 //   - error: An error if any occurred during the execution
@@ -121,6 +125,7 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 //   - ctx: is the context.Context for the function call
 //   - blockID: is the ID of the block
 //   - contractAddress: is the address of the contract
+//
 // Returns:
 //   - *felt.Felt: the contract's nonce at the requested state
 //   - error: an error if any
@@ -142,6 +147,7 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 //   - requests: A sequence of transactions to estimate, running each transaction on the state resulting from applying all the previous ones
 //   - simulationFlags: Describes what parts of the transaction should be executed
 //   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on
+//
 // Returns:
 //   - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
 //   - error: An error if any occurred during the execution
@@ -159,6 +165,7 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastT
 //   - ctx: The context of the function call
 //   - msg: The message to estimate the fee for
 //   - blockID: The ID of the block to estimate the fee in
+//
 // Returns:
 //   - *FeeEstimation: the fee estimated for the message
 //   - error: an error if any occurred during the execution
@@ -177,8 +184,10 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 // Parameters:
 //   - ctx: The context of the function call
 //   - storageProofInput: an input containing optional and required fields for the request
+//
 // Returns:
 //   - *StorageProofResult: The requested storage proofs. Note that if a requested leaf has the default value,
+//
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 //   - error: an error if any occurred during the execution
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {

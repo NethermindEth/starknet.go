@@ -100,6 +100,7 @@ const (
 //
 // Parameters:
 //   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {

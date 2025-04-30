@@ -12,6 +12,7 @@ import (
 //
 // Parameters:
 //   - ctx: The context to use for the request
+//
 // Returns:
 //   - uint64: The block number
 //   - error: An error if any
@@ -30,6 +31,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 //
 // Parameters:
 //   - ctx: The context to use for the request.
+//
 // Returns:
 //   - *BlockHashAndNumberOutput: The hash and number of the current block
 //   - error: An error if any
@@ -58,6 +60,7 @@ func WithBlockNumber(n uint64) BlockID {
 //
 // Parameters:
 //   - h: The hash to use for the BlockID.
+//
 // Returns:
 //   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
@@ -70,6 +73,7 @@ func WithBlockHash(h *felt.Felt) BlockID {
 //
 // Parameters:
 //   - tag: The tag for the BlockID
+//
 // Returns:
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag string) BlockID {
@@ -83,6 +87,7 @@ func WithBlockTag(tag string) BlockID {
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //   - blockID: The ID of the block to retrieve the transactions from
+//
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
@@ -117,6 +122,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //   - blockID: The ID of the block to retrieve the transactions from
+//
 // Returns:
 //   - *StateUpdateOutput: The retrieved state update
 //   - error: An error, if any
@@ -133,6 +139,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 // Parameters:
 //   - ctx: The context.Context object to handle cancellation signals and timeouts
 //   - blockID: The ID of the block to retrieve the number of transactions from
+//
 // Returns:
 //   - uint64: The number of transactions in the block
 //   - error: An error, if any
@@ -149,6 +156,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // Parameters:
 //   - ctx: The context.Context object for the request
 //   - blockID: The ID of the block to retrieve
+//
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any

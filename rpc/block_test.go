@@ -14,6 +14,7 @@ import (
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -30,6 +31,7 @@ func TestBlockNumber(t *testing.T) {
 // TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -69,6 +71,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -181,6 +184,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 // Parameters:
 //   - t: The t testing object
+//
 // Returns:
 //
 //	none
@@ -357,6 +361,7 @@ func TestBlockWithTxs(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -405,6 +410,7 @@ func TestBlockTransactionCount(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -461,6 +467,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

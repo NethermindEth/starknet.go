@@ -20,6 +20,7 @@ import (
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -101,6 +102,7 @@ func TestTransactionTrace(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -187,6 +189,7 @@ func TestSimulateTransaction(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

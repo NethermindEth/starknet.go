@@ -20,6 +20,7 @@ const (
 // Parameters:
 //   - code: an integer representing the error code.
 //   - data: any data associated with the error.
+//
 // Returns
 //   - *RPCError: a pointer to an RPCError object.
 func Err(code int, data RPCData) *RPCError {
@@ -44,6 +45,7 @@ func Err(code int, data RPCData) *RPCError {
 // Parameters:
 //   - err: The error to be unwrapped
 //   - rpcErrors: variadic list of *RPCError objects to be checked
+//
 // Returns:
 //   - error: the original error
 func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {

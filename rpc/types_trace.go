@@ -150,6 +150,7 @@ type ExecInvocation struct {
 //
 // Parameters:
 //   - data: The JSON data to be unmarshalled
+//
 // Returns:
 //   - error: An error if the unmarshalling process fails
 func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
@@ -194,6 +195,7 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 //
 // Parameters:
 //   - data: The JSON data to be unmarshalled
+//
 // Returns:
 //   - error: An error if the unmarshalling process fails
 func (txn *Trace) UnmarshalJSON(data []byte) error {
@@ -238,6 +240,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 //
 // Parameter:
 //   - t: The interface{} to be unmarshalled
+//
 // Returns:
 //   - TxnTrace: a TxnTrace
 //   - error: an error if the unmarshaling process fails

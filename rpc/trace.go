@@ -66,6 +66,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 // Parameters:
 //   - ctx: the context.Context object for controlling the request
 //   - blockHash: the hash of the block to retrieve the traces from
+//
 // Returns:
 //   - []Trace: a slice of Trace objects representing the traces of transactions in the block
 //   - error: an error if there was a problem retrieving the traces.
@@ -89,6 +90,7 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 //   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
 //   - txns: A sequence of transactions to simulate, running each transaction on the state resulting from applying all the previous ones
 //   - simulationFlags: Describes what parts of the transaction should be executed
+//
 // Returns:
 //   - []SimulatedTransaction: The execution trace and consumed resources of the required transactions
 //   - error: An error if any occurred during the execution

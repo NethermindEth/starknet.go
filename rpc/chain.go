@@ -10,6 +10,7 @@ import (
 //
 // Parameters:
 //   - ctx: The context.Context object for the function
+//
 // Returns:
 //   - string: The chain ID
 //   - error: An error if any occurred during the execution
@@ -29,6 +30,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 //
 // Parameters:
 //   - ctx: The context.Context object for the function
+//
 // Returns:
 //   - *SyncStatus: The synchronization status
 //   - error: An error if any occurred during the execution

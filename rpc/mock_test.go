@@ -41,6 +41,7 @@ func (r *rpcMock) Close() {
 //   - result: the interface{} to store the result of the RPC call
 //   - method: the name of the method to call
 //   - args: variadic and can be used to pass additional arguments to the RPC method
+//
 // Returns:
 //   - error: an error if any occurred during the function call
 func (r *rpcMock) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
@@ -53,6 +54,7 @@ func (r *rpcMock) CallContextWithSliceArgs(ctx context.Context, result interface
 //   - ctx: represents the current execution context
 //   - result: the interface{} to store the result of the RPC call
 //   - args: variadic and can be used to pass additional arguments to the RPC method
+//
 // Returns:
 //   - error: an error if any occurred during the function call
 func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args interface{}) error {
@@ -138,6 +140,7 @@ func methodsSwitchList(result interface{}, method string, args ...interface{}) e
 // Parameters:
 //   - result: The result variable that will hold the block number value
 //   - args: Additional arguments passed to the function
+//
 // Returns:
 //   - error: An error if the result is not of type uint64 or if the arguments count is not zero
 func mock_starknet_blockNumber(result interface{}, args ...interface{}) error {
@@ -162,6 +165,7 @@ func mock_starknet_blockNumber(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
 //   - args: a variadic parameter of type interface{} that represents the arguments of the function.
+//
 // Returns:
 //   - error: an error if there is a wrong type or wrong number of arguments.
 func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) error {
@@ -191,6 +195,7 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
 //   - args: a variadic parameter of type interface{} that represents the arguments of the function.
+//
 // Returns:
 //   - error: an error if there is a wrong type or wrong number of arguments.
 func mock_starknet_chainId(result interface{}, args ...interface{}) error {
@@ -214,6 +219,7 @@ func mock_starknet_chainId(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
 //   - args: a variadic parameter of type interface{} that represents the arguments of the function.
+//
 // Return:
 //   - error: an error if there is a wrong type or wrong number of arguments
 func mock_starknet_syncing(result interface{}, args ...interface{}) error {
@@ -244,6 +250,7 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: The result of the API call, which will be stored in the provided interface{}. This should be a pointer to a json.RawMessage
 //   - args: The arguments of the API call. This should be a variadic parameter that accepts a variable number of arguments
+//
 // Returns:
 //   - error: An error if the API call fails, otherwise nil
 func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...interface{}) error {
@@ -278,6 +285,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 // Parameters:
 //   - result: The result of the API call, which will be stored in the provided interface{}. This should be a pointer to a json.RawMessage
 //   - args: The arguments of the API call. This should be a variadic parameter that accepts a variable number of arguments
+//
 // Returns:
 //   - error: An error if the API call fails, otherwise nil
 func mock_starknet_getBlockTransactionCount(result interface{}, args ...interface{}) error {
@@ -303,6 +311,7 @@ func mock_starknet_getBlockTransactionCount(result interface{}, args ...interfac
 // Parameters:
 //   - result: an interface{} that represents the result of the transaction retrieval
 //   - args: a variadic parameter that contains the arguments used for retrieval
+//
 // Returns:
 //   - error: an error if there is a failure in retrieving the transaction
 func mock_starknet_getTransactionByHash(result interface{}, args ...interface{}) error {
@@ -346,6 +355,7 @@ func mock_starknet_getTransactionByHash(result interface{}, args ...interface{})
 // Parameters:
 //   - result: a pointer to an interface that will store the transaction receipt result
 //   - args: a variadic parameter representing the arguments of the transaction receipt
+//
 // Returns:
 //   - error: an error if there is an issue with the type of the result or the number of arguments
 func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}) error {
@@ -422,8 +432,10 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 // Parameters:
 //   - result: An interface{} that represents the result of the operation
 //   - args: A variadic parameter that represents the arguments to be passed
+//
 // Returns:
 //   - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 2
+//
 // The function always returns nil.
 func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
@@ -466,8 +478,10 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: An interface{} that represents the result of the operation
 //   - args: A variadic parameter that represents the arguments to be passed
+//
 // Returns:
 //   - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 2
+//
 // The function always returns nil.
 func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
@@ -502,6 +516,7 @@ func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error
 //   - The args length is not equal to 2.
 //   - The first argument is not of type BlockID.
 //   - The second argument is not of type *felt.Felt or does not have a hexadecimal prefix.
+//
 // The function assigns a DeprecatedContractClass struct to the variable class.
 // The function then marshals the class to JSON and unmarshals it to the result interface{}.
 // If successful, the function returns nil.
@@ -509,6 +524,7 @@ func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error
 // Parameters:
 //   - result: The result interface{} that should be a pointer to json.RawMessage
 //   - args: The variadic args ...interface{} representing the arguments to be passed to the method
+//
 // Returns:
 //   - error: An error if any of the conditions mentioned above are met
 func mock_starknet_getClass(result interface{}, args ...interface{}) error {
@@ -548,8 +564,10 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: An interface{} that represents the result of the operation
 //   - args: A variadic parameter that represents the arguments to be passed
+//
 // Returns:
 //   - error: An error if the result is not of type *json.RawMessage or is nil or the number of arguments is not equal to 1
+//
 // The function always returns nil
 func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
@@ -602,6 +620,7 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: An error if the transaction fails
 func mock_starknet_call(result interface{}, args ...interface{}) error {
@@ -632,6 +651,7 @@ func mock_starknet_call(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Return:
 //   - error: An error if the transaction fails
 func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}) error {
@@ -667,6 +687,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
@@ -735,6 +756,7 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) error {
@@ -780,6 +802,7 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 // Parameters:
 //   - result: The result of the method
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_simulateTransactions(result interface{}, args ...interface{}) error {
@@ -825,6 +848,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{}) error {
@@ -895,6 +919,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 // Parameters:
 //   - result: The result of the transaction
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
@@ -935,6 +960,7 @@ func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: an interface{} that represents the result of the state update.
 //   - args: a variadic parameter that can accept multiple arguments.
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error {
@@ -998,6 +1024,7 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 // Parameters:
 //   - result: a pointer to the variable where the result will be stored
 //   - args: optional arguments for the method
+//
 // Returns:
 //   - error: an error if
 //   - The result parameter is not of type *json.RawMessage
@@ -1041,6 +1068,7 @@ func mock_starknet_getNonce(result interface{}, args ...interface{}) error {
 // Parameters:
 //   - result: the result is expected to be a pointer to json.RawMessage
 //   - args: variadic parameter that can contain any number of arguments
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) error {
@@ -1099,6 +1127,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 // Parameters:
 //   - result: the result is expected to be a pointer to json.RawMessage
 //   - args: variadic parameter that can contain any number of arguments
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{}) error {
@@ -1270,6 +1299,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 // Parameters:
 //   - result: a pointer to the variable where the result will be stored
 //   - args: optional arguments for the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{}) error {
@@ -1318,6 +1348,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 // Parameters:
 //   - result: an interface{} that represents the result of the transaction.
 //   - args: a variadic parameter that can accept multiple arguments.
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_traceTransaction(result interface{}, args ...interface{}) error {
@@ -1360,6 +1391,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 // Parameters:
 //   - result: The result of the operation
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) error {
@@ -1402,6 +1434,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 // Parameters:
 //   - result: The result of the operation
 //   - args: The arguments to be passed to the method
+//
 // Returns:
 //   - error: an error if any
 func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) error {

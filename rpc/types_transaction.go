@@ -245,6 +245,7 @@ type DeployAccountTxnV3 struct {
 // Parameters:
 //   - v: The interface{} value to be marshaled
 //   - dst: The interface{} value to be unmarshaled
+//
 // Returns:
 //   - error: An error if the marshaling or unmarshaling process fails
 func remarshal(v interface{}, dst interface{}) error {
@@ -343,6 +344,7 @@ type PendingTxn struct {
 //
 // Parameters:
 //   - data: The JSON data to be unmarshalled
+//
 // Returns:
 //   - error: An error if the unmarshalling process fails
 func (s *PendingTxn) UnmarshalJSON(data []byte) error {
@@ -367,6 +369,7 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 //
 // Parameters:
 //   - data: The JSON data to be unmarshalled
+//
 // Returns:
 //   - error: An error if the unmarshalling process fails
 func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {

@@ -24,6 +24,7 @@ type spy struct {
 // Parameters:
 //   - client: the interface that the spy will be based on
 //   - debug: a boolean flag indicating whether to print debug information
+//
 // Returns:
 //   - spy: a new spy object
 func NewSpy(client callCloser, debug ...bool) *spy {
@@ -53,6 +54,7 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 //   - result: the interface{} to store the result of the function call.
 //   - method: the string representing the method to be called.
 //   - arg: argument to be passed to the function call.
+//
 // Returns:
 //   - error: an error if any occurred during the function call
 func (s *spy) CallContext(ctx context.Context, result interface{}, method string, arg interface{}) error {
@@ -89,6 +91,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 //   - result: the interface{} to store the result of the function call.
 //   - method: the string representing the method to be called.
 //   - args: variadic arguments to be passed to the function call.
+//
 // Returns:
 //   - error: an error if any occurred during the function call
 func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
@@ -125,6 +128,7 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 // Parameters:
 //   - o: the object to compare with the spy object
 //   - debug: a boolean flag indicating whether to print debug information
+//
 // Returns:
 //   - string: the difference between the spy object and the given object
 //   - error: an error if any occurred during the comparison

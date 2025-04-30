@@ -14,6 +14,7 @@ import (
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
@@ -76,6 +77,7 @@ func TestTransactionByHash(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

@@ -89,6 +89,7 @@ func doAsObject(ctx context.Context, call callCloser, method string, data interf
 //
 // Parameters:
 //   - url: the URL of the RPC endpoint
+//
 // Returns:
 //   - *ethrpc.Client: a new ethrpc.Client
 //   - error: an error if any occurred

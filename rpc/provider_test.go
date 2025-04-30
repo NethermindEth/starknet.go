@@ -37,6 +37,7 @@ var testEnv = ""
 //
 // Parameters:
 //   - m: The testing.M object that provides the entry point for running tests
+//
 // Returns:
 //
 //	none
@@ -51,6 +52,7 @@ func TestMain(m *testing.M) {
 // Parameters:
 //   - t: The testing.T object for testing purposes
 //   - isWs: a boolean value to check if the test is for the websocket provider
+//
 // Returns:
 //   - *testConfiguration: a pointer to the testConfiguration struct
 func beforeEach(t *testing.T, isWs bool) *testConfiguration {

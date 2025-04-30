@@ -11,6 +11,7 @@ import (
 // Parameters:
 //   - ctx: The context.Context object for the request.
 //   - hash: The hash of the transaction.
+//
 // Returns:
 //   - BlockTransaction: The retrieved Transaction
 //   - error: An error if any
@@ -28,6 +29,7 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 //   - ctx: The context.Context object for the request.
 //   - blockID: The ID of the block containing the transaction.
 //   - index: The index of the transaction within the block.
+//
 // Returns:
 //   - BlockTransaction: The retrieved Transaction object
 //   - error: An error, if any
@@ -44,6 +46,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 // Parameters:
 //   - ctx: the context.Context object for the request
 //   - transactionHash: the hash of the transaction as a Felt
+//
 // Returns:
 //   - TransactionReceipt: the transaction receipt
 //   - error: an error if any
@@ -60,6 +63,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 // Parameters:
 //   - ctx: the context.Context object for cancellation and timeouts.
 //   - transactionHash: The hash of the requested transaction
+//
 // Returns:
 //   - *TxnStatusResult: Transaction status result, including finality status and execution status
 //   - error, if one arose.
@@ -77,6 +81,7 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 // Parameters:
 //   - ctx: the context.Context object for cancellation and timeouts.
 //   - transactionHash: The hash of the L1 transaction that sent L1->L2 messages
+//
 // Returns:
 //   - [] MessageStatusResp: An array containing the status of the messages sent by the L1 transaction
 //   - error, if one arose.

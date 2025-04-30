@@ -174,6 +174,7 @@ const (
 //
 // Parameters:
 //   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
+//
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (bs *BlockStatus) UnmarshalJSON(data []byte) error {

@@ -9,6 +9,7 @@ import (
 // Parameters:
 //   - ctx: The context to use for the request
 //   - input: The input parameters for retrieving events
+//
 // Returns
 //   - eventChunk: The retrieved events
 //   - error: An error if any

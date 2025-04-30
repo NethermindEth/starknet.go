@@ -236,6 +236,7 @@ const (
 //
 // Parameters:
 //   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
@@ -293,6 +294,7 @@ const (
 //
 // Parameters:
 //   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {

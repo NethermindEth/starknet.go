@@ -27,6 +27,7 @@ import (
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -114,6 +115,7 @@ func TestClassAt(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -193,6 +195,7 @@ func TestClassHashAt(t *testing.T) {
 //
 // Parameters:
 //   - t: A *testing.T object used for reporting test failures and logging
+//
 // Returns:
 //
 //	none
@@ -275,6 +278,7 @@ func TestClass(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T instance used for reporting test failures and logging
+//
 // Returns:
 //
 //	none
@@ -339,6 +343,7 @@ func TestStorageAt(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -394,6 +399,7 @@ func TestNonce(t *testing.T) {
 //
 // Parameters:
 //   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

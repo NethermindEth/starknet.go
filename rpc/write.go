@@ -9,6 +9,7 @@ import (
 // Parameters:
 //   - ctx: The context for the function.
 //   - invokeTxn: The invoke transaction to be added.
+//
 // Returns:
 //   - *AddInvokeTransactionResponse: the response of adding the invoke transaction
 //   - error: an error if any
@@ -35,6 +36,7 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn *B
 // Parameters:
 //   - ctx: The context.Context object for the request.
 //   - declareTransaction: The input for the declare transaction.
+//
 // Returns:
 //   - *AddDeclareTransactionResponse: The response of submitting the declare transaction
 //   - error: an error if any
@@ -65,6 +67,7 @@ func (provider *Provider) AddDeclareTransaction(ctx context.Context, declareTran
 // Parameters:
 //   - ctx: The context of the function
 //   - deployAccountTransaction: The deploy account transaction to be added
+//
 // Returns:
 //   - *AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
 func (provider *Provider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *BroadcastDeployAccountTxnV3) (*AddDeployAccountTransactionResponse, error) {
