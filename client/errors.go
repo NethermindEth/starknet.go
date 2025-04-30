@@ -90,7 +90,7 @@ func (e notificationsUnsupportedError) Error() string {
 func (e notificationsUnsupportedError) ErrorCode() int { return -32601 }
 
 // Is checks for equivalence to another error. Here we define that all errors with code
-// -32601 (method not found) are equivalent to notificationsUnsupportedError. This is
+//   -32601 (method not found) are equivalent to notificationsUnsupportedError. This is
 // done to enable the following pattern:
 //
 //	sub, err := client.Subscribe(...)

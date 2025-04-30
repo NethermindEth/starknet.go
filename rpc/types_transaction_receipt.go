@@ -99,9 +99,10 @@ const (
 //	nil if the unmarshaling is successful.
 //
 // Parameters:
-// - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//
 // Returns:
-// - error: an error if the unmarshaling fails
+//   - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -129,8 +130,8 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 //
 // Returns:
-// - []byte: a byte slice
-// - error: an error if any
+//   - []byte: a byte slice
+//   - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }

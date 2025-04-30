@@ -13,7 +13,8 @@ import (
 // TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -29,7 +30,8 @@ func TestBlockNumber(t *testing.T) {
 
 // TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -59,16 +61,17 @@ func TestBlockHashAndNumber(t *testing.T) {
 // The "mainnet" key does not have any testSetType objects.
 //
 // The function then iterates over the testSet map and performs the following steps for each testSetType object:
-// - It creates a new Spy object and assigns it to the testConfig.provider.c field.
-// - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
-// - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
-// - It checks the type of the result variable and performs specific assertions based on the type.
+//   - It creates a new Spy object and assigns it to the testConfig.provider.c field.
+//   - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
+//   - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
+//   - It checks the type of the result variable and performs specific assertions based on the type.
 //   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
 //   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
 //   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -180,7 +183,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
 //
 // Parameters:
-// - t: The t testing object
+//   - t: The t testing object
+//
 // Returns:
 //
 //	none
@@ -356,7 +360,8 @@ func TestBlockWithTxs(t *testing.T) {
 // Finally, the function terminates if all test cases pass.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -404,7 +409,8 @@ func TestBlockTransactionCount(t *testing.T) {
 // TestCaptureUnsupportedBlockTxn tests the functionality of capturing unsupported block transactions.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -460,7 +466,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 // If the returned block hash does not match the expected block hash, it fails the test.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

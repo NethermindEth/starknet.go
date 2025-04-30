@@ -28,9 +28,10 @@ type TestAccount struct {
 // If no baseURL is provided, the default value of "http://localhost:5050" is used.
 //
 // Parameters:
-// - baseURL: a string representing the base URL of the DevNet server
+//   - baseURL: a string representing the base URL of the DevNet server
+//
 // Returns:
-// - *DevNet: a pointer to the newly created DevNet instance
+//   - *DevNet: a pointer to the newly created DevNet instance
 func NewDevNet(baseURL ...string) *DevNet {
 	if len(baseURL) == 0 {
 		return &DevNet{
@@ -45,9 +46,10 @@ func NewDevNet(baseURL ...string) *DevNet {
 // api returns the full URL for a given URI.
 //
 // Parameter:
-// - uri: a string which represents the URI path
+//   - uri: a string which represents the URI path
+//
 // Returns:
-// - string which is the full URL constructed using the `devnet.baseURL` and `uri`
+//   - string which is the full URL constructed using the `devnet.baseURL` and `uri`
 func (devnet *DevNet) api(uri string) string {
 	uri = strings.TrimPrefix(uri, "/")
 	return fmt.Sprintf("%s/%s", devnet.baseURL, uri)
@@ -64,7 +66,7 @@ func (devnet *DevNet) api(uri string) string {
 //	none
 //
 // Returns:
-// - []TestAccount: a slice of TestAccount structs
+//   - []TestAccount: a slice of TestAccount structs
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), nil)
 	if err != nil {
@@ -120,11 +122,12 @@ type MintResponse struct {
 // Mint mints a certain amount of tokens for a given address.
 //
 // Parameters:
-// - address: is the address to mint tokens for
-// - amount: is the amount of tokens to mint
+//   - address: is the address to mint tokens for
+//   - amount: is the amount of tokens to mint
+//
 // Returns:
-// - *MintResponse: a MintResponse
-// - error: an error if any
+//   - *MintResponse: a MintResponse
+//   - error: an error if any
 func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error) {
 	data := struct {
 		Address *felt.Felt `json:"address"`

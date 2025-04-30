@@ -88,10 +88,11 @@ func doAsObject(ctx context.Context, call callCloser, method string, data interf
 // NewClient creates a new ethrpc.Client instance.
 //
 // Parameters:
-// - url: the URL of the RPC endpoint
+//   - url: the URL of the RPC endpoint
+//
 // Returns:
-// - *ethrpc.Client: a new ethrpc.Client
-// - error: an error if any occurred
+//   - *ethrpc.Client: a new ethrpc.Client
+//   - error: an error if any occurred
 func NewClient(url string) (*client.Client, error) {
 	return client.DialContext(context.Background(), url)
 }

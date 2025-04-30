@@ -102,10 +102,11 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 // It takes a content byte array as a parameter and returns the encoded program string and an error.
 //
 // Parameters:
-// - content: byte array to be encoded
+//   - content: byte array to be encoded
+//
 // Returns:
-// - string: the encoded program
-// - error: the error if any
+//   - string: the encoded program
+//   - error: the error if any
 func encodeProgram(content []byte) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	gzipContent := gzip.NewWriter(buf)

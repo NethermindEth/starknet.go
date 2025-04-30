@@ -26,7 +26,8 @@ import (
 //   - If the response type is of unknown type: log and fail the test
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -113,7 +114,8 @@ func TestClassAt(t *testing.T) {
 // parameter and does not return anything.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -179,8 +181,8 @@ func TestClassHashAt(t *testing.T) {
 // ClassHash, ExpectedProgram, and ExpectedEntryPointConstructor.
 //
 // The function iterates over each test case in the testSet and performs the following steps:
-// - Calls the Class function with the appropriate parameters.
-// - Handles the response based on its type:
+//   - Calls the Class function with the appropriate parameters.
+//   - Handles the response based on its type:
 //   - If the response is of type DeprecatedContractClass:
 //   - Checks if the class program starts with the expected program.
 //   - If not, it reports an error.
@@ -192,7 +194,8 @@ func TestClassHashAt(t *testing.T) {
 // The function is used for testing the behavior of the Class function in different scenarios.
 //
 // Parameters:
-// - t: A *testing.T object used for reporting test failures and logging
+//   - t: A *testing.T object used for reporting test failures and logging
+//
 // Returns:
 //
 //	none
@@ -274,7 +277,8 @@ func TestClass(t *testing.T) {
 // reported.
 //
 // Parameters:
-// - t: The testing.T instance used for reporting test failures and logging
+//   - t: The testing.T instance used for reporting test failures and logging
+//
 // Returns:
 //
 //	none
@@ -338,7 +342,8 @@ func TestStorageAt(t *testing.T) {
 // If any errors occur during the tests, the function will fail and display an error message.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -393,7 +398,8 @@ func TestNonce(t *testing.T) {
 // TestEstimateMessageFee is a test function to test the EstimateMessageFee function.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none

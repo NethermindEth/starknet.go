@@ -20,7 +20,8 @@ import (
 // If any of the assertions fail, the test fails with an error.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
