@@ -1,0 +1,59 @@
+# Get Class
+
+Returns the contract class definition associated with the given class hash.
+
+## Parameters
+
+- `class_hash` - The hash of the class to get
+- `block_id` - The block identifier. Can be:
+  - Block hash
+  - Block number
+  - "latest" for the latest block
+  - "pending" for the pending block
+
+## Returns
+
+Returns a contract class object containing:
+- Program
+- Entry points
+- ABI
+- Other class-specific data
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	// Convert string hash to Felt
+	classHash, _ := utils.HexToFelt("0x123...")
+	
+	result, err := provider.Class(context.Background(), rpc.BlockID{Tag: "latest"}, classHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Class:", result)
+}
+```
+
+## Error Cases
+
+- `CLASS_NOT_FOUND` - If the class does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid
+- `INVALID_CLASS_HASH` - If the class hash is invalid 

@@ -1,0 +1,53 @@
+# Get State Update
+
+Returns the state update for a given block.
+
+## Parameters
+
+- `block_id` - The block identifier. Can be:
+  - Block hash
+  - Block number
+  - "latest" for the latest block
+  - "pending" for the pending block
+
+## Returns
+
+Returns a state update object containing:
+- New root
+- Old root
+- State diff
+- Block hash
+- Block number
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	result, err := provider.StateUpdate(context.Background(), rpc.BlockID{Tag: "latest"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("State Update:", result)
+}
+```
+
+## Error Cases
+
+- `BLOCK_NOT_FOUND` - If the specified block does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid 

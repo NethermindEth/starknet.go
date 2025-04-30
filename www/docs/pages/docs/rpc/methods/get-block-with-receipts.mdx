@@ -1,0 +1,53 @@
+# Get Block With Receipts
+
+Returns the block information along with its receipts.
+
+## Parameters
+
+- `block_id` - The block identifier. Can be:
+  - Block hash
+  - Block number
+  - "latest" for the latest block
+  - "pending" for the pending block
+
+## Returns
+
+Returns a block object containing:
+- Block header information
+- Transaction receipts
+- Other block-related data
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+  "github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+  rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+  result, err := provider.BlockWithTxHashes(context.Background(), rpc.BlockID{Tag: "latest"})
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Println("BlockWithTxHashes:", result)
+}
+```
+
+## Error Cases
+
+- `BLOCK_NOT_FOUND` - If the specified block does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid

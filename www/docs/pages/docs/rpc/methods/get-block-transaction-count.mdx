@@ -1,0 +1,49 @@
+# Get Block Transaction Count
+
+Returns the number of transactions in a block.
+
+## Parameters
+
+- `block_id` - The block identifier. Can be:
+  - Block hash
+  - Block number
+  - "latest" for the latest block
+  - "pending" for the pending block
+
+## Returns
+
+Returns the number of transactions in the block as an integer.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	result, err := provider.BlockTransactionCount(context.Background(), rpc.BlockID{Tag: "latest"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Transaction Count:", result)
+}
+```
+
+## Error Cases
+
+- `BLOCK_NOT_FOUND` - If the specified block does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid 

@@ -1,6 +1,6 @@
-# Get started
+# Get started with Starknet.go
 
-This guide will help you start using Starknet.go in your Go project. We'll walk through a simple example to demonstrate how to connect to Starknet and perform basic operations.
+StarkNet.go is a comprehensive Go library that facilitates interaction with the StarkNet blockchain network. StarkNet is a permissionless, decentralized ZK-Rollup operating as a Layer 2 scaling solution for Ethereum.
 
 ## Prerequisites
 
@@ -8,6 +8,11 @@ Before you begin, make sure you have:
 - Installed Go 1.20 or higher
 - [Installed Starknet.go](/docs/introduction/installation)
 - Basic understanding of Go programming
+
+## Overview
+
+Starknet.go enables Go backend applications and WASM frontends to seamlessly connect with Starknet by providing abstractions for the Starknet RPC, account managements and wallet operations.
+
 
 ## Creating Your First Starknet.go Application
 
@@ -48,8 +53,8 @@ import (
 
 func main() {
     // Initialize connection to RPC provider
-    // Replace with your preferred Starknet node URL
-    client, err := rpc.NewProvider("https://your-starknet-node-url")
+    rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+    client, err := rpc.NewProvider(rpcUrl)
     if err != nil {
         log.Fatal(err)
     }
