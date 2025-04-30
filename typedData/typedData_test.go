@@ -18,6 +18,7 @@ var typedDataExamples = make(map[string]TypedData)
 //
 // Parameters:
 //   - m: The testing.M object that provides the test runner
+//
 // Returns:
 //   - None (calls os.Exit directly)
 func TestMain(m *testing.M) {
@@ -56,6 +57,7 @@ func TestMain(m *testing.M) {
 //
 // Parameters:
 //   - b: The testing.B object used for benchmarking
+//
 // Returns:
 //   - ttd: A TypedData instance loaded from the base example file
 func BMockTypedData(b *testing.B) (ttd TypedData) {
@@ -80,6 +82,7 @@ func BMockTypedData(b *testing.B) (ttd TypedData) {
 //
 // Parameters:
 //   - t: a testing.T object that provides methods for testing functions
+//
 // Returns:
 //   - None
 func TestGetMessageHash(t *testing.T) {
@@ -160,6 +163,7 @@ func TestGetMessageHash(t *testing.T) {
 //
 // Parameters:
 //   - b: a testing.B object that provides methods for benchmarking the function
+//
 // Returns:
 //
 //	none
@@ -182,6 +186,7 @@ func BenchmarkGetMessageHash(b *testing.B) {
 //
 // Parameters:
 //   - t: The testing.T object used for reporting test failures and logging test output
+//
 // Returns:
 //
 //	none
@@ -243,6 +248,7 @@ func TestGetTypeHash(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object used for reporting test failures and logging test output
+//
 // Returns:
 //
 //	none
@@ -321,6 +327,7 @@ func TestEncodeType(t *testing.T) {
 //
 // Parameters:
 //   - t: The testing.T object used for reporting test failures and logging test output
+//
 // Returns:
 //
 //	none

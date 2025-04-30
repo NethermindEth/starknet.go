@@ -117,6 +117,7 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 //
 // Parameters:
 //   - account: A string representing the account.
+//
 // Returns:
 //   - hash: A pointer to a felt.Felt representing the calculated hash.
 func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error) {
@@ -208,6 +209,7 @@ func shortGetStructHash(
 //
 // Parameters:
 //   - typeName: the name of the type to hash
+//
 // Returns:
 //   - hash: A pointer to a felt.Felt representing the calculated hash.
 //   - err: an error if any occurred during the hash calculation.
@@ -227,6 +229,7 @@ func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 //   - types: map of type definitions
 //   - revision: revision information
 //   - isEnum: optional boolean indicating if type is an enum
+//
 // Returns:
 //   - newTypeDef: the encoded type definition
 //   - err: any error encountered during encoding
@@ -669,6 +672,7 @@ func encodeData(
 //   - typeName: the type of data to encode
 //   - data: the actual data to encode
 //   - rev: revision information
+//
 // Returns:
 //   - resp: encoded data as a felt.Felt
 //   - err: any error encountered during encoding
