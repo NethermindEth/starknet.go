@@ -14,14 +14,17 @@ import (
 	reflect "reflect"
 
 	felt "github.com/NethermindEth/juno/core/felt"
+	client "github.com/NethermindEth/starknet.go/client"
+	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRpcProvider is a mock of RpcProvider interface.
 type MockRpcProvider struct {
 	ctrl     *gomock.Controller
 	recorder *MockRpcProviderMockRecorder
+	isgomock struct{}
 }
 
 // MockRpcProviderMockRecorder is the mock recorder for MockRpcProvider.
@@ -42,7 +45,7 @@ func (m *MockRpcProvider) EXPECT() *MockRpcProviderMockRecorder {
 }
 
 // AddDeclareTransaction mocks base method.
-func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction rpc.BroadcastDeclareTxnType) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeclareTransaction(ctx context.Context, declareTransaction *rpc.BroadcastDeclareTxnV3) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeclareTransaction", ctx, declareTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -57,7 +60,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeclareTransaction(ctx, declareTransac
 }
 
 // AddDeployAccountTransaction mocks base method.
-func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction rpc.BroadcastAddDeployTxnType) (*rpc.AddDeployAccountTransactionResponse, error) {
+func (m *MockRpcProvider) AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *rpc.BroadcastDeployAccountTxnV3) (*rpc.AddDeployAccountTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddDeployAccountTransaction", ctx, deployAccountTransaction)
 	ret0, _ := ret[0].(*rpc.AddDeployAccountTransactionResponse)
@@ -72,7 +75,7 @@ func (mr *MockRpcProviderMockRecorder) AddDeployAccountTransaction(ctx, deployAc
 }
 
 // AddInvokeTransaction mocks base method.
-func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn rpc.BroadcastInvokeTxnType) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockRpcProvider) AddInvokeTransaction(ctx context.Context, invokeTxn *rpc.BroadcastInvokeTxnV3) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddInvokeTransaction", ctx, invokeTxn)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
@@ -251,11 +254,26 @@ func (mr *MockRpcProviderMockRecorder) ClassHashAt(ctx, blockID, contractAddress
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClassHashAt", reflect.TypeOf((*MockRpcProvider)(nil).ClassHashAt), ctx, blockID, contractAddress)
 }
 
+// CompiledCasm mocks base method.
+func (m *MockRpcProvider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompiledCasm", ctx, classHash)
+	ret0, _ := ret[0].(*contracts.CasmClass)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CompiledCasm indicates an expected call of CompiledCasm.
+func (mr *MockRpcProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompiledCasm", reflect.TypeOf((*MockRpcProvider)(nil).CompiledCasm), ctx, classHash)
+}
+
 // EstimateFee mocks base method.
-func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
-	ret0, _ := ret[0].([]rpc.FeeEstimate)
+	ret0, _ := ret[0].([]rpc.FeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -267,10 +285,10 @@ func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag
 }
 
 // EstimateMessageFee mocks base method.
-func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimate, error) {
+func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateMessageFee", ctx, msg, blockID)
-	ret0, _ := ret[0].(*rpc.FeeEstimate)
+	ret0, _ := ret[0].(*rpc.FeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -296,11 +314,41 @@ func (mr *MockRpcProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Events", reflect.TypeOf((*MockRpcProvider)(nil).Events), ctx, input)
 }
 
+// GetMessagesStatus mocks base method.
+func (m *MockRpcProvider) GetMessagesStatus(ctx context.Context, transactionHash rpc.NumAsHex) ([]rpc.MessageStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessagesStatus", ctx, transactionHash)
+	ret0, _ := ret[0].([]rpc.MessageStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessagesStatus indicates an expected call of GetMessagesStatus.
+func (mr *MockRpcProviderMockRecorder) GetMessagesStatus(ctx, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessagesStatus", reflect.TypeOf((*MockRpcProvider)(nil).GetMessagesStatus), ctx, transactionHash)
+}
+
+// GetStorageProof mocks base method.
+func (m *MockRpcProvider) GetStorageProof(ctx context.Context, storageProofInput rpc.StorageProofInput) (*rpc.StorageProofResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorageProof", ctx, storageProofInput)
+	ret0, _ := ret[0].(*rpc.StorageProofResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorageProof indicates an expected call of GetStorageProof.
+func (mr *MockRpcProviderMockRecorder) GetStorageProof(ctx, storageProofInput any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProof", reflect.TypeOf((*MockRpcProvider)(nil).GetStorageProof), ctx, storageProofInput)
+}
+
 // GetTransactionStatus mocks base method.
-func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResp, error) {
+func (m *MockRpcProvider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpc.TxnStatusResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransactionStatus", ctx, transactionHash)
-	ret0, _ := ret[0].(*rpc.TxnStatusResp)
+	ret0, _ := ret[0].(*rpc.TxnStatusResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -327,7 +375,7 @@ func (mr *MockRpcProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.Transaction, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (m *MockRpcProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
 	ret0, _ := ret[0].([]rpc.SimulatedTransaction)
@@ -432,10 +480,10 @@ func (mr *MockRpcProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIdAndIndex mocks base method.
-func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByBlockIdAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByBlockIdAndIndex", ctx, blockID, index)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -447,10 +495,10 @@ func (mr *MockRpcProviderMockRecorder) TransactionByBlockIdAndIndex(ctx, blockID
 }
 
 // TransactionByHash mocks base method.
-func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (rpc.Transaction, error) {
+func (m *MockRpcProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(rpc.Transaction)
+	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -474,4 +522,88 @@ func (m *MockRpcProvider) TransactionReceipt(ctx context.Context, transactionHas
 func (mr *MockRpcProviderMockRecorder) TransactionReceipt(ctx, transactionHash any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockRpcProvider)(nil).TransactionReceipt), ctx, transactionHash)
+}
+
+// MockWebsocketProvider is a mock of WebsocketProvider interface.
+type MockWebsocketProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockWebsocketProviderMockRecorder
+	isgomock struct{}
+}
+
+// MockWebsocketProviderMockRecorder is the mock recorder for MockWebsocketProvider.
+type MockWebsocketProviderMockRecorder struct {
+	mock *MockWebsocketProvider
+}
+
+// NewMockWebsocketProvider creates a new mock instance.
+func NewMockWebsocketProvider(ctrl *gomock.Controller) *MockWebsocketProvider {
+	mock := &MockWebsocketProvider{ctrl: ctrl}
+	mock.recorder = &MockWebsocketProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWebsocketProvider) EXPECT() *MockWebsocketProviderMockRecorder {
+	return m.recorder
+}
+
+// SubscribeEvents mocks base method.
+func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEvent, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeEvents", ctx, events, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeEvents indicates an expected call of SubscribeEvents.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeEvents", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeEvents), ctx, events, options)
+}
+
+// SubscribeNewHeads mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, blockID rpc.BlockID) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, blockID)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeNewHeads indicates an expected call of SubscribeNewHeads.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blockID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, blockID)
+}
+
+// SubscribePendingTransactions mocks base method.
+func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.SubPendingTxns, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribePendingTransactions", ctx, pendingTxns, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribePendingTransactions indicates an expected call of SubscribePendingTransactions.
+func (mr *MockWebsocketProviderMockRecorder) SubscribePendingTransactions(ctx, pendingTxns, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribePendingTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribePendingTransactions), ctx, pendingTxns, options)
+}
+
+// SubscribeTransactionStatus mocks base method.
+func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeTransactionStatus", ctx, newStatus, transactionHash)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeTransactionStatus indicates an expected call of SubscribeTransactionStatus.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeTransactionStatus(ctx, newStatus, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeTransactionStatus", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeTransactionStatus), ctx, newStatus, transactionHash)
 }

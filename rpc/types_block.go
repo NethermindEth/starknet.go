@@ -15,8 +15,8 @@ var ErrInvalidBlockID = errors.New("invalid blockid")
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
 type BlockHashAndNumberOutput struct {
-	BlockNumber uint64     `json:"block_number,omitempty"`
-	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+	Number uint64     `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
 }
 
 // BlockID is a struct that is used to choose between different
@@ -25,6 +25,15 @@ type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
 	Tag    string     `json:"block_tag,omitempty"`
+}
+
+// checkForPending checks if the block ID has the 'pending' tag. If it does, it returns an error.
+// This is used to prevent the user from using the 'pending' tag on methods that do not support it.
+func checkForPending(b BlockID) error {
+	if b.Tag == "pending" {
+		return errors.Join(ErrInvalidBlockID, errors.New("'pending' tag is not supported on this method"))
+	}
+	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
@@ -52,12 +61,11 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"block_number":%d}`, *b.Number)), nil
 	}
 
-	if b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
+	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
 		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
 	}
 
-	return nil, ErrInvalidBlockID
-
+	return json.Marshal(nil)
 }
 
 type BlockStatus string
@@ -127,8 +135,8 @@ type PendingBlock struct {
 
 // encoding/json doesn't support inlining fields
 type BlockWithReceipts struct {
-	BlockStatus BlockStatus `json:"status"`
 	BlockHeader
+	Status BlockStatus `json:"status"`
 	BlockBodyWithReceipts
 }
 
@@ -137,7 +145,7 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction UnknownTransaction `json:"transaction"`
+	Transaction BlockTransaction   `json:"transaction"`
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
@@ -160,12 +168,12 @@ type PendingBlockTxHashes struct {
 }
 
 type BlockHeader struct {
-	// BlockHash The hash of this block
-	BlockHash *felt.Felt `json:"block_hash"`
+	// Hash The hash of this block
+	Hash *felt.Felt `json:"block_hash"`
 	// ParentHash The hash of this block's parent
 	ParentHash *felt.Felt `json:"parent_hash"`
-	// BlockNumber the block number (its height)
-	BlockNumber uint64 `json:"block_number"`
+	// Number the block number (its height)
+	Number uint64 `json:"block_number"`
 	// NewRoot The new global state root
 	NewRoot *felt.Felt `json:"new_root"`
 	// Timestamp the time in which the block was created, encoded in Unix time
@@ -174,6 +182,8 @@ type BlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
 	// The price of l1 data gas in the block
 	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
 	// Specifies whether the data of this block is published via blob data or calldata
@@ -225,6 +235,8 @@ type PendingBlockHeader struct {
 	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
 	// The price of l1 data gas in the block

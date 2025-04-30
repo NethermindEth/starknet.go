@@ -1,0 +1,80 @@
+name: (main branch) - all tests
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Run all mock tests
+        run: go test -v ./...
+
+      - name: Build examples
+        run: |
+          cd examples/deployAccount && go build
+          cd ../deployContractUDC && go build
+          cd ../invoke && go build
+          cd ../simpleCall && go build
+          cd ../simpleDeclare && go build
+          cd ../typedData && go build
+          cd ../websocket && go build
+
+  build_and_test_with_provider:
+    runs-on: ubuntu-22.04
+    
+    services:
+      devnet:
+        image: shardlabs/starknet-devnet-rs:0.4.0
+        ports:
+          - 5050:5050
+
+    strategy:
+      matrix:
+        component: [rpc, account]
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Run tests on testnet
+        run: cd ${{ matrix.component }} && go test -timeout 120s -v -env testnet .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.TESTNET_ACCOUNT_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
+
+      - name: Run tests on mainnet
+        run: cd ${{ matrix.component }} && go test -timeout 120s -v -env mainnet .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
+          WS_PROVIDER_URL: ${{ secrets.MAINNET_WS_PROVIDER_URL }}
+      
+      - name: wait for devnet to be up...
+        run: ./.bin/devnet.sh
+
+      - name: Run tests on devnet
+        run: cd ${{ matrix.component }} && go test -timeout 120s -v -env devnet .
+        env:
+          HTTP_PROVIDER_URL: "http://localhost:5050/"

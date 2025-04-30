@@ -6,24 +6,29 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
-type BlockTransactions []BlockTransaction
+type BlockTransactions []IBlockTransaction
 
-type BlockTransaction interface {
+type BlockTransaction struct {
+	IBlockTransaction
+}
+
+type IBlockTransaction interface {
 	Hash() *felt.Felt
 }
 
-var _ BlockTransaction = BlockInvokeTxnV0{}
-var _ BlockTransaction = BlockInvokeTxnV1{}
-var _ BlockTransaction = BlockInvokeTxnV3{}
-var _ BlockTransaction = BlockDeclareTxnV0{}
-var _ BlockTransaction = BlockDeclareTxnV1{}
-var _ BlockTransaction = BlockDeclareTxnV2{}
-var _ BlockTransaction = BlockDeclareTxnV3{}
-var _ BlockTransaction = BlockDeployTxn{}
-var _ BlockTransaction = BlockDeployAccountTxn{}
-var _ BlockTransaction = BlockL1HandlerTxn{}
+var _ IBlockTransaction = BlockInvokeTxnV0{}
+var _ IBlockTransaction = BlockInvokeTxnV1{}
+var _ IBlockTransaction = BlockInvokeTxnV3{}
+var _ IBlockTransaction = BlockDeclareTxnV0{}
+var _ IBlockTransaction = BlockDeclareTxnV1{}
+var _ IBlockTransaction = BlockDeclareTxnV2{}
+var _ IBlockTransaction = BlockDeclareTxnV3{}
+var _ IBlockTransaction = BlockDeployTxn{}
+var _ IBlockTransaction = BlockDeployAccountTxn{}
+var _ IBlockTransaction = BlockL1HandlerTxn{}
 
 // Hash returns the transaction hash of the BlockInvokeTxnV0.
 func (tx BlockInvokeTxnV0) Hash() *felt.Felt {
@@ -140,7 +145,7 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	unmarshalled := make([]BlockTransaction, len(dec))
+	unmarshalled := make([]IBlockTransaction, len(dec))
 	for i, t := range dec {
 		var err error
 		unmarshalled[i], err = unmarshalBlockTxn(t)
@@ -153,14 +158,44 @@ func (txns *BlockTransactions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// unmarshalBlockTxn unmarshals a given interface and returns a BlockTransaction.
+// UnmarshalJSON unmarshals the data into a BlockTransaction object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+// - data: The JSON data to be unmarshalled
+// Returns:
+// - error: An error if the unmarshalling process fails
+func (txn *BlockTransaction) UnmarshalJSON(data []byte) error {
+	var dec map[string]interface{}
+	if err := json.Unmarshal(data, &dec); err != nil {
+		return err
+	}
+
+	// BlockTransaction wrap transaction in the IBlockTransaction field.
+	dec, err := internalUtils.UnwrapJSON(dec, "IBlockTransaction")
+	if err != nil {
+		return err
+	}
+
+	t, err := unmarshalBlockTxn(dec)
+	if err != nil {
+		return err
+	}
+
+	*txn = BlockTransaction{t}
+	return nil
+}
+
+// unmarshalBlockTxn unmarshals a given interface and returns a IBlockTransaction.
 //
 // Parameter:
 // - t: The interface{} to be unmarshalled
 // Returns:
-// - BlockTransaction: a BlockTransaction
+// - IBlockTransaction: a IBlockTransaction
 // - error: an error if the unmarshaling process fails
-func unmarshalBlockTxn(t interface{}) (BlockTransaction, error) {
+func unmarshalBlockTxn(t interface{}) (IBlockTransaction, error) {
 	switch casted := t.(type) {
 	case map[string]interface{}:
 		switch TransactionType(casted["type"].(string)) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/utils"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,15 +29,13 @@ import (
 //
 //	none
 func TestEvents(t *testing.T) {
-	testConfig := beforeEach(t)
+	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		eventFilter  EventFilter
 		resPageReq   ResultPageRequest
 		expectedResp EventChunk
 	}
-	var fromNum uint64 = 1471
-	var toNum uint64 = 1473
 
 	testSet := map[string][]testSetType{
 		"mock": {{
@@ -48,9 +46,9 @@ func TestEvents(t *testing.T) {
 			expectedResp: EventChunk{
 				Events: []EmittedEvent{
 					{
-						BlockHash:       utils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
+						BlockHash:       internalUtils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 						BlockNumber:     1472,
-						TransactionHash: utils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
+						TransactionHash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
 					},
 				},
 			},
@@ -58,12 +56,12 @@ func TestEvents(t *testing.T) {
 		"mainnet": {
 			{
 				eventFilter: EventFilter{
-					FromBlock: BlockID{Number: &fromNum},
-					ToBlock:   BlockID{Number: &toNum},
-					Address:   utils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+					FromBlock: WithBlockNumber(1471),
+					ToBlock:   WithBlockNumber(1473),
+					Address:   internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					Keys: [][]*felt.Felt{{
-						utils.TestHexToFelt(t, "0x3774b0545aabb37c45c1eddc6a7dae57de498aae6d5e3589e362d4b4323a533"),
-						utils.TestHexToFelt(t, "0x714ae72367a39c17df987cf00f7cbb69c8cdcfa611e69e3511b5d16a23e2ec5"),
+						internalUtils.TestHexToFelt(t, "0x3774b0545aabb37c45c1eddc6a7dae57de498aae6d5e3589e362d4b4323a533"),
+						internalUtils.TestHexToFelt(t, "0x714ae72367a39c17df987cf00f7cbb69c8cdcfa611e69e3511b5d16a23e2ec5"),
 					}},
 				},
 				resPageReq: ResultPageRequest{
@@ -72,30 +70,74 @@ func TestEvents(t *testing.T) {
 				expectedResp: EventChunk{
 					Events: []EmittedEvent{
 						{
-							BlockHash:       utils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
+							Event: Event{
+								FromAddress: internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+								EventContent: EventContent{
+									Keys: []*felt.Felt{
+										internalUtils.TestHexToFelt(t, "0x3774b0545aabb37c45c1eddc6a7dae57de498aae6d5e3589e362d4b4323a533"),
+									},
+									Data: []*felt.Felt{
+										internalUtils.TestHexToFelt(t, "0x0714ae72367a39c17df987cf00f7cbb69c8cdcfa611e69e3511b5d16a23e2ec5"),
+										internalUtils.TestHexToFelt(t, "0x0714ae72367a39c17df987cf00f7cbb69c8cdcfa611e69e3511b5d16a23e2ec5"),
+									},
+								},
+							},
+							BlockHash:       internalUtils.TestHexToFelt(t, "0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb"),
 							BlockNumber:     1472,
-							TransactionHash: utils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
+							TransactionHash: internalUtils.TestHexToFelt(t, "0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d"),
 						},
 					},
 				},
 			},
 		},
-		"testnet": {},
+		"testnet": {
+			{
+				eventFilter: EventFilter{
+					FromBlock: WithBlockNumber(144932),
+					ToBlock:   WithBlockNumber(144933),
+					Address:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+					Keys: [][]*felt.Felt{{
+						internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+						internalUtils.TestHexToFelt(t, "0x0143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6"),
+					}},
+				},
+				resPageReq: ResultPageRequest{
+					ChunkSize: 1000,
+				},
+				expectedResp: EventChunk{
+					Events: []EmittedEvent{
+						{
+							Event: Event{
+								FromAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+								EventContent: EventContent{
+									Keys: []*felt.Felt{
+										internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+									},
+									Data: internalUtils.TestHexArrToFelt(t, []string{
+										"0x0143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6",
+										"0x01176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+										"0x04cffc7cb4ec5bd0",
+										"0x00",
+									}),
+								},
+							},
+							BlockHash:       internalUtils.TestHexToFelt(t, "0x18a38934263d8b27a15d2e170d90030daa3a66e589b545908f376a8fdc971c8"),
+							BlockNumber:     144933,
+							TransactionHash: internalUtils.TestHexToFelt(t, "0x622817859a37dedf36cfb1417247f93dcc5840845bb8969df47491ef33e088e"),
+						},
+					},
+				},
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
 		eventInput := EventsInput{
 			EventFilter:       test.eventFilter,
 			ResultPageRequest: test.resPageReq,
 		}
 		events, err := testConfig.provider.Events(context.Background(), eventInput)
-		if err != nil {
-			t.Fatal(err)
-		}
-		require.Equal(t, events.Events[0].BlockHash, test.expectedResp.Events[0].BlockHash, "BlockHash mismatch")
-		require.Equal(t, events.Events[0].BlockNumber, test.expectedResp.Events[0].BlockNumber, "BlockNumber mismatch")
-		require.Equal(t, events.Events[0].TransactionHash, test.expectedResp.Events[0].TransactionHash, "TransactionHash mismatch")
+		require.NoError(t, err, "Events failed")
+		require.Exactly(t, test.expectedResp.Events[0], events.Events[0], "Events mismatch")
 	}
 }

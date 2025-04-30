@@ -2,12 +2,34 @@ package devnet
 
 import (
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/internal"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
+
+var (
+	// the environment for the test, needs to be "devnet"
+	testEnv = ""
+)
+
+// TestMain is the main test function for the package, checks configuration for the environment to use.
+//
+// It initializes the test environment and runs the test cases.
+//
+// Parameters:
+// - m: is the testing.M parameter
+// Returns:
+//
+//	none
+func TestMain(m *testing.M) {
+	testEnv = internal.LoadEnv()
+
+	os.Exit(m.Run())
+}
 
 // TestDevnet_IsAlive tests the IsAlive method of the Devnet struct.
 //
@@ -20,6 +42,10 @@ import (
 //
 //	none
 func TestDevnet_IsAlive(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+
 	d := NewDevNet()
 	if !d.IsAlive() {
 		t.Fatalf("Devnet should be alive!")
@@ -38,6 +64,10 @@ func TestDevnet_IsAlive(t *testing.T) {
 //
 //	none
 func TestDevnet_Accounts(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+
 	d := NewDevNet()
 	accounts, err := d.Accounts()
 	if err != nil {
@@ -61,9 +91,13 @@ func TestDevnet_Accounts(t *testing.T) {
 //
 //	none
 func TestDevnet_Mint(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+
 	d := NewDevNet()
 	amount := big.NewInt(int64(1000000000000000000))
-	resp, err := d.Mint(utils.TestHexToFelt(t, "0x1"), amount)
+	resp, err := d.Mint(internalUtils.TestHexToFelt(t, "0x1"), amount)
 	if err != nil {
 		t.Fatalf("Minting ETH should succeed, instead: %v", err)
 	}
