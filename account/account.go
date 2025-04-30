@@ -124,7 +124,12 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
-func (account *Account) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool) (*rpc.AddInvokeTransactionResponse, error) {
+func (account *Account) BuildAndSendInvokeTxn(
+	ctx context.Context,
+	functionCalls []rpc.InvokeFunctionCall,
+	multiplier float64,
+	withQueryBitVersion bool,
+) (*rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
