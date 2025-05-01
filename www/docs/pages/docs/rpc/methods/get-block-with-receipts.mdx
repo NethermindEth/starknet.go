@@ -21,25 +21,21 @@ Returns a block object containing:
 
 ```go
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
-  "github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
+) 
 func main() {
   rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	client, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	provider := rpc.NewProvider(client)
-  result, err := provider.BlockWithTxHashes(context.Background(), rpc.BlockID{Tag: "latest"})
+ 
+  result, err := client.BlockWithTxHashes(context.Background(), rpc.BlockID{Tag: "latest"})
   if err != nil {
     log.Fatal(err)
   }
