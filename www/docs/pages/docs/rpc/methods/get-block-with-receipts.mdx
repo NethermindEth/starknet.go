@@ -26,23 +26,21 @@ import (
 	"context"
 	"fmt"
 	"log"
-  "github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
 
+	"github.com/NethermindEth/starknet.go/rpc"
+) 
 func main() {
   rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	client, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
+ 
+   result, err :=  client.BlockWithReceipts(context.Background(), rpc.BlockID{Tag: "latest"})
+   if err != nil {
+	   log.Fatal(err)
+   }
 
-	provider := rpc.NewProvider(client)
-  result, err := provider.BlockWithTxHashes(context.Background(), rpc.BlockID{Tag: "latest"})
-  if err != nil {
-    log.Fatal(err)
-  }
   fmt.Println("BlockWithTxHashes:", result)
 }
 ```
