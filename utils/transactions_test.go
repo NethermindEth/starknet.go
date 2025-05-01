@@ -216,6 +216,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestFeeEstToResBoundsMap(t *testing.T) {
 	tests := []struct {
 		name          string

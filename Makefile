@@ -1,7 +1,7 @@
 GOLANGCI_LINT_VERSION := v1.61.0
 MOCKGEN_VERSION := v0.5.0
 GOFUMPT_VERSION := v0.8.0
-
+GCI_VERSION := v0.13.6
 .PHONY: test lint format
 
 # You should first check the 'internal/.env.template' file to set the correct values for the variables.
@@ -60,13 +60,16 @@ format: ## Format code
 	@gofumpt -l -w .
 
 # Install dependencies (Requires go => 1.23)
-install-deps: install-gofumpt install-mockgen install-golangci-lint
+install-deps: install-gofumpt install-gci install-mockgen install-golangci-lint
 
 install-gofumpt:
-	go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
+	which gofumpt || go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
+
+install-gci:
+	which gci || go install github.com/daixiang0/gci@$(GCI_VERSION)
 
 install-mockgen:
-	go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+	which mockgen || go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
 
 install-golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	which golangci-lint || go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
