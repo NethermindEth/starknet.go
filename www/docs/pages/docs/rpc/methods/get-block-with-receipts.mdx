@@ -21,11 +21,12 @@ Returns a block object containing:
 
 ```go
 package main
- 
+
 import (
 	"context"
 	"fmt"
 	"log"
+
 	"github.com/NethermindEth/starknet.go/rpc"
 ) 
 func main() {
@@ -35,10 +36,11 @@ func main() {
 		log.Fatal(err)
 	}
  
-  result, err := client.BlockWithTxHashes(context.Background(), rpc.BlockID{Tag: "latest"})
-  if err != nil {
-    log.Fatal(err)
-  }
+   result, err :=  client.BlockWithReceipts(context.Background(), rpc.BlockID{Tag: "latest"})
+   if err != nil {
+	   log.Fatal(err)
+   }
+
   fmt.Println("BlockWithTxHashes:", result)
 }
 ```
