@@ -1,95 +1,72 @@
-test:
-	@go test ./... -v
+GOLANGCI_LINT_VERSION := v1.61.0
+MOCKGEN_VERSION := v0.5.0
+GOFUMPT_VERSION := v0.8.0
 
-rpc-test:
-	@go test -v ./rpc -env [mainnet|devnet|testnet|mock]
+.PHONY: test lint format
 
-devnet-test:
-	@go test ./... -env devnet -v
+# tip: use the '-j' flag to run tests in parallel. Example: 'make -j test'
+# TODO: add guideline to run starknet.go tests
+test: clean-testcache mock-test devnet-test testnet-test mainnet-test ## Run all tests
+spinup-test: clean-testcache mock-test spinup-devnet-test testnet-test mainnet-test ## Run all tests, but spin up devnet automatically (requires 'starknet-devnet' to be installed)
 
-bench:
-	@go test -bench=.
+# small helpers to run 'rpc' and 'account' tests on a specified environment
+test_rpc_on = go test -v ./rpc/... -env $(1)
+test_account_on = go test -v ./account/... -env $(1)
 
-install-deps: | install-gofumpt install-mockgen install-golangci-lint
+clean-testcache: ## Clean Go test cache
+	@go clean -testcache
 
-install-gofumpt:
-	go install mvdan.cc/gofumpt@latest
+mock-test: ## Run all mock tests
+	@go test -v ./...
 
-install-mockgen:
-	go install go.uber.org/mock/mockgen@latest
+testnet-test: testnet-test-rpc testnet-test-account ## Run 'rpc' and 'account' tests on testnet environment
+# splitted to best run in parallel
+testnet-test-rpc:
+	$(call test_rpc_on,testnet)
+testnet-test-account:
+	$(call test_account_on,testnet)
 
-GOPATH := $(shell go env GOPATH)
-GOBIN := $(GOPATH)/bin
+mainnet-test: mainnet-test-rpc mainnet-test-account ## Run 'rpc' and 'account' tests on mainnet environment
+# splitted to best run in parallel
+mainnet-test-rpc:
+	$(call test_rpc_on,mainnet)
+mainnet-test-account:
+	$(call test_account_on,mainnet)
 
-install-golangci-lint:
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
-	@echo "Adding $(GOBIN) to PATH"
-	@export PATH=$(GOBIN):$$PATH && golangci-lint --version
-	@echo $PATH | grep go/bin
+devnet-test: devnet-test-rpc devnet-test-account ## Run 'rpc' and 'account' tests on devnet environment
+# splitted to best run in parallel
+devnet-test-rpc:
+	$(call test_rpc_on,devnet)
+devnet-test-account:
+	$(call test_account_on,devnet)
 
-lint: install-golangci-lint
+spinup-devnet-test: ## Spin up a 'starknet-devnet' instance, run devnet tests, and kill the instance (requires 'starknet-devnet' to be installed)
+	@echo "Devnet starting..."
+# start the devnet instance and save the pid to a file
+	@starknet-devnet > /dev/null & echo $$! > devnet.pid
+# wait a few seconds for the devnet instance to start
+	@sleep 3
+# run the devnet tests and kill the devnet instance after the tests are done.
+# if the tests fail, it will remove the devnet.pid file anyhow.
+	@$(MAKE) -j devnet-test; status=$$?; \
+	if [ -f devnet.pid ]; then kill $$(cat devnet.pid) && rm devnet.pid; else echo "No devnet.pid file found."; fi; \
+	exit $$status
+
+lint: ## Run linting
 	@echo "Running golangci-lint"
 	@golangci-lint run
 
-tidy:
-	 go mod tidy
+format: ## Format code
+	@gofumpt -l -w .
 
-format:
-	gofumpt -l -w .
+# Install dependencies (Requires go => 1.23)
+install-deps: install-gofumpt install-mockgen install-golangci-lint
 
-simple-call:
-	@if [ ! -f ./examples/.env ]; then \
-	    echo "This example calls two contract functions, with and without calldata. It uses an ERC20 token, but it can be any smart contract.\n"; \
-	    echo "Steps:\n"; \
-	    echo "	- Rename the '.env.template' file located at the root of the 'examples' folder to '.env'"; \
-	    echo "	- Uncomment, and assign your Sepolia testnet endpoint to the RPC_PROVIDER_URL variable in the '.env' file"; \
-	    echo "	- Uncomment, and assign your account address to the ACCOUNT_ADDRESS variable in the '.env' file"; \
-	    echo "	- Execute <make simple-call>"; \
-	    echo "The calls outputs will be returned at the end of the execution."; \
-	else \
-	    go run ./examples/simpleCall/main.go; \
-	fi
+install-gofumpt:
+	go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
 
-deploy-account:
-	@if [ ! -f ./examples/.env ]; then \
-	    echo "This example uses a pre-existing class on the Sepolia network to deploy a new account contract. To successfully run this example, you will need: 1) a Sepolia endpoint, and 2) some Sepolia ETH to fund the precomputed address.\n"; \
-	    echo "Steps:\n"; \
-	    echo "	- Rename the '.env.template' file located at the root of the 'examples' folder to '.env'"; \
-	    echo "	- Uncomment, and assign your Sepolia testnet endpoint to the RPC_PROVIDER_URL variable in the '.env' file"; \
-	    echo "	- Execute <make deploy-account>"; \
-	    echo "	- Fund the precomputed address using a starknet faucet, eg https://starknet-faucet.vercel.app/"; \
-	    echo "	- Press any key, then enter"; \
-	    echo "At this point your account should be deployed on testnet, and you can use a block explorer like Voyager to view your transaction using the transaction hash."; \
-	else \
-	    go run ./examples/deployAccount/main.go; \
-	fi
+install-mockgen:
+	go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
 
-simple-invoke:
-	@if [ ! -f ./examples/.env ]; then \
-	    echo "This example sends an invoke transaction with calldata. It uses an ERC20 token, but it can be any smart contract.\n"; \
-	    echo "Steps:\n"; \
-	    echo "	- Rename the '.env.template' file located at the root of the 'examples' folder to '.env'"; \
-	    echo "	- Uncomment, and assign your Sepolia testnet endpoint to the RPC_PROVIDER_URL variable in the '.env' file"; \
-	    echo "	- Uncomment, and assign your account address to the ACCOUNT_ADDRESS variable in the '.env' file (make sure to have a few ETH in it)"; \
-	    echo "	- Uncomment, and assign your starknet public key to the PUBLIC_KEY variable in the '.env' file"; \
-	    echo "	- Uncomment, and assign your private key to the PRIVATE_KEY variable in the '.env' file"; \
-	    echo "	- Execute <make simple-invoke>; \
-	    echo "The transaction hash and status will be returned at the end of the execution."; \
-	else \
-	    go run ./examples/simpleInvoke/main.go; \
-	fi
-
-deploy-contractUDC:
-	@if [ ! -f ./examples/.env ]; then \
-	    echo "This example deploys an ERC20 token using the UDC (Universal Deployer Contract) smart contract.\n"; \
-	    echo "Steps:\n"; \
-	    echo "	- Rename the '.env.template' file located at the root of the 'examples' folder to '.env'"; \
-	    echo "	- Uncomment, and assign your Sepolia testnet endpoint to the RPC_PROVIDER_URL variable in the '.env' file"; \
-	    echo "	- Uncomment, and assign your account address to the ACCOUNT_ADDRESS variable in the '.env' file (make sure to have a few ETH in it)"; \
-	    echo "	- Uncomment, and assign your starknet public key to the PUBLIC_KEY variable in the '.env' file"; \
-	    echo "	- Uncomment, and assign your private key to the PRIVATE_KEY variable in the '.env' file"; \
-	    echo "	- Execute <make deploy-contractUDC>"; \
-	    echo "The transaction hash and status will be returned at the end of the execution."; \
-	else \
-	    go run ./examples/deployContractUDC/main.go; \
-	fi
+install-golangci-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
