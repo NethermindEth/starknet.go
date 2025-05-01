@@ -9,7 +9,7 @@ export function Hero() {
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
-            href="#"
+            href="https://github.com/NethermindEth/starknet.go/releases/tag/v0.10.0"
             target="_blank"
             rel="noopener noreferrer"
             className="mx-auto w-full"
@@ -20,7 +20,7 @@ export function Hero() {
               </span>
               <span className="flex items-center gap-1 truncate">
                 <span className="w-full truncate">
-                  Starknet.go v1.0.0 Released
+                  Starknet.go v0.10.0 Released
                 </span>
 
                 <RiArrowRightUpLine className="size-4 shrink-0 text-gray-700" />
