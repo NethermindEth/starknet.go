@@ -9,7 +9,7 @@ import Testimonial from "./ui/Testimonial"
 
 export default function Home() {
   return (
-    <main className="relative mx-auto flex flex-col">
+    <main className="relative mx-auto flex flex-col w-full">
       <div className="pt-56">
         <Hero />
       </div>
