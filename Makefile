@@ -4,8 +4,8 @@ GOFUMPT_VERSION := v0.8.0
 
 .PHONY: test lint format
 
+# You should first check the 'internal/.env.template' file to set the correct values for the variables.
 # tip: use the '-j' flag to run tests in parallel. Example: 'make -j test'
-# TODO: add guideline to run starknet.go tests
 test: clean-testcache mock-test devnet-test testnet-test mainnet-test ## Run all tests
 spinup-test: clean-testcache mock-test spinup-devnet-test testnet-test mainnet-test ## Run all tests, but spin up devnet automatically (requires 'starknet-devnet' to be installed)
 
