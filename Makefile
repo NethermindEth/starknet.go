@@ -58,6 +58,7 @@ lint: ## Run linting
 
 format: ## Format code
 	@gofumpt -l -w .
+	@gci write --skip-generated -s standard -s default .
 
 # Install dependencies (Requires go => 1.23)
 install-deps: install-gofumpt install-gci install-mockgen install-golangci-lint

@@ -5,11 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func TestResBoundsMapToOverallFee(t *testing.T) {

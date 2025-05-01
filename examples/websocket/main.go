@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NethermindEth/starknet.go/rpc"
-
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
