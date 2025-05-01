@@ -47,6 +47,8 @@ linters-settings:
       - strings.SplitN
 
   govet:
+    enable: [nilness]
+    shadow: true
     settings:
       printf:
         funcs:
@@ -65,6 +67,10 @@ linters-settings:
 
   exhaustruct:
     include: []
+
+  gosec:
+    excludes:
+      - G115 #TODO: remove after fixing https://github.com/securego/gosec/issues/1212
 
 linters:
   disable-all: true
@@ -104,6 +110,11 @@ linters:
     - tparallel
     - gci
     - exhaustruct
+    - usetesting
+    - nilnesserr
+    - prealloc
+    - makezero
+    - intrange
 
 issues:
   # Excluding configuration per-path, per-linter, per-text and per-source
@@ -115,10 +126,6 @@ issues:
         - lll
         - gosec
         - exhaustruct
-
-    # - path-except: 'adapters/.+\.go' # run specified linters only on files that reside inside adapters
-    #   linters:
-    #     - exhaustruct
 
     - linters:
         - lll
@@ -140,7 +147,6 @@ issues:
     - path: pkg/golinters/unused.go
       text: "rangeValCopy: each iteration copies 160 bytes \\(consider pointers or indexing\\)"
   exclude-dirs:
-    - test/testdata_etc # test files
     - internal/cache # extracted from Go code
     - internal/renameio # extracted from Go code
     - internal/robustio # extracted from Go code
