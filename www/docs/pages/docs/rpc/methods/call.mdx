@@ -1,22 +1,24 @@
 # Call
 
-Calls a function on a contract without creating a transaction.
+Calls the Starknet Provider's function with the given request and block ID.
 
 ## Parameters
 
+- `ctx` - The context of the request.
 - `request` - The call request object containing:
   - `contract_address` - The address of the contract
   - `entry_point_selector` - The selector of the function to call
   - `calldata` - The input data for the function call
-- `block_id` - The block identifier. Can be:
-  - Block hash
-  - Block number
-  - "latest" for the latest block
-  - "pending" for the pending block
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block
+  - `"pending"` for the pending block
 
 ## Returns
 
-Returns the result of the function call as an array of Felts.
+- `result` - The result of the function call as an array of Felts.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -27,28 +29,28 @@ import (
 	"context"
 	"fmt"
 	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
 	// Convert string addresses to Felt
-	contractAddress, _ := utils.HexToFelt("0x123...")
-	entryPointSelector, _ := utils.HexToFelt("0x456...")
+	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
+	entryPointSelector, _ := utils.HexToFelt("0x361458367e696363fbcc70777d07ebbd2394e89fd0adcaf147faccd1d294d60")
 	
 	// Create call request
 	request := rpc.FunctionCall{
 		ContractAddress:    contractAddress,
 		EntryPointSelector: entryPointSelector,
-		Calldata:          []*felt.Felt{},
+		Calldata: []*felt.Felt{},
 	}
 	
 	result, err := provider.Call(context.Background(), request, rpc.BlockID{Tag: "latest"})
@@ -57,6 +59,11 @@ func main() {
 	}
 	fmt.Println("Call Result:", result)
 }
+```
+
+## Output
+```json
+Call Result: [0x4c6f726473]
 ```
 
 ## Error Cases

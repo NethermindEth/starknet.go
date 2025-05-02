@@ -4,16 +4,18 @@ Returns the class hash of the contract at the given address.
 
 ## Parameters
 
-- `contract_address` - The address of the contract
-- `block_id` - The block identifier. Can be:
-  - Block hash
-  - Block number
-  - "latest" for the latest block
-  - "pending" for the pending block
+- `ctx` - The context of the request.
+- `contractAddress` - The address of the contract
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block
+  - `"pending"` for the pending block
 
 ## Returns
 
-Returns the class hash as a Felt.
+- `Felt` - The class hash of the contract.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -24,28 +26,36 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+
+	"encoding/json"
 )
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
-	// Convert string address to Felt
-	contractAddress, _ := utils.HexToFelt("0x123...")
-	
+	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
 	result, err := provider.ClassHashAt(context.Background(), rpc.BlockID{Tag: "latest"}, contractAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Class Hash:", result)
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Class hash:", string(resultJson))
 }
+```
+
+## Output
+```json 
+Class hash: "0x9f9205f50528a4c6308c69c675c14e65f31c72b1f7f1d2375d04fae1eec546"
 ```
 
 ## Error Cases

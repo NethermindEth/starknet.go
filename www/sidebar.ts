@@ -16,19 +16,18 @@ export const sidebar: Sidebar = {
             collapsed: true,
             items: [
                 { text: 'Overview', link: '/docs/rpc/' },
-                { text: 'RPC Methods', collapsed:false, items: [
-                    { text: 'Block',
-                        items: [
-                            { text: 'BlockNumber', link: '/docs/rpc/methods/block-number' },
-                            { text: 'BlockHashAndNumber', link: '/docs/rpc/methods/block-hash-and-number' },
-                            { text: 'GetBlockWithTxHashes', link: '/docs/rpc/methods/get-block-with-tx-hashes' },
-                            { text: 'GetStateUpdate', link: '/docs/rpc/methods/get-state-update' },
-                            { text: 'GetBlockTransactionCount', link: '/docs/rpc/methods/get-block-transaction-count' },
-                            { text: 'GetBlockWithTxs', link: '/docs/rpc/methods/get-block-with-txs' },
-                            { text: 'GetBlockWithReceipts', link: '/docs/rpc/methods/get-block-with-receipts' },
-                        ]
-                    },
-                    { text: 'Call', link: '/docs/rpc/methods/call' },
+                { text: 'Block',
+                    items: [
+                        { text: 'BlockNumber', link: '/docs/rpc/methods/block-number' },
+                        { text: 'BlockHashAndNumber', link: '/docs/rpc/methods/block-hash-and-number' },
+                        { text: 'GetBlockWithTxHashes', link: '/docs/rpc/methods/get-block-with-tx-hashes' },
+                        { text: 'GetStateUpdate', link: '/docs/rpc/methods/get-state-update' },
+                        { text: 'GetBlockTransactionCount', link: '/docs/rpc/methods/get-block-transaction-count' },
+                        { text: 'GetBlockWithTxs', link: '/docs/rpc/methods/get-block-with-txs' },
+                        { text: 'GetBlockWithReceipts', link: '/docs/rpc/methods/get-block-with-receipts' },
+                    ]
+                },
+                { text: 'Call', link: '/docs/rpc/methods/call' },
                     {
                         text: 'Chain',
                         items: [
@@ -78,10 +77,10 @@ export const sidebar: Sidebar = {
                         ]
                     },
                     { text: 'SpecVersion', link: '/docs/rpc/methods/spec-version' },
-                    { text: 'GetCompiledCasm', link: '/docs/rpc/methods/get-compiled-casm' }
-                ] },
-                { text: 'RPC Examples', link: '/docs/rpc/examples' },
-            ]
+                    { text: 'GetCompiledCasm', link: '/docs/rpc/methods/get-compiled-casm' },
+                    { text: 'RPC Examples', link: '/docs/rpc/examples' },
+                ],
+            
         },
         { 
             text: 'Account',
