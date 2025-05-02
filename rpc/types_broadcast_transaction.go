@@ -27,7 +27,7 @@ type BroadcastDeclareTxnV3 struct {
 	Signature         []*felt.Felt             `json:"signature"`
 	Nonce             *felt.Felt               `json:"nonce"`
 	ContractClass     *contracts.ContractClass `json:"contract_class"`
-	ResourceBounds    ResourceBoundsMapping    `json:"resource_bounds"`
+	ResourceBounds    *ResourceBoundsMapping   `json:"resource_bounds"`
 	Tip               U64                      `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`

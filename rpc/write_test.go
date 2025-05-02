@@ -73,7 +73,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 					Nonce:         internalUtils.TestHexToFelt(t, "0xe97"),
 					NonceDataMode: DAModeL1,
 					FeeMode:       DAModeL1,
-					ResourceBounds: ResourceBoundsMapping{
+					ResourceBounds: &ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
 							MaxAmount:       "0x186a0",
 							MaxPricePerUnit: "0x5af3107a4000",
@@ -148,7 +148,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 					Nonce:         new(felt.Felt),
 					NonceDataMode: DAModeL1,
 					FeeMode:       DAModeL1,
-					ResourceBounds: ResourceBoundsMapping{
+					ResourceBounds: &ResourceBoundsMapping{
 						L1Gas: ResourceBounds{
 							MaxAmount:       "0x186a0",
 							MaxPricePerUnit: "0x5af3107a4000",

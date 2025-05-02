@@ -75,12 +75,12 @@ func FeltToBigInt(f *felt.Felt) *big.Int {
 // BigIntToFelt converts a big integer to a felt.Felt.
 //
 // Parameters:
-//   - big: the big integer to convert
+//   - bigNum: the big integer to convert
 //
 // Returns:
 //   - *felt.Felt: the converted value
-func BigIntToFelt(big *big.Int) *felt.Felt {
-	return new(felt.Felt).SetBytes(big.Bytes())
+func BigIntToFelt(bigNum *big.Int) *felt.Felt {
+	return new(felt.Felt).SetBytes(bigNum.Bytes())
 }
 
 // FeltArrToBigIntArr converts an array of Felt objects to an array of big.Int objects.

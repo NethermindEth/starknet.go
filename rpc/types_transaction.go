@@ -36,14 +36,14 @@ type InvokeTxnV1 struct {
 }
 
 type InvokeTxnV3 struct {
-	Type           TransactionType       `json:"type"`
-	SenderAddress  *felt.Felt            `json:"sender_address"`
-	Calldata       []*felt.Felt          `json:"calldata"`
-	Version        TransactionVersion    `json:"version"`
-	Signature      []*felt.Felt          `json:"signature"`
-	Nonce          *felt.Felt            `json:"nonce"`
-	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            U64                   `json:"tip"`
+	Type           TransactionType        `json:"type"`
+	SenderAddress  *felt.Felt             `json:"sender_address"`
+	Calldata       []*felt.Felt           `json:"calldata"`
+	Version        TransactionVersion     `json:"version"`
+	Signature      []*felt.Felt           `json:"signature"`
+	Nonce          *felt.Felt             `json:"nonce"`
+	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -98,15 +98,15 @@ type DeclareTxnV2 struct {
 }
 
 type DeclareTxnV3 struct {
-	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
-	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           TransactionVersion    `json:"version"`
-	Signature         []*felt.Felt          `json:"signature"`
-	Nonce             *felt.Felt            `json:"nonce"`
-	ClassHash         *felt.Felt            `json:"class_hash"`
-	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               U64                   `json:"tip"`
+	Type              TransactionType        `json:"type"`
+	SenderAddress     *felt.Felt             `json:"sender_address"`
+	CompiledClassHash *felt.Felt             `json:"compiled_class_hash"`
+	Version           TransactionVersion     `json:"version"`
+	Signature         []*felt.Felt           `json:"signature"`
+	Nonce             *felt.Felt             `json:"nonce"`
+	ClassHash         *felt.Felt             `json:"class_hash"`
+	ResourceBounds    *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip               U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -222,15 +222,15 @@ type DeployAccountTxnV1 struct {
 }
 
 type DeployAccountTxnV3 struct {
-	Type                TransactionType       `json:"type"`
-	Version             TransactionVersion    `json:"version"`
-	Signature           []*felt.Felt          `json:"signature"`
-	Nonce               *felt.Felt            `json:"nonce"`
-	ContractAddressSalt *felt.Felt            `json:"contract_address_salt"`
-	ConstructorCalldata []*felt.Felt          `json:"constructor_calldata"`
-	ClassHash           *felt.Felt            `json:"class_hash"`
-	ResourceBounds      ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                 U64                   `json:"tip"`
+	Type                TransactionType        `json:"type"`
+	Version             TransactionVersion     `json:"version"`
+	Signature           []*felt.Felt           `json:"signature"`
+	Nonce               *felt.Felt             `json:"nonce"`
+	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
+	ClassHash           *felt.Felt             `json:"class_hash"`
+	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)

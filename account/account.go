@@ -757,8 +757,8 @@ func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	return result
 }
 
-func makeResourceBoundsMapWithZeroValues() rpc.ResourceBoundsMapping {
-	return rpc.ResourceBoundsMapping{
+func makeResourceBoundsMapWithZeroValues() *rpc.ResourceBoundsMapping {
+	return &rpc.ResourceBoundsMapping{
 		L1Gas: rpc.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",

@@ -375,7 +375,7 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -488,7 +488,7 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 		txn.ClassHash == nil || txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
@@ -537,7 +537,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
 		txn.ContractClass == nil || txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
@@ -619,7 +619,7 @@ func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxnV1, contractAddress
 //   - error: an error if any
 func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
-	if txn.Version == "" || txn.ResourceBounds == (rpc.ResourceBoundsMapping{}) || txn.Nonce == nil || txn.PayMasterData == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.PayMasterData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -654,7 +654,10 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	), nil
 }
 
-func TipAndResourcesHash(tip uint64, resourceBounds rpc.ResourceBoundsMapping) (*felt.Felt, error) {
+func TipAndResourcesHash(tip uint64, resourceBounds *rpc.ResourceBoundsMapping) (*felt.Felt, error) {
+	if resourceBounds == nil {
+		return nil, errors.New("resource bounds are nil")
+	}
 	l1Bytes, err := resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas)
 	if err != nil {
 		return nil, err

@@ -42,7 +42,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
-	InvokeTx := utils.BuildInvokeTxn(accnt.Address, nonce, calldata, rpc.ResourceBoundsMapping{
+	InvokeTx := utils.BuildInvokeTxn(accnt.Address, nonce, calldata, &rpc.ResourceBoundsMapping{
 		L1Gas: rpc.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",

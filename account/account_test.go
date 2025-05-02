@@ -514,7 +514,7 @@ func TestSendInvokeTxn(t *testing.T) {
 						internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
 						internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
 					},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x4305031628668",
@@ -627,7 +627,7 @@ func TestSendDeclareTxn(t *testing.T) {
 		},
 		Nonce:         internalUtils.TestHexToFelt(t, "0xe"),
 		ContractClass: &class,
-		ResourceBounds: rpc.ResourceBoundsMapping{
+		ResourceBounds: &rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x1597b3274d88",
@@ -704,7 +704,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 		ClassHash:           classHash,
-		ResourceBounds: rpc.ResourceBoundsMapping{
+		ResourceBounds: &rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
 				MaxAmount:       "0x997c",
 				MaxPricePerUnit: "0x1597b3274d88",
@@ -814,7 +814,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 						internalUtils.TestHexToFelt(t, "0x5c6a94302ef4b6d80a4c6a3eaf5ad30e11fa13aa78f7397a4f69901ceb12b7"),
 						internalUtils.TestHexToFelt(t, "0x25bf97f481061f8abf5eb93e67eaebe6bb74dda34d7378a506f5ee2ff1daef1"),
 					},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x10968159929e",
@@ -915,7 +915,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245"),
 						internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x186a0",
 							MaxPricePerUnit: "0x2d79883d20000",
@@ -953,7 +953,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245"),
 						internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x186a0",
 							MaxPricePerUnit: "0x2d79883d20000",
@@ -1055,7 +1055,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x3ef7f047c95592a04d4d754888dd8f125480a48dee23ee86c115d5da2a86573"),
 						internalUtils.TestHexToFelt(t, "0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x1597b3274d88",

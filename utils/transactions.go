@@ -40,7 +40,7 @@ func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
-	resourceBounds rpc.ResourceBoundsMapping,
+	resourceBounds *rpc.ResourceBoundsMapping,
 ) *rpc.BroadcastInvokeTxnV3 {
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
@@ -82,7 +82,7 @@ func BuildDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
-	resourceBounds rpc.ResourceBoundsMapping,
+	resourceBounds *rpc.ResourceBoundsMapping,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
@@ -117,7 +117,7 @@ func BuildDeclareTxn(
 //
 // Parameters:
 //   - nonce: The account's nonce
-//   - contractAddressSalt: A value used to randomize the deployed contract address
+//   - contractAddressSalt: A value used to randomise the deployed contract address
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
@@ -130,7 +130,7 @@ func BuildDeployAccountTxn(
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
-	resourceBounds rpc.ResourceBoundsMapping,
+	resourceBounds *rpc.ResourceBoundsMapping,
 ) *rpc.BroadcastDeployAccountTxnV3 {
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
@@ -182,15 +182,14 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 func FeeEstToResBoundsMap(
 	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
-) rpc.ResourceBoundsMapping {
-
+) *rpc.ResourceBoundsMapping {
 	// Create L1 resources bounds
 	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier)
 	l1DataGas := toResourceBounds(feeEstimation.L1DataGasPrice, feeEstimation.L1DataGasConsumed, multiplier)
 	// Create L2 resource bounds
 	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier)
 
-	return rpc.ResourceBoundsMapping{
+	return &rpc.ResourceBoundsMapping{
 		L1Gas:     l1Gas,
 		L1DataGas: l1DataGas,
 		L2Gas:     l2Gas,
@@ -268,9 +267,13 @@ func toResourceBounds(
 //   - *felt.Felt: The overall fee in FRI
 //   - error: An error if any
 func ResBoundsMapToOverallFee(
-	resBounds rpc.ResourceBoundsMapping,
+	resBounds *rpc.ResourceBoundsMapping,
 	multiplier float64,
 ) (*felt.Felt, error) {
+	if resBounds == nil {
+		return nil, errors.New("resource bounds are nil")
+	}
+
 	// negative multiplier is not allowed
 	if multiplier < 0 {
 		return nil, errors.New("multiplier cannot be negative")
@@ -286,6 +289,7 @@ func ResBoundsMapToOverallFee(
 		if val.Sign() < 0 {
 			return nil, fmt.Errorf(negativeResourceBoundsErr, val)
 		}
+
 		return val, nil
 	}
 

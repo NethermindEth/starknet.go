@@ -594,7 +594,7 @@ func TestEstimateFee(t *testing.T) {
 				description: "invalid transaction",
 				txs: []BroadcastTxn{
 					InvokeTxnV3{
-						ResourceBounds: ResourceBoundsMapping{
+						ResourceBounds: &ResourceBoundsMapping{
 							L1Gas: ResourceBounds{
 								MaxAmount:       "0x0",
 								MaxPricePerUnit: "0x4305031628668",
