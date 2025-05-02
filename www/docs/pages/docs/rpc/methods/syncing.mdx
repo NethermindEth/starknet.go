@@ -4,15 +4,10 @@ Returns the syncing status of the node.
 
 ## Parameters
 
-None
+- `ctx` - The context of the request.
 
 ## Returns
-
-Returns a syncing status object containing:
-- Starting block number
-- Current block number
-- Highest block number
-- Other syncing-related data
+- `*SyncStatus` - A pointer to a SyncingStatus object.
 
 ## Example
 
@@ -24,23 +19,33 @@ import (
 	"fmt"
 	"log"
 	"github.com/NethermindEth/starknet.go/rpc"
+
+	"encoding/json"
 )
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
 	result, err := provider.Syncing(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Syncing Status:", result)
+
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("SyncStatus:", resultJson)
 }
+```
+
+## Output 
+```json
+SyncStatus: [102 97 108 115 101]
 ```
 
 ## Error Cases

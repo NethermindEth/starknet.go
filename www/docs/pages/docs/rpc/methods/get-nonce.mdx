@@ -1,19 +1,21 @@
 # Get Nonce
 
-Returns the nonce of the contract at the given address.
+Returns the nonce for a given blockID and contract address.
 
 ## Parameters
 
-- `contract_address` - The address of the contract
-- `block_id` - The block identifier. Can be:
-  - Block hash
-  - Block number
-  - "latest" for the latest block
-  - "pending" for the pending block
+- `ctx` - The context of the request.
+- `contractAddress` - The address of the contract
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block
+  - `"pending"` for the pending block
 
 ## Returns
 
-Returns the nonce as a Felt.
+- `nonce` - The nonce of the contract.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -24,28 +26,37 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+
+	"encoding/json"
 )
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
-	// Convert string address to Felt
-	contractAddress, _ := utils.HexToFelt("0x123...")
-	
+	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
 	result, err := provider.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, contractAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Nonce:", result)
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Nonce:", string(resultJson))
 }
+```
+
+## Output
+
+```json
+Nonce: "0x0"
 ```
 
 ## Error Cases

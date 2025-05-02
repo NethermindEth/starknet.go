@@ -1,14 +1,15 @@
 # Chain ID
 
-Returns the chain ID of the network.
+Returns the chain ID for transaction replay protection.
 
 ## Parameters
 
-None
+- `ctx` - The context of the request.
 
 ## Returns
 
-Returns the chain ID as a Felt.
+- `result` - The chain ID as a Felt.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -24,19 +25,22 @@ import (
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
 	result, err := provider.ChainID(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Chain ID:", result)
 }
+```
+
+## Output
+```json
+Chain ID: SN_MAIN
 ```
 
 ## Error Cases
