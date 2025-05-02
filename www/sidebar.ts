@@ -11,27 +11,6 @@ export const sidebar: Sidebar = {
                 { text: 'Contributing', link: '/docs/introduction/contributing' },
             ],
         },
-        { 
-            text: 'Account',
-            collapsed: true,
-            items: [
-                { text: 'Overview', link: '/docs/account/' },
-                { text: 'Account Management', link: '/docs/account/account-management' },
-                { text: 'Transaction Handling', link: '/docs/account/transaction-handling' },
-                { text: 'Signature Verification', link: '/docs/account/signature-verification' },
-                { text: 'Account Utilities', link: '/docs/account/account-utilities' },
-            ]
-        },
-        {
-            text: 'Client',
-            collapsed: true,
-            items: [
-                { text: 'Overview', link: '/docs/client/' },
-                { text: 'Client Configuration', link: '/docs/client/configuration' },
-                { text: 'Client Methods', link: '/docs/client/methods' },
-                { text: 'Client Examples', link: '/docs/client/examples' },
-            ]
-        },
         {
             text: 'RPC',
             collapsed: true,
@@ -103,6 +82,27 @@ export const sidebar: Sidebar = {
                     { text: 'GetCompiledCasm', link: '/docs/rpc/methods/get-compiled-casm' }
                 ] },
                 { text: 'RPC Examples', link: '/docs/rpc/examples' },
+            ]
+        },
+        { 
+            text: 'Account',
+            collapsed: true,
+            items: [
+                { text: 'Overview', link: '/docs/account/' },
+                { text: 'Account Management', link: '/docs/account/account-management' },
+                { text: 'Transaction Handling', link: '/docs/account/transaction-handling' },
+                { text: 'Signature Verification', link: '/docs/account/signature-verification' },
+                { text: 'Account Utilities', link: '/docs/account/account-utilities' },
+            ]
+        },
+        {
+            text: 'Client',
+            collapsed: true,
+            items: [
+                { text: 'Overview', link: '/docs/client/' },
+                { text: 'Client Configuration', link: '/docs/client/configuration' },
+                { text: 'Client Methods', link: '/docs/client/methods' },
+                { text: 'Client Examples', link: '/docs/client/examples' },
             ]
         },
         {
