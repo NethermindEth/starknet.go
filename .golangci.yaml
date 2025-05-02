@@ -27,8 +27,10 @@ linters:
     - nakedret
     - nilerr
     - nilnesserr
+    - nlreturn
     - noctx
     - nolintlint
+    - perfsprint
     - prealloc
     - staticcheck
     - tparallel
@@ -151,6 +153,8 @@ formatters:
     - goimports
     - golines
   settings:
+    golines:
+      max-len: 180
     goimports:
       local-prefixes:
         - github.com/golangci/golangci-lint
