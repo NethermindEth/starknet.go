@@ -1,14 +1,15 @@
 # Block Number
 
-Returns the latest block number.
+Returns the latest block number of the current block.
 
 ## Parameters
 
-None
+- `ctx` - The context of the request.
 
 ## Returns
 
-Returns the latest block number as an integer.
+- `uint64` - The block number.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -24,13 +25,11 @@ import (
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
 	result, err := provider.BlockNumber(context.Background())
 	if err != nil {
 		log.Fatal(err)
