@@ -26,7 +26,6 @@ export const sidebar: Sidebar = {
                             { text: 'GetBlockTransactionCount', link: '/docs/rpc/methods/get-block-transaction-count' },
                             { text: 'GetBlockWithTxs', link: '/docs/rpc/methods/get-block-with-txs' },
                             { text: 'GetBlockWithReceipts', link: '/docs/rpc/methods/get-block-with-receipts' },
-                            { text: 'GetBlock', link: '/docs/rpc/methods/get-block' },
                         ]
                     },
                     { text: 'Call', link: '/docs/rpc/methods/call' },

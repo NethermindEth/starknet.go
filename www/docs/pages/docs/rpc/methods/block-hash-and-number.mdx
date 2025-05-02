@@ -4,13 +4,14 @@ Returns the latest block hash and number.
 
 ## Parameters
 
-None
+- `ctx` - The context of the request.
 
 ## Returns
 
-Returns an object containing:
-- Block hash
-- Block number
+- `BlockHashAndNumberOutput` - The hash and number of the current block:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+- `error` - An error if any occurred.
 
 ## Example
 
@@ -22,26 +23,37 @@ import (
 	"fmt"
 	"log"
 	"github.com/NethermindEth/starknet.go/rpc"
+
+	"encoding/json"
 )
 
 func main() {
 	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
+	provider, err := rpc.NewProvider(rpcUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	provider := rpc.NewProvider(client)
-	
 	result, err := provider.BlockHashAndNumber(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Block Hash:", result.BlockHash)
-	fmt.Println("Block Number:", result.BlockNumber)
+	formartedResult, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("BlockHash and BlockNumber:", string(formartedResult))
 }
 ```
 
+## Output
+
+```json
+BlockHash and BlockNumber: {
+  "block_number": 1366163,
+  "block_hash": "0x70a28b996c0beac0f08263e96eee6c1c9e56c7224754baffea03f27cf040f3"
+}
+```
 ## Error Cases
 
 None 
