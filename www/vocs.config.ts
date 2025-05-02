@@ -8,6 +8,9 @@ export default defineConfig({
     text: 'Suggest changes to this page',
   },
   sidebar,
+  ogImageUrl: {
+    '/': '/og-image.png',
+  },
   iconUrl: { light: '/favicons/light.png', dark: '/favicons/dark.png' },
   logoUrl: { light: '/starknetgo_vertical_light.png', dark: '/starknetgo_vertical_dark.png' },
   socials: [
