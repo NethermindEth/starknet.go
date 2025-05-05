@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 
@@ -49,7 +50,23 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 		return nil, err
 	}
 
-	return &Provider{c: c}, nil
+	provider := &Provider{c: c}
+
+	// Check version compatibility
+	version, err := provider.SpecVersion(context.Background())
+	if err != nil {
+		// Log the error but don't fail initialization
+		fmt.Printf("Warning: Could not check RPC version compatibility: %v\n", err)
+		return provider, nil
+	}
+
+	// Check compatibility with the expected version (0.8.0)
+	if err := CheckVersionCompatibility(version, "0.8.0"); err != nil {
+		// Log the warning but don't fail initialization
+		fmt.Printf("Warning: %v\n", err)
+	}
+
+	return provider, nil
 }
 
 // NewWebsocketProvider creates a new Websocket rpc Provider instance.
