@@ -16,9 +16,9 @@ export default function Home() {
       <div className="mt-52 px-4 xl:px-0">
         <Features />
       </div>
-      <div className="mt-32 px-4 xl:px-0">
+      {/* <div className="mt-32 px-4 xl:px-0">
         <Testimonial />
-      </div>
+      </div> */}
       <FeatureDivider className="my-16 max-w-6xl" />
       <div className="px-4 xl:px-0">
         <Map />

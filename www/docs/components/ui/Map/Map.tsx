@@ -1,7 +1,11 @@
 import {
+  RiCodeBlock,
+  RiDatabase2Fill,
+  RiGitBranchFill,
   RiHome9Fill,
   RiPlaneLine,
   RiSignalTowerFill,
+  RiTimeLine,
   RiTruckFill,
 } from "@remixicon/react"
 import { SVGMap } from "./SVGMap"
@@ -104,9 +108,9 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Validating
+              Syncing
             </div>
-            <RiPlaneLine className="relative size-5 rotate-90 text-white" />
+            <RiGitBranchFill className="relative size-5 rotate-90 text-white" />
             <div
               style={{
                 animationDelay: "3.5s",
@@ -119,7 +123,7 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Processing
+              Validating
             </div>
             <Icons.QuadCopter className="relative size-5 rotate-90 text-white" />
             <div
@@ -134,9 +138,9 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Syncing
+              Database
             </div>
-            <RiPlaneLine className="relative size-5 rotate-90 text-white" />
+            <RiCodeBlock className="relative size-5 rotate-90 text-white" />
             <div
               style={{
                 animationDelay: "3.5s",
@@ -148,16 +152,16 @@ export const Map = () => {
         <div className="absolute top-20 right-[390px]">
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
-            <RiHome9Fill className="relative size-5 text-white" />
+            <RiTimeLine className="relative size-5 text-white" />
           </div>
         </div>
         <div className="absolute top-12 right-[430px]">
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-7 flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Idle
+            Database
             </div>
-            <RiTruckFill className="relative size-5 text-white" />
+            <RiDatabase2Fill className="relative size-5 text-white" />
           </div>
         </div>
         <div className="absolute top-9 right-56">

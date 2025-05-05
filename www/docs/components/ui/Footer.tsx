@@ -1,6 +1,7 @@
 import {
   RiGithubFill,
   RiSlackFill,
+  RiTelegram2Fill,
   RiTwitterXFill,
   RiYoutubeFill,
 } from "@remixicon/react"
@@ -13,47 +14,43 @@ const Footer = () => {
       title: "Solutions",
       items: [
         { label: "Starknet.go", href: "#" },
-        { label: "Smart Contracts", href: "#" },
-        { label: "Cairo Development", href: "#" },
-        { label: "Starknet Integration", href: "#" },
-        { label: "Documentation", href: "#" },
-        { label: "Developer Guide", href: "#" },
-        { label: "Tools", href: "#" },
+        { label: "Voyager", href: "https://voyager.online/" },
+        { label: "Juno", href: "https://www.nethermind.io/juno" },
+        { label: "CairoVM - Go", href: "https://github.com/NethermindEth/cairo-vm-go" },
+        { label: "Starknet RPC", href: "https://data.voyager.online/"},
+        { label: "Starkweb", href: "https://www.starkweb.xyz/" },
       ],
     },
     company: {
       title: "Company",
       items: [
-        { label: "About Nethermind", href: "#" },
-        { label: "Blog", href: "#" },
-        { label: "Careers", href: "#" },
-        { label: "Case Studies", href: "#" },
-        { label: "Research", href: "#" },
+        { label: "About Nethermind", href: "https://www.nethermind.io/" },
+        { label: "Blog", href: "https://www.nethermind.io/blog" },
+        { label: "Careers", href: "https://www.nethermind.io/open-roles" },
+        { label: "Events", href: "https://www.nethermind.io/events" },
       ],
     },
     resources: {
       title: "Resources",
       items: [
-        { label: "Developer Network", href: "#" },
         {
           label: "Community",
           href: "#",
           external: true,
         },
-        { label: "Contact", href: "#" },
-        { label: "Support", href: "#" },
-        { label: "Privacy Policy", href: "#" },
-        { label: "Terms of Service", href: "#" },
-        { label: "Report an Issue", href: "#" },
+        { label: "Contact Us", href: "https://www.nethermind.io/contact-us#" },
+        { label: "Community", href: "https://discord.com/invite/PaCMRFdvWT" },
+        { label: "Legal", href: "https://www.nethermind.io/legal" },
+        { label: "Media Kit", href: "https://drive.google.com/drive/folders/1pGJw5TAjo8M1RdGVbqPrEjmvkpwalIfL" },
       ],
     },
     ecosystem: {
       title: "Ecosystem",
       items: [
-        { label: "Starknet", href: "#", external: true },
-        { label: "Status", href: "#", external: true },
-        { label: "Research Partners", href: "#", external: true },
-        { label: "Integration Guide", href: "#" },
+        { label: "Starknet", href: "https://www.starknet.io/", external: true },
+        { label: "Github", href: "https://github.com/NethermindEth/starknet.go", external: true },
+        { label: "NethermindStark", href: "https://x.com/NethermindStark?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor", external: true },
+        { label: "Telegram", href: "https://t.me/StarknetGo", external: true },
       ],
     },
   }
@@ -154,7 +151,7 @@ const Footer = () => {
             <div className="mt-4 flex items-center">
               {/* Social Icons */}
               <a
-                href="#"
+                href="https://x.com/NethermindStark?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -162,7 +159,7 @@ const Footer = () => {
                 <RiTwitterXFill className="size-5" />
                   </a>
               <a
-                href="#"
+                href="https://www.youtube.com/channel/UCgIPcx1C29j8IUx7BtF77YQ"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -170,7 +167,7 @@ const Footer = () => {
                 <RiYoutubeFill className="size-5" />
               </a>
               <a
-                href="#"
+                href="https://github.com/NethermindEth/starknet.go#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -178,12 +175,12 @@ const Footer = () => {
                 <RiGithubFill className="size-5" />
               </a>
               <a
-                href="#"
+                href="https://t.me/StarknetGo"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
-                <RiSlackFill className="size-5" />
+              <RiTelegram2Fill className="size-5" />
               </a>
             </div>
             <div className="ml-2 hidden text-sm text-gray-700 lg:inline">

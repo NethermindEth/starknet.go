@@ -15,13 +15,13 @@ export function CallToAction() {
             Start developing with Starknet.go today or connect with our engineers
             to discuss your blockchain implementation needs.
           </p>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 pt-10">
             <Button asChild className="text-md">
               <a href="/docs/introduction/getting-started">Get started</a>
             </Button>
-            <Button asChild className="text-md" variant="secondary">
+            {/* <Button asChild className="text-md" variant="secondary">
               <a href="/docs/introduction/installation">View documentation</a>
-            </Button>
+            </Button> */}
           </div>
         </div>
         <div className="relative isolate rounded-xl sm:col-span-4 sm:h-full">

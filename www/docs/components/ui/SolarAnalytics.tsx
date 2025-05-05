@@ -26,9 +26,9 @@ export function SolarAnalytics() {
           Transform blockchain data into actionable insights with Go-powered tools
         </p>
       </div>
-      <div className="*:pointer-events-none">
+      {/* <div className="*:pointer-events-none">
         <AnalyticsIllustration />
-      </div>
+      </div> */}
       <Divider className="mt-0"></Divider>
       <div className="grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-4 md:grid-rows-1">
         <StickerCard

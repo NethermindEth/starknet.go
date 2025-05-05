@@ -8,12 +8,15 @@ import {
   RiLoaderFill,
   RiNotification2Line,
   RiPlaneFill,
-  RiErrorWarningFill
-} from "@remixicon/react"
-import { SolarMark } from "../../public/SolarMark"
-import { Icons } from "../Icons"
-import { Orbit } from "../Orbit"
-import ChipViz from "./ChipViz"
+  RiErrorWarningFill,
+  RiWindowFill,
+  RiGitBranchFill,
+  RiDiscordLine,
+} from "@remixicon/react";
+import { SolarMark } from "../../public/SolarMark";
+import { Icons } from "../Icons";
+import { Orbit } from "../Orbit";
+import ChipViz from "./ChipViz";
 
 export default function Features() {
   return (
@@ -137,7 +140,9 @@ export default function Features() {
             A complete toolkit for Starknet development in Go
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Build robust Starknet applications with our comprehensive Go library that provides seamless interaction with the Starknet ecosystem, from contract deployment to transaction management.
+            Build robust Starknet applications with our comprehensive Go library
+            that provides seamless interaction with the Starknet ecosystem, from
+            contract deployment to transaction management.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">
@@ -156,7 +161,7 @@ export default function Features() {
                 height="64"
               >
                 {Array.from({ length: 17 }, (_, i) => {
-                  const offset = i * 8
+                  const offset = i * 8;
                   return (
                     <path
                       key={i}
@@ -164,7 +169,7 @@ export default function Features() {
                       className="stroke-gray-200/70"
                       strokeWidth="1"
                     />
-                  )
+                  );
                 })}
               </pattern>
             </defs>
@@ -189,10 +194,10 @@ export default function Features() {
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div className="absolute -top-5 left-4">
                       <div className="flex gap-1">
-                        <div className="flex items-center justify-center rounded-l-full bg-red-500 p-1 text-xs ring-1 ring-gray-200">
+                        <div className="flex items-center justify-center rounded-l-full bg-red-500 p-1 text-xs ring-1 ring-gray-200 dark:ring-red-700">
                           <RiCircleLine className="size-3 shrink-0 text-white" />
                         </div>
-                        <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs whitespace-nowrap ring-1 ring-gray-200">
+                        <div className="rounded-r-full bg-white/50 dark:bg-gray-800/50 py-0.5 pr-1.5 pl-1 text-xs text-gray-900 dark:text-white font-medium whitespace-nowrap ring-1 ring-gray-200 dark:ring-gray-700">
                           Contract Error
                         </div>
                       </div>
@@ -209,14 +214,14 @@ export default function Features() {
                     key="obj2"
                     className="relative flex items-center justify-center"
                   >
-                    <RiPlaneFill className="z-10 size-5 rotate-90 text-gray-900" />
+                    <RiGitBranchFill className="z-10 size-5 rotate-90 text-gray-900" />
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div className="absolute -top-5 left-4">
                       <div className="flex gap-1">
                         <div className="flex items-center justify-center rounded-l-full bg-gray-500 p-1 text-xs ring-1 ring-gray-200">
                           <RiLoaderFill className="size-3 shrink-0 animate-spin text-white" />
                         </div>
-                        <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs ring-1 ring-gray-200">
+                        <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs text-gray-900 font-medium ring-1 ring-gray-200">
                           Processing
                         </div>
                       </div>
@@ -233,7 +238,7 @@ export default function Features() {
                     key="obj3"
                     className="relative flex items-center justify-center"
                   >
-                    <RiCarFill className="z-10 size-5 text-gray-900" />
+                    <RiWindowFill className="z-10 size-5 text-gray-900" />
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div
                       style={{
@@ -246,14 +251,14 @@ export default function Features() {
                     key="obj4"
                     className="relative flex items-center justify-center"
                   >
-                    <Icons.QuadCopter className="z-10 size-5 rotate-90 text-gray-900" />
-                    <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
+                    <Icons.QuadCopter className="z-10 size-5 rotate-90 text-gray-900 dark:text-gray-100" />
+                    <div className="absolute size-10 rounded-full bg-white/50 dark:bg-gray-800/50 ring-1 shadow-lg ring-black/5 dark:ring-white/5"></div>
                     <div className="absolute -top-5 left-4">
                       <div className="flex gap-1">
-                        <div className="flex items-center justify-center rounded-l-full bg-emerald-500 p-1 text-xs ring-1 ring-gray-200">
+                        <div className="flex items-center justify-center rounded-l-full bg-emerald-500 p-1 text-xs ring-1 ring-gray-200 dark:ring-emerald-700">
                           <RiCheckLine className="size-3 shrink-0 text-white" />
                         </div>
-                        <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs ring-1 ring-gray-200">
+                        <div className="rounded-r-full bg-white/50 dark:bg-gray-800/50 py-0.5 pr-1.5 pl-1 text-xs text-gray-900 dark:text-white font-medium ring-1 ring-gray-200 dark:ring-gray-700">
                           Deployed
                         </div>
                       </div>
@@ -270,7 +275,7 @@ export default function Features() {
                     key="obj5"
                     className="relative flex items-center justify-center"
                   >
-                    <RiPlaneFill className="z-10 size-5 rotate-90 text-gray-900" />
+                    <RiDiscordLine className="z-10 size-5 text-gray-900" />
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div
                       style={{
@@ -303,7 +308,10 @@ export default function Features() {
             Blazing fast Starknet operations with Go's efficiency
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Leverage Go's concurrency model and performance optimizations to build Starknet applications that scale. Handle high transaction volumes and complex smart contract interactions with minimal resource usage.
+            Leverage Go's concurrency model and performance optimizations to
+            build Starknet applications that scale. Handle high transaction
+            volumes and complex smart contract interactions with minimal
+            resource usage.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">
@@ -316,7 +324,7 @@ export default function Features() {
                 height="64"
               >
                 {Array.from({ length: 17 }, (_, i) => {
-                  const offset = i * 8
+                  const offset = i * 8;
                   return (
                     <path
                       key={i}
@@ -324,7 +332,7 @@ export default function Features() {
                       className="stroke-gray-200/70"
                       strokeWidth="1"
                     />
-                  )
+                  );
                 })}
               </pattern>
             </defs>
@@ -430,7 +438,9 @@ export default function Features() {
             Intuitive APIs for seamless Starknet integration
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Get started quickly with our well-documented, idiomatic Go interfaces. Easily integrate Starknet functionality into your existing Go applications with minimal learning curve.
+            Get started quickly with our well-documented, idiomatic Go
+            interfaces. Easily integrate Starknet functionality into your
+            existing Go applications with minimal learning curve.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">
@@ -449,7 +459,7 @@ export default function Features() {
                 height="64"
               >
                 {Array.from({ length: 17 }, (_, i) => {
-                  const offset = i * 8
+                  const offset = i * 8;
                   return (
                     <path
                       key={i}
@@ -457,7 +467,7 @@ export default function Features() {
                       className="stroke-gray-200/70"
                       strokeWidth="1"
                     />
-                  )
+                  );
                 })}
               </pattern>
             </defs>
@@ -522,7 +532,9 @@ export default function Features() {
                     <div
                       className="absolute top-0 left-0 h-0.5 w-28 bg-linear-to-r from-transparent via-[var(--stkgo-orange)] to-transparent"
                       style={{
-                        animation: `gridMovingLine 5s linear infinite ${index * 1.2}s`,
+                        animation: `gridMovingLine 5s linear infinite ${
+                          index * 1.2
+                        }s`,
                         animationFillMode: "backwards",
                       }}
                     />
@@ -537,5 +549,5 @@ export default function Features() {
         </div>
       </div>
     </section>
-  )
+  );
 }

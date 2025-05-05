@@ -33,7 +33,7 @@ export function Hero() {
           <br />
           <FadeSpan>Go</FadeSpan> <FadeSpan>Developers</FadeSpan>
         </h1>
-        <p className="mt-5 max-w-xl text-center text-base text-balance text-gray-700 sm:mt-8 sm:text-xl">
+        <p className="mt-5 pt-4 max-w-xl text-center text-base text-balance text-gray-700 sm:mt-8 sm:text-xl">
           <FadeSpan>Building the future of Starknet with a powerful</FadeSpan>{" "}
           <FadeSpan>Go implementation for scalable and efficient</FadeSpan>{" "}
           <FadeSpan>blockchain development.</FadeSpan>
