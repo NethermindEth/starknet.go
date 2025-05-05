@@ -60,8 +60,8 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 		return provider, nil
 	}
 
-	// Check compatibility with the expected version (0.8.0)
-	if err := CheckVersionCompatibility(version, "0.8.0"); err != nil {
+	// Check compatibility with the expected version
+	if err := CheckVersionCompatibility(version, SDKVersion); err != nil {
 		// Log the warning but don't fail initialization
 		fmt.Printf("Warning: %v\n", err)
 	}
