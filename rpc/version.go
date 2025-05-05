@@ -26,4 +26,4 @@ type Version struct {
 
 // SDKVersion is the current version of the Starknet Go SDK.
 // This should be updated when releasing new versions of the SDK.
-const SDKVersion = "0.8.0"
+const SDKVersion = "0.8.1"
