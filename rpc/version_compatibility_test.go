@@ -17,43 +17,43 @@ func TestCheckVersionCompatibility(t *testing.T) {
 	}{
 		{
 			name:            "matching versions",
-			providerVersion: "0.8.0",
-			sdkVersion:     "0.8.0",
+			providerVersion: SDKVersion,
+			sdkVersion:     SDKVersion,
 			wantErr:        false,
 		},
 		{
 			name:            "matching major.minor different patch",
 			providerVersion: "0.8.1",
-			sdkVersion:     "0.8.0",
+			sdkVersion:     SDKVersion,
 			wantErr:        false,
 		},
 		{
 			name:            "different major version",
 			providerVersion: "1.8.0",
-			sdkVersion:     "0.8.0",
+			sdkVersion:     SDKVersion,
 			wantErr:        true,
-			errMsg:         "RPC provider version 1.8.0 is incompatible with SDK version 0.8.0",
+			errMsg:         "RPC provider version 1.8.0 is incompatible with SDK version " + SDKVersion,
 		},
 		{
 			name:            "different minor version",
 			providerVersion: "0.7.0",
-			sdkVersion:     "0.8.0",
+			sdkVersion:     SDKVersion,
 			wantErr:        true,
-			errMsg:         "RPC provider version 0.7.0 is incompatible with SDK version 0.8.0",
+			errMsg:         "RPC provider version 0.7.0 is incompatible with SDK version " + SDKVersion,
 		},
 		{
 			name:            "invalid provider version format",
 			providerVersion: "invalid",
-			sdkVersion:     "0.8.0",
+			sdkVersion:     SDKVersion,
 			wantErr:        true,
-			errMsg:         "RPC provider version invalid is incompatible with SDK version 0.8.0",
+			errMsg:         "RPC provider version invalid is incompatible with SDK version " + SDKVersion,
 		},
 		{
 			name:            "invalid SDK version format",
-			providerVersion: "0.8.0",
+			providerVersion: SDKVersion,
 			sdkVersion:     "invalid",
 			wantErr:        true,
-			errMsg:         "RPC provider version 0.8.0 is incompatible with SDK version invalid",
+			errMsg:         "RPC provider version " + SDKVersion + " is incompatible with SDK version invalid",
 		},
 	}
 
@@ -78,9 +78,9 @@ func TestCheckVersionCompatibility(t *testing.T) {
 func TestVersionCompatibilityError(t *testing.T) {
 	err := &VersionCompatibilityError{
 		ProviderVersion: "0.7.0",
-		SDKVersion:     "0.8.0",
+		SDKVersion:     SDKVersion,
 	}
 
-	expectedMsg := "RPC provider version 0.7.0 is incompatible with SDK version 0.8.0. This may cause unexpected behavior."
+	expectedMsg := "RPC provider version 0.7.0 is incompatible with SDK version " + SDKVersion + ". This may cause unexpected behavior."
 	require.Equal(t, expectedMsg, err.Error())
 } 
