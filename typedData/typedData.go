@@ -235,7 +235,7 @@ func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 //   - newTypeDef: the encoded type definition
 //   - err: any error encountered during encoding
 //
-//nolint:gocyclo,funlen
+//nolint:gocyclo,funlen // This legacy function is complex but the team too busy to simplify it
 func encodeTypes(
 	typeName string,
 	types map[string]TypeDefinition,
@@ -445,7 +445,7 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 //   - enc: a slice of pointers to felt.Felt representing the encoded data.
 //   - err: an error if any occurred during the encoding process.
 //
-//nolint:gocyclo,funlen
+//nolint:gocyclo,funlen // This legacy function is complex but the team too busy to simplify it
 func encodeData(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
@@ -715,7 +715,7 @@ func encodeData(
 //   - resp: encoded data as a felt.Felt
 //   - err: any error encountered during encoding
 //
-//nolint:gocyclo
+//nolint:gocyclo // This legacy function is complex but the team too busy to simplify it
 func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
 	getFeltFromData := func() (feltValue *felt.Felt, err error) {
 		strValue := func(data any) string {
