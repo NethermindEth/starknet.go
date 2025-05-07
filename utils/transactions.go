@@ -32,15 +32,17 @@ var (
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
+	tip rpc.U64,
 ) *rpc.BroadcastInvokeTxnV3 {
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
@@ -50,7 +52,7 @@ func BuildInvokeTxn(
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -73,16 +75,18 @@ func BuildInvokeTxn(
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
+	tip rpc.U64,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
@@ -98,7 +102,7 @@ func BuildDeclareTxn(
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -121,16 +125,18 @@ func BuildDeclareTxn(
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeployAccountTxn(
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
+	tip rpc.U64,
 ) *rpc.BroadcastDeployAccountTxnV3 {
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
@@ -141,7 +147,7 @@ func BuildDeployAccountTxn(
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 "0x0",
+		Tip:                 tip,
 		PayMasterData:       []*felt.Felt{},
 		NonceDataMode:       rpc.DAModeL1,
 		FeeMode:             rpc.DAModeL1,

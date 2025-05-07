@@ -22,9 +22,9 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64, withQueryBitVersion bool) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64, withQueryBitVersion bool) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -120,6 +120,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -129,6 +130,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	functionCalls []rpc.InvokeFunctionCall,
 	multiplier float64,
 	withQueryBitVersion bool,
+	tip rpc.U64,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
@@ -141,7 +143,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), tip)
 
 	if withQueryBitVersion {
 		broadcastInvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
@@ -189,6 +191,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -199,6 +202,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *contracts.ContractClass,
 	multiplier float64,
 	withQueryBitVersion bool,
+	tip rpc.U64,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
@@ -206,7 +210,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues(), tip)
 	if err != nil {
 		return nil, err
 	}
@@ -250,9 +254,9 @@ func (account *Account) BuildAndSendDeclareTxn(
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - salt: the salt for the address of the deployed contract
-//   - classHash: the class hash of the contract to be deployed
-//   - constructorCalldata: the parameters passed to the constructor
+//   - salt: A value used to randomize the deployed contract address
+//   - classHash: The hash of the contract class to deploy
+//   - constructorCalldata: The parameters for the constructor function
 //   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
@@ -261,11 +265,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
+//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
 //
 // Returns:
-//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
-//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
-//   - error: an error if any
+//   - *rpc.BroadcastDeployAccountTxnV3: The built and signed transaction
+//   - *felt.Felt: The precomputed address of the account to be deployed
+//   - error: An error if the transaction building fails
 func (account *Account) BuildAndEstimateDeployAccountTxn(
 	ctx context.Context,
 	salt *felt.Felt,
@@ -273,9 +278,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	multiplier float64,
 	withQueryBitVersion bool,
+	tip rpc.U64,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues(), tip)
 
 	if withQueryBitVersion {
 		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit
