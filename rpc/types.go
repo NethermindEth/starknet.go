@@ -32,9 +32,9 @@ type ContractStorageDiffItem struct {
 
 // DeclaredClassesItem is an object with class_hash and compiled_class_hash
 type DeclaredClassesItem struct {
-	//The hash of the declared class
+	// The hash of the declared class
 	ClassHash *felt.Felt `json:"class_hash"`
-	//The Cairo assembly hash corresponding to the declared class
+	// The Cairo assembly hash corresponding to the declared class
 	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
 }
 
@@ -48,9 +48,9 @@ type DeployedContractItem struct {
 
 // contracts whose class was replaced
 type ReplacedClassesItem struct {
-	//The address of the contract whose class was replaced
+	// The address of the contract whose class was replaced
 	ContractClass *felt.Felt `json:"contract_address"`
-	//The new class hash
+	// The new class hash
 	ClassHash *felt.Felt `json:"class_hash"`
 }
 
@@ -97,7 +97,7 @@ type PendingStateUpdate struct {
 	StateDiff StateDiff `json:"state_diff"`
 }
 
-// SyncStatus is An object describing the node synchronization status
+// SyncStatus is An object describing the node synchronisation status
 type SyncStatus struct {
 	SyncStatus        *bool
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
@@ -112,7 +112,7 @@ type SyncStatus struct {
 //
 // It returns a byte slice and an error. The byte slice represents the JSON
 // encoding of the SyncStatus struct, while the error indicates any error that
-// occurred during the marshaling process.
+// occurred during the marshalling process.
 //
 // Parameters:
 //
@@ -120,7 +120,7 @@ type SyncStatus struct {
 //
 // Returns:
 //   - []byte: the JSON encoding of the SyncStatus struct
-//   - error: any error that occurred during the marshaling process
+//   - error: any error that occurred during the marshalling process
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !*s.SyncStatus {
 		return []byte("false"), nil
@@ -132,6 +132,7 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	output["current_block_num"] = s.CurrentBlockNum
 	output["highest_block_hash"] = s.HighestBlockHash
 	output["highest_block_num"] = s.HighestBlockNum
+
 	return json.Marshal(output)
 }
 
@@ -252,13 +253,14 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	default:
 		return fmt.Errorf("unsupported status: %s", data)
 	}
+
 	return nil
 }
 
 // MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
 //
 // It marshals the TxnExecutionStatus into a byte slice by quoting its string representation.
-// The function returns the marshaled byte slice and a nil error.
+// The function returns the marshalled byte slice and a nil error.
 //
 // Parameters:
 //
@@ -266,7 +268,7 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 //
 // Returns:
 //   - []byte: the JSON encoding of the TxnExecutionStatus
-//   - error: the error if there was an issue marshaling
+//   - error: the error if there was an issue marshalling
 func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ts))), nil
 }
@@ -310,6 +312,7 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	default:
 		return fmt.Errorf("unsupported status: %s", data)
 	}
+
 	return nil
 }
 

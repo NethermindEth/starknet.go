@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -83,6 +84,7 @@ func (e RPCError) Error() string {
 	if e.Data == nil || e.Data.ErrorMessage() == "" {
 		return fmt.Sprintf("%d %s", e.Code, e.Message)
 	}
+
 	return fmt.Sprintf("%d %s: %s", e.Code, e.Message, e.Data.ErrorMessage())
 }
 
@@ -107,6 +109,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 	// If there's no Data field, we're done
 	if len(temp.Data) == 0 {
 		e.Data = nil
+
 		return nil
 	}
 
@@ -147,6 +150,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 		var strData string
 		if err := json.Unmarshal(temp.Data, &strData); err == nil {
 			e.Data = StringErrData(strData)
+
 			return nil
 		}
 
@@ -162,11 +166,14 @@ type RPCData interface {
 	ErrorMessage() string
 }
 
-var _ RPCData = StringErrData("")
-var _ RPCData = &CompilationErrData{}
-var _ RPCData = &ContractErrData{}
-var _ RPCData = &TransactionExecErrData{}
-var _ RPCData = &TraceStatusErrData{}
+var (
+	_ RPCData = StringErrData("")
+
+	_ RPCData = &CompilationErrData{}
+	_ RPCData = &ContractErrData{}
+	_ RPCData = &TransactionExecErrData{}
+	_ RPCData = &TraceStatusErrData{}
+)
 
 var (
 	ErrFailedToReceiveTxn = &RPCError{
@@ -377,6 +384,7 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 			Message:              message,
 			ContractExecErrInner: nil,
 		}
+
 		return nil
 	}
 
@@ -393,10 +401,11 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 			Message:              message + contractErrStruct.Error.Message,
 			ContractExecErrInner: &contractErrStruct,
 		}
+
 		return nil
 	}
 
-	return fmt.Errorf("failed to unmarshal ContractExecutionError")
+	return errors.New("failed to unmarshal ContractExecutionError")
 }
 
 func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
@@ -404,6 +413,7 @@ func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 
 	if contractEx.ContractExecErrInner != nil {
 		temp = contractEx.ContractExecErrInner
+
 		return json.Marshal(temp)
 	}
 
@@ -436,6 +446,7 @@ func (s *TraceStatus) UnmarshalJSON(data []byte) error {
 	switch TraceStatus(str) {
 	case TraceStatusReceived, TraceStatusRejected:
 		*s = TraceStatus(str)
+
 		return nil
 	default:
 		return fmt.Errorf("invalid trace status: %s", str)

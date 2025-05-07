@@ -25,7 +25,11 @@ import (
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribeEvents(
+	ctx context.Context,
+	events chan<- *EmittedEvent,
+	options *EventSubscriptionInput,
+) (*client.ClientSubscription, error) {
 	err := checkForPending(options.BlockID)
 	if err != nil {
 		return nil, err
@@ -35,6 +39,7 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
+
 	return sub, nil
 }
 
@@ -49,7 +54,11 @@ func (provider *WsProvider) SubscribeEvents(ctx context.Context, events chan<- *
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribeNewHeads(
+	ctx context.Context,
+	headers chan<- *BlockHeader,
+	blockID BlockID,
+) (*client.ClientSubscription, error) {
 	err := checkForPending(blockID)
 	if err != nil {
 		return nil, err
@@ -59,6 +68,7 @@ func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
+
 	return sub, nil
 }
 
@@ -74,11 +84,16 @@ func (provider *WsProvider) SubscribeNewHeads(ctx context.Context, headers chan<
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *PendingTxn, options *SubPendingTxnsInput) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribePendingTransactions(
+	ctx context.Context,
+	pendingTxns chan<- *PendingTxn,
+	options *SubPendingTxnsInput,
+) (*client.ClientSubscription, error) {
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribePendingTransactions", pendingTxns, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
+
 	return sub, nil
 }
 
@@ -94,10 +109,15 @@ func (provider *WsProvider) SubscribePendingTransactions(ctx context.Context, pe
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
+func (provider *WsProvider) SubscribeTransactionStatus(
+	ctx context.Context,
+	newStatus chan<- *NewTxnStatus,
+	transactionHash *felt.Felt,
+) (*client.ClientSubscription, error) {
 	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err)
 	}
+
 	return sub, nil
 }

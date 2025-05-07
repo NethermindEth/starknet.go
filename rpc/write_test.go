@@ -11,7 +11,6 @@ import (
 )
 
 func TestDeclareTransaction(t *testing.T) {
-
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -26,7 +25,8 @@ func TestDeclareTransaction(t *testing.T) {
 			{
 				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
-					Hash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3")},
+					Hash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
+				},
 				ExpectedError: nil,
 			},
 		},
@@ -41,16 +41,15 @@ func TestDeclareTransaction(t *testing.T) {
 			require.True(t, ok)
 			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
 			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
 			continue
 		}
 		require.NoError(t, err)
 		assert.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
-
 	}
 }
 
 func TestAddInvokeTransaction(t *testing.T) {
-
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -119,12 +118,10 @@ func TestAddInvokeTransaction(t *testing.T) {
 		} else {
 			require.Equal(t, *resp, test.ExpectedResp)
 		}
-
 	}
 }
 
 func TestAddDeployAccountTransaction(t *testing.T) {
-
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -167,20 +164,19 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 				},
 				ExpectedResp: AddDeployAccountTransactionResponse{
 					Hash:            internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x0")},
+					ContractAddress: internalUtils.TestHexToFelt(t, "0x0"),
+				},
 				ExpectedError: nil,
 			},
 		},
 	}[testEnv]
 
 	for _, test := range testSet {
-
 		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
 			require.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
 		}
-
 	}
 }

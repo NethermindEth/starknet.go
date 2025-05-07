@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -65,7 +64,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
+		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
 			wsProvider := testConfig.wsProvider
@@ -78,6 +77,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 			if test.isErrorExpected {
 				require.Error(t, err)
+
 				return
 			}
 			require.NoError(t, err)
@@ -91,6 +91,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					if test.counter != 0 {
 						if test.counter == 1 {
 							require.Contains(t, latestBlockNumbers, resp.Number+1)
+
 							return
 						} else {
 							test.counter--
@@ -156,6 +157,7 @@ func TestSubscribeEvents(t *testing.T) {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -315,6 +317,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -398,6 +401,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		require.NoError(t, err)
 		if status.FinalityStatus == TxnStatus_Accepted_On_L2 {
 			txHash = tx
+
 			break
 		}
 	}
@@ -419,6 +423,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 				require.IsType(t, &NewTxnStatus{}, resp)
 				require.Equal(t, txHash, resp.TransactionHash)
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -477,7 +482,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
+		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
 			wsProvider := testConfig.wsProvider
@@ -489,6 +494,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 			if test.expectedError != nil {
 				require.EqualError(t, err, test.expectedError.Error())
+
 				return
 			}
 			require.NoError(t, err)
@@ -506,6 +512,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 						require.NotEmpty(t, resp.Hash)
 						require.NotEmpty(t, resp.Transaction)
 					}
+
 					return
 				case err := <-sub.Err():
 					require.NoError(t, err)
@@ -552,6 +559,7 @@ loop:
 		case err := <-sub.Err():
 			// when unsubscribing, the error channel should return nil
 			require.Nil(t, err)
+
 			break loop
 		case <-time.After(5 * time.Second):
 			t.Fatal("timeout waiting for unsubscription")

@@ -85,6 +85,7 @@ func TestClassAt(t *testing.T) {
 						return true
 					}
 				}
+
 				return false
 			}, "operation not found in the class")
 		case *contracts.ContractClass:
@@ -96,6 +97,7 @@ func TestClassAt(t *testing.T) {
 						return true
 					}
 				}
+
 				return false
 			}, "operation not found in the class")
 		default:
@@ -106,7 +108,7 @@ func TestClassAt(t *testing.T) {
 
 // TestClassHashAt tests the ClassHashAt function.
 //
-// This function tests the behavior of the ClassHashAt function by providing
+// This function tests the behaviour of the ClassHashAt function by providing
 // different test cases for the contract hash and expected class hash. It
 // verifies if the returned class hash matches the expected class hash and
 // if there are any differences between the two. It also checks if the
@@ -172,7 +174,7 @@ func TestClassHashAt(t *testing.T) {
 	}
 }
 
-// TestClass is a test function that tests the behavior of the Class function.
+// TestClass is a test function that tests the behaviour of the Class function.
 //
 // It creates a test configuration and defines a testSet containing different scenarios
 // for testing the Class function. The testSet is a map where the keys represent the
@@ -191,7 +193,7 @@ func TestClassHashAt(t *testing.T) {
 //   - Compares the constructor entry point with the expected entry point constructor.
 //   - If they are not equal, it reports an error.
 //
-// The function is used for testing the behavior of the Class function in different scenarios.
+// The function is used for testing the behaviour of the Class function in different scenarios.
 //
 // Parameters:
 //   - t: A *testing.T object used for reporting test failures and logging
@@ -336,7 +338,7 @@ func TestStorageAt(t *testing.T) {
 
 // TestNonce is a test function for testing the Nonce functionality.
 //
-// It initializes a test configuration, sets up a test data set, and then performs a series of tests.
+// It initialises a test configuration, sets up a test data set, and then performs a series of tests.
 // The tests involve calling the Nonce function.
 // The expected result is a successful response from the Nonce function and a matching value with the expected nonce.
 // If any errors occur during the tests, the function will fail and display an error message.
@@ -758,6 +760,7 @@ func TestGetStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					BlockID: func() BlockID {
 						num := uint64(999999999)
+
 						return BlockID{Number: &num}
 					}(),
 				},
@@ -768,6 +771,7 @@ func TestGetStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					BlockID: func() BlockID {
 						num := uint64(123456)
+
 						return BlockID{Number: &num}
 					}(),
 				},
@@ -783,6 +787,7 @@ func TestGetStorageProof(t *testing.T) {
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
+
 				return
 			}
 
@@ -794,7 +799,7 @@ func TestGetStorageProof(t *testing.T) {
 			// call the RPC method directly to get the raw result
 			err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
 			require.NoError(t, err)
-			//marshal the results to JSON
+			// marshal the results to JSON
 			rawResultJSON, err := json.Marshal(rawResult)
 			require.NoError(t, err)
 			resultJSON, err := json.Marshal(result)

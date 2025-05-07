@@ -148,7 +148,6 @@ formatters:
   settings:
     golines:
       max-len: 140
-      shorten-comments: true
     goimports:
       local-prefixes:
         - github.com/golangci/golangci-lint

@@ -20,6 +20,7 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &tx, nil
 }
 
@@ -38,6 +39,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}
+
 	return &tx, nil
 }
 
@@ -56,6 +58,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &receipt, nil
 }
 
@@ -73,6 +76,7 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &receipt, nil
 }
 
@@ -91,5 +95,6 @@ func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return response, nil
 }

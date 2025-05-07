@@ -23,11 +23,23 @@ type wsConn interface {
 	// registering a subscription. Server notifications for the subscription are
 	// sent to the given channel. The element type of the channel must match the
 	// expected type of content returned by the subscription.
-	Subscribe(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args interface{}) (*client.ClientSubscription, error)
+	Subscribe(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args interface{},
+	) (*client.ClientSubscription, error)
 	// SubscribeWithSliceArgs call 'Subscribe' with a slice of arguments.
 	// For RPC-Subscriptions with optional arguments, use 'Subscribe' instead and pass a struct containing
 	// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
-	SubscribeWithSliceArgs(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*client.ClientSubscription, error)
+	SubscribeWithSliceArgs(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args ...interface{},
+	) (*client.ClientSubscription, error)
 }
 
 // do is a function that performs a remote procedure call (RPC) using the provided callCloser.
@@ -54,6 +66,7 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -82,6 +95,7 @@ func doAsObject(ctx context.Context, call callCloser, method string, data interf
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -13,7 +13,7 @@ type MsgToL1 struct {
 	FromAddress *felt.Felt `json:"from_address"`
 	// ToAddress The target L1 address the message is sent to
 	ToAddress *felt.Felt `json:"to_address"`
-	//Payload  The payload of the message
+	// Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
 
@@ -24,7 +24,7 @@ type MsgFromL1 struct {
 	ToAddress *felt.Felt `json:"to_address"`
 	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
 	Selector *felt.Felt `json:"entry_point_selector"`
-	//Payload  The payload of the message
+	// Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
 

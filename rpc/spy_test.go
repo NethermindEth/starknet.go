@@ -40,6 +40,7 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 			debug:      d,
 		}
 	}
+
 	return &spy{
 		callCloser: client,
 		s:          []byte{},
@@ -81,6 +82,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 
 	err = json.Unmarshal(raw, result)
 	s.s = []byte(raw)
+
 	return err
 }
 
@@ -120,6 +122,7 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 
 	err = json.Unmarshal(raw, result)
 	s.s = []byte(raw)
+
 	return err
 }
 
@@ -139,6 +142,7 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 			fmt.Println("This is a mock")
 			fmt.Println("**************************")
 		}
+
 		return "FullMatch", nil
 	}
 	b, err := json.Marshal(o)
@@ -153,5 +157,6 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 		fmt.Println(string(b))
 		fmt.Println("**************************")
 	}
+
 	return diff.String(), nil
 }

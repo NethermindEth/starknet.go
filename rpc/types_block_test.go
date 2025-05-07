@@ -18,9 +18,9 @@ import (
 //
 // The function tests the MarshalJSON method of the BlockID struct by providing
 // different scenarios and verifying the output against the expected values.
-// The scenarios include testing the serialization of the "latest" and
-// "pending" tags, testing an invalid tag, testing the serialization of a
-// block number, and testing the serialization of a block hash.
+// The scenarios include testing the serialisation of the "latest" and
+// "pending" tags, testing an invalid tag, testing the serialisation of a
+// block number, and testing the serialisation of a block hash.
 // The function uses the testing.T parameter to report any errors that occur
 // during the execution of the test cases.
 //
@@ -59,6 +59,7 @@ func TestBlockID_Marshal(t *testing.T) {
 	}, {
 		id: func() BlockID {
 			h, _ := new(felt.Felt).SetString("0xdead")
+
 			return BlockID{
 				Hash: h,
 			}
@@ -80,7 +81,7 @@ func TestBlockID_Marshal(t *testing.T) {
 
 // TestBlockStatus is a unit test for the BlockStatus function.
 //
-// The test checks the behavior of the BlockStatus function by iterating through a list of test cases.
+// The test checks the behaviour of the BlockStatus function by iterating through a list of test cases.
 //
 // Parameters:
 //   - t: A testing.T object used for reporting test failures and logging.
@@ -145,14 +146,15 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	var blockWithReceipt BlockWithReceipts
 
-	if testEnv == "testnet" {
+	switch testEnv {
+	case "testnet":
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
-	} else if testEnv == "mainnet" {
+	case "mainnet":
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
-	var blockMock123 = BlockWithReceipts{
+	blockMock123 := BlockWithReceipts{
 		BlockHeader{
 			Hash: deadBeef,
 		},
@@ -179,7 +181,7 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	var pendingBlockMock123 = PendingBlockWithReceipts{
+	pendingBlockMock123 := PendingBlockWithReceipts{
 		PendingBlockHeader{
 			ParentHash: deadBeef,
 		},

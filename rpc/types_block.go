@@ -41,7 +41,7 @@ type TransactionWithReceipt struct {
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
-// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralisation.
 type PendingBlockWithReceipts struct {
 	PendingBlockHeader
 	BlockBodyWithReceipts
@@ -123,13 +123,14 @@ func checkForPending(b BlockID) error {
 	if b.Tag == "pending" {
 		return errors.Join(ErrInvalidBlockID, errors.New("'pending' tag is not supported on this method"))
 	}
+
 	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
 //
 // It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
-// while the error indicates any error that occurred during the marshaling process.
+// while the error indicates any error that occurred during the marshalling process.
 //
 // Parameters:
 //
@@ -137,7 +138,7 @@ func checkForPending(b BlockID) error {
 //
 // Returns:
 //   - []byte: the JSON representation of the BlockID
-//   - error: any error that occurred during the marshaling process
+//   - error: any error that occurred during the marshalling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == "pending" || b.Tag == "latest" {
 		return []byte(strconv.Quote(b.Tag)), nil
@@ -240,8 +241,10 @@ func (mode *L1DAMode) UnmarshalJSON(b []byte) error {
 	default:
 		return fmt.Errorf("unknown L1DAMode: %s", str)
 	}
+
 	return nil
 }
+
 func (mode L1DAMode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mode.String())
 }

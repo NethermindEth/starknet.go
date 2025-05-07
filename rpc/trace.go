@@ -34,6 +34,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return trace, nil
 	case string(TransactionType_Declare):
 		var trace DeclareTxnTrace
@@ -41,6 +42,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return trace, nil
 	case string(TransactionType_DeployAccount):
 		var trace DeployAccountTxnTrace
@@ -48,6 +50,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return trace, nil
 	case string(TransactionType_L1Handler):
 		var trace L1HandlerTxnTrace
@@ -55,10 +58,11 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return trace, nil
 	}
-	return nil, Err(InternalError, StringErrData("Unknown transaction type"))
 
+	return nil, Err(InternalError, StringErrData("Unknown transaction type"))
 }
 
 // TraceBlockTransactions retrieves the traces of transactions in a given block.
@@ -75,8 +79,8 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
-	return output, nil
 
+	return output, nil
 }
 
 // SimulateTransactions simulates transactions on the blockchain.
@@ -94,13 +98,16 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 // Returns:
 //   - []SimulatedTransaction: The execution trace and consumed resources of the required transactions
 //   - error: An error if any occurred during the execution
-func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error) {
-
+func (provider *Provider) SimulateTransactions(
+	ctx context.Context,
+	blockID BlockID,
+	txns []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+) ([]SimulatedTransaction, error) {
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 
 	return output, nil
-
 }

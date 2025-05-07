@@ -135,7 +135,7 @@ const (
 )
 
 // MarshalJSON implements the json.Marshaler interface.
-// It validates that the DataAvailabilityMode is either L1 or L2 before marshaling.
+// It validates that the DataAvailabilityMode is either L1 or L2 before marshalling.
 func (da DataAvailabilityMode) MarshalJSON() ([]byte, error) {
 	switch da {
 	case DAModeL1, DAModeL2:
@@ -152,6 +152,7 @@ func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 	case DAModeL2:
 		return uint64(1), nil
 	}
+
 	return 0, errors.New("unknown DAMode")
 }
 
@@ -185,6 +186,7 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 		return nil, err
 	}
 	maxPriceBytes := maxPricePerUnitFelt.Bytes()
+
 	return internalUtils.Flatten(
 		[]byte{0},
 		[]byte(resource),
@@ -243,11 +245,11 @@ type DeployAccountTxnV3 struct {
 // It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
 //
 // Parameters:
-//   - v: The interface{} value to be marshaled
+//   - v: The interface{} value to be marshalled
 //   - dst: The interface{} value to be unmarshaled
 //
 // Returns:
-//   - error: An error if the marshaling or unmarshaling process fails
+//   - error: An error if the marshalling or unmarshaling process fails
 func remarshal(v interface{}, dst interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -352,13 +354,16 @@ func (s *PendingTxn) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &txn); err == nil {
 		s.Transaction = txn
 		s.Hash = txn.Hash
+
 		return nil
 	}
 	var txnHash *felt.Felt
 	if err := json.Unmarshal(data, &txnHash); err == nil {
 		s.Hash = txnHash
+
 		return nil
 	}
+
 	return errors.New("failed to unmarshal PendingTxn")
 }
 
@@ -388,13 +393,14 @@ func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 
 	blockTxn.Hash = aux.Hash
 	blockTxn.Transaction = txn
+
 	return nil
 }
 
 // MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
 //
 // It takes a pointer to a BlockTransaction object as the parameter.
-// The function returns a byte slice representing the JSON data and an error if the marshaling process fails.
+// The function returns a byte slice representing the JSON data and an error if the marshalling process fails.
 func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
 	// First marshal the transaction to get all its fields
 	txnData, err := json.Marshal(blockTxn.Transaction)

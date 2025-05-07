@@ -79,6 +79,7 @@ func TestTransactionTrace(t *testing.T) {
 			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
+
 				return
 			}
 			compareTraceTxs(t, expectedResp, resp)
@@ -224,7 +225,8 @@ func TestTraceBlockTransactions(t *testing.T) {
 				BlockID:          WithBlockNumber(0),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
-			}},
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -232,6 +234,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
+
 			continue
 		}
 
@@ -351,7 +354,7 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 	}
 }
 
-// compareTraceTxnsJSON compares two Marshaled JSON transaction traces to assert Marshaled JSON equality.
+// compareTraceTxnsJSON compares two Marshalled JSON transaction traces to assert Marshalled JSON equality.
 // It is necessary because the order of the fields in the 'storage_diffs' > 'storage_entries' is not deterministic.
 func compareTraceTxnsJSON(t *testing.T, expectedResp, actualResp []byte) {
 	t.Helper()
@@ -386,7 +389,7 @@ func splitJSONTraceTxn(t *testing.T, txn []byte) (txnWithoutStorageDiffs []byte,
 	return txnWithoutStateDiff, storageDiffs
 }
 
-// compareStorageDiffs compares the storage diffs of two Marshaled JSON transaction traces.
+// compareStorageDiffs compares the storage diffs of two Marshalled JSON transaction traces.
 func compareStorageDiffs(t *testing.T, expectedStorageDiffs, actualStorageDiffs any) {
 	t.Helper()
 

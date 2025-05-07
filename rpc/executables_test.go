@@ -70,6 +70,7 @@ func TestCompiledCasm(t *testing.T) {
 			require.True(t, ok)
 			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
 			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
 			continue
 		}
 		require.NoError(t, err)

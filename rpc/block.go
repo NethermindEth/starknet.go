@@ -22,8 +22,10 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
+
 		return 0, tryUnwrapToRPCErr(err)
 	}
+
 	return blockNumber, nil
 }
 
@@ -40,6 +42,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
 	}
+
 	return &block, nil
 }
 
@@ -98,7 +101,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 	}
 
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.Hash == nil {
+	if result.Hash == nil {
 		return &PendingBlockTxHashes{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
@@ -131,6 +134,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
+
 	return &state, nil
 }
 
@@ -148,6 +152,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		return 0, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
+
 	return result, nil
 }
 
@@ -166,7 +171,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.Hash == nil {
+	if result.Hash == nil {
 		return &PendingBlock{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
@@ -180,6 +185,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 			result.Transactions,
 		}, nil
 	}
+
 	return &result, nil
 }
 
@@ -201,13 +207,14 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 		if err := json.Unmarshal(result, &block); err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &block, nil
 	} else {
 		var pendingBlock PendingBlockWithReceipts
 		if err := json.Unmarshal(result, &pendingBlock); err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &pendingBlock, nil
 	}
-
 }

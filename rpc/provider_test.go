@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// beforeEach initializes the test environment configuration before running the script.
+// beforeEach initialises the test environment configuration before running the script.
 //
 // Parameters:
 //   - t: The testing.T object for testing purposes
@@ -64,6 +64,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
+
 		return &testConfig
 	}
 
@@ -89,7 +90,6 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		wsBase := os.Getenv("WS_PROVIDER_URL")
 		if wsBase != "" {
 			testConfig.wsBase = wsBase
-
 		}
 
 		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
@@ -119,11 +119,13 @@ func TestCookieManagement(t *testing.T) {
 			err := mock_starknet_chainId(&rawResp)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+
 				return
 			}
 			var result string
 			if err := json.Unmarshal(rawResp, &result); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+
 				return
 			}
 			data := map[string]interface{}{

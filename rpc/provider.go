@@ -44,7 +44,6 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
 	c, err := client.DialOptions(context.Background(), url, options...)
-
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,6 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
 	c, err := client.DialOptions(context.Background(), url, options...)
-
 	if err != nil {
 		return nil, err
 	}
@@ -114,5 +112,7 @@ type WebsocketProvider interface {
 	SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error)
 }
 
-var _ RpcProvider = &Provider{}
-var _ WebsocketProvider = &WsProvider{}
+var (
+	_ RpcProvider       = &Provider{}
+	_ WebsocketProvider = &WsProvider{}
+)

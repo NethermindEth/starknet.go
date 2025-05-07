@@ -27,7 +27,6 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 	}
 
 	return typecastClassOutput(rawClass)
-
 }
 
 // ClassAt returns the class at the specified blockID and contractAddress.
@@ -45,6 +44,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return typecastClassOutput(rawClass)
 }
 
@@ -68,6 +68,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &contractClass, nil
 	}
 	var depContractClass contracts.DeprecatedContractClass
@@ -75,6 +76,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	if err != nil {
 		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
+
 	return &depContractClass, nil
 }
 
@@ -91,9 +93,9 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return result, nil
 }
 
@@ -112,9 +114,9 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
-
 		return "", tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return value, nil
 }
 
@@ -131,9 +133,9 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var nonce *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return nonce, nil
 }
 
@@ -150,11 +152,17 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 // Returns:
 //   - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
 //   - error: An error if any occurred during the execution
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error) {
+func (provider *Provider) EstimateFee(
+	ctx context.Context,
+	requests []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+	blockID BlockID,
+) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
+
 	return raw, nil
 }
 
@@ -171,9 +179,9 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastT
 func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error) {
 	var raw FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
 	}
+
 	return &raw, nil
 }
 
@@ -199,5 +207,6 @@ func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput
 	if err := doAsObject(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
 	}
+
 	return &raw, nil
 }
