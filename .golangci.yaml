@@ -122,15 +122,20 @@ linters:
           - mnd
         path: _test\.go
       - linters:
-          - lll
-        source: '^//go:generate '
-      - linters:
           - gocritic
           - exhaustruct
         path: rpc/types_transaction_interfaces.go
       - linters:
           - goconst
         path: rpc/block_test.go
+      - linters:
+          - exhaustruct
+          - noctx
+          - goconst
+        path: devnet/
+      - linters:
+          - lll
+        source: '^//go:generate '
       - path: pkg/golinters/errcheck.go
         text: 'SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead'
       - path: pkg/commands/run.go
