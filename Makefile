@@ -52,10 +52,7 @@ spinup-devnet-test: ## Spin up a 'starknet-devnet' instance, run devnet tests, a
 
 lint: ## Run linting
 	@echo "Running golangci-lint"
-	@golangci-lint run
-
-format: ## Format code
-	@golangci-lint fmt .
+	@golangci-lint run --fix
 
 # Install dependencies (Requires go => 1.23)
 install-deps: install-mockgen install-golangci-lint
