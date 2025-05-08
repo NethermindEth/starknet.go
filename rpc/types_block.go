@@ -153,7 +153,7 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
-		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
+		return []byte(fmt.Sprintf(`{"block_hash":%q}`, b.Hash.String())), nil
 	}
 
 	return json.Marshal(nil)

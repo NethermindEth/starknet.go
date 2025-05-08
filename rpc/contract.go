@@ -147,7 +147,8 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 //   - ctx: The context of the function call
 //   - requests: A sequence of transactions to estimate, running each transaction on the state resulting from applying all the previous ones
 //   - simulationFlags: Describes what parts of the transaction should be executed
-//   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on
+//   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for
+//     the block referencing the state or call the transaction on.
 //
 // Returns:
 //   - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
@@ -197,6 +198,8 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 //   - error: an error if any occurred during the execution
+//
+// nolint: gocritic
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
 	err := checkForPending(storageProofInput.BlockID)
 	if err != nil {

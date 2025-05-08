@@ -114,6 +114,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 	}
 
 	// Try to determine the concrete type of Data based on the RPCError code
+	//nolint:mnd
 	switch e.Code {
 	case 10: // ErrNoTraceAvailable
 		var data TraceStatusErrData

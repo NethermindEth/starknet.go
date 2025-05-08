@@ -70,6 +70,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 //
 // Returns:
 //   - error: An error if the method is not found or if the arguments are invalid
+//
+//nolint:gocyclo // Inevitable due to many switch cases
 func methodsSwitchList(result interface{}, method string, args ...interface{}) error {
 	switch method {
 	case "starknet_addDeclareTransaction":
@@ -383,7 +385,8 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 		return err
 	}
 	if arg0Felt.Equal(testTxnHash) {
-		txnRec, err := internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](
+		var txnRec *TransactionReceiptWithBlockInfo
+		txnRec, err = internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](
 			"tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json",
 			"",
 		)
@@ -391,19 +394,22 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 			return err
 		}
 
-		txnReceipt, err := json.Marshal(txnRec)
+		var txnReceipt []byte
+		txnReceipt, err = json.Marshal(txnRec)
 		if err != nil {
 			return err
 		}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		txnRec, err := internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+		var txnRec *TransactionReceiptWithBlockInfo
+		txnRec, err = internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
 
-		txnReceipt, err := json.Marshal(txnRec)
+		var txnReceipt []byte
+		txnReceipt, err = json.Marshal(txnRec)
 		if err != nil {
 			return err
 		}
@@ -1197,9 +1203,12 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return err
 	}
 	fakeFelt, err := internalUtils.HexToFelt("0xbeef")
+	if err != nil {
+		return err
+	}
 
 	if blockId.Tag == "pending" {
-		pBlock, err := json.Marshal(
+		pBlock, innerErr := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
 					ParentHash:       fakeFelt,
@@ -1208,18 +1217,15 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 				},
 				txHashes,
 			})
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
 		err = json.Unmarshal(pBlock, &r)
 		if err != nil {
 			return err
 		}
 	} else {
-		if err != nil {
-			return err
-		}
-		block, err := json.Marshal(
+		block, innerErr := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
 					Hash:             fakeFelt,
@@ -1230,10 +1236,11 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 				Status:       BlockStatus_AcceptedOnL1,
 				Transactions: txHashes,
 			})
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
-		if err := json.Unmarshal(block, &r); err != nil {
+		err = json.Unmarshal(block, &r)
+		if err != nil {
 			return err
 		}
 	}
@@ -1261,7 +1268,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		return err
 	}
 	if blockId.Tag == "pending" {
-		pBlock, err := json.Marshal(
+		pBlock, innerErr := json.Marshal(
 			PendingBlockWithReceipts{
 				PendingBlockHeader{
 					ParentHash: fakeFeltField,
@@ -1288,15 +1295,15 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 				},
 			},
 		)
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
 		err = json.Unmarshal(pBlock, &r)
 		if err != nil {
 			return err
 		}
 	} else {
-		block, err := json.Marshal(
+		block, innerErr := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
 					Hash: fakeFeltField,
@@ -1324,10 +1331,11 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 				},
 			},
 		)
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
-		if err := json.Unmarshal(block, &r); err != nil {
+		err = json.Unmarshal(block, &r)
+		if err != nil {
 			return err
 		}
 	}

@@ -107,6 +107,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 }
 
+//nolint:gocyclo
 func TestSubscribeEvents(t *testing.T) {
 	t.Parallel()
 
@@ -364,15 +365,17 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		for _, test := range testSet {
-			t.Logf("test: %+v", test.expectedError.Error())
-			events := make(chan *EmittedEvent)
-			defer close(events)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-			require.Nil(t, sub)
-			require.EqualError(t, err, test.expectedError.Error())
+			func(t *testing.T) {
+				t.Logf("test: %+v", test.expectedError.Error())
+				events := make(chan *EmittedEvent)
+				defer close(events)
+				sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
+				if sub != nil {
+					defer sub.Unsubscribe()
+				}
+				require.Nil(t, sub)
+				require.EqualError(t, err, test.expectedError.Error())
+			}(t)
 		}
 	})
 }
@@ -407,6 +410,8 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	}
 
 	t.Run("normal call", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider := testConfig.wsProvider
 
 		events := make(chan *NewTxnStatus)
@@ -545,11 +550,11 @@ func TestUnsubscribe(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
-	go func(t *testing.T) {
+	go func() {
 		timer := time.NewTimer(3 * time.Second)
 		<-timer.C
 		sub.Unsubscribe()
-	}(t)
+	}()
 
 loop:
 	for {

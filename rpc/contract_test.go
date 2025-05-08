@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -71,15 +70,14 @@ func TestClassAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(err)
+		require.NoError(t, err)
 
 		switch class := resp.(type) {
 		case *contracts.DeprecatedContractClass:
-			require.NotEmpty(class.Program, "code should exist")
+			require.NotEmpty(t, class.Program, "code should exist")
 
-			require.Condition(func() bool {
+			require.Condition(t, func() bool {
 				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
 					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
 						return true
@@ -89,9 +87,9 @@ func TestClassAt(t *testing.T) {
 				return false
 			}, "operation not found in the class")
 		case *contracts.ContractClass:
-			require.NotEmpty(class.SierraProgram, "code should exist")
+			require.NotEmpty(t, class.SierraProgram, "code should exist")
 
-			require.Condition(func() bool {
+			require.Condition(t, func() bool {
 				for _, entryPointsByType := range class.EntryPointsByType.External {
 					if test.ExpectedOperation == entryPointsByType.Selector.String() {
 						return true
@@ -166,11 +164,10 @@ func TestClassHashAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
-		require.NoError(err)
-		require.NotEmpty(classhash, "should return a class")
-		require.Equal(test.ExpectedClassHash, classhash)
+		require.NoError(t, err)
+		require.NotEmpty(t, classhash, "should return a class")
+		require.Equal(t, test.ExpectedClassHash, classhash)
 	}
 }
 
@@ -251,18 +248,15 @@ func TestClass(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
-		require.NoError(err)
+		require.NoError(t, err)
 
 		switch class := resp.(type) {
 		case *contracts.DeprecatedContractClass:
-			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
-				t.Fatal("code should exist")
-			}
+			require.Equal(t, class.Program, test.ExpectedProgram)
 		case *contracts.ContractClass:
-			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+			require.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+			require.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:
 			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
@@ -329,10 +323,9 @@ func TestStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
-		require.NoError(err)
-		require.EqualValues(test.ExpectedValue, value)
+		require.NoError(t, err)
+		require.EqualValues(t, test.ExpectedValue, value)
 	}
 }
 
@@ -389,11 +382,10 @@ func TestNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(err)
-		require.NotNil(nonce, "should return a nonce")
-		require.Equal(test.ExpectedNonce, nonce)
+		require.NoError(t, err)
+		require.NotNil(t, nonce, "should return a nonce")
+		require.Equal(t, test.ExpectedNonce, nonce)
 	}
 }
 

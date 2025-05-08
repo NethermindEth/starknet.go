@@ -80,7 +80,8 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 	return &receipt, nil
 }
 
-// Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages sent by the l1 transaction, ordered by the L1 tx sending order
+// Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages
+// sent by the l1 transaction, ordered by the L1 tx sending order
 //
 // Parameters:
 //   - ctx: the context.Context object for cancellation and timeouts.

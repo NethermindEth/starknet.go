@@ -124,6 +124,11 @@ linters:
       - linters:
           - lll
         source: '^//go:generate '
+      - linters:
+          - gocritic
+        # hugeParam: we need these interfaces params to be a value instead of a pointer in order to
+        # both value and pointer structs implements them.
+        path: rpc/types_transaction_interfaces.go
       - path: pkg/golinters/errcheck.go
         text: 'SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead'
       - path: pkg/commands/run.go

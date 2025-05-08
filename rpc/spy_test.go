@@ -73,9 +73,9 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	}
 	if s.debug {
 		fmt.Printf("... output\n")
-		data, err := raw.MarshalJSON()
-		if err != nil {
-			return err
+		data, innerErr := raw.MarshalJSON()
+		if innerErr != nil {
+			return innerErr
 		}
 		fmt.Println("output:", string(data))
 	}
@@ -113,9 +113,9 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 	}
 	if s.debug {
 		fmt.Printf("... output\n")
-		data, err := raw.MarshalJSON()
-		if err != nil {
-			return err
+		data, innerErr := raw.MarshalJSON()
+		if innerErr != nil {
+			return innerErr
 		}
 		fmt.Println("output:", string(data))
 	}

@@ -121,6 +121,8 @@ type SyncStatus struct {
 // Returns:
 //   - []byte: the JSON encoding of the SyncStatus struct
 //   - error: any error that occurred during the marshalling process
+//
+//nolint:gocritic
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !*s.SyncStatus {
 		return []byte("false"), nil
@@ -145,25 +147,25 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, s)
+	var b bool
+	if string(data) == "false" {
+		s.SyncStatus = &b
 
-	// if string(data) == "false" {
-	// 	s.SyncStatus = false
-	// 	return nil
-	// }
-	// s.SyncStatus = true
-	// output := map[string]interface{}{}
-	// err := json.Unmarshal(data, &output)
-	// if err != nil {
-	// 	return err
-	// }
-	// s.StartingBlockHash = output["starting_block_hash"].(string)
-	// s.StartingBlockNum = utils.NumAsHex(output["starting_block_num"].(string))
-	// s.CurrentBlockHash = output["current_block_hash"].(string)
-	// s.CurrentBlockNum = utils.NumAsHex(output["current_block_num"].(string))
-	// s.HighestBlockHash = output["highest_block_hash"].(string)
-	// s.HighestBlockNum = utils.NumAsHex(output["highest_block_num"].(string))
-	// return nil
+		return nil
+	}
+	b = true
+
+	type alias SyncStatus
+	var result alias
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return err
+	}
+
+	s = (*SyncStatus)(&result)
+	s.SyncStatus = &b
+
+	return nil
 }
 
 // AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
@@ -219,7 +221,8 @@ type FeeEstimation struct {
 	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
 	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
 
-	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to
+	// gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 
 	// Units in which the fee is given

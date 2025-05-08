@@ -19,7 +19,8 @@ import (
 // - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
 //
 //   - fromAddress: Filter events by from_address which emitted the event
-//   - keys: Per key (by position), designate the possible values to be matched for events to be returned. Empty array designates 'any' value
+//   - keys: Per key (by position), designate the possible values to be matched for events to be returned.
+//     Empty array designates 'any' value
 //   - blockID: The block to get notifications from, limited to 1024 blocks back. If empty, the latest block will be used
 //
 // Returns:

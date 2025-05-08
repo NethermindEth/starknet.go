@@ -37,6 +37,8 @@ var (
 // Returns:
 //   - Transaction: a concrete transaction type wrapped in the Transaction interface
 //   - error: an error if the unmarshaling process fails
+//
+//nolint:gocyclo // Inevitable due to many switch cases
 func unmarshalTxn(data []byte) (Transaction, error) {
 	var txnAsMap map[string]interface{}
 	if err := json.Unmarshal(data, &txnAsMap); err != nil {

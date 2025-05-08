@@ -73,7 +73,10 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 type RpcProvider interface {
 	AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (*AddDeclareTransactionResponse, error)
-	AddDeployAccountTransaction(ctx context.Context, deployAccountTransaction *BroadcastDeployAccountTxnV3) (*AddDeployAccountTransactionResponse, error)
+	AddDeployAccountTransaction(
+		ctx context.Context,
+		deployAccountTransaction *BroadcastDeployAccountTxnV3,
+	) (*AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -93,7 +96,12 @@ type RpcProvider interface {
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
 	GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
-	SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
+	SimulateTransactions(
+		ctx context.Context,
+		blockID BlockID,
+		txns []BroadcastTxn,
+		simulationFlags []SimulationFlag,
+	) ([]SimulatedTransaction, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	SpecVersion(ctx context.Context) (string, error)
@@ -108,8 +116,16 @@ type RpcProvider interface {
 type WebsocketProvider interface {
 	SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error)
 	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
-	SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *PendingTxn, options *SubPendingTxnsInput) (*client.ClientSubscription, error)
-	SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error)
+	SubscribePendingTransactions(
+		ctx context.Context,
+		pendingTxns chan<- *PendingTxn,
+		options *SubPendingTxnsInput,
+	) (*client.ClientSubscription, error)
+	SubscribeTransactionStatus(
+		ctx context.Context,
+		newStatus chan<- *NewTxnStatus,
+		transactionHash *felt.Felt,
+	) (*client.ClientSubscription, error)
 }
 
 var (

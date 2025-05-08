@@ -54,6 +54,8 @@ type EventsInput struct {
 
 type EventSubscriptionInput struct {
 	FromAddress *felt.Felt     `json:"from_address,omitempty"` // Optional. Filter events by from_address which emitted the event
-	Keys        [][]*felt.Felt `json:"keys,omitempty"`         // Optional. Per key (by position), designate the possible values to be matched for events to be returned. Empty array designates 'any' value
-	BlockID     BlockID        `json:"block_id,omitempty"`     // Optional. The block to get notifications from, default is latest, limited to 1024 blocks back
+	Keys        [][]*felt.Felt `json:"keys,omitempty"`         // Optional. Per key (by position), designate the possible values to be
+	// matched for events to be returned. Empty array designates 'any' value
+	BlockID BlockID `json:"block_id,omitempty"` // Optional. The block to get notifications from, limited to 1024 blocks back.
+	// Default is latest
 }

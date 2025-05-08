@@ -83,7 +83,7 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func doAsObject(ctx context.Context, call callCloser, method string, data interface{}, arg interface{}) error {
+func doAsObject(ctx context.Context, call callCloser, method string, data, arg interface{}) error {
 	var raw json.RawMessage
 	err := call.CallContext(ctx, &raw, method, arg)
 	if err != nil {

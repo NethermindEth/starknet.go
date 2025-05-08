@@ -31,7 +31,8 @@ type InvokeTxnV1 struct {
 	Nonce         *felt.Felt         `json:"nonce"`
 	Type          TransactionType    `json:"type"`
 	SenderAddress *felt.Felt         `json:"sender_address"`
-	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
+	// The data expected by the account's `execute` function (in most usecases, this includes the
+	// called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
@@ -195,7 +196,8 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 	), nil
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and
+// will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -242,7 +244,8 @@ type DeployAccountTxnV3 struct {
 }
 
 // remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
-// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
+// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data
+// to 'dst' using the json.Unmarshal function.
 //
 // Parameters:
 //   - v: The interface{} value to be marshalled
@@ -250,7 +253,7 @@ type DeployAccountTxnV3 struct {
 //
 // Returns:
 //   - error: An error if the marshalling or unmarshaling process fails
-func remarshal(v interface{}, dst interface{}) error {
+func remarshal(v, dst any) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -296,7 +299,7 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 
 	// Handle versions with query bit.
 	// Remove the 0x prefix and convert to big.Int
-	version, ok := new(big.Int).SetString(string(*v)[2:], 16)
+	version, ok := new(big.Int).SetString(string(*v)[2:], 16) //nolint:mnd
 	if !ok {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}

@@ -250,8 +250,7 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 //   - TxnTrace: a TxnTrace
 //   - error: an error if the unmarshaling process fails
 func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
-	switch casted := t.(type) {
-	case map[string]interface{}:
+	if casted, ok := t.(map[string]interface{}); ok {
 		switch TransactionType(casted["type"].(string)) {
 		case TransactionType_Declare:
 			var txn DeclareTxnTrace
