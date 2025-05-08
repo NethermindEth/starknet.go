@@ -80,8 +80,9 @@ func WithBlockHash(h *felt.Felt) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag string) BlockID {
+	// TODO: accept a BlockTag instead of a string
 	return BlockID{
-		Tag: tag,
+		Tag: BlockTag(tag),
 	}
 }
 

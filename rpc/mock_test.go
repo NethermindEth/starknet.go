@@ -1140,7 +1140,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return err
 	}
 
-	if blockId.Tag == "pending" {
+	if blockId.Tag == BlockTagPending {
 		pBlock, err := json.Marshal(
 			PendingBlock{
 				PendingBlockHeader{
@@ -1207,7 +1207,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return err
 	}
 
-	if blockId.Tag == "pending" {
+	if blockId.Tag == BlockTagPending {
 		pBlock, innerErr := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
@@ -1267,7 +1267,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 	if err != nil {
 		return err
 	}
-	if blockId.Tag == "pending" {
+	if blockId.Tag == BlockTagPending {
 		pBlock, innerErr := json.Marshal(
 			PendingBlockWithReceipts{
 				PendingBlockHeader{
