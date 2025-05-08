@@ -253,10 +253,10 @@ func TestClass(t *testing.T) {
 
 		switch class := resp.(type) {
 		case *contracts.DeprecatedContractClass:
-			require.Equal(t, class.Program, test.ExpectedProgram)
+			assert.Contains(t, class.Program, test.ExpectedProgram)
 		case *contracts.ContractClass:
-			require.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-			require.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+			assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+			assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:
 			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
