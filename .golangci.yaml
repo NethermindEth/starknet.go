@@ -132,6 +132,9 @@ linters:
           - goconst
         path: rpc/block_test.go
       - linters:
+          - goconst
+        path: account/account_test.go
+      - linters:
           - exhaustruct
           - noctx
           - goconst

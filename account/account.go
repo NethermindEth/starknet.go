@@ -22,9 +22,27 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64, withQueryBitVersion bool) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64, withQueryBitVersion bool) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(
+		ctx context.Context,
+		salt *felt.Felt,
+		classHash *felt.Felt,
+		constructorCalldata []*felt.Felt,
+		multiplier float64,
+		withQueryBitVersion bool,
+	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(
+		ctx context.Context,
+		functionCalls []rpc.InvokeFunctionCall,
+		multiplier float64,
+		withQueryBitVersion bool,
+	) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(
+		ctx context.Context,
+		casmClass *contracts.CasmClass,
+		contractClass *contracts.ContractClass,
+		multiplier float64,
+		withQueryBitVersion bool,
+	) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -34,10 +52,14 @@ type AccountInterface interface {
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
-	WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error)
+	WaitForTransactionReceipt(
+		ctx context.Context,
+		transactionHash *felt.Felt,
+		pollInterval time.Duration,
+	) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
-var _ AccountInterface = &Account{}
+var _ AccountInterface = &Account{} //nolint:exhaustruct
 
 type Account struct {
 	Provider     rpc.RpcProvider
@@ -48,7 +70,8 @@ type Account struct {
 	ks           Keystore
 }
 
-var BRAAVOS_WARNING_MESSAGE = "WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3"
+const BRAAVOS_WARNING_MESSAGE = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via
+RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
 
 // NewAccount creates a new Account instance.
 //
@@ -61,7 +84,13 @@ var BRAAVOS_WARNING_MESSAGE = "WARNING: Currently, Braavos accounts are incompat
 // It returns:
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
-func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey string, keystore Keystore, cairoVersion int) (*Account, error) {
+func NewAccount(
+	provider rpc.RpcProvider,
+	accountAddress *felt.Felt,
+	publicKey string,
+	keystore Keystore,
+	cairoVersion int,
+) (*Account, error) {
 	// TODO: Remove this temporary check once solved (starknet v0.14.0 should do it)
 	// This temporary check is to warn the user that Braavos account restricts transactions to have exactly two resource fields.
 	// This makes them incompatible with transactions sent via RPC 0.8.0
@@ -83,19 +112,19 @@ func NewAccount(provider rpc.RpcProvider, accountAddress *felt.Felt, publicKey s
 		}
 	}
 
+	chainID, err := provider.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	account := &Account{
 		Provider:     provider,
 		Address:      accountAddress,
 		publicKey:    publicKey,
 		ks:           keystore,
 		CairoVersion: cairoVersion,
+		ChainId:      new(felt.Felt).SetBytes([]byte(chainID)),
 	}
-
-	chainID, err := provider.ChainID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	account.ChainId = new(felt.Felt).SetBytes([]byte(chainID))
 
 	return account, nil
 }
@@ -153,7 +182,12 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	estimateFee, err := account.Provider.EstimateFee(
+		ctx,
+		[]rpc.BroadcastTxn{broadcastInvokeTxnV3},
+		[]rpc.SimulationFlag{},
+		rpc.WithBlockTag("pending"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +240,13 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues())
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
+		account.Address,
+		casmClass,
+		contractClass,
+		nonce,
+		makeResourceBoundsMapWithZeroValues(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +261,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	estimateFee, err := account.Provider.EstimateFee(
+		ctx,
+		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
+		[]rpc.SimulationFlag{},
+		rpc.WithBlockTag("pending"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +320,13 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	withQueryBitVersion bool,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues())
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
+		&felt.Zero,
+		salt,
+		constructorCalldata,
+		classHash,
+		makeResourceBoundsMapWithZeroValues(),
+	)
 
 	if withQueryBitVersion {
 		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit
@@ -290,7 +341,12 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	estimateFee, err := account.Provider.EstimateFee(
+		ctx,
+		[]rpc.BroadcastTxn{broadcastDepAccTxnV3},
+		[]rpc.SimulationFlag{},
+		rpc.WithBlockTag("pending"),
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -408,7 +464,12 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 }
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
-func signDeployAccountTransaction[T rpc.DeployAccountType](ctx context.Context, account *Account, tx *T, precomputeAddress *felt.Felt) ([]*felt.Felt, error) {
+func signDeployAccountTransaction[T rpc.DeployAccountType](
+	ctx context.Context,
+	account *Account,
+	tx *T,
+	precomputeAddress *felt.Felt,
+) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
 	if err != nil {
 		return nil, err
@@ -486,7 +547,6 @@ func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func (account *Account) TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error) {
-
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
 	// deployAccTxn v1, pointer and struct
@@ -587,7 +647,7 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 // Returns:
 //   - *felt.Felt: the precomputed address as a *felt.Felt
 //   - error: an error if any
-func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+func PrecomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
 	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
 
@@ -601,7 +661,11 @@ func PrecomputeAccountAddress(salt *felt.Felt, classHash *felt.Felt, constructor
 // It returns:
 //   - *rpc.TransactionReceipt: the transaction receipt
 //   - error: an error
-func (account *Account) WaitForTransactionReceipt(ctx context.Context, transactionHash *felt.Felt, pollInterval time.Duration) (*rpc.TransactionReceiptWithBlockInfo, error) {
+func (account *Account) WaitForTransactionReceipt(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+	pollInterval time.Duration,
+) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
@@ -617,6 +681,7 @@ func (account *Account) WaitForTransactionReceipt(ctx context.Context, transacti
 					return nil, err
 				}
 			}
+
 			return receiptWithBlockInfo, nil
 		}
 	}
@@ -640,39 +705,45 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return nil, err
 		}
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil
+
+		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	default:
 		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}
@@ -707,16 +778,14 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 //
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L27
 func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
-	var calldata []*felt.Felt
-	var calls []*felt.Felt
+	calldata := make([]*felt.Felt, 0, 10) //nolint:mnd
+	calls := make([]*felt.Felt, 0, 10)    //nolint:mnd
 
 	calldata = append(calldata, new(felt.Felt).SetUint64(uint64(len(callArray))))
 
 	offset := uint64(0)
 	for _, call := range callArray {
-		calldata = append(calldata, call.ContractAddress)
-		calldata = append(calldata, call.EntryPointSelector)
-		calldata = append(calldata, new(felt.Felt).SetUint64(uint64(offset)))
+		calldata = append(calldata, call.ContractAddress, call.EntryPointSelector, new(felt.Felt).SetUint64(offset))
 		callDataLen := uint64(len(call.Calldata))
 		calldata = append(calldata, new(felt.Felt).SetUint64(callDataLen))
 		offset += callDataLen
@@ -740,13 +809,12 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 //
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L22
 func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
-	var result []*felt.Felt
+	result := make([]*felt.Felt, 0, 10) //nolint:mnd
 
 	result = append(result, new(felt.Felt).SetUint64(uint64(len(callArray))))
 
 	for _, call := range callArray {
-		result = append(result, call.ContractAddress)
-		result = append(result, call.EntryPointSelector)
+		result = append(result, call.ContractAddress, call.EntryPointSelector)
 
 		callDataLen := uint64(len(call.Calldata))
 		result = append(result, new(felt.Felt).SetUint64(callDataLen))
