@@ -48,16 +48,18 @@ var wsBufferPool = new(sync.Pool)
 // allowedOrigins should be a comma-separated list of allowed origin URLs.
 // To allow connections with any origin, pass "*".
 func (s *Server) WebsocketHandler(allowedOrigins []string) http.Handler {
-	var upgrader = websocket.Upgrader{
+	upgrader := websocket.Upgrader{
 		ReadBufferSize:  wsReadBuffer,
 		WriteBufferSize: wsWriteBuffer,
 		WriteBufferPool: wsBufferPool,
 		CheckOrigin:     wsHandshakeValidator(allowedOrigins),
 	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Debug("WebSocket upgrade failed", "err", err)
+
 			return
 		}
 		codec := newWebsocketCodec(conn, r.Host, r.Header, wsDefaultReadLimit)
@@ -103,6 +105,7 @@ func wsHandshakeValidator(allowedOrigins []string) func(*http.Request) bool {
 			return true
 		}
 		log.Warn("Rejected WebSocket connection", "origin", origin)
+
 		return false
 	}
 
@@ -119,6 +122,7 @@ func (e wsHandshakeError) Error() string {
 	if e.status != "" {
 		s += " (HTTP status " + e.status + ")"
 	}
+
 	return s
 }
 
@@ -133,6 +137,7 @@ func originIsAllowed(allowedOrigins mapset.Set[string], browserOrigin string) bo
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -145,11 +150,13 @@ func ruleAllowsOrigin(allowedOrigin string, browserOrigin string) bool {
 	allowedScheme, allowedHostname, allowedPort, err = parseOriginURL(allowedOrigin)
 	if err != nil {
 		log.Warn("Error parsing allowed origin specification", "spec", allowedOrigin, "error", err)
+
 		return false
 	}
 	browserScheme, browserHostname, browserPort, err = parseOriginURL(browserOrigin)
 	if err != nil {
 		log.Warn("Error parsing browser 'Origin' field", "Origin", browserOrigin, "error", err)
+
 		return false
 	}
 	if allowedScheme != "" && allowedScheme != browserScheme {
@@ -161,6 +168,7 @@ func ruleAllowsOrigin(allowedOrigin string, browserOrigin string) bool {
 	if allowedPort != "" && allowedPort != browserPort {
 		return false
 	}
+
 	return true
 }
 
@@ -182,6 +190,7 @@ func parseOriginURL(origin string) (string, string, string, error) {
 			hostname = origin
 		}
 	}
+
 	return scheme, hostname, port, nil
 }
 
@@ -201,6 +210,7 @@ func DialWebsocketWithDialer(ctx context.Context, endpoint, origin string, diale
 	if err != nil {
 		return nil, err
 	}
+
 	return newClient(ctx, cfg, connect)
 }
 
@@ -218,6 +228,7 @@ func DialWebsocket(ctx context.Context, endpoint, origin string) (*Client, error
 	if err != nil {
 		return nil, err
 	}
+
 	return newClient(ctx, cfg, connect)
 }
 
@@ -253,14 +264,17 @@ func newClientTransportWS(endpoint string, cfg *clientConfig) (reconnectFunc, er
 			if resp != nil {
 				hErr.status = resp.Status
 			}
+
 			return nil, hErr
 		}
 		messageSizeLimit := int64(wsDefaultReadLimit)
 		if cfg.wsMessageSizeLimit != nil && *cfg.wsMessageSizeLimit >= 0 {
 			messageSizeLimit = *cfg.wsMessageSizeLimit
 		}
+
 		return newWebsocketCodec(conn, dialURL, header, messageSizeLimit), nil
 	}
+
 	return connect, nil
 }
 
@@ -278,6 +292,7 @@ func wsClientHeaders(endpoint, origin string) (string, http.Header, error) {
 		header.Add("authorization", "Basic "+b64auth)
 		endpointURL.User = nil
 	}
+
 	return endpointURL.String(), header, nil
 }
 
@@ -316,15 +331,21 @@ func newWebsocketCodec(conn *websocket.Conn, host string, req http.Header, readL
 		case wc.pongReceived <- struct{}{}:
 		case <-wc.closed():
 		}
+
 		return nil
 	})
 	wc.wg.Add(1)
 	go wc.pingLoop()
+
 	return wc
 }
 
 func (wc *websocketCodec) close() {
-	err := wc.conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "client is closed"), time.Time{})
+	err := wc.conn.WriteControl(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, "client is closed"),
+		time.Time{},
+	)
 	if err != nil {
 		// Handle error but ensure we still try to close the connection
 		log.Warn("Error sending close message: ", err)
@@ -347,12 +368,13 @@ func (wc *websocketCodec) writeJSON(ctx context.Context, v interface{}, isError 
 		default:
 		}
 	}
+
 	return err
 }
 
 // pingLoop sends periodic ping frames when the connection is idle.
 func (wc *websocketCodec) pingLoop() {
-	var pingTimer = time.NewTimer(wsPingInterval)
+	pingTimer := time.NewTimer(wsPingInterval)
 	defer wc.wg.Done()
 	defer pingTimer.Stop()
 
@@ -368,11 +390,11 @@ func (wc *websocketCodec) pingLoop() {
 			pingTimer.Reset(wsPingInterval)
 
 		case <-pingTimer.C:
-			wc.jsonCodec.encMu.Lock()
+			wc.encMu.Lock()
 			_ = wc.conn.SetWriteDeadline(time.Now().Add(wsPingWriteTimeout))
 			_ = wc.conn.WriteMessage(websocket.PingMessage, nil)
 			_ = wc.conn.SetReadDeadline(time.Now().Add(wsPongTimeout))
-			wc.jsonCodec.encMu.Unlock()
+			wc.encMu.Unlock()
 			pingTimer.Reset(wsPingInterval)
 
 		case <-wc.pongReceived:

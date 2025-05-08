@@ -24,11 +24,13 @@ type FixedSizeMerkleTree struct {
 // Returns:
 //   - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
 func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
+	//nolint:exhaustruct
 	mt := &FixedSizeMerkleTree{
 		Leaves:   leaves,
 		Branches: [][]*big.Int{},
 	}
 	mt.Root = mt.build(leaves)
+
 	return mt
 }
 
@@ -44,6 +46,7 @@ func MerkleHash(x, y *big.Int) *big.Int {
 	if x.Cmp(y) <= 0 {
 		return curve.HashPedersenElements([]*big.Int{x, y})
 	}
+
 	return curve.HashPedersenElements([]*big.Int{y, x})
 }
 
@@ -64,11 +67,13 @@ func (mt *FixedSizeMerkleTree) build(leaves []*big.Int) *big.Int {
 		if i+1 == len(leaves) {
 			hash := MerkleHash(leaves[i], big.NewInt(0))
 			newLeaves = append(newLeaves, hash)
+
 			break
 		}
 		hash := MerkleHash(leaves[i], leaves[i+1])
 		newLeaves = append(newLeaves, hash)
 	}
+
 	return mt.build(newLeaves)
 }
 
@@ -103,11 +108,12 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 	for k, v := range branch {
 		if v.Cmp(leaf) == 0 {
 			index = k
+
 			break
 		}
 	}
 	if index == -1 {
-		return nil, fmt.Errorf("key 0x%s not found in branch", leaf.Text(16))
+		return nil, fmt.Errorf("key 0x%s not found in branch", leaf.Text(16)) //nolint:mnd //hex base
 	}
 	nextProof := big.NewInt(0)
 	if index%2 == 0 && index < len(branch) {
@@ -117,7 +123,8 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 		nextProof = branch[index-1]
 	}
 	newLeaf := MerkleHash(leaf, nextProof)
-	newHashPath := append(hashPath, nextProof)
+	newHashPath := append(hashPath, nextProof) //nolint:gocritic
+
 	return mt.recursiveProof(newLeaf, branchIndex+1, newHashPath)
 }
 
@@ -135,7 +142,7 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 //
 // Returns:
 //   - bool: True if the leaf node is part of the Merkle tree path, false otherwise
-func ProofMerklePath(root *big.Int, leaf *big.Int, path []*big.Int) bool {
+func ProofMerklePath(root, leaf *big.Int, path []*big.Int) bool {
 	if len(path) == 0 {
 		return root.Cmp(leaf) == 0
 	}

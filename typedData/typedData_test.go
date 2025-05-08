@@ -12,7 +12,7 @@ import (
 
 var typedDataExamples = make(map[string]TypedData)
 
-// TestMain initializes test data by loading TypedData examples from JSON files.
+// TestMain initialises test data by loading TypedData examples from JSON files.
 // It reads multiple test files and stores them in the typedDataExamples map
 // before running the tests.
 //
@@ -91,6 +91,8 @@ func TestGetMessageHash(t *testing.T) {
 		Address             string
 		ExpectedMessageHash string
 	}
+
+	//nolint:dupl
 	testSet := []testSetType{
 		{
 			TypedDataName:       "baseExample",
@@ -258,6 +260,8 @@ func TestEncodeType(t *testing.T) {
 		TypeName       string
 		ExpectedEncode string
 	}
+
+	//nolint:dupl
 	testSet := []testSetType{
 		{
 			TypedDataName:  "baseExample",

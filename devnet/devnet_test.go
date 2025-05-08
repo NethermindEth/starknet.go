@@ -11,14 +11,12 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
-var (
-	// the environment for the test, needs to be "devnet"
-	testEnv = ""
-)
+// the environment for the test, needs to be "devnet"
+var testEnv = ""
 
 // TestMain is the main test function for the package, checks configuration for the environment to use.
 //
-// It initializes the test environment and runs the test cases.
+// It initialises the test environment and runs the test cases.
 //
 // Parameters:
 //   - m: is the testing.M parameter
@@ -82,7 +80,7 @@ func TestDevnet_Accounts(t *testing.T) {
 
 // TestDevnet_Mint is a test function that tests the Mint method of the Devnet struct.
 //
-// It initializes a new Devnet instance and sets the amount to 1000000000000000000.
+// It initialises a new Devnet instance and sets the amount to 1000000000000000000.
 // Then it calls the Mint method with a test hexadecimal value and the amount.
 // If an error occurs during the Mint method call, it fails the test with the error message.
 // If the NewBalance returned by the Mint method is less than the amount, it fails the test with an error message.

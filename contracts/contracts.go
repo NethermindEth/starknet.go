@@ -15,7 +15,6 @@ var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_
 //
 // It takes a file path as a parameter and returns a pointer to the unmarshaled CasmClass object and an error.
 func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
-
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -41,7 +40,7 @@ func UnmarshalCasmClass(filePath string) (*CasmClass, error) {
 //
 // Returns:
 //   - *felt.Felt: the precomputed address as a *felt.Felt
-func PrecomputeAddress(deployerAddress *felt.Felt, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+func PrecomputeAddress(deployerAddress, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
 	return curve.PedersenArray(
 		PREFIX_CONTRACT_ADDRESS,
 		deployerAddress,

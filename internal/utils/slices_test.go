@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,8 +48,8 @@ func TestFlatten(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := Flatten(tc.input...)
 			assert.ElementsMatch(t, result, tc.expected)
 		})
@@ -87,9 +87,9 @@ func TestMap(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			result := Map(tc.input, func(i int) string { return fmt.Sprintf("%d", i) })
+			t.Parallel()
+			result := Map(tc.input, func(i int) string { return strconv.Itoa(i) }) //nolint:gocritic
 			assert.ElementsMatch(t, result, tc.expected)
 		})
 	}
@@ -136,8 +136,8 @@ func TestFilter(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := Filter(tc.input, func(i int) bool { return i%2 == 0 })
 			assert.ElementsMatch(t, result, tc.expected)
 		})
@@ -198,8 +198,8 @@ func TestAll(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := All(tc.input, tc.pred)
 			assert.Equal(t, result, tc.expected)
 		})

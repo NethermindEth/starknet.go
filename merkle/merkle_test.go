@@ -89,23 +89,25 @@ func TestRecursiveProofFixedSizeMerkleTree(t *testing.T) {
 	}
 
 	// Verify the correctness of the generated proof
-	reconstructedRoot, err := reconstructRootFromProof(targetLeaf, proof)
-	if err != nil {
-		t.Fatalf("Error reconstructing Merkle root from proof: %v", err)
-	}
+	reconstructedRoot := reconstructRootFromProof(targetLeaf, proof)
 
 	// Verify that the reconstructed root matches the original root
 	if merkleTree.Root.Cmp(reconstructedRoot) != 0 {
-		t.Fatalf("Reconstructed Merkle root does not match the original root. Expected: 0x%s, Got: 0x%s", merkleTree.Root.Text(16), reconstructedRoot.Text(16))
+		t.Fatalf(
+			"Reconstructed Merkle root does not match the original root. Expected: 0x%s, Got: 0x%s",
+			merkleTree.Root.Text(16),
+			reconstructedRoot.Text(16),
+		)
 	}
 }
 
 // reconstructRootFromProof is a helper function that reconstructs the Merkle
 // root from a given root, leaf, and Merkle proof.
-func reconstructRootFromProof(leaf *big.Int, proof []*big.Int) (*big.Int, error) {
+func reconstructRootFromProof(leaf *big.Int, proof []*big.Int) *big.Int {
 	currentHash := leaf
 	for _, sibling := range proof {
 		currentHash = MerkleHash(currentHash, sibling)
 	}
-	return currentHash, nil
+
+	return currentHash
 }

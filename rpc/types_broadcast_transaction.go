@@ -9,6 +9,8 @@ type BroadcastTxn interface{}
 
 // Note: this allow all types to pass, but are to help users of starknet.go
 // understand which types are allowed where.
+//
+//nolint:exhaustruct
 var (
 	_ BroadcastTxn = BroadcastInvokeTxnV3{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}
@@ -27,7 +29,7 @@ type BroadcastDeclareTxnV3 struct {
 	Signature         []*felt.Felt             `json:"signature"`
 	Nonce             *felt.Felt               `json:"nonce"`
 	ContractClass     *contracts.ContractClass `json:"contract_class"`
-	ResourceBounds    ResourceBoundsMapping    `json:"resource_bounds"`
+	ResourceBounds    *ResourceBoundsMapping   `json:"resource_bounds"`
 	Tip               U64                      `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`

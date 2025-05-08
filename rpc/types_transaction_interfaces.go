@@ -16,16 +16,18 @@ type Transaction interface {
 	GetVersion() TransactionVersion
 }
 
-var _ Transaction = InvokeTxnV0{}
-var _ Transaction = InvokeTxnV1{}
-var _ Transaction = InvokeTxnV3{}
-var _ Transaction = DeclareTxnV1{}
-var _ Transaction = DeclareTxnV2{}
-var _ Transaction = DeclareTxnV3{}
-var _ Transaction = DeployTxn{}
-var _ Transaction = DeployAccountTxnV1{}
-var _ Transaction = DeployAccountTxnV3{}
-var _ Transaction = L1HandlerTxn{}
+var (
+	_ Transaction = InvokeTxnV0{}
+	_ Transaction = InvokeTxnV1{}
+	_ Transaction = InvokeTxnV3{}
+	_ Transaction = DeclareTxnV1{}
+	_ Transaction = DeclareTxnV2{}
+	_ Transaction = DeclareTxnV3{}
+	_ Transaction = DeployTxn{}
+	_ Transaction = DeployAccountTxnV1{}
+	_ Transaction = DeployAccountTxnV3{}
+	_ Transaction = L1HandlerTxn{}
+)
 
 // unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete transaction type wrapped in the Transaction interface.
 //
@@ -35,6 +37,8 @@ var _ Transaction = L1HandlerTxn{}
 // Returns:
 //   - Transaction: a concrete transaction type wrapped in the Transaction interface
 //   - error: an error if the unmarshaling process fails
+//
+//nolint:gocyclo // Inevitable due to many switch cases
 func unmarshalTxn(data []byte) (Transaction, error) {
 	var txnAsMap map[string]interface{}
 	if err := json.Unmarshal(data, &txnAsMap); err != nil {
@@ -96,18 +100,23 @@ func unmarshalTxnToType[T Transaction](data []byte) (T, error) {
 func (tx InvokeTxnV0) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx InvokeTxnV0) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx InvokeTxnV1) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx InvokeTxnV1) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx InvokeTxnV3) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx InvokeTxnV3) GetVersion() TransactionVersion {
 	return tx.Version
 }
@@ -116,24 +125,31 @@ func (tx InvokeTxnV3) GetVersion() TransactionVersion {
 func (tx DeclareTxnV0) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeclareTxnV0) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx DeclareTxnV1) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeclareTxnV1) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx DeclareTxnV2) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeclareTxnV2) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx DeclareTxnV3) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeclareTxnV3) GetVersion() TransactionVersion {
 	return tx.Version
 }
@@ -142,6 +158,7 @@ func (tx DeclareTxnV3) GetVersion() TransactionVersion {
 func (tx DeployTxn) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeployTxn) GetVersion() TransactionVersion {
 	return tx.Version
 }
@@ -150,12 +167,15 @@ func (tx DeployTxn) GetVersion() TransactionVersion {
 func (tx DeployAccountTxnV1) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeployAccountTxnV1) GetVersion() TransactionVersion {
 	return tx.Version
 }
+
 func (tx DeployAccountTxnV3) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx DeployAccountTxnV3) GetVersion() TransactionVersion {
 	return tx.Version
 }
@@ -164,6 +184,7 @@ func (tx DeployAccountTxnV3) GetVersion() TransactionVersion {
 func (tx L1HandlerTxn) GetType() TransactionType {
 	return tx.Type
 }
+
 func (tx L1HandlerTxn) GetVersion() TransactionVersion {
 	return tx.Version
 }
@@ -178,17 +199,21 @@ type InvokeTxnType interface {
 func (tx InvokeTxnV0) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
+
 func (tx InvokeTxnV1) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
+
 func (tx InvokeTxnV3) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
 
-var _ InvokeTxnType = InvokeTxnV0{}
-var _ InvokeTxnType = InvokeTxnV1{}
-var _ InvokeTxnType = InvokeTxnV3{}
-var _ InvokeTxnType = BroadcastInvokeTxnV3{}
+var (
+	_ InvokeTxnType = InvokeTxnV0{}
+	_ InvokeTxnType = InvokeTxnV1{}
+	_ InvokeTxnType = InvokeTxnV3{}
+	_ InvokeTxnType = BroadcastInvokeTxnV3{}
+)
 
 // DeclareTxnType is an interface that represents a Starknet declare transaction.
 // It is used to provide a common interface for all declare transaction types.
@@ -200,24 +225,30 @@ type DeclareTxnType interface {
 func (tx DeclareTxnV0) GetSenderAddress() *felt.Felt {
 	return tx.SenderAddress
 }
+
 func (tx DeclareTxnV1) GetSenderAddress() *felt.Felt {
 	return tx.SenderAddress
 }
+
 func (tx DeclareTxnV2) GetSenderAddress() *felt.Felt {
 	return tx.SenderAddress
 }
+
 func (tx DeclareTxnV3) GetSenderAddress() *felt.Felt {
 	return tx.SenderAddress
 }
+
 func (tx BroadcastDeclareTxnV3) GetSenderAddress() *felt.Felt {
 	return tx.SenderAddress
 }
 
-var _ DeclareTxnType = DeclareTxnV0{}
-var _ DeclareTxnType = DeclareTxnV1{}
-var _ DeclareTxnType = DeclareTxnV2{}
-var _ DeclareTxnType = DeclareTxnV3{}
-var _ DeclareTxnType = BroadcastDeclareTxnV3{}
+var (
+	_ DeclareTxnType = DeclareTxnV0{}
+	_ DeclareTxnType = DeclareTxnV1{}
+	_ DeclareTxnType = DeclareTxnV2{}
+	_ DeclareTxnType = DeclareTxnV3{}
+	_ DeclareTxnType = BroadcastDeclareTxnV3{}
+)
 
 // DeployAccountType is an interface that represents a Starknet deploy account transaction.
 // It is used to provide a common interface for all deploy account transaction types.
@@ -229,10 +260,13 @@ type DeployAccountType interface {
 func (tx DeployAccountTxnV1) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
+
 func (tx DeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt {
 	return tx.ConstructorCalldata
 }
 
-var _ DeployAccountType = DeployAccountTxnV1{}
-var _ DeployAccountType = DeployAccountTxnV3{}
-var _ DeployAccountType = BroadcastDeployAccountTxnV3{}
+var (
+	_ DeployAccountType = DeployAccountTxnV1{}
+	_ DeployAccountType = DeployAccountTxnV3{}
+	_ DeployAccountType = BroadcastDeployAccountTxnV3{}
+)
