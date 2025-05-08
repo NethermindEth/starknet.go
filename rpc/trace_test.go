@@ -149,6 +149,7 @@ func TestSimulateTransaction(t *testing.T) {
 		expectedRespArr := make([]any, 0)
 		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
+		//nolint:dupl
 		for i, trace := range resp {
 			require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
 			compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
@@ -244,6 +245,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		expectedRespArr := make([]any, 0)
 		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
+		//nolint:dupl
 		for i, actualTrace := range resp {
 			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
 			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)

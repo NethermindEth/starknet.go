@@ -26,6 +26,7 @@ type testConfiguration struct {
 }
 
 // the environment for the test, default: mock
+// TODO: create an enum for the test environment
 var testEnv = ""
 
 // TestMain is used to trigger the tests and set up the test environment.

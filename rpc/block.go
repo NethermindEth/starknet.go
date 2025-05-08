@@ -54,6 +54,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
+	//nolint:exhaustruct
 	return BlockID{
 		Number: &n,
 	}
@@ -67,6 +68,7 @@ func WithBlockNumber(n uint64) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
+	//nolint:exhaustruct
 	return BlockID{
 		Hash: h,
 	}
@@ -81,6 +83,7 @@ func WithBlockHash(h *felt.Felt) BlockID {
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag string) BlockID {
 	// TODO: accept a BlockTag instead of a string
+	//nolint:exhaustruct
 	return BlockID{
 		Tag: BlockTag(tag),
 	}
@@ -95,6 +98,8 @@ func WithBlockTag(tag string) BlockID {
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
+//
+//nolint:dupl
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
@@ -109,6 +114,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
+				L2GasPrice:       result.L2GasPrice,
 				StarknetVersion:  result.StarknetVersion,
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,
@@ -166,6 +172,8 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
+//
+//nolint:dupl
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
@@ -179,6 +187,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
+				L2GasPrice:       result.L2GasPrice,
 				StarknetVersion:  result.StarknetVersion,
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,

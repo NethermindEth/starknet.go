@@ -43,7 +43,7 @@ func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	}
 	switch res := result.(type) {
 	case bool:
-		return &SyncStatus{SyncStatus: &res}, nil
+		return &SyncStatus{SyncStatus: &res}, nil //nolint:exhaustruct
 	case SyncStatus:
 		return &res, nil
 	default:

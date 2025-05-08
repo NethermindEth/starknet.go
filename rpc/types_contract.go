@@ -35,6 +35,7 @@ type U128 string
 
 type ClassOutput interface{}
 
+//nolint:exhaustruct
 var (
 	_ ClassOutput = &contracts.DeprecatedContractClass{}
 	_ ClassOutput = &contracts.ContractClass{}

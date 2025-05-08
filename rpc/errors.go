@@ -167,6 +167,7 @@ type RPCData interface {
 	ErrorMessage() string
 }
 
+//nolint:exhaustruct
 var (
 	_ RPCData = StringErrData("")
 
@@ -176,6 +177,7 @@ var (
 	_ RPCData = &TraceStatusErrData{}
 )
 
+//nolint:exhaustruct
 var (
 	ErrFailedToReceiveTxn = &RPCError{
 		Code:    1,
