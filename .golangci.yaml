@@ -107,6 +107,8 @@ linters:
       require-specific: false
       allow-unused: false
   exclusions:
+    paths:
+      - curve/ # excluding curve package since we have plans to replace it with the Juno implementation
     generated: lax
     presets:
       - comments

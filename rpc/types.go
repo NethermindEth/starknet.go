@@ -162,7 +162,7 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	s = (*SyncStatus)(&result)
+	*s = SyncStatus(result)
 	s.SyncStatus = &b
 
 	return nil
