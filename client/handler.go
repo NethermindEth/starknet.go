@@ -75,7 +75,13 @@ type callProc struct {
 	notifiers []*Notifier
 }
 
-func newHandler(connCtx context.Context, conn jsonWriter, idgen func() ID, reg *serviceRegistry, batchRequestLimit, batchResponseMaxSize int) *handler {
+func newHandler(
+	connCtx context.Context,
+	conn jsonWriter,
+	idgen func() ID,
+	reg *serviceRegistry,
+	batchRequestLimit, batchResponseMaxSize int,
+) *handler {
 	rootCtx, cancelRoot := context.WithCancel(connCtx)
 	h := &handler{
 		reg:                  reg,
@@ -95,11 +101,12 @@ func newHandler(connCtx context.Context, conn jsonWriter, idgen func() ID, reg *
 		h.log = h.log.New("conn", conn.remoteAddr())
 	}
 	h.unsubscribeCb = newCallback(reflect.Value{}, reflect.ValueOf(h.unsubscribe))
+
 	return h
 }
 
 // batchCallBuffer manages in progress call messages and their responses during a batch
-// call. Calls need to be synchronized between the processing and timeout-triggering
+// call. Calls need to be synchronised between the processing and timeout-triggering
 // goroutines.
 type batchCallBuffer struct {
 	mutex sync.Mutex
@@ -119,6 +126,7 @@ func (b *batchCallBuffer) nextCall() *jsonrpcMessage {
 	// The popping happens in `pushAnswer`. The in progress call is kept
 	// so we can return an error for it in case of timeout.
 	msg := b.calls[0]
+
 	return msg
 }
 
@@ -175,6 +183,7 @@ func (h *handler) handleBatch(msgs []*jsonrpcMessage) {
 			resp := errorMessage(&invalidRequestError{"empty batch"})
 			_ = h.conn.writeJSON(cp.ctx, resp, true)
 		})
+
 		return
 	}
 	// Apply limit on total number of requests.
@@ -182,6 +191,7 @@ func (h *handler) handleBatch(msgs []*jsonrpcMessage) {
 		h.startCallProc(func(cp *callProc) {
 			h.respondWithBatchTooLarge(cp, msgs)
 		})
+
 		return
 	}
 
@@ -218,11 +228,9 @@ func (h *handler) handleBatch(msgs []*jsonrpcMessage) {
 		}
 
 		responseBytes := 0
-		for {
-			// No need to handle rest of calls if timed out.
-			if cp.ctx.Err() != nil {
-				break
-			}
+		// No need to handle rest of calls if timed out.
+		for cp.ctx.Err() == nil {
+
 			msg := callBuffer.nextCall()
 			if msg == nil {
 				break
@@ -234,6 +242,7 @@ func (h *handler) handleBatch(msgs []*jsonrpcMessage) {
 				if responseBytes > h.batchResponseMaxSize {
 					err := &internalServerError{errcodeResponseTooLarge, errMsgResponseTooLarge}
 					callBuffer.respondWithError(cp.ctx, h.conn, err)
+
 					break
 				}
 			}
@@ -258,6 +267,7 @@ func (h *handler) respondWithBatchTooLarge(cp *callProc, batch []*jsonrpcMessage
 	for _, msg := range batch {
 		if msg.isCall() {
 			resp.ID = msg.ID
+
 			break
 		}
 	}
@@ -398,6 +408,7 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 		op := h.respWait[string(msg.ID)]
 		if op == nil {
 			h.log.Debug("Unsolicited RPC response", "reqid", idForLog{msg.ID})
+
 			return
 		}
 		resolvedops = append(resolvedops, op)
@@ -434,6 +445,7 @@ func (h *handler) handleResponses(batch []*jsonrpcMessage, handleCall func(*json
 		case msg.isNotification():
 			if strings.HasPrefix(msg.Method, starknetNotificationMethodPrefix) || strings.HasSuffix(msg.Method, notificationMethodSuffix) {
 				h.handleSubscriptionResult(msg)
+
 				continue
 			}
 			handleCall(msg)
@@ -453,6 +465,7 @@ func (h *handler) handleSubscriptionResult(msg *jsonrpcMessage) {
 	var result subscriptionResult
 	if err := json.Unmarshal(msg.Params, &result); err != nil {
 		h.log.Debug("Dropping invalid subscription message")
+
 		return
 	}
 
@@ -462,6 +475,7 @@ func (h *handler) handleSubscriptionResult(msg *jsonrpcMessage) {
 	if id == "" {
 		if result.ID == "" {
 			h.log.Debug("Dropping invalid subscription message")
+
 			return
 		}
 		id = string(result.ID)
@@ -479,6 +493,7 @@ func (h *handler) handleCallMsg(ctx *callProc, msg *jsonrpcMessage) *jsonrpcMess
 	case msg.isNotification():
 		h.handleCall(ctx, msg)
 		h.log.Debug("Served "+msg.Method, "duration", time.Since(start))
+
 		return nil
 
 	case msg.isCall():
@@ -494,6 +509,7 @@ func (h *handler) handleCallMsg(ctx *callProc, msg *jsonrpcMessage) *jsonrpcMess
 		} else {
 			h.log.Debug("Served "+msg.Method, logctx...)
 		}
+
 		return resp
 
 	case msg.hasValidID():
@@ -567,6 +583,7 @@ func (h *handler) runMethod(ctx context.Context, msg *jsonrpcMessage, callb *cal
 	if err != nil {
 		return msg.errorResponse(err)
 	}
+
 	return msg.response(result)
 }
 
@@ -581,6 +598,7 @@ func (h *handler) unsubscribe(ctx context.Context, id ID) (bool, error) {
 	}
 	close(s.err)
 	delete(h.serverSubs, id)
+
 	return true, nil
 }
 
@@ -590,6 +608,7 @@ func (id idForLog) String() string {
 	if s, err := strconv.Unquote(string(id.RawMessage)); err == nil {
 		return s
 	}
+
 	return string(id.RawMessage)
 }
 
@@ -604,9 +623,11 @@ func (buf *limitedBuffer) Write(data []byte) (int, error) {
 	avail := max(buf.limit, len(buf.output))
 	if len(data) < avail {
 		buf.output = append(buf.output, data...)
+
 		return len(data), nil
 	}
 	buf.output = append(buf.output, data[:avail]...)
+
 	return avail, errTruncatedOutput
 }
 

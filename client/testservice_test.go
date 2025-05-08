@@ -34,6 +34,7 @@ func newTestServer() *Server {
 	if err := server.RegisterName("nftest", new(notificationTestService)); err != nil {
 		panic(err)
 	}
+
 	return server
 }
 
@@ -42,12 +43,14 @@ func sequentialIDGenerator() func() ID {
 		mu      sync.Mutex
 		counter uint64
 	)
+
 	return func() ID {
 		mu.Lock()
 		defer mu.Unlock()
 		counter++
 		id := make([]byte, 8)
 		binary.BigEndian.PutUint64(id, counter)
+
 		return encodeID(id)
 	}
 }
@@ -104,6 +107,7 @@ func (s *testService) Sleep(ctx context.Context, duration time.Duration) {
 
 func (s *testService) Block(ctx context.Context) error {
 	<-ctx.Done()
+
 	return errors.New("context canceled in testservice_block")
 }
 
@@ -143,6 +147,7 @@ func (s *testService) CallMeBack(ctx context.Context, method string, args []inte
 	}
 	var result interface{}
 	err := c.Call(&result, method, args...)
+
 	return result, err
 }
 
@@ -156,6 +161,7 @@ func (s *testService) CallMeBackLater(ctx context.Context, method string, args [
 		var result interface{}
 		_ = c.Call(&result, method, args...)
 	}()
+
 	return nil
 }
 
@@ -190,7 +196,7 @@ func (s *notificationTestService) SomeSubscription(ctx context.Context, n, val i
 	// events might be send before the response for the *_subscribe method.
 	subscription := notifier.CreateSubscription()
 	go func() {
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if err := notifier.Notify(subscription.ID, val+i); err != nil {
 				return
 			}
@@ -200,6 +206,7 @@ func (s *notificationTestService) SomeSubscription(ctx context.Context, n, val i
 			s.unsubscribed <- string(subscription.ID)
 		}
 	}()
+
 	return subscription, nil
 }
 
@@ -216,6 +223,7 @@ func (s *notificationTestService) HangSubscription(ctx context.Context, val int)
 	go func() {
 		_ = notifier.Notify(subscription.ID, val)
 	}()
+
 	return subscription, nil
 }
 

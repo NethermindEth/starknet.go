@@ -27,12 +27,14 @@ import (
 	"github.com/NethermindEth/starknet.go/client/log"
 )
 
-const MetadataApi = "rpc"
-const EngineApi = "engine"
+const (
+	MetadataApi = "rpc"
+	EngineApi   = "engine"
+)
 
 // CodecOption specifies which type of messages a codec supports.
 //
-// Deprecated: this option is no longer honored by Server.
+// Deprecated: this option is no longer honoured by Server.
 type CodecOption int
 
 const (
@@ -68,6 +70,7 @@ func NewServer() *Server {
 	// as the services and methods it offers.
 	rpcService := &RPCService{server}
 	_ = server.RegisterName(MetadataApi, rpcService)
+
 	return server
 }
 
@@ -103,6 +106,7 @@ func (s *Server) ServeListener(l net.Listener) error {
 		conn, err := l.Accept()
 		if isTemporaryError(err) {
 			log.Warn("RPC accept error", "err", err)
+
 			continue
 		} else if err != nil {
 			return err
@@ -116,6 +120,7 @@ func isTemporaryError(err error) bool {
 	tempErr, ok := err.(interface {
 		Temporary() bool
 	})
+
 	return ok && tempErr.Temporary() || false
 }
 
@@ -150,6 +155,7 @@ func (s *Server) trackCodec(codec ServerCodec) bool {
 		return false // Don't serve if server is stopped.
 	}
 	s.codecs[codec] = struct{}{}
+
 	return true
 }
 
@@ -179,6 +185,7 @@ func (s *Server) serveSingleRequest(ctx context.Context, codec ServerCodec) {
 			resp := errorMessage(&invalidMessageError{msg})
 			_ = codec.writeJSON(ctx, resp, true)
 		}
+
 		return
 	}
 	if batch {
@@ -199,6 +206,7 @@ func messageForReadError(err error) string {
 	} else if err != io.EOF {
 		return "parse error"
 	}
+
 	return ""
 }
 
@@ -232,6 +240,7 @@ func (s *RPCService) Modules() map[string]string {
 	for name := range s.server.services.services {
 		modules[name] = "1.0"
 	}
+
 	return modules
 }
 
@@ -267,5 +276,6 @@ type peerInfoContextKey struct{}
 // The zero value is returned if no connection info is present in ctx.
 func PeerInfoFromContext(ctx context.Context) PeerInfo {
 	info, _ := ctx.Value(peerInfoContextKey{}).(PeerInfo)
+
 	return info
 }

@@ -109,6 +109,7 @@ linters:
   exclusions:
     paths:
       - curve/ # excluding curve package since we have plans to replace it with the Juno implementation
+      - client/ # it comes from go-ethereum, let's refactor it another time
     generated: lax
     presets:
       - comments
