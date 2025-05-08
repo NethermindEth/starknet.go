@@ -23,7 +23,8 @@ var (
 	ErrFeltToBigInt        = errors.New("felt to BigInt error")
 )
 
-// CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used in the StarkNet network - a unique identifier of the transaction.
+// CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used
+// in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
 //
 // Parameters:
@@ -38,6 +39,8 @@ var (
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
+//
+//nolint:lll
 func CalculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
@@ -46,8 +49,8 @@ func CalculateDeprecatedTransactionHashCommon(
 	calldata *felt.Felt,
 	maxFee *felt.Felt,
 	chainId *felt.Felt,
-	additionalData []*felt.Felt) *felt.Felt {
-
+	additionalData []*felt.Felt,
+) *felt.Felt {
 	dataToHash := []*felt.Felt{
 		txHashPrefix,
 		version,
@@ -58,6 +61,7 @@ func CalculateDeprecatedTransactionHashCommon(
 		chainId,
 	}
 	dataToHash = append(dataToHash, additionalData...)
+
 	return curve.PedersenArray(dataToHash...)
 }
 
@@ -65,9 +69,11 @@ func CalculateDeprecatedTransactionHashCommon(
 //
 // It takes a contract class as input and calculates the hash by combining various elements of the class.
 // The hash is calculated using the PoseidonArray function from the Curve package.
-// The elements used in the hash calculation include the contract class version, constructor entry point, external entry point, L1 handler entry point, ABI, and Sierra program.
+// The elements used in the hash calculation include the contract class version, constructor entry point,
+// external entry point, L1 handler entry point, ABI, and Sierra program.
 // The ABI is converted to bytes and then hashed using the StarknetKeccak function from the Curve package.
-// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and SierraProgamHash are combined using the PoseidonArray function from the Curve package.
+// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and
+// SierraProgamHash are combined using the PoseidonArray function from the Curve package.
 //
 // Parameters:
 //   - contract: A contract class object of type contracts.ContractClass.
@@ -102,6 +108,7 @@ func hashEntryPointByType(entryPoint []contracts.SierraEntryPoint) *felt.Felt {
 	for _, elt := range entryPoint {
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
 	}
+
 	return curve.PoseidonArray(flattened...)
 }
 
@@ -126,6 +133,8 @@ type bytecodeSegment struct {
 //   - hasherFunc: closure that calculates hash for given bytecode array, or nil in case of error
 //   - uint64: size of the current processed bytecode array, or nil in case of error
 //   - error: error if any happened or nil if everything fine
+//
+//nolint:lll
 func getByteCodeSegmentHasher(
 	bytecode []*felt.Felt,
 	bytecodeSegmentLengths contracts.NestedUints,
@@ -139,7 +148,7 @@ func getByteCodeSegmentHasher(
 		for {
 			visitedPcsData := *visitedPcs
 
-			if len(visitedPcsData) <= 0 {
+			if len(visitedPcsData) == 0 {
 				break
 			}
 
@@ -176,7 +185,6 @@ func getByteCodeSegmentHasher(
 			visitedPcs,
 			bytecodeOffset,
 		)
-
 		if err != nil {
 			return nil, 0, err
 		}
@@ -233,7 +241,7 @@ func hashCasmClassByteCode(
 ) (*felt.Felt, error) {
 	visited := make([]uint64, len(bytecode))
 
-	for i := range len(bytecode) {
+	for i := range bytecode {
 		visited[i] = uint64(i)
 	}
 
@@ -242,7 +250,6 @@ func hashCasmClassByteCode(
 	hasher, _, err := getByteCodeSegmentHasher(
 		bytecode, bytecodeSegmentLengths, &visited, uint64(0),
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -296,6 +303,7 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.
 		builtInHash := curve.PoseidonArray(builtInFlat...)
 		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
 	}
+
 	return curve.PoseidonArray(flattened...)
 }
 
@@ -319,6 +327,7 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 	if err != nil {
 		return nil, err
 	}
+
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
@@ -351,6 +360,7 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 	if err != nil {
 		return nil, err
 	}
+
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
@@ -375,7 +385,9 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
-	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil ||
+		txn.PayMasterData == nil ||
+		txn.AccountDeploymentData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -395,6 +407,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 	if err != nil {
 		return nil, err
 	}
+
 	return crypto.PoseidonArray(
 		PREFIX_TRANSACTION,
 		txnVersionFelt,
@@ -430,6 +443,7 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 	if err != nil {
 		return nil, err
 	}
+
 	return CalculateDeprecatedTransactionHashCommon(
 		PREFIX_DECLARE,
 		txnVersionFelt,
@@ -453,7 +467,8 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 //   - error: an error if any
 func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
-	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil ||
+		txn.Nonce == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -488,8 +503,10 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
-		txn.ClassHash == nil || txn.CompiledClassHash == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil ||
+		txn.AccountDeploymentData == nil ||
+		txn.ClassHash == nil ||
+		txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -510,6 +527,7 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	if err != nil {
 		return nil, err
 	}
+
 	return crypto.PoseidonArray(
 		PREFIX_DECLARE,
 		txnVersionFelt,
@@ -537,8 +555,10 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil || txn.AccountDeploymentData == nil ||
-		txn.ContractClass == nil || txn.CompiledClassHash == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil ||
+		txn.AccountDeploymentData == nil ||
+		txn.ContractClass == nil ||
+		txn.CompiledClassHash == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -559,6 +579,7 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 	if err != nil {
 		return nil, err
 	}
+
 	return crypto.PoseidonArray(
 		PREFIX_DECLARE,
 		txnVersionFelt,
@@ -639,6 +660,7 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	if err != nil {
 		return nil, err
 	}
+
 	return crypto.PoseidonArray(
 		PREFIX_DEPLOY_ACCOUNT,
 		txnVersionFelt,
@@ -673,6 +695,7 @@ func TipAndResourcesHash(tip uint64, resourceBounds *rpc.ResourceBoundsMapping) 
 	l1Bounds := new(felt.Felt).SetBytes(l1Bytes)
 	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
 	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
+
 	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds, l1DataGasBounds), nil
 }
 
@@ -686,5 +709,6 @@ func DataAvailabilityModeConc(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (
 	if err != nil {
 		return 0, err
 	}
+
 	return fee64 + nonce64<<dataAvailabilityModeBits, nil
 }
