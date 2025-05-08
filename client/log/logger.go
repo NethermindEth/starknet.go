@@ -58,6 +58,7 @@ func FromLegacyLevel(lvl int) slog.Level {
 	if lvl > legacyLevelTrace {
 		return LevelTrace
 	}
+
 	return LevelCrit
 }
 
@@ -165,7 +166,7 @@ func (l *logger) Write(level slog.Level, msg string, attrs ...any) {
 	runtime.Callers(3, pcs[:])
 
 	if len(attrs)%2 != 0 {
-		attrs = append(attrs, nil, errorKey, "Normalized odd number of arguments by adding nil")
+		attrs = append(attrs, nil, errorKey, "Normalised odd number of arguments by adding nil")
 	}
 	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
 	r.Add(attrs...)

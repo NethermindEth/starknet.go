@@ -49,8 +49,8 @@ type TerminalHandler struct {
 	buf []byte
 }
 
-// NewTerminalHandler returns a handler which formats log records at all levels optimized for human readability on
-// a terminal with color-coded level output and terser human friendly timestamp.
+// NewTerminalHandler returns a handler which formats log records at all levels optimised for human readability on
+// a terminal with colour-coded level output and terser human friendly timestamp.
 // This format should only be used for interactive programs or while developing.
 //
 //	[LEVEL] [TIME] MESSAGE key=value key=value ...
@@ -79,6 +79,7 @@ func (h *TerminalHandler) Handle(_ context.Context, r slog.Record) error {
 	buf := h.format(h.buf, r, h.useColor)
 	_, _ = h.wr.Write(buf)
 	h.buf = buf[:0]
+
 	return nil
 }
 
@@ -107,9 +108,9 @@ func (h *TerminalHandler) ResetFieldPadding() {
 	h.mu.Unlock()
 }
 
-type leveler struct{ minLevel slog.Level }
+type leveller struct{ minLevel slog.Level }
 
-func (l *leveler) Level() slog.Level {
+func (l *leveller) Level() slog.Level {
 	return l.minLevel
 }
 
@@ -123,7 +124,7 @@ func JSONHandler(wr io.Writer) slog.Handler {
 func JSONHandlerWithLevel(wr io.Writer, level slog.Level) slog.Handler {
 	return slog.NewJSONHandler(wr, &slog.HandlerOptions{
 		ReplaceAttr: builtinReplaceJSON,
-		Level:       &leveler{level},
+		Level:       &leveller{level},
 	})
 }
 
@@ -142,7 +143,7 @@ func LogfmtHandler(wr io.Writer) slog.Handler {
 func LogfmtHandlerWithLevel(wr io.Writer, level slog.Level) slog.Handler {
 	return slog.NewTextHandler(wr, &slog.HandlerOptions{
 		ReplaceAttr: builtinReplaceLogfmt,
-		Level:       &leveler{level},
+		Level:       &leveller{level},
 	})
 }
 
@@ -167,6 +168,7 @@ func builtinReplace(_ []string, attr slog.Attr, logfmt bool) slog.Attr {
 	case slog.LevelKey:
 		if l, ok := attr.Value.Any().(slog.Level); ok {
 			attr = slog.Any("lvl", LevelString(l))
+
 			return attr
 		}
 	}
@@ -195,5 +197,6 @@ func builtinReplace(_ []string, attr slog.Attr, logfmt bool) slog.Attr {
 			attr.Value = slog.StringValue(v.String())
 		}
 	}
+
 	return attr
 }
