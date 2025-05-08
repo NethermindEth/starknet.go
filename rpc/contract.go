@@ -195,11 +195,10 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 // Returns:
 //   - *StorageProofResult: The requested storage proofs. Note that if a requested leaf has the default value,
-//
-// the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
+//     the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 //   - error: an error if any occurred during the execution
 //
-// nolint: gocritic
+//nolint:gocritic
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
 	err := checkForPending(storageProofInput.BlockID)
 	if err != nil {
