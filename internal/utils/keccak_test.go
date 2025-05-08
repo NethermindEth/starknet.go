@@ -17,7 +17,7 @@ import "testing"
 //
 //	none
 func TestGetSelectorFromName(t *testing.T) {
-	sel1 := BigToHex(GetSelectorFromName("initialize"))
+	sel1 := BigToHex(GetSelectorFromName("initialise"))
 	sel2 := BigToHex(GetSelectorFromName("mint"))
 	sel3 := BigToHex(GetSelectorFromName("test"))
 

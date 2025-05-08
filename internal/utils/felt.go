@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -24,21 +25,22 @@ func Uint64ToFelt(num uint64) *felt.Felt {
 // HexToFelt converts a hexadecimal string to a *felt.Felt object.
 //
 // Parameters:
-//   - hex: the input hexadecimal string to be converted.
+//   - hexVal: the input hexadecimal string to be converted.
 //
 // Returns:
 //   - *felt.Felt: a *felt.Felt object
 //   - error: if conversion fails
-func HexToFelt(hex string) (*felt.Felt, error) {
-	return new(felt.Felt).SetString(hex)
+func HexToFelt(hexVal string) (*felt.Felt, error) {
+	return new(felt.Felt).SetString(hexVal)
 }
 
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
-// The function iterates over each element in the hexArr array and calls the HexToFelt function to convert each hexadecimal value to a felt object.
-// If any error occurs during the conversion, the function will return nil and the corresponding error.
-// Otherwise, it appends the converted felt object to the feltArr array.
-// Finally, the function returns the feltArr array containing all the converted felt objects.
+// The function iterates over each element in the hexArr array and calls the HexToFelt function to
+// convert each hexadecimal value to a felt object. If any error occurs during the conversion, the
+// function will return nil and the corresponding error. Otherwise, it appends the converted felt
+// object to the feltArr array. Finally, the function returns the feltArr array containing all the
+// converted felt objects.
 //
 // Parameters:
 //   - hexArr: an array of strings representing hexadecimal values
@@ -47,17 +49,16 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 //   - []*felt.Felt: an array of *felt.Felt objects, or nil if there was
 //   - error: an error if any
 func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
-
 	feltArr := make([]*felt.Felt, len(hexArr))
 	for i, e := range hexArr {
-		felt, err := HexToFelt(e)
+		feltVal, err := HexToFelt(e)
 		if err != nil {
 			return nil, err
 		}
-		feltArr[i] = felt
+		feltArr[i] = feltVal
 	}
-	return feltArr, nil
 
+	return feltArr, nil
 }
 
 // FeltToBigInt converts a Felt value to a *big.Int.
@@ -69,6 +70,7 @@ func HexArrToFelt(hexArr []string) ([]*felt.Felt, error) {
 //   - *big.Int: the converted value
 func FeltToBigInt(f *felt.Felt) *big.Int {
 	tmp := f.Bytes()
+
 	return new(big.Int).SetBytes(tmp[:])
 }
 
@@ -91,10 +93,11 @@ func BigIntToFelt(bigNum *big.Int) *felt.Felt {
 // Returns:
 //   - []*big.Int: the array of big.Int objects
 func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int {
-	var bigArr []*big.Int
-	for _, felt := range f {
-		bigArr = append(bigArr, FeltToBigInt(felt))
+	bigArr := make([]*big.Int, len(f))
+	for i, felt := range f {
+		bigArr[i] = FeltToBigInt(felt)
 	}
+
 	return bigArr
 }
 
@@ -110,6 +113,7 @@ func FeltArrToStringArr(f []*felt.Felt) []string {
 	for i, felt := range f {
 		stringArr[i] = felt.String()
 	}
+
 	return stringArr
 }
 
@@ -163,6 +167,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	}
 
 	harr = append(harr, new(felt.Felt).SetUint64(size))
+
 	return append([]*felt.Felt{new(felt.Felt).SetUint64(count)}, harr...), nil
 }
 
@@ -188,7 +193,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	const SHORT_LENGTH = 31
 
 	if len(arr) < 3 {
-		return "", fmt.Errorf("invalid felt array, require atleast 3 elements in array")
+		return "", errors.New("invalid felt array, require atleast 3 elements in array")
 	}
 
 	count := arr[0].Uint64()
@@ -196,7 +201,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 
 	// pending word length is in the range [0, SHORT_LENGTH-1]
 	if pendingWordLength > SHORT_LENGTH-1 {
-		return "", fmt.Errorf("invalid felt array, invalid pending word length")
+		return "", errors.New("invalid felt array, invalid pending word length")
 	}
 
 	if uint64(len(arr)) != 3+count {
@@ -223,6 +228,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 
 func bytesFeltToString(f *felt.Felt, length int) string {
 	b := f.Bytes()
+
 	return string(b[len(b)-length:])
 }
 
@@ -234,10 +240,11 @@ func bytesFeltToString(f *felt.Felt, length int) string {
 // Returns:
 //   - []*felt.Felt: the array of Felt objects
 func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
-	var feltArr []*felt.Felt
-	for _, big := range bigArr {
-		feltArr = append(feltArr, BigIntToFelt(big))
+	feltArr := make([]*felt.Felt, len(bigArr))
+	for i, big := range bigArr {
+		feltArr[i] = BigIntToFelt(big)
 	}
+
 	return feltArr
 }
 
@@ -252,6 +259,8 @@ func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
 // Returns:
 //   - []*felt.Felt: a slice containing two felt.Felt values [low, high]
 //   - error: if conversion fails
+//
+//nolint:mnd
 func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 	// Ensure the hex string has the 0x prefix
 	if !strings.HasPrefix(hexStr, "0x") && !strings.HasPrefix(hexStr, "0X") {
@@ -310,10 +319,11 @@ func U256FeltToHex(u256 []*felt.Felt) (string, error) {
 	highBits := FeltToBigInt(highFelt)
 
 	// Combine the parts: result = highBits << 128 + lowBits
-	result := new(big.Int).Lsh(highBits, 128)  // Shift high bits left by 128 bits
+	result := new(big.Int).Lsh(highBits, 128)  //nolint:mnd // Shift high bits left by 128 bits
 	result = new(big.Int).Add(result, lowBits) // Add low bits
 
 	// Convert to hex string with "0x" prefix
 	hexStr := fmt.Sprintf("%#x", result)
+
 	return hexStr, nil
 }
