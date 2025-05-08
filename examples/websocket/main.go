@@ -15,10 +15,10 @@ func main() {
 	// Load variables from '.env' file
 	wsProviderUrl := setup.GetWsProviderUrl()
 
-	// Initialize connection to WS provider
+	// Initialise connection to WS provider
 	wsClient, err := rpc.NewWebsocketProvider(wsProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the WS provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the WS provider: %s", err))
 	}
 	defer wsClient.Close() // Close the WS client when the program finishes
 
@@ -51,8 +51,9 @@ loop1:
 			// This case will be triggered when a new block header is received.
 			fmt.Println("New block header received:", newHead.Number)
 			latestBlockNumber = newHead.Number
+
 			break loop1 // Let's exit the loop after receiving the first block header
-		case err := <-sub.Err():
+		case err = <-sub.Err():
 			// This case will be triggered when an error occurs.
 			panic(err)
 		}
@@ -86,6 +87,7 @@ loop2:
 		case err := <-sub.Err():
 			if err == nil { // when sub.Unsubscribe() is called a nil error is returned, so let's just break the loop if that's the case
 				fmt.Printf("Unsubscribed from the subscription %s successfully\n", sub.ID())
+
 				break loop2
 			}
 			panic(err)

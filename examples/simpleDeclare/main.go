@@ -28,13 +28,13 @@ func main() {
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
 
-	// Initialize the account memkeyStore (set public and private keys)
+	// Initialise the account memkeyStore (set public and private keys)
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -48,7 +48,7 @@ func main() {
 		fmt.Println("Failed to transform the account address, did you give the hex address?")
 		panic(err)
 	}
-	// Initialize the account
+	// Initialise the account
 	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)
@@ -83,6 +83,7 @@ func main() {
 			fmt.Println("- paste the new casm and sierra json files in this 'examples/simpleDeclare' folder,")
 			fmt.Println("- change the 'casmContractFilePath' and 'sierraContractFilePath' variables to the new files names,")
 			fmt.Println("and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/")
+
 			return
 		}
 		panic(err)
@@ -100,5 +101,4 @@ func main() {
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 	fmt.Printf("Class hash: %s\n", resp.ClassHash)
-
 }

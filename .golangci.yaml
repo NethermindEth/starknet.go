@@ -136,6 +136,13 @@ linters:
         path: account/account_test.go
       - linters:
           - exhaustruct
+          - gochecknoinits
+          - gosec
+          - lll
+          - mnd
+        path: examples/
+      - linters:
+          - exhaustruct
           - noctx
           - goconst
         path: devnet/
