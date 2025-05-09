@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"log"
@@ -271,7 +272,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	return new(big.Int).SetBytes(Keccak256(kecBuf))
 }
 
-// SplitFactStr splits a given fact string into two parts (felts): fact_low and fact_high.
+// SplitFactStr splits a given fact, with maximum 256 bits size, into two parts (felts): fact_low and fact_high.
 //
 // The function takes a fact string as input and converts it to a big number using the HexToBN function.
 // It then converts the big number to bytes using the Bytes method.
@@ -289,17 +290,25 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 // Return types:
 //   - fact_low: The low part of the fact string in hexadecimal format
 //   - fact_high: The high part of the fact string in hexadecimal format
+//   - err: An error if any
 //
 //nolint:mnd
-func SplitFactStr(fact string) (fact_low, fact_high string) {
-	factBN := HexToBN(fact)
+func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
+	numStr := strings.ReplaceAll(fact, "0x", "")
+	factBN, ok := new(big.Int).SetString(numStr, 16)
+	if !ok {
+		return "", "", errors.New("failed to convert fact string to big.Int")
+	}
+	if factBN.BitLen() > 256 {
+		return "", "", errors.New("fact string is too large")
+	}
 	factBytes := factBN.Bytes()
 	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
 	factBytes = append(lpadfactBytes, factBytes...)
 	low := BytesToBig(factBytes[16:])
 	high := BytesToBig(factBytes[:16])
 
-	return BigToHex(low), BigToHex(high)
+	return BigToHex(low), BigToHex(high), nil
 }
 
 // FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with a specified length.
