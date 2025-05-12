@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -22,9 +23,9 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64, withQueryBitVersion bool, tip rpc.U64) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *TransactionOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *TransactionOptions) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *TransactionOptions) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -105,6 +106,17 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
 }
 
+// TransactionOptions holds options for building transactions
+// Multiplier: safety factor for fee estimation
+// WithQueryBitVersion: whether to use the query bit version
+// Tip: tip amount for the transaction
+//
+type TransactionOptions struct {
+	Multiplier          float64
+	WithQueryBitVersion bool
+	Tip                 rpc.U64
+}
+
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
 // It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
 //
@@ -112,15 +124,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
-//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
-//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
-//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
-//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
-//     If false, the transaction version will be rpc.TransactionV3 (0x3).
-//     In case of doubt, set to 'false'.
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions containing options for building the transaction
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -128,10 +132,12 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
-	multiplier float64,
-	withQueryBitVersion bool,
-	tip rpc.U64,
+	opts *TransactionOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
+	if opts == nil {
+		opts = &TransactionOptions{}
+	}
+
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
@@ -142,10 +148,9 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 
-	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), tip)
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), opts)
 
-	if withQueryBitVersion {
+	if opts.WithQueryBitVersion {
 		broadcastInvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
@@ -154,15 +159,13 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 
-	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastInvokeTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
@@ -183,15 +186,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
-//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
-//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
-//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
-//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
-//     If false, the transaction version will be rpc.TransactionV3 (0x3).
-//     In case of doubt, set to 'false'.
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions containing options for building the transaction
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -200,22 +195,23 @@ func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
-	multiplier float64,
-	withQueryBitVersion bool,
-	tip rpc.U64,
+	opts *TransactionOptions,
 ) (*rpc.AddDeclareTransactionResponse, error) {
+	if opts == nil {
+		opts = &TransactionOptions{}
+	}
+
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues(), tip)
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues(), opts)
 	if err != nil {
 		return nil, err
 	}
 
-	if withQueryBitVersion {
+	if opts.WithQueryBitVersion {
 		broadcastDeclareTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
@@ -224,15 +220,13 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
-	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return nil, err
@@ -257,15 +251,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - salt: A value used to randomize the deployed contract address
 //   - classHash: The hash of the contract class to deploy
 //   - constructorCalldata: The parameters for the constructor function
-//   - multiplier: A safety factor for fee estimation that helps prevent transaction failures due to
-//     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
-//     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
-//     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
-//     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
-//     If false, the transaction version will be rpc.TransactionV3 (0x3).
-//     In case of doubt, set to 'false'.
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions containing options for building the transaction
 //
 // Returns:
 //   - *rpc.BroadcastDeployAccountTxnV3: The built and signed transaction
@@ -276,34 +262,32 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	salt *felt.Felt,
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	multiplier float64,
-	withQueryBitVersion bool,
-	tip rpc.U64,
+	opts *TransactionOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
-	// building and signing the txn, as it needs a signature to estimate the fee
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues(), tip)
+	if opts == nil {
+		opts = &TransactionOptions{}
+	}
 
-	if withQueryBitVersion {
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues(), opts)
+
+	if opts.WithQueryBitVersion {
 		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
-	// signing the txn, as it needs a signature to estimate the fee
 	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDepAccTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
 	if err != nil {
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err

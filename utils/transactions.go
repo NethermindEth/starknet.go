@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/account"
 )
 
 var (
@@ -19,6 +21,35 @@ var (
 	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
 )
+
+// validate sets defaults and checks for edge cases
+func validate(opts **account.TransactionOptions) {
+	if *opts == nil {
+		*opts = &account.TransactionOptions{}
+	}
+	(*opts).validateMultiplier()
+	(*opts).validateTip()
+}
+
+func (opts *account.TransactionOptions) validateMultiplier() {
+	if opts.Multiplier <= 0 {
+		opts.Multiplier = 1.5
+	}
+}
+
+func (opts *account.TransactionOptions) validateTip() {
+	if opts.Tip == "" {
+		opts.Tip = "0x0"
+	}
+	if !strings.HasPrefix(string(opts.Tip), "0x") {
+		opts.Tip = "0x0"
+	}
+	if val, err := opts.Tip.ToUint64(); err != nil {
+		opts.Tip = "0x0"
+	} else if val > 0xFFFFFFFFFFFFFFFF {
+		opts.Tip = "0xFFFFFFFFFFFFFFFF" // max U64
+	}
+}
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
@@ -32,7 +63,7 @@ var (
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
@@ -42,8 +73,10 @@ func BuildInvokeTxn(
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	tip rpc.U64,
+	opts *account.TransactionOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
+	validate(&opts)
+
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
@@ -52,7 +85,7 @@ func BuildInvokeTxn(
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   tip,
+		Tip:                   opts.Tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -75,7 +108,7 @@ func BuildInvokeTxn(
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
@@ -86,8 +119,10 @@ func BuildDeclareTxn(
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	tip rpc.U64,
+	opts *account.TransactionOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
+	validate(&opts)
+
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
 		return nil, err
@@ -102,7 +137,7 @@ func BuildDeclareTxn(
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   tip,
+		Tip:                   opts.Tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -125,7 +160,7 @@ func BuildDeclareTxn(
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - tip: The tip amount for the transaction (in hex format, e.g. "0x0")
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
@@ -136,8 +171,10 @@ func BuildDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	tip rpc.U64,
+	opts *account.TransactionOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
+	validate(&opts)
+
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             rpc.TransactionV3,
@@ -147,7 +184,7 @@ func BuildDeployAccountTxn(
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 tip,
+		Tip:                 opts.Tip,
 		PayMasterData:       []*felt.Felt{},
 		NonceDataMode:       rpc.DAModeL1,
 		FeeMode:             rpc.DAModeL1,
