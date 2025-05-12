@@ -79,7 +79,7 @@ func main() {
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5, false)
+	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"})
 	if err != nil {
 		panic(err)
 	}
