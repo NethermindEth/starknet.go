@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -23,9 +22,9 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *TransactionOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *TransactionOptions) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *TransactionOptions) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *utils.TransactionOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *utils.TransactionOptions) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *utils.TransactionOptions) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -106,17 +105,6 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
 }
 
-// TransactionOptions holds options for building transactions
-// Multiplier: safety factor for fee estimation
-// WithQueryBitVersion: whether to use the query bit version
-// Tip: tip amount for the transaction
-//
-type TransactionOptions struct {
-	Multiplier          float64
-	WithQueryBitVersion bool
-	Tip                 rpc.U64
-}
-
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
 // It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
 //
@@ -132,10 +120,10 @@ type TransactionOptions struct {
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
-	opts *TransactionOptions,
+	opts *utils.TransactionOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	if opts == nil {
-		opts = &TransactionOptions{}
+		opts = &utils.TransactionOptions{}
 	}
 
 	nonce, err := account.Nonce(ctx)
@@ -195,10 +183,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
-	opts *TransactionOptions,
+	opts *utils.TransactionOptions,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	if opts == nil {
-		opts = &TransactionOptions{}
+		opts = &utils.TransactionOptions{}
 	}
 
 	nonce, err := account.Nonce(ctx)
@@ -262,10 +250,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	salt *felt.Felt,
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	opts *TransactionOptions,
+	opts *utils.TransactionOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
-		opts = &TransactionOptions{}
+		opts = &utils.TransactionOptions{}
 	}
 
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues(), opts)

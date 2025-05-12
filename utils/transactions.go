@@ -12,7 +12,6 @@ import (
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/account"
 )
 
 var (
@@ -22,22 +21,30 @@ var (
 	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
-// validate sets defaults and checks for edge cases
-func validate(opts **account.TransactionOptions) {
-	if *opts == nil {
-		*opts = &account.TransactionOptions{}
-	}
-	(*opts).validateMultiplier()
-	(*opts).validateTip()
+// TransactionOptions holds options for building transactions
+// Multiplier: safety factor for fee estimation
+// WithQueryBitVersion: whether to use the query bit version
+// Tip: tip amount for the transaction
+//
+type TransactionOptions struct {
+	Multiplier          float64
+	WithQueryBitVersion bool
+	Tip                 rpc.U64
 }
 
-func (opts *account.TransactionOptions) validateMultiplier() {
+// validate sets defaults and checks for edge cases
+func (opts *TransactionOptions) validate() {
+	opts.validateMultiplier()
+	opts.validateTip()
+}
+
+func (opts *TransactionOptions) validateMultiplier() {
 	if opts.Multiplier <= 0 {
 		opts.Multiplier = 1.5
 	}
 }
 
-func (opts *account.TransactionOptions) validateTip() {
+func (opts *TransactionOptions) validateTip() {
 	if opts.Tip == "" {
 		opts.Tip = "0x0"
 	}
@@ -73,9 +80,9 @@ func BuildInvokeTxn(
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	opts *account.TransactionOptions,
+	opts *TransactionOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
-	validate(&opts)
+	opts.validate()
 
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
@@ -119,9 +126,9 @@ func BuildDeclareTxn(
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	opts *account.TransactionOptions,
+	opts *TransactionOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
-	validate(&opts)
+	opts.validate()
 
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
@@ -171,9 +178,9 @@ func BuildDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds rpc.ResourceBoundsMapping,
-	opts *account.TransactionOptions,
+	opts *TransactionOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
-	validate(&opts)
+	opts.validate()
 
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,

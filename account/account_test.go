@@ -1320,7 +1320,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, &account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	}, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -1361,7 +1361,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
 	if err != nil {
 		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
 		t.Log("declare txn not sent: class already declared")
@@ -1421,7 +1421,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		&account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")},
+		&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")},
 	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
@@ -1463,7 +1463,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, &account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	}, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -1579,7 +1579,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 		// Build and send declare txn
-		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
+		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
 		require.Error(t, err)
 		// assert that the transaction contains the query bit version
 		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
@@ -1598,7 +1598,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				FunctionName:    "transfer",
 				CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 			},
-		}, &account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
+		}, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
 		require.Error(t, err)
 		// assert that the transaction contains the query bit version
 		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
@@ -1617,7 +1617,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			pub,
 			classHash,
 			[]*felt.Felt{pub},
-			&account.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+			&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
 		)
 		require.NoError(t, err)
 		require.NotNil(t, txn)
