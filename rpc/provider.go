@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
@@ -14,10 +15,23 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+// RPCVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
+// This should be updated when supporting new versions of the RPC specification.
+const RPCVersion = "0.8.1"
+
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
 	errNotFound = errors.New("not found")
 )
+
+// checkVersionCompatibility checks if the RPC provider version is compatible with the SDK version
+// and returns a warning if they don't match.
+func checkVersionCompatibility(providerVersion string) error {
+	if !strings.Contains(providerVersion, RPCVersion) {
+		return fmt.Errorf("warning: RPC provider version %s is different from expected version %s. This may cause unexpected behavior", providerVersion, RPCVersion)
+	}
+	return nil
+}
 
 // Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
@@ -60,8 +74,7 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 		return provider, nil
 	}
 
-	// Check compatibility with the expected version
-	if err := CheckVersionCompatibility(version, SDKVersion); err != nil {
+	if err := checkVersionCompatibility(version); err != nil {
 		// Log the warning but don't fail initialization
 		fmt.Printf("Warning: %v\n", err)
 	}
@@ -85,27 +98,7 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 		return nil, err
 	}
 
-	provider := &WsProvider{c: c}
-
-	// Create a temporary Provider to check version compatibility
-	// This is needed because SpecVersion is implemented in Provider, not WsProvider
-	tmpProvider := &Provider{c: c}
-	
-	// Check version compatibility
-	version, err := tmpProvider.SpecVersion(context.Background())
-	if err != nil {
-		// Log the error but don't fail initialization
-		fmt.Printf("Warning: Could not check RPC version compatibility: %v\n", err)
-		return provider, nil
-	}
-
-	// Check compatibility with the expected version
-	if err := CheckVersionCompatibility(version, SDKVersion); err != nil {
-		// Log the warning but don't fail initialization
-		fmt.Printf("Warning: %v\n", err)
-	}
-
-	return provider, nil
+	return &WsProvider{c: c}, nil
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
