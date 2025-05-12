@@ -58,7 +58,7 @@ type subscriptionResultEnc struct {
 	Result     any    `json:"result"`
 }
 
-// Struct representing a reorganization of the chain
+// Struct representing a reorganisation of the chain
 // Can be received from subscribing to newHeads, Events, TransactionStatus
 type ReorgEvent struct {
 	StartBlockHash *felt.Felt `json:"starting_block_hash"`
@@ -114,17 +114,20 @@ func (msg *jsonrpcMessage) isUnsubscribe() bool {
 
 func (msg *jsonrpcMessage) namespace() string {
 	before, _, _ := strings.Cut(msg.Method, serviceMethodSeparator)
+
 	return before
 }
 
 func (msg *jsonrpcMessage) String() string {
 	b, _ := json.Marshal(msg)
+
 	return string(b)
 }
 
 func (msg *jsonrpcMessage) errorResponse(err error) *jsonrpcMessage {
 	resp := errorMessage(err)
 	resp.ID = msg.ID
+
 	return resp
 }
 
@@ -133,6 +136,7 @@ func (msg *jsonrpcMessage) response(result interface{}) *jsonrpcMessage {
 	if err != nil {
 		return msg.errorResponse(&internalServerError{errcodeMarshalError, err.Error()})
 	}
+
 	return &jsonrpcMessage{Version: vsn, ID: msg.ID, Result: enc}
 }
 
@@ -149,6 +153,7 @@ func errorMessage(err error) *jsonrpcMessage {
 	if ok {
 		msg.Error.Data = de.ErrorData()
 	}
+
 	return msg
 }
 
@@ -162,6 +167,7 @@ func (err *jsonError) Error() string {
 	if err.Message == "" {
 		return fmt.Sprintf("json-rpc error %d", err.Code)
 	}
+
 	return err.Message
 }
 
@@ -192,7 +198,7 @@ type ConnRemoteAddr interface {
 }
 
 // jsonCodec reads and writes JSON-RPC messages to the underlying connection. It also has
-// support for parsing arguments and serializing (result) objects.
+// support for parsing arguments and serialising (result) objects.
 type jsonCodec struct {
 	remote  string
 	closer  sync.Once        // close closed channel once
@@ -220,6 +226,7 @@ func NewFuncCodec(conn deadlineCloser, encode encodeFunc, decode decodeFunc) Ser
 	if ra, ok := conn.(ConnRemoteAddr); ok {
 		codec.remote = ra.RemoteAddr()
 	}
+
 	return codec
 }
 
@@ -233,6 +240,7 @@ func NewCodec(conn Conn) ServerCodec {
 	encode := func(v interface{}, isErrorResponse bool) error {
 		return enc.Encode(v)
 	}
+
 	return NewFuncCodec(conn, encode, dec.Decode)
 }
 
@@ -260,6 +268,7 @@ func (c *jsonCodec) readBatch() (messages []*jsonrpcMessage, batch bool, err err
 			messages[i] = new(jsonrpcMessage)
 		}
 	}
+
 	return messages, batch, nil
 }
 
@@ -272,6 +281,7 @@ func (c *jsonCodec) writeJSON(ctx context.Context, v interface{}, isErrorRespons
 		deadline = time.Now().Add(defaultWriteTimeout)
 	}
 	_ = c.conn.SetWriteDeadline(deadline)
+
 	return c.encode(v, isErrorResponse)
 }
 
@@ -295,6 +305,7 @@ func parseMessage(raw json.RawMessage) ([]*jsonrpcMessage, bool) {
 	if !isBatch(raw) {
 		msgs := []*jsonrpcMessage{{}}
 		_ = json.Unmarshal(raw, &msgs[0])
+
 		return msgs, false
 	}
 	dec := json.NewDecoder(bytes.NewReader(raw))
@@ -304,6 +315,7 @@ func parseMessage(raw json.RawMessage) ([]*jsonrpcMessage, bool) {
 		msgs = append(msgs, new(jsonrpcMessage))
 		_ = dec.Decode(&msgs[len(msgs)-1])
 	}
+
 	return msgs, true
 }
 
@@ -314,8 +326,10 @@ func isBatch(raw json.RawMessage) bool {
 		if c == 0x20 || c == 0x09 || c == 0x0a || c == 0x0d {
 			continue
 		}
+
 		return c == '['
 	}
+
 	return false
 }
 
@@ -354,6 +368,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 		}
 		args = append(args, reflect.Zero(types[i]))
 	}
+
 	return args, nil
 }
 
@@ -374,6 +389,7 @@ func parseArgumentArray(dec *json.Decoder, types []reflect.Type) ([]reflect.Valu
 	}
 	// Read end of args array.
 	_, err := dec.Token()
+
 	return args, err
 }
 
@@ -387,7 +403,7 @@ func parseSingleArgument(dec *json.Decoder, types []reflect.Type) ([]reflect.Val
 		return args, fmt.Errorf("invalid argument: %v", err)
 	}
 	if argval.IsNil() && types[0].Kind() != reflect.Ptr {
-		return args, fmt.Errorf("missing value for required argument")
+		return args, errors.New("missing value for required argument")
 	}
 	args = append(args, argval.Elem())
 
@@ -405,5 +421,6 @@ func parseSubscriptionName(rawArgs json.RawMessage) (string, error) {
 	if !ok {
 		return "", errors.New("expected subscription name as first argument")
 	}
+
 	return method, nil
 }

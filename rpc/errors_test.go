@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -24,7 +24,7 @@ func TestRPCError(t *testing.T) {
 		assert.NotNil(t, rpcErr.Message, "Internal Error")
 		assert.NotNil(t, rpcErr.Data, "-ChuckSize error message-")
 
-		assert.ErrorContains(t, err, fmt.Sprintf("%d", rpcErr.Code))
+		assert.ErrorContains(t, err, strconv.Itoa(rpcErr.Code))
 		assert.ErrorContains(t, err, rpcErr.Message)
 		assert.ErrorContains(t, err, rpcErr.Data.ErrorMessage())
 	}
@@ -51,7 +51,7 @@ func TestRPCError(t *testing.T) {
 		assert.NotEmpty(t, rpcErr.Data)
 
 		// check if the error message contains the error code, message, and data
-		assert.ErrorContains(t, err, fmt.Sprintf("%d", rpcErr.Code))
+		assert.ErrorContains(t, err, strconv.Itoa(rpcErr.Code))
 		assert.ErrorContains(t, err, rpcErr.Message)
 		assert.ErrorContains(t, err, rpcErr.Data.ErrorMessage())
 	}

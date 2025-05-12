@@ -19,8 +19,8 @@ import (
 func (provider *Provider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error) {
 	var result contracts.CasmClass
 	if err := do(ctx, provider.c, "starknet_getCompiledCasm", &result, classHash); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
 	}
+
 	return &result, nil
 }

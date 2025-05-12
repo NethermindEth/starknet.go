@@ -8,7 +8,7 @@ import (
 )
 
 // Just a random felt variable to use when needed. The value is "0xdeadbeef"
-var RANDOM_FELT = new(felt.Felt).SetUint64(3735928559)
+var RANDOM_FELT = new(felt.Felt).SetUint64(3735928559) //nolint:mnd
 
 // TestHexToFelt generates a felt.Felt from a hexadecimal string.
 //
@@ -22,6 +22,7 @@ func TestHexToFelt(t testing.TB, hex string) *felt.Felt {
 	t.Helper()
 	f, err := HexToFelt(hex)
 	require.NoError(t, err)
+
 	return f
 }
 
@@ -37,6 +38,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	t.Helper()
 	feltArr, err := HexArrToFelt(hexArr)
 	require.NoError(t, err)
+
 	return feltArr
 }
 
@@ -50,8 +52,9 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 //
 // Returns:
 //   - T: the unmarshalled data of type T
-func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath string, subfield string) *T {
+func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath, subfield string) *T {
 	result, err := UnmarshalJSONFileToType[T](filePath, subfield)
 	require.NoError(t, err)
+
 	return result
 }

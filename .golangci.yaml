@@ -1,0 +1,149 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - copyloopvar
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustruct
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - intrange
+    - lll
+    - makezero
+    - misspell
+    - mnd
+    - nakedret
+    - nilerr
+    - nilnesserr
+    - nlreturn
+    - noctx
+    - nolintlint
+    - perfsprint
+    - prealloc
+    - staticcheck
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    - whitespace
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 120
+      statements: 50
+    goconst:
+      min-len: 2
+      min-occurrences: 3
+    gocritic:
+      disabled-checks:
+        - sloppyReassign
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - unnamedResult
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 15
+    gosec:
+      excludes:
+        - G115
+    govet:
+      enable:
+        - nilness
+        - shadow
+    lll:
+      line-length: 140
+    misspell:
+      locale: UK
+    mnd:
+      checks:
+        - argument
+        - case
+        - condition
+        - return
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+        - "3"
+      ignored-functions:
+        - strings.SplitN
+    nolintlint:
+      require-explanation: false
+      require-specific: false
+      allow-unused: false
+  exclusions:
+    paths:
+      - curve/ # excluding curve package since we have plans to replace it with the Juno implementation
+      - client/ # it comes from go-ethereum, let's refactor it another time
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - exhaustruct
+          - funlen
+          - gosec
+          - lll
+          - mnd
+        path: _test\.go
+      - linters:
+          - gocritic
+          - exhaustruct
+        path: rpc/types_transaction_interfaces.go
+      - linters:
+          - goconst
+        path: rpc/block_test.go
+      - linters:
+          - goconst
+        path: account/account_test.go
+      - linters:
+          - exhaustruct
+          - gochecknoinits
+          - gosec
+          - lll
+          - mnd
+        path: examples/
+      - linters:
+          - exhaustruct
+          - noctx
+          - goconst
+        path: devnet/
+      - linters:
+          - lll
+        source: '^//go:generate '
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  settings:
+    golines:
+      max-len: 140
+    goimports:
+      local-prefixes:
+        - github.com/golangci/golangci-lint

@@ -11,7 +11,7 @@ import (
 )
 
 func TestStringToByteArrFelt(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		in  string
 		out []string
 	}{
@@ -28,8 +28,14 @@ func TestStringToByteArrFelt(t *testing.T) {
 			out: []string{"0x1", "0x426c6f636b636861696e20736563757265206469676974616c206173736574", "0x0", "0x0"},
 		},
 		{
-			in:  "Decentralized applications offer transparency and user control",
-			out: []string{"0x2", "0x446563656e7472616c697a6564206170706c69636174696f6e73206f666665", "0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c", "0x0", "0x0"},
+			in: "Decentralised applications offer transparency and user control",
+			out: []string{
+				"0x2",
+				"0x446563656e7472616c69736564206170706c69636174696f6e73206f666665",
+				"0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c",
+				"0x0",
+				"0x0",
+			},
 		},
 		{
 			in:  "12345",
@@ -57,7 +63,7 @@ func TestStringToByteArrFelt(t *testing.T) {
 }
 
 func TestByteArrFeltToString(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		in  []string
 		out string
 	}{
@@ -74,8 +80,14 @@ func TestByteArrFeltToString(t *testing.T) {
 			out: "Blockchain secure digital asset",
 		},
 		{
-			in:  []string{"0x2", "0x446563656e7472616c697a6564206170706c69636174696f6e73206f666665", "0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c", "0x0", "0x0"},
-			out: "Decentralized applications offer transparency and user control",
+			in: []string{
+				"0x2",
+				"0x446563656e7472616c69736564206170706c69636174696f6e73206f666665",
+				"0x72207472616e73706172656e637920616e64207573657220636f6e74726f6c",
+				"0x0",
+				"0x0",
+			},
+			out: "Decentralised applications offer transparency and user control",
 		},
 		{
 			in:  []string{"0x0", "0x3132333435", "0x5"},
@@ -105,7 +117,7 @@ func TestByteArrFeltToString(t *testing.T) {
 }
 
 func TestHexToU256Felt(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name       string
 		hexInput   string
 		wantLow    string
@@ -161,6 +173,7 @@ func TestHexToU256Felt(t *testing.T) {
 
 			if tc.shouldFail {
 				require.Error(t, err, "expected error but got none")
+
 				return
 			}
 
@@ -178,7 +191,7 @@ func TestHexToU256Felt(t *testing.T) {
 }
 
 func TestU256FeltToHex(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		name       string
 		lowHex     string
 		highHex    string
@@ -236,6 +249,7 @@ func TestU256FeltToHex(t *testing.T) {
 				result, err := U256FeltToHex(input)
 				assert.Error(t, err, "expected error but got none")
 				assert.Empty(t, result, "expected empty result on error")
+
 				return
 			}
 
@@ -252,8 +266,8 @@ func TestU256FeltToHex(t *testing.T) {
 			result, err := U256FeltToHex(input)
 			require.NoError(t, err, "unexpected error")
 
-			// Normalize expected value for comparison
-			// Convert hex to big.Int and back to normalized hex for consistent comparison
+			// Normalise expected value for comparison
+			// Convert hex to big.Int and back to normalised hex for consistent comparison
 			expectedBigInt, _ := new(big.Int).SetString(tc.wantHex[2:], 16)
 			expectedHex := fmt.Sprintf("%#x", expectedBigInt)
 

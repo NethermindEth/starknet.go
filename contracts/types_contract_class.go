@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -20,6 +21,8 @@ type DeprecatedContractClass struct {
 }
 
 // UnmarshalJSON unmarshals JSON content into the DeprecatedContractClass struct.
+//
+//nolint:gocyclo,funlen // dont have time to improve it
 func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	v := map[string]json.RawMessage{}
 	if err := json.Unmarshal(content, &v); err != nil {
@@ -29,7 +32,7 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	// process 'program'. If it is a string, keep it, otherwise encode it.
 	data, ok := v["program"]
 	if !ok {
-		return fmt.Errorf("missing program in json object")
+		return errors.New("missing program in json object")
 	}
 	program := ""
 	if err := json.Unmarshal(data, &program); err != nil {
@@ -42,10 +45,10 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 	// process 'entry_points_by_type'
 	data, ok = v["entry_points_by_type"]
 	if !ok {
-		return fmt.Errorf("missing entry_points_by_type in json object")
+		return errors.New("missing entry_points_by_type in json object")
 	}
 
-	depEntryPointsByType := DeprecatedEntryPointsByType{}
+	var depEntryPointsByType DeprecatedEntryPointsByType
 	if err := json.Unmarshal(data, &depEntryPointsByType); err != nil {
 		return err
 	}
@@ -65,35 +68,40 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 
 	abiPointer := ABI{}
 	for _, abi := range abis {
-		if checkABI, ok := abi.(map[string]interface{}); ok {
-			var ab ABIEntry
-			abiType, ok := checkABI["type"].(string)
-			if !ok {
-				return fmt.Errorf("unknown abi type %v", checkABI["type"])
-			}
-			switch abiType {
-			case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
-				ab = &FunctionABIEntry{}
-			case string(ABITypeStruct):
-				ab = &StructABIEntry{}
-			case string(ABITypeEvent):
-				ab = &EventABIEntry{}
-			default:
-				return fmt.Errorf("unknown ABI type %v", checkABI["type"])
-			}
-			data, err := json.Marshal(checkABI)
-			if err != nil {
-				return err
-			}
-			err = json.Unmarshal(data, ab)
-			if err != nil {
-				return err
-			}
-			abiPointer = append(abiPointer, ab)
+		checkABI, ok := abi.(map[string]interface{})
+		if !ok {
+			continue
 		}
+
+		var ab ABIEntry
+		abiType, ok := checkABI["type"].(string)
+		if !ok {
+			return fmt.Errorf("unknown abi type %v", checkABI["type"])
+		}
+		//nolint:exhaustruct
+		switch abiType {
+		case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
+			ab = &FunctionABIEntry{}
+		case string(ABITypeStruct):
+			ab = &StructABIEntry{}
+		case string(ABITypeEvent):
+			ab = &EventABIEntry{}
+		default:
+			return fmt.Errorf("unknown ABI type %v", checkABI["type"])
+		}
+		data, err := json.Marshal(checkABI)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(data, ab)
+		if err != nil {
+			return err
+		}
+		abiPointer = append(abiPointer, ab)
 	}
 
 	c.ABI = &abiPointer
+
 	return nil
 }
 
@@ -116,6 +124,7 @@ func encodeProgram(content []byte) (string, error) {
 	}
 	gzipContent.Close()
 	program := base64.StdEncoding.EncodeToString(buf.Bytes())
+
 	return program, nil
 }
 
@@ -158,10 +167,8 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 		// For cairo compiler prior to 2.7.0, the ABI is a string
 		*ns = NestedString(value)
 	} else {
-
 		var out bytes.Buffer
 		err := json.Indent(&out, data, "", "")
-
 		if err != nil {
 			return err
 		}
@@ -213,7 +220,7 @@ type StructABIEntry struct {
 	// The event name
 	Name string `json:"name"`
 
-	// todo(minumum size should be 1)
+	// todo(minimum size should be 1)
 	Size uint64 `json:"size"`
 
 	Members []Member `json:"members"`

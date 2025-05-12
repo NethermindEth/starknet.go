@@ -5,11 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 func TestResBoundsMapToOverallFee(t *testing.T) {
@@ -200,11 +199,12 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ResBoundsMapToOverallFee(tt.resBounds, tt.multiplier)
+			got, err := ResBoundsMapToOverallFee(&tt.resBounds, tt.multiplier)
 
 			if tt.expectedErr != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, tt.expectedErr)
+
 				return
 			}
 			require.NoError(t, err)
@@ -216,6 +216,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestFeeEstToResBoundsMap(t *testing.T) {
 	tests := []struct {
 		name          string

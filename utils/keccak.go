@@ -197,8 +197,10 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 // It then converts the big number to bytes using the Bytes method.
 // If the length of the bytes is less than 32, it pads the bytes with zeros using the bytes.Repeat method.
 // The padded bytes are then appended to the original bytes.
-// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a big number using the BytesToBig function.
-// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number using the BytesToBig function.
+// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a
+// big number using the BytesToBig function.
+// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number
+// using the BytesToBig function.
 // Finally, it converts the low and high big numbers to hexadecimal strings using the BigToHex function and returns them.
 //
 // Parameters:

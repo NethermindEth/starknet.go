@@ -77,6 +77,7 @@ func TestTransactionVersionBigInt(t *testing.T) {
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.Equal(t, tt.expected, got.String())
+
 				return
 			}
 			require.NoError(t, err)

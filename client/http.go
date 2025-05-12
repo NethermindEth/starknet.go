@@ -68,6 +68,7 @@ func (hc *httpConn) remoteAddr() string {
 
 func (hc *httpConn) readBatch() ([]*jsonrpcMessage, bool, error) {
 	<-hc.closeCh
+
 	return nil, false, io.EOF
 }
 
@@ -139,6 +140,7 @@ func DialHTTPWithClient(endpoint string, client *http.Client) (*Client, error) {
 	var cfg clientConfig
 	cfg.httpClient = client
 	fn := newClientTransportHTTP(endpoint, &cfg)
+
 	return newClient(context.Background(), &cfg, fn)
 }
 
@@ -182,6 +184,7 @@ func (c *Client) sendHTTP(ctx context.Context, op *requestOp, msg interface{}) e
 		return err
 	}
 	op.resp <- batch[:]
+
 	return nil
 }
 
@@ -198,6 +201,7 @@ func (c *Client) sendBatchHTTP(ctx context.Context, op *requestOp, msgs []*jsonr
 		return err
 	}
 	op.resp <- respmsgs
+
 	return nil
 }
 
@@ -237,12 +241,14 @@ func (hc *httpConn) doRequest(ctx context.Context, msg interface{}) (io.ReadClos
 			body = buf.Bytes()
 		}
 		resp.Body.Close()
+
 		return nil, HTTPError{
 			Status:     resp.Status,
 			StatusCode: resp.StatusCode,
 			Body:       body,
 		}
 	}
+
 	return resp.Body, nil
 }
 
@@ -285,6 +291,7 @@ func (s *Server) newHTTPServerConn(r *http.Request, w http.ResponseWriter) Serve
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
 		}
+
 		return err
 	}
 
@@ -310,10 +317,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Permit dumb empty requests for remote health-checks (AWS)
 	if r.Method == http.MethodGet && r.ContentLength == 0 && r.URL.RawQuery == "" {
 		w.WriteHeader(http.StatusOK)
+
 		return
 	}
 	if code, err := s.validateRequest(r); err != nil {
 		http.Error(w, err.Error(), code)
+
 		return
 	}
 
@@ -343,6 +352,7 @@ func (s *Server) validateRequest(r *http.Request) (int, error) {
 	}
 	if r.ContentLength > int64(s.httpBodyLimit) {
 		err := fmt.Errorf("content length too large (%d>%d)", r.ContentLength, s.httpBodyLimit)
+
 		return http.StatusRequestEntityTooLarge, err
 	}
 	// Allow OPTIONS (regardless of content-type)
@@ -359,6 +369,7 @@ func (s *Server) validateRequest(r *http.Request) (int, error) {
 	}
 	// Invalid content-type
 	err := fmt.Errorf("invalid content type, only %s is supported", contentType)
+
 	return http.StatusUnsupportedMediaType, err
 }
 
@@ -385,7 +396,7 @@ func ContextRequestTimeout(ctx context.Context) (time.Duration, bool) {
 		// the HTTP server cuts connection. So our internal timeout must be earlier than
 		// the server's true timeout.
 		//
-		// Note: Timeouts are sanitized to be a minimum of 1 second.
+		// Note: Timeouts are sanitised to be a minimum of 1 second.
 		// Also see issue: https://github.com/golang/go/issues/47229
 		wt -= 100 * time.Millisecond
 		setTimeout(wt)

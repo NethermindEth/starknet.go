@@ -88,6 +88,7 @@ func (r *serviceRegistry) registerName(name string, rcvr interface{}) error {
 			svc.callbacks[name] = cb
 		}
 	}
+
 	return nil
 }
 
@@ -99,6 +100,7 @@ func (r *serviceRegistry) callback(method string) *callback {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	return r.services[before].callbacks[after]
 }
 
@@ -106,6 +108,7 @@ func (r *serviceRegistry) callback(method string) *callback {
 func (r *serviceRegistry) subscription(service, name string) *callback {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	return r.services[service].subscriptions[name]
 }
 
@@ -127,6 +130,7 @@ func suitableCallbacks(receiver reflect.Value) map[string]*callback {
 		name := formatName(method.Name)
 		callbacks[name] = cb
 	}
+
 	return callbacks
 }
 
@@ -157,6 +161,7 @@ func newCallback(receiver, fn reflect.Value) *callback {
 		}
 		c.errPos = 1
 	}
+
 	return c
 }
 
@@ -209,8 +214,10 @@ func (c *callback) call(ctx context.Context, method string, args []reflect.Value
 	if c.errPos >= 0 && !results[c.errPos].IsNil() {
 		// Method has returned non-nil error value.
 		err := results[c.errPos].Interface().(error)
+
 		return reflect.Value{}, err
 	}
+
 	return results[0].Interface(), nil
 }
 
@@ -224,6 +231,7 @@ func isSubscriptionType(t reflect.Type) bool {
 	for t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
+
 	return t == subscriptionType
 }
 
@@ -234,6 +242,7 @@ func isPubSub(methodType reflect.Type) bool {
 	if methodType.NumIn() < 2 || methodType.NumOut() != 2 {
 		return false
 	}
+
 	return methodType.In(1) == contextType &&
 		isSubscriptionType(methodType.Out(0)) &&
 		isErrorType(methodType.Out(1))
@@ -245,5 +254,6 @@ func formatName(name string) string {
 	if len(ret) > 0 {
 		ret[0] = unicode.ToLower(ret[0])
 	}
+
 	return string(ret)
 }

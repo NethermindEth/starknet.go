@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -71,31 +70,32 @@ func TestClassAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(err)
+		require.NoError(t, err)
 
 		switch class := resp.(type) {
 		case *contracts.DeprecatedContractClass:
-			require.NotEmpty(class.Program, "code should exist")
+			require.NotEmpty(t, class.Program, "code should exist")
 
-			require.Condition(func() bool {
+			require.Condition(t, func() bool {
 				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
 					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
 						return true
 					}
 				}
+
 				return false
 			}, "operation not found in the class")
 		case *contracts.ContractClass:
-			require.NotEmpty(class.SierraProgram, "code should exist")
+			require.NotEmpty(t, class.SierraProgram, "code should exist")
 
-			require.Condition(func() bool {
+			require.Condition(t, func() bool {
 				for _, entryPointsByType := range class.EntryPointsByType.External {
 					if test.ExpectedOperation == entryPointsByType.Selector.String() {
 						return true
 					}
 				}
+
 				return false
 			}, "operation not found in the class")
 		default:
@@ -106,7 +106,7 @@ func TestClassAt(t *testing.T) {
 
 // TestClassHashAt tests the ClassHashAt function.
 //
-// This function tests the behavior of the ClassHashAt function by providing
+// This function tests the behaviour of the ClassHashAt function by providing
 // different test cases for the contract hash and expected class hash. It
 // verifies if the returned class hash matches the expected class hash and
 // if there are any differences between the two. It also checks if the
@@ -164,15 +164,14 @@ func TestClassHashAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
-		require.NoError(err)
-		require.NotEmpty(classhash, "should return a class")
-		require.Equal(test.ExpectedClassHash, classhash)
+		require.NoError(t, err)
+		require.NotEmpty(t, classhash, "should return a class")
+		require.Equal(t, test.ExpectedClassHash, classhash)
 	}
 }
 
-// TestClass is a test function that tests the behavior of the Class function.
+// TestClass is a test function that tests the behaviour of the Class function.
 //
 // It creates a test configuration and defines a testSet containing different scenarios
 // for testing the Class function. The testSet is a map where the keys represent the
@@ -191,7 +190,7 @@ func TestClassHashAt(t *testing.T) {
 //   - Compares the constructor entry point with the expected entry point constructor.
 //   - If they are not equal, it reports an error.
 //
-// The function is used for testing the behavior of the Class function in different scenarios.
+// The function is used for testing the behaviour of the Class function in different scenarios.
 //
 // Parameters:
 //   - t: A *testing.T object used for reporting test failures and logging
@@ -249,18 +248,15 @@ func TestClass(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
-		require.NoError(err)
+		require.NoError(t, err)
 
 		switch class := resp.(type) {
 		case *contracts.DeprecatedContractClass:
-			if !strings.HasPrefix(class.Program, test.ExpectedProgram) {
-				t.Fatal("code should exist")
-			}
+			assert.Contains(t, class.Program, test.ExpectedProgram)
 		case *contracts.ContractClass:
-			require.Equal(class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-			require.Equal(class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+			assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+			assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
 		default:
 			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 		}
@@ -327,16 +323,15 @@ func TestStorageAt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
-		require.NoError(err)
-		require.EqualValues(test.ExpectedValue, value)
+		require.NoError(t, err)
+		require.EqualValues(t, test.ExpectedValue, value)
 	}
 }
 
 // TestNonce is a test function for testing the Nonce functionality.
 //
-// It initializes a test configuration, sets up a test data set, and then performs a series of tests.
+// It initialises a test configuration, sets up a test data set, and then performs a series of tests.
 // The tests involve calling the Nonce function.
 // The expected result is a successful response from the Nonce function and a matching value with the expected nonce.
 // If any errors occur during the tests, the function will fail and display an error message.
@@ -387,11 +382,10 @@ func TestNonce(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		require := require.New(t)
 		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(err)
-		require.NotNil(nonce, "should return a nonce")
-		require.Equal(test.ExpectedNonce, nonce)
+		require.NoError(t, err)
+		require.NotNil(t, nonce, "should return a nonce")
+		require.Equal(t, test.ExpectedNonce, nonce)
 	}
 }
 
@@ -594,7 +588,7 @@ func TestEstimateFee(t *testing.T) {
 				description: "invalid transaction",
 				txs: []BroadcastTxn{
 					InvokeTxnV3{
-						ResourceBounds: ResourceBoundsMapping{
+						ResourceBounds: &ResourceBoundsMapping{
 							L1Gas: ResourceBounds{
 								MaxAmount:       "0x0",
 								MaxPricePerUnit: "0x4305031628668",
@@ -758,6 +752,7 @@ func TestGetStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					BlockID: func() BlockID {
 						num := uint64(999999999)
+
 						return BlockID{Number: &num}
 					}(),
 				},
@@ -768,6 +763,7 @@ func TestGetStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					BlockID: func() BlockID {
 						num := uint64(123456)
+
 						return BlockID{Number: &num}
 					}(),
 				},
@@ -783,6 +779,7 @@ func TestGetStorageProof(t *testing.T) {
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
+
 				return
 			}
 
@@ -794,7 +791,7 @@ func TestGetStorageProof(t *testing.T) {
 			// call the RPC method directly to get the raw result
 			err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
 			require.NoError(t, err)
-			//marshal the results to JSON
+			// marshal the results to JSON
 			rawResultJSON, err := json.Marshal(rawResult)
 			require.NoError(t, err)
 			resultJSON, err := json.Marshal(result)

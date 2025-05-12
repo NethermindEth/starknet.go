@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // main is the entry point of the program that demonstrates how to query Starknet events.
@@ -29,10 +28,10 @@ func main() {
 	rpcProviderUrl := setup.GetRpcProviderUrl()
 	wsProviderUrl := setup.GetWsProviderUrl()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	provider, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %v", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %v", err))
 	}
 	fmt.Println("Established connection with the RPC provider")
 
@@ -51,7 +50,9 @@ func main() {
 	// after all, here is a call with all filters combined
 	fmt.Println("\n ----- 4. all filters -----")
 
-	contractAddress, err := utils.HexToFelt("0x1948e239f559bcbdf9388938a3c46bc79f52bcba7c4d5c9732568cb8eb6a53d") // a random contract address for our example
+	contractAddress, err := utils.HexToFelt(
+		"0x1948e239f559bcbdf9388938a3c46bc79f52bcba7c4d5c9732568cb8eb6a53d",
+	) // a random contract address for our example
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}
@@ -139,7 +140,10 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	}
 	fmt.Printf("number of returned events in the second chunk: %d\n", len(secondEventChunk.Events))
 	fmt.Printf("block number of the first event in the second chunk: %d\n", secondEventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event in the second chunk: %d\n", secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber)
+	fmt.Printf(
+		"block number of the last event in the second chunk: %d\n",
+		secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber,
+	)
 }
 
 func callWithBlockAndAddressFilters(provider *rpc.Provider) {
@@ -264,15 +268,19 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	transferEvent := findEventInChunk(eventChunk, "Transfer")
 	fmt.Printf("'Transfer' event found in block %d, tx hash: %s\n", transferEvent.BlockNumber, transferEvent.TransactionHash.String())
 	gameStartedEvent := findEventInChunk(eventChunk, "GameStarted")
-	fmt.Printf("'GameStarted' event found in block %d, tx hash: %s\n", gameStartedEvent.BlockNumber, gameStartedEvent.TransactionHash.String())
+	fmt.Printf(
+		"'GameStarted' event found in block %d, tx hash: %s\n",
+		gameStartedEvent.BlockNumber,
+		gameStartedEvent.TransactionHash.String(),
+	)
 	approvalEvent := findEventInChunk(eventChunk, "Approval")
 	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
-
 }
 
 func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	if websocketUrl == "" {
 		fmt.Println("\nNo websocket URL provided. Skipping websocket filter...")
+
 		return
 	}
 
@@ -281,7 +289,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 
 	wsProvider, err := rpc.NewWebsocketProvider(websocketUrl)
 	if err != nil {
-		panic(fmt.Sprintf("error dialing the RPC provider: %v", err))
+		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
 	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
 	if err != nil {
@@ -328,10 +336,10 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 		case <-time.After(5 * time.Second):
 			// stop the loop after 5 seconds
 			fmt.Println("Exiting...")
+
 			return
 		}
 	}
-
 }
 
 // simple function to find an event by name in a chunk of events
@@ -343,5 +351,6 @@ func findEventInChunk(eventChunk *rpc.EventChunk, eventName string) rpc.EmittedE
 			return event
 		}
 	}
+
 	return rpc.EmittedEvent{}
 }

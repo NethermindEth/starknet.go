@@ -22,8 +22,10 @@ func UnwrapJSON(data map[string]any, tag string) (map[string]any, error) {
 		if err := json.Unmarshal(dataInner, &unwrappedData); err != nil {
 			return nil, err
 		}
+
 		return unwrappedData, nil
 	}
+
 	return data, nil
 }
 
@@ -60,7 +62,7 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 // Returns:
 //   - *T: pointer to the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails
-func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error) {
+func UnmarshalJSONFileToType[T any](filePath, subfield string) (*T, error) {
 	var result T
 
 	data, err := os.ReadFile(filePath)
@@ -70,7 +72,8 @@ func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error
 
 	if subfield != "" {
 		var tempMap map[string]json.RawMessage
-		if err := json.Unmarshal(data, &tempMap); err != nil {
+		err = json.Unmarshal(data, &tempMap)
+		if err != nil {
 			return nil, err
 		}
 
@@ -111,5 +114,6 @@ func RemoveFieldFromJSON(jsonData *[]byte, field string) error {
 	}
 
 	*jsonData = newJSONData
+
 	return nil
 }

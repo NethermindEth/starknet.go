@@ -367,7 +367,7 @@ func testClientCancel(transport string, t *testing.T) {
 	)
 	caller := func(index int) {
 		defer wg.Done()
-		for i := 0; i < nreqs; i++ {
+		for range nreqs {
 			var (
 				ctx     context.Context
 				cancel  func()
@@ -388,8 +388,8 @@ func testClientCancel(transport string, t *testing.T) {
 			// Now perform a call with the context.
 			// The key thing here is that no call will ever complete successfully.
 			err := client.CallContextWithSliceArgs(ctx, nil, "test_block")
-			switch {
-			case err == nil:
+			switch err {
+			case nil:
 				_, hasDeadline := ctx.Deadline()
 				t.Errorf("no error for call with %v wait time (deadline: %v)", timeout, hasDeadline)
 				// default:
@@ -399,7 +399,7 @@ func testClientCancel(transport string, t *testing.T) {
 		}
 	}
 	wg.Add(ncallers)
-	for i := 0; i < ncallers; i++ {
+	for i := range ncallers {
 		go caller(i)
 	}
 	wg.Wait()
@@ -451,7 +451,7 @@ func TestClientSubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal("can't subscribe:", err)
 	}
-	for i := 0; i < count; i++ {
+	for i := range count {
 		if val := <-nc; val != i {
 			t.Fatalf("value mismatch: got %d, want %d", val, i)
 		}
@@ -523,7 +523,7 @@ func TestClientCloseUnsubscribeRace(t *testing.T) {
 	server := newTestServer()
 	defer server.Stop()
 
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		client := DialInProc(server)
 		nc := make(chan int)
 		sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, nc, "someSubscription", 3, 1)
@@ -554,6 +554,7 @@ func (b *unsubscribeBlocker) readBatch() ([]*jsonrpcMessage, bool, error) {
 			<-b.quit
 		}
 	}
+
 	return msgs, batch, err
 }
 
@@ -584,7 +585,15 @@ func TestUnsubscribeTimeout(t *testing.T) {
 	defer client.Close()
 
 	// Start subscription.
-	sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, make(chan int), "someSubscription", 1, 1)
+	sub, err := client.SubscribeWithSliceArgs(
+		context.Background(),
+		"nftest",
+		subscribeMethodSuffix,
+		make(chan int),
+		"someSubscription",
+		1,
+		1,
+	)
 	if err != nil {
 		t.Fatalf("failed to subscribe: %v", err)
 	}
@@ -634,6 +643,7 @@ func (r *unsubscribeRecorder) readBatch() ([]*jsonrpcMessage, bool, error) {
 			}
 		}
 	}
+
 	return msgs, batch, err
 }
 
@@ -691,7 +701,7 @@ func TestClientSubscriptionChannelClose(t *testing.T) {
 	client, _ := Dial(wsURL)
 	defer client.Close()
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		ch := make(chan int, 100)
 		sub, err := client.SubscribeWithSliceArgs(context.Background(), "nftest", subscribeMethodSuffix, ch, "someSubscription", 100, 1)
 		if err != nil {
@@ -726,7 +736,7 @@ func TestClientNotificationStorm(t *testing.T) {
 		defer sub.Unsubscribe()
 
 		// Process each notification, try to run a call in between each of them.
-		for i := 0; i < count; i++ {
+		for i := range count {
 			select {
 			case val := <-nc:
 				if val != i {
@@ -738,6 +748,7 @@ func TestClientNotificationStorm(t *testing.T) {
 				} else if !wantError {
 					t.Fatalf("(%d/%d) got unexpected error %q", i, count, err)
 				}
+
 				return
 			}
 			var r int
@@ -746,6 +757,7 @@ func TestClientNotificationStorm(t *testing.T) {
 				if !wantError {
 					t.Fatalf("(%d/%d) call error: %v", i, count, err)
 				}
+
 				return
 			}
 		}
@@ -852,6 +864,7 @@ func TestClientReconnect(t *testing.T) {
 		go func() {
 			_ = http.Serve(l, srv.WebsocketHandler([]string{"*"}))
 		}()
+
 		return srv, l
 	}
 
@@ -934,6 +947,7 @@ func httpTestClient(srv *Server, transport string, fl *flakeyListener) (*Client,
 	if err != nil {
 		panic(err)
 	}
+
 	return client, hs
 }
 
@@ -956,5 +970,6 @@ func (l *flakeyListener) Accept() (net.Conn, error) {
 			c.Close()
 		})
 	}
+
 	return c, err
 }

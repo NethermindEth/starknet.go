@@ -23,7 +23,7 @@ type MemKeystore struct {
 	keys map[string]*big.Int
 }
 
-// NewMemKeystore initializes and returns a new instance of MemKeystore.
+// NewMemKeystore initialises and returns a new instance of MemKeystore.
 //
 // Parameters:
 //
@@ -34,6 +34,7 @@ type MemKeystore struct {
 func NewMemKeystore() *MemKeystore {
 	return &MemKeystore{
 		keys: make(map[string]*big.Int),
+		mu:   sync.Mutex{},
 	}
 }
 
@@ -48,6 +49,7 @@ func NewMemKeystore() *MemKeystore {
 func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore {
 	ks := NewMemKeystore()
 	ks.Put(pub, priv)
+
 	return ks
 }
 
@@ -79,6 +81,7 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	if !exists {
 		return nil, fmt.Errorf("error getting key for sender %s: %w", senderAddress, ErrSenderNoExist)
 	}
+
 	return k, nil
 }
 
@@ -94,7 +97,6 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 //   - *big.Int: the S component of the signature as *big.Int
 //   - error: an error if any
 func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
-
 	k, err := ks.Get(id)
 	if err != nil {
 		return nil, nil, err
@@ -115,8 +117,7 @@ func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*
 //   - x: the X coordinate of the signature point as a *big.Int
 //   - y: the Y coordinate of the signature point as a *big.Int
 //   - err: an error object if any error occurred during the signing process
-func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *big.Int, err error) {
-
+func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error) {
 	select {
 	case <-ctx.Done():
 		x = nil
@@ -126,6 +127,7 @@ func sign(ctx context.Context, msgHash *big.Int, key *big.Int) (x *big.Int, y *b
 	default:
 		x, y, err = curve.Curve.Sign(msgHash, key)
 	}
+
 	return x, y, err
 }
 

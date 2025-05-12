@@ -41,7 +41,7 @@ type TransactionWithReceipt struct {
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
-// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
+// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralisation.
 type PendingBlockWithReceipts struct {
 	PendingBlockHeader
 	BlockBodyWithReceipts
@@ -109,27 +109,38 @@ type BlockHashAndNumberOutput struct {
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
 }
 
+// BlockTag represents the possible values for a block tag.
+type BlockTag string
+
+const (
+	// BlockTagLatest represents the latest confirmed block.
+	BlockTagLatest BlockTag = "latest"
+	// BlockTagPending represents the pending block that is yet to be confirmed.
+	BlockTagPending BlockTag = "pending"
+)
+
 // BlockID is a struct that is used to choose between different
 // search types.
 type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
-	Tag    string     `json:"block_tag,omitempty"`
+	Tag    BlockTag   `json:"block_tag,omitempty"`
 }
 
 // checkForPending checks if the block ID has the 'pending' tag. If it does, it returns an error.
 // This is used to prevent the user from using the 'pending' tag on methods that do not support it.
 func checkForPending(b BlockID) error {
-	if b.Tag == "pending" {
+	if b.Tag == BlockTagPending {
 		return errors.Join(ErrInvalidBlockID, errors.New("'pending' tag is not supported on this method"))
 	}
+
 	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
 //
 // It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
-// while the error indicates any error that occurred during the marshaling process.
+// while the error indicates any error that occurred during the marshalling process.
 //
 // Parameters:
 //
@@ -137,10 +148,10 @@ func checkForPending(b BlockID) error {
 //
 // Returns:
 //   - []byte: the JSON representation of the BlockID
-//   - error: any error that occurred during the marshaling process
+//   - error: any error that occurred during the marshalling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
-	if b.Tag == "pending" || b.Tag == "latest" {
-		return []byte(strconv.Quote(b.Tag)), nil
+	if b.Tag == BlockTagPending || b.Tag == BlockTagLatest {
+		return []byte(strconv.Quote(string(b.Tag))), nil
 	}
 
 	if b.Tag != "" {
@@ -152,7 +163,7 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	if b.Hash != nil && b.Hash.BigInt(big.NewInt(0)).BitLen() != 0 {
-		return []byte(fmt.Sprintf(`{"block_hash":"%s"}`, b.Hash.String())), nil
+		return []byte(fmt.Sprintf(`{"block_hash":%q}`, b.Hash.String())), nil
 	}
 
 	return json.Marshal(nil)
@@ -240,8 +251,10 @@ func (mode *L1DAMode) UnmarshalJSON(b []byte) error {
 	default:
 		return fmt.Errorf("unknown L1DAMode: %s", str)
 	}
+
 	return nil
 }
+
 func (mode L1DAMode) MarshalJSON() ([]byte, error) {
 	return json.Marshal(mode.String())
 }

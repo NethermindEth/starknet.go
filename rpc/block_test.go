@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBlockNumber is a test function to check the behavior of the BlockNumber function and check if there is no errors.
+// TestBlockNumber is a test function to check the behaviour of the BlockNumber function and check if there is no errors.
 //
 // Parameters:
 //   - t: the testing object for running the test cases
@@ -49,10 +49,10 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 // TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
 //
-// The function takes a testing.T object as a parameter and initializes a testConfig object.
+// The function takes a testing.T object as a parameter and initialises a testConfig object.
 // It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
-// The function then initializes a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
-// It also initializes a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
+// The function then initialises a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
+// It also initialises a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
 // The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
 // Each key corresponds to a slice of testSetType objects.
@@ -102,7 +102,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 					PendingBlockHeader{
 						ParentHash:       fakeFelt,
 						Timestamp:        123,
-						SequencerAddress: fakeFelt},
+						SequencerAddress: fakeFelt,
+					},
 					txHashes,
 				},
 			},
@@ -113,7 +114,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 						Hash:             fakeFelt,
 						ParentHash:       fakeFelt,
 						Timestamp:        124,
-						SequencerAddress: fakeFelt},
+						SequencerAddress: fakeFelt,
+					},
 					Status:       BlockStatus_AcceptedOnL1,
 					Transactions: txHashes,
 				},
@@ -178,7 +180,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 // TestBlockWithTxs tests the BlockWithTxs function.
 //
 // The function tests the BlockWithTxs function by setting up a test configuration and a test set type.
-// It then initializes Block type variables and invokes the BlockWithTxs function with different test scenarios.
+// It then initialises Block type variables and invokes the BlockWithTxs function with different test scenarios.
 // The function checks if the BlockWithTxs function returns the correct block data.
 // It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
 //
@@ -190,23 +192,22 @@ func TestBlockWithTxHashes(t *testing.T) {
 //	none
 func TestBlockWithTxs(t *testing.T) {
 	testConfig := beforeEach(t, false)
-	require := require.New(t)
 
 	type testSetType struct {
 		BlockID              BlockID
 		ExpectedBlock        *Block
 		ExpectedPendingBlock *PendingBlock
-		InvokeV0Index        int //TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		InvokeV0Index        int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
 		InvokeV1Index        int
 		InvokeV3Index        int
-		DeclareV0Index       int //TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		DeclareV0Index       int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
 		DeclareV1Index       int
 		DeclareV2Index       int
-		DeclareV3Index       int //TODO: implement testcase
+		DeclareV3Index       int // TODO: implement testcase
 		DeployAccountV1Index int
-		DeployAccountV3Index int //TODO: implement testcase
+		DeployAccountV3Index int // TODO: implement testcase
 		L1HandlerV0Index     int
-		DeployV0Index        int //TODO: implement testcase
+		DeployV0Index        int // TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", "result")
@@ -268,84 +269,83 @@ func TestBlockWithTxs(t *testing.T) {
 	// TODO: refactor test to check the marshal result against the expected json file
 	for _, test := range testSet {
 		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		require.NoError(err, "Unable to fetch the given block.")
+		require.NoError(t, err, "Unable to fetch the given block.")
 
 		switch block := blockWithTxsInterface.(type) {
 		case *PendingBlock:
 			if test.ExpectedPendingBlock == nil {
 				validatePendingBlockHeader(t, &block.PendingBlockHeader)
 			} else {
-				require.Exactly(test.ExpectedPendingBlock, block)
+				require.Exactly(t, test.ExpectedPendingBlock, block)
 			}
 		case *Block:
 			if test.ExpectedBlock == nil {
-				require.Equal(block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
-				require.NotEmpty(block.Transactions, "The number of transaction should not be 0.")
+				require.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+				require.NotEmpty(t, block.Transactions, "The number of transaction should not be 0.")
 			} else {
-				require.Exactly(test.ExpectedBlock, block)
+				require.Exactly(t, test.ExpectedBlock, block)
 
-				//validates an BlockInvokeV1 transaction
+				// validates an BlockInvokeV1 transaction
 				if test.InvokeV1Index > 0 {
-					invokeV1Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-					require.True(ok, "Expected invoke v1 transaction.")
+					invokeV1Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
+					require.True(t, ok, "Expected invoke v1 transaction.")
 					invokeV1Block, ok := block.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-					require.True(ok, "Expected invoke v1 transaction.")
+					require.True(t, ok, "Expected invoke v1 transaction.")
 
-					require.Exactly(invokeV1Expected, invokeV1Block)
+					require.Exactly(t, invokeV1Expected, invokeV1Block)
 				}
 
-				//validates an BlockInvokeV3 transaction
+				// validates an BlockInvokeV3 transaction
 				if test.InvokeV3Index > 0 {
-					invokeV3Expected, ok := (*test.ExpectedBlock).Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-					require.True(ok, "Expected invoke v3 transaction.")
+					invokeV3Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
+					require.True(t, ok, "Expected invoke v3 transaction.")
 					invokeV3Block, ok := block.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-					require.True(ok, "Expected invoke v3 transaction.")
+					require.True(t, ok, "Expected invoke v3 transaction.")
 
-					require.Exactly(invokeV3Expected, invokeV3Block)
+					require.Exactly(t, invokeV3Expected, invokeV3Block)
 				}
 
-				//validates an BlockDeclareV1 transaction
+				// validates an BlockDeclareV1 transaction
 				if test.DeclareV1Index > 0 {
-					declareV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-					require.True(ok, "Expected declare v1 transaction.")
+					declareV1Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
+					require.True(t, ok, "Expected declare v1 transaction.")
 					declareV1Block, ok := block.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-					require.True(ok, "Expected declare v1 transaction.")
+					require.True(t, ok, "Expected declare v1 transaction.")
 
-					require.Exactly(declareV1Expected, declareV1Block)
+					require.Exactly(t, declareV1Expected, declareV1Block)
 				}
 
-				//validates an BlockDeclareV2 transaction
+				// validates an BlockDeclareV2 transaction
 				if test.DeclareV2Index > 0 {
-					declareV2Expected, ok := (*test.ExpectedBlock).Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-					require.True(ok, "Expected declare v2 transaction.")
+					declareV2Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
+					require.True(t, ok, "Expected declare v2 transaction.")
 					declareV2Block, ok := block.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-					require.True(ok, "Expected declare v2 transaction.")
+					require.True(t, ok, "Expected declare v2 transaction.")
 
-					require.Exactly(declareV2Expected, declareV2Block)
+					require.Exactly(t, declareV2Expected, declareV2Block)
 				}
 
-				//validates an BlockDeployAccountV1 transaction
+				// validates an BlockDeployAccountV1 transaction
 				if test.DeployAccountV1Index > 0 {
-					deployAccountV1Expected, ok := (*test.ExpectedBlock).Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-					require.True(ok, "Expected declare v2 transaction.")
+					deployAccountV1Expected, ok := test.ExpectedBlock.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
+					require.True(t, ok, "Expected deploy account v1 transaction.")
 					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-					require.True(ok, "Expected declare v2 transaction.")
+					require.True(t, ok, "Expected deploy account v1 transaction.")
 
-					require.Exactly(deployAccountV1Expected, deployAccountV1Block)
+					require.Exactly(t, deployAccountV1Expected, deployAccountV1Block)
 				}
 
-				//validates an BlockL1HandlerV0 transaction
+				// validates an BlockL1HandlerV0 transaction
 				if test.L1HandlerV0Index > 0 {
-					l1HandlerV0Expected, ok := (*test.ExpectedBlock).Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-					require.True(ok, "Expected L1 handler transaction.")
+					l1HandlerV0Expected, ok := test.ExpectedBlock.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
+					require.True(t, ok, "Expected L1 handler transaction.")
 					l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-					require.True(ok, "Expected L1 handler transaction.")
+					require.True(t, ok, "Expected L1 handler transaction.")
 
-					require.Exactly(l1HandlerV0Expected, l1HandlerV0Block)
+					require.Exactly(t, l1HandlerV0Expected, l1HandlerV0Block)
 				}
 			}
 		}
-
 	}
 }
 
@@ -635,10 +635,15 @@ func TestStateUpdate(t *testing.T) {
 		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
 		require.NoError(t, err, "Unable to fetch the given block.")
 
-		require.Equal(t,
+		require.Equal(
+			t,
 			test.ExpectedStateUpdateOutput.BlockHash.String(),
 			stateUpdate.BlockHash.String(),
-			fmt.Sprintf("structure expecting %s, instead: %s", test.ExpectedStateUpdateOutput.BlockHash.String(), stateUpdate.BlockHash.String()),
+			fmt.Sprintf(
+				"structure expecting %s, instead: %s",
+				test.ExpectedStateUpdateOutput.BlockHash.String(),
+				stateUpdate.BlockHash.String(),
+			),
 		)
 	}
 }
