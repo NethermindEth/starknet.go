@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -110,10 +111,13 @@ func TestCookieManagement(t *testing.T) {
 	// Don't return anything unless cookie is set.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Handle version check request
-		if r.Method == "POST" {
+		if r.Method == http.MethodPost {
 			var request map[string]interface{}
 			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				fmt.Println("Error decoding request body:", err)
+
 				return
 			}
 
@@ -127,6 +131,7 @@ func TestCookieManagement(t *testing.T) {
 				if err := json.NewEncoder(w).Encode(data); err != nil {
 					log.Fatal(err)
 				}
+
 				return
 			}
 		}
