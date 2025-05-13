@@ -108,25 +108,23 @@ func TestClassHashes(t *testing.T) {
 
 	t.Run("Test Sierra ClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
-
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
 				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
-				hash := hash.ClassHash(&sierraClass)
-				assert.Equal(t, test.ExpectedClassHash, hash.String())
+				hashResult := hash.ClassHash(&sierraClass)
+				assert.Equal(t, test.ExpectedClassHash, hashResult.String())
 			})
 		}
 	})
 
 	t.Run("Test CompiledClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
-
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
 				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
 
-				hash, err := hash.CompiledClassHash(&casmClass)
+				hashResult, err := hash.CompiledClassHash(&casmClass)
 				require.NoError(t, err)
-				assert.Equal(t, test.ExpectedCompiledClassHash, hash.String())
+				assert.Equal(t, test.ExpectedCompiledClassHash, hashResult.String())
 			})
 		}
 	})

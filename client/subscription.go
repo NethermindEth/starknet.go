@@ -60,7 +60,7 @@ func NewID() ID {
 
 // randomIDGenerator returns a function generates a random IDs.
 func randomIDGenerator() func() ID {
-	var buf = make([]byte, 8)
+	buf := make([]byte, 8)
 	var seed int64
 	if _, err := crand.Read(buf); err == nil {
 		seed = int64(binary.BigEndian.Uint64(buf))
@@ -72,11 +72,13 @@ func randomIDGenerator() func() ID {
 		mu  sync.Mutex
 		rng = rand.New(rand.NewSource(seed))
 	)
+
 	return func() ID {
 		mu.Lock()
 		defer mu.Unlock()
 		id := make([]byte, 16)
 		rng.Read(id)
+
 		return encodeID(id)
 	}
 }
@@ -87,6 +89,7 @@ func encodeID(b []byte) ID {
 	if id == "" {
 		id = "0" // ID's are RPC quantities, no leading zero's and 0 is 0x0.
 	}
+
 	return ID("0x" + id)
 }
 
@@ -95,6 +98,7 @@ type notifierKey struct{}
 // NotifierFromContext returns the Notifier value stored in ctx, if any.
 func NotifierFromContext(ctx context.Context) (*Notifier, bool) {
 	n, ok := ctx.Value(notifierKey{}).(*Notifier)
+
 	return n, ok
 }
 
@@ -125,6 +129,7 @@ func (n *Notifier) CreateSubscription() *Subscription {
 		panic("can't create subscription after subscribe call has returned")
 	}
 	n.sub = &Subscription{ID: n.h.idgen(), namespace: n.namespace, err: make(chan error, 1)}
+
 	return n.sub
 }
 
@@ -143,6 +148,7 @@ func (n *Notifier) Notify(id ID, data any) error {
 		return n.send(n.sub, data)
 	}
 	n.buffer = append(n.buffer, data)
+
 	return nil
 }
 
@@ -152,6 +158,7 @@ func (n *Notifier) takeSubscription() *Subscription {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.callReturned = true
+
 	return n.sub
 }
 
@@ -168,6 +175,7 @@ func (n *Notifier) activate() error {
 		}
 	}
 	n.activated = true
+
 	return nil
 }
 
@@ -180,6 +188,7 @@ func (n *Notifier) send(sub *Subscription, data any) error {
 			Result: data,
 		},
 	}
+
 	return n.h.conn.writeJSON(context.Background(), &msg, false)
 }
 
@@ -264,7 +273,7 @@ func (sub *ClientSubscription) Err() <-chan error {
 	return sub.err
 }
 
-// Reorg returns a channel that notifies the subscriber of a reorganization of the chain.
+// Reorg returns a channel that notifies the subscriber of a reorganisation of the chain.
 // A reorg event could be received only from subscribing to NewHeads, Events, and TransactionStatus
 func (sub *ClientSubscription) Reorg() <-chan *ReorgEvent {
 	return sub.reorgChannel
@@ -380,6 +389,7 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 				// Exiting because Unsubscribe was called, unsubscribe on server.
 				return true, nil
 			}
+
 			return false, err
 
 		case 1: // <-sub.in
@@ -417,10 +427,12 @@ func (sub *ClientSubscription) unmarshal(result json.RawMessage, isReorg *bool) 
 			err = errors.Join(err, err2)
 		} else {
 			*isReorg = true
+
 			return val.Elem().Interface(), nil
 		}
 	}
 	*isReorg = false
+
 	return val.Elem().Interface(), err
 }
 
@@ -430,5 +442,6 @@ func (sub *ClientSubscription) requestUnsubscribe() error {
 	defer cancel()
 
 	err := sub.client.CallContextWithSliceArgs(ctx, &result, sub.namespace+unsubscribeMethodSuffix, sub.subid)
+
 	return err
 }

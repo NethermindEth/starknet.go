@@ -25,7 +25,7 @@ func TestTransactionByHash(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	var BlockDeclareTxnV2Example = BlockTransaction{
+	BlockDeclareTxnV2Example := BlockTransaction{
 		Hash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 		Transaction: DeclareTxnV2{
 			Type:              TransactionType_Declare,
@@ -110,7 +110,6 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		"mainnet": {},
 	}[testEnv]
 	for _, test := range testSet {
-
 		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		require.NoError(t, err)
 		require.NotNil(t, tx)

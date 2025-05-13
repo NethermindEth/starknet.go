@@ -191,14 +191,16 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	return internalUtils.ComputeFact(programHash, programOutputs)
 }
 
-// SplitFactStr splits a given fact string into two parts (felts): fact_low and fact_high.
+// SplitFactStr splits a given fact, with maximum 256 bits size, into two parts (felts): fact_low and fact_high.
 //
 // The function takes a fact string as input and converts it to a big number using the HexToBN function.
 // It then converts the big number to bytes using the Bytes method.
 // If the length of the bytes is less than 32, it pads the bytes with zeros using the bytes.Repeat method.
 // The padded bytes are then appended to the original bytes.
-// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a big number using the BytesToBig function.
-// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number using the BytesToBig function.
+// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a
+// big number using the BytesToBig function.
+// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number
+// using the BytesToBig function.
 // Finally, it converts the low and high big numbers to hexadecimal strings using the BigToHex function and returns them.
 //
 // Parameters:
@@ -207,7 +209,8 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 // Return types:
 //   - fact_low: The low part of the fact string in hexadecimal format
 //   - fact_high: The high part of the fact string in hexadecimal format
-func SplitFactStr(fact string) (fact_low, fact_high string) {
+//   - err: An error if any
+func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
 	return internalUtils.SplitFactStr(fact)
 }
 

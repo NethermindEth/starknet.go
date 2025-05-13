@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	errWrongType = fmt.Errorf("wrong type")
-	errWrongArgs = fmt.Errorf("wrong number of args")
+	errWrongType = errors.New("wrong type")
+	errWrongArgs = errors.New("wrong number of args")
 )
 
 // rpcMock is a mock of the go-ethereum Client that can be used for local tests
@@ -70,6 +70,8 @@ func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method st
 //
 // Returns:
 //   - error: An error if the method is not found or if the arguments are invalid
+//
+//nolint:gocyclo // Inevitable due to many switch cases
 func methodsSwitchList(result interface{}, method string, args ...interface{}) error {
 	switch method {
 	case "starknet_addDeclareTransaction":
@@ -160,7 +162,7 @@ func mock_starknet_blockNumber(result interface{}, args ...interface{}) error {
 	return json.Unmarshal(resp, r)
 }
 
-// mock_starknet_blockHashAndNumber is a function that mocks the behavior of the `blockHashAndNumber` method in the StarkNet API.
+// mock_starknet_blockHashAndNumber is a function that mocks the behaviour of the `blockHashAndNumber` method in the StarkNet API.
 //
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
@@ -190,7 +192,7 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 	return json.Unmarshal(resp, r)
 }
 
-// mock_starknet_chainId is a function that mocks the behavior of the `starknet_chainId` method.
+// mock_starknet_chainId is a function that mocks the behaviour of the `starknet_chainId` method.
 //
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
@@ -214,7 +216,7 @@ func mock_starknet_chainId(result interface{}, args ...interface{}) error {
 	return json.Unmarshal(resp, r)
 }
 
-// mock_starknet_syncing is a function that mocks the behavior of the starknet_syncing function.
+// mock_starknet_syncing is a function that mocks the behaviour of the starknet_syncing function.
 //
 // Parameters:
 //   - result: an interface{} that holds the result of the function.
@@ -241,10 +243,11 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 		HighestBlockNum:   "0x4c727",
 	}
 	*r = value
+
 	return nil
 }
 
-// mock_starknet_getTransactionByBlockIdAndIndex is a function that mocks the behavior of getting
+// mock_starknet_getTransactionByBlockIdAndIndex is a function that mocks the behaviour of getting
 // a transaction by block ID and index in the StarkNet API.
 //
 // Parameters:
@@ -266,7 +269,10 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 		return errWrongArgs
 	}
 
-	blockTxnexample, err := internalUtils.UnmarshalJSONFileToType[BlockTransaction]("tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	blockTxnexample, err := internalUtils.UnmarshalJSONFileToType[BlockTransaction](
+		"tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json",
+		"",
+	)
 	if err != nil {
 		return err
 	}
@@ -279,7 +285,7 @@ func mock_starknet_getTransactionByBlockIdAndIndex(result interface{}, args ...i
 	return json.Unmarshal(txBytes, &r)
 }
 
-// mock_starknet_getBlockTransactionCount is a function that mocks the behavior of the
+// mock_starknet_getBlockTransactionCount is a function that mocks the behaviour of the
 // GetBlockTransactionCount method in the StarkNet API.
 //
 // Parameters:
@@ -303,6 +309,7 @@ func mock_starknet_getBlockTransactionCount(result interface{}, args ...interfac
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -328,7 +335,7 @@ func mock_starknet_getTransactionByHash(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	var BlockDeclareTxnV2Example = `{
+	BlockDeclareTxnV2Example := `{
 		"transaction_hash": "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda",
 		"type": "DECLARE",
 		"sender_address": "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
@@ -346,6 +353,7 @@ func mock_starknet_getTransactionByHash(result interface{}, args ...interface{})
 	if err := json.Unmarshal([]byte(BlockDeclareTxnV2Example), r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -377,25 +385,31 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 		return err
 	}
 	if arg0Felt.Equal(testTxnHash) {
-
-		txnRec, err := internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+		var txnRec *TransactionReceiptWithBlockInfo
+		txnRec, err = internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](
+			"tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json",
+			"",
+		)
 		if err != nil {
 			return err
 		}
 
-		txnReceipt, err := json.Marshal(txnRec)
+		var txnReceipt []byte
+		txnReceipt, err = json.Marshal(txnRec)
 		if err != nil {
 			return err
 		}
 
 		return json.Unmarshal(txnReceipt, &r)
 	} else if arg0Felt.Equal(l1BlockHash) {
-		txnRec, err := internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+		var txnRec *TransactionReceiptWithBlockInfo
+		txnRec, err = internalUtils.UnmarshalJSONFileToType[TransactionReceiptWithBlockInfo]("tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 		if err != nil {
 			return err
 		}
 
-		txnReceipt, err := json.Marshal(txnRec)
+		var txnReceipt []byte
+		txnReceipt, err = json.Marshal(txnRec)
 		if err != nil {
 			return err
 		}
@@ -422,6 +436,7 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -441,6 +456,7 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
+
 		return errWrongType
 	}
 	if len(args) != 2 {
@@ -450,7 +466,7 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	var class = contracts.DeprecatedContractClass{
+	class := contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAE/+Vde3PbOJL/Kj5VXW1mVqsC36Sr9g8n0c6mzonnbM",
 		DeprecatedEntryPointsByType: contracts.DeprecatedEntryPointsByType{
 			Constructor: []contracts.DeprecatedCairoEntryPoint{},
@@ -470,6 +486,7 @@ func mock_starknet_getClassAt(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -487,6 +504,7 @@ func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
+
 		return errWrongType
 	}
 	if len(args) != 2 {
@@ -503,6 +521,7 @@ func mock_starknet_getClassHashAt(result interface{}, args ...interface{}) error
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -531,6 +550,7 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 	r, ok := result.(*json.RawMessage)
 	if !ok || r == nil {
 		fmt.Printf("%T\n", result)
+
 		return errWrongType
 	}
 	if len(args) != 2 {
@@ -539,14 +559,16 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 	_, ok = args[0].(BlockID)
 	if !ok {
 		fmt.Printf("expecting BlockID, instead %T\n", args[1])
+
 		return errWrongArgs
 	}
 	classHash, ok := args[1].(*felt.Felt)
 	if !ok || !strings.HasPrefix(classHash.String(), "0x") {
 		fmt.Printf("%T\n", args[1])
+
 		return errWrongArgs
 	}
-	var class = contracts.DeprecatedContractClass{
+	class := contracts.DeprecatedContractClass{
 		Program: "H4sIAAAAAAAA",
 	}
 	outputContent, err := json.Marshal(class)
@@ -556,6 +578,7 @@ func mock_starknet_getClass(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -582,7 +605,7 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 		return errWrongArgs
 	}
 	if ei.ChunkSize == 0 {
-		return fmt.Errorf("-ChuckSize error message-")
+		return errors.New("-ChuckSize error message-")
 	}
 
 	blockHash, err := internalUtils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
@@ -594,16 +617,15 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 		return err
 	}
 
-	events :=
-		EventChunk{
-			Events: []EmittedEvent{
-				{
-					BlockHash:       blockHash,
-					BlockNumber:     1472,
-					TransactionHash: txHash,
-				},
+	events := EventChunk{
+		Events: []EmittedEvent{
+			{
+				BlockHash:       blockHash,
+				BlockNumber:     1472,
+				TransactionHash: txHash,
 			},
-		}
+		},
+	}
 
 	outputContent, err := json.Marshal(events)
 	if err != nil {
@@ -612,6 +634,7 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -630,6 +653,7 @@ func mock_starknet_call(result interface{}, args ...interface{}) error {
 	}
 	if len(args) != 2 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	out, err := new(felt.Felt).SetString("0xdeadbeef")
@@ -643,6 +667,7 @@ func mock_starknet_call(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -677,8 +702,10 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 		if err := json.Unmarshal(outputContent, r); err != nil {
 			return err
 		}
+
 		return nil
 	}
+
 	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastDeclareTxnV3, got %T\n", args[0]))
 }
 
@@ -697,21 +724,25 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 	}
 	if len(args) != 3 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	_, ok = args[0].([]BroadcastTxn)
 	if !ok {
 		fmt.Printf("args[0] should be BroadcastTxn, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 	flags, ok := args[1].([]SimulationFlag)
 	if !ok {
 		fmt.Printf("args[1] should be SimulationFlag, got %T\n", args[1])
+
 		return errWrongArgs
 	}
 	_, ok = args[2].(BlockID)
 	if !ok {
 		fmt.Printf("args[2] should be *blockID, got %T\n", args[2])
+
 		return errWrongArgs
 	}
 
@@ -748,6 +779,7 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -766,16 +798,19 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 	}
 	if len(args) != 2 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	_, ok = args[0].(MsgFromL1)
 	if !ok {
 		fmt.Printf("args[0] should be MsgFromL1, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 	_, ok = args[1].(BlockID)
 	if !ok {
 		fmt.Printf("args[1] should be *blockID, got %T\n", args[1])
+
 		return errWrongArgs
 	}
 
@@ -793,6 +828,7 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -812,21 +848,25 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 	}
 	if len(args) != 3 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	_, ok = args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be *blockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 	_, ok = args[1].([]BroadcastTxn)
 	if !ok {
 		fmt.Printf("args[1] should be BroadcastTxn, got %T\n", args[1])
+
 		return errWrongArgs
 	}
 	_, ok = args[2].([]SimulationFlag)
 	if !ok {
 		fmt.Printf("args[2] should be SimulationFlag, got %T\n", args[2])
+
 		return errWrongArgs
 	}
 
@@ -843,7 +883,7 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 	return json.Unmarshal(outputContent, r)
 }
 
-// mock_starknet_addInvokeTransaction is a mock function that simulates the behavior of the
+// mock_starknet_addInvokeTransaction is a mock function that simulates the behaviour of the
 // starknet_addInvokeTransaction function.
 // Parameters:
 //   - result: The result of the transaction
@@ -875,6 +915,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		if err := json.Unmarshal(outputContent, r); err != nil {
 			return err
 		}
+
 		return nil
 	default:
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV3, got %T\n", args[0]))
@@ -907,14 +948,14 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 		if err := json.Unmarshal(outputContent, r); err != nil {
 			return err
 		}
+
 		return nil
 	default:
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxnV3, got %T\n", args[0]))
 	}
-
 }
 
-// mock_starknet_getStorageAt mocks the behavior of the StarkNet getStorageAt function.
+// mock_starknet_getStorageAt mocks the behaviour of the StarkNet getStorageAt function.
 //
 // Parameters:
 //   - result: The result of the transaction
@@ -929,6 +970,7 @@ func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
 	}
 	if len(args) != 3 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 
@@ -952,6 +994,7 @@ func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -964,18 +1007,19 @@ func mock_starknet_getStorageAt(result interface{}, args ...interface{}) error {
 // Returns:
 //   - error: an error if any
 func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error {
-
 	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
 	}
 	if len(args) != 1 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	_, ok = args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[1] should be *blockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 
@@ -1016,6 +1060,7 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -1038,14 +1083,17 @@ func mock_starknet_getNonce(result interface{}, args ...interface{}) error {
 	}
 	if len(args) != 2 {
 		fmt.Printf("args: %d\n", len(args))
+
 		return errWrongArgs
 	}
 	if _, ok := args[0].(BlockID); !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 	if _, ok := args[1].(*felt.Felt); !ok {
 		fmt.Printf("args[0] should be *felt.Felt, got %T\n", args[1])
+
 		return errWrongArgs
 	}
 	output, err := internalUtils.HexToFelt("0xdeadbeef")
@@ -1059,10 +1107,11 @@ func mock_starknet_getNonce(result interface{}, args ...interface{}) error {
 	if err := json.Unmarshal(outputContent, r); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-// mock_starknet_getBlockWithTxs mocks the behavior of the starknet_getBlockWithTxs function.
+// mock_starknet_getBlockWithTxs mocks the behaviour of the starknet_getBlockWithTxs function.
 // If successful, it populates the result parameter with the json.RawMessage containing the block with the transactions.
 //
 // Parameters:
@@ -1082,6 +1131,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 	blockId, ok := args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 
@@ -1090,7 +1140,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return err
 	}
 
-	if blockId.Tag == "pending" {
+	if blockId.Tag == BlockTagPending {
 		pBlock, err := json.Marshal(
 			PendingBlock{
 				PendingBlockHeader{
@@ -1121,7 +1171,7 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 	}
 }
 
-// mock_starknet_getBlockWithTxHashes mocks the behavior of the starknet_getBlockWithTxHashes function.
+// mock_starknet_getBlockWithTxHashes mocks the behaviour of the starknet_getBlockWithTxHashes function.
 // If successful, it populates the result parameter with the json.RawMessage containing the block with the specified transaction hashes.
 //
 // Parameters:
@@ -1141,6 +1191,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 	blockId, ok := args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 
@@ -1152,28 +1203,29 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return err
 	}
 	fakeFelt, err := internalUtils.HexToFelt("0xbeef")
+	if err != nil {
+		return err
+	}
 
-	if blockId.Tag == "pending" {
-		pBlock, err := json.Marshal(
+	if blockId.Tag == BlockTagPending {
+		pBlock, innerErr := json.Marshal(
 			PendingBlockTxHashes{
 				PendingBlockHeader{
 					ParentHash:       fakeFelt,
 					Timestamp:        123,
-					SequencerAddress: fakeFelt},
+					SequencerAddress: fakeFelt,
+				},
 				txHashes,
 			})
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
 		err = json.Unmarshal(pBlock, &r)
 		if err != nil {
 			return err
 		}
 	} else {
-		if err != nil {
-			return err
-		}
-		block, err := json.Marshal(
+		block, innerErr := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
 					Hash:             fakeFelt,
@@ -1184,10 +1236,11 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 				Status:       BlockStatus_AcceptedOnL1,
 				Transactions: txHashes,
 			})
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
-		if err := json.Unmarshal(block, &r); err != nil {
+		err = json.Unmarshal(block, &r)
+		if err != nil {
 			return err
 		}
 	}
@@ -1206,6 +1259,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 	blockId, ok := args[0].(BlockID)
 	if !ok {
 		fmt.Printf("args[0] should be BlockID, got %T\n", args[0])
+
 		return errWrongArgs
 	}
 
@@ -1213,8 +1267,8 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 	if err != nil {
 		return err
 	}
-	if blockId.Tag == "pending" {
-		pBlock, err := json.Marshal(
+	if blockId.Tag == BlockTagPending {
+		pBlock, innerErr := json.Marshal(
 			PendingBlockWithReceipts{
 				PendingBlockHeader{
 					ParentHash: fakeFeltField,
@@ -1241,15 +1295,15 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 				},
 			},
 		)
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
 		err = json.Unmarshal(pBlock, &r)
 		if err != nil {
 			return err
 		}
 	} else {
-		block, err := json.Marshal(
+		block, innerErr := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
 					Hash: fakeFeltField,
@@ -1277,10 +1331,11 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 				},
 			},
 		)
-		if err != nil {
-			return err
+		if innerErr != nil {
+			return innerErr
 		}
-		if err := json.Unmarshal(block, &r); err != nil {
+		err = json.Unmarshal(block, &r)
+		if err != nil {
 			return err
 		}
 	}
@@ -1315,7 +1370,10 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
-		rawBlockTrace, err := internalUtils.UnmarshalJSONFileToType[[]Trace]("tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json", "")
+		rawBlockTrace, err := internalUtils.UnmarshalJSONFileToType[[]Trace](
+			"tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+			"",
+		)
 		if err != nil {
 			return err
 		}
@@ -1324,6 +1382,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(BlockTrace, &r)
 	}
 
@@ -1365,7 +1424,10 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
-		rawTrace, err := internalUtils.UnmarshalJSONFileToType[InvokeTxnTrace]("tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json", "")
+		rawTrace, err := internalUtils.UnmarshalJSONFileToType[InvokeTxnTrace](
+			"tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
+			"",
+		)
 		if err != nil {
 			return err
 		}
@@ -1374,6 +1436,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 		if err != nil {
 			return err
 		}
+
 		return json.Unmarshal(txnTrace, &r)
 	case "0xf00d":
 		return &RPCError{
@@ -1386,7 +1449,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 }
 
-// mock_starknet_getCompiledCasm mocks the behavior of getting compiled CASM for a contract class.
+// mock_starknet_getCompiledCasm mocks the behaviour of getting compiled CASM for a contract class.
 //
 // Parameters:
 //   - result: The result of the operation
@@ -1429,7 +1492,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	return json.Unmarshal(*resp, r)
 }
 
-// mock_starknet_getMessagesStatus mocks the behavior of getting the status of L1->L2 messages.
+// mock_starknet_getMessagesStatus mocks the behaviour of getting the status of L1->L2 messages.
 //
 // Parameters:
 //   - result: The result of the operation

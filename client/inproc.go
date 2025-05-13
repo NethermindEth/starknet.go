@@ -28,7 +28,9 @@ func DialInProc(handler *Server) *Client {
 	c, _ := newClient(initctx, cfg, func(context.Context) (ServerCodec, error) {
 		p1, p2 := net.Pipe()
 		go handler.ServeCodec(NewCodec(p1), 0)
+
 		return NewCodec(p2), nil
 	})
+
 	return c
 }

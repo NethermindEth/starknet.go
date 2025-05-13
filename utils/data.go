@@ -12,6 +12,6 @@ import internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 // Returns:
 //   - *T: pointer to the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails
-func UnmarshalJSONFileToType[T any](filePath string, subfield string) (*T, error) {
+func UnmarshalJSONFileToType[T any](filePath, subfield string) (*T, error) {
 	return internalUtils.UnmarshalJSONFileToType[T](filePath, subfield)
 }

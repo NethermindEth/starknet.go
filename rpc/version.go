@@ -11,6 +11,7 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", Err(InternalError, StringErrData(err.Error()))
 	}
+
 	return result, nil
 }
 

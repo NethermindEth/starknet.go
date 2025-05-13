@@ -109,6 +109,7 @@ func WithHTTPAuth(a HTTPAuth) ClientOption {
 	if a == nil {
 		panic("nil auth")
 	}
+
 	return optionFunc(func(cfg *clientConfig) {
 		cfg.httpAuth = a
 	})

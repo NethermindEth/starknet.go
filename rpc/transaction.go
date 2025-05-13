@@ -20,6 +20,7 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &tx, nil
 }
 
@@ -38,6 +39,7 @@ func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, bloc
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}
+
 	return &tx, nil
 }
 
@@ -56,6 +58,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &receipt, nil
 }
 
@@ -73,10 +76,12 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return &receipt, nil
 }
 
-// Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages sent by the l1 transaction, ordered by the L1 tx sending order
+// Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses for all L1 -> L2 messages
+// sent by the l1 transaction, ordered by the L1 tx sending order
 //
 // Parameters:
 //   - ctx: the context.Context object for cancellation and timeouts.
@@ -91,5 +96,6 @@ func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
 	}
+
 	return response, nil
 }

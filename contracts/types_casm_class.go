@@ -22,31 +22,33 @@ type CasmClass struct {
 // Validate ensures all required fields are present and valid
 func (c *CasmClass) Validate() error {
 	if c.ByteCode == nil {
-		return fmt.Errorf("bytecode is required")
+		return errors.New("bytecode is required")
 	}
 	if c.Prime == "" {
-		return fmt.Errorf("prime is required")
+		return errors.New("prime is required")
 	}
 	if c.CompilerVersion == "" {
-		return fmt.Errorf("compiler_version is required")
+		return errors.New("compiler_version is required")
 	}
 	if c.Hints == nil {
-		return fmt.Errorf("hints is required")
+		return errors.New("hints is required")
 	}
 	if err := c.EntryPointsByType.Validate(); err != nil {
 		return fmt.Errorf("entry_points_by_type validation failed: %w", err)
 	}
+
 	return nil
 }
 
 // UnmarshalJSON implements json.Unmarshaler
 func (c *CasmClass) UnmarshalJSON(data []byte) error {
 	type Alias CasmClass
-	aux := &Alias{}
-	if err := json.Unmarshal(data, aux); err != nil {
+	var aux Alias
+	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
-	*c = CasmClass(*aux)
+	*c = CasmClass(aux)
+
 	return c.Validate()
 }
 
@@ -69,14 +71,15 @@ type CasmEntryPoint struct {
 // Validate ensures all required fields are present and valid
 func (e *CasmEntryPointsByType) Validate() error {
 	if e.Constructor == nil {
-		return fmt.Errorf("CONSTRUCTOR is required")
+		return errors.New("CONSTRUCTOR is required")
 	}
 	if e.External == nil {
-		return fmt.Errorf("EXTERNAL is required")
+		return errors.New("EXTERNAL is required")
 	}
 	if e.L1Handler == nil {
-		return fmt.Errorf("L1_HANDLER is required")
+		return errors.New("L1_HANDLER is required")
 	}
+
 	return nil
 }
 
@@ -87,8 +90,7 @@ type NestedUints struct {
 }
 
 func toNestedInts(values []any) ([]NestedUints, error) {
-
-	var res []NestedUints = make([]NestedUints, 0)
+	res := make([]NestedUints, 0)
 
 	for _, value := range values {
 		// check if the value is a single number
@@ -99,6 +101,7 @@ func toNestedInts(values []any) ([]NestedUints, error) {
 				Value:   &intVal,
 				Values:  nil,
 			})
+
 			continue
 		}
 
@@ -114,6 +117,7 @@ func toNestedInts(values []any) ([]NestedUints, error) {
 				Value:   nil,
 				Values:  nested,
 			})
+
 			continue
 		}
 
@@ -130,7 +134,6 @@ func (ns *NestedUints) UnmarshalJSON(data []byte) error {
 	}
 
 	nested, err := toNestedInts(temp)
-
 	if err != nil {
 		return err
 	}
@@ -151,6 +154,7 @@ func (ns NestedUints) MarshalJSON() ([]byte, error) {
 		if ns.Value == nil {
 			return nil, errors.New("invalid NestedUints: non-array type must have a value")
 		}
+
 		return json.Marshal(*ns.Value)
 	}
 
@@ -173,6 +177,7 @@ func (ns NestedUints) MarshalJSON() ([]byte, error) {
 			result[i] = nestedValue
 		}
 	}
+
 	return json.Marshal(result)
 }
 
@@ -183,6 +188,8 @@ type Hints struct {
 }
 
 // UnmarshalJSON implements json.Unmarshaler interface
+//
+//nolint:dupl
 func (h *Hints) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {
@@ -220,13 +227,15 @@ func (hints *Hints) Tuple() [2]any {
 }
 
 // Can be one of various hint types described in the spec and in the UnmarshalJSON method
-// Spec ref: https://github.com/starkware-libs/starknet-specs/blob/d70a2e57c9a66db1bbf86c388f38d6295a6a2a75/api/starknet_executables.json#L276
+// Ref: https://github.com/starkware-libs/starknet-specs/blob/d70a2e57c9a66db1bbf86c388f38d6295a6a2a75/api/starknet_executables.json#L276
 type Hint struct {
 	Type string
 	Data interface{}
 }
 
 // UnmarshalJSON implements json.Unmarshaler
+//
+//nolint:gocyclo,funlen // inevitable due to various hint types
 func (h *Hint) UnmarshalJSON(data []byte) error {
 	// Try to unmarshal as string enum first
 	var enumVal string
@@ -235,6 +244,7 @@ func (h *Hint) UnmarshalJSON(data []byte) error {
 		case AssertCurrentAccessIndicesIsEmpty, AssertAllKeysUsed, AssertLeAssertThirdArcExcluded:
 			h.Type = "enum"
 			h.Data = DeprecatedHintEnum(enumVal)
+
 			return nil
 		}
 	}
@@ -351,13 +361,14 @@ func unmarshalJSON[T any](hintData []byte, hintType string, h *Hint) error {
 	}
 	h.Type = hintType
 	h.Data = hint
+
 	return nil
 }
 
 // MarshalJSON implements json.Marshaler
 func (h Hint) MarshalJSON() ([]byte, error) {
 	if h.Type == "" || h.Data == nil {
-		return nil, fmt.Errorf("hint type and data must be set")
+		return nil, errors.New("hint type and data must be set")
 	}
 
 	// For enum types, marshal directly as string
@@ -365,9 +376,9 @@ func (h Hint) MarshalJSON() ([]byte, error) {
 		return json.Marshal(h.Data)
 	}
 
-	// Handle types that contain ResOperand or B fields which require custom JSON marshaling.
+	// Handle types that contain ResOperand or B fields which require custom JSON marshalling.
 	// These types need special handling due to their polymorphic field types.
-	// For all other types, default JSON marshaling will be used.
+	// For all other types, default JSON marshalling will be used.
 	switch typedHint := h.Data.(type) {
 	// Deprecated Hint
 	case AssertLtAssertValidInput, Felt252DictRead, Felt252DictWrite:
@@ -383,7 +394,7 @@ func (h Hint) MarshalJSON() ([]byte, error) {
 	case Cheatcode, SystemCall:
 		return marshalJSON(typedHint, &h)
 	default:
-		// For all other types, use default marshaling
+		// For all other types, use default marshalling
 		return json.Marshal(map[string]interface{}{
 			h.Type: h.Data,
 		})
@@ -395,6 +406,7 @@ func marshalJSON[T any](typedHint T, h *Hint) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal %T: %w", typedHint, err)
 	}
+
 	return json.Marshal(map[string]json.RawMessage{h.Type: rawHint})
 }
 
@@ -432,6 +444,7 @@ func (r *Register) UnmarshalJSON(data []byte) error {
 	switch Register(s) {
 	case AP, FP:
 		*r = Register(s)
+
 		return nil
 	default:
 		return fmt.Errorf("invalid register value: %s, must be either AP or FP", s)
@@ -443,6 +456,7 @@ func (r Register) MarshalJSON() ([]byte, error) {
 	if r != AP && r != FP {
 		return nil, fmt.Errorf("invalid register value: %s, must be either AP or FP", r)
 	}
+
 	return json.Marshal(string(r))
 }
 
@@ -530,13 +544,14 @@ func (r *ResOperand) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Type = hintType
+
 	return nil
 }
 
 // MarshalJSON implements json.Marshaler
 func (r ResOperand) MarshalJSON() ([]byte, error) {
 	if r.Type == "" || r.Data == nil {
-		return nil, fmt.Errorf("res operand type and data must be set")
+		return nil, errors.New("res operand type and data must be set")
 	}
 
 	return json.Marshal(map[string]interface{}{
@@ -553,6 +568,8 @@ type DoubleDeref struct {
 }
 
 // UnmarshalJSON implements json.Unmarshaler
+//
+//nolint:dupl
 func (dd *DoubleDeref) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {
@@ -649,13 +666,14 @@ func (b *B) UnmarshalJSON(data []byte) error {
 	}
 
 	b.Type = hintType
+
 	return nil
 }
 
 // MarshalJSON implements json.Marshaler
 func (b B) MarshalJSON() ([]byte, error) {
 	if b.Type == "" || b.Data == nil {
-		return nil, fmt.Errorf("B type and data must be set")
+		return nil, errors.New("B type and data must be set")
 	}
 
 	return json.Marshal(map[string]interface{}{

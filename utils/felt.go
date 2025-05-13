@@ -32,7 +32,8 @@ func HexToFelt(hex string) (*felt.Felt, error) {
 
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
-// The function iterates over each element in the hexArr array and calls the HexToFelt function to convert each hexadecimal value to a felt object.
+// The function iterates over each element in the hexArr array and calls the HexToFelt function to convert
+// each hexadecimal value to a felt object.
 // If any error occurs during the conversion, the function will return nil and the corresponding error.
 // Otherwise, it appends the converted felt object to the feltArr array.
 // Finally, the function returns the feltArr array containing all the converted felt objects.
@@ -61,12 +62,12 @@ func FeltToBigInt(f *felt.Felt) *big.Int {
 // BigIntToFelt converts a big integer to a felt.Felt.
 //
 // Parameters:
-//   - big: the big integer to convert
+//   - bigNum: the big integer to convert
 //
 // Returns:
 //   - *felt.Felt: the converted value
-func BigIntToFelt(big *big.Int) *felt.Felt {
-	return internalUtils.BigIntToFelt(big)
+func BigIntToFelt(bigNum *big.Int) *felt.Felt {
+	return internalUtils.BigIntToFelt(bigNum)
 }
 
 // FeltArrToBigIntArr converts an array of Felt objects to an array of big.Int objects.

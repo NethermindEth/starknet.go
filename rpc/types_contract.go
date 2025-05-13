@@ -3,6 +3,7 @@ package rpc
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -34,8 +35,11 @@ type U128 string
 
 type ClassOutput interface{}
 
-var _ ClassOutput = &contracts.DeprecatedContractClass{}
-var _ ClassOutput = &contracts.ContractClass{}
+//nolint:exhaustruct
+var (
+	_ ClassOutput = &contracts.DeprecatedContractClass{}
+	_ ClassOutput = &contracts.ContractClass{}
+)
 
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
@@ -55,7 +59,7 @@ type ContractStorageKeys struct {
 
 // The requested storage proofs. Note that if a requested leaf has the default value,
 // the path to it may end in an edge node whose path is not a prefix of the requested leaf,
-// thus effecitvely proving non-membership
+// thus effectively proving non-membership
 type StorageProofResult struct {
 	ClassesProof           []NodeHashToNode   `json:"classes_proof"`
 	ContractsProof         ContractsProof     `json:"contracts_proof"`
@@ -106,6 +110,7 @@ func (m *MerkleNode) UnmarshalJSON(data []byte) error {
 	if err := decoder.Decode(&edgeNode); err == nil {
 		m.Type = "EdgeNode"
 		m.Data = edgeNode
+
 		return nil
 	}
 
@@ -116,9 +121,11 @@ func (m *MerkleNode) UnmarshalJSON(data []byte) error {
 	if err := decoder.Decode(&binaryNode); err == nil {
 		m.Type = "BinaryNode"
 		m.Data = binaryNode
+
 		return nil
 	}
-	return fmt.Errorf("invalid merkle node type")
+
+	return errors.New("invalid merkle node type")
 }
 
 // MarshalJSON implements the json.Marshaler interface for MerkleNode
@@ -130,7 +137,8 @@ func (m *MerkleNode) MarshalJSON() ([]byte, error) {
 	if m.Type == "BinaryNode" {
 		return json.Marshal(m.Data.(BinaryNode))
 	}
-	return nil, fmt.Errorf("invalid merkle node type")
+
+	return nil, errors.New("invalid merkle node type")
 }
 
 // Represents a path to the highest non-zero descendant node

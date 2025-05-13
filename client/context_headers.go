@@ -38,12 +38,14 @@ func NewContextWithHeaders(ctx context.Context, h http.Header) context.Context {
 	} else {
 		ctxh = h.Clone()
 	}
+
 	return context.WithValue(ctx, mdHeaderKey{}, ctxh)
 }
 
 // headersFromContext is used to extract http.Header from context.
 func headersFromContext(ctx context.Context) http.Header {
 	source, _ := ctx.Value(mdHeaderKey{}).(http.Header)
+
 	return source
 }
 
@@ -52,5 +54,6 @@ func setHeaders(dst http.Header, src http.Header) http.Header {
 	for key, values := range src {
 		dst[http.CanonicalHeaderKey(key)] = values
 	}
+
 	return dst
 }

@@ -30,6 +30,7 @@ func (err HTTPError) Error() string {
 	if len(err.Body) == 0 {
 		return err.Status
 	}
+
 	return fmt.Sprintf("%v: %s", err.Status, err.Body)
 }
 
@@ -89,8 +90,8 @@ func (e notificationsUnsupportedError) Error() string {
 
 func (e notificationsUnsupportedError) ErrorCode() int { return -32601 }
 
-// Is checks for equivalence to another error. Here we define that all errors with code
-//   -32601 (method not found) are equivalent to notificationsUnsupportedError. This is
+// Is checks for equivalence to another error. Here we define that all errors with
+// code -32601 (method not found) are equivalent to notificationsUnsupportedError. This is
 // done to enable the following pattern:
 //
 //	sub, err := client.Subscribe(...)
@@ -104,8 +105,10 @@ func (e notificationsUnsupportedError) Is(other error) bool {
 	rpcErr, ok := other.(Error)
 	if ok {
 		code := rpcErr.ErrorCode()
+
 		return code == -32601 || code == legacyErrcodeNotificationsUnsupported
 	}
+
 	return false
 }
 

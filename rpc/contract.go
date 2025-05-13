@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -28,7 +27,6 @@ func (provider *Provider) Class(ctx context.Context, blockID BlockID, classHash 
 	}
 
 	return typecastClassOutput(rawClass)
-
 }
 
 // ClassAt returns the class at the specified blockID and contractAddress.
@@ -46,6 +44,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 	if err := do(ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return typecastClassOutput(rawClass)
 }
 
@@ -69,6 +68,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 		if err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &contractClass, nil
 	}
 	var depContractClass contracts.DeprecatedContractClass
@@ -76,6 +76,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	if err != nil {
 		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
+
 	return &depContractClass, nil
 }
 
@@ -92,9 +93,9 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 func (provider *Provider) ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return result, nil
 }
 
@@ -113,9 +114,9 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
 	if err := do(ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID); err != nil {
-
 		return "", tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return value, nil
 }
 
@@ -132,9 +133,9 @@ func (provider *Provider) StorageAt(ctx context.Context, contractAddress *felt.F
 func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	var nonce *felt.Felt
 	if err := do(ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
+
 	return nonce, nil
 }
 
@@ -146,16 +147,23 @@ func (provider *Provider) Nonce(ctx context.Context, blockID BlockID, contractAd
 //   - ctx: The context of the function call
 //   - requests: A sequence of transactions to estimate, running each transaction on the state resulting from applying all the previous ones
 //   - simulationFlags: Describes what parts of the transaction should be executed
-//   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on
+//   - blockID: The hash of the requested block, or number (height) of the requested block, or a block tag, for
+//     the block referencing the state or call the transaction on.
 //
 // Returns:
 //   - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
 //   - error: An error if any occurred during the execution
-func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error) {
+func (provider *Provider) EstimateFee(
+	ctx context.Context,
+	requests []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+	blockID BlockID,
+) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
+
 	return raw, nil
 }
 
@@ -172,9 +180,9 @@ func (provider *Provider) EstimateFee(ctx context.Context, requests []BroadcastT
 func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error) {
 	var raw FeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
-
 		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
 	}
+
 	return &raw, nil
 }
 
@@ -187,9 +195,10 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 // Returns:
 //   - *StorageProofResult: The requested storage proofs. Note that if a requested leaf has the default value,
-//
-// the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
+//     the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
 //   - error: an error if any occurred during the execution
+//
+//nolint:gocritic
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
 	err := checkForPending(storageProofInput.BlockID)
 	if err != nil {
@@ -200,5 +209,6 @@ func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput
 	if err := doAsObject(ctx, provider.c, "starknet_getStorageProof", &raw, storageProofInput); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
 	}
+
 	return &raw, nil
 }

@@ -7,11 +7,10 @@ import (
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/curve"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/typedData"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
@@ -21,7 +20,7 @@ func main() {
 	accnt := localSetup()
 	fmt.Println("Account address:", accnt.Address)
 
-	// This is how you can initialize a typed data from a JSON file
+	// This is how you can initialise a typed data from a JSON file
 	ttd, err := utils.UnmarshalJSONFileToType[typedData.TypedData]("./baseExample.json", "")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
@@ -54,13 +53,13 @@ func localSetup() *account.Account {
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
 
-	// Initialize the account memkeyStore (set public and private keys)
+	// Initialise the account memkeyStore (set public and private keys)
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -74,7 +73,7 @@ func localSetup() *account.Account {
 		fmt.Println("Failed to transform the account address, did you give the hex address?")
 		panic(err)
 	}
-	// Initialize the account
+	// Initialise the account
 	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)

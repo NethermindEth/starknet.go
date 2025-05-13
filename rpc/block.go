@@ -22,8 +22,10 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}
+
 		return 0, tryUnwrapToRPCErr(err)
 	}
+
 	return blockNumber, nil
 }
 
@@ -40,6 +42,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
 	}
+
 	return &block, nil
 }
 
@@ -51,6 +54,7 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
+	//nolint:exhaustruct
 	return BlockID{
 		Number: &n,
 	}
@@ -64,6 +68,7 @@ func WithBlockNumber(n uint64) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
+	//nolint:exhaustruct
 	return BlockID{
 		Hash: h,
 	}
@@ -77,8 +82,10 @@ func WithBlockHash(h *felt.Felt) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag string) BlockID {
+	// TODO: accept a BlockTag instead of a string
+	//nolint:exhaustruct
 	return BlockID{
-		Tag: tag,
+		Tag: BlockTag(tag),
 	}
 }
 
@@ -91,6 +98,8 @@ func WithBlockTag(tag string) BlockID {
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
+//
+//nolint:dupl
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
@@ -98,13 +107,14 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 	}
 
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.Hash == nil {
+	if result.Hash == nil {
 		return &PendingBlockTxHashes{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
+				L2GasPrice:       result.L2GasPrice,
 				StarknetVersion:  result.StarknetVersion,
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,
@@ -131,6 +141,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
+
 	return &state, nil
 }
 
@@ -148,6 +159,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		return 0, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
+
 	return result, nil
 }
 
@@ -160,19 +172,22 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
+//
+//nolint:dupl
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pending block
-	if result.BlockHeader.Hash == nil {
+	if result.Hash == nil {
 		return &PendingBlock{
 			PendingBlockHeader{
 				ParentHash:       result.ParentHash,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
+				L2GasPrice:       result.L2GasPrice,
 				StarknetVersion:  result.StarknetVersion,
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,
@@ -180,6 +195,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 			result.Transactions,
 		}, nil
 	}
+
 	return &result, nil
 }
 
@@ -201,13 +217,14 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 		if err := json.Unmarshal(result, &block); err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &block, nil
 	} else {
 		var pendingBlock PendingBlockWithReceipts
 		if err := json.Unmarshal(result, &pendingBlock); err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
+
 		return &pendingBlock, nil
 	}
-
 }

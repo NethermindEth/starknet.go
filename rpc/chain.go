@@ -23,16 +23,17 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 		return "", tryUnwrapToRPCErr(err)
 	}
 	provider.chainID = internalUtils.HexToShortStr(result)
+
 	return provider.chainID, nil
 }
 
-// Syncing retrieves the synchronization status of the provider.
+// Syncing retrieves the synchronisation status of the provider.
 //
 // Parameters:
 //   - ctx: The context.Context object for the function
 //
 // Returns:
-//   - *SyncStatus: The synchronization status
+//   - *SyncStatus: The synchronisation status
 //   - error: An error if any occurred during the execution
 func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	var result interface{}
@@ -42,11 +43,10 @@ func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
 	}
 	switch res := result.(type) {
 	case bool:
-		return &SyncStatus{SyncStatus: &res}, nil
+		return &SyncStatus{SyncStatus: &res}, nil //nolint:exhaustruct
 	case SyncStatus:
 		return &res, nil
 	default:
 		return nil, Err(InternalError, StringErrData("internal error with starknet_syncing"))
 	}
-
 }
