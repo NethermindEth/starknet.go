@@ -172,6 +172,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
 
+	temp := broadcastInvokeTxnV3.InvokeTxnV3.Version
 	if withQueryBitVersion {
 		broadcastInvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
@@ -191,6 +192,21 @@ func (account *Account) BuildAndSendInvokeTxn(
 	if err != nil {
 		return nil, err
 	}
+
+	if withQueryBitVersion {
+		broadcastInvokeTxnV3.InvokeTxnV3.Version = temp
+	}
+
+	data, err := json.Marshal(estimateFee[0])
+	if err != nil {
+		println("error route")
+		println(data)
+		println(err)
+	} else {
+		println("success route")
+		println(string(data))
+	}
+
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
 
