@@ -56,8 +56,7 @@ func main() {
 		pub,
 		classHash,
 		[]*felt.Felt{pub},
-		1.5,
-		false,
+		&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"},
 	)
 	if err != nil {
 		panic(err)

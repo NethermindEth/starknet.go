@@ -3,8 +3,8 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -13,12 +13,49 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
+const maxU64 uint64 = 0xFFFFFFFFFFFFFFFF
+
 var (
-	maxUint64                 uint64 = math.MaxUint64
-	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
-	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
-	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
+	maxUint128                = "0xffffffffffffffffffffffffffffffff"
+	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
+
+// TransactionOptions holds options for building transactions
+// Multiplier: safety factor for fee estimation
+// WithQueryBitVersion: whether to use the query bit version
+// Tip: tip amount for the transaction
+type TransactionOptions struct {
+	Multiplier          float64
+	WithQueryBitVersion bool
+	Tip                 rpc.U64
+}
+
+// validate sets defaults and checks for edge cases
+func (opts *TransactionOptions) validate() {
+	opts.validateMultiplier()
+	opts.validateTip()
+}
+
+func (opts *TransactionOptions) validateMultiplier() {
+	if opts.Multiplier <= 0 {
+		opts.Multiplier = 1.5
+	}
+}
+
+func (opts *TransactionOptions) validateTip() {
+	if opts.Tip == "" {
+		opts.Tip = "0x0"
+	}
+	if !strings.HasPrefix(string(opts.Tip), "0x") {
+		opts.Tip = "0x0"
+	}
+	if val, err := opts.Tip.ToUint64(); err != nil {
+		opts.Tip = "0x0"
+	} else if val > maxU64 {
+		opts.Tip = "0xFFFFFFFFFFFFFFFF" // max U64
+	}
+}
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
@@ -32,16 +69,20 @@ var (
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TransactionOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
+	opts.validate()
+
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
@@ -50,7 +91,7 @@ func BuildInvokeTxn(
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   opts.Tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -73,17 +114,21 @@ func BuildInvokeTxn(
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TransactionOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
+	opts.validate()
+
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
 		return nil, err
@@ -98,7 +143,7 @@ func BuildDeclareTxn(
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   opts.Tip,
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -121,17 +166,21 @@ func BuildDeclareTxn(
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: TransactionOptions pointer for tip, multiplier, etc.
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeployAccountTxn(
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TransactionOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
+	opts.validate()
+
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             rpc.TransactionV3,
@@ -141,7 +190,7 @@ func BuildDeployAccountTxn(
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 "0x0",
+		Tip:                 opts.Tip,
 		PayMasterData:       []*felt.Felt{},
 		NonceDataMode:       rpc.DAModeL1,
 		FeeMode:             rpc.DAModeL1,
@@ -223,7 +272,7 @@ func toResourceBounds(
 	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
 
 	// Check for overflow
-	maxUint64 := new(big.Int).SetUint64(maxUint64)
+	maxUint64 := new(big.Int).SetUint64(maxU64)
 	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
 	// max_price_per_unit is U128 by the spec
 	if gasPriceInt.Cmp(maxUint128) > 0 {
