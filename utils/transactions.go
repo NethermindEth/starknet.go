@@ -3,7 +3,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/big"
 	"strings"
 
@@ -14,18 +13,18 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
+const maxU64 uint64 = 0xFFFFFFFFFFFFFFFF
+
 var (
-	maxUint64                 uint64 = math.MaxUint64
-	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
-	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
-	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
+	maxUint128                = "0xffffffffffffffffffffffffffffffff"
+	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
 // TransactionOptions holds options for building transactions
 // Multiplier: safety factor for fee estimation
 // WithQueryBitVersion: whether to use the query bit version
 // Tip: tip amount for the transaction
-//
 type TransactionOptions struct {
 	Multiplier          float64
 	WithQueryBitVersion bool
@@ -53,7 +52,7 @@ func (opts *TransactionOptions) validateTip() {
 	}
 	if val, err := opts.Tip.ToUint64(); err != nil {
 		opts.Tip = "0x0"
-	} else if val > 0xFFFFFFFFFFFFFFFF {
+	} else if val > maxU64 {
 		opts.Tip = "0xFFFFFFFFFFFFFFFF" // max U64
 	}
 }
@@ -273,7 +272,7 @@ func toResourceBounds(
 	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
 
 	// Check for overflow
-	maxUint64 := new(big.Int).SetUint64(maxUint64)
+	maxUint64 := new(big.Int).SetUint64(maxU64)
 	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
 	// max_price_per_unit is U128 by the spec
 	if gasPriceInt.Cmp(maxUint128) > 0 {

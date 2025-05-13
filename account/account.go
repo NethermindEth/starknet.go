@@ -22,9 +22,24 @@ var (
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
-	BuildAndEstimateDeployAccountTxn(ctx context.Context, salt *felt.Felt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *utils.TransactionOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
-	BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *utils.TransactionOptions) (*rpc.AddInvokeTransactionResponse, error)
-	BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *utils.TransactionOptions) (*rpc.AddDeclareTransactionResponse, error)
+	BuildAndEstimateDeployAccountTxn(
+		ctx context.Context,
+		salt *felt.Felt,
+		classHash *felt.Felt,
+		constructorCalldata []*felt.Felt,
+		opts *utils.TransactionOptions,
+	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	BuildAndSendInvokeTxn(
+		ctx context.Context,
+		functionCalls []rpc.InvokeFunctionCall,
+		opts *utils.TransactionOptions,
+	) (*rpc.AddInvokeTransactionResponse, error)
+	BuildAndSendDeclareTxn(
+		ctx context.Context,
+		casmClass *contracts.CasmClass,
+		contractClass *contracts.ContractClass,
+		opts *utils.TransactionOptions,
+	) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -134,7 +149,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	opts *utils.TransactionOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	if opts == nil {
-		opts = &utils.TransactionOptions{}
+		opts = &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"}
 	}
 
 	nonce, err := account.Nonce(ctx)
@@ -203,7 +218,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	opts *utils.TransactionOptions,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	if opts == nil {
-		opts = &utils.TransactionOptions{}
+		opts = &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"}
 	}
 
 	nonce, err := account.Nonce(ctx)
@@ -211,7 +226,14 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
-	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(account.Address, casmClass, contractClass, nonce, makeResourceBoundsMapWithZeroValues(), opts)
+	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
+		account.Address,
+		casmClass,
+		contractClass,
+		nonce,
+		makeResourceBoundsMapWithZeroValues(),
+		opts,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +247,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
-	estimateFee, err := account.Provider.EstimateFee(ctx, []rpc.BroadcastTxn{broadcastDeclareTxnV3}, []rpc.SimulationFlag{}, rpc.WithBlockTag("pending"))
+	estimateFee, err := account.Provider.EstimateFee(
+		ctx,
+		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
+		[]rpc.SimulationFlag{},
+		rpc.WithBlockTag("pending"),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +280,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - salt: A value used to randomize the deployed contract address
+//   - salt: A value used to randomise the deployed contract address
 //   - classHash: The hash of the contract class to deploy
 //   - constructorCalldata: The parameters for the constructor function
 //   - opts: TransactionOptions containing options for building the transaction
@@ -270,10 +297,17 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	opts *utils.TransactionOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
-		opts = &utils.TransactionOptions{}
+		opts = &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"}
 	}
 
-	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(&felt.Zero, salt, constructorCalldata, classHash, makeResourceBoundsMapWithZeroValues(), opts)
+	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
+		&felt.Zero,
+		salt,
+		constructorCalldata,
+		classHash,
+		makeResourceBoundsMapWithZeroValues(),
+		opts,
+	)
 
 	if opts.WithQueryBitVersion {
 		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit

@@ -1338,7 +1338,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	resp, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		&casmClass,
+		&class,
+		&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+	)
 	if err != nil {
 		require.EqualError(
 			t,
@@ -1560,7 +1565,12 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 		// Build and send declare txn
-		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
+		_, err := acnt.BuildAndSendDeclareTxn(
+			context.Background(),
+			&casmClass,
+			&class,
+			&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+		)
 		require.Error(t, err)
 		// assert that the transaction contains the query bit version
 		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
