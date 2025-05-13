@@ -36,6 +36,9 @@ func (p *WsProvider) Close() {
 
 // NewProvider creates a new HTTP rpc Provider instance.
 func NewProvider(url string, options ...client.ClientOption) (*Provider, error) {
+	if true {
+		println("Using modified go")
+	}
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
