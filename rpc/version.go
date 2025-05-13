@@ -14,3 +14,7 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 
 	return result, nil
 }
+
+// RPCVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
+// This should be updated when supporting new versions of the RPC specification.
+const RPCVersion = "0.8.1"

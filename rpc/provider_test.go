@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -109,6 +110,33 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 func TestCookieManagement(t *testing.T) {
 	// Don't return anything unless cookie is set.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle version check request
+		if r.Method == http.MethodPost {
+			var request map[string]interface{}
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+
+				fmt.Println("Error decoding request body:", err)
+
+				return
+			}
+
+			// Check if this is a version request
+			if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+				data := map[string]interface{}{
+					"jsonrpc": "2.0",
+					"id":      request["id"],
+					"result":  "0.8.0",
+				}
+				if err := json.NewEncoder(w).Encode(data); err != nil {
+					log.Fatal(err)
+				}
+
+				return
+			}
+		}
+
+		// Handle cookie management
 		if _, err := r.Cookie("session_id"); err == http.ErrNoCookie {
 			http.SetCookie(w, &http.Cookie{
 				Name:  "session_id",
