@@ -135,7 +135,6 @@ export const sidebar: Sidebar = {
             collapsed: true,
             items: [
                 { text: 'Overview', link: '/docs/abi/' },
-                { text: 'ABI Types', link: '/docs/abi/types' },
                 { text: 'ABI Encoding', link: '/docs/abi/encoding' },
                 { text: 'ABI Decoding', link: '/docs/abi/decoding' },
 
