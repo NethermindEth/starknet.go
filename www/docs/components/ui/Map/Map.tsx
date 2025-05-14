@@ -96,7 +96,7 @@ export const Map = () => {
         id="visualization-title"
         className="mt-6 max-w-[700px] text-center text-2xl font-semibold tracking-tight text-balance text-white md:text-5xl"
       >
-        Real-time Monitoring & Analysis for Starknet
+         Starknet Analytics & Real-time Monitoring
       </h2>
       <p className="mt-4 max-w-2xl text-center text-base text-balance text-gray-400 sm:mt-8 sm:text-xl">
         Comprehensive visibility into your Starknet nodes, transactions, and network performance with powerful Go-native tools that deliver insights even at massive blockchain scale.
