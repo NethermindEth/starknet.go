@@ -1539,11 +1539,111 @@ func TestBraavosAccountWarning(t *testing.T) {
 // This function tests these methods when called with the 'hasQueryBitVersion' parameter set to true, assuming that
 // the transaction indeed has the version with the query bit.
 func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
-	if testEnv != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
-	client, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	// Class
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+	// Casm Class
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+
+	t.Run("on mock - all BuildAndSend... methods", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		mockRpcProvider := mocks.NewMockRpcProvider(ctrl)
+
+		mockRpcProvider.EXPECT().Nonce(gomock.Any(), gomock.Any(), gomock.Any()).Return(new(felt.Felt).SetUint64(1), nil).Times(2)
+
+		ks, pub, _ := account.GetRandomKeys()
+		// called when instantiating the account
+		mockRpcProvider.EXPECT().ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil).Times(1)
+		mockRpcProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+		acnt, err := account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, pub.String(), ks, 2)
+		require.NoError(t, err)
+
+		// setting the expected behavior for each call to EstimateFee,
+		// asserting if the passed txn has the query bit version
+		mockRpcProvider.EXPECT().EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+			func(_, request, _, _ any) ([]rpc.FeeEstimation, error) {
+				reqArr, ok := request.([]rpc.BroadcastTxn)
+				require.True(t, ok)
+				txn, ok := reqArr[0].(rpc.Transaction)
+				require.True(t, ok)
+
+				// assert that the transaction being estimated has the query bit version
+				assert.Equal(t, txn.GetVersion(), rpc.TransactionV3WithQueryBit)
+
+				return []rpc.FeeEstimation{
+					{
+						L1GasPrice:        new(felt.Felt).SetUint64(10),
+						L1GasConsumed:     new(felt.Felt).SetUint64(100),
+						L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+						L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+						L2GasPrice:        new(felt.Felt).SetUint64(3),
+						L2GasConsumed:     new(felt.Felt).SetUint64(200),
+					},
+				}, nil
+			},
+		).Times(3)
+
+		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
+			mockRpcProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(_, txn any) (*rpc.AddInvokeTransactionResponse, error) {
+					bcTxn, ok := txn.(*rpc.BroadcastInvokeTxnV3)
+					require.True(t, ok)
+
+					// assert that the transaction being added does NOT have the query bit version
+					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
+
+					return &rpc.AddInvokeTransactionResponse{}, nil
+				},
+			)
+			// Build and send invoke txn
+			_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+				{
+					ContractAddress: internalUtils.RANDOM_FELT,
+					FunctionName:    "transfer",
+				},
+			}, 1.5, true)
+			require.NoError(t, err)
+		})
+
+		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
+			mockRpcProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(_, txn any) (*rpc.AddDeclareTransactionResponse, error) {
+					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
+					require.True(t, ok)
+
+					// assert that the transaction being added does NOT have the query bit version
+					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
+
+					return &rpc.AddDeclareTransactionResponse{}, nil
+				},
+			)
+			// Build and send declare txn
+			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			require.NoError(t, err)
+		})
+
+		t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
+			txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
+				context.Background(),
+				pub,
+				internalUtils.RANDOM_FELT,
+				[]*felt.Felt{pub},
+				1.5,
+				true,
+			)
+			require.NoError(t, err)
+
+			// assert the returned transaction does NOT have the query bit version
+			assert.Equal(t, txn.Version, rpc.TransactionV3)
+		})
+	})
+
+	t.Run("on devnet", func(t *testing.T) {
+		if testEnv != "devnet" {
+			t.Skip("Skipping test as it requires a devnet environment")
+		}
+		client, err := rpc.NewProvider(base)
+		require.NoError(t, err, "Error in rpc.NewClient")
 
 	_, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
