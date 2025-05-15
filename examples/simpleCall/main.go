@@ -7,10 +7,9 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 var (
@@ -21,7 +20,7 @@ var (
 
 // main entry point of the program.
 //
-// It initializes the environment and establishes a connection with the client.
+// It initialises the environment and establishes a connection with the client.
 // It then makes two contract calls and prints the responses.
 func main() {
 	fmt.Println("Starting simpleCall example")
@@ -30,10 +29,10 @@ func main() {
 	rpcProviderUrl := setup.GetRpcProviderUrl()
 	accountAddress := setup.GetAccountAddress()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
 
 	fmt.Println("Established connection with the client")
@@ -56,7 +55,7 @@ func main() {
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
 	}
-	decimalsResp, rpcErr := client.Call(context.Background(), getDecimalsTx, rpc.BlockID{Tag: "latest"})
+	decimalsResp, rpcErr := client.Call(context.Background(), getDecimalsTx, rpc.WithBlockTag("latest"))
 	if rpcErr != nil {
 		panic(rpcErr)
 	}
@@ -69,7 +68,7 @@ func main() {
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethodWithCalldata),
 		Calldata:           []*felt.Felt{accountAddressInFelt},
 	}
-	balanceResp, rpcErr := client.Call(context.Background(), tx, rpc.BlockID{Tag: "latest"})
+	balanceResp, rpcErr := client.Call(context.Background(), tx, rpc.WithBlockTag("latest"))
 	if rpcErr != nil {
 		panic(rpcErr)
 	}

@@ -1,7 +1,7 @@
 package typedData
 
 import (
-	"fmt"
+	"errors"
 	"slices"
 	"strings"
 
@@ -14,15 +14,17 @@ var (
 	revision_0_basic_types []string = []string{
 		"felt",
 		"bool",
-		"string", //up to 31 ASCII characters
+		"string", // up to 31 ASCII characters
 		"selector",
 		"merkletree",
 	}
 
-	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string" represents an
-	// arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit, use the new type "shortstring" instead.
+	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string"
+	// represents an arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit,
+	// use the new type "shortstring" instead.
 	//
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
+	// There is also an array version of each type. The array is defined like this:
+	// 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
 	revision_1_basic_types []string = []string{
 		"enum",
 		"u128",
@@ -41,9 +43,12 @@ var (
 	}
 )
 
-var RevisionV0 revision
-var RevisionV1 revision
+var (
+	RevisionV0 revision
+	RevisionV1 revision
+)
 
+//nolint:gochecknoinits
 func init() {
 	presetMap := make(map[string]TypeDefinition)
 
@@ -97,7 +102,7 @@ func (rev *revision) HashMethod(felts ...*felt.Felt) *felt.Felt {
 	return rev.hashMethod(felts...)
 }
 
-func (rev *revision) HashMerkleMethod(a *felt.Felt, b *felt.Felt) *felt.Felt {
+func (rev *revision) HashMerkleMethod(a, b *felt.Felt) *felt.Felt {
 	var first, second *felt.Felt
 	if a.Cmp(b) > 0 {
 		first = b
@@ -106,6 +111,7 @@ func (rev *revision) HashMerkleMethod(a *felt.Felt, b *felt.Felt) *felt.Felt {
 		first = a
 		second = b
 	}
+
 	return rev.hashMerkleMethod(first, second)
 }
 
@@ -120,7 +126,7 @@ func GetRevision(version uint8) (rev *revision, err error) {
 	case 1:
 		return &RevisionV1, nil
 	default:
-		return rev, fmt.Errorf("invalid revision version")
+		return rev, errors.New("invalid revision version")
 	}
 }
 
@@ -132,52 +138,58 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 	presetTypes := []TypeDefinition{
 		{
 			Name:               "NftId",
-			Enconding:          NftIdEnc,
+			Encoding:           NftIdEnc,
 			EncoddingString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
 				{
-					Name: "collection_address",
-					Type: "ContractAddress",
+					Name:     "collection_address",
+					Type:     "ContractAddress",
+					Contains: "",
 				},
 				{
-					Name: "token_id",
-					Type: "u256",
+					Name:     "token_id",
+					Type:     "u256",
+					Contains: "",
 				},
 			},
 		},
 		{
 			Name:               "TokenAmount",
-			Enconding:          TokenAmountEnc,
+			Encoding:           TokenAmountEnc,
 			EncoddingString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
 				{
-					Name: "token_address",
-					Type: "ContractAddress",
+					Name:     "token_address",
+					Type:     "ContractAddress",
+					Contains: "",
 				},
 				{
-					Name: "amount",
-					Type: "u256",
+					Name:     "amount",
+					Type:     "u256",
+					Contains: "",
 				},
 			},
 		},
 		{
 			Name:               "u256",
-			Enconding:          u256dEnc,
+			Encoding:           u256dEnc,
 			EncoddingString:    `"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"u256"("low":"u128","high":"u128")`,
 			ReferencedTypesEnc: []string{},
 			Parameters: []TypeParameter{
 				{
-					Name: "low",
-					Type: "u128",
+					Name:     "low",
+					Type:     "u128",
+					Contains: "",
 				},
 				{
-					Name: "high",
-					Type: "u128",
+					Name:     "high",
+					Type:     "u128",
+					Contains: "",
 				},
 			},
 		},

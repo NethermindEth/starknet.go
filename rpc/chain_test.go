@@ -11,13 +11,14 @@ import (
 
 // TestChainID is a function that tests the ChainID function in the Go test file.
 //
-// The function initializes a test configuration and defines a test set with different chain IDs for different environments.
+// The function initialises a test configuration and defines a test set with different chain IDs for different environments.
 // It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
 // The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
 // If there is a mismatch or an error occurs, the function logs a fatal error.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -43,15 +44,16 @@ func TestChainID(t *testing.T) {
 
 // TestSyncing is a test function that tests the syncing functionality of the provider.
 //
-// It checks the synchronization status and verifies the values returned by the provider.
+// It checks the synchronisation status and verifies the values returned by the provider.
 // The test is performed for different test environments, such as devnet, mainnet, mock, and testnet.
-// For each test environment, it retrieves the synchronization status from the provider and performs the necessary assertions.
+// For each test environment, it retrieves the synchronisation status from the provider and performs the necessary assertions.
 // If the test environment is "mock", it verifies that the returned values match the expected values.
-// Otherwise, it checks that the synchronization status is false and verifies the values returned by the provider.
+// Otherwise, it checks that the synchronisation status is false and verifies the values returned by the provider.
 // The function uses the testing.T type for assertions and the context.Background() function for the context.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -88,7 +90,11 @@ func TestSyncing(t *testing.T) {
 		}
 
 		if sync.SyncStatus == nil {
-			require.True(t, strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"), "current block hash should return a string starting with 0x")
+			require.True(
+				t,
+				strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"),
+				"current block hash should return a string starting with 0x",
+			)
 			require.NotZero(t, sync.StartingBlockHash)
 			require.NotZero(t, sync.StartingBlockNum)
 			require.NotZero(t, sync.CurrentBlockHash)
@@ -104,6 +110,5 @@ func TestSyncing(t *testing.T) {
 			require.Zero(t, sync.HighestBlockHash)
 			require.Zero(t, sync.HighestBlockNum)
 		}
-
 	}
 }

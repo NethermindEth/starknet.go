@@ -3,6 +3,7 @@ package account_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -45,7 +46,8 @@ var (
 // Finally, it exits with the return value of the test suite
 //
 // Parameters:
-// - m: is the test main
+//   - m: is the test main
+//
 // Returns:
 //
 //	none
@@ -74,7 +76,7 @@ func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) 
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privKey, 0)
 	if !ok {
-		return nil, fmt.Errorf("failed to convert privKey to big.Int")
+		return nil, errors.New("failed to convert privKey to big.Int")
 	}
 	ks.Put(pubKey, privKeyBI)
 
@@ -87,6 +89,7 @@ func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
+
 	return acc, nil
 }
 
@@ -197,7 +200,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var acc *account.Account
 			var err error
 			if testEnv == "testnet" {
-				client, err := rpc.NewProvider(base)
+				var client *rpc.Provider
+				client, err = rpc.NewProvider(base)
 				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
@@ -205,7 +209,9 @@ func TestTransactionHashInvoke(t *testing.T) {
 			if testEnv == "mock" {
 				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-				mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
+				mockRpcProvider.EXPECT().
+					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+					Return(internalUtils.RANDOM_FELT, nil)
 				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
@@ -225,7 +231,6 @@ func TestTransactionHashInvoke(t *testing.T) {
 			assert.Equal(t, hashResp, hash2)
 		})
 	}
-
 }
 
 // TestFmtCallData tests the FmtCallData function.
@@ -234,7 +239,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 // and comparing the output with the expected call data.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -296,7 +302,8 @@ func TestFmtCallData(t *testing.T) {
 		var acc *account.Account
 		var err error
 		if testEnv == "testnet" {
-			client, err := rpc.NewProvider(base)
+			var client *rpc.Provider
+			client, err = rpc.NewProvider(base)
 			require.NoError(t, err, "Error in rpc.NewClient")
 			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 			require.NoError(t, err)
@@ -313,17 +320,18 @@ func TestFmtCallData(t *testing.T) {
 	}
 }
 
-// TestChainIdMOCK is a test function that tests the behavior of the ChainId function.
+// TestChainIdMOCK is a test function that tests the behaviour of the ChainId function.
 //
 // It creates a mock controller and a mock RpcProvider. It defines a test set
 // consisting of different ChainID and ExpectedID pairs. It then iterates over
-// the test set and sets the expected behavior for the ChainID method of the
+// the test set and sets the expected behaviour for the ChainID method of the
 // mockRpcProvider. It creates a new account using the mockRpcProvider,
 // Zero value, "pubkey", and a new in-memory keystore. It asserts that the
 // account's ChainId matches the expected ID for each test case in the test set.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -355,9 +363,9 @@ func TestChainIdMOCK(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		account, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
-		require.Equal(t, test.ExpectedID, account.ChainId.String())
+		require.Equal(t, test.ExpectedID, acc.ChainId.String())
 	}
 }
 
@@ -368,7 +376,8 @@ func TestChainIdMOCK(t *testing.T) {
 // It checks if the ChainId function returns the correct ChainID and ExpectedID values
 // for different test environments.
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Return:
 //
 //	none
@@ -393,11 +402,10 @@ func TestChainId(t *testing.T) {
 		client, err := rpc.NewProvider(base)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		account, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
-		require.Equal(t, account.ChainId.String(), test.ExpectedID)
+		require.Equal(t, acc.ChainId.String(), test.ExpectedID)
 	}
-
 }
 
 // TestSignMOCK is a test function that tests the Sign method of the Account struct using mock objects.
@@ -405,15 +413,16 @@ func TestChainId(t *testing.T) {
 // It sets up a mock controller and a mock RPC provider, and defines a test set containing different scenarios.
 // Each scenario includes an address, private key, chain ID, a felt to sign, and the expected signatures.
 // The function iterates over the test set and performs the following steps for each test case:
-// - Converts the private key to a big.Int object and stores it in a memory keystore.
-// - Mocks the ChainID method of the RPC provider to return the specified chain ID.
-// - Creates an account using the mock RPC provider, the test address, the address string, and the keystore.
-// - Converts the felt to sign to a big.Int object.
-// - Calls the Sign method of the account with the felt to sign and retrieves the signature.
-// - Verifies that the obtained signature matches the expected signature.
+//   - Converts the private key to a big.Int object and stores it in a memory keystore.
+//   - Mocks the ChainID method of the RPC provider to return the specified chain ID.
+//   - Creates an account using the mock RPC provider, the test address, the address string, and the keystore.
+//   - Converts the felt to sign to a big.Int object.
+//   - Calls the Sign method of the account with the felt to sign and retrieves the signature.
+//   - Verifies that the obtained signature matches the expected signature.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -456,25 +465,25 @@ func TestSignMOCK(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainId, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		account, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
+		acc, err := account.NewAccount(mockRpcProvider, test.Address, test.Address.String(), ks, 0)
 		require.NoError(t, err, "error returned from account.NewAccount()")
 
-		sig, err := account.Sign(context.Background(), test.FeltToSign)
+		sig, err := acc.Sign(context.Background(), test.FeltToSign)
 
 		require.NoError(t, err, "error returned from account.Sign()")
 		require.Equal(t, test.ExpectedSig[0].String(), sig[0].String(), "s1 does not match expected")
 		require.Equal(t, test.ExpectedSig[1].String(), sig[1].String(), "s2 does not match expected")
 	}
-
 }
 
-// TestAddInvoke is a test function that verifies the behavior of the AddInvokeTransaction method.
+// TestAddInvoke is a test function that verifies the behaviour of the AddInvokeTransaction method.
 //
 // This function tests the AddInvokeTransaction method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -501,43 +510,41 @@ func TestSendInvokeTxn(t *testing.T) {
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.BroadcastInvokeTxnV3{
-					InvokeTxnV3: rpc.InvokeTxnV3{
-						Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-						Type:    rpc.TransactionType_Invoke,
-						Version: rpc.TransactionV3,
-						Signature: []*felt.Felt{
-							internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
-							internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
-						},
-						ResourceBounds: rpc.ResourceBoundsMapping{
-							L1Gas: rpc.ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x4305031628668",
-							},
-							L1DataGas: rpc.ResourceBounds{
-								MaxAmount:       "0x210",
-								MaxPricePerUnit: "0x948",
-							},
-							L2Gas: rpc.ResourceBounds{
-								MaxAmount:       "0x15cde0",
-								MaxPricePerUnit: "0x18955dc56",
-							},
-						},
-						Tip:                   "0x0",
-						PayMasterData:         []*felt.Felt{},
-						AccountDeploymentData: []*felt.Felt{},
-						SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
-						Calldata: internalUtils.TestHexArrToFelt(t, []string{
-							"0x1",
-							"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
-							"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-							"0x2",
-							"0xffffffff",
-							"0x0",
-						}),
-						NonceDataMode: rpc.DAModeL1,
-						FeeMode:       rpc.DAModeL1,
+					Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
+					Type:    rpc.TransactionType_Invoke,
+					Version: rpc.TransactionV3,
+					Signature: []*felt.Felt{
+						internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
+						internalUtils.TestHexToFelt(t, "0x588b821ccb9f61ca217bfb0a580f889886742c2fd63526009eb401a9cf951e3"),
 					},
+					ResourceBounds: &rpc.ResourceBoundsMapping{
+						L1Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x0",
+							MaxPricePerUnit: "0x4305031628668",
+						},
+						L1DataGas: rpc.ResourceBounds{
+							MaxAmount:       "0x210",
+							MaxPricePerUnit: "0x948",
+						},
+						L2Gas: rpc.ResourceBounds{
+							MaxAmount:       "0x15cde0",
+							MaxPricePerUnit: "0x18955dc56",
+						},
+					},
+					Tip:                   "0x0",
+					PayMasterData:         []*felt.Felt{},
+					AccountDeploymentData: []*felt.Felt{},
+					SenderAddress:         internalUtils.TestHexToFelt(t, "0x1ae6fe02fcd9f61a3a8c30d68a8a7c470b0d7dd6f0ee685d5bbfa0d79406ff9"),
+					Calldata: internalUtils.TestHexArrToFelt(t, []string{
+						"0x1",
+						"0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+						"0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"0x2",
+						"0xffffffff",
+						"0x0",
+					}),
+					NonceDataMode: rpc.DAModeL1,
+					FeeMode:       rpc.DAModeL1,
 				},
 			},
 		},
@@ -559,7 +566,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 2)
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx.InvokeTxnV3)
+		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
 		require.NoError(t, err)
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
@@ -567,11 +574,10 @@ func TestSendInvokeTxn(t *testing.T) {
 			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
 		}
-
 	}
 }
 
-// TestAddDeclareTxn is a test function that verifies the behavior of the AddDeclareTransaction method.
+// TestAddDeclareTxn is a test function that verifies the behaviour of the AddDeclareTransaction method.
 //
 // This function tests the AddDeclareTransaction method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
@@ -623,7 +629,7 @@ func TestSendDeclareTxn(t *testing.T) {
 		},
 		Nonce:         internalUtils.TestHexToFelt(t, "0xe"),
 		ContractClass: &class,
-		ResourceBounds: rpc.ResourceBoundsMapping{
+		ResourceBounds: &rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x1597b3274d88",
@@ -652,14 +658,14 @@ func TestSendDeclareTxn(t *testing.T) {
 	if err != nil {
 		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
 	} else {
-		require.Equal(t, expectedTxHash.String(), resp.TransactionHash.String(), "AddDeclareTransaction TxHash not what expected")
+		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
 	}
 }
 
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
 //
-// The test checks if the environment is set to "devnet" and skips the test if not. It then initializes a new RPC client
+// The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
 // and provider using the base URL. After that, it sets up a devnet environment and creates a fake user account. The
 // fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
 // and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
@@ -681,22 +687,17 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	client, err := rpc.NewProvider(base)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
-	devnet, acnts, err := newDevnet(t, base)
+	devnetClient, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
+
 	fakeUser := acnts[0]
-	fakeUserAddr := internalUtils.TestHexToFelt(t, fakeUser.Address)
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
+	acnt := newDevnetAccount(t, client, fakeUser, 2)
 
-	// Set up ks
-	ks := account.NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(fakeUser.PrivateKey, 0)
-	require.True(t, ok)
-	ks.Put(fakeUser.PublicKey, fakePrivKeyBI)
-
-	acnt, err := account.NewAccount(client, fakeUserAddr, fakeUser.PublicKey, ks, 0)
-	require.NoError(t, err)
-
-	classHash := internalUtils.TestHexToFelt(t, "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f") // preDeployed classhash
+	classHash := internalUtils.TestHexToFelt(
+		t,
+		"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+	) // preDeployed classhash
 	require.NoError(t, err)
 
 	tx := rpc.DeployAccountTxnV3{
@@ -707,17 +708,17 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 		ClassHash:           classHash,
-		ResourceBounds: rpc.ResourceBoundsMapping{
+		ResourceBounds: &rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       "0x0",
+				MaxAmount:       "0x997c",
 				MaxPricePerUnit: "0x1597b3274d88",
 			},
 			L1DataGas: rpc.ResourceBounds{
-				MaxAmount:       "0x210",
-				MaxPricePerUnit: "0x997c",
+				MaxAmount:       "0x2230",
+				MaxPricePerUnit: "0x9924327c",
 			},
 			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       "0x1115cde0",
+				MaxAmount:       "0x15cde0",
 				MaxPricePerUnit: "0x11920d1317",
 			},
 		},
@@ -730,13 +731,14 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	precomputedAddress := account.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
 	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
 
-	_, err = devnet.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
+	_, err = devnetClient.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
 	resp, err := acnt.SendTransaction(context.Background(), tx)
 	if err != nil {
 		// TODO: remove this once devnet supports full v3 transaction type
 		require.ErrorContains(t, err, "unsupported transaction type")
+
 		return
 	}
 	require.Nil(t, err, "AddDeployAccountTransaction gave an Error")
@@ -758,7 +760,8 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 // returned hash with the expected hash, ensuring they match.
 //
 // Parameters:
-// - t: reference to the testing.T object
+//   - t: reference to the testing.T object
+//
 // Returns:
 //
 //	none
@@ -797,7 +800,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 					Version: rpc.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
-						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
+						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf"),
+					},
 					SenderAddress:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
 					CompiledClassHash: internalUtils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
@@ -816,7 +820,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 						internalUtils.TestHexToFelt(t, "0x5c6a94302ef4b6d80a4c6a3eaf5ad30e11fa13aa78f7397a4f69901ceb12b7"),
 						internalUtils.TestHexToFelt(t, "0x25bf97f481061f8abf5eb93e67eaebe6bb74dda34d7378a506f5ee2ff1daef1"),
 					},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x10968159929e",
@@ -852,7 +856,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 					Version: rpc.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
-						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf")},
+						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf"),
+					},
 					SenderAddress:     internalUtils.TestHexToFelt(t, "0x0019bd7ebd72368deb5f160f784e21aa46cd09e06a61dc15212456b5597f47b8"),
 					CompiledClassHash: internalUtils.TestHexToFelt(t, "0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37"),
 					ClassHash:         internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
@@ -881,7 +886,6 @@ func TestTransactionHashDeclare(t *testing.T) {
 }
 
 func TestTransactionHashInvokeV3(t *testing.T) {
-
 	var acnt *account.Account
 	var err error
 	if testEnv == "mock" {
@@ -916,49 +920,9 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245"),
-						internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
-						L1Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x2d79883d20000",
-						},
-						L1DataGas: rpc.ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x2d79883d20000",
-						},
-						L2Gas: rpc.ResourceBounds{
-							MaxAmount:       "0x5f5e100",
-							MaxPricePerUnit: "0xba43b7400",
-						},
+						internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3"),
 					},
-					Tip:                   "0x0",
-					PayMasterData:         []*felt.Felt{},
-					AccountDeploymentData: []*felt.Felt{},
-					SenderAddress:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
-					Calldata: internalUtils.TestHexArrToFelt(t, []string{
-						"0x1",
-						"0x4138fd51f90d171df37e9d4419c8cdb67d525840c58f8a5c347be93a1c5277d",
-						"0x2468d193cd15b621b24c2a602b8dbcfa5eaa14f88416c40c09d7fd12592cb4b",
-						"0x0",
-					}),
-					NonceDataMode: rpc.DAModeL1,
-					FeeMode:       rpc.DAModeL1,
-				},
-				ExpectedHash: internalUtils.TestHexToFelt(t, "0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea"),
-				ExpectedErr:  nil,
-			},
-		},
-		"testnet": {
-			{
-				// https://sepolia.voyager.online/tx/0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea
-				Txn: rpc.InvokeTxnV3{
-					Nonce:   internalUtils.TestHexToFelt(t, "0x9803"),
-					Type:    rpc.TransactionType_Invoke,
-					Version: rpc.TransactionV3,
-					Signature: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245"),
-						internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x186a0",
 							MaxPricePerUnit: "0x2d79883d20000",
@@ -991,7 +955,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		},
 	}[testEnv]
 	for _, test := range testSet {
-		hashResp, err := acnt.TransactionHashInvoke(&test.Txn)
+		hashResp, err := acnt.TransactionHashInvoke(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
 		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
 
@@ -1002,7 +966,6 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 }
 
 func TestTransactionHashdeployAccount(t *testing.T) {
-
 	var acnt *account.Account
 	var err error
 	if testEnv == "mock" {
@@ -1032,7 +995,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		"mock": {
 			{
 				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
-				Txn: rpc.DeployAccountTxn{
+				Txn: rpc.DeployAccountTxnV1{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
 					Type:    rpc.TransactionType_DeployAccount,
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1d2109b99cf94"),
@@ -1059,8 +1022,9 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x3ef7f047c95592a04d4d754888dd8f125480a48dee23ee86c115d5da2a86573"),
-						internalUtils.TestHexToFelt(t, "0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7")},
-					ResourceBounds: rpc.ResourceBoundsMapping{
+						internalUtils.TestHexToFelt(t, "0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7"),
+					},
+					ResourceBounds: &rpc.ResourceBoundsMapping{
 						L1Gas: rpc.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x1597b3274d88",
@@ -1097,7 +1061,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
-		case rpc.DeployAccountTxn:
+		case rpc.DeployAccountTxnV1:
 			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
 		case rpc.DeployAccountTxnV3:
 			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
@@ -1116,7 +1080,8 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 // The function uses the testify package for assertions and the gomock package for creating mocks.
 //
 // Parameters:
-// - t: The testing.T object for test assertions and logging
+//   - t: The testing.T object for test assertions and logging
+//
 // Returns:
 //
 //	none
@@ -1172,20 +1137,21 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
-		defer cancel()
-		if test.ShouldCallTransactionReceipt {
-			mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
-		}
-		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
+			defer cancel()
+			if test.ShouldCallTransactionReceipt {
+				mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
+			}
+			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 
-		if test.ExpectedErr != nil {
-			require.Equal(t, test.ExpectedErr, err)
-		} else {
-			// check
-			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
-		}
-
+			if test.ExpectedErr != nil {
+				require.Equal(t, test.ExpectedErr, err)
+			} else {
+				// check
+				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
+			}
+		}()
 	}
 }
 
@@ -1206,7 +1172,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // It then cleans up the test environment.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -1238,35 +1205,68 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
-		defer cancel()
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+			defer cancel()
 
-		resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
-		if test.ExpectedErr != nil {
-			rpcErr, ok := err.(*rpc.RPCError)
-			require.True(t, ok)
-			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-			require.Contains(t, rpcErr.Data.ErrorMessage(), test.ExpectedErr.Data.ErrorMessage()) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
-		} else {
-			require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (*resp).ExecutionStatus)
-		}
+			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+			if test.ExpectedErr != nil {
+				rpcErr, ok := err.(*rpc.RPCError)
+				require.True(t, ok)
+				require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+				require.Contains(
+					t,
+					rpcErr.Data.ErrorMessage(),
+					test.ExpectedErr.Data.ErrorMessage(),
+				) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+			} else {
+				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
+			}
+		}()
 	}
 }
 
 // newDevnet creates a new devnet with the given URL.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
-// - url: The URL of the devnet to be created
+//   - t: The testing.T instance for running the test
+//   - url: The URL of the devnet to be created
+//
 // Returns:
-// - *devnet.DevNet: a pointer to a devnet object
-// - []devnet.TestAccount: a slice of test accounts
-// - error: an error, if any
+//   - *devnet.DevNet: a pointer to a devnet object
+//   - []devnet.TestAccount: a slice of test accounts
+//   - error: an error, if any
 func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, error) {
 	t.Helper()
-	devnet := devnet.NewDevNet(url)
-	acnts, err := devnet.Accounts()
-	return devnet, acnts, err
+	devnetInstance := devnet.NewDevNet(url)
+	acnts, err := devnetInstance.Accounts()
+
+	return devnetInstance, acnts, err
+}
+
+// newDevnetAccount creates a new devnet account from a test account.
+//
+// Parameters:
+//   - t: The testing.T instance for running the test
+//   - provider: The RPC provider
+//   - accData: The test account data
+//
+// Returns:
+//   - *account.Account: The new devnet account
+//   - error: An error, if any
+func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion int) *account.Account {
+	t.Helper()
+	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
+	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
+
+	// Set up ks
+	ks := account.NewMemKeystore()
+	ks.Put(accData.PublicKey, fakeUserPriv.BigInt(new(big.Int)))
+
+	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, cairoVersion)
+	require.NoError(t, err)
+
+	return acnt
 }
 
 // TestBuildAndSendInvokeTxn is a test function that tests the BuildAndSendInvokeTxn method.
@@ -1297,14 +1297,14 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Invoke transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1338,20 +1338,25 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5)
+	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
 	if err != nil {
-		require.EqualError(t, err, "41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.")
+		require.EqualError(
+			t,
+			err,
+			"41 Transaction execution error: Class with hash 0x0224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5 is already declared.",
+		)
 		t.Log("declare txn not sent: class already declared")
+
 		return
 	}
 
 	// check the transaction and class hash
-	require.NotNil(t, resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
 	require.NotNil(t, resp.ClassHash)
-	t.Logf("Declare transaction hash: %s", resp.TransactionHash)
+	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1398,7 +1403,9 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5)
+		1.5,
+		false,
+	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
 	require.NotNil(t, precomputedAddress)
@@ -1414,11 +1421,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Deploy account transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1427,7 +1434,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
 // used to fund the new account with STRK tokens in the TestBuildAndEstimateDeployAccountTxn test
-func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount *felt.Felt, recipient *felt.Felt) {
+func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount, recipient *felt.Felt) {
 	t.Helper()
 	// Build and send invoke txn
 	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
@@ -1439,14 +1446,14 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount 
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5)
+	}, 1.5, false)
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
-	require.NotNil(t, resp.TransactionHash)
-	t.Logf("Transfer transaction hash: %s", resp.TransactionHash)
+	require.NotNil(t, resp.Hash)
+	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -1491,7 +1498,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("ClassHash_%s", test.ClassHash.String()), func(t *testing.T) {
+		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {
 			// Set up the mock to return the Braavos class hash
 			mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(test.ClassHash, nil)
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
@@ -1524,4 +1531,82 @@ func TestBraavosAccountWarning(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
+// and BuildAndEstimateDeployAccountTxn methods with a query bit version.
+//
+// This function tests these methods when called with the 'hasQueryBitVersion' parameter set to true, assuming that
+// the transaction indeed has the version with the query bit.
+func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
+	if testEnv != "devnet" {
+		t.Skip("Skipping test as it requires a devnet environment")
+	}
+	client, err := rpc.NewProvider(base)
+	require.NoError(t, err, "Error in rpc.NewClient")
+
+	_, acnts, err := newDevnet(t, base)
+	require.NoError(t, err, "Error setting up Devnet")
+
+	acnt := newDevnetAccount(t, client, acnts[0], 2)
+
+	// Devnet returns an error when sending a txn with a query bit version
+	devnetQueryErrorMsg := "only-query transactions are not supported"
+
+	t.Run("TestBuildAndSendDeclareTxn", func(t *testing.T) {
+		// Class
+		class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+
+		// Casm Class
+		casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+
+		// Build and send declare txn
+		_, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+		require.Error(t, err)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+
+	t.Run("TestBuildAndSendInvokeTxn", func(t *testing.T) {
+		u256Amount, err := internalUtils.HexToU256Felt("0x10000")
+		acntaddr2 := internalUtils.TestHexToFelt(t, acnts[1].Address)
+
+		require.NoError(t, err, "Error converting amount to u256")
+		// Build and send invoke txn
+		_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+			{
+				// STRK contract address in Sepolia
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+				FunctionName:    "transfer",
+				CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
+			},
+		}, 1.5, true)
+		require.Error(t, err)
+		// assert that the transaction contains the query bit version
+		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
+	})
+
+	t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
+		// Get random keys to create the new account
+		ks, pub, _ := account.GetRandomKeys()
+		tempAcc, err := account.NewAccount(client, pub, pub.String(), ks, 2)
+		require.NoError(t, err)
+
+		classHash := internalUtils.TestHexToFelt(
+			t,
+			"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+		) // preDeployed OZ account classhash in devnet
+		// Build and send deploy account txn
+		txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
+			context.Background(),
+			pub,
+			classHash,
+			[]*felt.Felt{pub},
+			1.5,
+			true,
+		)
+		require.NoError(t, err)
+		require.NotNil(t, txn)
+		require.Equal(t, rpc.TransactionV3WithQueryBit, txn.Version)
+	})
 }

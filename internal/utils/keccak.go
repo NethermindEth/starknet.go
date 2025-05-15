@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"hash"
 	"log"
@@ -24,12 +25,13 @@ type KeccakState interface {
 // UTF8StrToBig converts a UTF-8 string to a big integer.
 //
 // Parameters:
-// - str: The UTF-8 string to convert to a big integer
+//   - str: The UTF-8 string to convert to a big integer
+//
 // Returns:
-// - *big.Int: a pointer to a big.Int representing the converted value
+//   - *big.Int: a pointer to a big.Int representing the converted value
 func UTF8StrToBig(str string) *big.Int {
 	hexStr := hex.EncodeToString([]byte(str))
-	b, _ := new(big.Int).SetString(hexStr, 16)
+	b, _ := new(big.Int).SetString(hexStr, 16) //nolint:mnd //set as hex
 
 	return b
 }
@@ -37,11 +39,12 @@ func UTF8StrToBig(str string) *big.Int {
 // StrToBig generates a *big.Int from a string representation.
 //
 // Parameters:
-// - str: The string to convert to a *big.Int
+//   - str: The string to convert to a *big.Int
+//
 // Returns:
-// - *big.Int: a pointer to a big.Int representing the converted value
+//   - *big.Int: a pointer to a big.Int representing the converted value
 func StrToBig(str string) *big.Int {
-	b, _ := new(big.Int).SetString(str, 10)
+	b, _ := new(big.Int).SetString(str, 10) //nolint:mnd //set as decimal
 
 	return b
 }
@@ -49,16 +52,17 @@ func StrToBig(str string) *big.Int {
 // StrToBig generates a hexadecimal from a string/number representation.
 //
 // Parameters:
-// - str: The string to convert to a hexadecimal
+//   - str: The string to convert to a hexadecimal
+//
 // Returns:
-// - hex: a string representing the converted value
+//   - hex: a string representing the converted value
 func StrToHex(str string) string {
 	if strings.HasPrefix(str, "0x") {
 		return str
 	}
 
 	if bigNum, ok := new(big.Int).SetString(str, 0); ok {
-		return "0x" + bigNum.Text(16)
+		return "0x" + bigNum.Text(16) //nolint:mnd //turn to hex
 	}
 
 	return "0x" + fmt.Sprintf("%x", str)
@@ -67,12 +71,13 @@ func StrToHex(str string) string {
 // HexToShortStr converts a hexadecimal string to a short string (Starknet) representation.
 //
 // Parameters:
-// - hexStr: the hexadecimal string to convert to a short string
+//   - hexStr: the hexadecimal string to convert to a short string
+//
 // Returns:
-// - string: a short string
+//   - string: a short string
 func HexToShortStr(hexStr string) string {
-	numStr := strings.Replace(hexStr, "0x", "", -1)
-	hb, _ := new(big.Int).SetString(numStr, 16)
+	numStr := strings.ReplaceAll(hexStr, "0x", "")
+	hb, _ := new(big.Int).SetString(numStr, 16) //nolint:mnd //set as hex
 
 	return string(hb.Bytes())
 }
@@ -81,14 +86,16 @@ func HexToShortStr(hexStr string) string {
 // trim "0x" prefix(if exists)
 //
 // Parameters:
-// - hexString: the hexadecimal string to be converted
+//   - hexString: the hexadecimal string to be converted
+//
 // Returns:
-// - *big.Int: the converted value
+//   - *big.Int: the converted value
 func HexToBN(hexString string) *big.Int {
-	numStr := strings.Replace(hexString, "0x", "", -1)
+	numStr := strings.ReplaceAll(hexString, "0x", "")
 
 	// TODO: maybe make this func return this ignored bool value
-	n, _ := new(big.Int).SetString(numStr, 16)
+	n, _ := new(big.Int).SetString(numStr, 16) //nolint:mnd //set as hex
+
 	return n
 }
 
@@ -96,14 +103,16 @@ func HexToBN(hexString string) *big.Int {
 // Trim "0x" prefix(if exists)
 //
 // Parameters:
-// - hexArr: the hexadecimal string array to be converted
+//   - hexArr: the hexadecimal string array to be converted
+//
 // Returns:
-// - *big.Int: the converted array
+//   - *big.Int: the converted array
 func HexArrToBNArr(hexArr []string) []*big.Int {
 	bigNumArr := make([]*big.Int, len(hexArr))
 	for i, hexStr := range hexArr {
 		bigNumArr[i] = HexToBN(hexStr)
 	}
+
 	return bigNumArr
 }
 
@@ -111,12 +120,13 @@ func HexArrToBNArr(hexArr []string) []*big.Int {
 // trim "0x" prefix(if exists)
 //
 // Parameters:
-// - hexString: the hexadecimal string to be converted
+//   - hexString: the hexadecimal string to be converted
+//
 // Returns:
-// - []byte: the converted value
-// - error: an error if any
+//   - []byte: the converted value
+//   - error: an error if any
 func HexToBytes(hexString string) ([]byte, error) {
-	numStr := strings.Replace(hexString, "0x", "", -1)
+	numStr := strings.ReplaceAll(hexString, "0x", "")
 	if (len(numStr) % 2) != 0 {
 		numStr = fmt.Sprintf("%s%s", "0", numStr)
 	}
@@ -127,19 +137,21 @@ func HexToBytes(hexString string) ([]byte, error) {
 // BytesToBig converts a byte slice to a big.Int.
 //
 // Parameters:
-// - bytes: the byte slice to be converted
+//   - bytesVal: the byte slice to be converted
+//
 // Returns:
-// - *big.Int: the converted value
-func BytesToBig(bytes []byte) *big.Int {
-	return new(big.Int).SetBytes(bytes)
+//   - *big.Int: the converted value
+func BytesToBig(bytesVal []byte) *big.Int {
+	return new(big.Int).SetBytes(bytesVal)
 }
 
 // BigToHex converts a big integer to its hexadecimal representation.
 //
 // Parameters:
-// - in: the big integer to be converted
+//   - in: the big integer to be converted
+//
 // Returns:
-// - string: the hexadecimal representation
+//   - string: the hexadecimal representation
 func BigToHex(in *big.Int) string {
 	return fmt.Sprintf("0x%x", in)
 }
@@ -147,13 +159,14 @@ func BigToHex(in *big.Int) string {
 // GetSelectorFromName generates a selector from a given function name.
 //
 // Parameters:
-// - funcName: the name of the function
+//   - funcName: the name of the function
+//
 // Returns:
-// - *big.Int: the selector
+//   - *big.Int: the selector
 func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
-	maskedKec := MaskBits(250, 8, kec)
+	maskedKec := MaskBits(250, 8, kec) //nolint:mnd
 
 	return new(big.Int).SetBytes(maskedKec)
 }
@@ -161,13 +174,14 @@ func GetSelectorFromName(funcName string) *big.Int {
 // GetSelectorFromNameFelt returns a *felt.Felt based on the given function name.
 //
 // Parameters:
-// - funcName: the name of the function
+//   - funcName: the name of the function
+//
 // Returns:
-// - *felt.Felt: the *felt.Felt
+//   - *felt.Felt: the *felt.Felt
 func GetSelectorFromNameFelt(funcName string) *felt.Felt {
 	kec := Keccak256([]byte(funcName))
 
-	maskedKec := MaskBits(250, 8, kec)
+	maskedKec := MaskBits(250, 8, kec) //nolint:mnd
 
 	return new(felt.Felt).SetBytes(maskedKec)
 }
@@ -176,11 +190,12 @@ func GetSelectorFromNameFelt(funcName string) *felt.Felt {
 // (ref: https://github.com/ethereum/go-ethereum/blob/master/crypto/crypto.go)
 //
 // Parameters:
-// - data: a variadic parameter of type []byte representing the input data
+//   - data: a variadic parameter of type []byte representing the input data
+//
 // Returns:
-// - []byte: a 32-byte hash output
+//   - []byte: a 32-byte hash output
 func Keccak256(data ...[]byte) []byte {
-	b := make([]byte, 32)
+	b := make([]byte, 32) //nolint:mnd
 	d := NewKeccakState()
 	for _, b := range data {
 		d.Write(b)
@@ -189,6 +204,7 @@ func Keccak256(data ...[]byte) []byte {
 	if _, err := d.Read(b); err != nil {
 		log.Fatal(err)
 	}
+
 	return b
 }
 
@@ -200,7 +216,7 @@ func Keccak256(data ...[]byte) []byte {
 //	none
 //
 // Returns:
-// - KeccakState: a new instance of KeccakState
+//   - KeccakState: a new instance of KeccakState
 func NewKeccakState() KeccakState {
 	return sha3.NewLegacyKeccak256().(KeccakState)
 }
@@ -208,17 +224,19 @@ func NewKeccakState() KeccakState {
 // MaskBits masks (excess) bits in a slice of bytes based on the given mask and wordSize.
 //
 // Parameters:
-// - mask: an integer representing the number of bits to mask
-// - wordSize: an integer representing the size of each word in bits
-// - slice: a slice of bytes to mask
+//   - mask: an integer representing the number of bits to mask
+//   - wordSize: an integer representing the size of each word in bits
+//   - slice: a slice of bytes to mask
+//
 // Returns:
-// - ret: a slice of bytes with the masked bits
+//   - ret: a slice of bytes with the masked bits
 func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	excess := len(slice)*wordSize - mask
 	for _, by := range slice {
 		if excess > 0 {
 			if excess > wordSize {
-				excess = excess - wordSize
+				excess -= wordSize
+
 				continue
 			}
 			by <<= excess
@@ -227,52 +245,70 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 		}
 		ret = append(ret, by)
 	}
+
 	return ret
 }
 
 // ComputeFact computes the factorial of a given number.
 //
 // Parameters:
-// - programHash: a pointer to a big.Int representing the program hash
-// - programOutputs: a slice of pointers to big.Int representing the program outputs
+//   - programHash: a pointer to a big.Int representing the program hash
+//   - programOutputs: a slice of pointers to big.Int representing the program outputs
+//
 // Returns:
-// - *big.Int: a pointer to a big.Int representing the computed factorial
+//   - *big.Int: a pointer to a big.Int representing the computed factorial
+//
+//nolint:mnd
 func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	var progOutBuf []byte
 	for _, programOutput := range programOutputs {
 		inBuf := FmtKecBytes(programOutput, 32)
-		progOutBuf = append(progOutBuf[:], inBuf...)
+		progOutBuf = append(progOutBuf, inBuf...)
 	}
 
 	kecBuf := FmtKecBytes(programHash, 32)
-	kecBuf = append(kecBuf[:], Keccak256(progOutBuf)...)
+	kecBuf = append(kecBuf, Keccak256(progOutBuf)...)
 
 	return new(big.Int).SetBytes(Keccak256(kecBuf))
 }
 
-// SplitFactStr splits a given fact string into two parts (felts): fact_low and fact_high.
+// SplitFactStr splits a given fact, with maximum 256 bits size, into two parts (felts): fact_low and fact_high.
 //
 // The function takes a fact string as input and converts it to a big number using the HexToBN function.
 // It then converts the big number to bytes using the Bytes method.
 // If the length of the bytes is less than 32, it pads the bytes with zeros using the bytes.Repeat method.
 // The padded bytes are then appended to the original bytes.
-// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a big number using the BytesToBig function.
-// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number using the BytesToBig function.
+// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it
+// to a big number using the BytesToBig function.
+// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number
+// using the BytesToBig function.
 // Finally, it converts the low and high big numbers to hexadecimal strings using the BigToHex function and returns them.
 //
 // Parameters:
-// - fact: The fact string to be split
+//   - fact: The fact string to be split
+//
 // Return types:
-// - fact_low: The low part of the fact string in hexadecimal format
-// - fact_high: The high part of the fact string in hexadecimal format
-func SplitFactStr(fact string) (fact_low, fact_high string) {
-	factBN := HexToBN(fact)
+//   - fact_low: The low part of the fact string in hexadecimal format
+//   - fact_high: The high part of the fact string in hexadecimal format
+//   - err: An error if any
+//
+//nolint:mnd
+func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
+	numStr := strings.ReplaceAll(fact, "0x", "")
+	factBN, ok := new(big.Int).SetString(numStr, 16)
+	if !ok {
+		return "", "", errors.New("failed to convert fact string to big.Int")
+	}
+	if factBN.BitLen() > 256 {
+		return "", "", errors.New("fact string is too large")
+	}
 	factBytes := factBN.Bytes()
 	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
 	factBytes = append(lpadfactBytes, factBytes...)
 	low := BytesToBig(factBytes[16:])
 	high := BytesToBig(factBytes[:16])
-	return BigToHex(low), BigToHex(high)
+
+	return BigToHex(low), BigToHex(high), nil
 }
 
 // FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with a specified length.
@@ -281,8 +317,9 @@ func SplitFactStr(fact string) (fact_low, fact_high string) {
 // If the length of the buffer is less than the specified length, the function pads the buffer with zeros.
 //
 // Parameters:
-// - in: the big.Int to be formatted
-// - rolen: the length of the buffer
+//   - in: the big.Int to be formatted
+//   - rolen: the length of the buffer
+//
 // Returns:
 // buf: the formatted buffer
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
@@ -303,9 +340,10 @@ func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 // used in string conversions when interfacing with the APIs
 //
 // Parameters:
-// - str: a string to be converted to *big.Int
+//   - str: a string to be converted to *big.Int
+//
 // Returns:
-// - *big.Int: a pointer to a big.Int representing the converted value
+//   - *big.Int: a pointer to a big.Int representing the converted value
 func SNValToBN(str string) *big.Int {
 	if strings.Contains(str, "0x") {
 		return HexToBN(str)

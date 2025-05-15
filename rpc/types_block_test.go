@@ -18,14 +18,15 @@ import (
 //
 // The function tests the MarshalJSON method of the BlockID struct by providing
 // different scenarios and verifying the output against the expected values.
-// The scenarios include testing the serialization of the "latest" and
-// "pending" tags, testing an invalid tag, testing the serialization of a
-// block number, and testing the serialization of a block hash.
+// The scenarios include testing the serialisation of the "latest" and
+// "pending" tags, testing an invalid tag, testing the serialisation of a
+// block number, and testing the serialisation of a block hash.
 // The function uses the testing.T parameter to report any errors that occur
 // during the execution of the test cases.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -58,6 +59,7 @@ func TestBlockID_Marshal(t *testing.T) {
 	}, {
 		id: func() BlockID {
 			h, _ := new(felt.Felt).SetString("0xdead")
+
 			return BlockID{
 				Hash: h,
 			}
@@ -79,10 +81,11 @@ func TestBlockID_Marshal(t *testing.T) {
 
 // TestBlockStatus is a unit test for the BlockStatus function.
 //
-// The test checks the behavior of the BlockStatus function by iterating through a list of test cases.
+// The test checks the behaviour of the BlockStatus function by iterating through a list of test cases.
 //
 // Parameters:
-// - t: A testing.T object used for reporting test failures and logging.
+//   - t: A testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none
@@ -120,7 +123,8 @@ var rawBlock []byte
 // fails with a fatal error message.
 //
 // Parameters:
-// - t: the testing object for running the test
+//   - t: the testing object for running the test
+//
 // Returns:
 //
 //	none
@@ -133,7 +137,6 @@ func TestBlock_Unmarshal(t *testing.T) {
 
 func TestBlockWithReceipts(t *testing.T) {
 	testConfig := beforeEach(t, false)
-	require := require.New(t)
 
 	type testSetType struct {
 		BlockID                          BlockID
@@ -143,14 +146,15 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	var blockWithReceipt BlockWithReceipts
 
-	if testEnv == "testnet" {
+	switch testEnv {
+	case "testnet":
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
-	} else if testEnv == "mainnet" {
+	case "mainnet":
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
-	var blockMock123 = BlockWithReceipts{
+	blockMock123 := BlockWithReceipts{
 		BlockHeader{
 			Hash: deadBeef,
 		},
@@ -159,16 +163,15 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
-							InvokeTxnV1: InvokeTxnV1{
-								Type:          "INVOKE",
-								Version:       TransactionV1,
-								SenderAddress: deadBeef,
-							},
+						Hash: deadBeef,
+						Transaction: InvokeTxnV1{
+							Type:          "INVOKE",
+							Version:       TransactionV1,
+							SenderAddress: deadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
 						Hash:            deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -178,7 +181,7 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	var pendingBlockMock123 = PendingBlockWithReceipts{
+	pendingBlockMock123 := PendingBlockWithReceipts{
 		PendingBlockHeader{
 			ParentHash: deadBeef,
 		},
@@ -186,16 +189,15 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						BlockInvokeTxnV1{
-							TransactionHash: deadBeef,
-							InvokeTxnV1: InvokeTxnV1{
-								Type:          "INVOKE",
-								Version:       TransactionV1,
-								SenderAddress: deadBeef,
-							},
+						Hash: deadBeef,
+						Transaction: InvokeTxnV1{
+							Type:          "INVOKE",
+							Version:       TransactionV1,
+							SenderAddress: deadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
+						Type:            "INVOKE",
 						Hash:            deadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
@@ -213,7 +215,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedPendingBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                          WithBlockTag("latest"),
+				BlockID:                          WithBlockTag("pending"),
 				ExpectedBlockWithReceipts:        nil,
 				ExpectedPendingBlockWithReceipts: &pendingBlockMock123,
 			},
@@ -240,28 +242,26 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	for _, test := range testSet {
 		result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
-		require.NoError(err, "Error in BlockWithReceipts")
+		require.NoError(t, err, "Error in BlockWithReceipts")
 
 		switch resultType := result.(type) {
 		case *BlockWithReceipts:
 			block, ok := result.(*BlockWithReceipts)
-			require.True(ok, fmt.Sprintf("should return *BlockWithReceipts, instead: %T\n", result))
-			require.True(strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
-			require.NotEmpty(block.Transactions, "the number of transactions should not be 0")
+			require.True(t, ok, fmt.Sprintf("should return *BlockWithReceipts, instead: %T\n", result))
+			require.True(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
+			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
-			if test.ExpectedBlockWithReceipts != nil {
-				require.Exactly(block, test.ExpectedBlockWithReceipts)
-			}
+			require.Exactly(t, block, test.ExpectedBlockWithReceipts)
 		case *PendingBlockWithReceipts:
 			pBlock, ok := result.(*PendingBlockWithReceipts)
-			require.True(ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
+			require.True(t, ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
 
 			if testEnv == "mock" {
-				require.Exactly(pBlock, test.ExpectedPendingBlockWithReceipts)
+				require.Exactly(t, pBlock, test.ExpectedPendingBlockWithReceipts)
 			} else {
-				require.NotEmpty(pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
-				require.NotEmpty(pBlock.SequencerAddress, "Error in PendingBlockWithReceipts SequencerAddress")
-				require.NotEmpty(pBlock.Timestamp, "Error in PendingBlockWithReceipts Timestamp")
+				require.NotEmpty(t, pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")
+				require.NotEmpty(t, pBlock.SequencerAddress, "Error in PendingBlockWithReceipts SequencerAddress")
+				require.NotEmpty(t, pBlock.Timestamp, "Error in PendingBlockWithReceipts Timestamp")
 			}
 
 		default:

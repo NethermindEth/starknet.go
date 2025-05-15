@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -18,10 +19,11 @@ const (
 // Err returns an RPCError based on the given code and data.
 //
 // Parameters:
-// - code: an integer representing the error code.
-// - data: any data associated with the error.
+//   - code: an integer representing the error code.
+//   - data: any data associated with the error.
+//
 // Returns
-// - *RPCError: a pointer to an RPCError object.
+//   - *RPCError: a pointer to an RPCError object.
 func Err(code int, data RPCData) *RPCError {
 	switch code {
 	case InvalidJSON:
@@ -42,10 +44,11 @@ func Err(code int, data RPCData) *RPCError {
 // If no match is found, the function returns an InternalError with the original error.
 //
 // Parameters:
-// - err: The error to be unwrapped
-// - rpcErrors: variadic list of *RPCError objects to be checked
+//   - err: The error to be unwrapped
+//   - rpcErrors: variadic list of *RPCError objects to be checked
+//
 // Returns:
-// - error: the original error
+//   - error: the original error
 func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 	errBytes, err := json.Marshal(baseError)
 	if err != nil {
@@ -64,7 +67,7 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 		}
 	}
 
-	if nodeErr.Code == 0 {
+	if nodeErr.Code <= 0 {
 		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
 	}
 
@@ -81,6 +84,7 @@ func (e RPCError) Error() string {
 	if e.Data == nil || e.Data.ErrorMessage() == "" {
 		return fmt.Sprintf("%d %s", e.Code, e.Message)
 	}
+
 	return fmt.Sprintf("%d %s: %s", e.Code, e.Message, e.Data.ErrorMessage())
 }
 
@@ -105,10 +109,12 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 	// If there's no Data field, we're done
 	if len(temp.Data) == 0 {
 		e.Data = nil
+
 		return nil
 	}
 
 	// Try to determine the concrete type of Data based on the RPCError code
+	//nolint:mnd
 	switch e.Code {
 	case 10: // ErrNoTraceAvailable
 		var data TraceStatusErrData
@@ -145,6 +151,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 		var strData string
 		if err := json.Unmarshal(temp.Data, &strData); err == nil {
 			e.Data = StringErrData(strData)
+
 			return nil
 		}
 
@@ -160,12 +167,17 @@ type RPCData interface {
 	ErrorMessage() string
 }
 
-var _ RPCData = StringErrData("")
-var _ RPCData = &CompilationErrData{}
-var _ RPCData = &ContractErrData{}
-var _ RPCData = &TransactionExecErrData{}
-var _ RPCData = &TraceStatusErrData{}
+//nolint:exhaustruct
+var (
+	_ RPCData = StringErrData("")
 
+	_ RPCData = &CompilationErrData{}
+	_ RPCData = &ContractErrData{}
+	_ RPCData = &TransactionExecErrData{}
+	_ RPCData = &TraceStatusErrData{}
+)
+
+//nolint:exhaustruct
 var (
 	ErrFailedToReceiveTxn = &RPCError{
 		Code:    1,
@@ -375,6 +387,7 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 			Message:              message,
 			ContractExecErrInner: nil,
 		}
+
 		return nil
 	}
 
@@ -391,10 +404,11 @@ func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
 			Message:              message + contractErrStruct.Error.Message,
 			ContractExecErrInner: &contractErrStruct,
 		}
+
 		return nil
 	}
 
-	return fmt.Errorf("failed to unmarshal ContractExecutionError")
+	return errors.New("failed to unmarshal ContractExecutionError")
 }
 
 func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
@@ -402,6 +416,7 @@ func (contractEx *ContractExecutionError) MarshalJSON() ([]byte, error) {
 
 	if contractEx.ContractExecErrInner != nil {
 		temp = contractEx.ContractExecErrInner
+
 		return json.Marshal(temp)
 	}
 
@@ -434,6 +449,7 @@ func (s *TraceStatus) UnmarshalJSON(data []byte) error {
 	switch TraceStatus(str) {
 	case TraceStatusReceived, TraceStatusRejected:
 		*s = TraceStatus(str)
+
 		return nil
 	default:
 		return fmt.Errorf("invalid trace status: %s", str)

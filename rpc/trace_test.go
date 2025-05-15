@@ -19,7 +19,8 @@ import (
 // the response with the expected response.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -78,6 +79,7 @@ func TestTransactionTrace(t *testing.T) {
 			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
+
 				return
 			}
 			compareTraceTxs(t, expectedResp, resp)
@@ -100,7 +102,8 @@ func TestTransactionTrace(t *testing.T) {
 // The function uses the testing.T type to report any errors or failures during the test execution.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -146,6 +149,7 @@ func TestSimulateTransaction(t *testing.T) {
 		expectedRespArr := make([]any, 0)
 		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
+		//nolint:dupl
 		for i, trace := range resp {
 			require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
 			compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
@@ -186,7 +190,8 @@ func TestSimulateTransaction(t *testing.T) {
 // the expected response.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -221,7 +226,8 @@ func TestTraceBlockTransactions(t *testing.T) {
 				BlockID:          WithBlockNumber(0),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      ErrBlockNotFound,
-			}},
+			},
+		},
 	}[testEnv]
 
 	for _, test := range testSet {
@@ -229,6 +235,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
+
 			continue
 		}
 
@@ -238,6 +245,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		expectedRespArr := make([]any, 0)
 		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
+		//nolint:dupl
 		for i, actualTrace := range resp {
 			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
 			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
@@ -274,35 +282,33 @@ func TestTraceBlockTransactions(t *testing.T) {
 // It is necessary because the order of the fields in the transaction trace is not deterministic.
 // Hence, we need to compare the traces field by field.
 func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
-	require := require.New(t)
-
 	switch traceTx := traceTx1.(type) {
 	case DeclareTxnTrace:
-		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
-		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
+		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
+		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeclareTxnTrace).StateDiff)
-		require.Equal(traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
-		require.Equal(traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
+		require.Equal(t, traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
+		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
 	case DeployAccountTxnTrace:
-		require.Equal(traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
-		require.Equal(traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
-		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
+		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
+		require.Equal(t, traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
+		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeployAccountTxnTrace).StateDiff)
-		require.Equal(traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
-		require.Equal(traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
+		require.Equal(t, traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
+		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
 	case InvokeTxnTrace:
-		require.Equal(traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
-		require.Equal(traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
-		require.Equal(traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
+		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
+		require.Equal(t, traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
+		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(InvokeTxnTrace).StateDiff)
-		require.Equal(traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
-		require.Equal(traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
+		require.Equal(t, traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
+		require.Equal(t, traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
 	case L1HandlerTxnTrace:
-		require.Equal(traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
+		require.Equal(t, traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(L1HandlerTxnTrace).StateDiff)
-		require.Equal(traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
+		require.Equal(t, traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
 	default:
-		require.Failf("unknown trace", "type: %T", traceTx)
+		require.Failf(t, "unknown trace", "type: %T", traceTx)
 	}
 }
 
@@ -348,7 +354,7 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 	}
 }
 
-// compareTraceTxnsJSON compares two Marshaled JSON transaction traces to assert Marshaled JSON equality.
+// compareTraceTxnsJSON compares two Marshalled JSON transaction traces to assert Marshalled JSON equality.
 // It is necessary because the order of the fields in the 'storage_diffs' > 'storage_entries' is not deterministic.
 func compareTraceTxnsJSON(t *testing.T, expectedResp, actualResp []byte) {
 	t.Helper()
@@ -383,7 +389,7 @@ func splitJSONTraceTxn(t *testing.T, txn []byte) (txnWithoutStorageDiffs []byte,
 	return txnWithoutStateDiff, storageDiffs
 }
 
-// compareStorageDiffs compares the storage diffs of two Marshaled JSON transaction traces.
+// compareStorageDiffs compares the storage diffs of two Marshalled JSON transaction traces.
 func compareStorageDiffs(t *testing.T, expectedStorageDiffs, actualStorageDiffs any) {
 	t.Helper()
 

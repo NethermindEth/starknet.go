@@ -58,8 +58,9 @@ func GetAccountCairoVersion() int {
 func getEnv(envName string) string {
 	env := os.Getenv(envName)
 	if env == "" {
-		panic(fmt.Sprintf("%s variable not set in the '.env' file", envName))
+		panic(envName + " variable not set in the '.env' file")
 	}
+
 	return env
 }
 

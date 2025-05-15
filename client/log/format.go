@@ -24,7 +24,7 @@ const (
 var spaces = []byte("                                        ")
 
 // TerminalStringer is an analogous interface to the stdlib stringer, allowing
-// own types to have custom shortened serialization formats when printed to the
+// own types to have custom shortened serialisation formats when printed to the
 // screen.
 type TerminalStringer interface {
 	TerminalString() string
@@ -32,21 +32,21 @@ type TerminalStringer interface {
 
 func (h *TerminalHandler) format(buf []byte, r slog.Record, usecolor bool) []byte {
 	msg := escapeMessage(r.Message)
-	var color = ""
+	colour := ""
 	if usecolor {
 		switch r.Level {
 		case LevelCrit:
-			color = "\x1b[35m"
+			colour = "\x1b[35m"
 		case slog.LevelError:
-			color = "\x1b[31m"
+			colour = "\x1b[31m"
 		case slog.LevelWarn:
-			color = "\x1b[33m"
+			colour = "\x1b[33m"
 		case slog.LevelInfo:
-			color = "\x1b[32m"
+			colour = "\x1b[32m"
 		case slog.LevelDebug:
-			color = "\x1b[36m"
+			colour = "\x1b[36m"
 		case LevelTrace:
-			color = "\x1b[34m"
+			colour = "\x1b[34m"
 		}
 	}
 	if buf == nil {
@@ -54,8 +54,8 @@ func (h *TerminalHandler) format(buf []byte, r slog.Record, usecolor bool) []byt
 	}
 	b := bytes.NewBuffer(buf)
 
-	if color != "" { // Start color
-		b.WriteString(color)
+	if colour != "" { // Start colour
+		b.WriteString(colour)
 		b.WriteString(LevelAlignedString(r.Level))
 		b.WriteString("\x1b[0m")
 	} else {
@@ -67,23 +67,23 @@ func (h *TerminalHandler) format(buf []byte, r slog.Record, usecolor bool) []byt
 	b.WriteString(msg)
 
 	// try to justify the log output for short messages
-	//length := utf8.RuneCountInString(msg)
+	// length := utf8.RuneCountInString(msg)
 	length := len(msg)
 	if (r.NumAttrs()+len(h.attrs)) > 0 && length < termMsgJust {
 		b.Write(spaces[:termMsgJust-length])
 	}
 	// print the attributes
-	h.formatAttributes(b, r, color)
+	h.formatAttributes(b, r, colour)
 
 	return b.Bytes()
 }
 
-func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, color string) {
+func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, colour string) {
 	writeAttr := func(attr slog.Attr, first, last bool) {
 		buf.WriteByte(' ')
 
-		if color != "" {
-			buf.WriteString(color)
+		if colour != "" {
+			buf.WriteString(colour)
 			buf.Write(appendEscapeString(buf.AvailableBuffer(), attr.Key))
 			buf.WriteString("\x1b[0m=")
 		} else {
@@ -104,8 +104,8 @@ func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, col
 			buf.Write(spaces[:padding-length])
 		}
 	}
-	var n = 0
-	var nAttrs = len(h.attrs) + r.NumAttrs()
+	n := 0
+	nAttrs := len(h.attrs) + r.NumAttrs()
 	for _, attr := range h.attrs {
 		writeAttr(attr, n == 0, n == nAttrs-1)
 		n++
@@ -113,12 +113,13 @@ func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, col
 	r.Attrs(func(attr slog.Attr) bool {
 		writeAttr(attr, n == 0, n == nAttrs-1)
 		n++
+
 		return true
 	})
 	buf.WriteByte('\n')
 }
 
-// FormatSlogValue formats a slog.Value for serialization to terminal.
+// FormatSlogValue formats a slog.Value for serialisation to terminal.
 func FormatSlogValue(v slog.Value, tmp []byte) (result []byte) {
 	var value any
 	defer func() {
@@ -171,6 +172,7 @@ func FormatSlogValue(v slog.Value, tmp []byte) (result []byte) {
 	// We can use the 'tmp' as a scratch-buffer, to first format the
 	// value, and in a second step do escaping.
 	internal := fmt.Appendf(tmp, "%+v", value)
+
 	return appendEscapeString(tmp, string(internal))
 }
 
@@ -179,6 +181,7 @@ func appendInt64(dst []byte, n int64) []byte {
 	if n < 0 {
 		return appendUint64(dst, uint64(-n), true)
 	}
+
 	return appendUint64(dst, uint64(n), false)
 }
 
@@ -214,6 +217,7 @@ func appendUint64(dst []byte, n uint64, neg bool) []byte {
 		out[i] = '-'
 		i--
 	}
+
 	return append(dst, out[i+1:]...)
 }
 
@@ -247,12 +251,14 @@ func appendBigInt(dst []byte, n *big.Int) []byte {
 			buf[i] = ','
 			i--
 			comma = 0
+
 			fallthrough
 		default:
 			buf[i] = c
 			comma++
 		}
 	}
+
 	return append(dst, buf[i+1:]...)
 }
 
@@ -262,6 +268,7 @@ func appendU256(dst []byte, n *uint256.Int) []byte {
 		return appendUint64(dst, n.Uint64(), false)
 	}
 	res := []byte(n.PrettyDec(','))
+
 	return append(dst, res...)
 }
 
@@ -274,13 +281,15 @@ func appendEscapeString(dst []byte, s string) []byte {
 		// If it contains spaces or equal-sign, we need to quote it.
 		if r == ' ' || r == '=' {
 			needsQuoting = true
+
 			continue
 		}
 		// We need to escape it, if it contains
-		// - character " (0x22) and lower (except space)
-		// - characters above ~ (0x7E), plus equal-sign
+		//   - character " (0x22) and lower (except space)
+		//   - characters above ~ (0x7E), plus equal-sign
 		if r <= '"' || r > '~' {
 			needsEscaping = true
+
 			break
 		}
 	}
@@ -292,8 +301,10 @@ func appendEscapeString(dst []byte, s string) []byte {
 	if needsQuoting {
 		dst = append(dst, '"')
 		dst = append(dst, []byte(s)...)
+
 		return append(dst, '"')
 	}
+
 	return append(dst, []byte(s)...)
 }
 
@@ -311,12 +322,14 @@ func escapeMessage(s string) string {
 		// plus equal-sign
 		if r < ' ' || r > '~' || r == '=' {
 			needsQuoting = true
+
 			break
 		}
 	}
 	if !needsQuoting {
 		return s
 	}
+
 	return strconv.Quote(s)
 }
 

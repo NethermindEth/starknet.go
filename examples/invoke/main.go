@@ -5,21 +5,20 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/starknet.go/account"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
-	someContract   string = "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54" //Replace it with the contract that you want to invoke. In this case, an ERC20
-	contractMethod string = "mint"                                                               //Replace it with the function name that you want to invoke
+	someContract   string = "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54" // Replace it with the contract that you want to invoke. In this case, an ERC20
+	contractMethod string = "mint"                                                               // Replace it with the function name that you want to invoke
 )
 
 // main is the main function that will be executed when the program is run.
-// It will load the variables from the '.env' file, initialize the connection to the RPC provider,
-// initialize the account, and then call the simpleInvoke and verboseInvoke functions passing the account,
+// It will load the variables from the '.env' file, initialise the connection to the RPC provider,
+// initialise the account, and then call the simpleInvoke and verboseInvoke functions passing the account,
 // the contract address, the contract method and the amount to be sent.
 func main() {
 	// Load variables from '.env' file
@@ -29,13 +28,13 @@ func main() {
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
 
-	// Initialize the account memkeyStore (set public and private keys)
+	// Initialise the account memkeyStore (set public and private keys)
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -49,7 +48,7 @@ func main() {
 		fmt.Println("Failed to transform the account address, did you give the hex address?")
 		panic(err)
 	}
-	// Initialize the account
+	// Initialise the account
 	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)

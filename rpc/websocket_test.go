@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -65,7 +64,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
+		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
 			wsProvider := testConfig.wsProvider
@@ -78,6 +77,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 			if test.isErrorExpected {
 				require.Error(t, err)
+
 				return
 			}
 			require.NoError(t, err)
@@ -91,6 +91,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					if test.counter != 0 {
 						if test.counter == 1 {
 							require.Contains(t, latestBlockNumbers, resp.Number+1)
+
 							return
 						} else {
 							test.counter--
@@ -106,6 +107,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 }
 
+//nolint:gocyclo
 func TestSubscribeEvents(t *testing.T) {
 	t.Parallel()
 
@@ -156,6 +158,7 @@ func TestSubscribeEvents(t *testing.T) {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
 				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -315,6 +318,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -361,15 +365,17 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		for _, test := range testSet {
-			t.Logf("test: %+v", test.expectedError.Error())
-			events := make(chan *EmittedEvent)
-			defer close(events)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-			require.Nil(t, sub)
-			require.EqualError(t, err, test.expectedError.Error())
+			func(t *testing.T) {
+				t.Logf("test: %+v", test.expectedError.Error())
+				events := make(chan *EmittedEvent)
+				defer close(events)
+				sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
+				if sub != nil {
+					defer sub.Unsubscribe()
+				}
+				require.Nil(t, sub)
+				require.EqualError(t, err, test.expectedError.Error())
+			}(t)
 		}
 	})
 }
@@ -398,11 +404,14 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		require.NoError(t, err)
 		if status.FinalityStatus == TxnStatus_Accepted_On_L2 {
 			txHash = tx
+
 			break
 		}
 	}
 
 	t.Run("normal call", func(t *testing.T) {
+		t.Parallel()
+
 		wsProvider := testConfig.wsProvider
 
 		events := make(chan *NewTxnStatus)
@@ -419,6 +428,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 				require.IsType(t, &NewTxnStatus{}, resp)
 				require.Equal(t, txHash, resp.TransactionHash)
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
+
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -435,7 +445,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	testConfig := beforeEach(t, true)
 
 	type testSetType struct {
-		pendingTxns   chan *SubPendingTxns
+		pendingTxns   chan *PendingTxn
 		options       *SubPendingTxnsInput
 		expectedError error
 		description   string
@@ -449,22 +459,22 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	testSet, ok := map[string][]testSetType{
 		"testnet": {
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     nil,
 				description: "nil input",
 			},
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     &SubPendingTxnsInput{},
 				description: "empty input",
 			},
 			{
-				pendingTxns: make(chan *SubPendingTxns),
+				pendingTxns: make(chan *PendingTxn),
 				options:     &SubPendingTxnsInput{TransactionDetails: true},
 				description: "with transanctionDetails true",
 			},
 			{
-				pendingTxns:   make(chan *SubPendingTxns),
+				pendingTxns:   make(chan *PendingTxn),
 				options:       &SubPendingTxnsInput{SenderAddress: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
 				description:   "error: too many addresses",
@@ -477,7 +487,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("test: %s", test.description), func(t *testing.T) {
+		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
 			wsProvider := testConfig.wsProvider
@@ -489,6 +499,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 			if test.expectedError != nil {
 				require.EqualError(t, err, test.expectedError.Error())
+
 				return
 			}
 			require.NoError(t, err)
@@ -497,15 +508,16 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			for {
 				select {
 				case resp := <-test.pendingTxns:
-					require.IsType(t, &SubPendingTxns{}, resp)
+					require.IsType(t, &PendingTxn{}, resp)
 
 					if test.options == nil || !test.options.TransactionDetails {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.Empty(t, resp.Transaction)
 					} else {
-						require.NotEmpty(t, resp.TransactionHash)
+						require.NotEmpty(t, resp.Hash)
 						require.NotEmpty(t, resp.Transaction)
 					}
+
 					return
 				case err := <-sub.Err():
 					require.NoError(t, err)
@@ -538,11 +550,11 @@ func TestUnsubscribe(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
-	go func(t *testing.T) {
+	go func() {
 		timer := time.NewTimer(3 * time.Second)
 		<-timer.C
 		sub.Unsubscribe()
-	}(t)
+	}()
 
 loop:
 	for {
@@ -552,6 +564,7 @@ loop:
 		case err := <-sub.Err():
 			// when unsubscribing, the error channel should return nil
 			require.Nil(t, err)
+
 			break loop
 		case <-time.After(5 * time.Second):
 			t.Fatal("timeout waiting for unsubscription")

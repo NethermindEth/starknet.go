@@ -17,7 +17,8 @@ import (
 // Then it asserts the equality of certain values within the struct.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -61,7 +62,8 @@ func TestUnmarshalContractClass(t *testing.T) {
 // It is a test function and is meant to be used with the Go testing framework.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -160,7 +162,8 @@ func TestUnmarshalCasmClass(t *testing.T) {
 // It is a test function and is meant to be used with the Go testing framework.
 //
 // Parameters:
-// - t: The testing.T instance for running the test
+//   - t: The testing.T instance for running the test
+//
 // Returns:
 //
 //	none
@@ -174,7 +177,7 @@ func TestPrecomputeAddress(t *testing.T) {
 	}
 
 	testSet := []testSetType{
-		{ //https://sepolia.voyager.online/tx/0x3789fe05652c9b18b98750b840e64cd3cc737592012c40d3233170d099db507
+		{ // https://sepolia.voyager.online/tx/0x3789fe05652c9b18b98750b840e64cd3cc737592012c40d3233170d099db507
 			DeployerAddress: "0",
 			Salt:            "0x0702e82f1ec15656ad4502268dad530197141f3b59f5529835af9318ef399da5",
 			ClassHash:       "0x064728e0c0713811c751930f8d3292d683c23f107c89b0a101425d9e80adb1c0",
@@ -183,7 +186,7 @@ func TestPrecomputeAddress(t *testing.T) {
 			},
 			ExpectedPrecomputedAddress: "0x31463b5263a6631be4d1fe92d64d13e3a8498c440bf789e69ccb951eb8ad5da",
 		},
-		{ //https://sepolia.voyager.online/tx/0x7a4458b402a172e730c947b293a499d310a7ae6cfb18b5d9774fc10625927e5
+		{ // https://sepolia.voyager.online/tx/0x7a4458b402a172e730c947b293a499d310a7ae6cfb18b5d9774fc10625927e5
 			DeployerAddress: "0",
 			Salt:            "0x023a851e8aeba201772098e1a1db3448f6238b20f928527242eb383905d91a87",
 			ClassHash:       "0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
@@ -192,7 +195,7 @@ func TestPrecomputeAddress(t *testing.T) {
 			},
 			ExpectedPrecomputedAddress: "0x28771beb7a2522a07d2ae6fc1fa5af942e8e863f70e6d7d74f9600ea3d5c242",
 		},
-		{ //https://sepolia.voyager.online/tx/0x2419a80d80045dd08cdb2606850c4eaf0ed8e705ee07bb1837d8daf12263bc0
+		{ // https://sepolia.voyager.online/tx/0x2419a80d80045dd08cdb2606850c4eaf0ed8e705ee07bb1837d8daf12263bc0
 			DeployerAddress: "0",
 			Salt:            "0x0702e82f1ec15656ad4502268dad530197141f3b59f5529835af9318ef399da5",
 			ClassHash:       "0xf6f44afb3cacbcc01a371aff62c86ca9a45feba065424c99f7cd8637514d8f",
@@ -239,7 +242,8 @@ func newNestedFieldArray(val ...NestedUints) *NestedUints {
 // occurs during the process, the test fails.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging.
+//   - t: The testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none
@@ -258,11 +262,12 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 // TestContractClass_UnmarshalValidJSON_Successful is a test function that validates the successful unmarshalling of valid JSON data into a ContractClass object.
 //
 // The function does the following:
-// - Reads the content of a file specified by the validContractCompiledPath variable.
-// - Unmarshals the content into a ContractClass object using the json.Unmarshal function.
+//   - Reads the content of a file specified by the validContractCompiledPath variable.
+//   - Unmarshals the content into a ContractClass object using the json.Unmarshal function.
 //
 // Parameters:
-// - t: The testing.T object used for reporting test failures and logging.
+//   - t: The testing.T object used for reporting test failures and logging.
+//
 // Returns:
 //
 //	none

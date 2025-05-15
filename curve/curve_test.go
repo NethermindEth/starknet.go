@@ -8,6 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +22,8 @@ var result any
 // it takes to execute the PedersenHash function for each test case.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -32,8 +34,14 @@ func BenchmarkPedersenHash(b *testing.B) {
 		{"0x1277312773", "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},
 		{"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB", "0x872362872362"},
 		{"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826", "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},
-		{"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd", "0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9"},
-		{"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd", "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"},
+		{
+			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd",
+			"0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9",
+		},
+		{
+			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd",
+			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde",
+		},
 	}
 
 	for _, test := range suite {
@@ -48,7 +56,8 @@ func BenchmarkPedersenHash(b *testing.B) {
 // BenchmarkCurveSign benchmarks the Curve.Sign function.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -89,7 +98,8 @@ func BenchmarkCurveSign(b *testing.B) {
 // perform the respective operation.
 //
 // Parameters:
-// - b: a *testing.B value representing the testing context
+//   - b: a *testing.B value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -122,7 +132,8 @@ func BenchmarkSignatureVerify(b *testing.B) {
 // TestGeneral_PrivateToPoint tests the PrivateToPoint function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -140,7 +151,8 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 // It uses the testing.T type from the testing package to report any errors encountered during the tests.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -182,7 +194,8 @@ func TestGeneral_PedersenHash(t *testing.T) {
 // The function is used to test the correctness of the DivMod function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -219,7 +232,8 @@ func TestGeneral_DivMod(t *testing.T) {
 // If the computed sum does not match the expected sum, an error is reported using the require.Equal function.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -261,7 +275,8 @@ func TestGeneral_Add(t *testing.T) {
 // mismatches as test failures.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -296,7 +311,8 @@ func TestGeneral_MultAir(t *testing.T) {
 // It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
 //
 // Parameters:
-// - t: a *testing.T value representing the testing context
+//   - t: a *testing.T value representing the testing context
+//
 // Returns:
 //
 //	none
@@ -325,7 +341,8 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 // TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
 //
 // Parameters:
-// - t: The testing.T object for running the test.
+//   - t: The testing.T object for running the test.
+//
 // Returns:
 //
 //	none
@@ -355,7 +372,8 @@ func TestGeneral_HashAndSign(t *testing.T) {
 // and expected hash values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -371,9 +389,11 @@ func TestGeneral_ComputeFact(t *testing.T) {
 			expected:      internalUtils.HexToBN("0xe6168c0a865aa80d724ad05627fa65fbcfe4b1d66a586e9f348f461b076072c4"),
 		},
 		{
-			programHash:   internalUtils.HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
-			programOutput: []*big.Int{internalUtils.StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441")},
-			expected:      internalUtils.HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
+			programHash: internalUtils.HexToBN("0x79920d895101ad1fbdea9adf141d8f362fdea9ee35f33dfcd07f38e4a589bab"),
+			programOutput: []*big.Int{
+				internalUtils.StrToBig("2754806153357301156380357983574496185342034785016738734224771556919270737441"),
+			},
+			expected: internalUtils.HexToBN("0x1d174fa1443deea9aab54bbca8d9be308dd14a0323dd827556c173bd132098db"),
 		},
 	}
 
@@ -386,7 +406,8 @@ func TestGeneral_ComputeFact(t *testing.T) {
 // TestGeneral_BadSignature tests the behavior of the function that checks for bad signatures.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -421,7 +442,8 @@ func TestGeneral_BadSignature(t *testing.T) {
 // variables.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
@@ -486,19 +508,47 @@ func TestGeneral_Signature(t *testing.T) {
 // The function takes no parameters and returns no values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none
 func TestGeneral_SplitFactStr(t *testing.T) {
-	data := []map[string]string{
-		{"input": "0x3", "h": "0x0", "l": "0x3"},
-		{"input": "0x300000000000000000000000000000000", "h": "0x3", "l": "0x0"},
+	type tescase struct {
+		input string
+		h     string
+		l     string
+		err   bool
+	}
+	data := []tescase{
+		{
+			input: "0x3",
+			h:     "0x0",
+			l:     "0x3",
+		},
+		{
+			input: "0x300000000000000000000000000000000",
+			h:     "0x3",
+			l:     "0x0",
+		},
+		{
+			input: "11111111111111111111111111111111111111111111111111111111111111010",
+			err:   true,
+		},
+		{
+			input: "X",
+			err:   true,
+		},
 	}
 	for _, d := range data {
-		l, h := internalUtils.SplitFactStr(d["input"]) // 0x3
-		require.Equal(t, d["l"], l)
-		require.Equal(t, d["h"], h)
+		l, h, err := internalUtils.SplitFactStr(d.input)
+		if d.err {
+			require.Error(t, err)
+		} else {
+			require.NoError(t, err)
+			assert.Equal(t, d.l, l)
+			assert.Equal(t, d.h, h)
+		}
 	}
 }
 
@@ -508,7 +558,8 @@ func TestGeneral_SplitFactStr(t *testing.T) {
 // The function takes no parameters and returns no values.
 //
 // Parameters:
-// - t: The testing.T object for running the test
+//   - t: The testing.T object for running the test
+//
 // Returns:
 //
 //	none

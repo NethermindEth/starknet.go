@@ -2,7 +2,6 @@ package internal
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"path/filepath"
 	"runtime"
@@ -38,7 +37,7 @@ func LoadEnv() string {
 	// get the directory containing the source file
 	sourceDir := filepath.Dir(filename)
 
-	customEnv := fmt.Sprintf(".env.%s", testEnv)
+	customEnv := ".env." + testEnv
 	err := godotenv.Load(filepath.Join(sourceDir, customEnv))
 	if err != nil {
 		log.Printf("failed to load %s, err: %s", customEnv, err)

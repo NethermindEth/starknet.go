@@ -17,7 +17,8 @@ import (
 // It reads the content of the "./tests/hello_starknet_compiled.casm.json" file and unmarshals it into a contracts.CasmClass variable.
 // The function returns an assertion error if there is an error reading the file or unmarshaling the content.
 // Parameters:
-// - t: A testing.T object used for running the test and reporting any failures.
+//   - t: A testing.T object used for running the test and reporting any failures.
+//
 // Returns:
 //
 //	none
@@ -107,25 +108,23 @@ func TestClassHashes(t *testing.T) {
 
 	t.Run("Test Sierra ClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
-
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
 				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
-				hash := hash.ClassHash(&sierraClass)
-				assert.Equal(t, test.ExpectedClassHash, hash.String())
+				hashResult := hash.ClassHash(&sierraClass)
+				assert.Equal(t, test.ExpectedClassHash, hashResult.String())
 			})
 		}
 	})
 
 	t.Run("Test CompiledClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
-
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
 				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
 
-				hash, err := hash.CompiledClassHash(&casmClass)
+				hashResult, err := hash.CompiledClassHash(&casmClass)
 				require.NoError(t, err)
-				assert.Equal(t, test.ExpectedCompiledClassHash, hash.String())
+				assert.Equal(t, test.ExpectedCompiledClassHash, hashResult.String())
 			})
 		}
 	})

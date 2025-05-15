@@ -10,11 +10,12 @@ import (
 // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/math_utils.py#L50)
 //
 // Parameters:
-// - n: a pointer to a big integer representing the dividend
-// - m: a pointer to a big integer representing the divisor
-// - p: a pointer to a big integer representing the modulus
+//   - n: a pointer to a big integer representing the dividend
+//   - m: a pointer to a big integer representing the divisor
+//   - p: a pointer to a big integer representing the modulus
+//
 // Returns:
-// - *big.Int: a pointer to a big integer representing the remainder of the division operation.
+//   - *big.Int: a pointer to a big integer representing the remainder of the division operation.
 func DivMod(n, m, p *big.Int) *big.Int {
 	q := new(big.Int)
 	gx := new(big.Int)
@@ -33,10 +34,11 @@ func DivMod(n, m, p *big.Int) *big.Int {
 // If the byte array is longer than the specified length, it drops the most significant bytes.
 //
 // Parameters:
-// - v: a pointer to a big.Int
-// - rolen: the length of the resulting byte array
+//   - v: a pointer to a big.Int
+//   - rolen: the length of the resulting byte array
+//
 // Returns:
-// - []byte: resulting byte array
+//   - []byte: resulting byte array
 func int2octets(v *big.Int, rolen int) []byte {
 	out := v.Bytes()
 
@@ -66,12 +68,13 @@ func int2octets(v *big.Int, rolen int) []byte {
 // Otherwise, the result of the subtraction is converted to an octet and returned.
 //
 // Parameters:
-// - in: a pointer to a big.Int representing the input bit string
-// - q: a pointer to a big.Int representing the divisor
-// - qlen: an integer representing the desired length of the output octets
-// - rolen: an integer representing the desired length of the output octets
+//   - in: a pointer to a big.Int representing the input bit string
+//   - q: a pointer to a big.Int representing the divisor
+//   - qlen: an integer representing the desired length of the output octets
+//   - rolen: an integer representing the desired length of the output octets
+//
 // Returns:
-// - []byte: a byte slice representing the octets.
+//   - []byte: a byte slice representing the octets.
 func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 	z1 := bits2int(in, qlen)
 	z2 := new(big.Int).Sub(z1, q)
@@ -85,10 +88,11 @@ func bits2octets(in, q *big.Int, qlen, rolen int) []byte {
 // https://tools.ietf.org/html/rfc6979#section-2.3.2
 //
 // Parameters:
-// - in: a pointer to a big.Int representing the input bit string
-// - qlen: an integer representing the desired length of the output integer
+//   - in: a pointer to a big.Int representing the input bit string
+//   - qlen: an integer representing the desired length of the output integer
+//
 // Returns:
-// - *big.Int: a pointer to a big.Int representing the converted integer
+//   - *big.Int: a pointer to a big.Int representing the converted integer
 func bits2int(in *big.Int, qlen int) *big.Int {
 	blen := len(in.Bytes()) * 8
 
@@ -103,12 +107,13 @@ func bits2int(in *big.Int, qlen int) *big.Int {
 // mac returns an HMAC of the given key and message.
 //
 // Parameters:
-// - alg: a hash.Hash implementation. It is used to specify the hash algorithm to be used for calculating the MAC.
-// - k: a byte slice representing the key to be used for the MAC calculation.
-// - m: a byte slice representing the message to be used for the MAC calculation.
-// - buf: a byte slice representing the buffer to be used for the MAC calculation.
+//   - alg: a hash.Hash implementation. It is used to specify the hash algorithm to be used for calculating the MAC.
+//   - k: a byte slice representing the key to be used for the MAC calculation.
+//   - m: a byte slice representing the message to be used for the MAC calculation.
+//   - buf: a byte slice representing the buffer to be used for the MAC calculation.
+//
 // Returns:
-// - []byte: a byte slice containing the calculated MAC
+//   - []byte: a byte slice containing the calculated MAC
 func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 	h := hmac.New(alg, k)
 	h.Write(m)
@@ -118,11 +123,12 @@ func mac(alg func() hash.Hash, k, m, buf []byte) []byte {
 // MaskBits masks the specified (excess) bits in a byte slice.
 //
 // Parameters:
-// - mask: is an integer representing the number of bits to mask
-// - wordSize: is an integer representing the number of bits in each element of the slice
-// - slice: is a byte slice on which the masking operation is performed
+//   - mask: is an integer representing the number of bits to mask
+//   - wordSize: is an integer representing the number of bits in each element of the slice
+//   - slice: is a byte slice on which the masking operation is performed
+//
 // Returns:
-// - []byte: a new byte slice that contains the masked bits
+//   - []byte: a new byte slice that contains the masked bits
 func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	excess := len(slice)*wordSize - mask
 	for _, by := range slice {
@@ -143,10 +149,11 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 // FmtKecBytes formats a big integer into a Keccak hash.
 //
 // Parameters:
-// - in: a pointer to a big.Int
-// - rolen: an integer representing the desired length of the output byte slice
+//   - in: a pointer to a big.Int
+//   - rolen: an integer representing the desired length of the output byte slice
+//
 // Returns:
-// - buf: a byte slice containing the formatted Keccak hash
+//   - buf: a byte slice containing the formatted Keccak hash
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	buf = append(buf, in.Bytes()...)
 

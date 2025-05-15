@@ -20,7 +20,8 @@ import (
 // If any of the assertions fail, the test fails with an error.
 //
 // Parameters:
-// - t: the testing object for running the test cases
+//   - t: the testing object for running the test cases
+//
 // Returns:
 //
 //	none
@@ -128,16 +129,15 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Network: %s, Test: %s", testEnv, test.name), func(t *testing.T) {
-			require := require.New(t)
-			output, err := testConfig.provider.Call(context.Background(), FunctionCall(test.FunctionCall), test.BlockID)
+			output, err := testConfig.provider.Call(context.Background(), test.FunctionCall, test.BlockID)
 			if err != nil {
 				rpcErr, ok := err.(*RPCError)
-				require.True(ok)
-				require.ErrorContains(test.ExpectedError, rpcErr.Message)
+				require.True(t, ok)
+				require.ErrorContains(t, test.ExpectedError, rpcErr.Message)
 			} else {
-				require.NoError(err)
-				require.NotEmpty(output, "should return an output")
-				require.Equal(test.ExpectedPatternResult, output[0])
+				require.NoError(t, err)
+				require.NotEmpty(t, output, "should return an output")
+				require.Equal(t, test.ExpectedPatternResult, output[0])
 			}
 		})
 	}

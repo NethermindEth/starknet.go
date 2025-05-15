@@ -120,6 +120,7 @@ func (c *Client) newClientConn(conn ServerCodec) *clientConn {
 	ctx = context.WithValue(ctx, clientContextKey{}, c)
 	ctx = context.WithValue(ctx, peerInfoContextKey{}, conn.peerInfo())
 	handler := newHandler(ctx, conn, c.idgen, c.services, c.batchItemLimit, c.batchResponseMaxSize)
+
 	return &clientConn{conn, handler}
 }
 
@@ -153,6 +154,7 @@ func (op *requestOp) wait(ctx context.Context, c *Client) ([]*jsonrpcMessage, er
 			case <-c.closing:
 			}
 		}
+
 		return nil, ctx.Err()
 	case resp := <-op.resp:
 		return resp, op.err
@@ -222,6 +224,7 @@ func DialOptions(ctx context.Context, rawurl string, options ...ClientOption) (*
 // 'reverse calls' in a handler method.
 func ClientFromContext(ctx context.Context) (*Client, bool) {
 	client, ok := ctx.Value(clientContextKey{}).(*Client)
+
 	return client, ok
 }
 
@@ -232,6 +235,7 @@ func newClient(initctx context.Context, cfg *clientConfig, connect reconnectFunc
 	}
 	c := initClient(conn, new(serviceRegistry), cfg)
 	c.reconnectFunc = connect
+
 	return c, nil
 }
 
@@ -264,6 +268,7 @@ func initClient(conn ServerCodec, services *serviceRegistry, cfg *clientConfig) 
 	if !isHTTP {
 		go c.dispatch(conn)
 	}
+
 	return c
 }
 
@@ -277,6 +282,7 @@ func (c *Client) RegisterName(name string, receiver interface{}) error {
 
 func (c *Client) nextID() json.RawMessage {
 	id := c.idCounter.Add(1)
+
 	return strconv.AppendUint(nil, uint64(id), 10)
 }
 
@@ -287,6 +293,7 @@ func (c *Client) SupportedModules() (map[string]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), subscribeTimeout)
 	defer cancel()
 	err := c.CallContext(ctx, &result, "rpc_modules", nil)
+
 	return result, err
 }
 
@@ -322,6 +329,7 @@ func (c *Client) SetHeader(key, value string) {
 // can also pass nil, in which case the result is ignored.
 func (c *Client) Call(result interface{}, method string, args ...interface{}) error {
 	ctx := context.Background()
+
 	return c.CallContextWithSliceArgs(ctx, result, method, args...)
 }
 
@@ -375,6 +383,7 @@ func (c *Client) CallContext(ctx context.Context, result interface{}, method str
 		if result == nil {
 			return nil
 		}
+
 		return json.Unmarshal(resp.Result, result)
 	}
 }
@@ -388,6 +397,7 @@ func (c *Client) CallContext(ctx context.Context, result interface{}, method str
 // Note that batch calls may not be executed atomically on the server side.
 func (c *Client) BatchCall(b []BatchElem) error {
 	ctx := context.Background()
+
 	return c.BatchCallContext(ctx, b)
 }
 
@@ -435,7 +445,7 @@ func (c *Client) BatchCallContext(ctx context.Context, b []BatchElem) error {
 	}
 
 	// Wait for all responses to come back.
-	for n := 0; n < len(batchresp); n++ {
+	for n := range batchresp {
 		resp := batchresp[n]
 		if resp == nil {
 			// Ignore null responses. These can happen for batches sent via HTTP.
@@ -482,6 +492,7 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 	if c.isHTTP {
 		return c.sendHTTP(ctx, op, msg)
 	}
+
 	return c.send(ctx, op, msg)
 }
 
@@ -495,7 +506,13 @@ func (c *Client) EthSubscribe(ctx context.Context, channel interface{}, args ...
 //
 // For RPC-Subscriptions with optional arguments, use 'Subscribe' instead and pass a struct containing
 // the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
-func (c *Client) SubscribeWithSliceArgs(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args ...interface{}) (*ClientSubscription, error) {
+func (c *Client) SubscribeWithSliceArgs(
+	ctx context.Context,
+	namespace string,
+	methodSuffix string,
+	channel interface{},
+	args ...interface{},
+) (*ClientSubscription, error) {
 	return c.Subscribe(ctx, namespace, methodSuffix, channel, args)
 }
 
@@ -511,7 +528,13 @@ func (c *Client) SubscribeWithSliceArgs(ctx context.Context, namespace string, m
 // before considering the subscriber dead. The subscription Err channel will receive
 // ErrSubscriptionQueueOverflow. Use a sufficiently large buffer on the channel or ensure
 // that the channel usually has at least one reader to prevent this issue.
-func (c *Client) Subscribe(ctx context.Context, namespace string, methodSuffix string, channel interface{}, args interface{}) (*ClientSubscription, error) {
+func (c *Client) Subscribe(
+	ctx context.Context,
+	namespace string,
+	methodSuffix string,
+	channel interface{},
+	args interface{},
+) (*ClientSubscription, error) {
 	// Check type of channel first.
 	chanVal := reflect.ValueOf(channel)
 	if chanVal.Kind() != reflect.Chan || chanVal.Type().ChanDir()&reflect.SendDir == 0 {
@@ -535,13 +558,14 @@ func (c *Client) Subscribe(ctx context.Context, namespace string, methodSuffix s
 	}
 
 	// Send the subscription request.
-	// The arrival and validity of the response is signaled on sub.quit.
+	// The arrival and validity of the response is signalled on sub.quit.
 	if err := c.send(ctx, op, msg); err != nil {
 		return nil, err
 	}
 	if _, err := op.wait(ctx, c); err != nil {
 		return nil, err
 	}
+
 	return op.sub, nil
 }
 
@@ -560,6 +584,7 @@ func (c *Client) newMessage(method string, paramsIn interface{}) (*jsonrpcMessag
 			return nil, err
 		}
 	}
+
 	return msg, nil
 }
 
@@ -570,6 +595,7 @@ func (c *Client) send(ctx context.Context, op *requestOp, msg interface{}) error
 	case c.reqInit <- op:
 		err := c.write(ctx, msg, false)
 		c.reqSent <- err
+
 		return err
 	case <-ctx.Done():
 		// This can happen if the client is overloaded or unable to keep up with
@@ -594,6 +620,7 @@ func (c *Client) write(ctx context.Context, msg interface{}, retry bool) error {
 			return c.write(ctx, msg, true)
 		}
 	}
+
 	return err
 }
 
@@ -610,14 +637,17 @@ func (c *Client) reconnect(ctx context.Context) error {
 	newconn, err := c.reconnectFunc(ctx)
 	if err != nil {
 		log.Trace("RPC client reconnect failed", "err", err)
+
 		return err
 	}
 	select {
 	case c.reconnected <- newconn:
 		c.writeConn = newconn
+
 		return nil
 	case <-c.didClose:
 		newconn.close()
+
 		return ErrClientQuit
 	}
 }
@@ -725,6 +755,7 @@ func (c *Client) read(codec ServerCodec) {
 		}
 		if err != nil {
 			c.readErr <- err
+
 			return
 		}
 		c.readOp <- readOp{msgs, batch}

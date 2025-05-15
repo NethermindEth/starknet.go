@@ -11,28 +11,9 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
-// https://github.com/starkware-libs/starknet-specs/blob/a789ccc3432c57777beceaa53a34a7ae2f25fda0/api/starknet_api_openrpc.json#L1252
-type TXN struct {
-	Hash                  *felt.Felt            `json:"transaction_hash,omitempty"`
-	Type                  TransactionType       `json:"type"`
-	Version               *felt.Felt            `json:"version,omitempty"`
-	Nonce                 *felt.Felt            `json:"nonce,omitempty"`
-	MaxFee                *felt.Felt            `json:"max_fee,omitempty"`
-	ContractAddress       *felt.Felt            `json:"contract_address,omitempty"`
-	ContractAddressSalt   *felt.Felt            `json:"contract_address_salt,omitempty"`
-	ClassHash             *felt.Felt            `json:"class_hash,omitempty"`
-	ConstructorCalldata   []*felt.Felt          `json:"constructor_calldata,omitempty"`
-	SenderAddress         *felt.Felt            `json:"sender_address,omitempty"`
-	Signature             *[]*felt.Felt         `json:"signature,omitempty"`
-	Calldata              *[]*felt.Felt         `json:"calldata,omitempty"`
-	EntryPointSelector    *felt.Felt            `json:"entry_point_selector,omitempty"`
-	CompiledClassHash     *felt.Felt            `json:"compiled_class_hash,omitempty"`
-	ResourceBounds        ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                   U64                   `json:"tip"`
-	PayMasterData         []*felt.Felt          `json:"paymaster_data"`
-	AccountDeploymentData []*felt.Felt          `json:"account_deployment_data"`
-	NonceDataMode         DataAvailabilityMode  `json:"nonce_data_availability_mode"`
-	FeeMode               DataAvailabilityMode  `json:"fee_data_availability_mode"`
+type BlockTransaction struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+	Transaction
 }
 
 type InvokeTxnV0 struct {
@@ -50,19 +31,20 @@ type InvokeTxnV1 struct {
 	Nonce         *felt.Felt         `json:"nonce"`
 	Type          TransactionType    `json:"type"`
 	SenderAddress *felt.Felt         `json:"sender_address"`
-	// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
+	// The data expected by the account's `execute` function (in most usecases, this includes the
+	// called contract address and a function selector)
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
 type InvokeTxnV3 struct {
-	Type           TransactionType       `json:"type"`
-	SenderAddress  *felt.Felt            `json:"sender_address"`
-	Calldata       []*felt.Felt          `json:"calldata"`
-	Version        TransactionVersion    `json:"version"`
-	Signature      []*felt.Felt          `json:"signature"`
-	Nonce          *felt.Felt            `json:"nonce"`
-	ResourceBounds ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            U64                   `json:"tip"`
+	Type           TransactionType        `json:"type"`
+	SenderAddress  *felt.Felt             `json:"sender_address"`
+	Calldata       []*felt.Felt           `json:"calldata"`
+	Version        TransactionVersion     `json:"version"`
+	Signature      []*felt.Felt           `json:"signature"`
+	Nonce          *felt.Felt             `json:"nonce"`
+	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -74,19 +56,13 @@ type InvokeTxnV3 struct {
 }
 
 type L1HandlerTxn struct {
-	Type TransactionType `json:"type,omitempty"`
+	Type TransactionType `json:"type"`
 	// Version of the transaction scheme
-	Version L1HandlerTxnVersion `json:"version"`
+	Version TransactionVersion `json:"version"`
 	// Nonce
-	Nonce string `json:"nonce,omitempty"`
+	Nonce string `json:"nonce"`
 	FunctionCall
 }
-
-type L1HandlerTxnVersion string
-
-const (
-	L1HandlerTxnVersionV0 L1HandlerTxnVersion = "0x0"
-)
 
 type DeclareTxnV0 struct {
 	Type TransactionType `json:"type"`
@@ -123,15 +99,15 @@ type DeclareTxnV2 struct {
 }
 
 type DeclareTxnV3 struct {
-	Type              TransactionType       `json:"type"`
-	SenderAddress     *felt.Felt            `json:"sender_address"`
-	CompiledClassHash *felt.Felt            `json:"compiled_class_hash"`
-	Version           TransactionVersion    `json:"version"`
-	Signature         []*felt.Felt          `json:"signature"`
-	Nonce             *felt.Felt            `json:"nonce"`
-	ClassHash         *felt.Felt            `json:"class_hash"`
-	ResourceBounds    ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               U64                   `json:"tip"`
+	Type              TransactionType        `json:"type"`
+	SenderAddress     *felt.Felt             `json:"sender_address"`
+	CompiledClassHash *felt.Felt             `json:"compiled_class_hash"`
+	Version           TransactionVersion     `json:"version"`
+	Signature         []*felt.Felt           `json:"signature"`
+	Nonce             *felt.Felt             `json:"nonce"`
+	ClassHash         *felt.Felt             `json:"class_hash"`
+	ResourceBounds    *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip               U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -160,7 +136,7 @@ const (
 )
 
 // MarshalJSON implements the json.Marshaler interface.
-// It validates that the DataAvailabilityMode is either L1 or L2 before marshaling.
+// It validates that the DataAvailabilityMode is either L1 or L2 before marshalling.
 func (da DataAvailabilityMode) MarshalJSON() ([]byte, error) {
 	switch da {
 	case DAModeL1, DAModeL2:
@@ -177,6 +153,7 @@ func (da *DataAvailabilityMode) UInt64() (uint64, error) {
 	case DAModeL2:
 		return uint64(1), nil
 	}
+
 	return 0, errors.New("unknown DAMode")
 }
 
@@ -210,6 +187,7 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 		return nil, err
 	}
 	maxPriceBytes := maxPricePerUnitFelt.Bytes()
+
 	return internalUtils.Flatten(
 		[]byte{0},
 		[]byte(resource),
@@ -218,7 +196,8 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 	), nil
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and will no longer be supported in future versions
+// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and
+// will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -229,8 +208,8 @@ type DeployTxn struct {
 	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
 }
 
-// DeployAccountTxn The structure of a deployAccount transaction.
-type DeployAccountTxn struct {
+// DeployAccountTxnV1 The structure of a deployAccount transaction.
+type DeployAccountTxnV1 struct {
 	MaxFee    *felt.Felt         `json:"max_fee"`
 	Version   TransactionVersion `json:"version"`
 	Signature []*felt.Felt       `json:"signature"`
@@ -247,15 +226,15 @@ type DeployAccountTxn struct {
 }
 
 type DeployAccountTxnV3 struct {
-	Type                TransactionType       `json:"type"`
-	Version             TransactionVersion    `json:"version"`
-	Signature           []*felt.Felt          `json:"signature"`
-	Nonce               *felt.Felt            `json:"nonce"`
-	ContractAddressSalt *felt.Felt            `json:"contract_address_salt"`
-	ConstructorCalldata []*felt.Felt          `json:"constructor_calldata"`
-	ClassHash           *felt.Felt            `json:"class_hash"`
-	ResourceBounds      ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                 U64                   `json:"tip"`
+	Type                TransactionType        `json:"type"`
+	Version             TransactionVersion     `json:"version"`
+	Signature           []*felt.Felt           `json:"signature"`
+	Nonce               *felt.Felt             `json:"nonce"`
+	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
+	ClassHash           *felt.Felt             `json:"class_hash"`
+	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 U64                    `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
@@ -264,112 +243,17 @@ type DeployAccountTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-type UnknownTransaction struct{ Transaction }
-
-// UnmarshalJSON unmarshals the JSON data into an UnknownTransaction object.
-//
-// Parameters:
-// - data: The JSON data to be unmarshalled
-// Returns:
-// - error: An error if the unmarshalling process fails
-func (txn *UnknownTransaction) UnmarshalJSON(data []byte) error {
-
-	var dec map[string]interface{}
-	if err := json.Unmarshal(data, &dec); err != nil {
-		return err
-	}
-	// BlockWithReceipts swrap transaction in the Transaction field.
-	dec, err := internalUtils.UnwrapJSON(dec, "Transaction")
-	if err != nil {
-		return err
-	}
-
-	t, err := unmarshalTxn(dec)
-	if err != nil {
-		return err
-	}
-
-	*txn = UnknownTransaction{t}
-	return nil
-}
-
-// unmarshalTxn unmarshals a given interface{} into a Transaction object.
-//
-// Parameters:
-// - t: The interface{} to be unmarshalled
-// Returns:
-// - Transaction: a Transaction object
-// - error: an error if the unmarshaling process fails
-func unmarshalTxn(t interface{}) (Transaction, error) {
-	switch casted := t.(type) {
-	case map[string]interface{}:
-		switch TransactionType(casted["type"].(string)) {
-		case TransactionType_Declare:
-
-			switch TransactionType(casted["version"].(string)) {
-			case "0x0":
-				var txn DeclareTxnV0
-				err := remarshal(casted, &txn)
-				return txn, err
-			case "0x1":
-				var txn DeclareTxnV1
-				err := remarshal(casted, &txn)
-				return txn, err
-			case "0x2":
-				var txn DeclareTxnV2
-				err := remarshal(casted, &txn)
-				return txn, err
-			case "0x3":
-				var txn DeclareTxnV3
-				err := remarshal(casted, &txn)
-				return txn, err
-			default:
-				return nil, errors.New("internal unmarshalTxn() error, unknown Declare transaction version")
-			}
-		case TransactionType_Deploy:
-			var txn DeployTxn
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_DeployAccount:
-			var txn DeployAccountTxn
-			err := remarshal(casted, &txn)
-			return txn, err
-		case TransactionType_Invoke:
-			switch TransactionType(casted["version"].(string)) {
-			case "0x0":
-				var txn InvokeTxnV0
-				err := remarshal(casted, &txn)
-				return txn, err
-			case "0x1":
-				var txn InvokeTxnV1
-				err := remarshal(casted, &txn)
-				return txn, err
-			case "0x3":
-				var txn InvokeTxnV3
-				err := remarshal(casted, &txn)
-				return txn, err
-			default:
-				return nil, errors.New("internal unmarshalTxn() error, unknown Invoke transaction version")
-			}
-		case TransactionType_L1Handler:
-			var txn L1HandlerTxn
-			err := remarshal(casted, &txn)
-			return txn, err
-		}
-	}
-
-	return nil, fmt.Errorf("unknown transaction type: %v", t)
-}
-
 // remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
-// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data to 'dst' using the json.Unmarshal function.
+// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data
+// to 'dst' using the json.Unmarshal function.
 //
 // Parameters:
-// - v: The interface{} value to be marshaled
-// - dst: The interface{} value to be unmarshaled
+//   - v: The interface{} value to be marshalled
+//   - dst: The interface{} value to be unmarshaled
+//
 // Returns:
-// - error: An error if the marshaling or unmarshaling process fails
-func remarshal(v interface{}, dst interface{}) error {
+//   - error: An error if the marshalling or unmarshaling process fails
+func remarshal(v, dst any) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -398,22 +282,51 @@ const (
 
 // BigInt returns a big integer corresponding to the transaction version.
 //
-// Parameters:
-//
-//	none
-//
 // Returns:
-// - *big.Int: a pointer to a big.Int
-// - error: an error if the conversion fails
+//   - *big.Int: a pointer to a big.Int
+//   - error: an error if the conversion fails
 func (v *TransactionVersion) BigInt() (*big.Int, error) {
 	switch *v {
 	case TransactionV0:
 		return big.NewInt(0), nil
 	case TransactionV1:
 		return big.NewInt(1), nil
-	default:
+	case TransactionV2:
+		return big.NewInt(2), nil
+	case TransactionV3:
+		return big.NewInt(3), nil
+	}
+
+	// Handle versions with query bit.
+	// Remove the 0x prefix and convert to big.Int
+	version, ok := new(big.Int).SetString(string(*v)[2:], 16) //nolint:mnd
+	if !ok {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}
+
+	return version, nil
+}
+
+// Int returns an integer corresponding to the transaction version.
+// For versions with query bit, it returns the base version number (e.g. TransactionV2WithQueryBit returns 2).
+// Returns -1 for invalid versions.
+//
+// Returns:
+//   - int: the integer version, or -1 for invalid versions
+func (v *TransactionVersion) Int() int {
+	switch *v {
+	case TransactionV0, TransactionV0WithQueryBit:
+		return 0
+	case TransactionV1, TransactionV1WithQueryBit:
+		return 1
+	case TransactionV2, TransactionV2WithQueryBit:
+		return 2
+	case TransactionV3, TransactionV3WithQueryBit:
+		return 3
+	}
+
+	// Handle invalid versions
+	return -1
 }
 
 // SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
@@ -424,31 +337,88 @@ type SubPendingTxnsInput struct {
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// SubPendingTxns is the response of the starknet_subscribePendingTransactions subscription.
-type SubPendingTxns struct {
+// PendingTxn is the response of the starknet_subscribePendingTransactions subscription.
+type PendingTxn struct {
 	// The hash of the pending transaction. Always present.
-	TransactionHash *felt.Felt
+	Hash *felt.Felt
 	// The full transaction details. Only present if transactionDetails is true.
 	Transaction *BlockTransaction
 }
 
-// UnmarshalJSON unmarshals the JSON data into a SubPendingTxns object.
+// UnmarshalJSON unmarshals the JSON data into a PendingTxn object.
 //
 // Parameters:
-// - data: The JSON data to be unmarshalled
+//   - data: The JSON data to be unmarshalled
+//
 // Returns:
-// - error: An error if the unmarshalling process fails
-func (s *SubPendingTxns) UnmarshalJSON(data []byte) error {
-	var txns *BlockTransaction
-	if err := json.Unmarshal(data, &txns); err == nil {
-		s.Transaction = txns
-		s.TransactionHash = txns.Hash()
+//   - error: An error if the unmarshalling process fails
+func (s *PendingTxn) UnmarshalJSON(data []byte) error {
+	var txn *BlockTransaction
+	if err := json.Unmarshal(data, &txn); err == nil {
+		s.Transaction = txn
+		s.Hash = txn.Hash
+
 		return nil
 	}
-	var txnsHash *felt.Felt
-	if err := json.Unmarshal(data, &txnsHash); err == nil {
-		s.TransactionHash = txnsHash
+	var txnHash *felt.Felt
+	if err := json.Unmarshal(data, &txnHash); err == nil {
+		s.Hash = txnHash
+
 		return nil
 	}
-	return errors.New("failed to unmarshal SubPendingTxns")
+
+	return errors.New("failed to unmarshal PendingTxn")
+}
+
+// UnmarshalJSON unmarshals the data into a BlockTransaction object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+//   - data: The JSON data to be unmarshalled
+//
+// Returns:
+//   - error: An error if the unmarshalling process fails
+func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
+	type alias BlockTransaction
+	var aux alias
+
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
+	}
+
+	txn, err := unmarshalTxn(data)
+	if err != nil {
+		return err
+	}
+
+	blockTxn.Hash = aux.Hash
+	blockTxn.Transaction = txn
+
+	return nil
+}
+
+// MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
+//
+// It takes a pointer to a BlockTransaction object as the parameter.
+// The function returns a byte slice representing the JSON data and an error if the marshalling process fails.
+func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
+	// First marshal the transaction to get all its fields
+	txnData, err := json.Marshal(blockTxn.Transaction)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal into a map to add the hash field
+	var result map[string]interface{}
+	if err := json.Unmarshal(txnData, &result); err != nil {
+		return nil, err
+	}
+
+	// Add the hash field
+	result["transaction_hash"] = blockTxn.Hash
+
+	return json.Marshal(result)
 }

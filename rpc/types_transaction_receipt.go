@@ -13,7 +13,7 @@ type MsgToL1 struct {
 	FromAddress *felt.Felt `json:"from_address"`
 	// ToAddress The target L1 address the message is sent to
 	ToAddress *felt.Felt `json:"to_address"`
-	//Payload  The payload of the message
+	// Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
 
@@ -24,7 +24,7 @@ type MsgFromL1 struct {
 	ToAddress *felt.Felt `json:"to_address"`
 	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
 	Selector *felt.Felt `json:"entry_point_selector"`
-	//Payload  The payload of the message
+	// Payload  The payload of the message
 	Payload []*felt.Felt `json:"payload"`
 }
 
@@ -32,7 +32,8 @@ type MsgFromL1 struct {
 type MessageStatus struct {
 	// The hash of the L1_HANDLER transaction in L2 that contains the message
 	Hash *felt.Felt `json:"transaction_hash"`
-	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
+	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or
+	// failed validation during the block construction phase
 	FinalityStatus TxnStatus `json:"finality_status"`
 	// The failure reason, only appears if finality_status is REJECTED
 	FailureReason string `json:"failure_reason,omitempty"`
@@ -59,16 +60,19 @@ const (
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
 	Hash               *felt.Felt         `json:"transaction_hash"`
+	Type               TransactionType    `json:"type"`
 	ActualFee          FeePayment         `json:"actual_fee"`
-	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-	Type               TransactionType    `json:"type,omitempty"`
 	MessagesSent       []MsgToL1          `json:"messages_sent"`
-	RevertReason       string             `json:"revert_reason,omitempty"`
 	Events             []Event            `json:"events"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ContractAddress    *felt.Felt         `json:"contract_address,omitempty"`
-	MessageHash        NumAsHex           `json:"message_hash,omitempty"`
+	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	// Only present in case of a Deploy or DeployAccount transaction receipt
+	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+	// Only appears if the transaction is a L1Handler transaction
+	MessageHash NumAsHex `json:"message_hash,omitempty"`
+	// Only appears if execution_status is REVERTED
+	RevertReason string `json:"revert_reason,omitempty"`
 }
 
 type TransactionType string
@@ -96,9 +100,10 @@ const (
 //	nil if the unmarshaling is successful.
 //
 // Parameters:
-// - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//
 // Returns:
-// - error: an error if the unmarshaling fails
+//   - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -117,7 +122,7 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	case "L1_HANDLER":
 		*tt = TransactionType_L1Handler
 	default:
-		return fmt.Errorf("unsupported type: %s", data)
+		return fmt.Errorf("unsupported transaction type: %s", data)
 	}
 
 	return nil
@@ -126,8 +131,8 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 //
 // Returns:
-// - []byte: a byte slice
-// - error: an error if any
+//   - []byte: a byte slice
+//   - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }

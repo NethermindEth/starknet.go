@@ -3,6 +3,7 @@ package typedData
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -31,7 +32,7 @@ type Domain struct {
 
 type TypeDefinition struct {
 	Name               string     `json:"-"`
-	Enconding          *felt.Felt `json:"-"`
+	Encoding           *felt.Felt `json:"-"`
 	EncoddingString    string     `json:"-"`
 	SingleEncString    string     `json:"-"`
 	ReferencedTypesEnc []string   `json:"-"`
@@ -47,47 +48,47 @@ type TypeParameter struct {
 // NewTypedData creates a new instance of TypedData.
 //
 // Parameters:
-// - types: a slice of TypeDefinition representing the types used in the TypedData.
-// - primaryType: a string representing the primary type of the TypedData.
-// - domain: a Domain struct representing the domain information of the TypedData.
-// - message: a byte slice containing the JSON-encoded message.
+//   - types: a slice of TypeDefinition representing the types used in the TypedData.
+//   - primaryType: a string representing the primary type of the TypedData.
+//   - domain: a Domain struct representing the domain information of the TypedData.
+//   - message: a byte slice containing the JSON-encoded message.
 //
 // Returns:
-// - td: a pointer to the newly created TypedData instance.
-// - err: an error if any occurred during the creation of the TypedData.
+//   - td: a pointer to the newly created TypedData instance.
+//   - err: an error if any occurred during the creation of the TypedData.
 func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, message []byte) (td *TypedData, err error) {
-	//types
+	// types
 	typesMap := make(map[string]TypeDefinition)
 	for _, typeDef := range types {
 		typesMap[typeDef.Name] = typeDef
 	}
 
-	//primary type
+	// primary type
 	if _, ok := typesMap[primaryType]; !ok {
 		return td, fmt.Errorf("invalid primary type: %s", primaryType)
 	}
 
-	//message
+	// message
 	messageMap := make(map[string]any)
 	err = json.Unmarshal(message, &messageMap)
 	if err != nil {
 		return td, fmt.Errorf("error unmarshalling the message: %w", err)
 	}
 
-	//revision
+	// revision
 	revision, err := GetRevision(domain.Revision)
 	if err != nil {
 		return td, fmt.Errorf("error getting revision: %w", err)
 	}
 
-	//domain type encoding
+	// domain type encoding
 	domainTypeDef, err := encodeTypes(revision.Domain(), typesMap, revision)
 	if err != nil {
 		return td, err
 	}
 	typesMap[revision.Domain()] = domainTypeDef
 
-	//types encoding
+	// types encoding
 	primaryTypeDef, err := encodeTypes(primaryType, typesMap, revision)
 	if err != nil {
 		return td, err
@@ -116,31 +117,32 @@ func NewTypedData(types []TypeDefinition, primaryType string, domain Domain, mes
 // (ref: https://github.com/starknet-io/SNIPs/blob/5d5a42c654c27b377d8b7f90b453065fd19ec2eb/SNIPS/snip-12.md#specification)
 //
 // Parameters:
-// - account: A string representing the account.
+//   - account: A string representing the account.
+//
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
 func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error) {
-	//signed_data = encode(PREFIX_MESSAGE, Enc[domain_separator], account, Enc[message])
+	// A signed_data is equal to: encode(PREFIX_MESSAGE, Enc[domain_separator], account, Enc[message])
 
-	//PREFIX_MESSAGE
+	// PREFIX_MESSAGE
 	prefixMessage, err := internalUtils.HexToFelt(internalUtils.StrToHex("StarkNet Message"))
 	if err != nil {
 		return hash, err
 	}
 
-	//Enc[domain_separator]
+	// Enc[domain_separator]
 	domEnc, err := td.GetStructHash(td.Revision.Domain())
 	if err != nil {
 		return hash, err
 	}
 
-	//account
+	// account
 	accountFelt, err := internalUtils.HexToFelt(account)
 	if err != nil {
 		return hash, err
 	}
 
-	//Enc[message]
+	// Enc[message]
 	msgEnc, err := td.GetStructHash(td.PrimaryType)
 	if err != nil {
 		return hash, err
@@ -152,8 +154,8 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 // GetStructHash calculates the hash of a struct type and its respective data.
 //
 // Parameters:
-// - typeName: the name of the type to be hashed.
-// - context: optional context strings to be included in the hash calculation.
+//   - typeName: the name of the type to be hashed.
+//   - context: optional context strings to be included in the hash calculation.
 //
 // You can use 'context' to specify the path of the type you want to hash. Example: if you want to hash the type "ExampleInner"
 // that is within the "Example" primary type with the name of "example_inner", you can specify the context as ["example_inner"].
@@ -161,8 +163,8 @@ func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
 // as ["example_inner", "example_inner_inner"].
 //
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
-// - err: an error if any occurred during the hash calculation.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error) {
 	typeDef, ok := td.Types[typeName]
 	if !ok {
@@ -175,7 +177,7 @@ func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *fe
 		return hash, err
 	}
 
-	return td.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
+	return td.Revision.HashMethod(append([]*felt.Felt{typeDef.Encoding}, encTypeData...)...), nil
 }
 
 // shortGetStructHash is a helper function that calculates the hash of a struct type and its respective data.
@@ -186,7 +188,6 @@ func shortGetStructHash(
 	isEnum bool,
 	context ...string,
 ) (hash *felt.Felt, err error) {
-
 	encTypeData, err := encodeData(typeDef, typedData, data, isEnum, context...)
 	if err != nil {
 		return hash, err
@@ -201,37 +202,49 @@ func shortGetStructHash(
 		return typedData.Revision.HashMethod(encTypeData...), nil
 	}
 
-	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Enconding}, encTypeData...)...), nil
+	return typedData.Revision.HashMethod(append([]*felt.Felt{typeDef.Encoding}, encTypeData...)...), nil
 }
 
 // GetTypeHash returns the hash of the given type.
 //
 // Parameters:
-// - typeName: the name of the type to hash
+//   - typeName: the name of the type to hash
+//
 // Returns:
-// - hash: A pointer to a felt.Felt representing the calculated hash.
-// - err: an error if any occurred during the hash calculation.
+//   - hash: A pointer to a felt.Felt representing the calculated hash.
+//   - err: an error if any occurred during the hash calculation.
 func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error) {
 	typeDef, ok := td.Types[typeName]
 	if !ok {
 		if typeDef, ok = td.Revision.Types().Preset[typeName]; !ok {
-			return typeDef.Enconding, fmt.Errorf("type '%s' not found", typeName)
+			return typeDef.Encoding, fmt.Errorf("type '%s' not found", typeName)
 		}
 	}
-	return typeDef.Enconding, nil
+
+	return typeDef.Encoding, nil
 }
 
 // encodeTypes encodes the given type name using the TypedData struct.
 // Parameters:
-// - typeName: name of the type to encode
-// - types: map of type definitions
-// - revision: revision information
-// - isEnum: optional boolean indicating if type is an enum
+//   - typeName: name of the type to encode
+//   - types: map of type definitions
+//   - revision: revision information
+//   - isEnum: optional boolean indicating if type is an enum
+//
 // Returns:
-// - newTypeDef: the encoded type definition
-// - err: any error encountered during encoding
-func encodeTypes(typeName string, types map[string]TypeDefinition, revision *revision, isEnum ...bool) (newTypeDef TypeDefinition, err error) {
-	getTypeEncodeString := func(typeName string, typeDef TypeDefinition, customTypesStringEnc *[]string, isEnum ...bool) (result string, err error) {
+//   - newTypeDef: the encoded type definition
+//   - err: any error encountered during encoding
+//
+//nolint:gocyclo,funlen // This legacy function is complex but the team too busy to simplify it
+func encodeTypes(
+	typeName string,
+	types map[string]TypeDefinition,
+	revision *revision,
+	isEnum ...bool,
+) (newTypeDef TypeDefinition, err error) {
+	getTypeEncodeString := func(
+		typeName string, typeDef TypeDefinition, customTypesStringEnc *[]string, isEnum ...bool,
+	) (result string, err error) {
 		verifyTypeName := func(param TypeParameter, isEnum ...bool) error {
 			singleTypeName, _ := strings.CutSuffix(param.Type, "*")
 
@@ -240,13 +253,14 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 					if param.Contains == "" {
 						return fmt.Errorf("missing 'contains' value from '%s'", param.Name)
 					}
-					newTypeDef, err := encodeTypes(param.Contains, types, revision)
-					if err != nil {
-						return err
+					innerNewTypeDef, innerErr := encodeTypes(param.Contains, types, revision)
+					if innerErr != nil {
+						return innerErr
 					}
 
-					types[param.Contains] = newTypeDef
+					types[param.Contains] = innerNewTypeDef
 				}
+
 				return nil
 			}
 
@@ -255,23 +269,30 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 				if !ok {
 					return fmt.Errorf("error trying to get the type definition of '%s'", singleTypeName)
 				}
-				*customTypesStringEnc = append(*customTypesStringEnc, append([]string{typeEnc.SingleEncString}, typeEnc.ReferencedTypesEnc...)...)
+				*customTypesStringEnc = append(
+					*customTypesStringEnc,
+					append([]string{typeEnc.SingleEncString}, typeEnc.ReferencedTypesEnc...)...)
 
 				return nil
 			}
 
-			if newTypeDef := types[singleTypeName]; newTypeDef.SingleEncString != "" {
-				*customTypesStringEnc = append(*customTypesStringEnc, append([]string{newTypeDef.SingleEncString}, newTypeDef.ReferencedTypesEnc...)...)
+			if innerNewTypeDef := types[singleTypeName]; innerNewTypeDef.SingleEncString != "" {
+				*customTypesStringEnc = append(
+					*customTypesStringEnc,
+					append([]string{innerNewTypeDef.SingleEncString}, innerNewTypeDef.ReferencedTypesEnc...)...)
+
 				return nil
 			}
 
-			newTypeDef, err := encodeTypes(singleTypeName, types, revision, isEnum...)
-			if err != nil {
-				return err
+			innerNewTypeDef, innerErr := encodeTypes(singleTypeName, types, revision, isEnum...)
+			if innerErr != nil {
+				return innerErr
 			}
 
-			*customTypesStringEnc = append(*customTypesStringEnc, append([]string{newTypeDef.SingleEncString}, newTypeDef.ReferencedTypesEnc...)...)
-			types[singleTypeName] = newTypeDef
+			*customTypesStringEnc = append(
+				*customTypesStringEnc,
+				append([]string{innerNewTypeDef.SingleEncString}, innerNewTypeDef.ReferencedTypesEnc...)...)
+			types[singleTypeName] = innerNewTypeDef
 
 			return nil
 		}
@@ -287,10 +308,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 
 		for i, param := range typeDef.Parameters {
 			if len(isEnum) != 0 {
-				reg, err := regexp.Compile(`[^\(\),\s]+`)
-				if err != nil {
-					return "", err
-				}
+				reg := regexp.MustCompile(`[^\(\),\s]+`)
 				typesArr := reg.FindAllString(param.Type, -1)
 				var fullTypeName string
 				for i, typeNam := range typesArr {
@@ -302,7 +320,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 				buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+`(`+"%s"+`)`, param.Name, fullTypeName))
 
 				for _, typeNam := range typesArr {
-					err = verifyTypeName(TypeParameter{Type: typeNam})
+					err = verifyTypeName(TypeParameter{Type: typeNam, Name: "", Contains: ""})
 					if err != nil {
 						return "", err
 					}
@@ -315,7 +333,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 						return "", fmt.Errorf("missing 'contains' value from '%s'", param.Name)
 					}
 					currentTypeName = param.Contains
-					err = verifyTypeName(TypeParameter{Type: currentTypeName}, true)
+					err = verifyTypeName(TypeParameter{Type: currentTypeName, Name: "", Contains: ""}, true)
 					if err != nil {
 						return "", err
 					}
@@ -379,7 +397,7 @@ func encodeTypes(typeName string, types map[string]TypeDefinition, revision *rev
 	newTypeDef = TypeDefinition{
 		Name:               typeDef.Name,
 		Parameters:         typeDef.Parameters,
-		Enconding:          internalUtils.GetSelectorFromNameFelt(fullEncString),
+		Encoding:           internalUtils.GetSelectorFromNameFelt(fullEncString),
 		EncoddingString:    fullEncString,
 		SingleEncString:    singleEncString,
 		ReferencedTypesEnc: referencedTypesEnc,
@@ -413,19 +431,21 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 // encodeData is a helper function that encodes the given type definition using the TypedData struct.
 //
 // Parameters:
-// - typeDef: a pointer to the TypeDefinition representing the type to be encoded.
-// - typedData: a pointer to the TypedData struct containing the data to be encoded.
-// - data: a map containing the data to be encoded.
-// - isEnum: a boolean indicating whether the type is an enum.
-// - context: optional context strings to be included in the encoding process.
+//   - typeDef: a pointer to the TypeDefinition representing the type to be encoded.
+//   - typedData: a pointer to the TypedData struct containing the data to be encoded.
+//   - data: a map containing the data to be encoded.
+//   - isEnum: a boolean indicating whether the type is an enum.
+//   - context: optional context strings to be included in the encoding process.
 //
 // The function first checks if the context is provided and updates the data map accordingly.
 // It then defines helper functions to handle standard types, object types, and arrays.
 // The main encoding logic is implemented within these helper functions.
 //
 // Returns:
-// - enc: a slice of pointers to felt.Felt representing the encoded data.
-// - err: an error if any occurred during the encoding process.
+//   - enc: a slice of pointers to felt.Felt representing the encoded data.
+//   - err: an error if any occurred during the encoding process.
+//
+//nolint:gocyclo,funlen // This legacy function is complex but the team too busy to simplify it
 func encodeData(
 	typeDef *TypeDefinition,
 	typedData *TypedData,
@@ -441,15 +461,15 @@ func encodeData(
 			}
 			newData, ok := value.(map[string]any)
 			if !ok {
-				return enc, fmt.Errorf("context error: error generating the new data map")
+				return enc, errors.New("context error: error generating the new data map")
 			}
 			data = newData
 		}
 	}
 
 	// helper functions
-	verifyType := func(param TypeParameter, data any, isEnum bool) (resp *felt.Felt, err error) {
-		//helper functions
+	verifyType := func(param TypeParameter, data any, isEnum bool) (result *felt.Felt, err error) {
+		// helper functions
 		var handleStandardTypes func(param TypeParameter, data any, rev *revision) (resp *felt.Felt, err error)
 		var handleObjectTypes func(typeDef *TypeDefinition, data any, isEnum ...bool) (resp *felt.Felt, err error)
 		var handleArrays func(param TypeParameter, data any, rev *revision, isMerkle ...bool) (resp *felt.Felt, err error)
@@ -458,24 +478,31 @@ func encodeData(
 			switch param.Type {
 			case "merkletree":
 				tempParam := TypeParameter{
-					Name: param.Name,
-					Type: param.Contains,
+					Name:     param.Name,
+					Type:     param.Contains,
+					Contains: "",
 				}
-				resp, err := handleArrays(tempParam, data, rev, true)
+				innerResp, err := handleArrays(tempParam, data, rev, true)
 				if err != nil {
-					return resp, err
+					return innerResp, err
 				}
-				return resp, nil
+
+				return innerResp, nil
 			case "enum":
 				typeDef, ok := typedData.Types[param.Contains]
 				if !ok {
-					return resp, fmt.Errorf("error trying to get the type definition of '%s' in contains of '%s'", param.Contains, param.Name)
+					return resp, fmt.Errorf(
+						"error trying to get the type definition of '%s' in contains of '%s'",
+						param.Contains,
+						param.Name,
+					)
 				}
-				resp, err := handleObjectTypes(&typeDef, data, true)
+				innerResp, err := handleObjectTypes(&typeDef, data, true)
 				if err != nil {
-					return resp, err
+					return innerResp, err
 				}
-				return resp, nil
+
+				return innerResp, nil
 			case "NftId", "TokenAmount", "u256":
 				typeDef, ok := rev.Types().Preset[param.Type]
 				if !ok {
@@ -485,12 +512,14 @@ func encodeData(
 				if err != nil {
 					return resp, err
 				}
+
 				return resp, nil
 			default:
 				resp, err := encodePieceOfData(param.Type, data, rev)
 				if err != nil {
 					return resp, err
 				}
+
 				return resp, nil
 			}
 		}
@@ -542,12 +571,17 @@ func encodeData(
 
 			if isBasicType(singleParamType) {
 				for _, item := range dataArray {
-					resp, err := handleStandardTypes(TypeParameter{Name: param.Name, Type: singleParamType, Contains: param.Contains}, item, rev)
+					innerResp, err := handleStandardTypes(
+						TypeParameter{Name: param.Name, Type: singleParamType, Contains: param.Contains},
+						item,
+						rev,
+					)
 					if err != nil {
-						return resp, err
+						return innerResp, err
 					}
-					localEncode = append(localEncode, resp)
+					localEncode = append(localEncode, innerResp)
 				}
+
 				return rev.HashMethod(localEncode...), nil
 			}
 
@@ -572,35 +606,39 @@ func encodeData(
 			if len(isMerkle) != 0 {
 				return handleMerkleTree(localEncode), nil
 			}
+
 			return rev.HashMethod(localEncode...), nil
 		}
 
-		//function logic
+		// function logic
 		if strings.HasSuffix(param.Type, "*") {
-			resp, err := handleArrays(param, data, typedData.Revision)
-			if err != nil {
-				return resp, err
+			innerResp, innerErr := handleArrays(param, data, typedData.Revision)
+			if innerErr != nil {
+				return innerResp, innerErr
 			}
-			return resp, nil
+
+			return innerResp, nil
 		}
 
 		if isStandardType(param.Type) {
-			resp, err := handleStandardTypes(param, data, typedData.Revision)
-			if err != nil {
-				return resp, err
+			innerResp, innerErr := handleStandardTypes(param, data, typedData.Revision)
+			if innerErr != nil {
+				return innerResp, innerErr
 			}
-			return resp, nil
+
+			return innerResp, nil
 		}
 
 		nextTypeDef, ok := typedData.Types[param.Type]
 		if !ok {
-			return resp, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
+			return result, fmt.Errorf("error trying to get the type definition of '%s'", param.Type)
 		}
-		resp, err = handleObjectTypes(&nextTypeDef, data, isEnum)
+		result, err = handleObjectTypes(&nextTypeDef, data, isEnum)
 		if err != nil {
-			return resp, err
+			return result, err
 		}
-		return resp, nil
+
+		return result, nil
 	}
 
 	getData := func(key string) (any, error) {
@@ -608,6 +646,7 @@ func encodeData(
 		if !ok {
 			return value, fmt.Errorf("error trying to get the value of the '%s' param", key)
 		}
+
 		return value, nil
 	}
 
@@ -620,6 +659,7 @@ func encodeData(
 				if paramIndex == len(typeDef.Parameters)-1 {
 					return enc, fmt.Errorf("no enum option selected for '%s', the data is not valid", typeDef.Name)
 				}
+
 				continue
 			}
 
@@ -632,14 +672,15 @@ func encodeData(
 
 			if len(dataArr) == 0 {
 				enc = append(enc, &felt.Zero)
+
 				break
 			}
 
 			reg := regexp.MustCompile(`[^\(\),\s]+`)
 			typesArr := reg.FindAllString(param.Type, -1)
 
-			for i, typeNam := range typesArr {
-				resp, err := verifyType(TypeParameter{Type: typeNam}, dataArr[i], false)
+			for i, typeName := range typesArr {
+				resp, err := verifyType(TypeParameter{Type: typeName, Name: "", Contains: ""}, dataArr[i], false)
 				if err != nil {
 					return enc, err
 				}
@@ -666,12 +707,15 @@ func encodeData(
 
 // encodePieceOfData encodes a single piece of data based on its type.
 // Parameters:
-// - typeName: the type of data to encode
-// - data: the actual data to encode
-// - rev: revision information
+//   - typeName: the type of data to encode
+//   - data: the actual data to encode
+//   - rev: revision information
+//
 // Returns:
-// - resp: encoded data as a felt.Felt
-// - err: any error encountered during encoding
+//   - resp: encoded data as a felt.Felt
+//   - err: any error encountered during encoding
+//
+//nolint:gocyclo // This legacy function is complex but the team too busy to simplify it
 func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Felt, err error) {
 	getFeltFromData := func() (feltValue *felt.Felt, err error) {
 		strValue := func(data any) string {
@@ -683,11 +727,13 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 				if float64(int64(v)) == v {
 					return strconv.FormatInt(int64(v), 10)
 				}
+
 				return strconv.FormatFloat(v, 'f', -1, 64)
 			case float32:
 				if float32(int32(v)) == v {
 					return strconv.FormatInt(int64(v), 10)
 				}
+
 				return strconv.FormatFloat(float64(v), 'f', -1, 32)
 			case int:
 				return strconv.Itoa(v)
@@ -718,6 +764,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 		if err != nil {
 			return resp, err
 		}
+
 		return resp, nil
 	case "bool":
 		boolVal, ok := data.(bool)
@@ -727,6 +774,7 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 		if boolVal {
 			return new(felt.Felt).SetUint64(1), nil
 		}
+
 		return new(felt.Felt).SetUint64(0), nil
 	case "i128":
 		strValue := fmt.Sprintf("%v", data)
@@ -735,24 +783,28 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 			return resp, fmt.Errorf("faild to convert '%s' of type 'i128' to big.Int", strValue)
 		}
 		feltValue := new(felt.Felt).SetBigInt(bigNum)
+
 		return feltValue, nil
 	case "string":
 		if rev.Version() == 0 {
-			resp, err := getFeltFromData()
+			innerResp, err := getFeltFromData()
 			if err != nil {
-				return resp, err
+				return innerResp, err
 			}
-			return resp, nil
+
+			return innerResp, nil
 		} else {
 			value := fmt.Sprintf("%v", data)
 			byteArr, err := internalUtils.StringToByteArrFelt(value)
 			if err != nil {
 				return resp, err
 			}
+
 			return rev.HashMethod(byteArr...), nil
 		}
 	case "selector":
 		value := fmt.Sprintf("%v", data)
+
 		return internalUtils.GetSelectorFromNameFelt(value), nil
 	default:
 		return resp, fmt.Errorf("invalid type '%s'", typeName)
@@ -783,16 +835,20 @@ func (td *TypedData) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	var types []TypeDefinition
+	types := make([]TypeDefinition, 0, len(rawTypes))
 	for key, value := range rawTypes {
 		var params []TypeParameter
-		if err := json.Unmarshal(value, &params); err != nil {
-			return err
+		if innerErr := json.Unmarshal(value, &params); innerErr != nil {
+			return innerErr
 		}
 
 		typeDef := TypeDefinition{
-			Name:       key,
-			Parameters: params,
+			Name:               key,
+			Parameters:         params,
+			Encoding:           nil,
+			EncoddingString:    "",
+			SingleEncString:    "",
+			ReferencedTypesEnc: nil,
 		}
 
 		types = append(types, typeDef)
@@ -801,7 +857,7 @@ func (td *TypedData) UnmarshalJSON(data []byte) error {
 	// message
 	rawMessage, ok := dec["message"]
 	if !ok {
-		return fmt.Errorf("invalid typedData json: missing field 'message'")
+		return errors.New("invalid typedData json: missing field 'message'")
 	}
 	bytesMessage, err := json.Marshal(rawMessage)
 	if err != nil {
@@ -815,6 +871,7 @@ func (td *TypedData) UnmarshalJSON(data []byte) error {
 	}
 
 	*td = *resultTypedData
+
 	return nil
 }
 
@@ -830,6 +887,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		if !ok {
 			return "", fmt.Errorf("error getting the value of '%s' from 'domain' struct", fieldName)
 		}
+
 		return fmt.Sprintf("%v", value), nil
 	}
 
@@ -871,5 +929,6 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		ChainId:  chainId,
 		Revision: uint8(numRevision),
 	}
+
 	return nil
 }

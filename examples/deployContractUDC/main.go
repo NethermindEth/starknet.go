@@ -11,10 +11,9 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
 // More info: https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/
@@ -38,10 +37,10 @@ func main() {
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
-	// Initialize connection to RPC provider
+	// Initialise connection to RPC provider
 	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialing the RPC provider: %s", err))
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
 
 	// Here we are converting the account address to felt
@@ -50,7 +49,7 @@ func main() {
 		panic(err)
 	}
 
-	// Initialize the account memkeyStore (set public and private keys)
+	// Initialise the account memkeyStore (set public and private keys)
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
@@ -60,7 +59,7 @@ func main() {
 
 	fmt.Println("Established connection with the client")
 
-	// Initialize the account
+	// Initialise the account
 	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
 	if err != nil {
 		panic(err)
@@ -74,33 +73,32 @@ func main() {
 
 	// Build the functionCall struct, where :
 	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                //contractAddress is the contract that we want to call
-		FunctionName:    contractMethod,                 //this is the function that we want to call
-		CallData:        getUDCCalldata(accountAddress), //change this function content to your use case
+		ContractAddress: contractAddress,                // contractAddress is the contract that we want to call
+		FunctionName:    contractMethod,                 // this is the function that we want to call
+		CallData:        getUDCCalldata(accountAddress), // change this function content to your use case
 	}
 
 	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5)
+	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5, false)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Waiting for the transaction status...")
 
-	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.TransactionHash, time.Second)
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
 	if err != nil {
 		panic(err)
 	}
 
 	// This returns us with the transaction hash and status
-	fmt.Printf("Transaction hash response: %v\n", resp.TransactionHash)
+	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 }
 
 // getUDCCalldata is a simple helper to set the call data required by the UDCs deployContract function. Update as needed.
 func getUDCCalldata(data ...string) []*felt.Felt {
-
 	classHash, err := utils.HexToFelt(someContractHash)
 	if err != nil {
 		panic(err)
@@ -114,11 +112,14 @@ func getUDCCalldata(data ...string) []*felt.Felt {
 	// You must adjust these fields to match the constructor's parameters of your desired contract.
 	// https://docs.openzeppelin.com/contracts-cairo/0.8.1/api/erc20#ERC20-constructor-section
 	calldata, err := utils.HexArrToFelt([]string{
-		hex.EncodeToString([]byte("MyERC20Token")), //name
-		hex.EncodeToString([]byte("MET")),          //symbol
-		strconv.FormatInt(200000000000000000, 16),  //fixed_supply (u128 low). See https://book.cairo-lang.org/ch02-02-data-types.html#integer-types
-		strconv.FormatInt(0, 16),                   //fixed_supply (u128 high)
-		data[0],                                    //recipient
+		hex.EncodeToString([]byte("MyERC20Token")), // name
+		hex.EncodeToString([]byte("MET")),          // symbol
+		strconv.FormatInt(
+			200000000000000000,
+			16,
+		), // fixed_supply (u128 low). See https://book.cairo-lang.org/ch02-02-data-types.html#integer-types
+		strconv.FormatInt(0, 16), // fixed_supply (u128 high)
+		data[0],                  // recipient
 	})
 	if err != nil {
 		panic(err)
