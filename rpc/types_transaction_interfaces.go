@@ -154,6 +154,14 @@ func (tx DeclareTxnV3) GetVersion() TransactionVersion {
 	return tx.Version
 }
 
+func (tx BroadcastDeclareTxnV3) GetType() TransactionType {
+	return tx.Type
+}
+
+func (tx BroadcastDeclareTxnV3) GetVersion() TransactionVersion {
+	return tx.Version
+}
+
 // Deploy transaction
 func (tx DeployTxn) GetType() TransactionType {
 	return tx.Type
