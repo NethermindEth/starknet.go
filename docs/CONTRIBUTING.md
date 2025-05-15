@@ -22,13 +22,13 @@ We recommend the following work-flow for contributors:
 
 1. **Install `golangci-lint`:**
 
-   ```bash
+   ```bash [Terminal]
    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.0
    ```
 
 2. **Run the linter:**
 
-   ```bash
+   ```bash [Terminal]
    golangci-lint run
    ```
 
@@ -38,13 +38,13 @@ We recommend the following work-flow for contributors:
 
    To run the linter on a specific file, use:
 
-   ```bash
+   ```bash [Terminal]
    golangci-lint run path/to/your/file.go
    ```
 
    To run the linter on all files in a specific directory, use:
 
-   ```bash
+   ```bash [Terminal]
    golangci-lint run path/to/your/directory
    ```
 

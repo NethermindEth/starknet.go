@@ -1,0 +1,142 @@
+# RPC Examples
+
+The RPC examples submodule provides examples of how to use the Starknet RPC.
+
+## Basic Examples
+
+### Getting a Block
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Get a block by number
+    block, err := rpc.GetBlockByNumber(1)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Block hash: %s\n", block.Hash)
+    fmt.Printf("Block number: %d\n", block.Number)
+    fmt.Printf("Block timestamp: %d\n", block.Timestamp)
+}
+```
+
+### Getting a Transaction
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Get a transaction by hash
+    tx, err := rpc.GetTransactionByHash("0x123...")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Transaction type: %s\n", tx.Type)
+    fmt.Printf("Transaction status: %s\n", tx.Status)
+    fmt.Printf("Transaction hash: %s\n", tx.Hash)
+}
+```
+
+## Advanced Examples
+
+### Sending a Transaction
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create a transaction
+    tx := rpc.NewTransaction(
+        "0x456...", // contract address
+        "0x789...", // entry point selector
+        []string{"0xabc..."}, // calldata
+        "1000000000000000", // max fee
+        "0x1", // version
+        "0x1", // nonce
+    )
+
+    // Send the transaction
+    txHash, err := rpc.SendTransaction(tx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Transaction sent with hash: %s\n", txHash)
+}
+```
+
+### Calling a Contract
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Call a contract
+    result, err := rpc.CallContract(
+        "0x456...", // contract address
+        "0x789...", // entry point selector
+        []string{"0xabc..."}, // calldata
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Call result: %s\n", result)
+}
+```
+
+### Getting Contract Storage
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Get contract storage
+    storage, err := rpc.GetContractStorage(
+        "0x456...", // contract address
+        "0x789...", // key
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Storage value: %s\n", storage)
+} 

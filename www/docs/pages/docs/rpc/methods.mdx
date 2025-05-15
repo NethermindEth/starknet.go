@@ -1,0 +1,124 @@
+# RPC Methods
+
+The RPC methods submodule provides functionality for making RPC calls to Starknet nodes.
+
+## Block Methods
+
+### Get Block by Number
+
+```go
+block, err := rpc.GetBlockByNumber(blockNumber)
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Block by Hash
+
+```go
+block, err := rpc.GetBlockByHash(blockHash)
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Latest Block
+
+```go
+block, err := rpc.GetLatestBlock()
+if err != nil {
+    // Handle error
+}
+```
+
+## Transaction Methods
+
+### Get Transaction by Hash
+
+```go
+tx, err := rpc.GetTransactionByHash(txHash)
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Transaction Receipt
+
+```go
+receipt, err := rpc.GetTransactionReceipt(txHash)
+if err != nil {
+    // Handle error
+}
+```
+
+### Send Transaction
+
+```go
+txHash, err := rpc.SendTransaction(tx)
+if err != nil {
+    // Handle error
+}
+```
+
+## Contract Methods
+
+### Get Contract Code
+
+```go
+code, err := rpc.GetContractCode(contractAddress)
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Contract Storage
+
+```go
+storage, err := rpc.GetContractStorage(contractAddress, key)
+if err != nil {
+    // Handle error
+}
+```
+
+### Call Contract
+
+```go
+result, err := rpc.CallContract(contractAddress, entryPointSelector, calldata)
+if err != nil {
+    // Handle error
+}
+```
+
+## Example Usage
+
+```go
+// Get the latest block
+block, err := rpc.GetLatestBlock()
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Latest block number: %d\n", block.Number)
+fmt.Printf("Latest block hash: %s\n", block.Hash)
+
+// Get a transaction
+tx, err := rpc.GetTransactionByHash("0x123...")
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction type: %s\n", tx.Type)
+fmt.Printf("Transaction status: %s\n", tx.Status)
+
+// Call a contract
+result, err := rpc.CallContract(
+    "0x456...", // contract address
+    "0x789...", // entry point selector
+    []string{"0xabc..."}, // calldata
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Call result: %s\n", result)
+``` 

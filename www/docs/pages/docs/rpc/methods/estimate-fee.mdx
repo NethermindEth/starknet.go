@@ -1,0 +1,116 @@
+# Estimate Fee
+
+Estimates the resources required by a given sequence of transactions when applied on a given state. If one of the transactions reverts or fails due to any reason (e.g. validation failure or an internal error), a TRANSACTION_EXECUTION_ERROR is returned. The estimate is given in fri.
+
+## Parameters
+
+- `ctx` - The context of the function call.
+- `requests` - A sequence of transactions to estimate, running each transaction on the state resulting from applying all the previous ones.
+- `simulationFlags` - Describes what parts of the transaction should be executed.
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block.
+  - `"pending"` for the pending block.
+
+## Returns
+
+- `[]FeeEstimation` - A sequence of fee estimation where the i'th estimate corresponds to the i'th transaction.
+- `error` - An error if any occurred during the execution.
+
+## Example
+
+```go 
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/rpc"
+
+	"encoding/json"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/sepolia-juno/"
+	provider, err := rpc.NewProvider(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var invokeTxvV3Data []byte = []byte(`{
+			"type": "INVOKE",
+			"version": "0x3",
+			"nonce": "0x48",
+			"sender_address": "0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06",
+			"signature": [
+			  "0x33a831e9428920f71c1df9248d4dbf9101fb5ee2bd100c0ad0d10c94c28dfe3",
+			  "0x3fa865114ae29b2a49469401e11eb0db953a7d854916512c2ed400320405c8a"
+			],
+			"calldata": [
+			  "0x1",
+			  "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+			  "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+			  "0x2",
+			  "0xffffffff",
+			  "0x0"
+			],
+			"resource_bounds": {
+			  "l1_data_gas": {
+				"max_amount": "0x1e0",
+				"max_price_per_unit": "0x922"
+			  },
+			  "l1_gas": {
+				"max_amount": "0x0",
+				"max_price_per_unit": "0xfbfdefe2186"
+			  },
+			  "l2_gas": {
+				"max_amount": "0x16eea0",
+				"max_price_per_unit": "0x1830e58f7"
+			  }
+			},
+			"tip": "0x0",
+			"paymaster_data": [],
+			"account_deployment_data": [],
+			"nonce_data_availability_mode": "L1",
+			"fee_data_availability_mode": "L1"
+	}`)
+
+	var invokeTxvV3 rpc.InvokeTxnV3
+	if err := json.Unmarshal(invokeTxvV3Data, &invokeTxvV3); err != nil {
+		log.Fatal(err)
+	}
+
+	broadcastInvoke3 := rpc.BroadcastInvokeTxnV3{
+		InvokeTxnV3: invokeTxvV3,
+	}
+
+	result, err := provider.EstimateFee(context.Background(), []rpc.BroadcastTxn{broadcastInvoke3}, []rpc.SimulationFlag{"SKIP_VALIDATE"}, rpc.BlockID{Tag: "latest"}, )
+	if err != nil {
+		log.Fatal(err)
+	}
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Estimate Fee:", string(resultJson))
+}
+```
+
+## Output
+```json
+Estimate Fee: [
+  {
+    "l1_gas_consumed": "0x0",
+    "l1_gas_price": "0x351bd8aec4f32",
+    "l2_gas_consumed": "0xe1140",
+    "l2_gas_price": "0x125bd2d90",
+    "l1_data_gas_consumed": "0x140",
+    "l1_data_gas_price": "0x6ef",
+    "overall_fee": "0x1024237d3a9ec0",
+    "unit": "FRI"
+  }
+]
+``` 

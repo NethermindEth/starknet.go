@@ -1,0 +1,34 @@
+---
+title: starknet_simulateTransaction
+description: Simulates the execution of a transaction without adding it to the chain.
+---
+
+# starknet_simulateTransaction
+
+Simulates the execution of a transaction without adding it to the chain. This method is useful for testing transactions before submitting them.
+
+## Parameters
+
+1. `transaction` - The transaction to simulate. Can be one of:
+   - `invoke_transaction` - An invoke transaction.
+   - `declare_transaction` - A declare transaction.
+   - `deploy_account_transaction` - A deploy account transaction.
+2. `block_id` - (Optional) The identifier of the block to simulate against. Can be one of:
+   - `block_number` - The block's number.
+   - `block_hash` - The block's hash.
+   - `"latest"` - The latest block.
+   - `"pending"` - The pending block.
+3. `simulation_flags` - (Optional) Flags to control the simulation behavior.
+
+## Returns
+
+An object containing:
+- `transaction_trace` - The execution trace of the transaction, including:
+  - `function_invocation` - Details of the function invocation.
+  - `signature` - The signature of the transaction.
+  - `events` - Events emitted during execution.
+  - `messages` - Messages sent during execution.
+  - `execution_resources` - Resources consumed during execution.
+- `fee_estimation` - An estimation of the transaction fee.
+
+## Example

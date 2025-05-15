@@ -1,0 +1,58 @@
+# Get Transaction Receipt
+
+Returns the receipt of a transaction identified by its hash.
+
+## Parameters
+
+- `transaction_hash` - The hash of the transaction to get the receipt for
+
+## Returns
+
+Returns a transaction receipt object containing:
+- Transaction hash
+- Status
+- Block hash
+- Block number
+- Transaction index
+- Execution resources
+- Events
+- Messages
+- Other receipt-specific data
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	// Convert string hash to Felt
+	txHash, _ := utils.HexToFelt("0x123...")
+	
+	result, err := provider.TransactionReceipt(context.Background(), txHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Transaction Receipt:", result)
+}
+```
+
+## Error Cases
+
+- `TRANSACTION_NOT_FOUND` - If the transaction does not exist
+- `INVALID_TRANSACTION_HASH` - If the transaction hash is invalid 

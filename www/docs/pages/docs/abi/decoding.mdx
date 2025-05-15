@@ -1,0 +1,78 @@
+# ABI Decoding
+
+The ABI decoding submodule provides functionality for decoding Starknet contract data.
+
+## Decode Function Call
+
+```go
+decoded, err := abi.DecodeFunctionCall(functionName, encodedData)
+```
+
+## Decode Constructor
+
+```go
+decoded, err := abi.DecodeConstructor(encodedData)
+```
+
+## Decode Event
+
+```go
+decoded, err := abi.DecodeEvent(eventName, encodedData)
+```
+
+## Decode Struct
+
+```go
+decoded, err := abi.DecodeStruct(structName, encodedData)
+```
+
+## Decode Array
+
+```go
+decoded, err := abi.DecodeArray(elementType, encodedData)
+```
+
+## Example Usage
+
+```go
+// Decode a function call
+decoded, err := abi.DecodeFunctionCall("transfer", encodedData)
+if err != nil {
+    log.Fatal(err)
+}
+recipient := decoded[0].(string)
+amount := decoded[1].(string)
+
+// Decode a constructor
+decoded, err = abi.DecodeConstructor(encodedData)
+if err != nil {
+    log.Fatal(err)
+}
+name := decoded[0].(string)
+symbol := decoded[1].(string)
+decimals := decoded[2].(string)
+
+// Decode an event
+decoded, err = abi.DecodeEvent("Transfer", encodedData)
+if err != nil {
+    log.Fatal(err)
+}
+from := decoded[0].(string)
+to := decoded[1].(string)
+value := decoded[2].(string)
+
+// Decode a struct
+decoded, err = abi.DecodeStruct("Point", encodedData)
+if err != nil {
+    log.Fatal(err)
+}
+x := decoded["x"].(string)
+y := decoded["y"].(string)
+
+// Decode an array
+decoded, err = abi.DecodeArray("felt", encodedData)
+if err != nil {
+    log.Fatal(err)
+}
+elements := decoded.([]string)
+``` 

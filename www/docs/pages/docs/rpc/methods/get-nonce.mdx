@@ -1,0 +1,66 @@
+# Get Nonce
+
+Returns the nonce for a given blockID and contract address.
+
+## Parameters
+
+- `ctx` - The context of the request.
+- `contractAddress` - The address of the contract
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block
+  - `"pending"` for the pending block
+
+## Returns
+
+- `nonce` - The nonce of the contract.
+- `error` - An error if any occurred.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+
+	"encoding/json"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	provider, err := rpc.NewProvider(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
+	result, err := provider.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, contractAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Nonce:", string(resultJson))
+}
+```
+
+## Output
+
+```json
+Nonce: "0x0"
+```
+
+## Error Cases
+
+- `CONTRACT_NOT_FOUND` - If the contract does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid
+- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid 

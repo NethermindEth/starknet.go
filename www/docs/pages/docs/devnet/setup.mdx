@@ -1,0 +1,154 @@
+# Devnet Setup
+
+The devnet setup submodule provides functionality for setting up Starknet development networks.
+
+## Devnet Configuration
+
+The devnet configuration is represented by the `DevnetConfig` struct, which contains:
+
+- Network name
+- Network ID
+- Chain ID
+- Genesis block
+- Genesis accounts
+- Genesis contracts
+
+## Creating a Devnet
+
+To create a new devnet:
+
+```go
+config := devnet.DevnetConfig{
+    NetworkName: "local",
+    NetworkID: 1,
+    ChainID: "SN_DEV",
+    GenesisBlock: devnet.GenesisBlock{
+        Timestamp: time.Now().Unix(),
+        GasLimit: 1000000,
+    },
+    GenesisAccounts: []devnet.GenesisAccount{
+        {
+            Address: "0x123...",
+            Balance: "1000000000000000000",
+        },
+    },
+    GenesisContracts: []devnet.GenesisContract{
+        {
+            Address: "0x456...",
+            Code: "0x789...",
+        },
+    },
+}
+
+devnet, err := devnet.NewDevnet(config)
+if err != nil {
+    // Handle error
+}
+```
+
+## Configuration Options
+
+### Network Name
+
+The network name is the name of the devnet:
+
+```go
+config.NetworkName = "local"
+```
+
+### Network ID
+
+The network ID is the ID of the devnet:
+
+```go
+config.NetworkID = 1
+```
+
+### Chain ID
+
+The chain ID is the ID of the chain:
+
+```go
+config.ChainID = "SN_DEV"
+```
+
+### Genesis Block
+
+The genesis block is the first block of the devnet:
+
+```go
+config.GenesisBlock = devnet.GenesisBlock{
+    Timestamp: time.Now().Unix(),
+    GasLimit: 1000000,
+}
+```
+
+### Genesis Accounts
+
+The genesis accounts are the initial accounts of the devnet:
+
+```go
+config.GenesisAccounts = []devnet.GenesisAccount{
+    {
+        Address: "0x123...",
+        Balance: "1000000000000000000",
+    },
+}
+```
+
+### Genesis Contracts
+
+The genesis contracts are the initial contracts of the devnet:
+
+```go
+config.GenesisContracts = []devnet.GenesisContract{
+    {
+        Address: "0x456...",
+        Code: "0x789...",
+    },
+}
+```
+
+## Example Usage
+
+```go
+// Create a new devnet
+config := devnet.DevnetConfig{
+    NetworkName: "local",
+    NetworkID: 1,
+    ChainID: "SN_DEV",
+    GenesisBlock: devnet.GenesisBlock{
+        Timestamp: time.Now().Unix(),
+        GasLimit: 1000000,
+    },
+    GenesisAccounts: []devnet.GenesisAccount{
+        {
+            Address: "0x123...",
+            Balance: "1000000000000000000",
+        },
+    },
+    GenesisContracts: []devnet.GenesisContract{
+        {
+            Address: "0x456...",
+            Code: "0x789...",
+        },
+    },
+}
+
+devnet, err := devnet.NewDevnet(config)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Start the devnet
+err = devnet.Start()
+if err != nil {
+    log.Fatal(err)
+}
+
+// Stop the devnet
+err = devnet.Stop()
+if err != nil {
+    log.Fatal(err)
+}
+``` 

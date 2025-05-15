@@ -1,0 +1,81 @@
+# Invoke Contract
+
+This guide demonstrates how to invoke a contract's functions on Starknet using Starknet.go.
+
+## Prerequisites
+
+- Go 1.18 or higher
+- Starknet.go installed
+- A Starknet node URL
+- Deployed contract
+- Account with sufficient funds
+
+## Code Example
+
+```go [setup.go]
+package main
+
+import (
+    "context"
+    "fmt"
+    "github.com/NethermindEth/starknet.go"
+)
+
+func main() {
+    // Initialize client
+    client, err := starknet.NewClient("YOUR_NODE_URL")
+    if err != nil {
+        panic(err)
+    }
+
+    // Create account
+    account, err := client.NewAccount("YOUR_PRIVATE_KEY")
+    if err != nil {
+        panic(err)
+    }
+
+    // Contract address
+    contractAddress := "0x123..." // Your contract address
+
+    // Prepare function call
+    call := &starknet.FunctionCall{
+        ContractAddress: contractAddress,
+        EntryPoint:     "transfer",
+        Calldata:       []string{"0x456...", "1000000000000000000"}, // recipient, amount
+    }
+
+    // Invoke contract
+    tx, err := account.Invoke(context.Background(), call)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Printf("Contract invoked with transaction hash: %s\n", tx.Hash)
+}
+```
+
+## Explanation
+
+1. Initialize the Starknet client
+2. Create an account instance
+3. Define the contract address and function call parameters
+4. Invoke the contract function
+5. The transaction hash is returned upon successful invocation
+
+## Best Practices
+
+- Verify contract ABI before invocation
+- Use proper error handling
+- Consider gas estimation
+- Test on testnet first
+- Keep track of transaction hashes
+- Validate function parameters
+
+## Common Issues
+
+- Invalid contract address
+- Insufficient funds
+- Invalid function name
+- Invalid parameter types
+- Network congestion
+- Contract reverted 

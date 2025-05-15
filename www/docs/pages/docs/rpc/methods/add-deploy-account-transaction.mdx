@@ -1,0 +1,72 @@
+# Add Deploy Account Transaction
+
+Adds a deploy account transaction to the network.
+
+## Parameters
+
+- `transaction` - The deploy account transaction object containing:
+  - Contract class hash
+  - Contract address salt
+  - Constructor calldata
+  - Signature
+  - Nonce
+  - Version
+  - Other transaction-specific data
+
+## Returns
+
+Returns the transaction hash as a Felt.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	// Convert string hashes to Felt
+	classHash, _ := utils.HexToFelt("0x123...")
+	contractAddressSalt, _ := utils.HexToFelt("0x456...")
+	
+	// Create deploy account transaction
+	transaction := rpc.DeployAccountTxn{
+		Type: rpc.TransactionType_DeployAccount,
+		Version: rpc.TransactionV1,
+		MaxFee: new(felt.Felt).SetUint64(1000000),
+		Signature: []*felt.Felt{},
+		ClassHash: classHash,
+		ContractAddressSalt: contractAddressSalt,
+		ConstructorCalldata: []*felt.Felt{},
+	}
+	
+	result, err := provider.AddDeployAccountTransaction(context.Background(), transaction)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Transaction Hash:", result)
+}
+```
+
+## Error Cases
+
+- `INVALID_TRANSACTION` - If the transaction is invalid
+- `INVALID_CLASS_HASH` - If the class hash is invalid
+- `INVALID_CONTRACT_ADDRESS_SALT` - If the contract address salt is invalid
+- `INVALID_CONSTRUCTOR_CALLDATA` - If the constructor calldata is invalid
+- `INVALID_SIGNATURE` - If the signature is invalid
+- `INVALID_MAX_FEE` - If the max fee is invalid 
