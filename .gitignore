@@ -6,6 +6,4 @@ vendor/
 
 tmp/
 
-*/**/*abi.json
-
 .idea/
