@@ -1,13 +1,16 @@
 package rpc
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal"
@@ -183,4 +186,125 @@ func TestCookieManagement(t *testing.T) {
 	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
 	require.Equal(t, resp, "SN_SEPOLIA")
+}
+
+// TestVersionCompatibility tests that the provider correctly handles version compatibility warnings
+func TestVersionCompatibility(t *testing.T) {
+	// Set up a server that responds with different RPC versions
+	compatibleServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+			// Return the same version as RPCVersion
+			data := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      request["id"],
+				"result":  RPCVersion,
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}))
+	defer compatibleServer.Close()
+
+	incompatibleServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+			// Return a different version
+			data := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      request["id"],
+				"result":  "0.5.0", // Different version
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}))
+	defer incompatibleServer.Close()
+
+	errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]interface{}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+			// Return an error
+			data := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      request["id"],
+				"error": map[string]interface{}{
+					"code":    -32601,
+					"message": "Method not found",
+				},
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}))
+	defer errorServer.Close()
+
+	// Test cases
+	testCases := []struct {
+		name          string
+		serverURL     string
+		expectedWarning string
+	}{
+		{
+			name:      "Compatible version",
+			serverURL: compatibleServer.URL,
+			expectedWarning: "",
+		},
+		{
+			name:      "Incompatible version",
+			serverURL: incompatibleServer.URL,
+			expectedWarning: fmt.Sprintf("warning: RPC provider version 0.5.0 is different from expected version %s", RPCVersion),
+		},
+		{
+			name:      "Error fetching version",
+			serverURL: errorServer.URL,
+			expectedWarning: "warning: Could not check RPC version compatibility",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Capture stdout
+			old := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
+
+			// Create provider - this will trigger the version check
+			provider, err := NewProvider(tc.serverURL)
+			require.NoError(t, err)
+			require.NotNil(t, provider)
+
+			// Read captured output
+			w.Close()
+			os.Stdout = old
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			output := buf.String()
+
+			// Check if warning is present as expected
+			if tc.expectedWarning == "" {
+				require.Empty(t, output, "Expected no warning")
+			} else {
+				require.Contains(t, output, tc.expectedWarning, "Expected warning not found")
+			}
+		})
+	}
 }
