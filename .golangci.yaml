@@ -134,6 +134,11 @@ linters:
       - linters:
           - lll
         source: '^//go:generate '
+issues:
+# @tag-temp
+# temporary settings to not fail linter CI due to abigen pkg, as it came from geth
+  new-from-rev: 2a9b3c3ed0f7d3f0ec35e0c5da7a400181f054b4
+  whole-files: true
 formatters:
   enable:
     - gci
