@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal"
@@ -19,6 +18,8 @@ import (
 
 const (
 	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+	// specVersionMethod is the RPC method name for fetching spec version
+	specVersionMethod = "starknet_specVersion"
 )
 
 // testConfiguration is a type that is used to configure tests
@@ -195,10 +196,11 @@ func TestVersionCompatibility(t *testing.T) {
 		var request map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+
 			return
 		}
 
-		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+		if method, ok := request["method"].(string); ok && method == specVersionMethod {
 			// Return the same version as RPCVersion
 			data := map[string]interface{}{
 				"jsonrpc": "2.0",
@@ -216,10 +218,11 @@ func TestVersionCompatibility(t *testing.T) {
 		var request map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+
 			return
 		}
 
-		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+		if method, ok := request["method"].(string); ok && method == specVersionMethod {
 			// Return a different version
 			data := map[string]interface{}{
 				"jsonrpc": "2.0",
@@ -237,10 +240,11 @@ func TestVersionCompatibility(t *testing.T) {
 		var request map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+
 			return
 		}
 
-		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
+		if method, ok := request["method"].(string); ok && method == specVersionMethod {
 			// Return an error
 			data := map[string]interface{}{
 				"jsonrpc": "2.0",
@@ -259,23 +263,23 @@ func TestVersionCompatibility(t *testing.T) {
 
 	// Test cases
 	testCases := []struct {
-		name          string
-		serverURL     string
+		name            string
+		serverURL       string
 		expectedWarning string
 	}{
 		{
-			name:      "Compatible version",
-			serverURL: compatibleServer.URL,
+			name:            "Compatible version",
+			serverURL:       compatibleServer.URL,
 			expectedWarning: "",
 		},
 		{
-			name:      "Incompatible version",
-			serverURL: incompatibleServer.URL,
-			expectedWarning: fmt.Sprintf("warning: RPC provider version 0.5.0 is different from expected version %s", RPCVersion),
+			name:            "Incompatible version",
+			serverURL:       incompatibleServer.URL,
+			expectedWarning: "warning: RPC provider version 0.5.0 is different from expected version " + RPCVersion,
 		},
 		{
-			name:      "Error fetching version",
-			serverURL: errorServer.URL,
+			name:            "Error fetching version",
+			serverURL:       errorServer.URL,
 			expectedWarning: "warning: Could not check RPC version compatibility",
 		},
 	}
@@ -296,7 +300,8 @@ func TestVersionCompatibility(t *testing.T) {
 			w.Close()
 			os.Stdout = old
 			var buf bytes.Buffer
-			io.Copy(&buf, r)
+			_, err = io.Copy(&buf, r)
+			require.NoError(t, err, "Failed to read from pipe")
 			output := buf.String()
 
 			// Check if warning is present as expected
