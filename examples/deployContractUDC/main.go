@@ -82,7 +82,8 @@ func main() {
 	resp, err := accnt.BuildAndSendInvokeTxn(
 		context.Background(),
 		[]rpc.InvokeFunctionCall{FnCall},
-		&utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"},
+		1.5,
+		&utils.TxnOptions{WithQueryBitVersion: false, Tip: "0x0"},
 	)
 	if err != nil {
 		panic(err)

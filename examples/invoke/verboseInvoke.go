@@ -56,7 +56,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
-	}, &utils.TransactionOptions{Multiplier: 1.5, WithQueryBitVersion: false, Tip: "0x0"})
+	}, 1.5, &utils.TxnOptions{WithQueryBitVersion: false, Tip: "0x0"})
 
 	// We need to sign the transaction to be able to estimate the fee
 	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)

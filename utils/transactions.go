@@ -3,8 +3,8 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
-	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -13,55 +13,60 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
-const maxU64 uint64 = 0xFFFFFFFFFFFFFFFF
+const (
+	maxUint128 = "0xffffffffffffffffffffffffffffffff"
+)
 
 var (
-	maxUint128                = "0xffffffffffffffffffffffffffffffff"
 	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
-// TransactionOptions holds options for building transactions
-// Multiplier: safety factor for fee estimation
+// TxnOptions holds options for building transactions
 // WithQueryBitVersion: whether to use the query bit version
 // Tip: tip amount for the transaction
-type TransactionOptions struct {
-	Multiplier          float64
+type TxnOptions struct {
 	WithQueryBitVersion bool
 	Tip                 rpc.U64
 }
 
-// validate sets defaults and checks for edge cases
-func (opts *TransactionOptions) validate() {
-	opts.validateMultiplier()
-	opts.validateTip()
-}
-
-func (opts *TransactionOptions) validateMultiplier() {
-	if opts.Multiplier <= 0 {
-		opts.Multiplier = 1.5
+// TxnVersion returns the transaction version based on WithQueryBitVersion
+func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
+	if opts.WithQueryBitVersion {
+		return rpc.TransactionV3WithQueryBit
 	}
+
+	return rpc.TransactionV3
 }
 
-func (opts *TransactionOptions) validateTip() {
+// ApplyOptions sets defaults and checks for edge cases
+// If opts is nil, a new TxnOptions instance with default values will be created
+func (opts *TxnOptions) ApplyOptions() *TxnOptions {
+	if opts == nil {
+		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0"}
+	}
+	opts.applyTip()
+
+	return opts
+}
+
+func (opts *TxnOptions) applyTip() {
 	if opts.Tip == "" {
 		opts.Tip = "0x0"
+
+		return
 	}
-	if !strings.HasPrefix(string(opts.Tip), "0x") {
+
+	if _, err := opts.Tip.ToUint64(); err != nil {
 		opts.Tip = "0x0"
-	}
-	if val, err := opts.Tip.ToUint64(); err != nil {
-		opts.Tip = "0x0"
-	} else if val > maxU64 {
-		opts.Tip = "0xFFFFFFFFFFFFFFFF" // max U64
 	}
 }
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
+// The default version of the returned transaction is determined by the TxnOptions.
+// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
+// Otherwise, it will be rpc.TransactionV3.
 //
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
@@ -69,7 +74,8 @@ func (opts *TransactionOptions) validateTip() {
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TransactionOptions pointer for tip, multiplier, etc.
+//   - multiplier: Safety factor for fee estimation
+//   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
@@ -79,15 +85,16 @@ func BuildInvokeTxn(
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	opts *TransactionOptions,
+	multiplier float64,
+	opts *TxnOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
-	opts.validate()
+	opts = opts.ApplyOptions()
 
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
-		Version:               rpc.TransactionV3,
+		Version:               opts.TxnVersion(),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
@@ -104,9 +111,9 @@ func BuildInvokeTxn(
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
 // A declare transaction is used to declare a new contract class on the network.
 //
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
+// The default version of the returned transaction is determined by the TxnOptions.
+// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
+// Otherwise, it will be rpc.TransactionV3.
 //
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
@@ -114,7 +121,8 @@ func BuildInvokeTxn(
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TransactionOptions pointer for tip, multiplier, etc.
+//   - multiplier: Safety factor for fee estimation
+//   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
@@ -125,9 +133,10 @@ func BuildDeclareTxn(
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	opts *TransactionOptions,
+	multiplier float64,
+	opts *TxnOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
-	opts.validate()
+	opts = opts.ApplyOptions()
 
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
@@ -138,7 +147,7 @@ func BuildDeclareTxn(
 		Type:                  rpc.TransactionType_Declare,
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
-		Version:               rpc.TransactionV3,
+		Version:               opts.TxnVersion(),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
@@ -156,9 +165,9 @@ func BuildDeclareTxn(
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
 // A deploy account transaction is used to deploy a new account contract on the network.
 //
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
+// The default version of the returned transaction is determined by the TxnOptions.
+// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
+// Otherwise, it will be rpc.TransactionV3.
 //
 // Parameters:
 //   - nonce: The account's nonce
@@ -166,7 +175,8 @@ func BuildDeclareTxn(
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TransactionOptions pointer for tip, multiplier, etc.
+//   - multiplier: Safety factor for fee estimation
+//   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
@@ -177,13 +187,14 @@ func BuildDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	opts *TransactionOptions,
+	multiplier float64,
+	opts *TxnOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
-	opts.validate()
+	opts = opts.ApplyOptions()
 
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV3,
+		Version:             opts.TxnVersion(),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,
 		ContractAddressSalt: contractAddressSalt,
@@ -272,11 +283,11 @@ func toResourceBounds(
 	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
 
 	// Check for overflow
-	maxUint64 := new(big.Int).SetUint64(maxU64)
-	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
+	maxUint64 := new(big.Int).SetUint64(math.MaxUint64)
+	maxUint128Int, _ := new(big.Int).SetString(maxUint128, 0)
 	// max_price_per_unit is U128 by the spec
-	if gasPriceInt.Cmp(maxUint128) > 0 {
-		gasPriceInt = maxUint128
+	if gasPriceInt.Cmp(maxUint128Int) > 0 {
+		gasPriceInt = maxUint128Int
 	}
 	// max_amount is U64 by the spec
 	if gasConsumedInt.Cmp(maxUint64) > 0 {
@@ -297,8 +308,8 @@ func toResourceBounds(
 	if maxAmountInt.Cmp(maxUint64) > 0 {
 		maxAmountInt = maxUint64
 	}
-	if maxPricePerUnitInt.Cmp(maxUint128) > 0 {
-		maxPricePerUnitInt = maxUint128
+	if maxPricePerUnitInt.Cmp(maxUint128Int) > 0 {
+		maxPricePerUnitInt = maxUint128Int
 	}
 
 	return rpc.ResourceBounds{

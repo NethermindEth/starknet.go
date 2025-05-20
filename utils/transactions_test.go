@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"math/big"
 	"testing"
 
@@ -388,14 +389,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				L1DataGas: rpc.ResourceBounds{
 					// 12406075901516675723 * 1.7 ~= 21090329032578348178
 					// This result is too large to fit in a uint64, so the function returns the max uint64 value
-					MaxAmount: rpc.U64(fmt.Sprintf("%#x", maxU64)),
+					MaxAmount: rpc.U64(fmt.Sprintf("0x%x", uint64(math.MaxUint64))),
 					// 216663551256725667606984177334664047893 * 1.7 ~= 368328037136433625310078573378144594674
 					// This result is too large to fit in a uint128, so the function returns the max uint128 value
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 				L2Gas: rpc.ResourceBounds{
 					// The inputs overflow, so should the output
-					MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxU64)),
+					MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", uint64(math.MaxUint64))),
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 			},
