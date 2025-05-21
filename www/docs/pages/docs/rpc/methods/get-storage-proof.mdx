@@ -1,0 +1,605 @@
+# Get Storage Proof
+
+Returns the storage proof for a contract at a specific state.
+
+## Parameters
+
+- `ctx` - The context of the request.
+- `contractAddress` - The address of the contract.
+- `keys` - The storage keys to get the proof for.
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block.
+  - `"pending"` for the pending block.
+
+## Returns
+
+- `result` - A storage proof object containing:
+  - `contract_address` - The address of the contract.
+  - `contract_data` - The contract data.
+  - `contract_proof` - The contract proof.
+  - `class_hash` - The class hash.
+  - `class_proof` - The class proof.
+  - `storage_proofs` - The storage proofs.
+- `error` - An error if any occurred.
+
+## Example
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+
+	"encoding/json"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/sepolia-juno/"
+	provider, err := rpc.NewProvider(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	contractAddress1, _ := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+	contractAddress2, _ := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	classHashes1, _ := utils.HexToFelt("0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a")
+	classHashes2, _ := utils.HexToFelt("0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f")
+
+	storage := rpc.StorageProofInput{
+		BlockID: rpc.BlockID{
+			Tag: "latest",
+		},
+		ContractAddresses: []*felt.Felt{
+			contractAddress1,
+			contractAddress2,
+		},
+		ClassHashes: []*felt.Felt{
+			classHashes1,
+			classHashes2,
+		},
+	}
+
+
+
+	result, err := provider.GetStorageProof(context.Background(),  storage)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resultJson, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Get Storage Proof:", string(resultJson))
+}
+```
+## Output
+```json
+Get Storage Proof: {
+  "classes_proof": [
+    {
+      "node_hash": "0x1ba1fed9143a0f281926417ddfd2c2f4115b23d624de1eb425e94ca8932f2c6",
+      "node": {
+        "left": "0x1b616464d61e8b5043b3c0e7280341bb32ca412cc2bfe5a02f29cae417f6a31",
+        "right": "0x5c4251cca364e7b7854626320061e91d71330d9c360ad27e5fcffb743c43ed"
+      }
+    },
+    {
+      "node_hash": "0x5c4251cca364e7b7854626320061e91d71330d9c360ad27e5fcffb743c43ed",
+      "node": {
+        "left": "0x610683bdf8ed55ec641999f7a90dbbb7cc1b3633c8d769dc31eb306a8975fca",
+        "right": "0x4edf0ab131e56514b410c5bda444b46c9e1fb9c29e41a7e4f792fdd80deede9"
+      }
+    },
+    {
+      "node_hash": "0x4edf0ab131e56514b410c5bda444b46c9e1fb9c29e41a7e4f792fdd80deede9",
+      "node": {
+        "left": "0x36e4f787a0709fa05cb2d0ca522c54f09cb6ef26b19af97cadc51aa5f17d089",
+        "right": "0x91858962098d035b51aefbd28f8073286354aea24d7da3a2e3ccba992d2a8f"
+      }
+    },
+    {
+      "node_hash": "0x91858962098d035b51aefbd28f8073286354aea24d7da3a2e3ccba992d2a8f",
+      "node": {
+        "left": "0x509c6399c0b805eceae6f2c2a61146158d3658e17ae07f6151e9f10ab6e394b",
+        "right": "0x2fcfcf867c080d2e7697872e971c90d818f5d4bf52a8e61b7d8cc6e20817575"
+      }
+    },
+    {
+      "node_hash": "0x509c6399c0b805eceae6f2c2a61146158d3658e17ae07f6151e9f10ab6e394b",
+      "node": {
+        "left": "0x40d01aa8cf509a07b22dfab9ac394806973af597d89b6264d4bb741405e3cf4",
+        "right": "0x294b6d7f354d75146881cbf1e2b1109a471f8ef99b9f86886c629a12cfe0412"
+      }
+    },
+    {
+      "node_hash": "0x294b6d7f354d75146881cbf1e2b1109a471f8ef99b9f86886c629a12cfe0412",
+      "node": {
+        "left": "0x42b3158ff85e9ccce31d889b3a730aa289bfd52a5f2256eec68f7a80ecc4c61",
+        "right": "0x45cadb9e225005e32c955a0b72239dede14fad857f856fd58fbbfa5a7ac3aa0"
+      }
+    },
+    {
+      "node_hash": "0x45cadb9e225005e32c955a0b72239dede14fad857f856fd58fbbfa5a7ac3aa0",
+      "node": {
+        "left": "0x513769b36d01b150a2d91831c845b371e3c1569400655bfe8f6dd36f13295c",
+        "right": "0x67fcbce376d4d8bc0e9a91ff821095e23c4dccfc9d1e374b6f909b34211f871"
+      }
+    },
+    {
+      "node_hash": "0x513769b36d01b150a2d91831c845b371e3c1569400655bfe8f6dd36f13295c",
+      "node": {
+        "left": "0x2fa497b644c1164d0532a43bbb8546399955ae240e03e709adbaf6cb347fca2",
+        "right": "0x4844493cecf168c23eed59566cda89f554b3bd0769aa81366984a7196a28bff"
+      }
+    },
+    {
+      "node_hash": "0x2fa497b644c1164d0532a43bbb8546399955ae240e03e709adbaf6cb347fca2",
+      "node": {
+        "left": "0x3a74b1cae611e9c090d0b74ffb040372468968b9b6a5728bce75bc47d20f22",
+        "right": "0x66e0f746ebea846d9b593d031c81b8fca004bb5116a348a2e1816344d5d4ad7"
+      }
+    },
+    {
+      "node_hash": "0x66e0f746ebea846d9b593d031c81b8fca004bb5116a348a2e1816344d5d4ad7",
+      "node": {
+        "left": "0x631d0def9957cc06bc41d654472cec045b782179894ce3a9616b0172865b94",
+        "right": "0x5d9d1afabed20217575e089884a5ebffd5e98773a77a6adf7161f159d224bf8"
+      }
+    },
+    {
+      "node_hash": "0x5d9d1afabed20217575e089884a5ebffd5e98773a77a6adf7161f159d224bf8",
+      "node": {
+        "left": "0x176293b3957289eb64a6f4b17edb78c7fad6280b58f6392eef03ef140bab1cc",
+        "right": "0x723c89de7faa2ddc981ed49f552a811632041a9d2d271d81e4c6991990c50a2"
+      }
+    },
+    {
+      "node_hash": "0x723c89de7faa2ddc981ed49f552a811632041a9d2d271d81e4c6991990c50a2",
+      "node": {
+        "left": "0x7eb75d3ac7f303e45668ade6e7a7b2551ad3878b91d40180042852269ce311d",
+        "right": "0x1c40dc809b7ff768bb1fc5c2da674ede0a51b129fdf563e63c0f2c083b3ff01"
+      }
+    },
+    {
+      "node_hash": "0x1c40dc809b7ff768bb1fc5c2da674ede0a51b129fdf563e63c0f2c083b3ff01",
+      "node": {
+        "left": "0x2040c2727f48dfbf18dbf9068bc42b25b56efef474f74fda3feb62e4baaab8d",
+        "right": "0x4b6bb4dca7d30a4496a1b8bfb65042b954340ed5026d6f7acf1888e621764c2"
+      }
+    },
+    {
+      "node_hash": "0x2040c2727f48dfbf18dbf9068bc42b25b56efef474f74fda3feb62e4baaab8d",
+      "node": {
+        "left": "0x65ff1ccc525c51df4252ecfebc0660004e7108ec5440f768df36dd6f16618fa",
+        "right": "0x38968b13fb82cb939bb9246eac007ac1c0f3b77f150938591b961ffb6f01dfb"
+      }
+    },
+    {
+      "node_hash": "0x65ff1ccc525c51df4252ecfebc0660004e7108ec5440f768df36dd6f16618fa",
+      "node": {
+        "left": "0x5beff3e2e56a7c3af30c6a6f1cb60d6d2d8a7734f30dafce2e7528b343a0116",
+        "right": "0x5950627d325ea47879ab3168baba9552de4b78f7df7721bb80d184d2500102f"
+      }
+    },
+    {
+      "node_hash": "0x5950627d325ea47879ab3168baba9552de4b78f7df7721bb80d184d2500102f",
+      "node": {
+        "left": "0x42a569f8012f1e8222540ce1c04f82a3f020741af7d10efaca65655f67aafc1",
+        "right": "0x6034178486bb61d6996b0c20d16efb37067fca5a3c7e119e75ee5a084ebe3e9"
+      }
+    },
+    {
+      "node_hash": "0x42a569f8012f1e8222540ce1c04f82a3f020741af7d10efaca65655f67aafc1",
+      "node": {
+        "path": "0x1ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a",
+        "length": 235,
+        "child": "0x7d01c8a6e0cc122ee196cba1fa10a7cbb37b38a44fe9f365b9e01cbe6cefc58"
+      }
+    },
+    {
+      "node_hash": "0x1b616464d61e8b5043b3c0e7280341bb32ca412cc2bfe5a02f29cae417f6a31",
+      "node": {
+        "left": "0x25969298ae59ce772a7dc3cf661da571f432131027bd2e544a4d4b0c0900080",
+        "right": "0x18ec887afd36373b9c4c60d116c42633b6dcad3b12440e61622b1ee37c7107b"
+      }
+    },
+    {
+      "node_hash": "0x25969298ae59ce772a7dc3cf661da571f432131027bd2e544a4d4b0c0900080",
+      "node": {
+        "left": "0x3c417dad6ec831208df3088652f8b47dbcd9b0ad5220be8d3106cf9f22d6513",
+        "right": "0x461e13e3e8ff7fd14aac49eefcc805d4aeea4855aee0bb494ecf22550ad0e5f"
+      }
+    },
+    {
+      "node_hash": "0x3c417dad6ec831208df3088652f8b47dbcd9b0ad5220be8d3106cf9f22d6513",
+      "node": {
+        "left": "0x2a8b0034f7d641df06378cce399b9c951c2bbc2fe6262f3a21a83f658169a9f",
+        "right": "0xd68e7e910f3287c5cfa6d8fd62e5ca101834ab2f41b613bf87fe5936aeaaad"
+      }
+    },
+    {
+      "node_hash": "0xd68e7e910f3287c5cfa6d8fd62e5ca101834ab2f41b613bf87fe5936aeaaad",
+      "node": {
+        "left": "0x5bfca9d094f06684db1932030035b9b632c8674e2f3c686cd8f729ea083685f",
+        "right": "0x27f86329cc646ae7284d5432b3a68de929c3932748526b546136420166a48d"
+      }
+    },
+    {
+      "node_hash": "0x5bfca9d094f06684db1932030035b9b632c8674e2f3c686cd8f729ea083685f",
+      "node": {
+        "left": "0x2b999f66d7809dcbb99c301ec2116f61fa70ec345fc5229ed69a782e721bdd2",
+        "right": "0x1a0efffe3dd5c9117aced31bb2f261c2dc4cd9b1b2949a01d908374b08884"
+      }
+    },
+    {
+      "node_hash": "0x2b999f66d7809dcbb99c301ec2116f61fa70ec345fc5229ed69a782e721bdd2",
+      "node": {
+        "left": "0x411bbae1e8d40729f8705e1946386dbe6be89a951c75d9d7d5d4cf6e58ba8a",
+        "right": "0x6fab4f88ca2948bf4af402f53e7253fb3eb496140395f1e86f987dc88079ed6"
+      }
+    },
+    {
+      "node_hash": "0x6fab4f88ca2948bf4af402f53e7253fb3eb496140395f1e86f987dc88079ed6",
+      "node": {
+        "left": "0x4ca6a8c60ad783edf2e5e8b6c8fc70cb7f9b73a0589292bb0e970a464115620",
+        "right": "0x51f009f223f102b6710541687a91062cf63da62d3106651d0d5ec91a27f10c7"
+      }
+    },
+    {
+      "node_hash": "0x4ca6a8c60ad783edf2e5e8b6c8fc70cb7f9b73a0589292bb0e970a464115620",
+      "node": {
+        "left": "0x5cb681abf4429b333c3e530ea89806b3ee92fba23754a1e1a1211e641295436",
+        "right": "0x5494c853aa53b49fad64fc0e744616808283ee28d8af060388ef6671e362cc1"
+      }
+    },
+    {
+      "node_hash": "0x5494c853aa53b49fad64fc0e744616808283ee28d8af060388ef6671e362cc1",
+      "node": {
+        "left": "0x1d6222775f46a118ad79696fd50e1aa622c64755eb697bea1dc036d9c9184be",
+        "right": "0x26f55bf3ea50be74644efd5e49542bc9a8bc8e6c65ddd3d7965923824fe52bb"
+      }
+    },
+    {
+      "node_hash": "0x1d6222775f46a118ad79696fd50e1aa622c64755eb697bea1dc036d9c9184be",
+      "node": {
+        "left": "0x55a0e7c9dc061993f95b08520d8197a2e89bb819fab08366d56acff841f9e98",
+        "right": "0x313898e6d5f8ccb53db5436e284cb33d25437f5fed273e890f87cd43fb81188"
+      }
+    },
+    {
+      "node_hash": "0x313898e6d5f8ccb53db5436e284cb33d25437f5fed273e890f87cd43fb81188",
+      "node": {
+        "left": "0x6e486a374cf39d4442c08b22433bf0ec82b33e831a4e48ddd59a3fc0c10de43",
+        "right": "0x5dd886542401378ac294a284c9f9778c0f883fe18b26e07a391abac5e669ec4"
+      }
+    },
+    {
+      "node_hash": "0x6e486a374cf39d4442c08b22433bf0ec82b33e831a4e48ddd59a3fc0c10de43",
+      "node": {
+        "left": "0x16b4e62ae02183517eab85471900febe893628cc6c6f0d33b9fb31768bf8893",
+        "right": "0x50e11ba060501d7922f2d94565573bc2e0c3f1ff9285659f7741123e9ed8087"
+      }
+    },
+    {
+      "node_hash": "0x16b4e62ae02183517eab85471900febe893628cc6c6f0d33b9fb31768bf8893",
+      "node": {
+        "left": "0x40b865c53d5c787d7919fcb4ee551dae5f233e45f739c32de312c064631e94f",
+        "right": "0xd20034f887d049cffc7fe5941031597f96058e55c666d7a907ffbc1eef9d7b"
+      }
+    },
+    {
+      "node_hash": "0xd20034f887d049cffc7fe5941031597f96058e55c666d7a907ffbc1eef9d7b",
+      "node": {
+        "left": "0x26d6c8dcb7b6c45b83727443cdfccb6ceb05a15606734bf333cdedb10cecbee",
+        "right": "0x2d2096cbbf036b0c8bb163593be98e3e9755ee34afe57a0e7e218a09e3e7048"
+      }
+    },
+    {
+      "node_hash": "0x26d6c8dcb7b6c45b83727443cdfccb6ceb05a15606734bf333cdedb10cecbee",
+      "node": {
+        "left": "0x6a148681ff2bf3b8d34b0d452441fe00d760c51ea05ebef47e48581f9cca060",
+        "right": "0x2e4d4d73e065a0257600b8879d16f03b65a001d657a7c963e2c2596ba34495a"
+      }
+    },
+    {
+      "node_hash": "0x6a148681ff2bf3b8d34b0d452441fe00d760c51ea05ebef47e48581f9cca060",
+      "node": {
+        "path": "0x4a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f",
+        "length": 235,
+        "child": "0x403e5ed95d7c5d50b02bb0b521a082bddcd8db344257d2dc748cad379cbda60"
+      }
+    }
+  ],
+  "contracts_proof": {
+    "nodes": [
+      {
+        "node_hash": "0x3fbe5b25fc27700bd7b6c2e558d7f2d648cc3879c8489d29d2bd9e4e46e0198",
+        "node": {
+          "left": "0x1f8c6e7b8aaa29784483d6d2f70b6118731b810aabae2681bea3509e9b1c10f",
+          "right": "0x35a9fe51d8d6228ab4cb44465ff199af8c073bacafc32fc8b2ddc4aa24a7ff"
+        }
+      },
+      {
+        "node_hash": "0x35a9fe51d8d6228ab4cb44465ff199af8c073bacafc32fc8b2ddc4aa24a7ff",
+        "node": {
+          "left": "0x39662b2b5bb0eb275c375fcfaccf2fe2e54072e1817378249f92ebe16f12582",
+          "right": "0x3bf94562c041dc7b71f9a2aadc51677435e52eee80688b295164eb404fc3133"
+        }
+      },
+      {
+        "node_hash": "0x39662b2b5bb0eb275c375fcfaccf2fe2e54072e1817378249f92ebe16f12582",
+        "node": {
+          "left": "0x590112245b1f53779e4ab1b3dcbf180df0ddf70ccc61ad6590ec381db84eaca",
+          "right": "0x2a1578d67acabc924f048b5b8d0e68644234bbb07444eacb2a3dccf1e354c6c"
+        }
+      },
+      {
+        "node_hash": "0x590112245b1f53779e4ab1b3dcbf180df0ddf70ccc61ad6590ec381db84eaca",
+        "node": {
+          "left": "0x6fb406be3b9b611d88aa7296a654dbe4cdcc30273bceec55091f8d7e9fe4c3f",
+          "right": "0x7de75b318704c153faab9c310109518203b0b1488a1d8b772b57caedb8e395"
+        }
+      },
+      {
+        "node_hash": "0x6fb406be3b9b611d88aa7296a654dbe4cdcc30273bceec55091f8d7e9fe4c3f",
+        "node": {
+          "left": "0x61b6fcdc7e31af15616dbcc2147058ccdf453f731b9fae1cfa8ad94058affca",
+          "right": "0x56e932cde7aed969b4aaa914ce424a8bc711ea204a2c2523f50f6f807e1e922"
+        }
+      },
+      {
+        "node_hash": "0x56e932cde7aed969b4aaa914ce424a8bc711ea204a2c2523f50f6f807e1e922",
+        "node": {
+          "left": "0x6b92ef6a30b59509f3556378249d3e27cfe60cf64ef7c9799f0bc61b8232f67",
+          "right": "0x24e44174742b4c483b28cb1f8c0e6fd4a8eb19809322568026262e346fd9638"
+        }
+      },
+      {
+        "node_hash": "0x24e44174742b4c483b28cb1f8c0e6fd4a8eb19809322568026262e346fd9638",
+        "node": {
+          "left": "0x736927b505a24e4c87b76e824f3b6dc1447ffac057c85dc4558b5624afa16b1",
+          "right": "0x46a82e5c2202074dc4f13049e08de6bb0faf16cf447a7c1cf29b3cfb71a320a"
+        }
+      },
+      {
+        "node_hash": "0x46a82e5c2202074dc4f13049e08de6bb0faf16cf447a7c1cf29b3cfb71a320a",
+        "node": {
+          "left": "0x6dac203e9a32318557ec6b6ae4bf5892c9ee8febc5500c7e8153d7d505bc275",
+          "right": "0x31e0d2bab757a5533590a44547553da6d6183f9804c2ea988720ea1081b1e24"
+        }
+      },
+      {
+        "node_hash": "0x6dac203e9a32318557ec6b6ae4bf5892c9ee8febc5500c7e8153d7d505bc275",
+        "node": {
+          "left": "0x61dbaa6fbc809b2a24961f57c95e569a4a3be44c4ebd9d0c77d4ffcbf404570",
+          "right": "0x7236fcdb01bac96745c50991906a3904578a7f16cf6dfcf9b377b606033e3a4"
+        }
+      },
+      {
+        "node_hash": "0x61dbaa6fbc809b2a24961f57c95e569a4a3be44c4ebd9d0c77d4ffcbf404570",
+        "node": {
+          "left": "0xffebc1034b9b1f351a727b3aa5385efc31d0250704145dde834b1cb33fc380",
+          "right": "0x6be99a8eebbd1fa702b6c325bdc9620471939d64cb94ddda1775abf297476ff"
+        }
+      },
+      {
+        "node_hash": "0xffebc1034b9b1f351a727b3aa5385efc31d0250704145dde834b1cb33fc380",
+        "node": {
+          "left": "0x694ac186ecdb6ef399d6a36191f8110b2c2466a14d1bfb87d5dd0c4b4f52baa",
+          "right": "0x8d7d167a53b3fa90ce0f9cf2114d6b8deb5b523e32ed49be2bab5973f6d301"
+        }
+      },
+      {
+        "node_hash": "0x8d7d167a53b3fa90ce0f9cf2114d6b8deb5b523e32ed49be2bab5973f6d301",
+        "node": {
+          "left": "0x559700ab8722a2cc7c48adae7043d9d8c1d3a4cd705193d6f875b615e735f4d",
+          "right": "0x92a294c141631c9c5a3858e3e930085ffbf706b372ddbb42ef4a683d0b33bc"
+        }
+      },
+      {
+        "node_hash": "0x92a294c141631c9c5a3858e3e930085ffbf706b372ddbb42ef4a683d0b33bc",
+        "node": {
+          "left": "0x42cf50e91eb5fa5ef0369786a4abd8119711c36c8d742b74e387018f3128796",
+          "right": "0xa83b203392cdc94f0ddb268fe24fdaa965df3f0b9d525c4d8d9844c04cc4a1"
+        }
+      },
+      {
+        "node_hash": "0x42cf50e91eb5fa5ef0369786a4abd8119711c36c8d742b74e387018f3128796",
+        "node": {
+          "left": "0x532887f9c1942b3856aaaa89b46d72eddf3e74b8743141c48dfa0f1b7cefe90",
+          "right": "0xfb0a2bfb5cc10f240866874f905d47c0dbbdf1bbe0c5790a5de945218c7fa0"
+        }
+      },
+      {
+        "node_hash": "0x532887f9c1942b3856aaaa89b46d72eddf3e74b8743141c48dfa0f1b7cefe90",
+        "node": {
+          "left": "0x5fa856d63c5b682d60f0514b6869e6bc437db301a96245cd955d76ace3f564d",
+          "right": "0x47f70b13b22e44446a1c848a569e3b437118cb20cb295a343deb71cec5fc24f"
+        }
+      },
+      {
+        "node_hash": "0x5fa856d63c5b682d60f0514b6869e6bc437db301a96245cd955d76ace3f564d",
+        "node": {
+          "left": "0x47c3a0ffd190926e808647dae78736e06e6d9cefbef72b219e450e483fea781",
+          "right": "0x57570d1b40b09410801c03268cf2d9185c2a4c0e4a61d68fbe9de817f1e51f"
+        }
+      },
+      {
+        "node_hash": "0x57570d1b40b09410801c03268cf2d9185c2a4c0e4a61d68fbe9de817f1e51f",
+        "node": {
+          "left": "0x7ad73fe25bf88becb116d62fc547ef1867055fced80d89c7dff2ae4cf533467",
+          "right": "0x598ff6f195ed1d0ccf5e5184641db92dd5d4344b36cd9cd3f1a2e926df04922"
+        }
+      },
+      {
+        "node_hash": "0x598ff6f195ed1d0ccf5e5184641db92dd5d4344b36cd9cd3f1a2e926df04922",
+        "node": {
+          "left": "0x19856717890c209a2b8951ed518f04de31eeaeac991f77f58f19abb716b8cca",
+          "right": "0x5aa02341fd7641904cd3ff8cad61c0dd96c3c722bfc84df86cb0cbd00f78708"
+        }
+      },
+      {
+        "node_hash": "0x5aa02341fd7641904cd3ff8cad61c0dd96c3c722bfc84df86cb0cbd00f78708",
+        "node": {
+          "left": "0x668c8a31e9eaa18048e51186488fa645cdfc4287d91ae1efb4358df457d5a64",
+          "right": "0x325fdad3f80484e8403d0ebdf794699afd93c451c5248477bad179a25209ac3"
+        }
+      },
+      {
+        "node_hash": "0x325fdad3f80484e8403d0ebdf794699afd93c451c5248477bad179a25209ac3",
+        "node": {
+          "left": "0x11a519930c439e8682e9e7c34168ec59b3a3282a5de048a9b4d2daf3c65fd3c",
+          "right": "0xc35e4d9d29444e1308c674256ebd2d11ca6fa7b6ff223b55ef36eaa001e3f8"
+        }
+      },
+      {
+        "node_hash": "0x11a519930c439e8682e9e7c34168ec59b3a3282a5de048a9b4d2daf3c65fd3c",
+        "node": {
+          "path": "0x5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          "length": 231,
+          "child": "0x4e8006ac44dbd8328b40ec6d4f70a265cd477640928e4fe38780d6ba387e8fc"
+        }
+      },
+      {
+        "node_hash": "0x7de75b318704c153faab9c310109518203b0b1488a1d8b772b57caedb8e395",
+        "node": {
+          "left": "0x61787ab3c386dec22c12f5690cb140b8206daaeec6a27e2ef9cb36bd66f1d99",
+          "right": "0x7a39fb95617a76ad57fc1d941fbfb53cfd57b0f6c7ccff5f43c496c7e627dda"
+        }
+      },
+      {
+        "node_hash": "0x61787ab3c386dec22c12f5690cb140b8206daaeec6a27e2ef9cb36bd66f1d99",
+        "node": {
+          "left": "0x39eada561eb6c74f4d9558059d749ab32df7f4e39b3717844cbc3b7d65ed516",
+          "right": "0x2f5c5f77c0625a7887377f161453966f790f1180acf49e59fa3d2729e8907fa"
+        }
+      },
+      {
+        "node_hash": "0x39eada561eb6c74f4d9558059d749ab32df7f4e39b3717844cbc3b7d65ed516",
+        "node": {
+          "left": "0x208bbd18459fb49ed07b5247f5d9b7742a064efe9dfe5a3673dfc66a9846d19",
+          "right": "0x3729f301a0ee7546f782b95ff56095c127e07868bebc23bdd292dd885d6591b"
+        }
+      },
+      {
+        "node_hash": "0x3729f301a0ee7546f782b95ff56095c127e07868bebc23bdd292dd885d6591b",
+        "node": {
+          "left": "0x418979258b4269bbc1c166acb7a08aed2254f4a5f3dafcda5ff2b7e32e322bb",
+          "right": "0x575162fdf592bd0b57c0c41b706352bc379106d04f577d8a5762a64bea05d5b"
+        }
+      },
+      {
+        "node_hash": "0x575162fdf592bd0b57c0c41b706352bc379106d04f577d8a5762a64bea05d5b",
+        "node": {
+          "left": "0x386d0c8a24bf0a2658aa3766bcb73efc59e320affb3edd011360c8d08706ab",
+          "right": "0x774671bf4af043b76b2de940298c51d241d1fee38c4da60e8df5a3ab3b59c4d"
+        }
+      },
+      {
+        "node_hash": "0x774671bf4af043b76b2de940298c51d241d1fee38c4da60e8df5a3ab3b59c4d",
+        "node": {
+          "left": "0xdea3609a1e7fe3ee301b1c496505e03d1aa8d2b35389d40b8715c8b73832bb",
+          "right": "0x5d5eca3b08b0259cb20140c02e865a4bf17b0a7d744cb319c41e983f6940f7"
+        }
+      },
+      {
+        "node_hash": "0xdea3609a1e7fe3ee301b1c496505e03d1aa8d2b35389d40b8715c8b73832bb",
+        "node": {
+          "left": "0x22c92f4f5ba6da1621886b806fce08c4153bb4b46d82dd4fb1bf1f579eecf58",
+          "right": "0x4f139d813f703d1f25083ad6e25abf6085b2072e15c9afe3762ef0708b330f4"
+        }
+      },
+      {
+        "node_hash": "0x4f139d813f703d1f25083ad6e25abf6085b2072e15c9afe3762ef0708b330f4",
+        "node": {
+          "left": "0x2eb5b46e43e9372a653cb005e4e14331383e315ac1c106a7e183f36cb567431",
+          "right": "0x6dcc3c8df4e47ec3c9813953d5511934cbb1d61ed11c654fe7a3cc20e67caf0"
+        }
+      },
+      {
+        "node_hash": "0x2eb5b46e43e9372a653cb005e4e14331383e315ac1c106a7e183f36cb567431",
+        "node": {
+          "left": "0x9de0051ace8b45e58b2cf31af138746d92c0c1b3f65f901a49f4aabc08712e",
+          "right": "0x769d9b09c09d271a2da2f5e508b95aaa5e00f6b275b978c51333017ef1dac6d"
+        }
+      },
+      {
+        "node_hash": "0x9de0051ace8b45e58b2cf31af138746d92c0c1b3f65f901a49f4aabc08712e",
+        "node": {
+          "left": "0xf20daa76348de59e2c0b8e84d31482da14e1b7fdf6fbd97eb3179755391930",
+          "right": "0x1c4f09cdec0af5f5613d5a98a7da4595f49c1c9c954daa52e0d2a7b87b610b3"
+        }
+      },
+      {
+        "node_hash": "0x1c4f09cdec0af5f5613d5a98a7da4595f49c1c9c954daa52e0d2a7b87b610b3",
+        "node": {
+          "left": "0x510f10edf63a29a99a002e040b4de1d22957bc1a6a108ceeb0458ecb9306de2",
+          "right": "0x2ffb873f511050dfe0dd0787914888fee2a5d8443b8dbd86e3d6f09bb955548"
+        }
+      },
+      {
+        "node_hash": "0x2ffb873f511050dfe0dd0787914888fee2a5d8443b8dbd86e3d6f09bb955548",
+        "node": {
+          "left": "0x497c8d856c353d4981892248253cfd0a0b6868f220c6402df6dc43dca0d12fb",
+          "right": "0x5cfd2cae0e1adf09d7de43be92c33503e48f0ffb8865e9f3f72abb1f1c46b3"
+        }
+      },
+      {
+        "node_hash": "0x497c8d856c353d4981892248253cfd0a0b6868f220c6402df6dc43dca0d12fb",
+        "node": {
+          "left": "0x67d09cf1cd8b540abeabe5fdfd9298090eb15d76b93cdd0214a02454bdc1da4",
+          "right": "0xc37237a14823b230f7f41b7bcdd584b86a9a565988de9b85521b79552dffed"
+        }
+      },
+      {
+        "node_hash": "0xc37237a14823b230f7f41b7bcdd584b86a9a565988de9b85521b79552dffed",
+        "node": {
+          "left": "0x6e965ec3c80700cd2c0edcd257d46809bb4fe09a1359fff7b0b1f82ed068a38",
+          "right": "0x7f87fb58bd17fff77850a789be22ba32b7c40b9d46cd804e1d8ec44576290ea"
+        }
+      },
+      {
+        "node_hash": "0x7f87fb58bd17fff77850a789be22ba32b7c40b9d46cd804e1d8ec44576290ea",
+        "node": {
+          "left": "0x142f14ff12bdd44efc34a52cb90cf22a0b0d12f7e4f83752b3d0d5cac8c9514",
+          "right": "0xf466d3845710c312e5a39f077939ec9aae589195ce8d19e8edc31c76d31f3e"
+        }
+      },
+      {
+        "node_hash": "0x142f14ff12bdd44efc34a52cb90cf22a0b0d12f7e4f83752b3d0d5cac8c9514",
+        "node": {
+          "path": "0x570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+          "length": 232,
+          "child": "0x64077caae84cf1758940229bc34dc5c0f0e179d0785e6be48eb5daf3ba4ceb5"
+        }
+      }
+    ],
+    "contract_leaves_data": [
+      {
+        "nonce": "0x0",
+        "class_hash": "0x9524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f",
+        "storage_root": "0x3fbe5b25fc27700bd7b6c2e558d7f2d648cc3879c8489d29d2bd9e4e46e0198"
+      },
+      {
+        "nonce": "0x0",
+        "class_hash": "0x76791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a",
+        "storage_root": "0x3fbe5b25fc27700bd7b6c2e558d7f2d648cc3879c8489d29d2bd9e4e46e0198"
+      }
+    ]
+  },
+  "contracts_storage_proofs": [],
+  "global_roots": {
+    "contracts_tree_root": "0x3fbe5b25fc27700bd7b6c2e558d7f2d648cc3879c8489d29d2bd9e4e46e0198",
+    "classes_tree_root": "0x1ba1fed9143a0f281926417ddfd2c2f4115b23d624de1eb425e94ca8932f2c6",
+    "block_hash": "0x43746a875eef6fc6e5085f6a2243514c7267aa425d177d5e67db8fe391ed9d3"
+  }
+}
+
+```

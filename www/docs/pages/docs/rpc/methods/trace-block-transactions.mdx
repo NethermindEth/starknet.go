@@ -1,0 +1,30 @@
+---
+title: starknet_traceBlockTransactions
+description: Traces the execution of all transactions in a block.
+---
+
+# starknet_traceBlockTransactions
+
+Traces the execution of all transactions in a block, returning detailed information about the execution steps for each transaction.
+
+## Parameters
+
+1. `block_id` - The identifier of the block to trace. Can be one of:
+   - `block_number` - The block's number.
+   - `block_hash` - The block's hash.
+   - `"latest"` - The latest block.
+   - `"pending"` - The pending block.
+2. `options` - (Optional) Configuration options for the trace.
+
+## Returns
+
+An array of transaction traces, each containing:
+- `transaction_hash` - The hash of the transaction.
+- `trace` - The execution trace of the transaction, including:
+  - `function_invocation` - Details of the function invocation.
+  - `signature` - The signature of the transaction.
+  - `events` - Events emitted during execution.
+  - `messages` - Messages sent during execution.
+  - `execution_resources` - Resources consumed during execution.
+
+## Example

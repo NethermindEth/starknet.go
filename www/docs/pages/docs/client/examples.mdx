@@ -1,0 +1,188 @@
+# Client Examples
+
+The client examples submodule provides examples of how to use the Starknet client.
+
+## Basic Examples
+
+### Creating a Client
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create a new client
+    config := client.ClientConfig{
+        NodeURL: "https://your-node-url",
+        ChainID: "SN_MAIN",
+        Timeout: 30 * time.Second,
+    }
+
+    client, err := client.NewClient(config)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get the latest block
+    block, err := client.GetLatestBlock()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Latest block number: %d\n", block.Number)
+}
+```
+
+### Getting a Block
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create a new client
+    client, err := client.NewClient(client.ClientConfig{
+        NodeURL: "https://your-node-url",
+        ChainID: "SN_MAIN",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get a block by number
+    block, err := client.GetBlockByNumber(1)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Block hash: %s\n", block.Hash)
+    fmt.Printf("Block number: %d\n", block.Number)
+    fmt.Printf("Block timestamp: %d\n", block.Timestamp)
+}
+```
+
+### Getting a Transaction
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create a new client
+    client, err := client.NewClient(client.ClientConfig{
+        NodeURL: "https://your-node-url",
+        ChainID: "SN_MAIN",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get a transaction by hash
+    tx, err := client.GetTransactionByHash("0x123...")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Transaction type: %s\n", tx.Type)
+    fmt.Printf("Transaction status: %s\n", tx.Status)
+    fmt.Printf("Transaction hash: %s\n", tx.Hash)
+}
+```
+
+## Advanced Examples
+
+### Sending a Transaction
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create a new client
+    client, err := client.NewClient(client.ClientConfig{
+        NodeURL: "https://your-node-url",
+        ChainID: "SN_MAIN",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create a transaction
+    tx := client.NewTransaction(
+        "0x456...", // contract address
+        "0x789...", // entry point selector
+        []string{"0xabc..."}, // calldata
+        "1000000000000000", // max fee
+        "0x1", // version
+        "0x1", // nonce
+    )
+
+    // Send the transaction
+    txHash, err := client.SendTransaction(tx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Transaction sent with hash: %s\n", txHash)
+}
+```
+
+### Calling a Contract
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create a new client
+    client, err := client.NewClient(client.ClientConfig{
+        NodeURL: "https://your-node-url",
+        ChainID: "SN_MAIN",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Call a contract
+    result, err := client.CallContract(
+        "0x456...", // contract address
+        "0x789...", // entry point selector
+        []string{"0xabc..."}, // calldata
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Call result: %s\n", result)
+} 
