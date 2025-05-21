@@ -788,8 +788,16 @@ func TestGetStorageProof(t *testing.T) {
 
 			// verify JSON equality
 			var rawResult any
+
 			// call the RPC method directly to get the raw result
-			err = testConfig.provider.c.CallContext(context.Background(), &rawResult, "starknet_getStorageProof", test.StorageProofInput)
+			input := test.StorageProofInput
+			input.BlockID = WithBlockHash(result.GlobalRoots.BlockHash) // using the same block returned by GetStorageProof to avoid temporal coupling
+			err = testConfig.provider.c.CallContext(
+				context.Background(),
+				&rawResult,
+				"starknet_getStorageProof",
+				input,
+			)
 			require.NoError(t, err)
 			// marshal the results to JSON
 			rawResultJSON, err := json.Marshal(rawResult)
