@@ -791,7 +791,9 @@ func TestGetStorageProof(t *testing.T) {
 
 			// call the RPC method directly to get the raw result
 			input := test.StorageProofInput
-			input.BlockID = WithBlockHash(result.GlobalRoots.BlockHash) // using the same block returned by GetStorageProof to avoid temporal coupling
+			input.BlockID = WithBlockHash(
+				result.GlobalRoots.BlockHash,
+			) // using the same block returned by GetStorageProof to avoid temporal coupling
 			err = testConfig.provider.c.CallContext(
 				context.Background(),
 				&rawResult,
