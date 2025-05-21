@@ -76,8 +76,11 @@ func main() {
 		context.Background(),
 		casmClass,
 		contractClass,
-		1.5,
-		&utils.TxnOptions{WithQueryBitVersion: false, Tip: "0x0"},
+		&utils.TxnOptions{
+			WithQueryBitVersion: false,
+			Tip:                 "0x0",
+			Multiplier:          1.5,
+		},
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "is already declared") {

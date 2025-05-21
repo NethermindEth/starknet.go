@@ -25,9 +25,12 @@ var (
 // TxnOptions holds options for building transactions
 // WithQueryBitVersion: whether to use the query bit version
 // Tip: tip amount for the transaction
+// Multiplier: Safety factor for fee estimation. Recommended to be 1.5, but at least greater than 0.
+// If multiplier < 0, all resources bounds will be set to 0.
 type TxnOptions struct {
 	WithQueryBitVersion bool
 	Tip                 rpc.U64
+	Multiplier          float64
 }
 
 // TxnVersion returns the transaction version based on WithQueryBitVersion
@@ -43,9 +46,10 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 // If opts is nil, a new TxnOptions instance with default values will be created
 func (opts *TxnOptions) ApplyOptions() *TxnOptions {
 	if opts == nil {
-		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0"}
+		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0", Multiplier: 1.5}
 	}
 	opts.applyTip()
+	opts.applyMultiplier()
 
 	return opts
 }
@@ -62,6 +66,12 @@ func (opts *TxnOptions) applyTip() {
 	}
 }
 
+func (opts *TxnOptions) applyMultiplier() {
+	if opts.Multiplier <= 0 {
+		opts.Multiplier = 1.5
+	}
+}
+
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
 // The default version of the returned transaction is determined by the TxnOptions.
@@ -74,7 +84,6 @@ func (opts *TxnOptions) applyTip() {
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - multiplier: Safety factor for fee estimation
 //   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
@@ -85,7 +94,6 @@ func BuildInvokeTxn(
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	multiplier float64,
 	opts *TxnOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
 	opts = opts.ApplyOptions()
@@ -121,7 +129,6 @@ func BuildInvokeTxn(
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - multiplier: Safety factor for fee estimation
 //   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
@@ -133,7 +140,6 @@ func BuildDeclareTxn(
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	multiplier float64,
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
 	opts = opts.ApplyOptions()
@@ -175,7 +181,6 @@ func BuildDeclareTxn(
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - multiplier: Safety factor for fee estimation
 //   - opts: TxnOptions pointer for transaction options
 //
 // Returns:
@@ -187,7 +192,6 @@ func BuildDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
-	multiplier float64,
 	opts *TxnOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
 	opts = opts.ApplyOptions()

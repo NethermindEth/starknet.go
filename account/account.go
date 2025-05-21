@@ -27,20 +27,17 @@ type AccountInterface interface {
 		salt *felt.Felt,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
-		multiplier float64,
 		opts *utils.TxnOptions,
 	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,
-		multiplier float64,
 		opts *utils.TxnOptions,
 	) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
-		multiplier float64,
 		opts *utils.TxnOptions,
 	) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
@@ -141,7 +138,6 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - multiplier: Safety factor for fee estimation. Recommended to be 1.5, but can be any positive value.
 //   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
@@ -150,7 +146,6 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
-	multiplier float64,
 	opts *utils.TxnOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
@@ -163,7 +158,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), multiplier, opts)
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), opts)
 
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
@@ -181,7 +176,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
@@ -203,7 +198,6 @@ func (account *Account) BuildAndSendInvokeTxn(
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - multiplier: Safety factor for fee estimation. Recommended to be 1.5, but can be any positive value.
 //   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
@@ -213,7 +207,6 @@ func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
-	multiplier float64,
 	opts *utils.TxnOptions,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
@@ -227,7 +220,6 @@ func (account *Account) BuildAndSendDeclareTxn(
 		contractClass,
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
-		multiplier,
 		opts,
 	)
 	if err != nil {
@@ -249,7 +241,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
@@ -275,7 +267,6 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - salt: A value used to randomise the deployed contract address
 //   - classHash: The hash of the contract class to deploy
 //   - constructorCalldata: The parameters for the constructor function
-//   - multiplier: Safety factor for fee estimation. Recommended to be 1.5, but can be any positive value.
 //   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
@@ -287,7 +278,6 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	salt *felt.Felt,
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	multiplier float64,
 	opts *utils.TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
@@ -296,7 +286,6 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		constructorCalldata,
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
-		multiplier,
 		opts,
 	)
 
@@ -318,7 +307,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {

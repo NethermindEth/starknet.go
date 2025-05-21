@@ -1297,7 +1297,11 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5, &utils.TxnOptions{WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	}, &utils.TxnOptions{
+		WithQueryBitVersion: false,
+		Tip:                 rpc.U64("0x0"),
+		Multiplier:          1.5,
+	})
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -1342,8 +1346,11 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 		context.Background(),
 		&casmClass,
 		&class,
-		1.5,
-		&utils.TxnOptions{WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+		&utils.TxnOptions{
+			WithQueryBitVersion: true,
+			Tip:                 rpc.U64("0x0"),
+			Multiplier:          1.5,
+		},
 	)
 	if err != nil {
 		require.EqualError(
@@ -1409,8 +1416,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5,
-		&utils.TxnOptions{WithQueryBitVersion: false, Tip: rpc.U64("0x0")},
+		&utils.TxnOptions{
+			WithQueryBitVersion: true,
+			Tip:                 rpc.U64("0x0"),
+			Multiplier:          1.5,
+		},
 	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
@@ -1452,7 +1462,11 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5, &utils.TxnOptions{WithQueryBitVersion: false, Tip: rpc.U64("0x0")})
+	}, &utils.TxnOptions{
+		WithQueryBitVersion: false,
+		Tip:                 rpc.U64("0x0"),
+		Multiplier:          1.5,
+	})
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -1571,8 +1585,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			context.Background(),
 			&casmClass,
 			&class,
-			1.5,
-			&utils.TxnOptions{WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+			&utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			},
 		)
 		require.Error(t, err)
 		// assert that the transaction contains the query bit version
@@ -1592,7 +1609,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				FunctionName:    "transfer",
 				CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 			},
-		}, 1.5, &utils.TxnOptions{WithQueryBitVersion: true, Tip: rpc.U64("0x0")})
+		}, &utils.TxnOptions{
+			WithQueryBitVersion: true,
+			Tip:                 rpc.U64("0x0"),
+			Multiplier:          1.5,
+		})
 		require.Error(t, err)
 		// assert that the transaction contains the query bit version
 		assert.Contains(t, err.Error(), devnetQueryErrorMsg)
@@ -1614,8 +1635,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			pub,
 			classHash,
 			[]*felt.Felt{pub},
-			1.5,
-			&utils.TxnOptions{WithQueryBitVersion: true, Tip: rpc.U64("0x0")},
+			&utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			},
 		)
 		require.NoError(t, err)
 		require.NotNil(t, txn)
