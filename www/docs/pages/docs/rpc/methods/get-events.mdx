@@ -1,0 +1,73 @@
+# Get Events
+
+Returns events matching the given filter.
+
+## Parameters
+
+- `filter` - The event filter object containing:
+  - From block
+  - To block
+  - Address
+  - Keys
+  - Page size
+  - Page number
+  - Other filter-specific data
+
+## Returns
+
+Returns an object containing:
+- Events
+- Page number
+- Page size
+- Total number of events
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	client, err := rpc.NewClient(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provider := rpc.NewProvider(client)
+	
+	// Convert string address to Felt
+	address, _ := utils.HexToFelt("0x123...")
+	
+	// Create event filter
+	filter := rpc.EventFilter{
+		FromBlock: rpc.BlockID{Tag: "latest"},
+		ToBlock: rpc.BlockID{Tag: "latest"},
+		Address: address,
+		Keys: [][]*felt.Felt{},
+		PageSize: 10,
+		PageNumber: 0,
+	}
+	
+	result, err := provider.Events(context.Background(), filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Events:", result)
+}
+```
+
+## Error Cases
+
+- `INVALID_BLOCK_ID` - If the block identifier is invalid
+- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid
+- `INVALID_EVENT_FILTER` - If the event filter is invalid
+- `PAGE_SIZE_TOO_BIG` - If the page size is too big
+- `INVALID_PAGE_NUMBER` - If the page number is invalid 

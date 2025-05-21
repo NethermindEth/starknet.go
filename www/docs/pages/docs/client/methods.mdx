@@ -1,0 +1,124 @@
+# Client Methods
+
+The client methods submodule provides functionality for interacting with Starknet nodes.
+
+## Block Methods
+
+### Get Block by Number
+
+```go
+block, err := client.GetBlockByNumber(blockNumber) // [!code focus]
+if err != nil { 
+    // Handle error
+}
+```
+
+### Get Block by Hash
+
+```go
+block, err := client.GetBlockByHash(blockHash) // [!code focus]
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Latest Block
+
+```go
+block, err := client.GetLatestBlock() // [!code focus]
+if err != nil {
+    // Handle error
+}
+```
+
+## Transaction Methods
+
+### Get Transaction by Hash
+
+```go
+tx, err := client.GetTransactionByHash(txHash) // [!code focus]
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Transaction Receipt
+
+```go
+receipt, err := client.GetTransactionReceipt(txHash) // [!code focus]
+if err != nil {
+    // Handle error
+}
+```
+
+### Send Transaction
+
+```go
+txHash, err := client.SendTransaction(tx) // [!code focus]
+if err != nil {
+    // Handle error
+}
+```
+
+## Contract Methods
+
+### Get Contract Code
+
+```go
+code, err := client.GetContractCode(contractAddress)
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Contract Storage
+
+```go
+storage, err := client.GetContractStorage(contractAddress, key)
+if err != nil {
+    // Handle error
+}
+```
+
+### Call Contract
+
+```go
+result, err := client.CallContract(contractAddress, entryPointSelector, calldata)
+if err != nil {
+    // Handle error
+}
+```
+
+## Example Usage
+
+```go
+// Get the latest block // [!code focus]
+block, err := client.GetLatestBlock() // [!code focus]
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Latest block number: %d\n", block.Number) // [!code focus]
+fmt.Printf("Latest block hash: %s\n", block.Hash) // [!code focus]
+
+// Get a transaction // [!code focus]
+tx, err := client.GetTransactionByHash("0x123...") // [!code focus]
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction type: %s\n", tx.Type) // [!code focus]
+fmt.Printf("Transaction status: %s\n", tx.Status) // [!code focus]
+
+// Call a contract // [!code focus]     
+result, err := client.CallContract( // [!code focus]
+    "0x456...", // contract address // [!code focus]
+    "0x789...", // entry point selector // [!code focus]
+    []string{"0xabc..."}, // calldata // [!code focus]
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Call result: %s\n", result) // [!code focus]
+``` 

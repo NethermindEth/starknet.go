@@ -1,0 +1,75 @@
+# Call
+
+Calls the Starknet Provider's function with the given request and block ID.
+
+## Parameters
+
+- `ctx` - The context of the request.
+- `request` - The call request object containing:
+  - `contract_address` - The address of the contract
+  - `entry_point_selector` - The selector of the function to call
+  - `calldata` - The input data for the function call
+- `blockID` - The block identifier. Can be:
+  - `BlockHash` - The hash of the block.
+  - `BlockNumber` - The number of the block.
+  - `"latest"` for the latest block
+  - `"pending"` for the pending block
+
+## Returns
+
+- `result` - The result of the function call as an array of Felts.
+- `error` - An error if any occurred.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	provider, err := rpc.NewProvider(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert string addresses to Felt
+	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
+	entryPointSelector, _ := utils.HexToFelt("0x361458367e696363fbcc70777d07ebbd2394e89fd0adcaf147faccd1d294d60")
+	
+	// Create call request
+	request := rpc.FunctionCall{
+		ContractAddress:    contractAddress,
+		EntryPointSelector: entryPointSelector,
+		Calldata: []*felt.Felt{},
+	}
+	
+	result, err := provider.Call(context.Background(), request, rpc.BlockID{Tag: "latest"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Call Result:", result)
+}
+```
+
+## Output
+```json
+Call Result: [0x4c6f726473]
+```
+
+## Error Cases
+
+- `CONTRACT_NOT_FOUND` - If the contract does not exist
+- `INVALID_BLOCK_ID` - If the block identifier is invalid
+- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid
+- `INVALID_ENTRY_POINT_SELECTOR` - If the entry point selector is invalid
+- `INVALID_CALLDATA` - If the calldata is invalid 
