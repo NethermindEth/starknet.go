@@ -145,7 +145,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit when estimating fees.
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
@@ -173,6 +173,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues())
 
 	if withQueryBitVersion {
+		// the query bit txn version is used for custom validation logic from wallets/accounts when estimating fee/simulating txns
 		broadcastInvokeTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
@@ -193,6 +194,9 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	broadcastInvokeTxnV3.Version = rpc.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
@@ -219,7 +223,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit when estimating fees.
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
@@ -252,6 +256,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	if withQueryBitVersion {
+		// the query bit txn version is used for custom validation logic from wallets/accounts when estimating fee/simulating txns
 		broadcastDeclareTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
@@ -272,6 +277,9 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	broadcastDeclareTxnV3.Version = rpc.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
@@ -302,7 +310,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //     fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 //     A value of 1.5 (50% buffer) is recommended to balance between transaction success rate and
 //     avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
-//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit.
+//   - withQueryBitVersion: A boolean flag indicating whether the transaction version should have the query bit when estimating fees.
 //     If true, the transaction version will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
 //     If false, the transaction version will be rpc.TransactionV3 (0x3).
 //     In case of doubt, set to 'false'.
@@ -329,6 +337,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	)
 
 	if withQueryBitVersion {
+		// the query bit txn version is used for custom validation logic from wallets/accounts when estimating fee/simulating txns
 		broadcastDepAccTxnV3.Version = rpc.TransactionV3WithQueryBit
 	}
 
@@ -352,6 +361,9 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
+
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	broadcastDepAccTxnV3.Version = rpc.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
