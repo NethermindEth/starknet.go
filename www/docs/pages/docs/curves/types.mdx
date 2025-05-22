@@ -1,0 +1,126 @@
+# Curve Types
+
+The curve types submodule provides functionality for working with different types of curves in Starknet.
+
+## Curve Types
+
+The package supports various curve types:
+
+- Stark curve
+- Pedersen curve
+- ECDSA curve
+
+## Stark Curve
+
+The Stark curve is the main curve used in Starknet. It is defined by the equation:
+
+```
+y² = x³ + αx + β
+```
+
+Where:
+- α and β are constants
+- The curve is defined over a prime field
+
+### Creating a Stark Curve
+
+```go
+curve := curves.NewStarkCurve()
+```
+
+### Stark Curve Operations
+
+```go
+// Add two points
+result := curve.Add(point1, point2)
+
+// Multiply a point by a scalar
+result := curve.Mul(point, scalar)
+
+// Get the generator point
+generator := curve.Generator()
+```
+
+## Pedersen Curve
+
+The Pedersen curve is used for Pedersen hashing in Starknet. It is defined by the equation:
+
+```
+y² = x³ + αx + β
+```
+
+Where:
+- α and β are constants
+- The curve is defined over a prime field
+
+### Creating a Pedersen Curve
+
+```go
+curve := curves.NewPedersenCurve()
+```
+
+### Pedersen Curve Operations
+
+```go
+// Add two points
+result := curve.Add(point1, point2)
+
+// Multiply a point by a scalar
+result := curve.Mul(point, scalar)
+
+// Get the generator point
+generator := curve.Generator()
+```
+
+## ECDSA Curve
+
+The ECDSA curve is used for ECDSA signatures in Starknet. It is defined by the equation:
+
+```
+y² = x³ + αx + β
+```
+
+Where:
+- α and β are constants
+- The curve is defined over a prime field
+
+### Creating an ECDSA Curve
+
+```go
+curve := curves.NewECDSACurve()
+```
+
+### ECDSA Curve Operations
+
+```go
+// Add two points
+result := curve.Add(point1, point2)
+
+// Multiply a point by a scalar
+result := curve.Mul(point, scalar)
+
+// Get the generator point
+generator := curve.Generator()
+```
+
+## Example Usage
+
+```go
+// Create a Stark curve
+starkCurve := curves.NewStarkCurve()
+
+// Create a Pedersen curve
+pedersenCurve := curves.NewPedersenCurve()
+
+// Create an ECDSA curve
+ecdsaCurve := curves.NewECDSACurve()
+
+// Add two points on the Stark curve
+result := starkCurve.Add(point1, point2)
+
+// Multiply a point by a scalar on the Pedersen curve
+result := pedersenCurve.Mul(point, scalar)
+
+// Get the generator point on the ECDSA curve
+generator := ecdsaCurve.Generator()
+``` 

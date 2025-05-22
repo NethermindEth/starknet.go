@@ -15,3 +15,5 @@ examples/**/*.sum
 */**/*abi.json
 
 .idea/
+
+.vscode/settings.json

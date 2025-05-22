@@ -23,7 +23,7 @@ var (
 )
 
 // TxnOptions holds options for building transactions
-// WithQueryBitVersion: whether to use the query bit version
+// WithQueryBitVersion: whether to use the query bit version for estimation
 // Tip: tip amount for the transaction
 // Multiplier: Safety factor for fee estimation. Recommended to be 1.5, but at least greater than 0.
 // If multiplier < 0, all resources bounds will be set to 0.
@@ -34,11 +34,11 @@ type TxnOptions struct {
 }
 
 // TxnVersion returns the transaction version based on WithQueryBitVersion
+// This is used for estimation only - actual transactions always use TransactionV3
 func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 	if opts.WithQueryBitVersion {
 		return rpc.TransactionV3WithQueryBit
 	}
-
 	return rpc.TransactionV3
 }
 
