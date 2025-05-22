@@ -1297,7 +1297,11 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5, false)
+	}, &utils.TxnOptions{
+		WithQueryBitVersion: false,
+		Tip:                 rpc.U64("0x0"),
+		Multiplier:          1.5,
+	})
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -1338,7 +1342,16 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
+	resp, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		&casmClass,
+		&class,
+		&utils.TxnOptions{
+			WithQueryBitVersion: true,
+			Tip:                 rpc.U64("0x0"),
+			Multiplier:          1.5,
+		},
+	)
 	if err != nil {
 		require.EqualError(
 			t,
@@ -1403,8 +1416,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5,
-		false,
+		&utils.TxnOptions{
+			WithQueryBitVersion: true,
+			Tip:                 rpc.U64("0x0"),
+			Multiplier:          1.5,
+		},
 	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
@@ -1446,7 +1462,11 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5, false)
+	}, &utils.TxnOptions{
+		WithQueryBitVersion: false,
+		Tip:                 rpc.U64("0x0"),
+		Multiplier:          1.5,
+	})
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -1601,7 +1621,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					ContractAddress: internalUtils.RANDOM_FELT,
 					FunctionName:    "transfer",
 				},
-			}, 1.5, true)
+			}, &utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			})
 			require.NoError(t, err)
 		})
 
@@ -1618,7 +1642,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			})
 			require.NoError(t, err)
 		})
 
@@ -1628,8 +1656,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				internalUtils.RANDOM_FELT,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&utils.TxnOptions{
+					WithQueryBitVersion: true,
+					Tip:                 rpc.U64("0x0"),
+					Multiplier:          1.5,
+				},
 			)
 			require.NoError(t, err)
 
@@ -1651,7 +1682,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		acnt := newDevnetAccount(t, client, acnts[0], 2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -1674,7 +1709,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName:    "transfer",
 					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
-			}, 1.5, true)
+			}, &utils.TxnOptions{
+				WithQueryBitVersion: true,
+				Tip:                 rpc.U64("0x0"),
+				Multiplier:          1.5,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -1700,8 +1739,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&utils.TxnOptions{
+					WithQueryBitVersion: true,
+					Tip:                 rpc.U64("0x0"),
+					Multiplier:          1.5,
+				},
 			)
 			require.NoError(t, err)
 			require.NotNil(t, txn)
