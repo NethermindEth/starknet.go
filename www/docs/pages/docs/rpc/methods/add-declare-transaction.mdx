@@ -1,0 +1,30 @@
+---
+title: starknet_addDeclareTransaction
+description: Adds a declare transaction to the transaction pool.
+---
+
+
+# starknet_addDeclareTransaction
+
+Adds a declare transaction to the transaction pool.
+
+
+## Parameters
+
+1. `declare_transaction` - The declare transaction to be added.
+   - `type` - The type of the transaction. Must be "DECLARE".
+   - `sender_address` - The address of the sender.
+   - `compiled_class_hash` - The hash of the compiled class.
+   - `contract_class` - The contract class to be declared.
+   - `signature` - The transaction signature.
+   - `nonce` - The nonce of the transaction.
+   - `max_fee` - The maximum fee for the transaction.
+   - `version` - The version of the transaction.
+
+## Returns
+
+- `transaction_hash` - The hash of the transaction.
+
+## Example
+
+
