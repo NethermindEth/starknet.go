@@ -177,7 +177,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
-	
+
 	// Always use TransactionV3 when sending
 	broadcastInvokeTxnV3.Version = rpc.TransactionV3
 
@@ -245,7 +245,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
-	
+
 	// Always use TransactionV3 when sending
 	broadcastDeclareTxnV3.Version = rpc.TransactionV3
 
@@ -314,7 +314,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
-	
+
 	// Always use TransactionV3 when sending
 	broadcastDepAccTxnV3.Version = rpc.TransactionV3
 

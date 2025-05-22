@@ -39,6 +39,7 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 	if opts.WithQueryBitVersion {
 		return rpc.TransactionV3WithQueryBit
 	}
+
 	return rpc.TransactionV3
 }
 
