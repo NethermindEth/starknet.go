@@ -3,8 +3,10 @@ package rpc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
@@ -17,6 +19,26 @@ import (
 var (
 	errNotFound = errors.New("not found")
 )
+
+// checkVersionCompatibility checks if the RPC provider version is compatible with the SDK version
+// and returns a warning if they don't match.
+func checkVersionCompatibility(provider *Provider) error {
+	version, err := provider.SpecVersion(context.Background())
+	if err != nil {
+		// Return a warning but don't fail
+		return fmt.Errorf("warning: Could not check RPC version compatibility: %v", err)
+	}
+
+	if !strings.Contains(version, RPCVersion) {
+		return fmt.Errorf(
+			"warning: RPC provider version %s is different from expected version %s. "+
+				"This may cause unexpected behaviour",
+			version, RPCVersion,
+		)
+	}
+
+	return nil
+}
 
 // Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
@@ -48,7 +70,15 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 		return nil, err
 	}
 
-	return &Provider{c: c}, nil //nolint:exhaustruct
+	provider := &Provider{c: c, chainID: ""}
+
+	// Check version compatibility
+	if err := checkVersionCompatibility(provider); err != nil {
+		// Log the warning but don't fail initialization
+		fmt.Printf("%v\n", err)
+	}
+
+	return provider, nil
 }
 
 // NewWebsocketProvider creates a new Websocket rpc Provider instance.
