@@ -8,6 +8,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
+	gnarkEcdsa "github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -148,6 +150,56 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	assert.Equal(t, x, xNew)
 
 	require.Equal(t, expectedX, x)
+}
+
+func TestPubAndPrivKeyDerivation(t *testing.T) {
+	// ------------------ compare X and Y derived from private key ------------------
+	// generate random private key with old curve implementation
+	privKey, err := Curve.GetRandomPrivateKey()
+	require.NoError(t, err)
+	for len(privKey.Bytes()) < 32 { // the gnarkEcdsa curve requires a 32 bytes private key
+		privKey, err = Curve.GetRandomPrivateKey()
+		require.NoError(t, err)
+	}
+
+	// getting the X (starknet public key) and Y from the priv key with old curve implementation
+	x, y, err := Curve.PrivateToPoint(privKey)
+	require.NoError(t, err)
+
+	// getting the X (starknet public key) and Y from the priv key with new curve implementation
+	g1a := new(starkcurve.G1Affine).ScalarMultiplicationBase(privKey)
+	xNew, yNew := g1a.X.BigInt(new(big.Int)), g1a.Y.BigInt(new(big.Int))
+
+	// comparing results from the old and new curve implementations
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+
+	// ------------------ create a PublicKey type from the G1Affine point and compare X and Y ------------------
+	// generating public key type from the g1a point
+	var pubKeyStruct gnarkEcdsa.PublicKey
+	pubKeyBytes := g1a.Bytes()
+	_, err = pubKeyStruct.SetBytes(pubKeyBytes[:])
+	require.NoError(t, err)
+	assert.Equal(t, pubKeyStruct.A.X.BigInt(new(big.Int)), x) // the starknet public key
+	assert.Equal(t, pubKeyStruct.A.Y.BigInt(new(big.Int)), y)
+
+	// ------------------ create a PrivateKey type from the PublicKey and compare X and Y ------------------
+	// generating private key type from the priv1
+	var privKeyStruct gnarkEcdsa.PrivateKey
+	privKeyBytes := privKey.Bytes()
+	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
+	_, err = privKeyStruct.SetBytes(privKeyInput[:])
+	require.NoError(t, err)
+	assert.Equal(t, privKeyStruct.PublicKey.A.X.BigInt(new(big.Int)), x)
+	assert.Equal(t, privKeyStruct.PublicKey.A.Y.BigInt(new(big.Int)), y)
+
+	// ------------------ derive private key string from the PrivateKey type and compare with original ------------------
+	privKStructBytes := privKeyStruct.Bytes()  // a 64 bytes array containing both public (compressed) and private keys
+	finalPrivKeyBytes := privKStructBytes[32:] // the remaining 32 bytes are the private key
+
+	finalPrivKey := new(big.Int).SetBytes(finalPrivKeyBytes)
+
+	assert.Equal(t, privKey, finalPrivKey)
 }
 
 // TestGeneral_PedersenHash is a test function for the PedersenHash method in the General struct.
