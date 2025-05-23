@@ -1,0 +1,100 @@
+package curve
+
+/*
+	Although the library adheres to the 'elliptic/curve' interface.
+	All testing has been done against library function explicity.
+	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
+*/
+import (
+	"crypto/rand"
+	_ "embed"
+	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
+	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
+	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
+)
+
+var CurveNew StarkCurveNew
+
+type StarkCurveNew starkcurve.G1Affine
+
+func (sc StarkCurveNew) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
+	x1Felt := new(felt.Felt).SetBigInt(x1)
+	y1Felt := new(felt.Felt).SetBigInt(y1)
+	g1a1 := starkcurve.G1Affine{X: *x1Felt.Impl(), Y: *y1Felt.Impl()}
+
+	x2Felt := new(felt.Felt).SetBigInt(x2)
+	y2Felt := new(felt.Felt).SetBigInt(y2)
+	g1a2 := starkcurve.G1Affine{X: *x2Felt.Impl(), Y: *y2Felt.Impl()}
+
+	curve := starkcurve.G1Affine(sc)
+	curve.Add(&g1a1, &g1a2)
+
+	return curve.X.BigInt(new(big.Int)), curve.Y.BigInt(new(big.Int))
+}
+
+func (sc StarkCurveNew) Double(x1, y1 *big.Int) (x, y *big.Int) {
+	return nil, nil
+}
+
+func (sc StarkCurveNew) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
+	m := new(big.Int).SetBytes(k)
+	x, y = sc.EcMult(m, x1, y1)
+	return x, y
+}
+
+func (sc StarkCurveNew) ScalarBaseMult(k []byte) (x, y *big.Int) {
+	return sc.ScalarMult(nil, nil, k)
+}
+
+func (sc StarkCurveNew) IsOnCurve(x, y *big.Int) bool {
+	return false
+}
+
+func (sc StarkCurveNew) InvModCurveSize(x *big.Int) *big.Int {
+	return nil
+}
+
+func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
+	return nil
+}
+
+func (sc StarkCurveNew) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
+	return nil, nil, nil
+}
+
+func (sc StarkCurveNew) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
+	return nil, nil
+}
+
+func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
+	return false
+}
+
+func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
+	return nil, nil, nil
+}
+
+func (sc StarkCurveNew) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Felt, error) {
+	return nil, nil, nil
+}
+
+func (sc StarkCurveNew) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
+	return nil
+}
+
+func (sc StarkCurveNew) GetRandomPrivateKey() (string, error) {
+	// TODO: this is a test
+	priv, _ := ecdsa.GenerateKey(rand.Reader)
+	pub := priv.PublicKey
+
+	var temp any = pub.A.X
+
+	print(temp)
+	return pub.A.X.String(), nil
+}
+
+func (sc StarkCurveNew) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
+	return nil, nil, nil
+}
