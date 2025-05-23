@@ -8,6 +8,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
+	gnarkEcdsa "github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -62,29 +64,33 @@ func BenchmarkPedersenHash(b *testing.B) {
 //
 //	none
 func BenchmarkCurveSign(b *testing.B) {
-	type data struct {
-		MessageHash *big.Int
-		PrivateKey  *big.Int
-		Seed        *big.Int
-	}
-
-	dataSet := []data{}
 	MessageHash := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
 	PrivateKey := big.NewInt(0).Add(MessageHash, big.NewInt(1))
-	Seed := big.NewInt(0)
-	for i := int64(0); i < 20; i++ {
-		dataSet = append(dataSet, data{
-			MessageHash: big.NewInt(0).Add(MessageHash, big.NewInt(i)),
-			PrivateKey:  big.NewInt(0).Add(PrivateKey, big.NewInt(i)),
-			Seed:        big.NewInt(0).Add(Seed, big.NewInt(i)),
-		})
 
-		for _, test := range dataSet {
-			result, _, err := Curve.Sign(test.MessageHash, test.PrivateKey, test.Seed)
-			require.NoError(b, err)
-			require.NotEmpty(b, result)
+	b.Run("old curve", func(b *testing.B) {
+		for i := int64(0); i < int64(b.N); i++ {
+			b.StopTimer()
+			MessageHash = big.NewInt(0).Add(MessageHash, big.NewInt(i))
+			PrivateKey = big.NewInt(0).Add(PrivateKey, big.NewInt(i))
+			b.StartTimer()
+
+			result, _, _ = Curve.Sign(MessageHash, PrivateKey)
 		}
-	}
+	})
+
+	MessageHash2 := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
+	PrivateKey2 := big.NewInt(0).Add(MessageHash2, big.NewInt(1))
+
+	b.Run("new curve", func(b *testing.B) {
+		for i := int64(0); i < int64(b.N); i++ {
+			b.StopTimer()
+			MessageHash2 = big.NewInt(0).Add(MessageHash2, big.NewInt(i))
+			PrivateKey2 = big.NewInt(0).Add(PrivateKey2, big.NewInt(i))
+			b.StartTimer()
+
+			result, _, _ = CurveNew.Sign(MessageHash2, PrivateKey2)
+		}
+	})
 }
 
 // BenchmarkSignatureVerify benchmarks the SignatureVerify function.
@@ -104,28 +110,58 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, err := Curve.GetRandomPrivateKey()
+	private, err := CurveNew.GetRandomPrivateKey()
 	require.NoError(b, err)
 	x, y, err := Curve.PrivateToPoint(private)
 	require.NoError(b, err)
 
-	hash := Pedersen(
-		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
-	)
-	hashBigInt := internalUtils.FeltToBigInt(hash)
+	b.Run("old curve", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			// setup
+			b.StopTimer()
+			randFelt, err := new(felt.Felt).SetRandom()
+			require.NoError(b, err)
+			hash := Pedersen(
+				internalUtils.RANDOM_FELT,
+				randFelt,
+			)
+			hashBigInt := internalUtils.FeltToBigInt(hash)
+			r, s, err := Curve.Sign(hashBigInt, private)
+			require.NoError(b, err)
 
-	r, s, err := Curve.Sign(hashBigInt, private)
+			b.StartTimer()
+			result = Curve.Verify(hashBigInt, r, s, x, y)
+			b.StopTimer()
+
+			resp := result.(bool)
+			require.True(b, resp)
+		}
+	})
+
+	xNew, yNew, err := CurveNew.PrivateToPoint(private)
 	require.NoError(b, err)
 
-	b.Run(fmt.Sprintf("sign_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
-		result, _, err = Curve.Sign(hashBigInt, private)
-		require.NoError(b, err)
-		require.NotEmpty(b, result)
-	})
-	b.Run(fmt.Sprintf("verify_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
-		result = Curve.Verify(hashBigInt, r, s, x, y)
-		require.NotEmpty(b, result)
+	b.Run("new curve", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			// setup
+			b.StopTimer()
+			randFelt, err := new(felt.Felt).SetRandom()
+			require.NoError(b, err)
+			hash := Pedersen(
+				internalUtils.RANDOM_FELT,
+				randFelt,
+			)
+			hashBigInt := internalUtils.FeltToBigInt(hash)
+			r, s, err := CurveNew.Sign(hashBigInt, private)
+			require.NoError(b, err)
+
+			b.StartTimer()
+			result, _ = CurveNew.Verify(hashBigInt, r, s, xNew, yNew)
+			b.StopTimer()
+
+			resp := result.(bool)
+			require.True(b, resp)
+		}
 	})
 }
 
@@ -142,7 +178,62 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	require.NoError(t, err)
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
+
+	xNew, _, err := CurveNew.PrivateToPoint(big.NewInt(2))
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+
 	require.Equal(t, expectedX, x)
+}
+
+func TestPubAndPrivKeyDerivation(t *testing.T) {
+	// ------------------ compare X and Y derived from private key ------------------
+	// generate random private key with old curve implementation
+	privKey, err := Curve.GetRandomPrivateKey()
+	require.NoError(t, err)
+	for len(privKey.Bytes()) < 32 { // the gnarkEcdsa curve requires a 32 bytes private key
+		privKey, err = Curve.GetRandomPrivateKey()
+		require.NoError(t, err)
+	}
+
+	// getting the X (starknet public key) and Y from the priv key with old curve implementation
+	x, y, err := Curve.PrivateToPoint(privKey)
+	require.NoError(t, err)
+
+	// getting the X (starknet public key) and Y from the priv key with new curve implementation
+	g1a := new(starkcurve.G1Affine).ScalarMultiplicationBase(privKey)
+	xNew, yNew := g1a.X.BigInt(new(big.Int)), g1a.Y.BigInt(new(big.Int))
+
+	// comparing results from the old and new curve implementations
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+
+	// ------------------ create a PublicKey type from the G1Affine point and compare X and Y ------------------
+	// generating public key type from the g1a point
+	var pubKeyStruct gnarkEcdsa.PublicKey
+	pubKeyBytes := g1a.Bytes()
+	_, err = pubKeyStruct.SetBytes(pubKeyBytes[:])
+	require.NoError(t, err)
+	assert.Equal(t, pubKeyStruct.A.X.BigInt(new(big.Int)), x) // the starknet public key
+	assert.Equal(t, pubKeyStruct.A.Y.BigInt(new(big.Int)), y)
+
+	// ------------------ create a PrivateKey type from the PublicKey and compare X and Y ------------------
+	// generating private key type from the priv1
+	var privKeyStruct gnarkEcdsa.PrivateKey
+	privKeyBytes := privKey.Bytes()
+	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
+	_, err = privKeyStruct.SetBytes(privKeyInput[:])
+	require.NoError(t, err)
+	assert.Equal(t, privKeyStruct.PublicKey.A.X.BigInt(new(big.Int)), x)
+	assert.Equal(t, privKeyStruct.PublicKey.A.Y.BigInt(new(big.Int)), y)
+
+	// ------------------ derive private key string from the PrivateKey type and compare with original ------------------
+	privKStructBytes := privKeyStruct.Bytes()  // a 64 bytes array containing both public (compressed) and private keys
+	finalPrivKeyBytes := privKStructBytes[32:] // the remaining 32 bytes are the private key
+
+	finalPrivKey := new(big.Int).SetBytes(finalPrivKeyBytes)
+
+	assert.Equal(t, privKey, finalPrivKey)
 }
 
 // TestGeneral_PedersenHash is a test function for the PedersenHash method in the General struct.
@@ -260,48 +351,12 @@ func TestGeneral_Add(t *testing.T) {
 
 	for _, tt := range testAdd {
 		resX, resY := Curve.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
+		resXNew, resYNew := CurveNew.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
+		assert.Equal(t, resX, resXNew)
+		assert.Equal(t, resY, resYNew)
+
 		require.Equal(t, tt.expectedX, resX)
 		require.Equal(t, tt.expectedY, resY)
-	}
-}
-
-// TestGeneral_MultAir is a test function that tests the MultAir function in the General package.
-//
-// It tests the behavior of the MultAir function with different input values and checks if the
-// returned values match the expected values.
-// The MultAir function takes a big.Int value 'r', and two other big.Int values 'x' and 'y', and
-// performs a mathematical operation on them to calculate new big.Int values 'x' and 'y'.
-// The function then compares the calculated values with the expected values and reports any
-// mismatches as test failures.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
-func TestGeneral_MultAir(t *testing.T) {
-	testMult := []struct {
-		r         *big.Int
-		x         *big.Int
-		y         *big.Int
-		expectedX *big.Int
-		expectedY *big.Int
-	}{
-		{
-			r:         internalUtils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			x:         internalUtils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
-			y:         internalUtils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
-			expectedX: internalUtils.StrToBig("182543067952221301675635959482860590467161609552169396182763685292434699999"),
-			expectedY: internalUtils.StrToBig("3154881600662997558972388646773898448430820936643060392452233533274798056266"),
-		},
-	}
-
-	for _, tt := range testMult {
-		x, y, err := Curve.MimicEcMultAir(tt.r, tt.x, tt.y, Curve.Gx, Curve.Gy)
-		require.NoError(t, err)
-		require.Equal(t, tt.expectedX, x)
-		require.Equal(t, tt.expectedY, y)
 	}
 }
 
@@ -361,7 +416,24 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	r, s, err := Curve.Sign(hashy, priv)
 	require.NoError(t, err)
 
+	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	require.NoError(t, err)
+	rNew, sNew, err := CurveNew.Sign(hashy, priv)
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+	// assert.Equal(t, r, rNew) // the signatures are different between the old and new curve, but both are valid
+	// assert.Equal(t, s, sNew)
+
 	require.True(t, Curve.Verify(hashy, r, s, x, y))
+	resp, err := CurveNew.Verify(hashy, r, s, x, y)
+	require.NoError(t, err)
+	require.True(t, resp)
+
+	require.True(t, Curve.Verify(hashy, rNew, sNew, x, y))
+	resp, err = CurveNew.Verify(hashy, rNew, sNew, x, y)
+	require.NoError(t, err)
+	require.True(t, resp)
 }
 
 // TestGeneral_ComputeFact tests the ComputeFact function.
@@ -423,14 +495,63 @@ func TestGeneral_BadSignature(t *testing.T) {
 	r, s, err := Curve.Sign(hashBigInt, priv)
 	require.NoError(t, err)
 
+	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	require.NoError(t, err)
+	rNew, sNew, err := CurveNew.Sign(hashBigInt, priv)
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+	// assert.Equal(t, r, rNew) // the signatures are different between the old and new curve, but both are valid
+	// assert.Equal(t, s, sNew)
+
+	// validating the correct signatures
+	assert.True(t, Curve.Verify(hashBigInt, r, s, x, y))
+	result, err := CurveNew.Verify(hashBigInt, r, s, x, y)
+	require.NoError(t, err)
+	assert.True(t, result)
+
+	assert.True(t, Curve.Verify(hashBigInt, rNew, sNew, x, y))
+	result, err = CurveNew.Verify(hashBigInt, rNew, sNew, x, y)
+	require.NoError(t, err)
+	assert.True(t, result)
+
+	// testing bad R signature
 	badR := new(big.Int).Add(r, big.NewInt(1))
-	require.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
+	assert.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
+	result, err = CurveNew.Verify(hashBigInt, badR, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 
+	badRNew := new(big.Int).Add(rNew, big.NewInt(1))
+	require.False(t, Curve.Verify(hashBigInt, badRNew, s, x, y))
+	result, err = CurveNew.Verify(hashBigInt, badRNew, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	// testing bad S signature
 	badS := new(big.Int).Add(s, big.NewInt(1))
-	require.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
+	assert.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
+	result, err = CurveNew.Verify(hashBigInt, r, badS, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 
+	badSNew := new(big.Int).Add(sNew, big.NewInt(1))
+	assert.False(t, Curve.Verify(hashBigInt, r, badSNew, x, y))
+	result, err = CurveNew.Verify(hashBigInt, r, badSNew, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	// testing bad hash
 	badHash := new(big.Int).Add(hashBigInt, big.NewInt(1))
-	require.False(t, Curve.Verify(badHash, r, s, x, y))
+	assert.False(t, Curve.Verify(badHash, r, s, x, y))
+	result, err = CurveNew.Verify(badHash, r, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	assert.False(t, Curve.Verify(badHash, rNew, sNew, x, y))
+	result, err = CurveNew.Verify(badHash, rNew, sNew, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 }
 
 // TestGeneral_Signature tests the Signature function.
@@ -481,24 +602,37 @@ func TestGeneral_Signature(t *testing.T) {
 
 	var err error
 	for _, tt := range testSignature {
+		newtt := tt
+
 		require := require.New(t)
 		if tt.raw != "" {
 			h, err := internalUtils.HexToBytes(tt.raw)
 			require.NoError(err)
 			tt.publicX, tt.publicY = elliptic.Unmarshal(Curve, h) //nolint:all
+			newtt.publicX, newtt.publicY = tt.publicX, tt.publicY
 		} else if tt.private != nil {
 			tt.publicX, tt.publicY, err = Curve.PrivateToPoint(tt.private)
 			require.NoError(err)
+			publicX, publicY, err := CurveNew.PrivateToPoint(tt.private)
+			require.NoError(err)
+			*newtt.publicX, *newtt.publicY = *publicX, *publicY
 		} else if tt.publicX != nil {
 			tt.publicY = Curve.GetYCoordinate(tt.publicX)
+			newtt.publicY = CurveNew.GetYCoordinate(tt.publicX)
 		}
 
 		if tt.rIn == nil && tt.private != nil {
 			tt.rIn, tt.sIn, err = Curve.Sign(tt.hash, tt.private)
 			require.NoError(err)
+			rIn, sIn, err := CurveNew.Sign(tt.hash, tt.private)
+			require.NoError(err)
+			*newtt.rIn, *newtt.sIn = *rIn, *sIn
 		}
 
 		require.True(Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
+		require.True(CurveNew.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
+		require.True(Curve.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
+		require.True(CurveNew.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
 	}
 }
 
