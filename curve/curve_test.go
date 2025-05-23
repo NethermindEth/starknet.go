@@ -64,29 +64,33 @@ func BenchmarkPedersenHash(b *testing.B) {
 //
 //	none
 func BenchmarkCurveSign(b *testing.B) {
-	type data struct {
-		MessageHash *big.Int
-		PrivateKey  *big.Int
-		Seed        *big.Int
-	}
-
-	dataSet := []data{}
 	MessageHash := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
 	PrivateKey := big.NewInt(0).Add(MessageHash, big.NewInt(1))
-	Seed := big.NewInt(0)
-	for i := int64(0); i < 20; i++ {
-		dataSet = append(dataSet, data{
-			MessageHash: big.NewInt(0).Add(MessageHash, big.NewInt(i)),
-			PrivateKey:  big.NewInt(0).Add(PrivateKey, big.NewInt(i)),
-			Seed:        big.NewInt(0).Add(Seed, big.NewInt(i)),
-		})
 
-		for _, test := range dataSet {
-			result, _, err := Curve.Sign(test.MessageHash, test.PrivateKey, test.Seed)
-			require.NoError(b, err)
-			require.NotEmpty(b, result)
+	b.Run("old curve", func(b *testing.B) {
+		for i := int64(0); i < int64(b.N); i++ {
+			b.StopTimer()
+			MessageHash = big.NewInt(0).Add(MessageHash, big.NewInt(i))
+			PrivateKey = big.NewInt(0).Add(PrivateKey, big.NewInt(i))
+			b.StartTimer()
+
+			result, _, _ = Curve.Sign(MessageHash, PrivateKey)
 		}
-	}
+	})
+
+	MessageHash2 := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
+	PrivateKey2 := big.NewInt(0).Add(MessageHash2, big.NewInt(1))
+
+	b.Run("new curve", func(b *testing.B) {
+		for i := int64(0); i < int64(b.N); i++ {
+			b.StopTimer()
+			MessageHash2 = big.NewInt(0).Add(MessageHash2, big.NewInt(i))
+			PrivateKey2 = big.NewInt(0).Add(PrivateKey2, big.NewInt(i))
+			b.StartTimer()
+
+			result, _, _ = CurveNew.Sign(MessageHash2, PrivateKey2)
+		}
+	})
 }
 
 // BenchmarkSignatureVerify benchmarks the SignatureVerify function.

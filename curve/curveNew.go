@@ -36,28 +36,6 @@ func (sc StarkCurveNew) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
 	return curve.X.BigInt(new(big.Int)), curve.Y.BigInt(new(big.Int))
 }
 
-func (sc StarkCurveNew) Double(x1, y1 *big.Int) (x, y *big.Int) {
-	return nil, nil
-}
-
-func (sc StarkCurveNew) ScalarMult(x1, y1 *big.Int, k []byte) (x, y *big.Int) {
-	m := new(big.Int).SetBytes(k)
-	x, y = sc.EcMult(m, x1, y1)
-	return x, y
-}
-
-func (sc StarkCurveNew) ScalarBaseMult(k []byte) (x, y *big.Int) {
-	return sc.ScalarMult(nil, nil, k)
-}
-
-func (sc StarkCurveNew) IsOnCurve(x, y *big.Int) bool {
-	return false
-}
-
-func (sc StarkCurveNew) InvModCurveSize(x *big.Int) *big.Int {
-	return nil
-}
-
 func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
 	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
 	xEl := new(fp.Element).SetBigInt(starkX)
@@ -69,16 +47,6 @@ func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
 	_, b := starkcurve.CurveCoefficients()
 	ySquared.Add(&ySquared, &b) // ySquared equals to (x^3 + x + b)
 	return ySquared.Sqrt(&ySquared).BigInt(new(big.Int))
-}
-
-// It's just used internally by the old curve pkg, and it was hard to implement
-//
-// func (sc StarkCurveNew) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
-// 	return nil, nil, nil
-// }
-
-func (sc StarkCurveNew) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
-	return nil, nil
 }
 
 func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
@@ -113,14 +81,6 @@ func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s 
 	_, r, s, err = privKeyStruct.SignForRecover(msgHash.Bytes(), nil)
 
 	return r, s, err
-}
-
-func (sc StarkCurveNew) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Felt, error) {
-	return nil, nil, nil
-}
-
-func (sc StarkCurveNew) GenerateSecret(msgHash, privKey, seed *big.Int) (secret *big.Int) {
-	return nil
 }
 
 func (sc StarkCurveNew) GetRandomPrivateKey() (string, error) {
