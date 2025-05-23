@@ -501,14 +501,63 @@ func TestGeneral_BadSignature(t *testing.T) {
 	r, s, err := Curve.Sign(hashBigInt, priv)
 	require.NoError(t, err)
 
+	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	require.NoError(t, err)
+	rNew, sNew, err := CurveNew.Sign(hashBigInt, priv)
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+	// assert.Equal(t, r, rNew) // the signatures are different between the old and new curve, but both are valid
+	// assert.Equal(t, s, sNew)
+
+	// validating the correct signatures
+	assert.True(t, Curve.Verify(hashBigInt, r, s, x, y))
+	result, err := CurveNew.Verify(hashBigInt, r, s, x, y)
+	require.NoError(t, err)
+	assert.True(t, result)
+
+	assert.True(t, Curve.Verify(hashBigInt, rNew, sNew, x, y))
+	result, err = CurveNew.Verify(hashBigInt, rNew, sNew, x, y)
+	require.NoError(t, err)
+	assert.True(t, result)
+
+	// testing bad R signature
 	badR := new(big.Int).Add(r, big.NewInt(1))
-	require.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
+	assert.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
+	result, err = CurveNew.Verify(hashBigInt, badR, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 
+	badRNew := new(big.Int).Add(rNew, big.NewInt(1))
+	require.False(t, Curve.Verify(hashBigInt, badRNew, s, x, y))
+	result, err = CurveNew.Verify(hashBigInt, badRNew, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	// testing bad S signature
 	badS := new(big.Int).Add(s, big.NewInt(1))
-	require.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
+	assert.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
+	result, err = CurveNew.Verify(hashBigInt, r, badS, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 
+	badSNew := new(big.Int).Add(sNew, big.NewInt(1))
+	assert.False(t, Curve.Verify(hashBigInt, r, badSNew, x, y))
+	result, err = CurveNew.Verify(hashBigInt, r, badSNew, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	// testing bad hash
 	badHash := new(big.Int).Add(hashBigInt, big.NewInt(1))
-	require.False(t, Curve.Verify(badHash, r, s, x, y))
+	assert.False(t, Curve.Verify(badHash, r, s, x, y))
+	result, err = CurveNew.Verify(badHash, r, s, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
+
+	assert.False(t, Curve.Verify(badHash, rNew, sNew, x, y))
+	result, err = CurveNew.Verify(badHash, rNew, sNew, x, y)
+	require.NoError(t, err)
+	assert.False(t, result)
 }
 
 // TestGeneral_Signature tests the Signature function.
