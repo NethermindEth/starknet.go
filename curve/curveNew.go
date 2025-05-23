@@ -83,15 +83,18 @@ func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s 
 	return r, s, err
 }
 
-func (sc StarkCurveNew) GetRandomPrivateKey() (string, error) {
-	// TODO: this is a test
-	priv, _ := ecdsa.GenerateKey(rand.Reader)
-	pub := priv.PublicKey
+func (sc StarkCurveNew) GetRandomPrivateKey() (*big.Int, error) {
+	priv, err := ecdsa.GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
 
-	var temp any = pub.A.X
+	privBytes := priv.Bytes()           // a 64 bytes array containing both public (compressed) and private keys
+	finalPrivKeyBytes := privBytes[32:] // the remaining 32 bytes are the private key
 
-	print(temp)
-	return pub.A.X.String(), nil
+	finalPrivKey := new(big.Int).SetBytes(finalPrivKeyBytes)
+
+	return finalPrivKey, nil
 }
 
 func (sc StarkCurveNew) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {

@@ -110,28 +110,58 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, err := Curve.GetRandomPrivateKey()
+	private, err := CurveNew.GetRandomPrivateKey()
 	require.NoError(b, err)
 	x, y, err := Curve.PrivateToPoint(private)
 	require.NoError(b, err)
 
-	hash := Pedersen(
-		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd"),
-		internalUtils.TestHexToFelt(b, "0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde"),
-	)
-	hashBigInt := internalUtils.FeltToBigInt(hash)
+	b.Run("old curve", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			// setup
+			b.StopTimer()
+			randFelt, err := new(felt.Felt).SetRandom()
+			require.NoError(b, err)
+			hash := Pedersen(
+				internalUtils.RANDOM_FELT,
+				randFelt,
+			)
+			hashBigInt := internalUtils.FeltToBigInt(hash)
+			r, s, err := Curve.Sign(hashBigInt, private)
+			require.NoError(b, err)
 
-	r, s, err := Curve.Sign(hashBigInt, private)
+			b.StartTimer()
+			result = Curve.Verify(hashBigInt, r, s, x, y)
+			b.StopTimer()
+
+			resp := result.(bool)
+			require.True(b, resp)
+		}
+	})
+
+	xNew, yNew, err := CurveNew.PrivateToPoint(private)
 	require.NoError(b, err)
 
-	b.Run(fmt.Sprintf("sign_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
-		result, _, err = Curve.Sign(hashBigInt, private)
-		require.NoError(b, err)
-		require.NotEmpty(b, result)
-	})
-	b.Run(fmt.Sprintf("verify_input_size_%d", hashBigInt.BitLen()), func(b *testing.B) {
-		result = Curve.Verify(hashBigInt, r, s, x, y)
-		require.NotEmpty(b, result)
+	b.Run("new curve", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			// setup
+			b.StopTimer()
+			randFelt, err := new(felt.Felt).SetRandom()
+			require.NoError(b, err)
+			hash := Pedersen(
+				internalUtils.RANDOM_FELT,
+				randFelt,
+			)
+			hashBigInt := internalUtils.FeltToBigInt(hash)
+			r, s, err := CurveNew.Sign(hashBigInt, private)
+			require.NoError(b, err)
+
+			b.StartTimer()
+			result, _ = CurveNew.Verify(hashBigInt, r, s, xNew, yNew)
+			b.StopTimer()
+
+			resp := result.(bool)
+			require.True(b, resp)
+		}
 	})
 }
 
