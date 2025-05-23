@@ -12,16 +12,16 @@
 			"price_in_fri": "0xf04d9d9bbe0",
 			"price_in_wei": "0x199bad1bb"
 		},
-		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
-		},
 		"l1_data_gas_price": {
 			"price_in_fri": "0xb32d49ed2b",
 			"price_in_wei": "0x13181962"
 		},
 		"l1_da_mode": "BLOB",
 		"starknet_version": "0.13.1.1",
+		"l2_gas_price": {
+			"price_in_fri": "0x0",
+			"price_in_wei": "0x0"
+		},
 		"transactions": [
 			{
 				"transaction_hash": "0x2db07ed11b1f6c678de9fc19ef0dfb8e71631e1cff236a34e68f51528a21282",
@@ -64,6 +64,10 @@
 						"max_price_per_unit": "0x13ac02cbe617"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -248,6 +252,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -297,6 +305,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -350,6 +362,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -401,6 +417,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -450,6 +470,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -1419,6 +1443,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -1468,6 +1496,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -1655,6 +1687,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -1704,6 +1740,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -2680,6 +2720,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -2750,6 +2794,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -2845,6 +2893,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -3078,6 +3130,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -3150,6 +3206,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -3199,6 +3259,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -3382,6 +3446,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -3853,6 +3921,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -3942,6 +4014,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -4218,6 +4294,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -4324,6 +4404,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -4469,6 +4553,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -4539,6 +4627,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -4649,6 +4741,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -4740,6 +4836,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -4810,6 +4910,10 @@
 					"l2_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
 					}
 				},
 				"tip": "0x0",
@@ -4859,6 +4963,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
@@ -5100,6 +5208,10 @@
 						"max_price_per_unit": "0x168746c699d0"
 					},
 					"l2_gas": {
+						"max_amount": "0x0",
+						"max_price_per_unit": "0x0"
+					},
+					"l1_data_gas": {
 						"max_amount": "0x0",
 						"max_price_per_unit": "0x0"
 					}
