@@ -260,6 +260,10 @@ func TestGeneral_Add(t *testing.T) {
 
 	for _, tt := range testAdd {
 		resX, resY := Curve.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
+		resXNew, resYNew := CurveNew.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
+		assert.Equal(t, resX, resXNew)
+		assert.Equal(t, resY, resYNew)
+
 		require.Equal(t, tt.expectedX, resX)
 		require.Equal(t, tt.expectedY, resY)
 	}
