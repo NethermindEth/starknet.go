@@ -12,16 +12,16 @@
 			"price_in_fri": "0xdf0413d3c777",
 			"price_in_wei": "0x185f2d3eb5"
 		},
-		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
-		},
 		"l1_data_gas_price": {
 			"price_in_fri": "0xa41c1219f8849",
 			"price_in_wei": "0x11ef315a9ab"
 		},
 		"l1_da_mode": "BLOB",
 		"starknet_version": "0.13.1.1",
+		"l2_gas_price": {
+			"price_in_fri": "0x0",
+			"price_in_wei": "0x0"
+		},
 		"transactions": [
 			{
 				"transaction": {
@@ -1822,8 +1822,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -2757,8 +2757,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -2914,8 +2914,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -4718,8 +4718,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -4800,8 +4800,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -5025,8 +5025,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -5182,8 +5182,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -5258,8 +5258,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -7020,8 +7020,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -7955,8 +7955,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -8037,8 +8037,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -8069,6 +8069,10 @@
 							"max_price_per_unit": "0x14e861dbd4065"
 						},
 						"l2_gas": {
+							"max_amount": "0x0",
+							"max_price_per_unit": "0x0"
+						},
+						"l1_data_gas": {
 							"max_amount": "0x0",
 							"max_price_per_unit": "0x0"
 						}
@@ -8132,8 +8136,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -9789,8 +9793,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -10724,8 +10728,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -10881,8 +10885,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -11038,8 +11042,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -11195,8 +11199,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -11352,8 +11356,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -13135,8 +13139,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -14070,8 +14074,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			},
@@ -14152,8 +14156,8 @@
 					],
 					"execution_resources": {
 						"l1_gas": 0,
-						"l1_data_gas": 0,
-						"l2_gas": 0
+						"l2_gas": 0,
+						"l1_data_gas": 0
 					}
 				}
 			}
