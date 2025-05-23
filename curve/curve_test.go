@@ -142,6 +142,11 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	require.NoError(t, err)
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
+
+	xNew, _, err := CurveNew.PrivateToPoint(big.NewInt(2))
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+
 	require.Equal(t, expectedX, x)
 }
 

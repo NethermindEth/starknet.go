@@ -96,5 +96,7 @@ func (sc StarkCurveNew) GetRandomPrivateKey() (string, error) {
 }
 
 func (sc StarkCurveNew) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
-	return nil, nil, nil
+	g1a := starkcurve.G1Affine(sc)
+	res := g1a.ScalarMultiplicationBase(privKey)
+	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int)), nil
 }
