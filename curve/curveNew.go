@@ -14,6 +14,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
+	"github.com/consensys/gnark-crypto/ecc/stark-curve/fp"
 )
 
 var CurveNew StarkCurveNew
@@ -58,12 +59,23 @@ func (sc StarkCurveNew) InvModCurveSize(x *big.Int) *big.Int {
 }
 
 func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
-	return nil
+	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
+	xEl := new(fp.Element).SetBigInt(starkX)
+
+	var ySquared fp.Element
+	ySquared.Mul(xEl, xEl).Mul(&ySquared, xEl) // x^3
+	ySquared.Add(&ySquared, xEl)               // + x
+
+	_, b := starkcurve.CurveCoefficients()
+	ySquared.Add(&ySquared, &b) // ySquared equals to (x^3 + x + b)
+	return ySquared.Sqrt(&ySquared).BigInt(new(big.Int))
 }
 
-func (sc StarkCurveNew) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
-	return nil, nil, nil
-}
+// It's just used internally by the old curve pkg, and it was hard to implement
+//
+// func (sc StarkCurveNew) MimicEcMultAir(mout, x1, y1, x2, y2 *big.Int) (x *big.Int, y *big.Int, err error) {
+// 	return nil, nil, nil
+// }
 
 func (sc StarkCurveNew) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	return nil, nil

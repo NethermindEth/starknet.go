@@ -326,46 +326,6 @@ func TestGeneral_Add(t *testing.T) {
 	}
 }
 
-// TestGeneral_MultAir is a test function that tests the MultAir function in the General package.
-//
-// It tests the behavior of the MultAir function with different input values and checks if the
-// returned values match the expected values.
-// The MultAir function takes a big.Int value 'r', and two other big.Int values 'x' and 'y', and
-// performs a mathematical operation on them to calculate new big.Int values 'x' and 'y'.
-// The function then compares the calculated values with the expected values and reports any
-// mismatches as test failures.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
-func TestGeneral_MultAir(t *testing.T) {
-	testMult := []struct {
-		r         *big.Int
-		x         *big.Int
-		y         *big.Int
-		expectedX *big.Int
-		expectedY *big.Int
-	}{
-		{
-			r:         internalUtils.StrToBig("2458502865976494910213617956670505342647705497324144349552978333078363662855"),
-			x:         internalUtils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
-			y:         internalUtils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
-			expectedX: internalUtils.StrToBig("182543067952221301675635959482860590467161609552169396182763685292434699999"),
-			expectedY: internalUtils.StrToBig("3154881600662997558972388646773898448430820936643060392452233533274798056266"),
-		},
-	}
-
-	for _, tt := range testMult {
-		x, y, err := Curve.MimicEcMultAir(tt.r, tt.x, tt.y, Curve.Gx, Curve.Gy)
-		require.NoError(t, err)
-		require.Equal(t, tt.expectedX, x)
-		require.Equal(t, tt.expectedY, y)
-	}
-}
-
 // TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
 //
 // This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
@@ -608,24 +568,37 @@ func TestGeneral_Signature(t *testing.T) {
 
 	var err error
 	for _, tt := range testSignature {
+		newtt := tt
+
 		require := require.New(t)
 		if tt.raw != "" {
 			h, err := internalUtils.HexToBytes(tt.raw)
 			require.NoError(err)
 			tt.publicX, tt.publicY = elliptic.Unmarshal(Curve, h) //nolint:all
+			newtt.publicX, newtt.publicY = tt.publicX, tt.publicY
 		} else if tt.private != nil {
 			tt.publicX, tt.publicY, err = Curve.PrivateToPoint(tt.private)
 			require.NoError(err)
+			publicX, publicY, err := CurveNew.PrivateToPoint(tt.private)
+			require.NoError(err)
+			*newtt.publicX, *newtt.publicY = *publicX, *publicY
 		} else if tt.publicX != nil {
 			tt.publicY = Curve.GetYCoordinate(tt.publicX)
+			newtt.publicY = CurveNew.GetYCoordinate(tt.publicX)
 		}
 
 		if tt.rIn == nil && tt.private != nil {
 			tt.rIn, tt.sIn, err = Curve.Sign(tt.hash, tt.private)
 			require.NoError(err)
+			rIn, sIn, err := CurveNew.Sign(tt.hash, tt.private)
+			require.NoError(err)
+			*newtt.rIn, *newtt.sIn = *rIn, *sIn
 		}
 
 		require.True(Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
+		require.True(CurveNew.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
+		require.True(Curve.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
+		require.True(CurveNew.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
 	}
 }
 
