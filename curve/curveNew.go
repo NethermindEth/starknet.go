@@ -10,6 +10,7 @@ import (
 	_ "embed"
 	"math/big"
 
+	"github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
 	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
@@ -68,12 +69,38 @@ func (sc StarkCurveNew) EcMult(m, x1, y1 *big.Int) (x, y *big.Int) {
 	return nil, nil
 }
 
-func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) bool {
-	return false
+func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
+	pubKey := crypto.NewPublicKey(new(felt.Felt).SetBigInt(pubX))
+	msgHashFelt := new(felt.Felt).SetBigInt(msgHash)
+	rFelt := new(felt.Felt).SetBigInt(r)
+	sFelt := new(felt.Felt).SetBigInt(s)
+
+	return pubKey.Verify(&crypto.Signature{R: *rFelt, S: *sFelt}, msgHashFelt)
 }
 
-func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (x, y *big.Int, err error) {
-	return nil, nil, nil
+func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s *big.Int, err error) {
+	// generating pub and priv keys
+	g1a := new(starkcurve.G1Affine).ScalarMultiplicationBase(privKey)
+
+	var pubKeyStruct ecdsa.PublicKey
+	pubKeyBytes := g1a.Bytes()
+	_, err = pubKeyStruct.SetBytes(pubKeyBytes[:])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var privKeyStruct ecdsa.PrivateKey
+	privKeyBytes := privKey.Bytes()
+	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
+	_, err = privKeyStruct.SetBytes(privKeyInput[:])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// signing
+	_, r, s, err = privKeyStruct.SignForRecover(msgHash.Bytes(), nil)
+
+	return r, s, err
 }
 
 func (sc StarkCurveNew) SignFelt(msgHash, privKey *felt.Felt) (*felt.Felt, *felt.Felt, error) {

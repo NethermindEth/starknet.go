@@ -422,7 +422,24 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	r, s, err := Curve.Sign(hashy, priv)
 	require.NoError(t, err)
 
+	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	require.NoError(t, err)
+	rNew, sNew, err := CurveNew.Sign(hashy, priv)
+	require.NoError(t, err)
+	assert.Equal(t, x, xNew)
+	assert.Equal(t, y, yNew)
+	// assert.Equal(t, r, rNew) // the signatures are different between the old and new curve, but both are valid
+	// assert.Equal(t, s, sNew)
+
 	require.True(t, Curve.Verify(hashy, r, s, x, y))
+	resp, err := CurveNew.Verify(hashy, r, s, x, y)
+	require.NoError(t, err)
+	require.True(t, resp)
+
+	require.True(t, Curve.Verify(hashy, rNew, sNew, x, y))
+	resp, err = CurveNew.Verify(hashy, rNew, sNew, x, y)
+	require.NoError(t, err)
+	require.True(t, resp)
 }
 
 // TestGeneral_ComputeFact tests the ComputeFact function.
