@@ -1,8 +1,11 @@
 import { defineConfig } from 'vocs'
 import { sidebar } from './sidebar'
+
 export default defineConfig({
   title: 'starknet.go',
   titleTemplate: '%s · starknet.go',
+  
+  
   editLink: {
     pattern: 'https://github.com/NethermindEth/starknet.go/edit/main/www/docs/pages/:path',
     text: 'Suggest changes to this page',
@@ -12,7 +15,10 @@ export default defineConfig({
     '/': '/og-image.png',
   },
   iconUrl: { light: '/favicons/light.png', dark: '/favicons/dark.png' },
-  logoUrl: { light: '/Starknet.Go_Light_Powered_by_Nethermind.png', dark: '/Starknet.Go_Dark_Powered_by_Nethermind.png' },
+  logoUrl: { 
+    light: '/Starknet.Go_Light_Powered_by_Nethermind.png', 
+    dark: '/Starknet.Go_Dark_Powered_by_Nethermind.png' 
+  },
   socials: [
     {
       icon: 'github',
@@ -36,5 +42,4 @@ export default defineConfig({
   topNav: [
     { text: 'Docs', link: '/docs/introduction/why-starknet-go', match: '/docs' }
   ],
-  
 })

@@ -47,7 +47,7 @@ export default function DevelopmentBanner() {
           <div className="flex items-center space-x-2 font-semibold text-sm sm:text-base">
             <span className="hidden sm:inline">⚠️</span>
             <span className={isAnimating ? 'animate-pulse' : ''}>
-              Documentation Under Active Development
+              Documentation is Under Active Development
             </span>
           </div>
 
