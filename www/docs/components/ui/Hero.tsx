@@ -4,7 +4,8 @@ import GameOfLife from "./HeroBackground"
 
 export function Hero() {
   return (
-    <section aria-label="hero">
+    <section aria-label="hero" className="h-screen flex items-center justify-center -mt-36">
+
       <FadeContainer className="relative flex flex-col items-center justify-center">
         <FadeDiv className="mx-auto">
           <a
