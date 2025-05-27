@@ -14,27 +14,27 @@ import (
 )
 
 const (
-	maxUint128 = "0xffffffffffffffffffffffffffffffff"
-)
-
-var (
+	maxUint128                = "0xffffffffffffffffffffffffffffffff"
 	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
-// TxnOptions holds options for building transactions
-// WithQueryBitVersion: whether to use the query bit version for estimation
-// Tip: tip amount for the transaction
-// Multiplier: Safety factor for fee estimation. Recommended to be 1.5, but at least greater than 0.
-// If multiplier < 0, all resources bounds will be set to 0.
+// Optional settings when building a transaction.
 type TxnOptions struct {
+	// A boolean flag indicating whether the transaction version should have
+	// the query bit when estimating fees. If true, the transaction version
+	// will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+	// If false, the transaction version will be rpc.TransactionV3 (0x3).
+	// In case of doubt, set to 'false'. Default: false.
 	WithQueryBitVersion bool
-	Tip                 rpc.U64
-	Multiplier          float64
+	// Tip amount for the transaction. Default: "0x0".
+	Tip rpc.U64
+	// Safety factor for fee estimation. Recommended to be 1.5, but at least
+	// greater than 0. If multiplier < 0, all resources bounds will be set to 0.
+	Multiplier float64
 }
 
-// TxnVersion returns the transaction version based on WithQueryBitVersion
-// This is used for estimation only - actual transactions always use TransactionV3
+// TxnVersion returns TransactionV3WithQueryBit when WithQueryBitVersion is true, otherwise TransactionV3.
 func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 	if opts.WithQueryBitVersion {
 		return rpc.TransactionV3WithQueryBit
@@ -75,17 +75,13 @@ func (opts *TxnOptions) applyMultiplier() {
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
-// The default version of the returned transaction is determined by the TxnOptions.
-// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
-// Otherwise, it will be rpc.TransactionV3.
-//
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TxnOptions pointer for transaction options
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
@@ -120,17 +116,13 @@ func BuildInvokeTxn(
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
 // A declare transaction is used to declare a new contract class on the network.
 //
-// The default version of the returned transaction is determined by the TxnOptions.
-// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
-// Otherwise, it will be rpc.TransactionV3.
-//
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TxnOptions pointer for transaction options
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
@@ -172,17 +164,13 @@ func BuildDeclareTxn(
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
 // A deploy account transaction is used to deploy a new account contract on the network.
 //
-// The default version of the returned transaction is determined by the TxnOptions.
-// If WithQueryBitVersion is true, the version will be rpc.TransactionV3WithQueryBit.
-// Otherwise, it will be rpc.TransactionV3.
-//
 // Parameters:
 //   - nonce: The account's nonce
 //   - contractAddressSalt: A value used to randomise the deployed contract address
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: TxnOptions pointer for transaction options
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
