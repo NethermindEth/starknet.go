@@ -17,7 +17,7 @@ const Footer = () => {
         { label: "Voyager", href: "https://voyager.online/" },
         { label: "Juno", href: "https://www.nethermind.io/juno" },
         { label: "CairoVM - Go", href: "https://github.com/NethermindEth/cairo-vm-go" },
-        { label: "Starknet RPC", href: "https://data.voyager.online/"},
+        // { label: "Starknet RPC", href: "https://data.voyager.online/"},
         { label: "Starkweb", href: "https://www.starkweb.xyz/" },
       ],
     },
