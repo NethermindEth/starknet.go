@@ -20,6 +20,10 @@ var (
 	errNotFound = errors.New("not found")
 )
 
+// RPCVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
+// This should be updated when supporting new versions of the RPC specification.
+const RPCVersion = "0.8.1"
+
 // checkVersionCompatibility checks if the RPC provider version is compatible with the SDK version
 // and returns a warning if they don't match.
 func checkVersionCompatibility(provider *Provider) error {

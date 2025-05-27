@@ -2,10 +2,6 @@ package rpc
 
 import "context"
 
-// RPCVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
-// This should be updated when supporting new versions of the RPC specification.
-const RPCVersion = "0.8.1"
-
 // SpecVersion returns the version of the Starknet JSON-RPC specification being used
 // Parameters: None
 // Returns: String of the Starknet JSON-RPC specification
