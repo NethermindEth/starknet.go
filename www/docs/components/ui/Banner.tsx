@@ -13,7 +13,7 @@ export default function DevelopmentBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white shadow-lg">
+    <div className="relative overflow-hidden z-50 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-white shadow-lg">
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.1)_10px,rgba(255,255,255,0.1)_20px)]"></div>
