@@ -16,13 +16,13 @@ const item = {
   hidden: {
     opacity: 0,
     y: 16,
-    filter: "blur(4px)",
+    // filter: "blur(4px)", // This is correct
   },
   show: {
     opacity: 1,
     scale: 1,
     y: 0,
-    filter: "blur(0px)",
+    // filter: "blur(0px)", // Make sure this has 'px'
     transition: {
       type: "spring",
       stiffness: 150,

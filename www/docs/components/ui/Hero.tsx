@@ -4,9 +4,14 @@ import GameOfLife from "./HeroBackground"
 
 export function Hero() {
   return (
-    <section aria-label="hero" className="h-screen flex items-center justify-center -mt-46">
-
-      <FadeContainer className="relative flex flex-col items-center justify-center">
+    <section aria-label="hero" className="relative h-screen flex items-center justify-center -mt-48">
+      {/* Background Animation - positioned absolutely behind everything */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ top: '90px' }}>
+        <GameOfLife />
+      </div>
+      
+      {/* Main Content - positioned above the background */}
+      <FadeContainer className="relative z-10 flex flex-col items-center justify-center">
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
@@ -47,9 +52,6 @@ export function Hero() {
             Get Started
           </a>
         </FadeDiv>
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <GameOfLife />
-        </div>
       </FadeContainer>
     </section>
   )
