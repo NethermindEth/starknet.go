@@ -4,9 +4,21 @@ import GameOfLife from "./HeroBackground"
 
 export function Hero() {
   return (
-    <section aria-label="hero" className="relative h-screen flex items-center justify-center -mt-48">
+    <>
+      <style>
+        {`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <section aria-label="hero" className="relative h-screen flex items-center justify-center -mt-46 bg-gradient-to-b from-gray-50 to-white">
       {/* Background Animation - positioned absolutely behind everything */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ top: '90px' }}>
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
         <GameOfLife />
       </div>
       
@@ -44,6 +56,30 @@ export function Hero() {
           <FadeSpan>Go implementation for scalable and efficient</FadeSpan>{" "}
           <FadeSpan>blockchain development.</FadeSpan>
         </p>
+        
+        {/* Code snippet section */}
+        <FadeDiv className="mt-8">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--stkgo-yellow)] to-[var(--stkgo-orange)] rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
+            <div className="relative bg-gray-900 rounded-lg px-4 py-3 border border-gray-200/10">
+              <div className="flex items-center justify-between">
+                <code className="text-green-400 font-mono text-sm sm:text-base">
+                  go get github.com/NethermindEth/starknet.go
+                </code>
+                <button 
+                  onClick={() => navigator.clipboard.writeText('go get github.com/NethermindEth/starknet.go')}
+                  className="ml-3 text-gray-400 hover:text-white transition-colors duration-200 p-1 rounded"
+                  title="Copy to clipboard"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </FadeDiv>
+        
         <FadeDiv>
           <a
             className="mt-6 inline-flex cursor-pointer flex-row items-center justify-center gap-1 rounded-md border-b-[1.5px] border-[var(--stkgo-orange)] bg-linear-to-b from-[var(--stkgo-yellow)] to-[var(--stkgo-orange)] px-5 py-3 leading-4 font-medium tracking-wide whitespace-nowrap text-white shadow-[0_0_0_2px_rgba(0,0,0,0.04),0_0_14px_0_rgba(255,255,255,0.19)] transition-all duration-200 ease-in-out hover:shadow-orange-300"
@@ -54,5 +90,6 @@ export function Hero() {
         </FadeDiv>
       </FadeContainer>
     </section>
+    </>
   )
 }
