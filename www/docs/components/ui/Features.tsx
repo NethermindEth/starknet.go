@@ -438,7 +438,7 @@ export default function Features() {
             Intuitive APIs for seamless Starknet integration
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Get started quickly with our well-documented, idiomatic Go
+            Get started quickly with our well-documented, self-sufficient Go
             interfaces. Easily integrate Starknet functionality into your
             existing Go applications with minimal learning curve.
           </p>
