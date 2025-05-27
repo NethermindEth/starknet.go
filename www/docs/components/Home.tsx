@@ -1,3 +1,4 @@
+import Banner from "./ui/Banner"
 import { CallToAction } from "./ui/CallToAction"
 import FeatureDivider from "./ui/FeatureDivider"
 import Features from "./ui/Features"
@@ -10,7 +11,7 @@ import Testimonial from "./ui/Testimonial"
 export default function Home() {
   return (
     <main className="relative mx-auto flex flex-col w-full">
-
+        <Banner/>
         <Hero />
 
       {/* <div className="mt-52 px-4 xl:px-0">
