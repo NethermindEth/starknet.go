@@ -21,21 +21,6 @@ var CurveNew StarkCurveNew
 
 type StarkCurveNew starkcurve.G1Affine
 
-func (sc StarkCurveNew) Add(x1, y1, x2, y2 *big.Int) (x, y *big.Int) {
-	x1Felt := new(felt.Felt).SetBigInt(x1)
-	y1Felt := new(felt.Felt).SetBigInt(y1)
-	g1a1 := starkcurve.G1Affine{X: *x1Felt.Impl(), Y: *y1Felt.Impl()}
-
-	x2Felt := new(felt.Felt).SetBigInt(x2)
-	y2Felt := new(felt.Felt).SetBigInt(y2)
-	g1a2 := starkcurve.G1Affine{X: *x2Felt.Impl(), Y: *y2Felt.Impl()}
-
-	curve := starkcurve.G1Affine(sc)
-	curve.Add(&g1a1, &g1a2)
-
-	return curve.X.BigInt(new(big.Int)), curve.Y.BigInt(new(big.Int))
-}
-
 func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
 	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
 	xEl := new(fp.Element).SetBigInt(starkX)

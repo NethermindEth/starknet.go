@@ -315,51 +315,6 @@ func TestGeneral_DivMod(t *testing.T) {
 	}
 }
 
-// TestGeneral_Add tests the Add function in the General package.
-//
-// It tests the addition of two big integers and compares the result with the expected values.
-// The function takes a slice of test cases, each containing two big integers and their expected sum.
-// It iterates over the test cases, computes the sum using the Add function, and checks if it matches the expected sum.
-// If the computed sum does not match the expected sum, an error is reported using the require.Equal function.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
-func TestGeneral_Add(t *testing.T) {
-	testAdd := []struct {
-		x         *big.Int
-		y         *big.Int
-		expectedX *big.Int
-		expectedY *big.Int
-	}{
-		{
-			x:         internalUtils.StrToBig("1468732614996758835380505372879805860898778283940581072611506469031548393285"),
-			y:         internalUtils.StrToBig("1402551897475685522592936265087340527872184619899218186422141407423956771926"),
-			expectedX: internalUtils.StrToBig("2573054162739002771275146649287762003525422629677678278801887452213127777391"),
-			expectedY: internalUtils.StrToBig("3086444303034188041185211625370405120551769541291810669307042006593736192813"),
-		},
-		{
-			x:         big.NewInt(1),
-			y:         big.NewInt(2),
-			expectedX: internalUtils.StrToBig("225199957243206662471193729647752088571005624230831233470296838210993906468"),
-			expectedY: internalUtils.StrToBig("190092378222341939862849656213289777723812734888226565973306202593691957981"),
-		},
-	}
-
-	for _, tt := range testAdd {
-		resX, resY := Curve.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
-		resXNew, resYNew := CurveNew.Add(Curve.Gx, Curve.Gy, tt.x, tt.y)
-		assert.Equal(t, resX, resXNew)
-		assert.Equal(t, resY, resYNew)
-
-		require.Equal(t, tt.expectedX, resX)
-		require.Equal(t, tt.expectedY, resY)
-	}
-}
-
 // TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
 //
 // This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
