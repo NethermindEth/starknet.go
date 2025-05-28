@@ -17,11 +17,7 @@ import (
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/fp"
 )
 
-var CurveNew StarkCurveNew
-
-type StarkCurveNew starkcurve.G1Affine
-
-func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
+func GetYCoordinate(starkX *big.Int) *big.Int {
 	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
 	xEl := new(fp.Element).SetBigInt(starkX)
 
@@ -34,7 +30,7 @@ func (sc StarkCurveNew) GetYCoordinate(starkX *big.Int) *big.Int {
 	return ySquared.Sqrt(&ySquared).BigInt(new(big.Int))
 }
 
-func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
+func Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
 	pubKey := crypto.NewPublicKey(new(felt.Felt).SetBigInt(pubX))
 	msgHashFelt := new(felt.Felt).SetBigInt(msgHash)
 	rFelt := new(felt.Felt).SetBigInt(r)
@@ -43,7 +39,7 @@ func (sc StarkCurveNew) Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error)
 	return pubKey.Verify(&crypto.Signature{R: *rFelt, S: *sFelt}, msgHashFelt)
 }
 
-func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s *big.Int, err error) {
+func Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s *big.Int, err error) {
 	// generating pub and priv keys
 	g1a := new(starkcurve.G1Affine).ScalarMultiplicationBase(privKey)
 
@@ -68,7 +64,7 @@ func (sc StarkCurveNew) Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s 
 	return r, s, err
 }
 
-func (sc StarkCurveNew) GetRandomPrivateKey() (*big.Int, error) {
+func GetRandomPrivateKey() (*big.Int, error) {
 	priv, err := ecdsa.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
@@ -82,8 +78,8 @@ func (sc StarkCurveNew) GetRandomPrivateKey() (*big.Int, error) {
 	return finalPrivKey, nil
 }
 
-func (sc StarkCurveNew) PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
-	g1a := starkcurve.G1Affine(sc)
+func PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
+	g1a := new(starkcurve.G1Affine)
 	res := g1a.ScalarMultiplicationBase(privKey)
 	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int)), nil
 }

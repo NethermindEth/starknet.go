@@ -88,7 +88,7 @@ func BenchmarkCurveSign(b *testing.B) {
 			PrivateKey2 = big.NewInt(0).Add(PrivateKey2, big.NewInt(i))
 			b.StartTimer()
 
-			result, _, _ = CurveNew.Sign(MessageHash2, PrivateKey2)
+			result, _, _ = Sign(MessageHash2, PrivateKey2)
 		}
 	})
 }
@@ -110,7 +110,7 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, err := CurveNew.GetRandomPrivateKey()
+	private, err := GetRandomPrivateKey()
 	require.NoError(b, err)
 	x, y, err := Curve.PrivateToPoint(private)
 	require.NoError(b, err)
@@ -138,7 +138,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 		}
 	})
 
-	xNew, yNew, err := CurveNew.PrivateToPoint(private)
+	xNew, yNew, err := PrivateToPoint(private)
 	require.NoError(b, err)
 
 	b.Run("new curve", func(b *testing.B) {
@@ -152,11 +152,11 @@ func BenchmarkSignatureVerify(b *testing.B) {
 				randFelt,
 			)
 			hashBigInt := internalUtils.FeltToBigInt(hash)
-			r, s, err := CurveNew.Sign(hashBigInt, private)
+			r, s, err := Sign(hashBigInt, private)
 			require.NoError(b, err)
 
 			b.StartTimer()
-			result, _ = CurveNew.Verify(hashBigInt, r, s, xNew, yNew)
+			result, _ = Verify(hashBigInt, r, s, xNew, yNew)
 			b.StopTimer()
 
 			resp := result.(bool)
@@ -179,7 +179,7 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
 
-	xNew, _, err := CurveNew.PrivateToPoint(big.NewInt(2))
+	xNew, _, err := PrivateToPoint(big.NewInt(2))
 	require.NoError(t, err)
 	assert.Equal(t, x, xNew)
 
@@ -371,9 +371,9 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	r, s, err := Curve.Sign(hashy, priv)
 	require.NoError(t, err)
 
-	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	xNew, yNew, err := PrivateToPoint(priv)
 	require.NoError(t, err)
-	rNew, sNew, err := CurveNew.Sign(hashy, priv)
+	rNew, sNew, err := Sign(hashy, priv)
 	require.NoError(t, err)
 	assert.Equal(t, x, xNew)
 	assert.Equal(t, y, yNew)
@@ -381,12 +381,12 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	// assert.Equal(t, s, sNew)
 
 	require.True(t, Curve.Verify(hashy, r, s, x, y))
-	resp, err := CurveNew.Verify(hashy, r, s, x, y)
+	resp, err := Verify(hashy, r, s, x, y)
 	require.NoError(t, err)
 	require.True(t, resp)
 
 	require.True(t, Curve.Verify(hashy, rNew, sNew, x, y))
-	resp, err = CurveNew.Verify(hashy, rNew, sNew, x, y)
+	resp, err = Verify(hashy, rNew, sNew, x, y)
 	require.NoError(t, err)
 	require.True(t, resp)
 }
@@ -450,9 +450,9 @@ func TestGeneral_BadSignature(t *testing.T) {
 	r, s, err := Curve.Sign(hashBigInt, priv)
 	require.NoError(t, err)
 
-	xNew, yNew, err := CurveNew.PrivateToPoint(priv)
+	xNew, yNew, err := PrivateToPoint(priv)
 	require.NoError(t, err)
-	rNew, sNew, err := CurveNew.Sign(hashBigInt, priv)
+	rNew, sNew, err := Sign(hashBigInt, priv)
 	require.NoError(t, err)
 	assert.Equal(t, x, xNew)
 	assert.Equal(t, y, yNew)
@@ -461,50 +461,50 @@ func TestGeneral_BadSignature(t *testing.T) {
 
 	// validating the correct signatures
 	assert.True(t, Curve.Verify(hashBigInt, r, s, x, y))
-	result, err := CurveNew.Verify(hashBigInt, r, s, x, y)
+	result, err := Verify(hashBigInt, r, s, x, y)
 	require.NoError(t, err)
 	assert.True(t, result)
 
 	assert.True(t, Curve.Verify(hashBigInt, rNew, sNew, x, y))
-	result, err = CurveNew.Verify(hashBigInt, rNew, sNew, x, y)
+	result, err = Verify(hashBigInt, rNew, sNew, x, y)
 	require.NoError(t, err)
 	assert.True(t, result)
 
 	// testing bad R signature
 	badR := new(big.Int).Add(r, big.NewInt(1))
 	assert.False(t, Curve.Verify(hashBigInt, badR, s, x, y))
-	result, err = CurveNew.Verify(hashBigInt, badR, s, x, y)
+	result, err = Verify(hashBigInt, badR, s, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	badRNew := new(big.Int).Add(rNew, big.NewInt(1))
 	require.False(t, Curve.Verify(hashBigInt, badRNew, s, x, y))
-	result, err = CurveNew.Verify(hashBigInt, badRNew, s, x, y)
+	result, err = Verify(hashBigInt, badRNew, s, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	// testing bad S signature
 	badS := new(big.Int).Add(s, big.NewInt(1))
 	assert.False(t, Curve.Verify(hashBigInt, r, badS, x, y))
-	result, err = CurveNew.Verify(hashBigInt, r, badS, x, y)
+	result, err = Verify(hashBigInt, r, badS, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	badSNew := new(big.Int).Add(sNew, big.NewInt(1))
 	assert.False(t, Curve.Verify(hashBigInt, r, badSNew, x, y))
-	result, err = CurveNew.Verify(hashBigInt, r, badSNew, x, y)
+	result, err = Verify(hashBigInt, r, badSNew, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	// testing bad hash
 	badHash := new(big.Int).Add(hashBigInt, big.NewInt(1))
 	assert.False(t, Curve.Verify(badHash, r, s, x, y))
-	result, err = CurveNew.Verify(badHash, r, s, x, y)
+	result, err = Verify(badHash, r, s, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	assert.False(t, Curve.Verify(badHash, rNew, sNew, x, y))
-	result, err = CurveNew.Verify(badHash, rNew, sNew, x, y)
+	result, err = Verify(badHash, rNew, sNew, x, y)
 	require.NoError(t, err)
 	assert.False(t, result)
 }
@@ -568,26 +568,26 @@ func TestGeneral_Signature(t *testing.T) {
 		} else if tt.private != nil {
 			tt.publicX, tt.publicY, err = Curve.PrivateToPoint(tt.private)
 			require.NoError(err)
-			publicX, publicY, err := CurveNew.PrivateToPoint(tt.private)
+			publicX, publicY, err := PrivateToPoint(tt.private)
 			require.NoError(err)
 			*newtt.publicX, *newtt.publicY = *publicX, *publicY
 		} else if tt.publicX != nil {
 			tt.publicY = Curve.GetYCoordinate(tt.publicX)
-			newtt.publicY = CurveNew.GetYCoordinate(tt.publicX)
+			newtt.publicY = GetYCoordinate(tt.publicX)
 		}
 
 		if tt.rIn == nil && tt.private != nil {
 			tt.rIn, tt.sIn, err = Curve.Sign(tt.hash, tt.private)
 			require.NoError(err)
-			rIn, sIn, err := CurveNew.Sign(tt.hash, tt.private)
+			rIn, sIn, err := Sign(tt.hash, tt.private)
 			require.NoError(err)
 			*newtt.rIn, *newtt.sIn = *rIn, *sIn
 		}
 
 		require.True(Curve.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
-		require.True(CurveNew.Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
+		require.True(Verify(tt.hash, tt.rIn, tt.sIn, tt.publicX, tt.publicY))
 		require.True(Curve.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
-		require.True(CurveNew.Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
+		require.True(Verify(newtt.hash, newtt.rIn, newtt.sIn, newtt.publicX, newtt.publicY))
 	}
 }
 
