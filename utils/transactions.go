@@ -43,8 +43,11 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 	return rpc.TransactionV3
 }
 
-// ApplyOptions sets defaults and checks for edge cases
+// ApplyOptions sets defaults and checks for edge cases, and returns the
+// modified opts. It must be assigned to a variable.
+//
 // If opts is nil, a new TxnOptions instance with default values will be created
+// and returned.
 func (opts *TxnOptions) ApplyOptions() *TxnOptions {
 	if opts == nil {
 		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0", Multiplier: 1.5}

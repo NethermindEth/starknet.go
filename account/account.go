@@ -58,6 +58,9 @@ type AccountInterface interface {
 
 var _ AccountInterface = &Account{} //nolint:exhaustruct
 
+const BRAAVOS_WARNING_MESSAGE = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via
+RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
+
 type Account struct {
 	Provider     rpc.RpcProvider
 	ChainId      *felt.Felt
@@ -67,8 +70,59 @@ type Account struct {
 	ks           Keystore
 }
 
-const BRAAVOS_WARNING_MESSAGE = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via
-RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
+// Optional settings when building a transaction.
+type TxnOptions struct {
+	// A boolean flag indicating whether the transaction version should have
+	// the query bit when estimating fees. If true, the transaction version
+	// will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+	// If false, the transaction version will be rpc.TransactionV3 (0x3).
+	// In case of doubt, set to 'false'. Default: false.
+	WithQueryBitVersion bool
+	// Tip amount for the transaction. Default: "0x0".
+	Tip rpc.U64
+	// Safety factor for fee estimation. Recommended to be 1.5, but at least
+	// greater than 0. If multiplier < 0, all resources bounds will be set to 0.
+	Multiplier float64
+}
+
+// TxnVersion returns TransactionV3WithQueryBit when WithQueryBitVersion is true, otherwise TransactionV3.
+func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
+	if opts.WithQueryBitVersion {
+		return rpc.TransactionV3WithQueryBit
+	}
+
+	return rpc.TransactionV3
+}
+
+// ApplyOptions sets defaults and checks for edge cases
+// If opts is nil, a new TxnOptions instance with default values will be created
+func (opts *TxnOptions) ApplyOptions() *TxnOptions {
+	if opts == nil {
+		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0", Multiplier: 1.5}
+	}
+	opts.applyTip()
+	opts.applyMultiplier()
+
+	return opts
+}
+
+func (opts *TxnOptions) applyTip() {
+	if opts.Tip == "" {
+		opts.Tip = "0x0"
+
+		return
+	}
+
+	if _, err := opts.Tip.ToUint64(); err != nil {
+		opts.Tip = "0x0"
+	}
+}
+
+func (opts *TxnOptions) applyMultiplier() {
+	if opts.Multiplier <= 0 {
+		opts.Multiplier = 1.5
+	}
+}
 
 // NewAccount creates a new Account instance.
 //
