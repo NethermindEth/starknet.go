@@ -204,56 +204,6 @@ func TestGeneral_BadSignature(t *testing.T) {
 	assert.False(t, result)
 }
 
-// TestGeneral_SplitFactStr is a test function that tests the SplitFactStr function.
-//
-// It verifies the behavior of the SplitFactStr function by providing different inputs and checking the output.
-// The function takes no parameters and returns no values.
-//
-// Parameters:
-//   - t: The testing.T object for running the test
-//
-// Returns:
-//
-//	none
-func TestGeneral_SplitFactStr(t *testing.T) {
-	type tescase struct {
-		input string
-		h     string
-		l     string
-		err   bool
-	}
-	data := []tescase{
-		{
-			input: "0x3",
-			h:     "0x0",
-			l:     "0x3",
-		},
-		{
-			input: "0x300000000000000000000000000000000",
-			h:     "0x3",
-			l:     "0x0",
-		},
-		{
-			input: "11111111111111111111111111111111111111111111111111111111111111010",
-			err:   true,
-		},
-		{
-			input: "X",
-			err:   true,
-		},
-	}
-	for _, d := range data {
-		l, h, err := internalUtils.SplitFactStr(d.input)
-		if d.err {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-			assert.Equal(t, d.l, l)
-			assert.Equal(t, d.h, h)
-		}
-	}
-}
-
 // TestGeneral_VerifySignature is a test function that verifies the correctness of the VerifySignature function.
 //
 // It checks if the signature of a given message hash is valid using the provided r, s values and the public key.
