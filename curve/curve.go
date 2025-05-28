@@ -199,8 +199,6 @@ func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 }
 
 // Pedersen is a function that implements the Pedersen hash.
-// NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L20)
 //
 // Parameters:
 //   - a: a pointers to felt.Felt to be hashed.
@@ -213,8 +211,6 @@ func Pedersen(a, b *felt.Felt) *felt.Felt {
 }
 
 // Poseidon is a function that implements the Poseidon hash.
-// NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/poseidon_hash.go#L59)
 //
 // Parameters:
 //   - a: a pointers to felt.Felt to be hashed.
@@ -228,8 +224,6 @@ func Poseidon(a, b *felt.Felt) *felt.Felt {
 
 // PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
 // calls the PedersenArray function from the junoCrypto package with the provided parameters.
-// NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/32fd743c774ec11a1bb2ce3dceecb57515f4873e/core/crypto/pedersen_hash.go#L12)
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
@@ -242,8 +236,6 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 
 // PoseidonArray is a function that takes a variadic number of felt.Felt pointers as parameters and
 // calls the PoseidonArray function from the junoCrypto package with the provided parameters.
-// NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/poseidon_hash.go#L74)
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
@@ -255,8 +247,6 @@ func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 }
 
 // StarknetKeccak computes the Starknet Keccak hash of the given byte slice.
-// NOTE: This function just wraps the Juno implementation
-// (ref: https://github.com/NethermindEth/juno/blob/main/core/crypto/keccak.go#L11)
 //
 // Parameters:
 //   - b: The byte slice to hash
