@@ -1,13 +1,7 @@
 package curve
 
-/*
-	Although the library adheres to the 'elliptic/curve' interface.
-	All testing has been done against library function explicity.
-	It is recommended to use in the same way(i.e. `curve.Sign` and not `ecdsa.Sign`).
-*/
 import (
 	"crypto/rand"
-	_ "embed"
 	"math/big"
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
@@ -19,29 +13,6 @@ import (
 )
 
 var g1Affline starkcurve.G1Affine
-
-// GetYCoordinate returns the y-coordinate of a point on the curve given the x-coordinate.
-//
-// Parameters:
-//   - starkX: The x-coordinate of the point
-//
-// Returns:
-//   - *big.Int: The y-coordinate of the point
-func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
-	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
-	xEl := starkX.Impl()
-
-	var ySquared fp.Element
-	ySquared.Mul(xEl, xEl).Mul(&ySquared, xEl) // x^3
-	ySquared.Add(&ySquared, xEl)               // + x
-
-	_, b := starkcurve.CurveCoefficients()
-	ySquared.Add(&ySquared, &b) // ySquared equals to (x^3 + x + b)
-
-	starkY := ySquared.Sqrt(&ySquared)
-	yFelt := felt.New(*starkY)
-	return &yFelt
-}
 
 // Verify verifies the validity of the signature for a given message hash using the StarkCurve.
 //
@@ -160,6 +131,29 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
 	res := g1Affline.ScalarMultiplicationBase(privKey)
 	return res.X.BigInt(x), res.Y.BigInt(y)
+}
+
+// GetYCoordinate returns the y-coordinate of a point on the curve given the x-coordinate.
+//
+// Parameters:
+//   - starkX: The x-coordinate of the point
+//
+// Returns:
+//   - *big.Int: The y-coordinate of the point
+func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
+	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
+	xEl := starkX.Impl()
+
+	var ySquared fp.Element
+	ySquared.Mul(xEl, xEl).Mul(&ySquared, xEl) // x^3
+	ySquared.Add(&ySquared, xEl)               // + x
+
+	_, b := starkcurve.CurveCoefficients()
+	ySquared.Add(&ySquared, &b) // ySquared equals to (x^3 + x + b)
+
+	starkY := ySquared.Sqrt(&ySquared)
+	yFelt := felt.New(*starkY)
+	return &yFelt
 }
 
 // HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
