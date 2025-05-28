@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"math"
 	"math/big"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -43,4 +45,11 @@ func ETHToWei(eth float64) *felt.Felt {
 	weiFloat.Int(weiInt)
 
 	return new(felt.Felt).SetBigInt(weiInt)
+}
+
+// FillHexWithZeroes normalizes a hex string to have a '0x' prefix and pads it with leading zeros
+// to a total length of 66 characters (including the '0x' prefix).
+func FillHexWithZeroes(hex string) string {
+	trimHex := strings.TrimPrefix(hex, "0x")
+	return strings.Replace(fmt.Sprintf("0x%064s", trimHex), " ", "0", -1)
 }
