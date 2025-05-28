@@ -11,7 +11,7 @@ import (
 )
 
 // package level variable to be used by the benchmarking code
-// to prevent the compiler from optimizing the code away
+// to prevent the compiler from optimising the code away
 var result any
 
 // BenchmarkCurveSign benchmarks the Curve.Sign function.
@@ -27,7 +27,7 @@ func BenchmarkCurveSign(b *testing.B) {
 	PrivateKey := big.NewInt(0).Add(MessageHash, big.NewInt(1))
 	b.ResetTimer()
 
-	for i := int64(0); i < int64(b.N); i++ {
+	for i := range int64(b.N) {
 		b.StopTimer()
 		MessageHash = big.NewInt(0).Add(MessageHash, big.NewInt(i))
 		PrivateKey = big.NewInt(0).Add(PrivateKey, big.NewInt(i))
@@ -58,7 +58,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	require.NoError(b, err)
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		// setup
 		b.StopTimer()
 		randFelt, err := new(felt.Felt).SetRandom()
@@ -99,7 +99,7 @@ func TestPrivateToPoint(t *testing.T) {
 // TestComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
 //
 // This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
-// It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
+// It checks the behaviour of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
@@ -155,7 +155,7 @@ func TestHashAndSign(t *testing.T) {
 	require.True(t, resp)
 }
 
-// TestBadSignature tests the behavior of the function that checks for bad signatures.
+// TestBadSignature tests the behaviour of the function that checks for bad signatures.
 //
 // Parameters:
 //   - t: The testing.T object for running the test

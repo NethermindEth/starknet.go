@@ -80,7 +80,7 @@ func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 	var privKeyStruct ecdsa.PrivateKey
 	privKeyBytes := privKey.Bytes()
 	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
-	_, err = privKeyStruct.SetBytes(privKeyInput[:])
+	_, err = privKeyStruct.SetBytes(privKeyInput)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -130,6 +130,7 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 //   - y: The y-coordinate of the point on the curve
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
 	res := g1Affline.ScalarMultiplicationBase(privKey)
+
 	return res.X.BigInt(x), res.Y.BigInt(y)
 }
 
@@ -153,6 +154,7 @@ func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
 
 	starkY := ySquared.Sqrt(&ySquared)
 	yFelt := felt.New(*starkY)
+
 	return &yFelt
 }
 
@@ -174,6 +176,7 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 	}
 
 	hash = internalUtils.FeltToBigInt(feltHash)
+
 	return
 }
 
@@ -189,6 +192,7 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 //   - hash: The hash of the list of elements
 func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 	elems = append(elems, big.NewInt(int64(len(elems))))
+
 	return HashPedersenElements(elems)
 }
 

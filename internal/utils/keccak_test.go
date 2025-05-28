@@ -77,7 +77,7 @@ func TestComputeFact(t *testing.T) {
 
 // TestSplitFactStr is a test function that tests the SplitFactStr function.
 //
-// It verifies the behavior of the SplitFactStr function by providing different inputs and checking the output.
+// It verifies the behaviour of the SplitFactStr function by providing different inputs and checking the output.
 // The function takes no parameters and returns no values.
 //
 // Parameters:
