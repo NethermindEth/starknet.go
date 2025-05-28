@@ -20,8 +20,7 @@ import (
 
 var g1Affline starkcurve.G1Affine
 
-// GetYCoordinate returns the y-coordinate of a point on the curve given the x-coordinate,
-// where the x represents the starknet public key, and the X + Y is the full public key.
+// GetYCoordinate returns the y-coordinate of a point on the curve given the x-coordinate.
 //
 // Parameters:
 //   - starkX: The x-coordinate of the point

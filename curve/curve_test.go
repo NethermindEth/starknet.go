@@ -1,7 +1,6 @@
 package curve
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -14,43 +13,6 @@ import (
 // package level variable to be used by the benchmarking code
 // to prevent the compiler from optimizing the code away
 var result any
-
-// BenchmarkPedersenHash benchmarks the performance of the PedersenHash function.
-//
-// The function takes a 2D slice of big.Int values as input and measures the time
-// it takes to execute the PedersenHash function for each test case.
-//
-// Parameters:
-//   - b: a *testing.B value representing the testing context
-//
-// Returns:
-//
-//	none
-func BenchmarkPedersenHash(b *testing.B) {
-	suite := [][]string{
-		{"0x12773", "0x872362"},
-		{"0x1277312773", "0x872362872362"},
-		{"0x1277312773", "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},
-		{"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB", "0x872362872362"},
-		{"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826", "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},
-		{
-			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd",
-			"0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9",
-		},
-		{
-			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbddd",
-			"0x7f15c38ea577a26f4f553282fcfe4f1feeb8ecfaad8f221ae41abf8224cbdde",
-		},
-	}
-
-	for _, test := range suite {
-		b.Run(fmt.Sprintf("input_size_%d_%d", len(test[0]), len(test[1])), func(b *testing.B) {
-			hexArr, err := internalUtils.HexArrToFelt(test)
-			require.NoError(b, err)
-			result = Pedersen(hexArr[0], hexArr[1])
-		})
-	}
-}
 
 // BenchmarkCurveSign benchmarks the Curve.Sign function.
 //
@@ -135,46 +97,6 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	require.True(t, ok)
 
 	assert.Equal(t, expectedX, x)
-}
-
-// TestGeneral_PedersenHash is a test function for the PedersenHash method in the General struct.
-//
-// The function tests the PedersenHash method by providing different test cases and comparing the computed hash with the expected hash.
-// It uses the testing.T type from the testing package to report any errors encountered during the tests.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
-func TestGeneral_PedersenHash(t *testing.T) {
-	testPedersen := []struct {
-		elements []string
-		expected string
-	}{
-		{
-			elements: []string{"0x12773", "0x872362"},
-			expected: "0x5ed2703dfdb505c587700ce2ebfcab5b3515cd7e6114817e6026ec9d4b364ca",
-		},
-		{
-			elements: []string{"0x13d41f388b8ea4db56c5aa6562f13359fab192b3db57651af916790f9debee9", "0x537461726b4e6574204d61696c"},
-			expected: "0x180c0a3d13c1adfaa5cbc251f4fc93cc0e26cec30ca4c247305a7ce50ac807c",
-		},
-		{
-			elements: []string{"100", "1000"},
-			expected: "0x45a62091df6da02dce4250cb67597444d1f465319908486b836f48d0f8bf6e7",
-		},
-	}
-
-	for _, test := range testPedersen {
-		elementsFelt, err := internalUtils.HexArrToFelt(test.elements)
-		require.NoError(t, err)
-		expected := internalUtils.TestHexToFelt(t, test.expected)
-
-		result := Pedersen(elementsFelt[0], elementsFelt[1])
-		require.Equal(t, expected, result)
-	}
 }
 
 // TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
