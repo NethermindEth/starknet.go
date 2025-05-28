@@ -89,8 +89,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 //
 //	none
 func TestPrivateToPoint(t *testing.T) {
-	x, _, err := PrivateToPoint(big.NewInt(2))
-	require.NoError(t, err)
+	x, _ := PrivateKeyToPoint(big.NewInt(2))
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
 

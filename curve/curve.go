@@ -146,9 +146,20 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 		nil
 }
 
-func PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {
+// PrivateKeyToPoint generates a point on the StarkCurve from a private key.
+//
+// It takes a private key as a parameter and returns the x and y coordinates of
+// the generated point on the curve.
+//
+// Parameters:
+//   - privKey: The private key
+//
+// Returns:
+//   - x: The x-coordinate of the point on the curve
+//   - y: The y-coordinate of the point on the curve
+func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
 	res := g1Affline.ScalarMultiplicationBase(privKey)
-	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int)), nil
+	return res.X.BigInt(x), res.Y.BigInt(y)
 }
 
 // HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
