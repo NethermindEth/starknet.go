@@ -14,45 +14,22 @@ import (
 // to prevent the compiler from optimising the code away
 var result any
 
-// BenchmarkCurveSign benchmarks the Curve.Sign function.
-//
-// Parameters:
-//   - b: a *testing.B value representing the testing context
-//
-// Returns:
-//
-//	none
+// BenchmarkCurveSign benchmarks the curve.Sign function.
 func BenchmarkCurveSign(b *testing.B) {
 	MessageHash := big.NewInt(0).Exp(big.NewInt(2), big.NewInt(250), nil)
 	PrivateKey := big.NewInt(0).Add(MessageHash, big.NewInt(1))
 	b.ResetTimer()
 
-	for i := range int64(b.N) {
-		b.StopTimer()
-		MessageHash = big.NewInt(0).Add(MessageHash, big.NewInt(i))
-		PrivateKey = big.NewInt(0).Add(PrivateKey, big.NewInt(i))
-		b.StartTimer()
-
+	for range b.N {
 		result, _, _ = Sign(MessageHash, PrivateKey)
 	}
 }
 
 // BenchmarkSignatureVerify benchmarks the SignatureVerify function.
 //
-// The function takes a testing.B object as a parameter and performs a series
-// of operations to benchmark the SignatureVerify function. It generates a
-// random private key, computes the corresponding public key, computes a hash
-// using the PedersenHash function, signs the hash using the private key, and
-// finally verifies the signature. The function runs two benchmarks: one for
-// signing and one for verification. Each benchmark measures the time taken to
-// perform the respective operation.
-//
-// Parameters:
-//   - b: a *testing.B value representing the testing context
-//
-// Returns:
-//
-//	none
+// This benchmark generates a random private key and public key pair once,
+// then for each iteration creates a random hash, signs it, and measures
+// only the time taken to verify the signature.
 func BenchmarkSignatureVerify(b *testing.B) {
 	private, x, _, err := GetRandomKeys()
 	require.NoError(b, err)
@@ -81,13 +58,6 @@ func BenchmarkSignatureVerify(b *testing.B) {
 }
 
 // TestPrivateToPoint tests the PrivateToPoint function.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
 func TestPrivateToPoint(t *testing.T) {
 	x, _ := PrivateKeyToPoint(big.NewInt(2))
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
@@ -96,17 +66,13 @@ func TestPrivateToPoint(t *testing.T) {
 	assert.Equal(t, expectedX, x)
 }
 
-// TestComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
+// TestComputeHashOnElements is a test function that verifies the correctness of the
+// ComputeHashOnElements and PedersenArray functions in the General package.
 //
-// This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
-// It checks the behaviour of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
-//
-// Parameters:
-//   - t: a *testing.T value representing the testing context
-//
-// Returns:
-//
-//	none
+// This function tests both functions by passing in different arrays of big.Int
+// elements and comparing the computed hash with the expected hash.
+// It checks the behaviour of the functions when an empty array is passed as input,
+// as well as when an array with multiple elements is passed.
 func TestComputeHashOnElements(t *testing.T) {
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
 	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
@@ -129,41 +95,9 @@ func TestComputeHashOnElements(t *testing.T) {
 	require.Equal(t, internalUtils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
 }
 
-// TestHashAndSign is a test function that verifies the hashing and signing process.
-//
-// Parameters:
-//   - t: The testing.T object for running the test.
-//
-// Returns:
-//
-//	none
-func TestHashAndSign(t *testing.T) {
-	hashy := HashPedersenElements([]*big.Int{
-		big.NewInt(1953658213),
-		big.NewInt(126947999705460),
-		big.NewInt(1953658213),
-	})
-
-	priv, x, _, err := GetRandomKeys()
-	require.NoError(t, err)
-
-	r, s, err := Sign(hashy, priv)
-	require.NoError(t, err)
-
-	resp, err := Verify(hashy, r, s, x)
-	require.NoError(t, err)
-	require.True(t, resp)
-}
-
-// TestBadSignature tests the behaviour of the function that checks for bad signatures.
-//
-// Parameters:
-//   - t: The testing.T object for running the test
-//
-// Returns:
-//
-//	none
-func TestBadSignature(t *testing.T) {
+// TestSignature tests the behaviour of the Sign and Verify functions against
+// the expected values.
+func TestSignature(t *testing.T) {
 	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
@@ -200,14 +134,6 @@ func TestBadSignature(t *testing.T) {
 // TestVerifySignature is a test function that verifies the correctness of the VerifySignature function.
 //
 // It checks if the signature of a given message hash is valid using the provided r, s values and the public key.
-// The function takes no parameters and returns no values.
-//
-// Parameters:
-//   - t: The testing.T object for running the test
-//
-// Returns:
-//
-//	none
 func TestVerifySignature(t *testing.T) {
 	// values verified with starknet.js
 
