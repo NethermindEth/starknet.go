@@ -125,7 +125,7 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 		err = ctx.Err()
 
 	default:
-		x, y, err = curve.Curve.Sign(msgHash, key)
+		x, y, err = curve.Sign(msgHash, key)
 	}
 
 	return x, y, err
@@ -140,12 +140,12 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 //   - *felt.Felt: a pointer to a private key as a felt.Felt
 func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 	// Get random keys
-	privateKey, err := curve.Curve.GetRandomPrivateKey()
+	privateKey, err := curve.GetRandomPrivateKey()
 	if err != nil {
 		fmt.Println("can't get random private key:", err)
 		os.Exit(1)
 	}
-	pubX, _, err := curve.Curve.PrivateToPoint(privateKey)
+	pubX, _, err := curve.PrivateToPoint(privateKey)
 	if err != nil {
 		fmt.Println("can't generate public key:", err)
 		os.Exit(1)
