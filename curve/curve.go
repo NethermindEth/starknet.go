@@ -49,13 +49,13 @@ func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
 //   - msgHash: The message hash to be verified
 //   - r: The r component of the signature
 //   - s: The s component of the signature
-//   - pubX: The x-coordinate of the public key used for verification
-//   - pubY: The y-coordinate of the public key used for verification
+//   - pubX: The x-coordinate of the public key used for verification,
+//     usually used as the account public key.
 //
 // Returns:
 //   - bool: true if the signature is valid, false otherwise
 //   - error: An error if any occurred during the verification process
-func Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
+func Verify(msgHash, r, s, pubX *big.Int) (bool, error) {
 	pubKey := junoCrypto.NewPublicKey(new(felt.Felt).SetBigInt(pubX))
 	msgHashFelt := new(felt.Felt).SetBigInt(msgHash)
 	rFelt := new(felt.Felt).SetBigInt(r)
@@ -71,13 +71,13 @@ func Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
 //   - msgHash: The message hash to be verified
 //   - r: The r component of the signature
 //   - s: The s component of the signature
-//   - pubX: The x-coordinate of the public key used for verification
-//   - pubY: The y-coordinate of the public key used for verification
+//   - pubX: The x-coordinate of the public key used for verification,
+//     usually used as the account public key.
 //
 // Returns:
 //   - bool: true if the signature is valid, false otherwise
 //   - error: An error if any occurred during the verification process
-func VerifyFelts(msgHash, r, s, pubX, pubY *felt.Felt) (bool, error) {
+func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error) {
 	pubKey := junoCrypto.NewPublicKey(pubX)
 
 	return pubKey.Verify(&junoCrypto.Signature{R: *r, S: *s}, msgHash)
@@ -256,50 +256,4 @@ func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 //   - error: An error if any
 func StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
-}
-
-// VerifySignature verifies the ECDSA signature of a given message hash using the provided public key.
-//
-// It takes the message hash, the r and s values of the signature, and the public key as strings and
-// verifies the signature using the public key.
-//
-// Parameters:
-//   - msgHash: The hash of the message to be verified as a string
-//   - r: The r value (the first part) of the signature as a string
-//   - s: The s value (the second part) of the signature as a string
-//   - pubKey: The public key (only the x coordinate) as a string
-//
-// Return values:
-//   - bool: A boolean indicating whether the signature is valid
-//   - error: An error if any occurred during the verification process
-func VerifySignature(msgHash, r, s, pubKey string) bool {
-	feltMsgHash, err := new(felt.Felt).SetString(msgHash)
-	if err != nil {
-		return false
-	}
-	feltR, err := new(felt.Felt).SetString(r)
-	if err != nil {
-		return false
-	}
-	feltS, err := new(felt.Felt).SetString(s)
-	if err != nil {
-		return false
-	}
-	pubKeyFelt, err := new(felt.Felt).SetString(pubKey)
-	if err != nil {
-		return false
-	}
-
-	signature := junoCrypto.Signature{
-		R: *feltR,
-		S: *feltS,
-	}
-
-	pubKeyStruct := junoCrypto.NewPublicKey(pubKeyFelt)
-	resp, err := pubKeyStruct.Verify(&signature, feltMsgHash)
-	if err != nil {
-		return false
-	}
-
-	return resp
 }

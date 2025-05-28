@@ -54,7 +54,7 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, x, y, err := GetRandomKeys()
+	private, x, _, err := GetRandomKeys()
 	require.NoError(b, err)
 	b.ResetTimer()
 
@@ -72,7 +72,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 		require.NoError(b, err)
 
 		b.StartTimer()
-		result, _ = Verify(hashBigInt, r, s, x, y)
+		result, _ = Verify(hashBigInt, r, s, x)
 		b.StopTimer()
 
 		resp := result.(bool)
@@ -144,13 +144,13 @@ func TestHashAndSign(t *testing.T) {
 		big.NewInt(1953658213),
 	})
 
-	priv, x, y, err := GetRandomKeys()
+	priv, x, _, err := GetRandomKeys()
 	require.NoError(t, err)
 
 	r, s, err := Sign(hashy, priv)
 	require.NoError(t, err)
 
-	resp, err := Verify(hashy, r, s, x, y)
+	resp, err := Verify(hashy, r, s, x)
 	require.NoError(t, err)
 	require.True(t, resp)
 }
@@ -167,32 +167,32 @@ func TestBadSignature(t *testing.T) {
 	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
-	priv, x, y, err := GetRandomKeys()
+	priv, x, _, err := GetRandomKeys()
 	require.NoError(t, err)
 
 	r, s, err := Sign(hashBigInt, priv)
 	require.NoError(t, err)
 
 	// validating the correct signatures
-	result, err := Verify(hashBigInt, r, s, x, y)
+	result, err := Verify(hashBigInt, r, s, x)
 	require.NoError(t, err)
 	assert.True(t, result)
 
 	// testing bad R signature
 	badR := new(big.Int).Add(r, big.NewInt(1))
-	result, err = Verify(hashBigInt, badR, s, x, y)
+	result, err = Verify(hashBigInt, badR, s, x)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	// testing bad S signature
 	badS := new(big.Int).Add(s, big.NewInt(1))
-	result, err = Verify(hashBigInt, r, badS, x, y)
+	result, err = Verify(hashBigInt, r, badS, x)
 	require.NoError(t, err)
 	assert.False(t, result)
 
 	// testing bad hash
 	badHash := new(big.Int).Add(hashBigInt, big.NewInt(1))
-	result, err = Verify(badHash, r, s, x, y)
+	result, err = Verify(badHash, r, s, x)
 	require.NoError(t, err)
 	assert.False(t, result)
 }
@@ -211,14 +211,18 @@ func TestBadSignature(t *testing.T) {
 func TestVerifySignature(t *testing.T) {
 	// values verified with starknet.js
 
-	msgHash := "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336"
-	r := "0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4"
-	s := "0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879"
-	fullPubKey := "0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c"
+	msgHash := internalUtils.TestHexToFelt(t, "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336")
+	r := internalUtils.TestHexToFelt(t, "0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4")
+	s := internalUtils.TestHexToFelt(t, "0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879")
+	pubKey := internalUtils.TestHexToFelt(t, "0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c")
 
-	require.True(t, VerifySignature(msgHash, r, s, fullPubKey))
+	resp, err := VerifyFelts(msgHash, r, s, pubKey)
+	require.NoError(t, err)
+	require.True(t, resp)
 
 	// Change the last digit of the message hash to test invalid signature
-	wrongMsgHash := "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2337"
-	require.False(t, VerifySignature(wrongMsgHash, r, s, fullPubKey))
+	wrongMsgHash := internalUtils.TestHexToFelt(t, "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2337")
+	resp, err = VerifyFelts(wrongMsgHash, r, s, pubKey)
+	require.NoError(t, err)
+	require.False(t, resp)
 }

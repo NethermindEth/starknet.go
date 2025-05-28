@@ -41,7 +41,14 @@ func main() {
 	fmt.Println("Signature:", signature)
 
 	// verify the signature
-	isValid := curve.VerifySignature(messageHash.String(), signature[0].String(), signature[1].String(), setup.GetPublicKey())
+	pubKeyFelt, err := utils.HexToFelt(setup.GetPublicKey())
+	if err != nil {
+		panic(fmt.Errorf("fail to convert public key to felt: %w", err))
+	}
+	isValid, err := curve.VerifyFelts(messageHash, signature[0], signature[1], pubKeyFelt)
+	if err != nil {
+		panic(fmt.Errorf("fail to verify signature: %w", err))
+	}
 	fmt.Println("Verification result:", isValid)
 }
 
