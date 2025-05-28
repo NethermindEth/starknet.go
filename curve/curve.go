@@ -83,10 +83,21 @@ func VerifyFelts(msgHash, r, s, pubX, pubY *felt.Felt) (bool, error) {
 	return pubKey.Verify(&junoCrypto.Signature{R: *r, S: *s}, msgHash)
 }
 
+// Sign calculates the signature of a message using the StarkCurve algorithm.
+//
+// Parameters:
+//   - msgHash: The message hash to be signed
+//   - privKey: The private key used for signing
+//
+// Returns:
+//   - r: The r component of the signature
+//   - s: The s component of the signature
+//   - error: An error if any occurred during the signing process
 func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
-	// generating pub and priv keys
+	// generating pub and priv key types from the 'privKey' parameter
 	g1a := g1Affline.ScalarMultiplicationBase(privKey)
 
+	// pub
 	var pubKeyStruct ecdsa.PublicKey
 	pubKeyBytes := g1a.Bytes()
 	_, err = pubKeyStruct.SetBytes(pubKeyBytes[:])
@@ -94,6 +105,7 @@ func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 		return nil, nil, err
 	}
 
+	// priv
 	var privKeyStruct ecdsa.PrivateKey
 	privKeyBytes := privKey.Bytes()
 	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
