@@ -43,6 +43,18 @@ func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
 	return &yFelt
 }
 
+// Verify verifies the validity of the signature for a given message hash using the StarkCurve.
+//
+// Parameters:
+//   - msgHash: The message hash to be verified
+//   - r: The r component of the signature
+//   - s: The s component of the signature
+//   - pubX: The x-coordinate of the public key used for verification
+//   - pubY: The y-coordinate of the public key used for verification
+//
+// Returns:
+//   - bool: true if the signature is valid, false otherwise
+//   - error: An error if any occurred during the verification process
 func Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
 	pubKey := junoCrypto.NewPublicKey(new(felt.Felt).SetBigInt(pubX))
 	msgHashFelt := new(felt.Felt).SetBigInt(msgHash)
@@ -52,7 +64,26 @@ func Verify(msgHash, r, s, pubX, pubY *big.Int) (bool, error) {
 	return pubKey.Verify(&junoCrypto.Signature{R: *rFelt, S: *sFelt}, msgHashFelt)
 }
 
-func Sign(msgHash, privKey *big.Int, seed ...*big.Int) (r, s *big.Int, err error) {
+// VerifyFelts verifies the validity of the signature for a given message hash using the StarkCurve.
+// It does the same as Verify, but with felt.Felt parameters.
+//
+// Parameters:
+//   - msgHash: The message hash to be verified
+//   - r: The r component of the signature
+//   - s: The s component of the signature
+//   - pubX: The x-coordinate of the public key used for verification
+//   - pubY: The y-coordinate of the public key used for verification
+//
+// Returns:
+//   - bool: true if the signature is valid, false otherwise
+//   - error: An error if any occurred during the verification process
+func VerifyFelts(msgHash, r, s, pubX, pubY *felt.Felt) (bool, error) {
+	pubKey := junoCrypto.NewPublicKey(pubX)
+
+	return pubKey.Verify(&junoCrypto.Signature{R: *r, S: *s}, msgHash)
+}
+
+func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 	// generating pub and priv keys
 	g1a := g1Affline.ScalarMultiplicationBase(privKey)
 
