@@ -82,7 +82,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	}
 }
 
-// TestGeneral_PrivateToPoint tests the PrivateToPoint function.
+// TestPrivateToPoint tests the PrivateToPoint function.
 //
 // Parameters:
 //   - t: a *testing.T value representing the testing context
@@ -90,7 +90,7 @@ func BenchmarkSignatureVerify(b *testing.B) {
 // Returns:
 //
 //	none
-func TestGeneral_PrivateToPoint(t *testing.T) {
+func TestPrivateToPoint(t *testing.T) {
 	x, _, err := PrivateToPoint(big.NewInt(2))
 	require.NoError(t, err)
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
@@ -99,7 +99,7 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 	assert.Equal(t, expectedX, x)
 }
 
-// TestGeneral_ComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
+// TestComputeHashOnElements is a test function that verifies the correctness of the ComputeHashOnElements and PedersenArray functions in the General package.
 //
 // This function tests both functions by passing in different arrays of big.Int elements and comparing the computed hash with the expected hash.
 // It checks the behavior of the functions when an empty array is passed as input, as well as when an array with multiple elements is passed.
@@ -110,7 +110,7 @@ func TestGeneral_PrivateToPoint(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_ComputeHashOnElements(t *testing.T) {
+func TestComputeHashOnElements(t *testing.T) {
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
 	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
 
@@ -132,7 +132,7 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 	require.Equal(t, internalUtils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
 }
 
-// TestGeneral_HashAndSign is a test function that verifies the hashing and signing process.
+// TestHashAndSign is a test function that verifies the hashing and signing process.
 //
 // Parameters:
 //   - t: The testing.T object for running the test.
@@ -140,7 +140,7 @@ func TestGeneral_ComputeHashOnElements(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_HashAndSign(t *testing.T) {
+func TestHashAndSign(t *testing.T) {
 	hashy := HashPedersenElements([]*big.Int{
 		big.NewInt(1953658213),
 		big.NewInt(126947999705460),
@@ -160,7 +160,7 @@ func TestGeneral_HashAndSign(t *testing.T) {
 	require.True(t, resp)
 }
 
-// TestGeneral_BadSignature tests the behavior of the function that checks for bad signatures.
+// TestBadSignature tests the behavior of the function that checks for bad signatures.
 //
 // Parameters:
 //   - t: The testing.T object for running the test
@@ -168,7 +168,7 @@ func TestGeneral_HashAndSign(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_BadSignature(t *testing.T) {
+func TestBadSignature(t *testing.T) {
 	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
@@ -204,7 +204,7 @@ func TestGeneral_BadSignature(t *testing.T) {
 	assert.False(t, result)
 }
 
-// TestGeneral_VerifySignature is a test function that verifies the correctness of the VerifySignature function.
+// TestVerifySignature is a test function that verifies the correctness of the VerifySignature function.
 //
 // It checks if the signature of a given message hash is valid using the provided r, s values and the public key.
 // The function takes no parameters and returns no values.
@@ -215,7 +215,7 @@ func TestGeneral_BadSignature(t *testing.T) {
 // Returns:
 //
 //	none
-func TestGeneral_VerifySignature(t *testing.T) {
+func TestVerifySignature(t *testing.T) {
 	// values verified with starknet.js
 
 	msgHash := "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336"
