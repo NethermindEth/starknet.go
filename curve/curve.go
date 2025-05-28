@@ -112,8 +112,8 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 	privKey = new(big.Int).SetBytes(privKBytes)
 
 	return privKey,
-		fullPrivK.PublicKey.A.X.BigInt(x),
-		fullPrivK.PublicKey.A.Y.BigInt(y),
+		fullPrivK.PublicKey.A.X.BigInt(new(big.Int)),
+		fullPrivK.PublicKey.A.Y.BigInt(new(big.Int)),
 		nil
 }
 
@@ -131,7 +131,7 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
 	res := g1Affline.ScalarMultiplicationBase(privKey)
 
-	return res.X.BigInt(x), res.Y.BigInt(y)
+	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int))
 }
 
 // GetYCoordinate returns the y-coordinate of a point on the curve given the x-coordinate.
