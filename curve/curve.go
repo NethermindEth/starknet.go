@@ -120,20 +120,30 @@ func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 	return r, s, err
 }
 
-func GetRandomPrivateKey() (*big.Int, error) {
-	priv, err := ecdsa.GenerateKey(rand.Reader)
+// GetRandomKeys generates a random private key and its corresponding public key.
+//
+// Returns:
+//   - privKey: The private key
+//   - x: The x-coordinate of the public key (the Starknet public key)
+//   - y: The y-coordinate of the public key
+//   - err: An error if any occurred during the key generation process
+func GetRandomKeys() (privKey, x, y *big.Int, err error) {
+	fullPrivK, err := ecdsa.GenerateKey(rand.Reader)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	// A 64 bytes array containing both public (compressed) and private keys.
-	privBytes := priv.Bytes()
+	fullPrivKBytes := fullPrivK.Bytes()
 	// The remaining 32 bytes are the private key.
-	finalPrivKeyBytes := privBytes[32:]
+	privKBytes := fullPrivKBytes[32:]
 
-	finalPrivKey := new(big.Int).SetBytes(finalPrivKeyBytes)
+	privKey = new(big.Int).SetBytes(privKBytes)
 
-	return finalPrivKey, nil
+	return privKey,
+		fullPrivK.PublicKey.A.X.BigInt(x),
+		fullPrivK.PublicKey.A.Y.BigInt(y),
+		nil
 }
 
 func PrivateToPoint(privKey *big.Int) (x, y *big.Int, err error) {

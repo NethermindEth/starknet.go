@@ -54,9 +54,7 @@ func BenchmarkCurveSign(b *testing.B) {
 //
 //	none
 func BenchmarkSignatureVerify(b *testing.B) {
-	private, err := GetRandomPrivateKey()
-	require.NoError(b, err)
-	x, y, err := PrivateToPoint(private)
+	private, x, y, err := GetRandomKeys()
 	require.NoError(b, err)
 	b.ResetTimer()
 
@@ -147,9 +145,7 @@ func TestHashAndSign(t *testing.T) {
 		big.NewInt(1953658213),
 	})
 
-	priv, err := GetRandomPrivateKey()
-	require.NoError(t, err)
-	x, y, err := PrivateToPoint(priv)
+	priv, x, y, err := GetRandomKeys()
 	require.NoError(t, err)
 
 	r, s, err := Sign(hashy, priv)
@@ -172,9 +168,7 @@ func TestBadSignature(t *testing.T) {
 	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
-	priv, err := GetRandomPrivateKey()
-	require.NoError(t, err)
-	x, y, err := PrivateToPoint(priv)
+	priv, x, y, err := GetRandomKeys()
 	require.NoError(t, err)
 
 	r, s, err := Sign(hashBigInt, priv)
