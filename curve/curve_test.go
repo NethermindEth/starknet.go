@@ -1,6 +1,7 @@
 package curve
 
 import (
+	"crypto/rand"
 	"math/big"
 	"testing"
 
@@ -187,6 +188,33 @@ func TestPrivateKeyEndToEnd(t *testing.T) {
 				assert.Equal(t,
 					internalUtils.FillHexWithZeroes(test.privK),
 					internalUtils.FillHexWithZeroes(privKey.Text(16)))
+			})
+		}
+	})
+
+	t.Run("sign and verify", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range testSet {
+			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
+
+				privK := internalUtils.HexToBN(test.privK)
+				pubK := internalUtils.HexToBN(test.pubK)
+				randMsh, err := rand.Int(rand.Reader, privK)
+				require.NoError(t, err)
+
+				r, s, err := Sign(randMsh, privK)
+				require.NoError(t, err)
+
+				// validating the correct signature
+				result, err := Verify(randMsh, r, s, pubK)
+				require.NoError(t, err)
+				assert.True(t, result)
+
+				// testing bad signature
+				result, err = Verify(randMsh, r.Add(r, big.NewInt(1)), s, pubK)
+				require.NoError(t, err)
+				assert.False(t, result)
 			})
 		}
 	})
