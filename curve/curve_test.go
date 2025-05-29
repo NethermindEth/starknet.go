@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -59,11 +60,97 @@ func BenchmarkSignatureVerify(b *testing.B) {
 
 // TestPrivateToPoint tests the PrivateToPoint function.
 func TestPrivateToPoint(t *testing.T) {
+	t.Parallel()
 	x, _ := PrivateKeyToPoint(big.NewInt(2))
 	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
 
 	assert.Equal(t, expectedX, x)
+}
+
+func TestPrivateKeyEndToEnd(t *testing.T) {
+	t.Parallel()
+
+	testSet := []struct {
+		privK string
+		pubK  string
+	}{ // taken from devnet accounts
+		{
+			privK: "0x0000000000000000000000000000000085b0ed141c12d4297a9f6fa3032b9757",
+			pubK:  "0x043135f5e8e5e73d9750659bb5cccc803bc63318584933d584f9b5372ee8ffa6",
+		},
+		{
+			privK: "0x00000000000000000000000000000000b3de4d1a7a54cb19e2fbf0897cdaa555",
+			pubK:  "0x06591082275c7da568b1542044eb08c2fcf3e0c75121a5275dce4960367f2bb8",
+		},
+		{
+			privK: "0x00000000000000000000000000000000522e4cd212156cf8ef4052615570ad8f",
+			pubK:  "0x006a78b5ad5abdb109d4d362c14895efbd45a111d5f80157f669fd127ad0c0fd",
+		},
+		{
+			privK: "0x000000000000000000000000000000000baa0de5814f3b01f797c26b8e4e15c5",
+			pubK:  "0x021a2016d43180337d76210eb85a016d2e28e315330c70fc66151c60981b0a18",
+		},
+		{
+			privK: "0x0000000000000000000000000000000085dee1deeb9c5212f92ccaaae0891bc4",
+			pubK:  "0x0590047e22670dd8338582556e69e2874113ecfeb96e948f38e9d8d49258bb3c",
+		},
+		{
+			privK: "0x000000000000000000000000000000005528b45100c856799d326bc1340a68d7",
+			pubK:  "0x04c8606899ef4fa13bd87683710832ebdab5ebb8550f2781594fc819190ec478",
+		},
+		{
+			privK: "0x000000000000000000000000000000001d7ca805b693b571b95b6858a2d7f55b",
+			pubK:  "0x04f8c79272766f492c7a753efce366e277c6da76b01f7c380c555004614f9403",
+		},
+		{
+			privK: "0x000000000000000000000000000000007e594f2a0862cfc474eff190c4d8a53b",
+			pubK:  "0x01bc0e0a1589a5364334c91b1dbccd5e3fb723cedc842625472ba0e9ffb5a16e",
+		},
+		{
+			privK: "0x00000000000000000000000000000000c028449dab59500f6abef03ae61d9306",
+			pubK:  "0x0559d382842465d1add1e04e1e873d34e4102dfc9a49bb64f414f3c037006e6a",
+		},
+		{
+			privK: "0x00000000000000000000000000000000e2f6c88bd587ea90e65db1cda8a90918",
+			pubK:  "0x03796f3fbe494243b1afeb7a0921500082f6c3c4cfb2af7f963700eb4e0a6c89",
+		},
+	}
+
+	for _, test := range testSet {
+		privK := internalUtils.HexToBN(test.privK)
+
+		g1a := g1Affline.ScalarMultiplicationBase(privK)
+
+		// ****** asserts whether a public key returned by the 'ecdsa.PublicKey' struct is
+		// the same as the original public key
+		var pubKeyStruct ecdsa.PublicKey
+		pubKeyBytes := g1a.Bytes()
+		_, err := pubKeyStruct.SetBytes(pubKeyBytes[:])
+		require.NoError(t, err)
+
+		assert.Equal(t, test.pubK, internalUtils.FillHexWithZeroes(pubKeyStruct.A.X.Text(16)))
+
+		// ****** asserts whether a private key returned by the 'ecdsa.PrivateKey' struct is
+		// the same as the original private key.
+
+		// Assigning the private key
+		var privKeyStruct ecdsa.PrivateKey
+		privKeyBytes, err := fmtPrivKey(privK)
+		require.NoError(t, err)
+		privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
+		_, err = privKeyStruct.SetBytes(privKeyInput)
+		require.NoError(t, err)
+
+		// Getting the private key
+		// A 64 bytes array containing both public (compressed) and private keys.
+		fullPrivKBytes := privKeyStruct.Bytes()
+		// The remaining 32 bytes are the private key.
+		privKBytes := fullPrivKBytes[32:]
+		privKey := new(big.Int).SetBytes(privKBytes)
+
+		assert.Equal(t, test.privK, internalUtils.FillHexWithZeroes(privKey.Text(16)))
+	}
 }
 
 // TestComputeHashOnElements is a test function that verifies the correctness of the
@@ -74,6 +161,7 @@ func TestPrivateToPoint(t *testing.T) {
 // It checks the behaviour of the functions when an empty array is passed as input,
 // as well as when an array with multiple elements is passed.
 func TestComputeHashOnElements(t *testing.T) {
+	t.Parallel()
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
 	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
 
@@ -98,6 +186,7 @@ func TestComputeHashOnElements(t *testing.T) {
 // TestSignature tests the behaviour of the Sign and Verify functions against
 // the expected values.
 func TestSignature(t *testing.T) {
+	t.Parallel()
 	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
@@ -135,6 +224,7 @@ func TestSignature(t *testing.T) {
 //
 // It checks if the signature of a given message hash is valid using the provided r, s values and the public key.
 func TestVerifySignature(t *testing.T) {
+	t.Parallel()
 	// values verified with starknet.js
 
 	msgHash := internalUtils.TestHexToFelt(t, "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336")

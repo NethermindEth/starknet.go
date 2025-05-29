@@ -2,6 +2,8 @@ package curve
 
 import (
 	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
@@ -78,7 +80,10 @@ func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 
 	// priv
 	var privKeyStruct ecdsa.PrivateKey
-	privKeyBytes := privKey.Bytes()
+	privKeyBytes, err := fmtPrivKey(privKey)
+	if err != nil {
+		return nil, nil, err
+	}
 	privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
 	_, err = privKeyStruct.SetBytes(privKeyInput)
 	if err != nil {
@@ -254,4 +259,10 @@ func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 //   - error: An error if any
 func StarknetKeccak(b []byte) *felt.Felt {
 	return junoCrypto.StarknetKeccak(b)
+}
+
+// fmtPrivKey formats a private key to a 32 bytes array by padding it
+// with leading zeroes if necessary, which is required by the ecdsa.PrivateKey type.
+func fmtPrivKey(privKey *big.Int) ([]byte, error) {
+	return hex.DecodeString(fmt.Sprintf("%064s", privKey.Text(16)))
 }
