@@ -18,8 +18,6 @@ import (
 
 const (
 	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-	// specVersionMethod is the RPC method name for fetching spec version
-	specVersionMethod = "starknet_specVersion"
 )
 
 // testConfiguration is a type that is used to configure tests
@@ -191,8 +189,10 @@ func TestCookieManagement(t *testing.T) {
 
 // TestVersionCompatibility tests that the provider correctly handles version compatibility warnings
 func TestVersionCompatibility(t *testing.T) {
-	// Set up a server that responds with different RPC versions
-	compatibleServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	const specVersionMethod = "starknet_specVersion"
+
+	// Set up a single server that responds differently based on query parameters
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -201,85 +201,67 @@ func TestVersionCompatibility(t *testing.T) {
 		}
 
 		if method, ok := request["method"].(string); ok && method == specVersionMethod {
-			// Return the same version as RPCVersion
-			data := map[string]interface{}{
-				"jsonrpc": "2.0",
-				"id":      request["id"],
-				"result":  RPCVersion,
-			}
-			if err := json.NewEncoder(w).Encode(data); err != nil {
-				log.Fatal(err)
-			}
-		}
-	}))
-	defer compatibleServer.Close()
+			// Get test case from query parameter
+			testCase := r.URL.Query().Get("testCase")
 
-	incompatibleServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request map[string]interface{}
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-
-			return
-		}
-
-		if method, ok := request["method"].(string); ok && method == specVersionMethod {
-			// Return a different version
-			data := map[string]interface{}{
-				"jsonrpc": "2.0",
-				"id":      request["id"],
-				"result":  "0.5.0", // Different version
-			}
-			if err := json.NewEncoder(w).Encode(data); err != nil {
-				log.Fatal(err)
-			}
-		}
-	}))
-	defer incompatibleServer.Close()
-
-	errorServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request map[string]interface{}
-		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-
-			return
-		}
-
-		if method, ok := request["method"].(string); ok && method == specVersionMethod {
-			// Return an error
-			data := map[string]interface{}{
-				"jsonrpc": "2.0",
-				"id":      request["id"],
-				"error": map[string]interface{}{
-					"code":    -32601,
-					"message": "Method not found",
-				},
-			}
-			if err := json.NewEncoder(w).Encode(data); err != nil {
-				log.Fatal(err)
+			switch testCase {
+			case "compatible":
+				// Return the same version as RPCVersion
+				data := map[string]interface{}{
+					"jsonrpc": "2.0",
+					"id":      request["id"],
+					"result":  RPCVersion,
+				}
+				if err := json.NewEncoder(w).Encode(data); err != nil {
+					log.Fatal(err)
+				}
+			case "incompatible":
+				// Return a different version
+				data := map[string]interface{}{
+					"jsonrpc": "2.0",
+					"id":      request["id"],
+					"result":  "0.5.0", // Different version
+				}
+				if err := json.NewEncoder(w).Encode(data); err != nil {
+					log.Fatal(err)
+				}
+			case "error":
+				// Return an error
+				data := map[string]interface{}{
+					"jsonrpc": "2.0",
+					"id":      request["id"],
+					"error": map[string]interface{}{
+						"code":    -32601,
+						"message": "Method not found",
+					},
+				}
+				if err := json.NewEncoder(w).Encode(data); err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 	}))
-	defer errorServer.Close()
+	defer testServer.Close()
 
 	// Test cases
 	testCases := []struct {
 		name            string
-		serverURL       string
+		queryParam      string
 		expectedWarning string
 	}{
 		{
 			name:            "Compatible version",
-			serverURL:       compatibleServer.URL,
+			queryParam:      "compatible",
 			expectedWarning: "",
 		},
 		{
 			name:            "Incompatible version",
-			serverURL:       incompatibleServer.URL,
+			queryParam:      "incompatible",
 			expectedWarning: "warning: RPC provider version 0.5.0 is different from expected version " + RPCVersion,
 		},
 		{
 			name:            "Error fetching version",
-			serverURL:       errorServer.URL,
+			queryParam:      "error",
 			expectedWarning: "warning: Could not check RPC version compatibility",
 		},
 	}
@@ -291,8 +273,9 @@ func TestVersionCompatibility(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
-			// Create provider - this will trigger the version check
-			provider, err := NewProvider(tc.serverURL)
+			// Create provider with query parameter - this will trigger the version check
+			serverURL := testServer.URL + "?testCase=" + tc.queryParam
+			provider, err := NewProvider(serverURL)
 			require.NoError(t, err)
 			require.NotNil(t, provider)
 

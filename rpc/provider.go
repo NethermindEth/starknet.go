@@ -24,24 +24,26 @@ var (
 // This should be updated when supporting new versions of the RPC specification.
 const RPCVersion = "0.8.1"
 
+// Warning messages for version compatibility
+const (
+	WarningVersionCheckFailed = "warning: Could not check RPC version compatibility: %v"
+	WarningVersionMismatch    = "warning: RPC provider version %s is different from expected version %s. This may cause unexpected behaviour"
+)
+
 // checkVersionCompatibility checks if the RPC provider version is compatible with the SDK version
-// and returns a warning if they don't match.
-func checkVersionCompatibility(provider *Provider) error {
+// and prints a warning if they don't match.
+func checkVersionCompatibility(provider *Provider) {
 	version, err := provider.SpecVersion(context.Background())
 	if err != nil {
-		// Return a warning but don't fail
-		return fmt.Errorf("warning: Could not check RPC version compatibility: %v", err)
+		// Print a warning but don't fail
+		fmt.Printf(WarningVersionCheckFailed+"\n", err)
+
+		return
 	}
 
 	if !strings.Contains(version, RPCVersion) {
-		return fmt.Errorf(
-			"warning: RPC provider version %s is different from expected version %s. "+
-				"This may cause unexpected behaviour",
-			version, RPCVersion,
-		)
+		fmt.Printf(WarningVersionMismatch+"\n", version, RPCVersion)
 	}
-
-	return nil
 }
 
 // Provider provides the provider for starknet.go/rpc implementation.
@@ -77,10 +79,7 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 	provider := &Provider{c: c, chainID: ""}
 
 	// Check version compatibility
-	if err := checkVersionCompatibility(provider); err != nil {
-		// Log the warning but don't fail initialization
-		fmt.Printf("%v\n", err)
-	}
+	checkVersionCompatibility(provider)
 
 	return provider, nil
 }
