@@ -72,85 +72,125 @@ func TestPrivateKeyEndToEnd(t *testing.T) {
 	t.Parallel()
 
 	testSet := []struct {
+		name  string
 		privK string
 		pubK  string
 	}{ // taken from devnet accounts
 		{
+			name:  "case1",
 			privK: "0x0000000000000000000000000000000085b0ed141c12d4297a9f6fa3032b9757",
 			pubK:  "0x043135f5e8e5e73d9750659bb5cccc803bc63318584933d584f9b5372ee8ffa6",
 		},
 		{
+			name:  "case2",
 			privK: "0x00000000000000000000000000000000b3de4d1a7a54cb19e2fbf0897cdaa555",
 			pubK:  "0x06591082275c7da568b1542044eb08c2fcf3e0c75121a5275dce4960367f2bb8",
 		},
 		{
+			name:  "case3",
 			privK: "0x00000000000000000000000000000000522e4cd212156cf8ef4052615570ad8f",
 			pubK:  "0x006a78b5ad5abdb109d4d362c14895efbd45a111d5f80157f669fd127ad0c0fd",
 		},
 		{
+			name:  "case4",
 			privK: "0x000000000000000000000000000000000baa0de5814f3b01f797c26b8e4e15c5",
 			pubK:  "0x021a2016d43180337d76210eb85a016d2e28e315330c70fc66151c60981b0a18",
 		},
 		{
+			name:  "case5",
 			privK: "0x0000000000000000000000000000000085dee1deeb9c5212f92ccaaae0891bc4",
 			pubK:  "0x0590047e22670dd8338582556e69e2874113ecfeb96e948f38e9d8d49258bb3c",
 		},
 		{
+			name:  "case6",
 			privK: "0x000000000000000000000000000000005528b45100c856799d326bc1340a68d7",
 			pubK:  "0x04c8606899ef4fa13bd87683710832ebdab5ebb8550f2781594fc819190ec478",
 		},
 		{
+			name:  "case7",
 			privK: "0x000000000000000000000000000000001d7ca805b693b571b95b6858a2d7f55b",
 			pubK:  "0x04f8c79272766f492c7a753efce366e277c6da76b01f7c380c555004614f9403",
 		},
 		{
+			name:  "case8",
 			privK: "0x000000000000000000000000000000007e594f2a0862cfc474eff190c4d8a53b",
 			pubK:  "0x01bc0e0a1589a5364334c91b1dbccd5e3fb723cedc842625472ba0e9ffb5a16e",
 		},
 		{
+			name:  "case9",
 			privK: "0x00000000000000000000000000000000c028449dab59500f6abef03ae61d9306",
 			pubK:  "0x0559d382842465d1add1e04e1e873d34e4102dfc9a49bb64f414f3c037006e6a",
 		},
 		{
+			name:  "case10",
 			privK: "0x00000000000000000000000000000000e2f6c88bd587ea90e65db1cda8a90918",
 			pubK:  "0x03796f3fbe494243b1afeb7a0921500082f6c3c4cfb2af7f963700eb4e0a6c89",
 		},
+		{
+			name:  "without some zeroes",
+			privK: "0x0000000000e2f6c88bd587ea90e65db1cda8a90918",
+			pubK:  "0x3796f3fbe494243b1afeb7a0921500082f6c3c4cfb2af7f963700eb4e0a6c89",
+		},
+		{
+			name:  "without leading zeroes",
+			privK: "0xe2f6c88bd587ea90e65db1cda8a90918",
+			pubK:  "0x3796f3fbe494243b1afeb7a0921500082f6c3c4cfb2af7f963700eb4e0a6c89",
+		},
+		{
+			name:  "without '0x' prefix + without leading zeroes",
+			privK: "e2f6c88bd587ea90e65db1cda8a90918",
+			pubK:  "3796f3fbe494243b1afeb7a0921500082f6c3c4cfb2af7f963700eb4e0a6c89",
+		},
 	}
 
-	for _, test := range testSet {
-		privK := internalUtils.HexToBN(test.privK)
+	t.Run("deriving keys and comparing", func(t *testing.T) {
+		t.Parallel()
+		for _, test := range testSet {
+			t.Run(test.name, func(t *testing.T) {
+				t.Parallel()
 
-		g1a := g1Affline.ScalarMultiplicationBase(privK)
+				privK := internalUtils.HexToBN(test.privK)
 
-		// ****** asserts whether a public key returned by the 'ecdsa.PublicKey' struct is
-		// the same as the original public key
-		var pubKeyStruct ecdsa.PublicKey
-		pubKeyBytes := g1a.Bytes()
-		_, err := pubKeyStruct.SetBytes(pubKeyBytes[:])
-		require.NoError(t, err)
+				g1a := g1Affline.ScalarMultiplicationBase(privK)
 
-		assert.Equal(t, test.pubK, internalUtils.FillHexWithZeroes(pubKeyStruct.A.X.Text(16)))
+				// ****** asserts whether a public key returned by the 'ecdsa.PublicKey' struct is
+				// the same as the original public key
+				var pubKeyStruct ecdsa.PublicKey
+				pubKeyBytes := g1a.Bytes()
+				_, err := pubKeyStruct.SetBytes(pubKeyBytes[:])
+				require.NoError(t, err)
 
-		// ****** asserts whether a private key returned by the 'ecdsa.PrivateKey' struct is
-		// the same as the original private key.
+				assert.Contains(t, test.pubK, pubKeyStruct.A.X.Text(16))
+				assert.Equal(t,
+					internalUtils.FillHexWithZeroes(test.pubK),
+					internalUtils.FillHexWithZeroes(pubKeyStruct.A.X.Text(16)))
 
-		// Assigning the private key
-		var privKeyStruct ecdsa.PrivateKey
-		privKeyBytes, err := fmtPrivKey(privK)
-		require.NoError(t, err)
-		privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
-		_, err = privKeyStruct.SetBytes(privKeyInput)
-		require.NoError(t, err)
+				// ****** asserts whether a private key returned by the 'ecdsa.PrivateKey' struct is
+				// the same as the original private key.
 
-		// Getting the private key
-		// A 64 bytes array containing both public (compressed) and private keys.
-		fullPrivKBytes := privKeyStruct.Bytes()
-		// The remaining 32 bytes are the private key.
-		privKBytes := fullPrivKBytes[32:]
-		privKey := new(big.Int).SetBytes(privKBytes)
+				// Assigning the private key
+				var privKeyStruct ecdsa.PrivateKey
+				privKeyBytes, err := fmtPrivKey(privK)
+				require.NoError(t, err)
+				privKeyInput := append(pubKeyStruct.Bytes(), privKeyBytes...)
+				_, err = privKeyStruct.SetBytes(privKeyInput)
+				require.NoError(t, err)
 
-		assert.Equal(t, test.privK, internalUtils.FillHexWithZeroes(privKey.Text(16)))
-	}
+				// Getting the private key
+				// A 64 bytes array containing both public (compressed) and private keys.
+				fullPrivKBytes := privKeyStruct.Bytes()
+				// The remaining 32 bytes are the private key.
+				privKBytes := fullPrivKBytes[32:]
+				privKey := new(big.Int).SetBytes(privKBytes)
+
+				assert.Contains(t, test.privK, privKey.Text(16))
+				assert.Equal(t,
+					internalUtils.FillHexWithZeroes(test.privK),
+					internalUtils.FillHexWithZeroes(privKey.Text(16)))
+			})
+		}
+	})
+
 }
 
 // TestComputeHashOnElements is a test function that verifies the correctness of the
