@@ -218,7 +218,6 @@ func TestPrivateKeyEndToEnd(t *testing.T) {
 			})
 		}
 	})
-
 }
 
 // TestComputeHashOnElements is a test function that verifies the correctness of the

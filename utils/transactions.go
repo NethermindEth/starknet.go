@@ -337,7 +337,7 @@ func ResBoundsMapToOverallFee(
 	return new(felt.Felt).SetString(fmt.Sprintf("%#x", overallFeeInt))
 }
 
-// FillHexWithZeroes normalizes a hex string to have a '0x' prefix and pads it with leading zeros
+// FillHexWithZeroes normalises a hex string to have a '0x' prefix and pads it with leading zeros
 // to a total length of 66 characters (including the '0x' prefix).
 func FillHexWithZeroes(hex string) string {
 	return internalUtils.FillHexWithZeroes(hex)

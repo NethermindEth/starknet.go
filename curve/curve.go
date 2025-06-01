@@ -264,5 +264,5 @@ func StarknetKeccak(b []byte) *felt.Felt {
 // fmtPrivKey formats a private key to a 32 bytes array by padding it
 // with leading zeroes if necessary, which is required by the ecdsa.PrivateKey type.
 func fmtPrivKey(privKey *big.Int) ([]byte, error) {
-	return hex.DecodeString(fmt.Sprintf("%064s", privKey.Text(16)))
+	return hex.DecodeString(fmt.Sprintf("%064s", privKey.Text(16))) //nolint:mnd
 }
