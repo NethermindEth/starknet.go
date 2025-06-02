@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	maxUint128                = "0xffffffffffffffffffffffffffffffff"
-	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
-	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
+	maxUint64                 uint64 = math.MaxUint64
+	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
+	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
 // Optional settings when building a transaction.
@@ -279,11 +280,11 @@ func toResourceBounds(
 	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
 
 	// Check for overflow
-	maxUint64 := new(big.Int).SetUint64(math.MaxUint64)
-	maxUint128Int, _ := new(big.Int).SetString(maxUint128, 0)
+	maxUint64 := new(big.Int).SetUint64(maxUint64)
+	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
 	// max_price_per_unit is U128 by the spec
-	if gasPriceInt.Cmp(maxUint128Int) > 0 {
-		gasPriceInt = maxUint128Int
+	if gasPriceInt.Cmp(maxUint128) > 0 {
+		gasPriceInt = maxUint128
 	}
 	// max_amount is U64 by the spec
 	if gasConsumedInt.Cmp(maxUint64) > 0 {
@@ -304,8 +305,8 @@ func toResourceBounds(
 	if maxAmountInt.Cmp(maxUint64) > 0 {
 		maxAmountInt = maxUint64
 	}
-	if maxPricePerUnitInt.Cmp(maxUint128Int) > 0 {
-		maxPricePerUnitInt = maxUint128Int
+	if maxPricePerUnitInt.Cmp(maxUint128) > 0 {
+		maxPricePerUnitInt = maxUint128
 	}
 
 	return rpc.ResourceBounds{
