@@ -5,9 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.11.1...HEAD)
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
+nothing merged yet :D
 
-## Note: starting CHANGELOG.md from v0.11.1. All changes before v0.11.1 were taken directly from the Github releases description
+## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
+### Added
+- `utils.FillHexWithZeroes` utility function
+
+### Changed
+A reestructuring on the entire `curve` pkg. See more in PR [744](https://github.com/NethermindEth/starknet.go/pull/744).
+
+- `StarkCurve.GetRandomPrivateKey()` -> `GetRandomKeys()`
+- `StarkCurve.GetYCoordinate()` -> `GetYCoordinate()`
+- `StarkCurve.Sign()` -> `Sign()`
+- `StarkCurve.PrivateToPoint()` -> `PrivateKeyToPoint()`
+- `StarkCurve.Verify()` -> `Verify()`
+- `VerifySignature()` -> `Verify()`
+
+### Removed:
+- `StarkCurve` type and all its methods
+  - `StarkCurve.Add()`
+  - `StarkCurve.Double()`
+  - `StarkCurve.ScalarMult()`
+  - `StarkCurve.ScalarBaseMult()`
+  - `StarkCurve.IsOnCurve()`
+  - `StarkCurve.InvModCurveSize()`
+  - `StarkCurve.MimicEcMultAir()`
+  - `StarkCurve.EcMult()`
+  - `StarkCurve.SignFelt()`
+  - `StarkCurve.GenerateSecret()`
+  - `StarkCurve.GetYCoordinate()` -> func `GetYCoordinate()`
+  - `StarkCurve.Verify()` -> func `Verify()`
+  - `StarkCurve.Sign()` -> func `Sign()`
+  - `StarkCurve.PrivateToPoint()` -> func `PrivateKeyToPoint()`
+  - `StarkCurve.GetRandomPrivateKey()` -> func `GetRandomKeys()`
+- `StarkCurvePayload` type
+- `PedersenParamsRaw` variable
+- `PedersenParams` variable
+- `Curve` variable implementing the `StarkCurve`
+- `VerifySignature()` function -> func `Verify()`
+- `CurveOption` type
+- `WithConstants` function
+- `curve.DivMod` function
+- `curve.FmtKecBytes` function
+- `curve.MaskBits` function
+- `pedersen_params.json` file
+
+### What's Changed
+* docs: update Cairo account package link by @dizer-ti in https://github.com/NethermindEth/starknet.go/pull/737
+* Documentation Website by @WiseMrMusa in https://github.com/NethermindEth/starknet.go/pull/732
+* Small bug on the starknet_getStorageProof method test by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/740
+* Update mainnetBlockReceipts588763.json data by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/742
+* chore(deps): bump vite from 6.3.3 to 6.3.5 in /www in the npm_and_yarn group across 1 directory by @dependabot in https://github.com/NethermindEth/starknet.go/pull/741
+* Update some txn test data with new Juno data by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/743
+* `curve` pkg migration to `gnark-crypto` implementation by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/744
+* docs: add CHANGELOG.md by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/748
+
+
+**Full Changelog**: https://github.com/NethermindEth/starknet.go/compare/v0.11.1...v0.12.0
+
+**Note: starting CHANGELOG.md from v0.12.0. All descriptions before v0.12.0 were taken directly from the Github releases description**
 
 ## [0.11.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.11.1) - 2025-05-15
 This release fixes the bug when calling the `BuildAndSendDeclareTxn`, `BuildAndSendInvokeTxn`, and `BuildAndEstimateDeployAccountTxn` methods with the `withQueryBitVersion` parameter set to true.
