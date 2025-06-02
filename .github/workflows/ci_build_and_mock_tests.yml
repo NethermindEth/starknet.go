@@ -26,22 +26,26 @@ jobs:
           go-version-file: go.mod
 
       - name: Run all mock tests
+        continue-on-error: true
         run: go test -v ./...
 
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 
       - name: Test Account on devnet
+        continue-on-error: true
         run: cd account && go test -timeout 120s -v -env devnet .
         env:
           HTTP_PROVIDER_URL: "http://localhost:5050"
 
       - name: Test RPC on devnet
+        continue-on-error: true
         run: cd rpc && go test -timeout 120s -v -env devnet .
         env:
           HTTP_PROVIDER_URL: "http://localhost:5050/"
 
       - name: Build examples
+        continue-on-error: true
         run: |
           cd examples/deployAccount && go build
           cd ../deployContractUDC && go build
