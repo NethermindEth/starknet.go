@@ -56,7 +56,7 @@ know them and you can contribute to the associated projects:
 If you want to go deeper into the protocol, there are other interesting
 resources available, check:
 
-- [a set of examples](https://github.com/eqlabs/pathfinder/blob/main/crates/pathfinder/rpc_examples.sh)
+- [a set of examples](https://github.com/eqlabs/pathfinder/blob/main/specs/rpc/rpc_pathfinder_examples.sh)
   from the eqlabs/pathfinder project that provides RPC tests with the project.
   Note that the [go-ethereum] implementation of openrpc only supports positional
   arguments and, some of these examples must be changed into positional calls.
