@@ -76,7 +76,7 @@ func main() {
 		context.Background(),
 		casmClass,
 		contractClass,
-		&utils.TxnOptions{
+		&account.TxnOptions{
 			WithQueryBitVersion: false,
 			Tip:                 "0x0",
 			Multiplier:          1.5,

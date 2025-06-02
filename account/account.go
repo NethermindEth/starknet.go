@@ -27,18 +27,18 @@ type AccountInterface interface {
 		salt *felt.Felt,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
-		opts *utils.TxnOptions,
+		opts *TxnOptions,
 	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,
-		opts *utils.TxnOptions,
+		opts *TxnOptions,
 	) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
-		opts *utils.TxnOptions,
+		opts *TxnOptions,
 	) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
@@ -200,7 +200,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
-	opts *utils.TxnOptions,
+	opts *TxnOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
@@ -264,7 +264,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
-	opts *utils.TxnOptions,
+	opts *TxnOptions,
 ) (*rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
@@ -338,7 +338,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	salt *felt.Felt,
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	opts *utils.TxnOptions,
+	opts *TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,

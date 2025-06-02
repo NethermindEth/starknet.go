@@ -56,7 +56,7 @@ func main() {
 		pub,
 		classHash,
 		[]*felt.Felt{pub},
-		&utils.TxnOptions{
+		&account.TxnOptions{
 			WithQueryBitVersion: false,
 			Tip:                 "0x0",
 			Multiplier:          1.5,

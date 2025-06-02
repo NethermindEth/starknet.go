@@ -28,11 +28,8 @@ type TxnOptions struct {
 	// If false, the transaction version will be rpc.TransactionV3 (0x3).
 	// In case of doubt, set to 'false'. Default: false.
 	WithQueryBitVersion bool
-	// Tip amount for the transaction. Default: "0x0".
+	// Tip amount in FRI for the transaction. Default: "0x0".
 	Tip rpc.U64
-	// Safety factor for fee estimation. Recommended to be 1.5, but at least
-	// greater than 0. If multiplier < 0, all resources bounds will be set to 0.
-	Multiplier float64
 }
 
 // TxnVersion returns TransactionV3WithQueryBit when WithQueryBitVersion is true, otherwise TransactionV3.
@@ -51,10 +48,9 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 // and returned.
 func (opts *TxnOptions) ApplyOptions() *TxnOptions {
 	if opts == nil {
-		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0", Multiplier: 1.5}
+		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0"}
 	}
 	opts.applyTip()
-	opts.applyMultiplier()
 
 	return opts
 }
@@ -68,12 +64,6 @@ func (opts *TxnOptions) applyTip() {
 
 	if _, err := opts.Tip.ToUint64(); err != nil {
 		opts.Tip = "0x0"
-	}
-}
-
-func (opts *TxnOptions) applyMultiplier() {
-	if opts.Multiplier <= 0 {
-		opts.Multiplier = 1.5
 	}
 }
 

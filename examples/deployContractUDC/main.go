@@ -82,7 +82,7 @@ func main() {
 	resp, err := accnt.BuildAndSendInvokeTxn(
 		context.Background(),
 		[]rpc.InvokeFunctionCall{FnCall},
-		&utils.TxnOptions{
+		&account.TxnOptions{
 			WithQueryBitVersion: false,
 			Tip:                 "0x0",
 			Multiplier:          1.5,

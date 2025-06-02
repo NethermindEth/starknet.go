@@ -1297,7 +1297,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, &utils.TxnOptions{
+	}, &account.TxnOptions{
 		WithQueryBitVersion: false,
 		Tip:                 rpc.U64("0x0"),
 		Multiplier:          1.5,
@@ -1346,7 +1346,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 		context.Background(),
 		&casmClass,
 		&class,
-		&utils.TxnOptions{
+		&account.TxnOptions{
 			WithQueryBitVersion: true,
 			Tip:                 rpc.U64("0x0"),
 			Multiplier:          1.5,
@@ -1416,7 +1416,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		&utils.TxnOptions{
+		&account.TxnOptions{
 			WithQueryBitVersion: true,
 			Tip:                 rpc.U64("0x0"),
 			Multiplier:          1.5,
@@ -1462,7 +1462,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, &utils.TxnOptions{
+	}, &account.TxnOptions{
 		WithQueryBitVersion: false,
 		Tip:                 rpc.U64("0x0"),
 		Multiplier:          1.5,
@@ -1621,7 +1621,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					ContractAddress: internalUtils.RANDOM_FELT,
 					FunctionName:    "transfer",
 				},
-			}, &utils.TxnOptions{
+			}, &account.TxnOptions{
 				WithQueryBitVersion: true,
 				Tip:                 rpc.U64("0x0"),
 				Multiplier:          1.5,
@@ -1642,7 +1642,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TxnOptions{
+			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
 				WithQueryBitVersion: true,
 				Tip:                 rpc.U64("0x0"),
 				Multiplier:          1.5,
@@ -1656,7 +1656,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				internalUtils.RANDOM_FELT,
 				[]*felt.Felt{pub},
-				&utils.TxnOptions{
+				&account.TxnOptions{
 					WithQueryBitVersion: true,
 					Tip:                 rpc.U64("0x0"),
 					Multiplier:          1.5,
@@ -1682,7 +1682,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		acnt := newDevnetAccount(t, client, acnts[0], 2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &utils.TxnOptions{
+			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
 				WithQueryBitVersion: true,
 				Tip:                 rpc.U64("0x0"),
 				Multiplier:          1.5,
@@ -1709,7 +1709,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName:    "transfer",
 					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
-			}, &utils.TxnOptions{
+			}, &account.TxnOptions{
 				WithQueryBitVersion: true,
 				Tip:                 rpc.U64("0x0"),
 				Multiplier:          1.5,
@@ -1739,7 +1739,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
-				&utils.TxnOptions{
+				&account.TxnOptions{
 					WithQueryBitVersion: true,
 					Tip:                 rpc.U64("0x0"),
 					Multiplier:          1.5,

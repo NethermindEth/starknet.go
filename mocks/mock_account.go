@@ -15,10 +15,10 @@ import (
 	time "time"
 
 	felt "github.com/NethermindEth/juno/core/felt"
+	account "github.com/NethermindEth/starknet.go/account"
 	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
 	gomock "go.uber.org/mock/gomock"
-	utils "github.com/NethermindEth/starknet.go/utils"
 )
 
 // MockAccountInterface is a mock of AccountInterface interface.
@@ -46,7 +46,7 @@ func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 }
 
 // BuildAndEstimateDeployAccountTxn mocks base method.
-func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *utils.TxnOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *account.TxnOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndEstimateDeployAccountTxn", ctx, salt, classHash, constructorCalldata, opts)
 	ret0, _ := ret[0].(*rpc.BroadcastDeployAccountTxnV3)
@@ -62,7 +62,7 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndEstimateDeployAccountTxn(ctx
 }
 
 // BuildAndSendDeclareTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *utils.TxnOptions) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *account.TxnOptions) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndSendDeclareTxn", ctx, casmClass, contractClass, opts)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
@@ -77,7 +77,7 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndSendDeclareTxn(ctx, casmClas
 }
 
 // BuildAndSendInvokeTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *utils.TxnOptions) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *account.TxnOptions) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndSendInvokeTxn", ctx, functionCalls, opts)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
