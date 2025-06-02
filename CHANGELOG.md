@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.11.1...HEAD)
 
-## Note: starting CHANGELOG.md from v0.11.1. All changes before v0.11.1 were taken from the Github releases description
+## Note: starting CHANGELOG.md from v0.11.1. All changes before v0.11.1 were taken directly from the Github releases description
 
 ## [0.11.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.11.1) - 2025-05-15
 This release fixes the bug when calling the `BuildAndSendDeclareTxn`, `BuildAndSendInvokeTxn`, and `BuildAndEstimateDeployAccountTxn` methods with the `withQueryBitVersion` parameter set to true.
