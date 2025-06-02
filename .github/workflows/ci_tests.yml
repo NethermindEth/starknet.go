@@ -57,7 +57,6 @@ jobs:
           go-version-file: go.mod
 
       - name: Run tests on testnet
-        continue-on-error: true
         run: cd ${{ matrix.component }} && go test -timeout 120s -v -env testnet .
         env:
           HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL}}
@@ -67,7 +66,6 @@ jobs:
           STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
 
       - name: Run tests on mainnet
-        continue-on-error: true
         run: cd ${{ matrix.component }} && go test -timeout 120s -v -env mainnet .
         env:
           HTTP_PROVIDER_URL: ${{ secrets.MAINNET_HTTP_PROVIDER_URL}}
@@ -77,7 +75,6 @@ jobs:
         run: ./.bin/devnet.sh
 
       - name: Run tests on devnet
-        continue-on-error: true
         run: cd ${{ matrix.component }} && go test -timeout 120s -v -env devnet .
         env:
           HTTP_PROVIDER_URL: "http://localhost:5050/"

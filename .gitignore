@@ -1,10 +1,19 @@
-tmp/
-vendor/
-.idea/
-.vscode/
-
 .tool-versions
+starknet.go
+vendor/
 .env*
 !.env.template
+rpc*/.env.mainnet
+rpc*/.env.testnet
+
 *.txt
 
+tmp/
+
+examples/**/*.sum
+
+*/**/*abi.json
+
+.idea/
+
+.vscode/settings.json
