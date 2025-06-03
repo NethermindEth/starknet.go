@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWeiToETH(t *testing.T) {
@@ -103,4 +104,57 @@ func abs(x float64) float64 {
 	}
 
 	return x
+}
+
+func TestFillHexWithZeroes(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Empty string",
+			input:    "",
+			expected: "0x0000000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:     "Short hex without prefix",
+			input:    "abc",
+			expected: "0x0000000000000000000000000000000000000000000000000000000000000abc",
+		},
+		{
+			name:     "Short hex with prefix",
+			input:    "0xabc",
+			expected: "0x0000000000000000000000000000000000000000000000000000000000000abc",
+		},
+		{
+			name:     "64 character hex without prefix",
+			input:    "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+			expected: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		},
+		{
+			name:     "64 character hex with prefix",
+			input:    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+			expected: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		},
+		{
+			name:     "Single character",
+			input:    "f",
+			expected: "0x000000000000000000000000000000000000000000000000000000000000000f",
+		},
+		{
+			name:     "Mixed case",
+			input:    "0xAbC123",
+			expected: "0x0000000000000000000000000000000000000000000000000000000000AbC123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := FillHexWithZeroes(tt.input)
+			assert.Equal(t, tt.expected, got)
+		})
+	}
 }

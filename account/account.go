@@ -127,10 +127,11 @@ func (opts *TxnOptions) applyMultiplier() {
 // NewAccount creates a new Account instance.
 //
 // Parameters:
-//   - provider: is the provider of type rpc.RpcProvider
-//   - accountAddress: is the account address of type *felt.Felt
-//   - publicKey: is the public key of type string
-//   - keystore: is the keystore of type Keystore
+//   - provider: the provider to use
+//   - accountAddress: the account address
+//   - publicKey: the public key of the account
+//   - keystore: the keystore to use
+//   - cairoVersion: the cairo version of the account (0 or 2)
 //
 // It returns:
 //   - *Account: a pointer to newly created Account

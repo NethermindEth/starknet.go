@@ -384,6 +384,12 @@ func ResBoundsMapToOverallFee(
 	return new(felt.Felt).SetString(fmt.Sprintf("%#x", overallFeeInt))
 }
 
+// FillHexWithZeroes normalises a hex string to have a '0x' prefix and pads it with leading zeros
+// to a total length of 66 characters (including the '0x' prefix).
+func FillHexWithZeroes(hex string) string {
+	return internalUtils.FillHexWithZeroes(hex)
+}
+
 // WeiToETH converts a Wei amount to ETH
 // Returns the ETH value as a float64
 func WeiToETH(wei *felt.Felt) float64 {
