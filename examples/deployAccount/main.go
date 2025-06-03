@@ -50,17 +50,12 @@ func main() {
 
 	// Build and estimate fees for the deploy account transaction, and precompute the address of the new account.
 	// In our case, the OZ account constructor requires the public key of the account as calldata, so we pass it as calldata.
-	// The multiplier for the fee estimation is 1.5, as we want to be sure that the transaction will be accepted.
 	deployAccountTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(
 		context.Background(),
 		pub,
 		classHash,
 		[]*felt.Felt{pub},
-		&account.TxnOptions{
-			WithQueryBitVersion: false,
-			Tip:                 "0x0",
-			Multiplier:          1.5,
-		},
+		nil,
 	)
 	if err != nil {
 		panic(err)

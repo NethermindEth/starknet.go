@@ -139,7 +139,7 @@ func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -163,6 +163,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		opts = &TxnOptions{}
 	}
 
+	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
 		account.Address,
 		nonce,
@@ -192,9 +193,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
-	// Always use TransactionV3 when sending
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastInvokeTxnV3.Version = rpc.TransactionV3
 
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return nil, err
@@ -215,7 +217,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -235,6 +237,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		opts = &TxnOptions{}
 	}
 
+	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
 		account.Address,
 		casmClass,
@@ -267,9 +270,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
-	// Always use TransactionV3 when sending
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastDeclareTxnV3.Version = rpc.TransactionV3
 
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return nil, err
@@ -294,7 +298,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - salt: A value used to randomise the deployed contract address
 //   - classHash: The hash of the contract class to deploy
 //   - constructorCalldata: The parameters for the constructor function
-//   - opts: TxnOptions containing options for building the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
 //   - *rpc.BroadcastDeployAccountTxnV3: The built and signed transaction
@@ -311,6 +315,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		opts = &TxnOptions{}
 	}
 
+	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,
 		salt,
@@ -343,9 +348,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
-	// Always use TransactionV3 when sending
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastDepAccTxnV3.Version = rpc.TransactionV3
 
+	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
