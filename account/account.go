@@ -72,56 +72,31 @@ type Account struct {
 
 // Optional settings when building a transaction.
 type TxnOptions struct {
+	// A safety factor for fee estimation that helps prevent transaction failures due to
+	// fee fluctuations. It multiplies both the max amount and max price per unit by this value.
+	// A value of 1.5 (estimated fee + 50%) is recommended to balance between transaction success rate and
+	// avoiding excessive fees. Higher values provide more safety margin but may result in overpayment.
+	// If multiplier <= 0, it'll be set to 1.5. Default: `1.5`.
+	Multiplier float64
+
+	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	Tip rpc.U64
+
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
-	// If false, the transaction version will be rpc.TransactionV3 (0x3).
-	// In case of doubt, set to 'false'. Default: false.
+	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// In case of doubt, set to `false`. Default: `false`.
 	WithQueryBitVersion bool
-	// Tip amount for the transaction. Default: "0x0".
-	Tip rpc.U64
-	// Safety factor for fee estimation. Recommended to be 1.5, but at least
-	// greater than 0. If multiplier < 0, all resources bounds will be set to 0.
-	Multiplier float64
 }
 
-// TxnVersion returns TransactionV3WithQueryBit when WithQueryBitVersion is true, otherwise TransactionV3.
-func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
-	if opts.WithQueryBitVersion {
-		return rpc.TransactionV3WithQueryBit
+// SafeMultiplier returns the multiplier for the transaction. If the multiplier is not set or negative, returns 1.5.
+func (opts *TxnOptions) SafeMultiplier() float64 {
+	if opts == nil || opts.Multiplier <= 0 {
+		return 1.5
 	}
 
-	return rpc.TransactionV3
-}
-
-// ApplyOptions sets defaults and checks for edge cases
-// If opts is nil, a new TxnOptions instance with default values will be created
-func (opts *TxnOptions) ApplyOptions() *TxnOptions {
-	if opts == nil {
-		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0", Multiplier: 1.5}
-	}
-	opts.applyTip()
-	opts.applyMultiplier()
-
-	return opts
-}
-
-func (opts *TxnOptions) applyTip() {
-	if opts.Tip == "" {
-		opts.Tip = "0x0"
-
-		return
-	}
-
-	if _, err := opts.Tip.ToUint64(); err != nil {
-		opts.Tip = "0x0"
-	}
-}
-
-func (opts *TxnOptions) applyMultiplier() {
-	if opts.Multiplier <= 0 {
-		opts.Multiplier = 1.5
-	}
+	return opts.Multiplier
 }
 
 // NewAccount creates a new Account instance.
@@ -213,7 +188,20 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 
-	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(account.Address, nonce, callData, makeResourceBoundsMapWithZeroValues(), opts)
+	if opts == nil {
+		opts = &TxnOptions{}
+	}
+
+	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
+		account.Address,
+		nonce,
+		callData,
+		makeResourceBoundsMapWithZeroValues(),
+		&utils.TxnOptions{
+			Tip:                 opts.Tip,
+			WithQueryBitVersion: opts.WithQueryBitVersion,
+		},
+	)
 
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
@@ -231,7 +219,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
 	// Always use TransactionV3 when sending
 	broadcastInvokeTxnV3.Version = rpc.TransactionV3
@@ -272,13 +260,20 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
+	if opts == nil {
+		opts = &TxnOptions{}
+	}
+
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
 		account.Address,
 		casmClass,
 		contractClass,
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
-		opts,
+		&utils.TxnOptions{
+			Tip:                 opts.Tip,
+			WithQueryBitVersion: opts.WithQueryBitVersion,
+		},
 	)
 	if err != nil {
 		return nil, err
@@ -299,7 +294,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
 	// Always use TransactionV3 when sending
 	broadcastDeclareTxnV3.Version = rpc.TransactionV3
@@ -341,13 +336,20 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+	if opts == nil {
+		opts = &TxnOptions{}
+	}
+
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,
 		salt,
 		constructorCalldata,
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
-		opts,
+		&utils.TxnOptions{
+			Tip:                 opts.Tip,
+			WithQueryBitVersion: opts.WithQueryBitVersion,
+		},
 	)
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
@@ -368,7 +370,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
 
 	// Always use TransactionV3 when sending
 	broadcastDepAccTxnV3.Version = rpc.TransactionV3

@@ -22,14 +22,14 @@ const (
 
 // Optional settings when building a transaction.
 type TxnOptions struct {
+	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	Tip rpc.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
 	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
 	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	WithQueryBitVersion bool
-	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	Tip rpc.U64
 }
 
 // TxnVersion returns `rpc.TransactionV3WithQueryBit` when WithQueryBitVersion is true, and
