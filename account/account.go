@@ -160,7 +160,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 
 	if opts == nil {
-		opts = &TxnOptions{}
+		opts = &TxnOptions{} //nolint:exhaustruct
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
@@ -234,7 +234,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	if opts == nil {
-		opts = &TxnOptions{}
+		opts = &TxnOptions{} //nolint:exhaustruct
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
@@ -312,7 +312,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
-		opts = &TxnOptions{}
+		opts = &TxnOptions{} //nolint:exhaustruct
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee

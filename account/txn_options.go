@@ -32,7 +32,7 @@ type TxnOptions struct {
 // SafeMultiplier returns the multiplier for the transaction. If the multiplier is not set or negative, returns 1.5.
 func (opts *TxnOptions) SafeMultiplier() float64 {
 	if opts == nil || opts.Multiplier <= 0 {
-		return 1.5
+		return 1.5 //nolint:mnd
 	}
 
 	return opts.Multiplier
