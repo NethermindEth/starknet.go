@@ -24,47 +24,35 @@ const (
 type TxnOptions struct {
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
-	// If false, the transaction version will be rpc.TransactionV3 (0x3).
-	// In case of doubt, set to 'false'. Default: false.
+	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// In case of doubt, set to `false`. Default: `false`.
 	WithQueryBitVersion bool
-	// Tip amount in FRI for the transaction. Default: "0x0".
+	// Tip amount in FRI for the transaction. Default: `"0x0"`.
 	Tip rpc.U64
 }
 
-// TxnVersion returns TransactionV3WithQueryBit when WithQueryBitVersion is true, otherwise TransactionV3.
+// TxnVersion returns `rpc.TransactionV3WithQueryBit` when WithQueryBitVersion is true, and
+// `rpc.TransactionV3` if false or nil.
 func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
-	if opts.WithQueryBitVersion {
-		return rpc.TransactionV3WithQueryBit
+	if opts == nil || !opts.WithQueryBitVersion {
+		return rpc.TransactionV3
 	}
 
-	return rpc.TransactionV3
+	return rpc.TransactionV3WithQueryBit
 }
 
-// ApplyOptions sets defaults and checks for edge cases, and returns the
-// modified opts. It must be assigned to a variable.
-//
-// If opts is nil, a new TxnOptions instance with default values will be created
-// and returned.
-func (opts *TxnOptions) ApplyOptions() *TxnOptions {
-	if opts == nil {
-		return &TxnOptions{WithQueryBitVersion: false, Tip: "0x0"}
-	}
-	opts.applyTip()
-
-	return opts
-}
-
-func (opts *TxnOptions) applyTip() {
-	if opts.Tip == "" {
-		opts.Tip = "0x0"
-
-		return
+// SafeTip returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
+func (opts *TxnOptions) SafeTip() rpc.U64 {
+	if opts == nil || opts.Tip == "" {
+		return "0x0"
 	}
 
 	if _, err := opts.Tip.ToUint64(); err != nil {
-		opts.Tip = "0x0"
+		return "0x0"
 	}
+
+	return opts.Tip
 }
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
@@ -87,8 +75,6 @@ func BuildInvokeTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
-	opts = opts.ApplyOptions()
-
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
@@ -97,7 +83,7 @@ func BuildInvokeTxn(
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   opts.Tip,
+		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -129,8 +115,6 @@ func BuildDeclareTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
-	opts = opts.ApplyOptions()
-
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
 		return nil, err
@@ -145,7 +129,7 @@ func BuildDeclareTxn(
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   opts.Tip,
+		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -177,8 +161,6 @@ func BuildDeployAccountTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
-	opts = opts.ApplyOptions()
-
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             opts.TxnVersion(),
@@ -188,7 +170,7 @@ func BuildDeployAccountTxn(
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 opts.Tip,
+		Tip:                 opts.SafeTip(),
 		PayMasterData:       []*felt.Felt{},
 		NonceDataMode:       rpc.DAModeL1,
 		FeeMode:             rpc.DAModeL1,

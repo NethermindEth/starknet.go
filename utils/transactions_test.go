@@ -489,9 +489,9 @@ func TestTxnOptions(t *testing.T) {
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			opts := tt.opts.ApplyOptions()
+			opts := tt.opts
 
-			assert.Equal(t, tt.expectedTip, opts.Tip)
+			assert.Equal(t, tt.expectedTip, opts.SafeTip())
 			assert.Equal(t, tt.expectedVersion, opts.TxnVersion())
 		})
 	}
