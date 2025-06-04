@@ -139,7 +139,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 
 	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
 	// as for this case we only need the 'ks' to sign the deploy transaction.
-	tempAcc, err := account.NewAccount(provider, pub, pub.String(), ks, 2)
+	tempAcc, err := account.NewAccount(provider, pub, pub.String(), ks, account.CairoV2)
 	if err != nil {
 		panic(err)
 	}
@@ -232,7 +232,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		// called when instantiating the account
 		mockRpcProvider.EXPECT().ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil).Times(1)
 		mockRpcProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
-		acnt, err := account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, pub.String(), ks, 2)
+		acnt, err := account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, pub.String(), ks, account.CairoV2)
 		require.NoError(t, err)
 
 		// setting the expected behaviour for each call to EstimateFee,
@@ -364,7 +364,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		t.Run("BuildAndEstimateDeployAccountTxn", func(t *testing.T) {
 			// Get random keys to create the new account
 			ks, pub, _ := account.GetRandomKeys()
-			tempAcc, err := account.NewAccount(client, pub, pub.String(), ks, 2)
+			tempAcc, err := account.NewAccount(client, pub, pub.String(), ks, account.CairoV2)
 			require.NoError(t, err)
 
 			classHash := internalUtils.TestHexToFelt(
@@ -403,7 +403,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 func TestSendInvokeTxn(t *testing.T) {
 	type testSetType struct {
 		ExpectedErr          error
-		CairoContractVersion int
+		CairoContractVersion account.CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
@@ -417,7 +417,7 @@ func TestSendInvokeTxn(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
 				ExpectedErr:          rpc.ErrDuplicateTx,
-				CairoContractVersion: 2,
+				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
@@ -476,7 +476,7 @@ func TestSendInvokeTxn(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, 2)
+		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, account.CairoV2)
 		require.NoError(t, err)
 
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -520,7 +520,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
-	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
+	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, account.CairoV0)
 	require.NoError(t, err)
 
 	// Class
@@ -682,7 +682,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -771,7 +771,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
-	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {

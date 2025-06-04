@@ -15,6 +15,8 @@ import (
 var (
 	ErrTxnTypeUnSupported    = errors.New("unsupported transaction type")
 	ErrTxnVersionUnSupported = errors.New("unsupported transaction version")
+	BRAAVOS_WARNING_MESSAGE  = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via
+	RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
 )
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
@@ -64,12 +66,20 @@ type Account struct {
 	ChainId      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
-	CairoVersion int
+	CairoVersion CairoVersion
 	ks           Keystore
 }
 
-const BRAAVOS_WARNING_MESSAGE = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via
-RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
+// CairoVersion represents the version of Cairo used by the account contract.
+type CairoVersion int
+
+// Cairo version constants
+const (
+	// CairoV0 represents Cairo 0 contracts
+	CairoV0 CairoVersion = 0
+	// CairoV2 represents Cairo 2 contracts
+	CairoV2 CairoVersion = 2
+)
 
 // NewAccount creates a new Account instance.
 //
@@ -78,7 +88,7 @@ RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115
 //   - accountAddress: the account address
 //   - publicKey: the public key of the account
 //   - keystore: the keystore to use
-//   - cairoVersion: the cairo version of the account (0 or 2)
+//   - cairoVersion: the cairo version of the account (CairoVersion0 or CairoVersion2)
 //
 // It returns:
 //   - *Account: a pointer to newly created Account
@@ -88,7 +98,7 @@ func NewAccount(
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,
-	cairoVersion int,
+	cairoVersion CairoVersion,
 ) (*Account, error) {
 	// TODO: Remove this temporary check once solved (starknet v0.14.0 should do it)
 	// This temporary check is to warn the user that Braavos account restricts transactions to have exactly two resource fields.
@@ -158,9 +168,9 @@ func PrecomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []
 //   - an error if Cairo version is not supported.
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error) {
 	switch account.CairoVersion {
-	case 0:
+	case CairoV0:
 		return FmtCallDataCairo0(fnCalls), nil
-	case 2:
+	case CairoV2:
 		return FmtCallDataCairo2(fnCalls), nil
 	default:
 		return nil, fmt.Errorf("account cairo version '%d' not supported", account.CairoVersion)

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
 	"github.com/joho/godotenv"
 )
 
@@ -45,13 +46,20 @@ func GetAccountAddress() string {
 }
 
 // Validates whether the ACCOUNT_CAIRO_VERSION variable has been set in the '.env' file and returns it; panics otherwise.
-func GetAccountCairoVersion() int {
+func GetAccountCairoVersion() account.CairoVersion {
 	num, err := strconv.Atoi(getEnv("ACCOUNT_CAIRO_VERSION"))
 	if err != nil {
 		panic("Invalid ACCOUNT_CAIRO_VERSION number set in the '.env' file")
 	}
 
-	return num
+	switch num {
+	case 0:
+		return account.CairoV0
+	case 2:
+		return account.CairoV2
+	default:
+		panic("Invalid ACCOUNT_CAIRO_VERSION number set in the '.env' file")
+	}
 }
 
 // Loads an env variable by name and returns it; panics otherwise.

@@ -38,7 +38,7 @@ func main() {
 
 	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
 	// as for this case we only need the 'ks' to sign the deploy transaction.
-	accnt, err := account.NewAccount(client, pub, pub.String(), ks, 2)
+	accnt, err := account.NewAccount(client, pub, pub.String(), ks, account.CairoV2)
 	if err != nil {
 		panic(err)
 	}
