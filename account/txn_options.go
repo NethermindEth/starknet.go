@@ -2,7 +2,8 @@ package account
 
 import "github.com/NethermindEth/starknet.go/rpc"
 
-// Optional settings when building/sending/estimating a transaction.
+// Optional settings for building/sending/estimating a transaction
+// in the BuildAndSend* account methods.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
 	Tip rpc.U64

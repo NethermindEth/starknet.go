@@ -34,7 +34,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	}
 
 	provider, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
 	require.NoError(t, err, "Error in setupAcc")
@@ -80,7 +80,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	}
 
 	provider, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
 	require.NoError(t, err, "Error in setupAcc")
@@ -141,7 +141,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	}
 
 	provider, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	// we need this account to fund the new account with STRK tokens, in order to deploy it
 	acc, err := setupAcc(t, provider)
@@ -351,7 +351,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			t.Skip("Skipping test as it requires a devnet environment")
 		}
 		client, err := rpc.NewProvider(base)
-		require.NoError(t, err, "Error in rpc.NewClient")
+		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		_, acnts, err := newDevnet(t, base)
 		require.NoError(t, err, "Error setting up Devnet")
@@ -508,7 +508,7 @@ func TestSendInvokeTxn(t *testing.T) {
 
 	for _, test := range testSet {
 		client, err := rpc.NewProvider(base)
-		require.NoError(t, err, "Error in rpc.NewClient")
+		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		// Set up ks
 		ks := account.NewMemKeystore()
@@ -560,7 +560,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
 	client, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
 	require.NoError(t, err)
@@ -640,7 +640,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 	client, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	devnetClient, acnts, err := newDevnet(t, base)
 	require.NoError(t, err, "Error setting up Devnet")
@@ -811,7 +811,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 	client, err := rpc.NewProvider(base)
-	require.NoError(t, err, "Error in rpc.NewClient")
+	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
 	require.NoError(t, err, "error returned from account.NewAccount()")
