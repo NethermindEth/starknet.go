@@ -33,7 +33,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
@@ -79,7 +79,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
@@ -140,7 +140,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	// we need this account to fund the new account with STRK tokens, in order to deploy it
@@ -350,10 +350,10 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		if testEnv != "devnet" {
 			t.Skip("Skipping test as it requires a devnet environment")
 		}
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
-		_, acnts, err := newDevnet(t, base)
+		_, acnts, err := newDevnet(t, tConfig.providerURL)
 		require.NoError(t, err, "Error setting up Devnet")
 
 		acnt := newDevnetAccount(t, client, acnts[0], 2)
@@ -507,7 +507,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		// Set up ks
@@ -559,7 +559,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
@@ -621,7 +621,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
 //
 // The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
-// and provider using the base URL. After that, it sets up a devnet environment and creates a fake user account. The
+// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user account. The
 // fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
 // and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
 // user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
@@ -639,10 +639,10 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
-	devnetClient, acnts, err := newDevnet(t, base)
+	devnetClient, acnts, err := newDevnet(t, tConfig.providerURL)
 	require.NoError(t, err, "Error setting up Devnet")
 
 	fakeUser := acnts[0]
@@ -787,7 +787,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
 //
 // It checks if the test environment is "devnet" and skips the test if it's not.
-// It creates a new RPC client using the base URL and "/rpc" endpoint.
+// It creates a new RPC client using the tConfig.base URL and "/rpc" endpoint.
 // It creates a new RPC provider using the client.
 // It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
 // It defines a testSet variable that contains an array of testSetType structs.
@@ -810,7 +810,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
