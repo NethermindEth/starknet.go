@@ -66,7 +66,7 @@ func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) 
 		return nil, fmt.Errorf("failed to convert accountAddress to felt: %w", err)
 	}
 
-	acc, err := account.NewAccount(provider, accAddress, tConfig.pubKey, ks, 2)
+	acc, err := account.NewAccount(provider, accAddress, tConfig.pubKey, ks, account.CairoV2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
@@ -102,7 +102,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // Returns:
 //   - *account.Account: The new devnet account
 //   - error: An error, if any
-func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion int) *account.Account {
+func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion account.CairoVersion) *account.Account {
 	t.Helper()
 	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
 	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
