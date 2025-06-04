@@ -117,7 +117,7 @@ linters:
         path: rpc/block_test.go
       - linters:
           - goconst
-        path: account/account_test.go
+        path: account/(.+)_test\.go
       - linters:
           - exhaustruct
           - gochecknoinits
