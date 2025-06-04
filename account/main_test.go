@@ -102,7 +102,12 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 // Returns:
 //   - *account.Account: The new devnet account
 //   - error: An error, if any
-func newDevnetAccount(t *testing.T, provider *rpc.Provider, accData devnet.TestAccount, cairoVersion account.CairoVersion) *account.Account {
+func newDevnetAccount(
+	t *testing.T,
+	provider *rpc.Provider,
+	accData devnet.TestAccount,
+	cairoVersion account.CairoVersion,
+) *account.Account {
 	t.Helper()
 	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
 	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
