@@ -6,7 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
-nothing merged yet :D
+<!-- template to copy:
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+-->
+
+### Added
+- `utils` pkg
+  - `TxnOptions` type, allowing optional settings when building a transaction (set tip and query bit version)
+  - `TxnOptions.TxnVersion()` method
+  - `TxnOptions.SafeTip()` method
+- `account` pkg
+  - `CairoVersion` type
+  - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
+  - `TxnOptions.SafeMultiplier()` method
+  - `TxnOptions.BlockID()` method
+  - `TxnOptions.SimulationFlags()` method
+
+### Removed
+- `rpc.NewClient` function
+
+### Changed
+- In `account` package
+  - for the `BuildAndEstimateDeployAccountTxn`, `BuildAndSendInvokeTxn`, and `BuildAndSendDeclareTxn` methods
+    - removed `multiplier` and `withQueryBitVersion` parameters
+    - added `opts` parameter of type `*account.TxnOptions`
+  - In `NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- In `utils` package, added `opts` parameter of type `*utils.TxnOptions` to the `BuildInvokeTxn`, `BuildDeclareTxn`, and `BuildEstimateDeployAccountTxn` methods
+- `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
+- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+- examples in `examples` folder updated to use `utils.TxnOptions` and `account.CairoVersion`
+
+### Dev updates
+- Added tests:
+  - `utils.TestTxnOptions`
+  - `account_test.TestTxnOptions`
+- New `testConfig` struct to the `account_test` package, for easier test configuration
+- The `account` package has been refactored and split into multiple files.
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
