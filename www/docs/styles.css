@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+:root {
+  --stkgo-yellow: #FF9318;
+  --stkgo-orange: #FF4A04;
+}

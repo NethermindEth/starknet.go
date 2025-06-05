@@ -1,0 +1,100 @@
+# Devnet Usage
+
+The devnet usage submodule provides functionality for using Starknet development networks.
+
+## Devnet Methods
+
+### Start Devnet
+
+```go
+err := devnet.Start()
+if err != nil {
+    // Handle error
+}
+```
+
+### Stop Devnet
+
+```go
+err := devnet.Stop()
+if err != nil {
+    // Handle error
+}
+```
+
+### Reset Devnet
+
+```go
+err := devnet.Reset()
+if err != nil {
+    // Handle error
+}
+```
+
+### Get Devnet Status
+
+```go
+status := devnet.GetStatus()
+```
+
+### Get Devnet Accounts
+
+```go
+accounts := devnet.GetAccounts()
+```
+
+### Get Devnet Contracts
+
+```go
+contracts := devnet.GetContracts()
+```
+
+## Example Usage
+
+```go
+// Create a new devnet
+devnet, err := devnet.NewDevnet(devnet.DevnetConfig{
+    NetworkName: "local",
+    NetworkID: 1,
+    ChainID: "SN_DEV",
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+// Start the devnet
+err = devnet.Start()
+if err != nil {
+    log.Fatal(err)
+}
+
+// Get the devnet status
+status := devnet.GetStatus()
+fmt.Printf("Devnet status: %s\n", status)
+
+// Get the devnet accounts
+accounts := devnet.GetAccounts()
+for _, account := range accounts {
+    fmt.Printf("Account address: %s\n", account.Address)
+    fmt.Printf("Account balance: %s\n", account.Balance)
+}
+
+// Get the devnet contracts
+contracts := devnet.GetContracts()
+for _, contract := range contracts {
+    fmt.Printf("Contract address: %s\n", contract.Address)
+    fmt.Printf("Contract code: %s\n", contract.Code)
+}
+
+// Reset the devnet
+err = devnet.Reset()
+if err != nil {
+    log.Fatal(err)
+}
+
+// Stop the devnet
+err = devnet.Stop()
+if err != nil {
+    log.Fatal(err)
+}
+``` 

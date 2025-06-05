@@ -1,0 +1,43 @@
+# Block Number
+
+Returns the latest block number of the current block.
+
+## Parameters
+
+- `ctx` - The context of the request.
+
+## Returns
+
+- `uint64` - The block number.
+- `error` - An error if any occurred.
+
+## Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
+	provider, err := rpc.NewProvider(rpcUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := provider.BlockNumber(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Block Number:", result)
+}
+```
+
+## Error Cases
+
+None 

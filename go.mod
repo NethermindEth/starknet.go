@@ -22,7 +22,7 @@ require (
 require (
 	github.com/bits-and-blooms/bitset v1.21.0 // indirect
 	github.com/consensys/bavard v0.1.27 // indirect
-	github.com/consensys/gnark-crypto v0.16.0 // indirect
+	github.com/consensys/gnark-crypto v0.16.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect

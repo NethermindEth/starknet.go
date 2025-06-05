@@ -1,0 +1,31 @@
+---
+title: starknet_getMessagesStatus
+description: Gets the status of messages sent from L1 to L2.
+---
+
+# starknet_getMessagesStatus
+
+Gets the status of messages sent from L1 to L2.
+
+## Parameters
+
+1. `messages` - An array of messages to check the status for.
+   - `from_address` - The L1 address from which the message was sent.
+   - `to_address` - The L2 address to which the message was sent.
+   - `selector` - The selector of the L2 function to be called.
+   - `payload` - The payload of the message.
+   - `nonce` - The nonce of the message.
+
+## Returns
+
+An object containing:
+- `messages` - An array of message statuses, each containing:
+  - `from_address` - The L1 address from which the message was sent.
+  - `to_address` - The L2 address to which the message was sent.
+  - `selector` - The selector of the L2 function to be called.
+  - `payload` - The payload of the message.
+  - `nonce` - The nonce of the message.
+  - `status` - The status of the message. Can be "RECEIVED", "CONSUMED", or "NOT_RECEIVED".
+  - `block_number` - The block number in which the message was received (if applicable).
+
+## Example
