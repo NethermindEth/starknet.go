@@ -190,6 +190,7 @@ func TestCookieManagement(t *testing.T) {
 // TestVersionCompatibility tests that the provider correctly handles version compatibility warnings
 func TestVersionCompatibility(t *testing.T) {
 	const specVersionMethod = "starknet_specVersion"
+	const wrongVersion = "0.5.0"
 
 	// Set up a single server that responds differently based on query parameters
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -220,7 +221,7 @@ func TestVersionCompatibility(t *testing.T) {
 				data := map[string]interface{}{
 					"jsonrpc": "2.0",
 					"id":      request["id"],
-					"result":  "0.5.0", // Different version
+					"result":  wrongVersion, // Different version
 				}
 				if err := json.NewEncoder(w).Encode(data); err != nil {
 					log.Fatal(err)
@@ -257,12 +258,12 @@ func TestVersionCompatibility(t *testing.T) {
 		{
 			name:            "Incompatible version",
 			queryParam:      "incompatible",
-			expectedWarning: "warning: RPC provider version 0.5.0 is different from expected version " + RPCVersion,
+			expectedWarning: fmt.Sprintf(warnVersionMismatch, RPCVersion, wrongVersion),
 		},
 		{
 			name:            "Error fetching version",
 			queryParam:      "error",
-			expectedWarning: "warning: Could not check RPC version compatibility",
+			expectedWarning: warnVersionCheckFailed,
 		},
 	}
 
