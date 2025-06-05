@@ -1,12 +1,9 @@
-.tool-versions
-starknet.go
+.idea/
+.vscode/
 vendor/
+
+.tool-versions
 .env*
 !.env.template
 
-tmp/
-.idea/
-.vscode/
 
-# @tag-temp
-test-abigen/
