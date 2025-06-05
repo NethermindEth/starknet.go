@@ -137,6 +137,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
+	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
@@ -174,15 +175,15 @@ func (account *Account) BuildAndSendDeclareTxn(
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - salt: A value used to randomise the deployed contract address
-//   - classHash: The hash of the contract class to deploy
-//   - constructorCalldata: The parameters for the constructor function
+//   - salt: the salt for the address of the deployed contract
+//   - classHash: the class hash of the contract to be deployed
+//   - constructorCalldata: the parameters passed to the constructor
 //   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
 //
 // Returns:
-//   - *rpc.BroadcastDeployAccountTxnV3: The built and signed transaction
-//   - *felt.Felt: The precomputed address of the account to be deployed
-//   - error: An error if the transaction building fails
+//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
+//   - error: an error if any
 func (account *Account) BuildAndEstimateDeployAccountTxn(
 	ctx context.Context,
 	salt *felt.Felt,
