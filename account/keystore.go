@@ -125,14 +125,13 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 		err = ctx.Err()
 
 	default:
-		x, y, err = curve.Curve.Sign(msgHash, key)
+		x, y, err = curve.Sign(msgHash, key)
 	}
 
 	return x, y, err
 }
 
 // GetRandomKeys gets a random set of pub-priv keys.
-// Note: This should be used for testing purposes only, do NOT send real funds to these addresses.
 //
 // Returns:
 //   - *MemKeystore: a pointer to a MemKeystore instance
@@ -140,26 +139,18 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 //   - *felt.Felt: a pointer to a private key as a felt.Felt
 func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 	// Get random keys
-	privateKey, err := curve.Curve.GetRandomPrivateKey()
+	privateKey, pubX, _, err := curve.GetRandomKeys()
 	if err != nil {
-		fmt.Println("can't get random private key:", err)
+		fmt.Println("can't get random keys:", err)
 		os.Exit(1)
 	}
-	pubX, _, err := curve.Curve.PrivateToPoint(privateKey)
-	if err != nil {
-		fmt.Println("can't generate public key:", err)
-		os.Exit(1)
-	}
+
 	privFelt := internalUtils.BigIntToFelt(privateKey)
 	pubFelt := internalUtils.BigIntToFelt(pubX)
 
 	// set up keystore
 	ks := NewMemKeystore()
-	fakePrivKeyBI, ok := new(big.Int).SetString(privFelt.String(), 0)
-	if !ok {
-		panic("Error setting up account key store")
-	}
-	ks.Put(pubFelt.String(), fakePrivKeyBI)
+	ks.Put(pubFelt.String(), privateKey)
 
 	return ks, pubFelt, privFelt
 }

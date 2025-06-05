@@ -93,7 +93,6 @@ linters:
       allow-unused: false
   exclusions:
     paths:
-      - curve/ # excluding curve package since we have plans to replace it with the Juno implementation
       - client/ # it comes from go-ethereum, let's refactor it another time
     generated: lax
     presets:
@@ -118,7 +117,7 @@ linters:
         path: rpc/block_test.go
       - linters:
           - goconst
-        path: account/account_test.go
+        path: account/(.+)_test\.go
       - linters:
           - exhaustruct
           - gochecknoinits
