@@ -33,7 +33,7 @@ func TestFmtCallData(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
-		CairoVersion     int
+		CairoVersion     account.CairoVersion
 		ChainID          string
 		FnCall           rpc.FunctionCall
 		ExpectedCallData []*felt.Felt
@@ -43,7 +43,7 @@ func TestFmtCallData(t *testing.T) {
 		"mock":   {},
 		"testnet": {
 			{
-				CairoVersion: 2,
+				CairoVersion: account.CairoV2,
 				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
@@ -61,7 +61,7 @@ func TestFmtCallData(t *testing.T) {
 				}),
 			},
 			{
-				CairoVersion: 2,
+				CairoVersion: account.CairoV2,
 				ChainID:      "SN_SEPOLIA",
 				FnCall: rpc.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
@@ -87,7 +87,7 @@ func TestFmtCallData(t *testing.T) {
 		var err error
 		if testEnv == "testnet" {
 			var client *rpc.Provider
-			client, err = rpc.NewProvider(base)
+			client, err = rpc.NewProvider(tConfig.providerURL)
 			require.NoError(t, err, "Error in rpc.NewClient")
 			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 			require.NoError(t, err)
@@ -147,7 +147,7 @@ func TestChainIdMOCK(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedID, acc.ChainId.String())
 	}
@@ -183,10 +183,10 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
+		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 		require.Equal(t, acc.ChainId.String(), test.ExpectedID)
 	}
@@ -242,7 +242,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 			os.Stdout = w
 
 			// Create the account
-			_, err = account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), 2)
+			_, err = account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), account.CairoV2)
 			require.NoError(t, err)
 
 			// Close the writer and restore stdout

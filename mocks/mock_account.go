@@ -15,6 +15,7 @@ import (
 	time "time"
 
 	felt "github.com/NethermindEth/juno/core/felt"
+	account "github.com/NethermindEth/starknet.go/account"
 	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
 	gomock "go.uber.org/mock/gomock"
@@ -45,9 +46,9 @@ func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 }
 
 // BuildAndEstimateDeployAccountTxn mocks base method.
-func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, multiplier float64) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *account.TxnOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildAndEstimateDeployAccountTxn", ctx, salt, classHash, constructorCalldata, multiplier)
+	ret := m.ctrl.Call(m, "BuildAndEstimateDeployAccountTxn", ctx, salt, classHash, constructorCalldata, opts)
 	ret0, _ := ret[0].(*rpc.BroadcastDeployAccountTxnV3)
 	ret1, _ := ret[1].(*felt.Felt)
 	ret2, _ := ret[2].(error)
@@ -55,39 +56,39 @@ func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Cont
 }
 
 // BuildAndEstimateDeployAccountTxn indicates an expected call of BuildAndEstimateDeployAccountTxn.
-func (mr *MockAccountInterfaceMockRecorder) BuildAndEstimateDeployAccountTxn(ctx, salt, classHash, constructorCalldata, multiplier any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) BuildAndEstimateDeployAccountTxn(ctx, salt, classHash, constructorCalldata, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndEstimateDeployAccountTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndEstimateDeployAccountTxn), ctx, salt, classHash, constructorCalldata, multiplier)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndEstimateDeployAccountTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndEstimateDeployAccountTxn), ctx, salt, classHash, constructorCalldata, opts)
 }
 
 // BuildAndSendDeclareTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, multiplier float64) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *account.TxnOptions) (*rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildAndSendDeclareTxn", ctx, casmClass, contractClass, multiplier)
+	ret := m.ctrl.Call(m, "BuildAndSendDeclareTxn", ctx, casmClass, contractClass, opts)
 	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BuildAndSendDeclareTxn indicates an expected call of BuildAndSendDeclareTxn.
-func (mr *MockAccountInterfaceMockRecorder) BuildAndSendDeclareTxn(ctx, casmClass, contractClass, multiplier any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) BuildAndSendDeclareTxn(ctx, casmClass, contractClass, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndSendDeclareTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndSendDeclareTxn), ctx, casmClass, contractClass, multiplier)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndSendDeclareTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndSendDeclareTxn), ctx, casmClass, contractClass, opts)
 }
 
 // BuildAndSendInvokeTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, multiplier float64) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *account.TxnOptions) (*rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildAndSendInvokeTxn", ctx, functionCalls, multiplier)
+	ret := m.ctrl.Call(m, "BuildAndSendInvokeTxn", ctx, functionCalls, opts)
 	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BuildAndSendInvokeTxn indicates an expected call of BuildAndSendInvokeTxn.
-func (mr *MockAccountInterfaceMockRecorder) BuildAndSendInvokeTxn(ctx, functionCalls, multiplier any) *gomock.Call {
+func (mr *MockAccountInterfaceMockRecorder) BuildAndSendInvokeTxn(ctx, functionCalls, opts any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndSendInvokeTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndSendInvokeTxn), ctx, functionCalls, multiplier)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndSendInvokeTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndSendInvokeTxn), ctx, functionCalls, opts)
 }
 
 // Nonce mocks base method.

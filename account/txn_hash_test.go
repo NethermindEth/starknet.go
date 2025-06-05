@@ -124,9 +124,9 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var err error
 			if testEnv == "testnet" {
 				var client *rpc.Provider
-				client, err = rpc.NewProvider(base)
+				client, err = rpc.NewProvider(tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
-				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, 0)
+				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, account.CairoV0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			if testEnv == "mock" {
@@ -135,7 +135,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				mockRpcProvider.EXPECT().
 					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 					Return(internalUtils.RANDOM_FELT, nil)
-				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, 0)
+				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, account.CairoV0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			invokeTxn := rpc.InvokeTxnV1{
@@ -161,7 +161,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 // This function verifies that the TransactionHashDeclare function returns the
 // expected hash value for a given transaction.
 // The function requires a testnet environment to run.
-// It creates a new client using the provided base URL and verifies that no
+// It creates a new client using the provided tConfig.base URL and verifies that no
 // error occurs.
 // It then creates a new account using the provider and verifies that no error
 // occurs.
@@ -186,13 +186,13 @@ func TestTransactionHashDeclare(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 
@@ -306,13 +306,13 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 
@@ -387,13 +387,13 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
 
-		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
+		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
 	type testSetType struct {
