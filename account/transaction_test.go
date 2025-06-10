@@ -283,7 +283,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName:    "transfer",
 				},
 			}, &account.TxnOptions{
-				WithQueryBitVersion: true,
+				UseQueryBit: true,
 			})
 			require.NoError(t, err)
 		})
@@ -302,7 +302,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			)
 
 			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
-				WithQueryBitVersion: true,
+				UseQueryBit: true,
 			})
 			require.NoError(t, err)
 		})
@@ -314,7 +314,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				internalUtils.RANDOM_FELT,
 				[]*felt.Felt{pub},
 				&account.TxnOptions{
-					WithQueryBitVersion: true,
+					UseQueryBit: true,
 				},
 			)
 			require.NoError(t, err)
@@ -338,7 +338,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
-				WithQueryBitVersion: true,
+				UseQueryBit: true,
 			})
 			require.NoError(t, err)
 
@@ -363,7 +363,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
 			}, &account.TxnOptions{
-				WithQueryBitVersion: true,
+				UseQueryBit: true,
 			})
 			require.NoError(t, err)
 
@@ -391,7 +391,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				classHash,
 				[]*felt.Felt{pub},
 				&account.TxnOptions{
-					WithQueryBitVersion: true,
+					UseQueryBit: true,
 				},
 			)
 			require.NoError(t, err)

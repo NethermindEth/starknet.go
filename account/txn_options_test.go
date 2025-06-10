@@ -1,9 +1,8 @@
-package account_test
+package account
 
 import (
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +16,7 @@ func TestTxnOptions(t *testing.T) {
 		t.Parallel()
 		testcases := []struct {
 			name               string
-			opts               *account.TxnOptions
+			opts               *TxnOptions
 			expectedMultiplier float64
 		}{
 			{
@@ -27,28 +26,28 @@ func TestTxnOptions(t *testing.T) {
 			},
 			{
 				name: "Zero multiplier",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					Multiplier: 0,
 				},
 				expectedMultiplier: 1.5,
 			},
 			{
 				name: "Negative multiplier",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					Multiplier: -1.0,
 				},
 				expectedMultiplier: 1.5,
 			},
 			{
 				name: "Custom multiplier",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					Multiplier: 2.0,
 				},
 				expectedMultiplier: 2.0,
 			},
 			{
 				name: "Custom multiplier below 1",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					Multiplier: 0.5,
 				},
 				expectedMultiplier: 0.5,
@@ -58,7 +57,8 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Equal(t, tt.expectedMultiplier, tt.opts.SafeMultiplier())
+				fmtOptions := fmtTxnOptions(tt.opts)
+				assert.Equal(t, tt.expectedMultiplier, fmtOptions.Multiplier)
 			})
 		}
 	})
@@ -67,7 +67,7 @@ func TestTxnOptions(t *testing.T) {
 		t.Parallel()
 		testcases := []struct {
 			name            string
-			opts            *account.TxnOptions
+			opts            *TxnOptions
 			expectedBlockID rpc.BlockID
 		}{
 			{
@@ -76,23 +76,16 @@ func TestTxnOptions(t *testing.T) {
 				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
 			},
 			{
-				name: "Empty block tag",
-				opts: &account.TxnOptions{
-					EstimationBlockTag: "",
-				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
-			},
-			{
-				name: "latest block tag",
-				opts: &account.TxnOptions{
-					EstimationBlockTag: rpc.BlockTagLatest,
+				name: "latest set to true",
+				opts: &TxnOptions{
+					UseLatest: true,
 				},
 				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagLatest),
 			},
 			{
-				name: "pending block tag",
-				opts: &account.TxnOptions{
-					EstimationBlockTag: rpc.BlockTagPending,
+				name: "latest set to false",
+				opts: &TxnOptions{
+					UseLatest: false,
 				},
 				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
 			},
@@ -101,7 +94,8 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Equal(t, tt.expectedBlockID, tt.opts.BlockID())
+				fmtOptions := fmtTxnOptions(tt.opts)
+				assert.Equal(t, tt.expectedBlockID, fmtOptions.BlockID())
 			})
 		}
 	})
@@ -110,7 +104,7 @@ func TestTxnOptions(t *testing.T) {
 		t.Parallel()
 		testcases := []struct {
 			name             string
-			opts             *account.TxnOptions
+			opts             *TxnOptions
 			expectedSimFlags []rpc.SimulationFlag
 		}{
 			{
@@ -120,26 +114,26 @@ func TestTxnOptions(t *testing.T) {
 			},
 			{
 				name:             "Empty simulation flag",
-				opts:             &account.TxnOptions{SimulationFlag: ""},
+				opts:             &TxnOptions{SimulationFlag: ""},
 				expectedSimFlags: []rpc.SimulationFlag{},
 			},
 			{
 				name: "SKIP_VALIDATE flag",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					SimulationFlag: rpc.SKIP_VALIDATE,
 				},
 				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_VALIDATE},
 			},
 			{
 				name: "SKIP_FEE_CHARGE flag",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					SimulationFlag: rpc.SKIP_FEE_CHARGE,
 				},
 				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE},
 			},
 			{
 				name: "SKIP_EXECUTE flag",
-				opts: &account.TxnOptions{
+				opts: &TxnOptions{
 					SimulationFlag: rpc.SKIP_EXECUTE,
 				},
 				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_EXECUTE},
@@ -149,7 +143,8 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				assert.Equal(t, tt.expectedSimFlags, tt.opts.SimulationFlags())
+				fmtOptions := fmtTxnOptions(tt.opts)
+				assert.Equal(t, tt.expectedSimFlags, fmtOptions.SimulationFlags())
 			})
 		}
 	})

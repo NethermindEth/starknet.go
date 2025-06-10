@@ -38,9 +38,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return nil, err
 	}
 
-	if opts == nil {
-		opts = &TxnOptions{} //nolint:exhaustruct
-	}
+	fmtOptions := fmtTxnOptions(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
@@ -49,8 +47,8 @@ func (account *Account) BuildAndSendInvokeTxn(
 		callData,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.WithQueryBitVersion,
+			Tip:                 fmtOptions.Tip,
+			WithQueryBitVersion: fmtOptions.UseQueryBit,
 		},
 	)
 
@@ -63,14 +61,14 @@ func (account *Account) BuildAndSendInvokeTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastInvokeTxnV3},
-		opts.SimulationFlags(),
-		opts.BlockID(),
+		fmtOptions.SimulationFlags(),
+		fmtOptions.BlockID(),
 	)
 	if err != nil {
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, fmtOptions.Multiplier)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastInvokeTxnV3.Version = rpc.TransactionV3
@@ -112,9 +110,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return nil, err
 	}
 
-	if opts == nil {
-		opts = &TxnOptions{} //nolint:exhaustruct
-	}
+	fmtOptions := fmtTxnOptions(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
@@ -124,8 +120,8 @@ func (account *Account) BuildAndSendDeclareTxn(
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.WithQueryBitVersion,
+			Tip:                 fmtOptions.Tip,
+			WithQueryBitVersion: fmtOptions.UseQueryBit,
 		},
 	)
 	if err != nil {
@@ -141,14 +137,14 @@ func (account *Account) BuildAndSendDeclareTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
-		opts.SimulationFlags(),
-		opts.BlockID(),
+		fmtOptions.SimulationFlags(),
+		fmtOptions.BlockID(),
 	)
 	if err != nil {
 		return nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, fmtOptions.Multiplier)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastDeclareTxnV3.Version = rpc.TransactionV3
@@ -191,9 +187,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
-	if opts == nil {
-		opts = &TxnOptions{} //nolint:exhaustruct
-	}
+	fmtOptions := fmtTxnOptions(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
@@ -203,8 +197,8 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.WithQueryBitVersion,
+			Tip:                 fmtOptions.Tip,
+			WithQueryBitVersion: fmtOptions.UseQueryBit,
 		},
 	)
 
@@ -219,14 +213,14 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastDepAccTxnV3},
-		opts.SimulationFlags(),
-		opts.BlockID(),
+		fmtOptions.SimulationFlags(),
+		fmtOptions.BlockID(),
 	)
 	if err != nil {
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.SafeMultiplier())
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, fmtOptions.Multiplier)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
 	broadcastDepAccTxnV3.Version = rpc.TransactionV3
