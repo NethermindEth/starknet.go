@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +26,16 @@ func TestVerify(t *testing.T) {
 	mockRpcProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 		Return(internalUtils.RANDOM_FELT, nil)
-	acc, err := setupAcc(t, mockRpcProvider)
+
+	ks := account.NewMemKeystore()
+	accAddress := internalUtils.TestHexToFelt(t, "0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457")
+	acc, err := account.NewAccount(
+		mockRpcProvider,
+		accAddress,
+		"0x3904dda2cdd58e15dd8667b51a49deec6ce9c53e17b28fffb28fe9ccfddda92",
+		ks,
+		2,
+	)
 	require.NoError(t, err)
 
 	// test cases
