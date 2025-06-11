@@ -251,6 +251,54 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	return broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
+// DeployContractUDC deploys a contract using UDC.
+//
+// Parameters:
+//   - ctx: the context
+//   - classHash: the class hash of the contract to be deployed
+//   - salt: the salt for the address of the deployed contract
+//   - constructorCalldata: the parameters passed to the constructor
+//   - udcAddress: the address of the UDC contract. If nil, the default address will be used.
+//
+// It returns:
+//   - *rpc.AddInvokeTransactionResponse: the response from the provider
+//   - error: an error if any
+func (account *Account) DeployContractUDC(
+	ctx context.Context,
+	classHash *felt.Felt,
+	salt *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	udcAddress *felt.Felt,
+) (*rpc.AddInvokeTransactionResponse, error) {
+
+	fromZeroFelt := new(felt.Felt).SetUint64(1)
+
+	calldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
+	udcCallData := append([]*felt.Felt{classHash, salt, fromZeroFelt, calldataLen}, constructorCalldata...)
+
+	var finalUdcAddress *felt.Felt
+	if udcAddress != nil {
+		finalUdcAddress = udcAddress
+	} else {
+		var err error
+		// Default address is same for Mainnet and Sepolia testnet.
+		// https://docs.openzeppelin.com/contracts-cairo/0.14.0/udc
+		finalUdcAddress, err = new(felt.Felt).SetString("0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	fnCall := rpc.InvokeFunctionCall{
+		ContractAddress: finalUdcAddress,
+		FunctionName:    "deploy_contract",
+		CallData:        udcCallData,
+	}
+
+	// Setting multiplier to 1.5 for now, maybe expose this to the user in the future
+	return account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{fnCall}, 1.5, false)
+}
+
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
 // It can only send v3 transactions.
 //
