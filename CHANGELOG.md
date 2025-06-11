@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Dev updates:
 - Added "Warning" word in the logs when missing the .env file on `internal/test.go`
-- Updated `.env.template` and `account.TestMain` to support 'mock' env files
 - New `signature_test.go` file with the new `TestVerify` test
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
