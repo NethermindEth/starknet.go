@@ -57,8 +57,12 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				fmtOptions := fmtTxnOptions(tt.opts)
-				assert.Equal(t, tt.expectedMultiplier, fmtOptions.Multiplier)
+				if tt.opts == nil {
+					temp := defaultTxnOptions()
+					tt.opts = &temp
+				}
+				fmtTipAndMultiplier(tt.opts)
+				assert.Equal(t, tt.expectedMultiplier, tt.opts.Multiplier)
 			})
 		}
 	})
@@ -94,8 +98,11 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				fmtOptions := fmtTxnOptions(tt.opts)
-				assert.Equal(t, tt.expectedBlockID, fmtOptions.BlockID())
+				if tt.opts == nil {
+					temp := defaultTxnOptions()
+					tt.opts = &temp
+				}
+				assert.Equal(t, tt.expectedBlockID, tt.opts.BlockID())
 			})
 		}
 	})
@@ -143,8 +150,11 @@ func TestTxnOptions(t *testing.T) {
 		for _, tt := range testcases {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				fmtOptions := fmtTxnOptions(tt.opts)
-				assert.Equal(t, tt.expectedSimFlags, fmtOptions.SimulationFlags())
+				if tt.opts == nil {
+					temp := defaultTxnOptions()
+					tt.opts = &temp
+				}
+				assert.Equal(t, tt.expectedSimFlags, tt.opts.SimulationFlags())
 			})
 		}
 	})
