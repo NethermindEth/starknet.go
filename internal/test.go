@@ -40,14 +40,14 @@ func LoadEnv() string {
 	customEnv := ".env." + testEnv
 	err := godotenv.Load(filepath.Join(sourceDir, customEnv))
 	if err != nil {
-		log.Printf("failed to load %s, err: %s", customEnv, err)
+		log.Printf("Warning: failed to load %s, err: %s", customEnv, err)
 	} else {
 		log.Printf("successfully loaded %s", customEnv)
 	}
 
 	err = godotenv.Load(filepath.Join(sourceDir, ".env"))
 	if err != nil {
-		log.Printf("failed to load .env, err: %s", err)
+		log.Printf("Warning: failed to load .env, err: %s", err)
 	} else {
 		log.Printf("successfully loaded .env")
 	}

@@ -43,15 +43,7 @@ var (
 func TestMain(m *testing.M) {
 	testEnv = internal.LoadEnv()
 
-	if testEnv == "mock" {
-		os.Exit(m.Run())
-	}
 	base = os.Getenv("HTTP_PROVIDER_URL")
-	if base == "" {
-		panic("Failed to load HTTP_PROVIDER_URL, empty string")
-	}
-
-	// load the test account data, only required for some tests
 	privKey = os.Getenv("STARKNET_PRIVATE_KEY")
 	pubKey = os.Getenv("STARKNET_PUBLIC_KEY")
 	accountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
