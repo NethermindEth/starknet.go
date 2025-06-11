@@ -2,9 +2,11 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
@@ -182,4 +184,22 @@ func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *
 	}
 
 	return signature, nil
+}
+
+// Verifies the validity of the signature for a given message hash using the account's public key.
+//
+// Parameters:
+//   - msgHash: The message hash to be verified
+//   - signature: A slice of felt.Felt containing the two signature components
+//
+// Returns:
+//   - bool: true if the signature is valid, false otherwise
+//   - error: An error if any occurred during the verification process
+func (account *Account) Verify(msgHash *felt.Felt, signature []*felt.Felt) (bool, error) {
+	publicKeyFelt, err := new(felt.Felt).SetString(account.publicKey)
+	if err != nil {
+		return false, errors.Join(errors.New("failed to convert public key to felt"), err)
+	}
+
+	return curve.VerifyFelts(msgHash, signature[0], signature[1], publicKeyFelt)
 }
