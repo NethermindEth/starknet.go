@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `Verify` method to the `account.Account` type and `account.AccountInterface` interface
 
+### Changed
+- Updated `examples/typedData/main.go` to use the new `Verify` method
+
 #### Dev updates:
 - Added "Warning" word in the logs when missing the .env file on `internal/test.go`
 - New `signature_test.go` file with the new `TestVerify` test
