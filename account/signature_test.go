@@ -150,5 +150,4 @@ func TestVerify(t *testing.T) {
 			assert.Equal(t, test.result, result)
 		})
 	}
-
 }
