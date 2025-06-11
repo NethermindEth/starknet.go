@@ -295,7 +295,7 @@ func (account *Account) DeployContractUDC(
 		CallData:        udcCallData,
 	}
 
-	// Setting multiplier to 1.5 for now, maybe expose this to the user in the future
+	// Setting multiplier to 1.5 for now, I think ideally the user should be able to set it.
 	return account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{fnCall}, 1.5, false)
 }
 
