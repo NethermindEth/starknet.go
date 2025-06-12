@@ -325,7 +325,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		_, acnts, err := newDevnet(t, tConfig.providerURL)
 		require.NoError(t, err, "Error setting up Devnet")
 
-		acnt := newDevnetAccount(t, client, acnts[0], 2)
+		acnt := newDevnetAccount(t, client, acnts[0], account.CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
@@ -605,7 +605,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	fakeUser := acnts[0]
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-	acnt := newDevnetAccount(t, client, fakeUser, 2)
+	acnt := newDevnetAccount(t, client, fakeUser, account.CairoV2)
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
