@@ -35,6 +35,7 @@ func checkVersionCompatibility(provider *Provider) {
 	if err != nil {
 		// Print a warning but don't fail
 		fmt.Println(warnVersionCheckFailed, err)
+
 		return
 	}
 

@@ -189,7 +189,6 @@ func TestCookieManagement(t *testing.T) {
 
 // TestVersionCompatibility tests that the provider correctly handles version compatibility warnings
 func TestVersionCompatibility(t *testing.T) {
-	const specVersionMethod = "starknet_specVersion"
 	const wrongVersion = "0.5.0"
 
 	// Set up a single server that responds differently based on query parameters
@@ -201,7 +200,7 @@ func TestVersionCompatibility(t *testing.T) {
 			return
 		}
 
-		if method, ok := request["method"].(string); ok && method == specVersionMethod {
+		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
 			// Get test case from query parameter
 			testCase := r.URL.Query().Get("testCase")
 

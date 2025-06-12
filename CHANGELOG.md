@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
 ### Added
 - `Verify` method to the `account.Account` type and `account.AccountInterface` interface
+- A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
 
 ### Changed
 - Updated `examples/typedData/main.go` to use the new `Verify` method
@@ -15,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Dev updates:
 - Added "Warning" word in the logs when missing the .env file on `internal/test.go`
 - New `signature_test.go` file with the new `TestVerify` test
+- New `warnVersionCheckFailed` and `warnVersionMismatch` variables in `rpc/provider.go`
+- New `checkVersionCompatibility()` function in `rpc/provider.go` to check the version of the RPC provider. It is called inside `rpc.NewProvider`
+- New `TestVersionCompatibility` test in `rpc/provider_test.go`
+- `TestCookieManagement` modified to handle the `specVersion` call when creating a new provider
+- New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
+- Updated `TestSpecVersion` to use the `rpcVersion` constant
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
