@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
-nothing merged yet :D
+### Added
+- `Verify` method to the `account.Account` type and `account.AccountInterface` interface
+
+### Changed
+- Updated `examples/typedData/main.go` to use the new `Verify` method
+
+#### Dev updates:
+- Added "Warning" word in the logs when missing the .env file on `internal/test.go`
+- New `signature_test.go` file with the new `TestVerify` test
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
