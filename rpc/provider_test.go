@@ -211,7 +211,7 @@ func TestVersionCompatibility(t *testing.T) {
 				data := map[string]interface{}{
 					"jsonrpc": "2.0",
 					"id":      request["id"],
-					"result":  RPCVersion,
+					"result":  rpcVersion,
 				}
 				if err := json.NewEncoder(w).Encode(data); err != nil {
 					log.Fatal(err)
@@ -258,7 +258,7 @@ func TestVersionCompatibility(t *testing.T) {
 		{
 			name:            "Incompatible version",
 			queryParam:      "incompatible",
-			expectedWarning: fmt.Sprintf(warnVersionMismatch, RPCVersion, wrongVersion),
+			expectedWarning: fmt.Sprintf(warnVersionMismatch, rpcVersion, wrongVersion),
 		},
 		{
 			name:            "Error fetching version",

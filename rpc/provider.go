@@ -15,9 +15,9 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// RPCVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
+// rpcVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-const RPCVersion = "0.8.1"
+const rpcVersion = "0.8.1"
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
@@ -38,8 +38,8 @@ func checkVersionCompatibility(provider *Provider) {
 		return
 	}
 
-	if !strings.Contains(version, RPCVersion) {
-		fmt.Println(fmt.Sprintf(warnVersionMismatch, RPCVersion, version))
+	if !strings.Contains(version, rpcVersion) {
+		fmt.Println(fmt.Sprintf(warnVersionMismatch, rpcVersion, version))
 	}
 }
 
