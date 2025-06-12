@@ -48,6 +48,7 @@ type AccountInterface interface {
 	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(tx rpc.DeployAccountType, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
+	Verify(msgHash *felt.Felt, signature []*felt.Felt) (bool, error)
 	WaitForTransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,
