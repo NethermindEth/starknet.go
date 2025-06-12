@@ -33,7 +33,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	acc, err := setupAcc(t, provider)
@@ -75,7 +75,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	acc, err := setupAcc(t, provider)
@@ -127,7 +127,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		t.Skip("test environment not supported")
 	}
 
-	provider, err := rpc.NewProvider(base)
+	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	// we need this account to fund the new account with STRK tokens, in order to deploy it
@@ -319,10 +319,10 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		if testEnv != "devnet" {
 			t.Skip("Skipping test as it requires a devnet environment")
 		}
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		_, acnts, err := newDevnet(t, base)
+		_, acnts, err := newDevnet(t, tConfig.providerURL)
 		require.NoError(t, err, "Error setting up Devnet")
 
 		acnt := newDevnetAccount(t, client, acnts[0], 2)
@@ -465,7 +465,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
 		// Set up ks
@@ -517,7 +517,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, 0)
@@ -597,10 +597,10 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
-	devnetClient, acnts, err := newDevnet(t, base)
+	devnetClient, acnts, err := newDevnet(t, tConfig.providerURL)
 	require.NoError(t, err, "Error setting up Devnet")
 
 	fakeUser := acnts[0]
@@ -768,7 +768,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	if testEnv != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
-	client, err := rpc.NewProvider(base)
+	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewClient")
 
 	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)

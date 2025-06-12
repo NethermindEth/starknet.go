@@ -124,7 +124,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var err error
 			if testEnv == "testnet" {
 				var client *rpc.Provider
-				client, err = rpc.NewProvider(base)
+				client, err = rpc.NewProvider(tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, 0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
@@ -161,7 +161,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 // This function verifies that the TransactionHashDeclare function returns the
 // expected hash value for a given transaction.
 // The function requires a testnet environment to run.
-// It creates a new client using the provided base URL and verifies that no
+// It creates a new client using the provided tConfig.base URL and verifies that no
 // error occurs.
 // It then creates a new account using the provider and verifies that no error
 // occurs.
@@ -190,7 +190,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
@@ -310,7 +310,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)
@@ -391,7 +391,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if testEnv == "testnet" {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), 0)
 		require.NoError(t, err)

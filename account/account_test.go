@@ -87,7 +87,7 @@ func TestFmtCallData(t *testing.T) {
 		var err error
 		if testEnv == "testnet" {
 			var client *rpc.Provider
-			client, err = rpc.NewProvider(base)
+			client, err = rpc.NewProvider(tConfig.providerURL)
 			require.NoError(t, err, "Error in rpc.NewClient")
 			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 			require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestChainId(t *testing.T) {
 	}[testEnv]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(base)
+		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
 		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), 0)
