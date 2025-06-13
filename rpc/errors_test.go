@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRPCError(t *testing.T) {
-	if testEnv == "mock" {
+	if internal.TEST_ENV == internal.MockEnv {
 		testConfig := beforeEach(t, false)
 		_, err := testConfig.provider.ChainID(context.Background())
 		require.NoError(t, err)
@@ -29,7 +30,7 @@ func TestRPCError(t *testing.T) {
 		assert.ErrorContains(t, err, rpcErr.Data.ErrorMessage())
 	}
 
-	if testEnv == "testnet" {
+	if internal.TEST_ENV == internal.TestnetEnv {
 		testConfig := beforeEach(t, false)
 
 		// invalid msg

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -38,8 +39,8 @@ func TestEvents(t *testing.T) {
 		expectedResp EventChunk
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {{
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {{
 			eventFilter: EventFilter{},
 			resPageReq: ResultPageRequest{
 				ChunkSize: 1000,
@@ -54,7 +55,7 @@ func TestEvents(t *testing.T) {
 				},
 			},
 		}},
-		"mainnet": {
+		internal.MainnetEnv: {
 			{
 				eventFilter: EventFilter{
 					FromBlock: WithBlockNumber(1471),
@@ -91,7 +92,7 @@ func TestEvents(t *testing.T) {
 				},
 			},
 		},
-		"testnet": {
+		internal.TestnetEnv: {
 			{
 				eventFilter: EventFilter{
 					FromBlock: WithBlockNumber(144932),
@@ -130,7 +131,7 @@ func TestEvents(t *testing.T) {
 				},
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		eventInput := EventsInput{

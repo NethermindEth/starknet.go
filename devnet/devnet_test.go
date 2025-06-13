@@ -2,7 +2,6 @@ package devnet
 
 import (
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -10,25 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
-
-// the environment for the test, needs to be "devnet"
-var testEnv = ""
-
-// TestMain is the main test function for the package, checks configuration for the environment to use.
-//
-// It initialises the test environment and runs the test cases.
-//
-// Parameters:
-//   - m: is the testing.M parameter
-//
-// Returns:
-//
-//	none
-func TestMain(m *testing.M) {
-	testEnv = internal.LoadEnv()
-
-	os.Exit(m.Run())
-}
 
 // TestDevnet_IsAlive tests the IsAlive method of the Devnet struct.
 //
@@ -42,7 +22,7 @@ func TestMain(m *testing.M) {
 //
 //	none
 func TestDevnet_IsAlive(t *testing.T) {
-	if testEnv != "devnet" {
+	if internal.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 
@@ -64,7 +44,7 @@ func TestDevnet_IsAlive(t *testing.T) {
 //
 //	none
 func TestDevnet_Accounts(t *testing.T) {
-	if testEnv != "devnet" {
+	if internal.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 
@@ -92,7 +72,7 @@ func TestDevnet_Accounts(t *testing.T) {
 //
 //	none
 func TestDevnet_Mint(t *testing.T) {
-	if testEnv != "devnet" {
+	if internal.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 

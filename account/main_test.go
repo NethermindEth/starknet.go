@@ -25,16 +25,12 @@ type testConfig struct {
 }
 
 var (
-	// the environment for the test, default: mock
-	testEnv = ""
 	tConfig testConfig
 )
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	testEnv = internal.LoadEnv()
-
-	if testEnv == "mock" {
+	if internal.TEST_ENV == internal.MockEnv {
 		os.Exit(m.Run())
 	}
 	tConfig.providerURL = os.Getenv("HTTP_PROVIDER_URL")

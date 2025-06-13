@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -28,12 +29,12 @@ func TestChainID(t *testing.T) {
 	type testSetType struct {
 		ChainID string
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "SN_SEPOLIA"}},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "SN_SEPOLIA"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv:  {{ChainID: "SN_SEPOLIA"}},
+		internal.MainnetEnv: {{ChainID: "SN_MAIN"}},
+		internal.MockEnv:    {{ChainID: "SN_SEPOLIA"}},
+		internal.TestnetEnv: {{ChainID: "SN_SEPOLIA"}},
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		chain, err := testConfig.provider.ChainID(context.Background())
@@ -64,18 +65,18 @@ func TestSyncing(t *testing.T) {
 		ChainID string
 	}
 
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv:  {},
+		internal.MainnetEnv: {{ChainID: "SN_MAIN"}},
+		internal.MockEnv:    {{ChainID: "MOCK"}},
+		internal.TestnetEnv: {{ChainID: "SN_SEPOLIA"}},
+	}[internal.TEST_ENV]
 
 	for range testSet {
 		sync, err := testConfig.provider.Syncing(context.Background())
 		require.NoError(t, err)
 
-		if testEnv == "mock" {
+		if internal.TEST_ENV == internal.MockEnv {
 			value := SyncStatus{
 				StartingBlockHash: internalUtils.RANDOM_FELT,
 				StartingBlockNum:  "0x4c602",
