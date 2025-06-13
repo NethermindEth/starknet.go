@@ -3,6 +3,7 @@ package account_test
 import (
 	"context"
 	"math/big"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -811,4 +812,64 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 			}
 		}()
 	}
+}
+
+
+func TestDeployContractUDC(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("This test is only for testnet")
+	}
+
+	// Hardcoded values
+	rpcProviderUrl := "https://rpc.starknet-testnet.lava.build:443"
+	accountAddress := "0x0575c24e48d311ed9bc4a3f1c9b582eff44998ebb52b52fe4c57600c732d8bc5"
+	publicKey := "0xdc2d920a58c7744a7f254441753d64b2484b0cff2d14aae2bc902fe3de6f7"
+	privateKey := "0x2bbabfb2505bce3fbe1898dfcf7a5579d55aea40ed8a5d06e19db90e4746aa4" 
+	accountCairoVersion := 2
+
+	client, err := rpc.NewProvider(rpcProviderUrl)
+	require.NoError(t, err, "Error dialing RPC provider")
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	require.NoError(t, err, "Invalid account address")
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	require.True(t, ok, "Failed to convert private key to big.Int")
+	ks.Put(publicKey, privKeyBI)
+
+	accnt, err := account.NewAccount(client, accountAddressFelt, publicKey, ks, accountCairoVersion)
+	require.NoError(t, err, "Failed to create account")
+
+	classHash, err := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+	require.NoError(t, err, "Invalid class hash")
+
+	salt := new(felt.Felt).SetUint64(rand.Uint64())
+
+	nameAsFelts, err := utils.StringToByteArrFelt("My Test Token")
+	require.NoError(t, err, "Failed converting name to felts")
+
+	symbolAsFelts, err := utils.StringToByteArrFelt("MTT")
+	require.NoError(t, err, "Failed converting symbol to felts")
+
+	recipient := accountAddressFelt
+
+	// Same as DeployContractUDC example
+	supply := new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil)
+	low := new(felt.Felt).SetBigInt(new(big.Int).And(supply, new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1))))
+	high := new(felt.Felt).SetBigInt(new(big.Int).Rsh(supply, 128))
+
+	constructorCalldata := append(nameAsFelts, symbolAsFelts...)
+	constructorCalldata = append(constructorCalldata, low, high, recipient, recipient)
+
+	resp, err := accnt.DeployContractUDC(context.Background(), classHash, salt, constructorCalldata, nil)
+	require.NoError(t, err, "DeployContractUDC failed")
+
+	t.Logf("Transaction hash: %s", resp.Hash)
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 2*time.Second)
+	require.NoError(t, err, "Waiting for tx receipt failed")
+
+	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
