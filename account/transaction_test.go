@@ -826,3 +826,5 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		}()
 	}
 }
+
+// TODO: add more tests for the BuildAnd* functions, testing each of them with different TxnOption's
