@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -->
 
 ### Added
+- `account` pkg
+  - `Verify` method to the `Account` type and `AccountInterface` interface
+  - `CairoVersion` type
 - A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
 - `utils` pkg
   - `TxnOptions` type, allowing optional settings when building a transaction (set tip and query bit version)
@@ -23,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Verify` method to the `Account` type and `AccountInterface` interface
   - `CairoVersion` type
   - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
+
+### Removed
+- `rpc.NewClient` function
 
 ### Removed
 - `rpc.NewClient` function
@@ -54,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `TestCookieManagement` modified to handle the `specVersion` call when creating a new provider
   - New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
   - Updated `TestSpecVersion` to use the `rpcVersion` constant
+- In `account.NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+- `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
+- Updated `examples/typedData/main.go` to use the new `Verify` method
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
