@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -45,8 +46,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 		TxDetails      rpc.TxDetails
 	}
 	// TODO: improve test cases to include invoke txns v0 and v3
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
 				ExpectedHash:   internalUtils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
@@ -77,8 +78,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 				},
 			},
 		},
-		"devnet": {},
-		"testnet": {
+		internal.DevnetEnv: {},
+		internal.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406
 				ExpectedHash:   internalUtils.TestHexToFelt(t, "0x5d307ad21a407ab6e93754b2fca71dd2d3b28313f6e844a7f3ecc404263a406"),
@@ -109,8 +110,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+		internal.MainnetEnv: {},
+	}[internal.TEST_ENV]
 	for _, test := range testSet {
 		t.Run("Transaction hash", func(t *testing.T) {
 			ks := account.NewMemKeystore()
@@ -122,14 +123,14 @@ func TestTransactionHashInvoke(t *testing.T) {
 
 			var acc *account.Account
 			var err error
-			if testEnv == "testnet" {
+			if internal.TEST_ENV == "testnet" {
 				var client *rpc.Provider
 				client, err = rpc.NewProvider(tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, account.CairoV0)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
-			if testEnv == "mock" {
+			if internal.TEST_ENV == "mock" {
 				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 				mockRpcProvider.EXPECT().
@@ -179,7 +180,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 func TestTransactionHashDeclare(t *testing.T) {
 	var acnt *account.Account
 	var err error
-	if testEnv == "mock" {
+	if internal.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -189,7 +190,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
-	if testEnv == "testnet" {
+	if internal.TEST_ENV == "testnet" {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
@@ -201,8 +202,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
 				Txn: rpc.DeclareTxnV2{
@@ -258,7 +259,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 				ExpectedErr:  nil,
 			},
 		},
-		"testnet": {
+		internal.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
 				Txn: rpc.DeclareTxnV2{
@@ -278,7 +279,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 				ExpectedErr:  nil,
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
@@ -299,7 +300,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 func TestTransactionHashInvokeV3(t *testing.T) {
 	var acnt *account.Account
 	var err error
-	if testEnv == "mock" {
+	if internal.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -309,7 +310,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
-	if testEnv == "testnet" {
+	if internal.TEST_ENV == "testnet" {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
@@ -321,8 +322,8 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea
 				Txn: rpc.InvokeTxnV3{
@@ -364,7 +365,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 				ExpectedErr:  nil,
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashInvoke(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
@@ -379,7 +380,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 func TestTransactionHashdeployAccount(t *testing.T) {
 	var acnt *account.Account
 	var err error
-	if testEnv == "mock" {
+	if internal.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
@@ -390,7 +391,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
 		require.NoError(t, err)
 	}
-	if testEnv == "testnet" {
+	if internal.TEST_ENV == "testnet" {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
@@ -402,8 +403,8 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		ExpectedHash  *felt.Felt
 		ExpectedErr   error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
 				Txn: rpc.DeployAccountTxnV1{
@@ -464,7 +465,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 				ExpectedErr:   nil,
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)

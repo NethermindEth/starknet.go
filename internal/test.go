@@ -9,23 +9,42 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// the environment for the test, default: mock
-var testEnv = ""
-
-func loadFlags() {
-	// set the environment for the test, default: mock
-	flag.StringVar(&testEnv, "env", "mock", "set the test environment")
-	flag.Parse()
+func init() {
+	TEST_ENV = loadEnv()
 }
 
-func LoadEnv() string {
+// the environment for the test, default: mock
+var TEST_ENV TestEnv
+
+type TestEnv string
+
+const (
+	MockEnv           TestEnv = "mock"
+	IntegrationEnv    TestEnv = "integration"
+	TestnetEnv        TestEnv = "testnet"
+	MainnetEnv        TestEnv = "mainnet"
+	DevnetEnv         TestEnv = "devnet"
+	Devnet_TestnetEnv TestEnv = "devnet-testnet"
+	Devnet_MainnetEnv TestEnv = "devnet-mainnet"
+)
+
+func loadFlags() {
+	var testEnvStr string
+	// set the environment for the test, default: mock
+	flag.StringVar(&testEnvStr, "env", string(MockEnv), "set the test environment")
+	flag.Parse()
+
+	TEST_ENV = TestEnv(testEnvStr)
+}
+
+func loadEnv() TestEnv {
 	loadFlags()
 
-	switch testEnv {
-	case "mock", "mainnet", "testnet", "devnet":
+	switch TEST_ENV {
+	case MockEnv, IntegrationEnv, TestnetEnv, MainnetEnv, DevnetEnv, Devnet_TestnetEnv, Devnet_MainnetEnv:
 		break
 	default:
-		log.Fatalf("invalid test environment '%s', supports mock, testnet, mainnet, devnet", testEnv)
+		log.Fatalf("invalid test environment '%s', supports: mock, integration, testnet, mainnet, devnet, devnet-testnet, devnet-mainnet", TEST_ENV)
 	}
 
 	// get the source file path
@@ -37,7 +56,7 @@ func LoadEnv() string {
 	// get the directory containing the source file
 	sourceDir := filepath.Dir(filename)
 
-	customEnv := ".env." + testEnv
+	customEnv := ".env." + string(TEST_ENV)
 	err := godotenv.Load(filepath.Join(sourceDir, customEnv))
 	if err != nil {
 		log.Printf("Warning: failed to load %s, err: %s", customEnv, err)
@@ -52,5 +71,5 @@ func LoadEnv() string {
 		log.Printf("successfully loaded .env")
 	}
 
-	return testEnv
+	return TEST_ENV
 }

@@ -28,29 +28,6 @@ type testConfiguration struct {
 	wsBase     string
 }
 
-// the environment for the test, default: mock
-// TODO: create an enum for the test environment
-var testEnv = ""
-
-// TestMain is used to trigger the tests and set up the test environment.
-//
-// It sets up the test environment by loading environment variables using the internal.LoadEnv() function,
-// which handles parsing command line flags and loading the appropriate .env files based on the
-// specified environment (mock, testnet, mainnet, or devnet).
-// After setting up the environment, it runs the tests and exits with the return value of the test suite.
-//
-// Parameters:
-//   - m: The testing.M object that provides the entry point for running tests
-//
-// Returns:
-//
-//	none
-func TestMain(m *testing.M) {
-	testEnv = internal.LoadEnv()
-
-	os.Exit(m.Run())
-}
-
 // beforeEach initialises the test environment configuration before running the script.
 //
 // Parameters:
@@ -64,7 +41,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 
 	var testConfig testConfiguration
 
-	if testEnv == "mock" {
+	if internal.TEST_ENV == internal.MockEnv {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
@@ -86,7 +63,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 
-	if testEnv == "devnet" || testEnv == "mainnet" {
+	if internal.TEST_ENV == internal.DevnetEnv || internal.TEST_ENV == internal.MainnetEnv {
 		return &testConfig
 	}
 
