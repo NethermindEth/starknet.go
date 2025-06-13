@@ -44,7 +44,7 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
 func (opts *TxnOptions) SafeTip() rpc.U64 {
-	if opts == nil || opts.Tip == "" {
+	if opts.Tip == "" {
 		return "0x0"
 	}
 
@@ -75,6 +75,10 @@ func BuildInvokeTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
@@ -120,6 +124,10 @@ func BuildDeclareTxn(
 		return nil, err
 	}
 
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	declareTxn := rpc.BroadcastDeclareTxnV3{
 		Type:                  rpc.TransactionType_Declare,
 		SenderAddress:         senderAddress,
@@ -161,6 +169,10 @@ func BuildDeployAccountTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
 		Version:             opts.TxnVersion(),
