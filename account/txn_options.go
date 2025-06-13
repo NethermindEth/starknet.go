@@ -32,7 +32,8 @@ type TxnOptions struct {
 }
 
 // BlockID returns the block ID for fee estimation based on the UseLatest flag.
-// If UseLatest is set, returns the latest block ID.
+// If UseLatest is `true`, returns the latest block ID.
+// Otherwise, returns the pending block ID.
 func (opts *TxnOptions) BlockID() rpc.BlockID {
 	if opts.UseLatest {
 		return rpc.WithBlockTag(rpc.BlockTagLatest)
