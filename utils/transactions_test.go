@@ -491,7 +491,7 @@ func TestTxnOptions(t *testing.T) {
 			t.Parallel()
 			opts := tt.opts
 
-			// same behavior as in Build...Txn functions
+			// same behaviour as in Build...Txn functions
 			if opts == nil {
 				opts = new(TxnOptions)
 			}
