@@ -51,8 +51,8 @@ func (account *Account) BuildAndSendInvokeTxn(
 		callData,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.UseQueryBit,
+			Tip:         opts.Tip,
+			UseQueryBit: opts.UseQueryBit,
 		},
 	)
 
@@ -128,8 +128,8 @@ func (account *Account) BuildAndSendDeclareTxn(
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.UseQueryBit,
+			Tip:         opts.Tip,
+			UseQueryBit: opts.UseQueryBit,
 		},
 	)
 	if err != nil {
@@ -209,8 +209,8 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:                 opts.Tip,
-			WithQueryBitVersion: opts.UseQueryBit,
+			Tip:         opts.Tip,
+			UseQueryBit: opts.UseQueryBit,
 		},
 	)
 

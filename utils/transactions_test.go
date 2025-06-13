@@ -471,7 +471,7 @@ func TestTxnOptions(t *testing.T) {
 		{
 			name: "WithQueryBitVersion true",
 			opts: &TxnOptions{
-				WithQueryBitVersion: true,
+				UseQueryBit: true,
 			},
 			expectedTip:     "0x0",
 			expectedVersion: rpc.TransactionV3WithQueryBit,

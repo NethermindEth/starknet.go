@@ -29,17 +29,17 @@ type TxnOptions struct {
 	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
 	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
-	WithQueryBitVersion bool
+	UseQueryBit bool
 }
 
-// TxnVersion returns `rpc.TransactionV3WithQueryBit` when WithQueryBitVersion is true, and
-// `rpc.TransactionV3` if false or nil.
+// TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and
+// `rpc.TransactionV3` if false.
 func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
-	if opts == nil || !opts.WithQueryBitVersion {
-		return rpc.TransactionV3
+	if opts.UseQueryBit {
+		return rpc.TransactionV3WithQueryBit
 	}
 
-	return rpc.TransactionV3WithQueryBit
+	return rpc.TransactionV3
 }
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
