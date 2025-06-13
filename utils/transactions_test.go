@@ -451,3 +451,53 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		})
 	}
 }
+
+// TestTxnOptions tests the ApplyOptions method of the TxnOptions struct,
+// testing whether the method sets the default values and checks for edge cases
+func TestTxnOptions(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name            string
+		opts            *TxnOptions
+		expectedTip     rpc.U64
+		expectedVersion rpc.TransactionVersion
+	}{
+		{
+			name:            "Default values",
+			opts:            nil,
+			expectedTip:     "0x0",
+			expectedVersion: rpc.TransactionV3,
+		},
+		{
+			name: "WithQueryBitVersion true",
+			opts: &TxnOptions{
+				UseQueryBit: true,
+			},
+			expectedTip:     "0x0",
+			expectedVersion: rpc.TransactionV3WithQueryBit,
+		},
+		{
+			name: "Tip set",
+			opts: &TxnOptions{
+				Tip: "0x1234567890",
+			},
+			expectedTip:     "0x1234567890",
+			expectedVersion: rpc.TransactionV3,
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			opts := tt.opts
+
+			// same behaviour as in Build...Txn functions
+			if opts == nil {
+				opts = new(TxnOptions)
+			}
+
+			assert.Equal(t, tt.expectedTip, opts.SafeTip())
+			assert.Equal(t, tt.expectedVersion, opts.TxnVersion())
+		})
+	}
+}
