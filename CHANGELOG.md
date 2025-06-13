@@ -19,13 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `account` pkg
   - `Verify` method to the `Account` type and `AccountInterface` interface
   - `CairoVersion` type
-- A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
+  - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
 - `utils` pkg
   - `TxnOptions` type, allowing optional settings when building a transaction (set tip and query bit version)
-- `account` pkg
-  - `Verify` method to the `Account` type and `AccountInterface` interface
-  - `CairoVersion` type
-  - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
+- A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
 
 ### Removed
 - `rpc.NewClient` function
