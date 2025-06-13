@@ -47,7 +47,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5, false)
+	}, nil)
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -88,7 +88,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
+	resp, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		&casmClass,
+		&class,
+		nil,
+	)
 	if err != nil {
 		require.EqualError(
 			t,
@@ -153,8 +158,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5,
-		false,
+		nil,
 	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
@@ -196,7 +200,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5, false)
+	}, nil)
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -278,7 +282,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					ContractAddress: internalUtils.RANDOM_FELT,
 					FunctionName:    "transfer",
 				},
-			}, 1.5, true)
+			}, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 		})
 
@@ -295,7 +301,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 		})
 
@@ -305,8 +313,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				internalUtils.RANDOM_FELT,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
 			)
 			require.NoError(t, err)
 
@@ -328,7 +337,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		acnt := newDevnetAccount(t, client, acnts[0], account.CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -351,7 +362,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName:    "transfer",
 					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
-			}, 1.5, true)
+			}, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -377,8 +390,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
 			)
 			require.NoError(t, err)
 			require.NotNil(t, txn)
@@ -579,7 +593,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
 //
 // The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
-// and provider using the base URL. After that, it sets up a devnet environment and creates a fake user account. The
+// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user account. The
 // fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
 // and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
 // user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
@@ -745,7 +759,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
 //
 // It checks if the test environment is "devnet" and skips the test if it's not.
-// It creates a new RPC client using the base URL and "/rpc" endpoint.
+// It creates a new RPC client using the tConfig.base URL and "/rpc" endpoint.
 // It creates a new RPC provider using the client.
 // It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
 // It defines a testSet variable that contains an array of testSetType structs.
@@ -812,3 +826,5 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		}()
 	}
 }
+
+// TODO: add more tests for the BuildAnd* functions, testing each of them with different TxnOption's

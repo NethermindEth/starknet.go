@@ -43,20 +43,26 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 
 	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
-	InvokeTx := utils.BuildInvokeTxn(accnt.Address, nonce, calldata, &rpc.ResourceBoundsMapping{
-		L1Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
+	InvokeTx := utils.BuildInvokeTxn(
+		accnt.Address,
+		nonce,
+		calldata,
+		&rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
 		},
-		L1DataGas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-		L2Gas: rpc.ResourceBounds{
-			MaxAmount:       "0x0",
-			MaxPricePerUnit: "0x0",
-		},
-	})
+		nil,
+	)
 
 	// We need to sign the transaction to be able to estimate the fee
 	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)

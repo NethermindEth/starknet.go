@@ -13,18 +13,49 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
-var (
+const (
 	maxUint64                 uint64 = math.MaxUint64
 	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
 	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
+// Optional settings when building a transaction.
+type TxnOptions struct {
+	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	Tip rpc.U64
+	// A boolean flag indicating whether the transaction version should have
+	// the query bit when estimating fees. If true, the transaction version
+	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// In case of doubt, set to `false`. Default: `false`.
+	UseQueryBit bool
+}
+
+// TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and
+// `rpc.TransactionV3` if false.
+func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
+	if opts.UseQueryBit {
+		return rpc.TransactionV3WithQueryBit
+	}
+
+	return rpc.TransactionV3
+}
+
+// SafeTip returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
+func (opts *TxnOptions) SafeTip() rpc.U64 {
+	if opts.Tip == "" {
+		return "0x0"
+	}
+
+	if _, err := opts.Tip.ToUint64(); err != nil {
+		return "0x0"
+	}
+
+	return opts.Tip
+}
+
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
-//
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
 //
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
@@ -32,25 +63,31 @@ var (
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TxnOptions,
 ) *rpc.BroadcastInvokeTxnV3 {
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
 		Type:                  rpc.TransactionType_Invoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
-		Version:               rpc.TransactionV3,
+		Version:               opts.TxnVersion(),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -63,42 +100,44 @@ func BuildInvokeTxn(
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
 // A declare transaction is used to declare a new contract class on the network.
 //
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
-//
 // Parameters:
 //   - senderAddress: The address of the account sending the transaction
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
 //   - nonce: The account's nonce
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TxnOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
 	compiledClassHash, err := hash.CompiledClassHash(casmClass)
 	if err != nil {
 		return nil, err
 	}
 
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	declareTxn := rpc.BroadcastDeclareTxnV3{
 		Type:                  rpc.TransactionType_Declare,
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
-		Version:               rpc.TransactionV3,
+		Version:               opts.TxnVersion(),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   "0x0",
+		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
@@ -111,37 +150,39 @@ func BuildDeclareTxn(
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
 // A deploy account transaction is used to deploy a new account contract on the network.
 //
-// The default version of the returned transaction is rpc.TransactionV3 (0x3). If a version with
-// rpc.TransactionV3WithQueryBit ('0x100000000000000000000000000000003') is required, it should be set manually
-// in the returned transaction.
-//
 // Parameters:
 //   - nonce: The account's nonce
 //   - contractAddressSalt: A value used to randomise the deployed contract address
 //   - constructorCalldata: The parameters for the constructor function
 //   - classHash: The hash of the contract class to deploy
 //   - resourceBounds: Resource bounds for the transaction execution
+//   - opts: optional settings for the transaction
 //
 // Returns:
 //   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
-//     for signature, tip, paymaster data, etc. Needs to be signed before being sent.
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildDeployAccountTxn(
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
 	resourceBounds *rpc.ResourceBoundsMapping,
+	opts *TxnOptions,
 ) *rpc.BroadcastDeployAccountTxnV3 {
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
 		Type:                rpc.TransactionType_DeployAccount,
-		Version:             rpc.TransactionV3,
+		Version:             opts.TxnVersion(),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,
 		ContractAddressSalt: contractAddressSalt,
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 "0x0",
+		Tip:                 opts.SafeTip(),
 		PayMasterData:       []*felt.Felt{},
 		NonceDataMode:       rpc.DAModeL1,
 		FeeMode:             rpc.DAModeL1,

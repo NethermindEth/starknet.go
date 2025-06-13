@@ -26,21 +26,18 @@ type AccountInterface interface {
 		salt *felt.Felt,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
-		multiplier float64,
-		withQueryBitVersion bool,
+		opts *TxnOptions,
 	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,
-		multiplier float64,
-		withQueryBitVersion bool,
+		opts *TxnOptions,
 	) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
-		multiplier float64,
-		withQueryBitVersion bool,
+		opts *TxnOptions,
 	) (*rpc.AddDeclareTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
