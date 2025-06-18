@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/curve"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/typedData"
@@ -41,14 +40,11 @@ func main() {
 	fmt.Println("Signature:", signature)
 
 	// verify the signature
-	pubKeyFelt, err := utils.HexToFelt(setup.GetPublicKey())
-	if err != nil {
-		panic(fmt.Errorf("fail to convert public key to felt: %w", err))
-	}
-	isValid, err := curve.VerifyFelts(messageHash, signature[0], signature[1], pubKeyFelt)
+	isValid, err := accnt.Verify(messageHash, signature)
 	if err != nil {
 		panic(fmt.Errorf("fail to verify signature: %w", err))
 	}
+
 	fmt.Println("Verification result:", isValid)
 }
 

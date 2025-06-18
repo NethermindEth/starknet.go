@@ -6,7 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
-nothing merged yet :D
+<!-- template to copy:
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+-->
+
+### Added
+- `account` pkg
+  - `Verify` method to the `Account` type and `AccountInterface` interface
+  - `CairoVersion` type
+- A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
+
+### Removed
+- `rpc.NewClient` function
+
+### Changed
+- In `account.NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+- `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
+- Updated `examples/typedData/main.go` to use the new `Verify` method
+
+#### Dev updates:
+- Added tests:
+  - `rpc.TestVersionCompatibility`
+  - `account_test.TestVerify`
+- The `account` package has been refactored and split into multiple files.
+- New `testConfig` struct to the `account_test` package, for easier test configuration
+- Added "Warning" word in the logs when missing the .env file on `internal/test.go`
+- New `warnVersionCheckFailed` and `warnVersionMismatch` variables in `rpc/provider.go`
+- New `checkVersionCompatibility()` function in `rpc/provider.go` to check the version of the RPC provider. It is called inside `rpc.NewProvider`
+- `TestCookieManagement` modified to handle the `specVersion` call when creating a new provider
+- New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
+- Updated `TestSpecVersion` to use the `rpcVersion` constant
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added

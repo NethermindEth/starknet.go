@@ -217,7 +217,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: testSet.fromAddressExample,
-			BlockID:     WithBlockNumber(blockNumber - 1023),
+			BlockID:     WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -260,7 +260,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys:    [][]*felt.Felt{{testSet.keyExample}},
-			BlockID: WithBlockNumber(blockNumber - 1023),
+			BlockID: WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
