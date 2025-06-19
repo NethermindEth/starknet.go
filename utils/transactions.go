@@ -13,11 +13,12 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
-var (
-	maxUint64                 uint64 = math.MaxUint64
-	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
-	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
-	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
+const (
+	maxUint64  uint64 = math.MaxUint64
+	maxUint128        = "0xffffffffffffffffffffffffffffffff"
+
+	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
 // BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
