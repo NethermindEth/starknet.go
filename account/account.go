@@ -42,6 +42,13 @@ type AccountInterface interface {
 		multiplier float64,
 		withQueryBitVersion bool,
 	) (*rpc.AddDeclareTransactionResponse, error)
+	DeployContractUDC(
+		ctx context.Context,
+		classHash *felt.Felt,
+		salt *felt.Felt,
+		constructorCalldata []*felt.Felt,
+		udcAddress *felt.Felt,
+	) (*rpc.AddInvokeTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)

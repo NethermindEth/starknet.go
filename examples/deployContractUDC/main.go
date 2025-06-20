@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -19,14 +17,12 @@ import (
 // More info: https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
-	someContractHash string = "0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0" // The contract hash to be deployed (in this example, it's an ERC20 contract)
-	UDCAddress       string = "0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf" // UDC contract address
-	contractMethod   string = "deployContract"                                                     // UDC method to deploy a contract (from pre-declared contracts)
+	// This is the class hash of a modern (Sierra) OpenZeppelin ERC20 contract.
+	someContractHash string = "0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6"
 )
 
 // Example successful transaction created from this example on Sepolia
-// https://sepolia.voyager.online/tx/0xa9a67a7cd8d218bd225335ea2ad4ea4d4c906a5806f14603c7036bfe49ca92
-
+// https://sepolia.starkscan.co/tx/0x04d646a167c25530a0e4d1be296885dd14c1a1bf32a39cd6a4ddc4cb5ce1c5b2
 func main() {
 	fmt.Println("Starting deployContractUDC example")
 
@@ -65,21 +61,39 @@ func main() {
 		panic(err)
 	}
 
-	// Convert the contractAddress from hex to felt
-	contractAddress, err := utils.HexToFelt(UDCAddress)
+	classHash, err := utils.HexToFelt(someContractHash)
 	if err != nil {
 		panic(err)
 	}
 
-	// Build the functionCall struct, where :
-	FnCall := rpc.InvokeFunctionCall{
-		ContractAddress: contractAddress,                // contractAddress is the contract that we want to call
-		FunctionName:    contractMethod,                 // this is the function that we want to call
-		CallData:        getUDCCalldata(accountAddress), // change this function content to your use case
+	salt := new(felt.Felt).SetUint64(rand.Uint64()) // to prevent address clashes
+
+	// For modern contracts, strings are represented as `ByteArray` which serialize into multiple felts.
+	nameAsFelts, err := utils.StringToByteArrFelt("My Test Token")
+	if err != nil {
+		panic(err)
+	}
+	symbolAsFelts, err := utils.StringToByteArrFelt("MTT")
+	if err != nil {
+		panic(err)
+	}
+	recipient, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		panic(err)
 	}
 
-	// After the signing we finally call the AddInvokeTransaction in order to invoke the contract function
-	resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{FnCall}, 1.5, false)
+	// Assemble the constructor calldata.
+	constructorCalldata := nameAsFelts
+	constructorCalldata = append(constructorCalldata, symbolAsFelts...)
+	constructorCalldata = append(constructorCalldata,
+		// u256 supply: 1000 tokens with 18 decimals (10^21)
+		new(felt.Felt).SetBigInt(new(big.Int).And(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1)))), // low
+		new(felt.Felt).SetBigInt(new(big.Int).Rsh(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), 128)),                                                                  // high
+		recipient, // recipient
+		recipient, // owner
+	)
+
+	resp, err := accnt.DeployContractUDC(context.Background(), classHash, salt, constructorCalldata, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -95,37 +109,4 @@ func main() {
 	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
-}
-
-// getUDCCalldata is a simple helper to set the call data required by the UDCs deployContract function. Update as needed.
-func getUDCCalldata(data ...string) []*felt.Felt {
-	classHash, err := utils.HexToFelt(someContractHash)
-	if err != nil {
-		panic(err)
-	}
-
-	salt := new(felt.Felt).SetUint64(rand.Uint64()) // to prevent address clashes
-
-	unique := felt.Zero // see https://docs.starknet.io/architecture-and-concepts/accounts/universal-deployer/#deployment_types
-
-	// As we are using an ERC20 token in this example, the calldata needs to have the ERC20 constructor required parameters.
-	// You must adjust these fields to match the constructor's parameters of your desired contract.
-	// https://docs.openzeppelin.com/contracts-cairo/0.8.1/api/erc20#ERC20-constructor-section
-	calldata, err := utils.HexArrToFelt([]string{
-		hex.EncodeToString([]byte("MyERC20Token")), // name
-		hex.EncodeToString([]byte("MET")),          // symbol
-		strconv.FormatInt(
-			200000000000000000,
-			16,
-		), // fixed_supply (u128 low). See https://book.cairo-lang.org/ch02-02-data-types.html#integer-types
-		strconv.FormatInt(0, 16), // fixed_supply (u128 high)
-		data[0],                  // recipient
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	calldataLen := new(felt.Felt).SetUint64(uint64(len(calldata)))
-
-	return append([]*felt.Felt{classHash, salt, &unique, calldataLen}, calldata...)
 }
