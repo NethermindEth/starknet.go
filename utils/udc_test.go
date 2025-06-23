@@ -20,7 +20,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		expectedUDCAddress    *felt.Felt
 		expectedFunctionName  string
 		expectedCallDataLen   int
-		expectedError         string
+		expectedError         error
 		checkCallDataContents bool
 	}{
 		{
@@ -98,14 +98,14 @@ func TestBuildUDCCalldata(t *testing.T) {
 			classHash:           nil,
 			constructorCalldata: []*felt.Felt{new(felt.Felt).SetUint64(100)},
 			opts:                nil,
-			expectedError:       "classHash not provided",
+			expectedError:       errClassHashNotProvided,
 		},
 		{
 			name:                "Invalid UDC version",
 			classHash:           internalUtils.RANDOM_FELT,
 			constructorCalldata: []*felt.Felt{new(felt.Felt).SetUint64(100)},
 			opts:                &UDCOptions{UDCVersion: 999}, // Invalid version
-			expectedError:       "invalid UDC version",
+			expectedError:       errInvalidUDCVersion,
 		},
 	}
 
@@ -114,9 +114,9 @@ func TestBuildUDCCalldata(t *testing.T) {
 			t.Parallel()
 			result, err := BuildUDCCalldata(tt.classHash, tt.constructorCalldata, tt.opts)
 
-			if tt.expectedError != "" {
+			if tt.expectedError != nil {
 				require.Error(t, err)
-				assert.Equal(t, tt.expectedError, err.Error())
+				assert.Equal(t, tt.expectedError, err)
 				return
 			}
 
@@ -163,7 +163,7 @@ func checkCallDataContents(t *testing.T, result *rpc.InvokeFunctionCall, classHa
 		// Cairo V0: [classHash, salt, originInd, calldataLen, ...constructorCalldata]
 		originInd := callData[2]
 		expectedOriginInd := new(felt.Felt).SetUint64(1)
-		if opts != nil && opts.OriginIndependent {
+		if opts.OriginIndependent {
 			expectedOriginInd.SetUint64(0)
 		}
 		assert.Equal(t, expectedOriginInd, originInd)

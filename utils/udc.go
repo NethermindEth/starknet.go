@@ -12,6 +12,9 @@ var (
 	udcAddressCairoV0, _ = new(felt.Felt).SetString("0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf")
 	// https://docs.openzeppelin.com/contracts-cairo/1.0.0/udc#udc_contract_address
 	udcAddressCairoV2, _ = new(felt.Felt).SetString("0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
+
+	errInvalidUDCVersion    = errors.New("invalid UDC version")
+	errClassHashNotProvided = errors.New("classHash not provided")
 )
 
 // The options for building the UDC calldata
@@ -59,7 +62,7 @@ func BuildUDCCalldata(
 	opts *UDCOptions,
 ) (*rpc.InvokeFunctionCall, error) {
 	if classHash == nil {
-		return nil, errors.New("classHash not provided")
+		return nil, errClassHashNotProvided
 	}
 
 	if opts == nil {
@@ -102,7 +105,7 @@ func BuildUDCCalldata(
 		udcAddress = udcAddressCairoV2
 		methodName = "deploy_contract"
 	default:
-		return nil, errors.New("invalid UDC version")
+		return nil, errInvalidUDCVersion
 	}
 
 	fnCall := rpc.InvokeFunctionCall{
