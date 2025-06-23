@@ -33,28 +33,28 @@ const (
 func BuildUDCCalldata(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	deployOpts *UDCOptions,
+	opts *UDCOptions,
 ) (*rpc.InvokeFunctionCall, error) {
 	if classHash == nil {
 		return nil, errors.New("classHash not provided")
 	}
 
-	if deployOpts == nil {
-		deployOpts = new(UDCOptions)
+	if opts == nil {
+		opts = new(UDCOptions)
 	}
 
 	// salt
-	if deployOpts.Salt == nil {
+	if opts.Salt == nil {
 		randFelt, err := new(felt.Felt).SetRandom()
 		if err != nil {
 			return nil, err
 		}
-		deployOpts.Salt = randFelt
+		opts.Salt = randFelt
 	}
 
 	// unique
 	uniqueFelt := new(felt.Felt).SetUint64(0)
-	if deployOpts.Unique {
+	if opts.Unique {
 		uniqueFelt = new(felt.Felt).SetUint64(1)
 	}
 
@@ -63,14 +63,14 @@ func BuildUDCCalldata(
 	var udcAddress *felt.Felt
 	var methodName string
 
-	switch deployOpts.UDCVersion {
+	switch opts.UDCVersion {
 	case UDCCairoV0:
 		calldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
-		udcCallData = append([]*felt.Felt{classHash, deployOpts.Salt, uniqueFelt, calldataLen}, constructorCalldata...)
+		udcCallData = append([]*felt.Felt{classHash, opts.Salt, uniqueFelt, calldataLen}, constructorCalldata...)
 		udcAddress = udcAddressCairoV0
 		methodName = "deployContract"
 	case UDCCairoV2:
-		udcCallData = append([]*felt.Felt{classHash, deployOpts.Salt, uniqueFelt}, constructorCalldata...)
+		udcCallData = append([]*felt.Felt{classHash, opts.Salt, uniqueFelt}, constructorCalldata...)
 		udcAddress = udcAddressCairoV2
 		methodName = "deploy_contract"
 	}
