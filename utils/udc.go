@@ -16,17 +16,20 @@ var (
 
 // The options for building the UDC calldata
 type UDCOptions struct {
-	// The salt to be used for the UDC deployment. Default: a random value.
+	// The salt to be used for the UDC deployment. If not provided, a random value will be used.
 	Salt *felt.Felt
 	// This parameter is used to determine if the deployer’s address will be included in the contract address calculation.
-	// Default: the address will be included.
-	// It behaves differently depending on the UDC version:
-	//   - UDCCairoV0: true to include the deployer’s address in the contract address calculation, false to exclude it
+	// By making deployments dependent upon the origin address, users can reserve a whole address
+	// space to prevent someone else from taking ownership of the address. Keep it `false` to include
+	// the deployer’s address, and `true` to make it origin independent.
+	//
+	// This parameter is agnostic to the UDC version. That means that, with `OriginIndependent` set to `true`:
+	//   - UDCCairoV0: `unique` will be set to `false`.
 	// See more at: https://github.com/starknet-io/starknet-docs/blob/aa1772da8eb42dbc8e6b26ebc37cf898c207f54e/components/Starknet/modules/architecture_and_concepts/pages/Smart_Contracts/universal-deployer.adoc#deployment-types
-	//   - UDCCairoV2: behaves as `from_zero`. True to NOT include the deployer’s address in the contract address calculation, false to include it
+	//   - UDCCairoV2: `from_zero` will be set to `true`.
 	// See more at: https://docs.openzeppelin.com/contracts-cairo/1.0.0/udc#deployment_types
-	Unique bool
-	// The UDC version to be used. Default: UDCCairoV0.
+	OriginIndependent bool
+	// The UDC version to be used. If not provided, UDCCairoV0 will be used.
 	UDCVersion UDCVersion
 }
 
@@ -72,25 +75,30 @@ func BuildUDCCalldata(
 		opts.Salt = randFelt
 	}
 
-	// unique
-	uniqueFelt := new(felt.Felt).SetUint64(0)
-	if opts.Unique {
-		uniqueFelt = new(felt.Felt).SetUint64(1)
-	}
-
 	// response
 	var udcCallData []*felt.Felt
 	var udcAddress *felt.Felt
 	var methodName string
+	var originIndFelt *felt.Felt
 
 	switch opts.UDCVersion {
 	case UDCCairoV0:
+		originIndFelt = new(felt.Felt).SetUint64(1)
+		if opts.OriginIndependent {
+			originIndFelt.SetUint64(0)
+		}
+
 		calldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
-		udcCallData = append([]*felt.Felt{classHash, opts.Salt, uniqueFelt, calldataLen}, constructorCalldata...)
+		udcCallData = append([]*felt.Felt{classHash, opts.Salt, originIndFelt, calldataLen}, constructorCalldata...)
 		udcAddress = udcAddressCairoV0
 		methodName = "deployContract"
 	case UDCCairoV2:
-		udcCallData = append([]*felt.Felt{classHash, opts.Salt, uniqueFelt}, constructorCalldata...)
+		originIndFelt = new(felt.Felt).SetUint64(0)
+		if opts.OriginIndependent {
+			originIndFelt.SetUint64(1)
+		}
+
+		udcCallData = append([]*felt.Felt{classHash, opts.Salt, originIndFelt}, constructorCalldata...)
 		udcAddress = udcAddressCairoV2
 		methodName = "deploy_contract"
 	default:
