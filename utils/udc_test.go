@@ -140,7 +140,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 	}
 }
 
-func checkCallDataContents(t *testing.T, result *rpc.InvokeFunctionCall, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *UDCOptions) {
+func checkCallDataContents(t *testing.T, result rpc.InvokeFunctionCall, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *UDCOptions) {
 	t.Helper()
 	callData := result.CallData
 	require.NotEmpty(t, callData)

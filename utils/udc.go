@@ -60,9 +60,10 @@ func BuildUDCCalldata(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
-) (*rpc.InvokeFunctionCall, error) {
+) (rpc.InvokeFunctionCall, error) {
+	result := rpc.InvokeFunctionCall{}
 	if classHash == nil {
-		return nil, errClassHashNotProvided
+		return result, errClassHashNotProvided
 	}
 
 	if opts == nil {
@@ -73,7 +74,7 @@ func BuildUDCCalldata(
 	if opts.Salt == nil {
 		randFelt, err := new(felt.Felt).SetRandom()
 		if err != nil {
-			return nil, err
+			return result, err
 		}
 		opts.Salt = randFelt
 	}
@@ -105,14 +106,14 @@ func BuildUDCCalldata(
 		udcAddress = udcAddressCairoV2
 		methodName = "deploy_contract"
 	default:
-		return nil, errInvalidUDCVersion
+		return result, errInvalidUDCVersion
 	}
 
-	fnCall := rpc.InvokeFunctionCall{
+	result = rpc.InvokeFunctionCall{
 		ContractAddress: udcAddress,
 		FunctionName:    methodName,
 		CallData:        udcCallData,
 	}
 
-	return &fnCall, nil
+	return result, nil
 }
