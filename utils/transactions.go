@@ -24,6 +24,7 @@ const (
 // Optional settings when building a transaction.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	// Note: only ready to be used after Starknet v0.14.0 upgrade.
 	Tip rpc.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
