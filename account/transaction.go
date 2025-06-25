@@ -39,8 +39,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 
 	if opts == nil {
-		temp := defaultTxnOptions()
-		opts = &temp
+		opts = new(TxnOptions)
 	}
 	fmtTipAndMultiplier(opts)
 
@@ -115,8 +114,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	if opts == nil {
-		temp := defaultTxnOptions()
-		opts = &temp
+		opts = new(TxnOptions)
 	}
 	fmtTipAndMultiplier(opts)
 
@@ -196,8 +194,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
-		temp := defaultTxnOptions()
-		opts = &temp
+		opts = new(TxnOptions)
 	}
 	fmtTipAndMultiplier(opts)
 

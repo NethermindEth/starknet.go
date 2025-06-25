@@ -58,8 +58,7 @@ func TestTxnOptions(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 				if tt.opts == nil {
-					temp := defaultTxnOptions()
-					tt.opts = &temp
+					tt.opts = new(TxnOptions)
 				}
 				fmtTipAndMultiplier(tt.opts)
 				assert.Equal(t, tt.expectedMultiplier, tt.opts.Multiplier)
@@ -99,8 +98,7 @@ func TestTxnOptions(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 				if tt.opts == nil {
-					temp := defaultTxnOptions()
-					tt.opts = &temp
+					tt.opts = new(TxnOptions)
 				}
 				assert.Equal(t, tt.expectedBlockID, tt.opts.BlockID())
 			})
@@ -151,8 +149,7 @@ func TestTxnOptions(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 				if tt.opts == nil {
-					temp := defaultTxnOptions()
-					tt.opts = &temp
+					tt.opts = new(TxnOptions)
 				}
 				assert.Equal(t, tt.expectedSimFlags, tt.opts.SimulationFlags())
 			})

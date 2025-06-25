@@ -52,17 +52,6 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
 	return []rpc.SimulationFlag{opts.SimulationFlag}
 }
 
-// returns a copy of the default TxnOptions
-func defaultTxnOptions() TxnOptions {
-	return TxnOptions{
-		Tip:            "0x0",
-		UseQueryBit:    false,
-		Multiplier:     1.5,
-		UseLatest:      false,
-		SimulationFlag: "",
-	}
-}
-
 // takes a pointer to a TxnOptions struct and formats the tip and multiplier according to the default values
 func fmtTipAndMultiplier(opts *TxnOptions) {
 	if opts.Multiplier <= 0 {
