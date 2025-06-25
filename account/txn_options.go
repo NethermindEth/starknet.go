@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 // The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
@@ -68,3 +69,5 @@ func fmtTipAndMultiplier(opts *TxnOptions) {
 		opts.Tip = "0x0"
 	}
 }
+
+type UDCOptions = utils.UDCOptions

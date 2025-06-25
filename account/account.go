@@ -10,7 +10,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 var (
@@ -45,7 +44,7 @@ type AccountInterface interface {
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		txnOpts *TxnOptions,
-		udcOpts *utils.UDCOptions,
+		udcOpts *UDCOptions,
 	) (*rpc.AddInvokeTransactionResponse, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)

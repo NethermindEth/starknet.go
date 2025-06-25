@@ -262,7 +262,7 @@ func (account *Account) DeployContractWithUDC(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	txnOpts *TxnOptions,
-	udcOpts *utils.UDCOptions,
+	udcOpts *UDCOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
 	// TODO: implement this
 
