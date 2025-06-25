@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,10 +19,10 @@ func TestDeclareTransaction(t *testing.T) {
 		ExpectedResp  AddDeclareTransactionResponse
 		ExpectedError *RPCError
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv:  {},
+		internal.MainnetEnv: {},
+		internal.MockEnv: {
 			{
 				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
@@ -30,8 +31,8 @@ func TestDeclareTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		"testnet": {},
-	}[testEnv]
+		internal.TestnetEnv: {},
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
@@ -57,10 +58,10 @@ func TestAddInvokeTransaction(t *testing.T) {
 		ExpectedResp  AddInvokeTransactionResponse
 		ExpectedError *RPCError
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv:  {},
+		internal.MainnetEnv: {},
+		internal.MockEnv: {
 			{
 				InvokeTx: BroadcastInvokeTxnV3{
 					Type:    TransactionType_Invoke,
@@ -108,8 +109,8 @@ func TestAddInvokeTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		"testnet": {},
-	}[testEnv]
+		internal.TestnetEnv: {},
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -129,10 +130,10 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		ExpectedResp  AddDeployAccountTransactionResponse
 		ExpectedError error
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv:  {},
+		internal.MainnetEnv: {},
+		internal.MockEnv: {
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
 					Type:      TransactionType_DeployAccount,
@@ -169,7 +170,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)

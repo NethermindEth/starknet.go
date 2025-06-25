@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -146,10 +147,10 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	var blockWithReceipt BlockWithReceipts
 
-	switch testEnv {
-	case "testnet":
+	switch internal.TEST_ENV {
+	case internal.TestnetEnv:
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
-	case "mainnet":
+	case internal.MainnetEnv:
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
@@ -207,8 +208,8 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				BlockID:                          WithBlockTag("latest"),
 				ExpectedBlockWithReceipts:        &blockMock123,
@@ -220,7 +221,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedPendingBlockWithReceipts: &pendingBlockMock123,
 			},
 		},
-		"testnet": {
+		internal.TestnetEnv: {
 			{
 				BlockID: WithBlockTag("pending"),
 			},
@@ -229,7 +230,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
-		"mainnet": {
+		internal.MainnetEnv: {
 			{
 				BlockID: WithBlockTag("pending"),
 			},
@@ -238,7 +239,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
@@ -256,7 +257,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			pBlock, ok := result.(*PendingBlockWithReceipts)
 			require.True(t, ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
 
-			if testEnv == "mock" {
+			if internal.TEST_ENV == internal.MockEnv {
 				require.Exactly(t, pBlock, test.ExpectedPendingBlockWithReceipts)
 			} else {
 				require.NotEmpty(t, pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")

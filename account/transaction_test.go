@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -24,10 +25,10 @@ import (
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
+	testSet := map[internal.TestEnv]bool{
+		internal.TestnetEnv: true,
+		internal.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[internal.TEST_ENV]
 
 	if !testSet {
 		t.Skip("test environment not supported")
@@ -66,10 +67,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
+	testSet := map[internal.TestEnv]bool{
+		internal.TestnetEnv: true,
+		internal.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[internal.TEST_ENV]
 
 	if !testSet {
 		t.Skip("test environment not supported")
@@ -118,10 +119,10 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
+	testSet := map[internal.TestEnv]bool{
+		internal.TestnetEnv: true,
+		internal.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
+	}[internal.TEST_ENV]
 
 	if !testSet {
 		t.Skip("test environment not supported")
@@ -316,7 +317,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	})
 
 	t.Run("on devnet", func(t *testing.T) {
-		if testEnv != "devnet" {
+		if internal.TEST_ENV != "devnet" {
 			t.Skip("Skipping test as it requires a devnet environment")
 		}
 		client, err := rpc.NewProvider(tConfig.providerURL)
@@ -410,10 +411,8 @@ func TestSendInvokeTxn(t *testing.T) {
 		PrivKey              *felt.Felt
 		InvokeTx             rpc.BroadcastInvokeTxnV3
 	}
-	testSet := map[string][]testSetType{
-		"mock":   {},
-		"devnet": {},
-		"testnet": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
 				ExpectedErr:          rpc.ErrDuplicateTx,
@@ -461,8 +460,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		client, err := rpc.NewProvider(tConfig.providerURL)
@@ -502,7 +500,7 @@ func TestSendInvokeTxn(t *testing.T) {
 //
 //	none
 func TestSendDeclareTxn(t *testing.T) {
-	if testEnv != "testnet" {
+	if internal.TEST_ENV != internal.TestnetEnv {
 		t.Skip("Skipping test as it requires a testnet environment")
 	}
 	expectedTxHash := internalUtils.TestHexToFelt(t, "0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0")
@@ -594,7 +592,7 @@ func TestSendDeclareTxn(t *testing.T) {
 //
 //	none
 func TestSendDeployAccountDevnet(t *testing.T) {
-	if testEnv != "devnet" {
+	if internal.TEST_ENV != internal.DevnetEnv {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 	client, err := rpc.NewProvider(tConfig.providerURL)
@@ -673,7 +671,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
-	if testEnv != "mock" {
+	if internal.TEST_ENV != internal.MockEnv {
 		t.Skip("Skipping test as it requires a mock environment")
 	}
 	mockCtrl := gomock.NewController(t)
@@ -692,8 +690,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		ExpectedErr                  error
 		ExpectedReceipt              *rpc.TransactionReceiptWithBlockInfo
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.MockEnv: {
 			{
 				Timeout:                      time.Duration(1000),
 				ShouldCallTransactionReceipt: true,
@@ -721,7 +719,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		go func() {
@@ -750,7 +748,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
 // It defines a testSet variable that contains an array of testSetType structs.
 // Each testSetType struct contains a Timeout integer, a Hash object, an ExpectedErr error, and an ExpectedReceipt TransactionReceipt object.
-// It retrieves the testSet based on the testEnv variable.
+// It retrieves the testSet based on the internal.TEST_ENV variable.
 // It iterates over each test in the testSet.
 // For each test, it creates a new context with a timeout based on the test's Timeout value.
 // It calls the WaitForTransactionReceipt method on the account object, passing the context, the test's Hash value, and a 1-second timeout.
@@ -765,7 +763,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceipt(t *testing.T) {
-	if testEnv != "devnet" {
+	if internal.TEST_ENV != internal.DevnetEnv {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 	client, err := rpc.NewProvider(tConfig.providerURL)
@@ -780,8 +778,8 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
-	testSet := map[string][]testSetType{
-		"devnet": {
+	testSet := map[internal.TestEnv][]testSetType{
+		internal.DevnetEnv: {
 			{
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
@@ -789,7 +787,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
-	}[testEnv]
+	}[internal.TEST_ENV]
 
 	for _, test := range testSet {
 		go func() {
