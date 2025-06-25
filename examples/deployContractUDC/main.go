@@ -93,7 +93,7 @@ func main() {
 		recipient, // owner
 	)
 
-	resp, err := accnt.DeployContractUDC(context.Background(), classHash, salt, constructorCalldata, nil)
+	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, salt, constructorCalldata, nil)
 	if err != nil {
 		panic(err)
 	}

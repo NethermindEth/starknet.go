@@ -243,7 +243,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	return broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
-// DeployContractUDC deploys a contract using UDC.
+// DeployContractWithUDC deploys a contract using UDC.
 //
 // Parameters:
 //   - ctx: the context
@@ -255,7 +255,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // It returns:
 //   - *rpc.AddInvokeTransactionResponse: the response from the provider
 //   - error: an error if any
-func (account *Account) DeployContractUDC(
+func (account *Account) DeployContractWithUDC(
 	ctx context.Context,
 	classHash *felt.Felt,
 	salt *felt.Felt,

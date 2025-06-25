@@ -39,7 +39,7 @@ type AccountInterface interface {
 		contractClass *contracts.ContractClass,
 		opts *TxnOptions,
 	) (*rpc.AddDeclareTransactionResponse, error)
-	DeployContractUDC(
+	DeployContractWithUDC(
 		ctx context.Context,
 		classHash *felt.Felt,
 		salt *felt.Felt,

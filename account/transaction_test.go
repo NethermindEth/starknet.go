@@ -875,7 +875,7 @@ func TestDeployContractUDC(t *testing.T) {
 	constructorCalldata := append(nameAsFelts, symbolAsFelts...)
 	constructorCalldata = append(constructorCalldata, low, high, recipient, recipient)
 
-	resp, err := accnt.DeployContractUDC(context.Background(), classHash, salt, constructorCalldata, nil)
+	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, salt, constructorCalldata, nil)
 	require.NoError(t, err, "DeployContractUDC failed")
 
 	t.Logf("Transaction hash: %s", resp.Hash)
