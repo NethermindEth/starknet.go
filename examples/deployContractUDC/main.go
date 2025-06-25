@@ -88,7 +88,7 @@ func main() {
 	constructorCalldata = append(constructorCalldata,
 		// u256 supply: 1000 tokens with 18 decimals (10^21)
 		new(felt.Felt).SetBigInt(new(big.Int).And(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1)))), // low
-		new(felt.Felt).SetBigInt(new(big.Int).Rsh(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), 128)),                                                                  // high
+		new(felt.Felt).SetBigInt(new(big.Int).Rsh(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), 128)),                                                                   // high
 		recipient, // recipient
 		recipient, // owner
 	)
