@@ -18,7 +18,7 @@ import (
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -97,7 +97,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -180,7 +180,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - salt: the salt for the address of the deployed contract
 //   - classHash: the class hash of the contract to be deployed
 //   - constructorCalldata: the parameters passed to the constructor
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
@@ -249,8 +249,8 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 //   - ctx: The context.Context for the request.
 //   - classHash: The class hash of the contract to be deployed.
 //   - constructorCalldata: The parameters passed to the constructor. Leave empty if the constructor has no arguments.
-//   - txnOpts: The options for building/estimating the transaction. See more info in the TxnOptions type description.
-//   - udcOpts: The options for building the UDC calldata. See more info in the UDCOptions type description.
+//   - txnOpts: The options for building/estimating the transaction. Pass `nil` to use default values.
+//   - udcOpts: The options for building the UDC calldata. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted UDC transaction.
