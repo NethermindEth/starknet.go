@@ -3,7 +3,6 @@ package account_test
 import (
 	"context"
 	"math/big"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -857,7 +856,7 @@ func TestDeployContractUDC(t *testing.T) {
 	classHash, err := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
 	require.NoError(t, err, "Invalid class hash")
 
-	salt := new(felt.Felt).SetUint64(rand.Uint64())
+	// salt := new(felt.Felt).SetUint64(rand.Uint64())
 
 	nameAsFelts, err := utils.StringToByteArrFelt("My Test Token")
 	require.NoError(t, err, "Failed converting name to felts")
@@ -875,7 +874,7 @@ func TestDeployContractUDC(t *testing.T) {
 	constructorCalldata := append(nameAsFelts, symbolAsFelts...)
 	constructorCalldata = append(constructorCalldata, low, high, recipient, recipient)
 
-	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, salt, constructorCalldata, nil)
+	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
 	require.NoError(t, err, "DeployContractUDC failed")
 
 	t.Logf("Transaction hash: %s", resp.Hash)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -66,8 +65,6 @@ func main() {
 		panic(err)
 	}
 
-	salt := new(felt.Felt).SetUint64(rand.Uint64()) // to prevent address clashes
-
 	// For modern contracts, strings are represented as `ByteArray` which serialize into multiple felts.
 	nameAsFelts, err := utils.StringToByteArrFelt("My Test Token")
 	if err != nil {
@@ -93,7 +90,7 @@ func main() {
 		recipient, // owner
 	)
 
-	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, salt, constructorCalldata, nil)
+	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
 	if err != nil {
 		panic(err)
 	}

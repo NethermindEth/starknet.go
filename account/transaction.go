@@ -255,36 +255,39 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // It returns:
 //   - *rpc.AddInvokeTransactionResponse: the response from the provider
 //   - error: an error if any
+//
+// TODO: improve docs
 func (account *Account) DeployContractWithUDC(
 	ctx context.Context,
 	classHash *felt.Felt,
-	salt *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	udcAddress *felt.Felt,
+	txnOpts *TxnOptions,
+	udcOpts *utils.UDCOptions,
 ) (*rpc.AddInvokeTransactionResponse, error) {
+	// TODO: implement this
 
-	fromZeroFelt := new(felt.Felt).SetUint64(1)
+	// fromZeroFelt := new(felt.Felt).SetUint64(1)
 
-	calldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
-	udcCallData := append([]*felt.Felt{classHash, salt, fromZeroFelt, calldataLen}, constructorCalldata...)
+	// calldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
+	// udcCallData := append([]*felt.Felt{classHash, salt, fromZeroFelt, calldataLen}, constructorCalldata...)
 
-	var finalUdcAddress *felt.Felt
-	if udcAddress != nil {
-		finalUdcAddress = udcAddress
-	} else {
-		var err error
-		// Default address is same for Mainnet and Sepolia testnet.
-		// https://docs.openzeppelin.com/contracts-cairo/0.14.0/udc
-		finalUdcAddress, err = new(felt.Felt).SetString("0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
-		if err != nil {
-			return nil, err
-		}
-	}
+	// var finalUdcAddress *felt.Felt
+	// if udcAddress != nil {
+	// 	finalUdcAddress = udcAddress
+	// } else {
+	// 	var err error
+	// 	// Default address is same for Mainnet and Sepolia testnet.
+	// 	// https://docs.openzeppelin.com/contracts-cairo/0.14.0/udc
+	// 	finalUdcAddress, err = new(felt.Felt).SetString("0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	fnCall := rpc.InvokeFunctionCall{
-		ContractAddress: finalUdcAddress,
-		FunctionName:    "deploy_contract",
-		CallData:        udcCallData,
+		// ContractAddress: finalUdcAddress,
+		// FunctionName:    "deploy_contract",
+		// CallData:        udcCallData,
 	}
 
 	// Setting multiplier to 1.5 for now, I think ideally the user should be able to set it.
