@@ -288,7 +288,7 @@ func (account *Account) DeployContractUDC(
 	}
 
 	// Setting multiplier to 1.5 for now, I think ideally the user should be able to set it.
-	return account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{fnCall}, 1.5, false)
+	return account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{fnCall}, nil)
 }
 
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
