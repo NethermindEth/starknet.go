@@ -1,6 +1,12 @@
 package account
 
-import "github.com/NethermindEth/starknet.go/rpc"
+import (
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+// The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
+// Composition wasn't used to avoid the need to create a struct inside another struct
+// when building the options.
 
 // Optional settings for building/sending/estimating a transaction
 // in the BuildAndSend* account methods.
