@@ -155,13 +155,6 @@ func PrecomputeAddressForUDC(
 	case UDCCairoV2:
 		hashedSalt = curve.Poseidon(originAccAddress, salt)
 		finalOriginAddress = udcAddressCairoV2
-
-		// The UDCCairoV2 `calldata` constructor parameter is of type `Span<felt>`, so if
-		// it is empty, we need to pass at least the length of the array, which is 0.
-		// ref: https://book.cairo-lang.org/ch102-04-serialization-of-cairo-types.html#serialization-of-arrays-and-spans
-		if len(constructorCalldata) == 0 {
-			constructorCalldata = []*felt.Felt{new(felt.Felt).SetUint64(0)}
-		}
 	default:
 		return nil
 	}
