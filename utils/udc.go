@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
@@ -123,4 +125,51 @@ func BuildUDCCalldata(
 	}
 
 	return result, nil
+}
+
+func PrecomputeAddressForUDC(
+	classHash *felt.Felt,
+	salt *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	UDCVersion UDCVersion,
+	originAccAddress *felt.Felt,
+) *felt.Felt {
+	// Origin-independent deployments (deployed from zero)
+	if originAccAddress == nil {
+		return contracts.PrecomputeAddress(
+			&felt.Zero,
+			salt,
+			classHash,
+			constructorCalldata,
+		)
+	}
+
+	// Origin-dependent deployments (deployed from origin)
+	var hashedSalt *felt.Felt
+	var finalOriginAddress *felt.Felt
+
+	switch UDCVersion {
+	case UDCCairoV0:
+		hashedSalt = curve.Pedersen(originAccAddress, salt)
+		finalOriginAddress = udcAddressCairoV0
+	case UDCCairoV2:
+		hashedSalt = curve.Poseidon(originAccAddress, salt)
+		finalOriginAddress = udcAddressCairoV2
+
+		// The UDCCairoV2 `calldata` constructor parameter is of type `Span<felt>`, so if
+		// it is empty, we need to pass at least the length of the array, which is 0.
+		// ref: https://book.cairo-lang.org/ch102-04-serialization-of-cairo-types.html#serialization-of-arrays-and-spans
+		if len(constructorCalldata) == 0 {
+			constructorCalldata = []*felt.Felt{new(felt.Felt).SetUint64(0)}
+		}
+	default:
+		return nil
+	}
+
+	return contracts.PrecomputeAddress(
+		finalOriginAddress,
+		hashedSalt,
+		classHash,
+		constructorCalldata,
+	)
 }

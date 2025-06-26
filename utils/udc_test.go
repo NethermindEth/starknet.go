@@ -307,3 +307,83 @@ func TestBuildUDCCalldata_LargeConstructorCalldata(t *testing.T) {
 		assert.Equal(t, expected, result.CallData[4+i])
 	}
 }
+
+func TestPrecomputeAddressForUDC(t *testing.T) {
+	t.Parallel()
+
+	type TestSet struct {
+		name                string
+		classHash           *felt.Felt
+		salt                *felt.Felt
+		originAccAddress    *felt.Felt
+		udcVersion          UDCVersion
+		constructorCalldata []*felt.Felt
+		expectedAddress     *felt.Felt
+	}
+
+	tests := []TestSet{
+		{ //https://sepolia.voyager.online/tx/0x36f1ae1379dcea5e14938f6e9b5189d5ddb34e8b2eff404d5886e7a7e1ebb48
+			name:             "UDCCairoV0: Origin-independent 0x486002",
+			originAccAddress: nil,
+			classHash:        internalUtils.TestHexToFelt(t, "0x486002e9e1d1fd7f07852663c0e476853e68c1aaa6afaeaa58cce954e3cf7cf"),
+			salt:             internalUtils.TestHexToFelt(t, "0x23fcbf2e9a467d3081182b138fc605f8743610c4327edf4f24104f478143f66"),
+			constructorCalldata: []*felt.Felt{
+				internalUtils.TestHexToFelt(t, "0x23fcbf2e9a467d3081182b138fc605f8743610c4327edf4f24104f478143f66"),
+			},
+			udcVersion:      UDCCairoV0,
+			expectedAddress: internalUtils.TestHexToFelt(t, "0x77a249aefd797d3ce41ec9d434c26ca7fe929a6ec3458bcec97cc456741fa3f"),
+		},
+		{ //https://sepolia.voyager.online/tx/0x3c79058b1a7a8904d4a5ade66ae87a1dcec6a568a5193a9f95f5c9646d383f3
+			name:             "UDCCairoV0: Origin-independent 0x54328a",
+			originAccAddress: nil,
+			classHash:        internalUtils.TestHexToFelt(t, "0x54328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+			salt:             internalUtils.TestHexToFelt(t, "0x52a06f2789d5229e87d5d0dc0d933d0e1e83366306ae069192ca9a3e4e6881f"),
+			constructorCalldata: []*felt.Felt{
+				internalUtils.TestHexToFelt(t, "0x546f6b656e"),
+				internalUtils.TestHexToFelt(t, "0x4552433230"),
+				internalUtils.TestHexToFelt(t, "0xf9e998b2853e6d01f3ae3c598c754c1b9a7bd398fec7657de022f3b778679"),
+			},
+			udcVersion:      UDCCairoV0,
+			expectedAddress: internalUtils.TestHexToFelt(t, "0x48634f9843983eeb06b47bf7f5d156a55a1d297e958da1c86427f9ce077425b"),
+		},
+		{ //https://sepolia.voyager.online/tx/0x4dadb8b32b286acd11ee6698a71206f274f1cf93fdf602f6fcf2d376c197ca4
+			name:             "UDCCairoV0: Origin-dependent 0x54328a",
+			originAccAddress: internalUtils.TestHexToFelt(t, "0x000f9e998b2853e6d01f3ae3c598c754c1b9a7bd398fec7657de022f3b778679"),
+			classHash:        internalUtils.TestHexToFelt(t, "0x54328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+			salt:             internalUtils.TestHexToFelt(t, "0xb2334ec640982eb272cbfa72f4f9d32769e77166460c620ac950c8a4d94606"),
+			constructorCalldata: []*felt.Felt{
+				internalUtils.TestHexToFelt(t, "0x546f6b656e"),
+				internalUtils.TestHexToFelt(t, "0x4552433230"),
+				internalUtils.TestHexToFelt(t, "0x7d1f349d4d1c93d3e95bf584fd3f806fa61f4c72aa9b42ae624ef25470da0c6"),
+			},
+			udcVersion:      UDCCairoV0,
+			expectedAddress: internalUtils.TestHexToFelt(t, "0x770f3b98c5a23250bc237dbeeb0a9385621f99c04a1fe3842d899264f4a1268"),
+		},
+		{ //https://sepolia.voyager.online/tx/0x17ffdf141abc5e5db10b7ec0f69a5f099e70390c0844e281cdd7877c7c98a54
+			name:                "UDCCairoV0: Origin-dependent 0x387edd",
+			originAccAddress:    internalUtils.TestHexToFelt(t, "0x02d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457"),
+			classHash:           internalUtils.TestHexToFelt(t, "0x387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8"),
+			salt:                internalUtils.TestHexToFelt(t, "0x18809706355007129cd38d1719447f454b7ff081c38817c53d9e2951d185243"),
+			constructorCalldata: []*felt.Felt{},
+			udcVersion:          UDCCairoV0,
+			expectedAddress:     internalUtils.TestHexToFelt(t, "0x43267890ad2798db4a6a5374ee361cb6f3669facad58e9e58ea88c078c567bb"),
+		},
+		{ //https://sepolia.voyager.online/tx/0x5c76c4f41451f64276571d5f225ab203e9de19d1749372e548a6c5e5df775af
+			name:                "UDCCairoV2: Origin-dependent 0x387edd",
+			originAccAddress:    internalUtils.TestHexToFelt(t, "0x02d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457"),
+			classHash:           internalUtils.TestHexToFelt(t, "0x387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8"),
+			salt:                internalUtils.TestHexToFelt(t, "0x35fd26c7a05d64130bb27636931282cd1fbc19930933c97974d15028771ab72"),
+			constructorCalldata: []*felt.Felt{},
+			udcVersion:          UDCCairoV2,
+			expectedAddress:     internalUtils.TestHexToFelt(t, "0x6493b4567665272ef04b30d57abe07a51b5f2c7862eb1f02a84e633ae2f12c7"),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			address := PrecomputeAddressForUDC(test.classHash, test.salt, test.constructorCalldata, test.udcVersion, test.originAccAddress)
+			assert.Equal(t, test.expectedAddress, address)
+		})
+	}
+}
