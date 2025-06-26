@@ -882,11 +882,29 @@ func TestDeployContractWithUDC(t *testing.T) {
 		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
-	t.Run("deploy contract with no constructor, UDCCairoV2", func(t *testing.T) {
+	t.Run("no constructor, UDCCairoV2, origin-dependent", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
 		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
 			UDCVersion: utils.UDCCairoV2,
+		})
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("no constructor, UDCCairoV2, origin-independent", func(t *testing.T) {
+		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+
+		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+			UDCVersion:        utils.UDCCairoV2,
+			OriginIndependent: true,
 		})
 		require.NoError(t, err, "DeployContractUDC failed")
 
