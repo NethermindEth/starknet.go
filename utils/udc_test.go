@@ -386,6 +386,15 @@ func TestPrecomputeAddressForUDC(t *testing.T) {
 			udcVersion:          UDCCairoV2,
 			expectedAddress:     internalUtils.TestHexToFelt(t, "0x6493b4567665272ef04b30d57abe07a51b5f2c7862eb1f02a84e633ae2f12c7"),
 		},
+		{ //https://sepolia.voyager.online/tx/0x337566e293faf471c13f249c91e72d574d207e16974f46eb96ea056eca272d5
+			name:                "UDCCairoV2: Origin-dependent 0x387edd",
+			originAccAddress:    internalUtils.TestHexToFelt(t, "0x02d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457"),
+			classHash:           internalUtils.TestHexToFelt(t, "0x387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8"),
+			salt:                internalUtils.TestHexToFelt(t, "0xe70e5c84498d9c52430ca8bb8e9a89b0804dbb91efe1da91e36b88ff3a2508"),
+			constructorCalldata: []*felt.Felt{},
+			udcVersion:          UDCCairoV2,
+			expectedAddress:     internalUtils.TestHexToFelt(t, "0x1899a818fea0c0ab6c3d6e078757f082610f0ccd5ce51a1ca5746d09c7828f3"),
+		},
 	}
 
 	for _, test := range tests {

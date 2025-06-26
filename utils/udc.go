@@ -153,7 +153,7 @@ func PrecomputeAddressForUDC(
 		hashedSalt = curve.Pedersen(originAccAddress, salt)
 		finalOriginAddress = udcAddressCairoV0
 	case UDCCairoV2:
-		hashedSalt = curve.Poseidon(originAccAddress, salt)
+		hashedSalt = curve.PoseidonArray(originAccAddress, salt)
 		finalOriginAddress = udcAddressCairoV2
 	default:
 		return nil
