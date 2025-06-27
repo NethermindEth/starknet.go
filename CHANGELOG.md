@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.12.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.13.0...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -15,33 +15,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.13.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.0) - 2025-06-27
 ### Added
 - `account` pkg
   - `Verify` method to the `Account` type and `AccountInterface` interface
   - `CairoVersion` type
+  - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
+  - `DeployContractWithUDC` method for deploying contracts using the Universal Deployer Contract (UDC)
+- `utils` pkg
+  - `TxnOptions` type, allowing optional settings when building a transaction (set tip and query bit version)
+  - `BuildUDCCalldata` function to build calldata for UDC contract deployments
+  - `PrecomputeAddressForUDC` function to compute contract addresses deployed with UDC
+  - `UDCOptions` type and `UDCVersion` enum for configuring UDC deployments
 - A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
 
 ### Removed
 - `rpc.NewClient` function
+- `rpc.SKIP_EXECUTE` tag
 
 ### Changed
-- In `account.NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- In `account` package
+  - for the `BuildAndEstimateDeployAccountTxn`, `BuildAndSendInvokeTxn`, and `BuildAndSendDeclareTxn` methods
+    - removed `multiplier` and `withQueryBitVersion` parameters
+    - added `opts` parameter of type `*account.TxnOptions`
+  - In `NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- In `utils` package, added `opts` parameter of type `*utils.TxnOptions` to the `BuildInvokeTxn`, `BuildDeclareTxn`, and `BuildEstimateDeployAccountTxn` methods
+- `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
 - `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+- examples in `examples` folder updated to use `utils.TxnOptions` and `account.CairoVersion`
+- Updated `examples/typedData/main.go` to use the new `Verify` method
+- Updated `examples/deployContractUDC/main.go` to use the new `DeployContractWithUDC` method and UDC utilities
+
+### Dev updates
+- Added tests:
+  - `utils.TestTxnOptions`
+  - `rpc.TestVersionCompatibility`
+  - `account_test.TestTxnOptions`
+  - `account_test.TestVerify`
+  - `account_test.TestDeployContractWithUDC` with comprehensive test cases for ERC20 and no-constructor deployments
+  - `utils_test.TestBuildUDCCalldata` + others, covering various UDC scenarios and options
+  - `utils_test.TestPrecomputeAddressForUDC` for origin-dependent and independent address computation
+- RPC pkg:
+  - Added "Warning" word in the logs when missing the .env file on `internal/test.go`
+  - New `warnVersionCheckFailed` and `warnVersionMismatch` variables in `rpc/provider.go`
+  - New `checkVersionCompatibility()` function in `rpc/provider.go` to check the version of the RPC provider. It is called inside `rpc.NewProvider`
+  - `TestCookieManagement` modified to handle the `specVersion` call when creating a new provider
+  - New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
+  - Updated `TestSpecVersion` to use the `rpcVersion` constant
+- In `account.NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
+- New `testConfig` struct to the `account_test` package, for easier test configuration
+- The `account` package has been refactored and split into multiple files.
+- Regenerated mocks for Account interface
 - `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
 - Updated `examples/typedData/main.go` to use the new `Verify` method
-
-#### Dev updates:
-- Added tests:
-  - `rpc.TestVersionCompatibility`
-  - `account_test.TestVerify`
-- The `account` package has been refactored and split into multiple files.
-- New `testConfig` struct to the `account_test` package, for easier test configuration
-- Added "Warning" word in the logs when missing the .env file on `internal/test.go`
-- New `warnVersionCheckFailed` and `warnVersionMismatch` variables in `rpc/provider.go`
-- New `checkVersionCompatibility()` function in `rpc/provider.go` to check the version of the RPC provider. It is called inside `rpc.NewProvider`
-- `TestCookieManagement` modified to handle the `specVersion` call when creating a new provider
-- New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
-- Updated `TestSpecVersion` to use the `rpcVersion` constant
+- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
