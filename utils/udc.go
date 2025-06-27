@@ -104,12 +104,10 @@ func BuildUDCCalldata(
 			originIndFelt.SetUint64(1)
 		}
 
-		if constructorCalldata == nil {
-			// The UDCCairoV2 `calldata` constructor parameter is of type `Span<felt>`, so if
-			// it is empty, we need to pass at least the length of the array, which is 0.
-			// ref: https://book.cairo-lang.org/ch102-04-serialization-of-cairo-types.html#serialization-of-arrays-and-spans
-			constructorCalldata = []*felt.Felt{new(felt.Felt).SetUint64(0)}
-		}
+		// The UDCCairoV2 `calldata` constructor parameter is of type `Span<felt>`, so
+		// we need to pass the length of the array as the first element.
+		// ref: https://book.cairo-lang.org/ch102-04-serialization-of-cairo-types.html#serialization-of-arrays-and-spans
+		constructorCalldata = append([]*felt.Felt{new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))}, constructorCalldata...)
 
 		udcCallData = append([]*felt.Felt{classHash, opts.Salt, originIndFelt}, constructorCalldata...)
 		udcAddress = udcAddressCairoV2

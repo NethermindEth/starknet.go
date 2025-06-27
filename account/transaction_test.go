@@ -838,7 +838,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	accnt, err := setupAcc(t, provider)
 	require.NoError(t, err, "Error in setupAcc")
 
-	t.Run("deploy contract with constructor data - ERC20, udcOptions nil", func(t *testing.T) {
+	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
 		// udc calldata:
 		classHash, _ := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
 		name, _ := utils.StringToByteArrFelt("My Test Token")
@@ -867,7 +867,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
-	t.Run("deploy contract with no constructor, udcOptions nil", func(t *testing.T) {
+	t.Run("UDCCairoV0, no constructor, udcOptions nil", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
 		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
@@ -882,7 +882,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
-	t.Run("no constructor, UDCCairoV2, origin-dependent", func(t *testing.T) {
+	t.Run("UDCCairoV2, no constructor, origin-dependent", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
 		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
@@ -899,12 +899,43 @@ func TestDeployContractWithUDC(t *testing.T) {
 		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
-	t.Run("no constructor, UDCCairoV2, origin-independent", func(t *testing.T) {
+	t.Run("UDCCairoV2, no constructor, origin-independent", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
 		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
 			UDCVersion:        utils.UDCCairoV2,
 			OriginIndependent: true,
+		})
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("UDCCairoV2, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
+		// udc calldata:
+		classHash, _ := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+		name, _ := utils.StringToByteArrFelt("My Test Token")
+		symbol, _ := utils.StringToByteArrFelt("MTT")
+		supply, _ := utils.HexToU256Felt("0x200000000000000000")
+		recipient := accnt.Address
+		owner := accnt.Address
+
+		// https://docs.openzeppelin.com/contracts-cairo/1.0.0/api/erc20#ERC20Upgradeable-constructor
+		constructorCalldata := make([]*felt.Felt, 0, 10)
+		constructorCalldata = append(constructorCalldata, name...)
+		constructorCalldata = append(constructorCalldata, symbol...)
+		constructorCalldata = append(constructorCalldata, supply...)
+		constructorCalldata = append(constructorCalldata, recipient)
+		constructorCalldata = append(constructorCalldata, owner)
+
+		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+			UDCVersion: utils.UDCCairoV2,
 		})
 		require.NoError(t, err, "DeployContractUDC failed")
 
