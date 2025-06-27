@@ -9,6 +9,9 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
+// TODO: migrate this to contracts package (hard to do now due to circular imports errors,
+// a new types pkg would solve this)
+
 var (
 	// https://voyager.online/contract/0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
 	udcAddressCairoV0, _ = new(felt.Felt).SetString("0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf")

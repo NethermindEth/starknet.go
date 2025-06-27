@@ -60,7 +60,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 			opts:                  &UDCOptions{UDCVersion: UDCCairoV2},
 			expectedUDCAddress:    udcAddressCairoV2,
 			expectedFunctionName:  "deploy_contract",
-			expectedCallDataLen:   5, // classHash + salt + originInd + 2 constructor args
+			expectedCallDataLen:   6, // classHash + salt + originInd + calldataLen + 2 constructor args
 			checkCallDataContents: true,
 		},
 		{
@@ -70,7 +70,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 			opts:                  &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: true},
 			expectedUDCAddress:    udcAddressCairoV2,
 			expectedFunctionName:  "deploy_contract",
-			expectedCallDataLen:   4, // classHash + salt + originInd + 1 constructor arg
+			expectedCallDataLen:   5, // classHash + salt + originInd + calldataLen + 1 constructor arg
 			checkCallDataContents: true,
 		},
 		{
@@ -80,7 +80,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 			opts:                  &UDCOptions{UDCVersion: UDCCairoV2, Salt: new(felt.Felt).SetUint64(888), OriginIndependent: true},
 			expectedUDCAddress:    udcAddressCairoV2,
 			expectedFunctionName:  "deploy_contract",
-			expectedCallDataLen:   3, // classHash + salt + originInd
+			expectedCallDataLen:   4, // classHash + salt + originInd + calldataLen
 			checkCallDataContents: true,
 		},
 		{
@@ -159,20 +159,13 @@ func checkCallDataContents(t *testing.T, result rpc.InvokeFunctionCall, classHas
 
 	// Check the rest based on UDC version
 	if opts != nil && opts.UDCVersion == UDCCairoV2 {
-		// Cairo V2: [classHash, salt, originInd, ...constructorCalldata]
+		// Cairo V2: [classHash, salt, originInd, calldataLen, ...constructorCalldata]
 		originInd := callData[2]
 		expectedOriginInd := new(felt.Felt).SetUint64(0)
 		if opts.OriginIndependent {
 			expectedOriginInd.SetUint64(1)
 		}
 		assert.Equal(t, expectedOriginInd, originInd)
-
-		// Check constructor calldata
-		constructorStart := 3
-		for i, expected := range constructorCalldata {
-			assert.Equal(t, expected, callData[constructorStart+i])
-		}
-
 	} else {
 		// Cairo V0: [classHash, salt, originInd, calldataLen, ...constructorCalldata]
 		originInd := callData[2]
@@ -181,17 +174,17 @@ func checkCallDataContents(t *testing.T, result rpc.InvokeFunctionCall, classHas
 			expectedOriginInd.SetUint64(0)
 		}
 		assert.Equal(t, expectedOriginInd, originInd)
+	}
 
-		// Check calldata length
-		calldataLen := callData[3]
-		expectedCalldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
-		assert.Equal(t, expectedCalldataLen, calldataLen)
+	// Check calldata length (prepended to constructor calldata)
+	calldataLen := callData[3]
+	expectedCalldataLen := new(felt.Felt).SetUint64(uint64(len(constructorCalldata)))
+	assert.Equal(t, expectedCalldataLen, calldataLen)
 
-		// Check constructor calldata
-		constructorStart := 4
-		for i, expected := range constructorCalldata {
-			assert.Equal(t, expected, callData[constructorStart+i])
-		}
+	// Check constructor calldata (starting after the prepended length)
+	constructorStart := 4
+	for i, expected := range constructorCalldata {
+		assert.Equal(t, expected, callData[constructorStart+i])
 	}
 }
 
