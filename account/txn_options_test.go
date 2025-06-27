@@ -136,13 +136,6 @@ func TestTxnOptions(t *testing.T) {
 				},
 				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE},
 			},
-			{
-				name: "SKIP_EXECUTE flag",
-				opts: &TxnOptions{
-					SimulationFlag: rpc.SKIP_EXECUTE,
-				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_EXECUTE},
-			},
 		}
 
 		for _, tt := range testcases {
