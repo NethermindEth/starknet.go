@@ -28,22 +28,22 @@ import (
 //     In case of doubt, set to 'false'.
 //
 // Returns:
-//   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
+//   - rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
 	multiplier float64,
 	withQueryBitVersion bool,
-) (*rpc.AddInvokeTransactionResponse, error) {
+) (rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
-		return nil, err
+		return rpc.AddInvokeTransactionResponse{}, err
 	}
 
 	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
 	if err != nil {
-		return nil, err
+		return rpc.AddInvokeTransactionResponse{}, err
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
@@ -56,7 +56,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
-		return nil, err
+		return rpc.AddInvokeTransactionResponse{}, err
 	}
 
 	// estimate txn fee
@@ -67,7 +67,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		rpc.WithBlockTag("pending"),
 	)
 	if err != nil {
-		return nil, err
+		return rpc.AddInvokeTransactionResponse{}, err
 	}
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
@@ -78,12 +78,12 @@ func (account *Account) BuildAndSendInvokeTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
-		return nil, err
+		return rpc.AddInvokeTransactionResponse{}, err
 	}
 
 	txnResponse, err := account.Provider.AddInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
-		return nil, err
+		return txnResponse, err
 	}
 
 	return txnResponse, nil
@@ -106,7 +106,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //     In case of doubt, set to 'false'.
 //
 // Returns:
-//   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
+//   - rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendDeclareTxn(
 	ctx context.Context,
@@ -114,10 +114,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *contracts.ContractClass,
 	multiplier float64,
 	withQueryBitVersion bool,
-) (*rpc.AddDeclareTransactionResponse, error) {
+) (rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
-		return nil, err
+		return rpc.AddDeclareTransactionResponse{}, err
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
@@ -129,7 +129,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		makeResourceBoundsMapWithZeroValues(),
 	)
 	if err != nil {
-		return nil, err
+		return rpc.AddDeclareTransactionResponse{}, err
 	}
 
 	if withQueryBitVersion {
@@ -139,7 +139,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
-		return nil, err
+		return rpc.AddDeclareTransactionResponse{}, err
 	}
 
 	// estimate txn fee
@@ -150,7 +150,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		rpc.WithBlockTag("pending"),
 	)
 	if err != nil {
-		return nil, err
+		return rpc.AddDeclareTransactionResponse{}, err
 	}
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
@@ -161,12 +161,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
-		return nil, err
+		return rpc.AddDeclareTransactionResponse{}, err
 	}
 
 	txnResponse, err := account.Provider.AddDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
-		return nil, err
+		return txnResponse, err
 	}
 
 	return txnResponse, nil
@@ -193,7 +193,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //     In case of doubt, set to 'false'.
 //
 // Returns:
-//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+//   - rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
 //   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
 //   - error: an error if any
 func (account *Account) BuildAndEstimateDeployAccountTxn(
@@ -203,7 +203,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	constructorCalldata []*felt.Felt,
 	multiplier float64,
 	withQueryBitVersion bool,
-) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,
@@ -223,7 +223,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	// signing the txn, as it needs a signature to estimate the fee
 	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
-		return nil, nil, err
+		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
 	}
 
 	// estimate txn fee
@@ -234,7 +234,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		rpc.WithBlockTag("pending"),
 	)
 	if err != nil {
-		return nil, nil, err
+		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
 	}
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, multiplier)
@@ -245,10 +245,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
-		return nil, nil, err
+		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
 	}
 
-	return broadcastDepAccTxnV3, precomputedAddress, nil
+	return *broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
@@ -259,57 +259,57 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 //   - txn: the Broadcast V3 Transaction to be sent.
 //
 // Returns:
-//   - *rpc.TransactionResponse: the transaction response.
+//   - rpc.TransactionResponse: the transaction response.
 //   - error: an error if any.
-func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
+func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error) {
 	switch tx := txn.(type) {
 	// broadcast invoke v3, pointer and struct
 	case *rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
-			return nil, err
+			return rpc.TransactionResponse{}, err
 		}
 
-		return &rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	default:
-		return nil, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
+		return rpc.TransactionResponse{}, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}
 }
 
@@ -321,7 +321,7 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 //   - pollInterval: The time interval to poll the transaction receipt
 //
 // It returns:
-//   - *rpc.TransactionReceipt: the transaction receipt
+//   - *rpc.TransactionReceiptWithBlockInfo: the transaction receipt
 //   - error: an error
 func (account *Account) WaitForTransactionReceipt(
 	ctx context.Context,

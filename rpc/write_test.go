@@ -116,7 +116,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		if test.ExpectedError != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
-			require.Equal(t, *resp, test.ExpectedResp)
+			require.Equal(t, resp, test.ExpectedResp)
 		}
 	}
 }

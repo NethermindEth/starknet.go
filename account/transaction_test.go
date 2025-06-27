@@ -168,7 +168,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	transferSTRKAndWaitConfirmation(t, acc, overallFee, precomputedAddress)
 
 	// Deploy the new account
-	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
+	resp, err := provider.AddDeployAccountTransaction(context.Background(), &deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
 	require.NotNil(t, resp.Hash)
@@ -262,14 +262,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
 			mockRpcProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(_, txn any) (*rpc.AddInvokeTransactionResponse, error) {
+				func(_, txn any) (rpc.AddInvokeTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastInvokeTxnV3)
 					require.True(t, ok)
 
 					// assert that the transaction being added does NOT have the query bit version
 					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
 
-					return &rpc.AddInvokeTransactionResponse{}, nil
+					return rpc.AddInvokeTransactionResponse{}, nil
 				},
 			)
 
@@ -284,14 +284,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			mockRpcProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
-				func(_, txn any) (*rpc.AddDeclareTransactionResponse, error) {
+				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
 					require.True(t, ok)
 
 					// assert that the transaction being added does NOT have the query bit version
 					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
 
-					return &rpc.AddDeclareTransactionResponse{}, nil
+					return rpc.AddDeclareTransactionResponse{}, nil
 				},
 			)
 
