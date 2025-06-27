@@ -23,6 +23,8 @@ var (
 )
 
 // The options for building the UDC calldata
+//
+//nolint:lll
 type UDCOptions struct {
 	// The salt to be used for the UDC deployment. If not provided, a random value will be used.
 	Salt *felt.Felt
@@ -67,7 +69,7 @@ func BuildUDCCalldata(
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
 ) (rpc.InvokeFunctionCall, *felt.Felt, error) {
-	result := rpc.InvokeFunctionCall{}
+	result := rpc.InvokeFunctionCall{} //nolint:exhaustruct
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
 	}
@@ -135,7 +137,7 @@ func BuildUDCCalldata(
 //   - classHash: the class hash of the contract to deploy
 //   - salt: the salt to be used for the UDC deployment
 //   - constructorCalldata: the calldata to pass to the constructor of the contract
-//   - UDCVersion: the UDC version to be used
+//   - udcVersion: the UDC version to be used
 //   - originAccAddress: the address of the account that will deploy the contract. It
 //     must be `nil` if `OriginIndependent` is `true`.
 //
@@ -145,7 +147,7 @@ func PrecomputeAddressForUDC(
 	classHash *felt.Felt,
 	salt *felt.Felt,
 	constructorCalldata []*felt.Felt,
-	UDCVersion UDCVersion,
+	udcVersion UDCVersion,
 	originAccAddress *felt.Felt,
 ) *felt.Felt {
 	// Origin-independent deployments (deployed from zero)
@@ -162,7 +164,7 @@ func PrecomputeAddressForUDC(
 	var hashedSalt *felt.Felt
 	var finalOriginAddress *felt.Felt
 
-	switch UDCVersion {
+	switch udcVersion {
 	case UDCCairoV0:
 		hashedSalt = curve.Pedersen(originAccAddress, salt)
 		finalOriginAddress = udcAddressCairoV0

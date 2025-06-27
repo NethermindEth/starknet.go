@@ -81,8 +81,7 @@ func main() {
 	constructorCalldata = append(constructorCalldata, name...)
 	constructorCalldata = append(constructorCalldata, symbol...)
 	constructorCalldata = append(constructorCalldata, supply...)
-	constructorCalldata = append(constructorCalldata, recipient)
-	constructorCalldata = append(constructorCalldata, owner)
+	constructorCalldata = append(constructorCalldata, recipient, owner)
 
 	// Deploy the contract with UDC
 	resp, salt, err := accnt.DeployContractWithUDC(context.Background(), erc20ContractHash, constructorCalldata, nil, nil)

@@ -905,8 +905,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	constructorCalldata = append(constructorCalldata, name...)
 	constructorCalldata = append(constructorCalldata, symbol...)
 	constructorCalldata = append(constructorCalldata, supply...)
-	constructorCalldata = append(constructorCalldata, recipient)
-	constructorCalldata = append(constructorCalldata, owner)
+	constructorCalldata = append(constructorCalldata, recipient, owner)
 
 	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
 		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
