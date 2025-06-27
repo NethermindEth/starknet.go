@@ -17,11 +17,11 @@ import (
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
 	// This is the class hash of a modern (Sierra) OpenZeppelin ERC20 contract.
-	someContractHash string = "0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6"
+	erc20ContractHash, _ = utils.HexToFelt("0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
 )
 
 // Example successful transaction created from this example on Sepolia
-// https://sepolia.starkscan.co/tx/0x04d646a167c25530a0e4d1be296885dd14c1a1bf32a39cd6a4ddc4cb5ce1c5b2
+// https://sepolia.starkscan.co/tx/0x6f70bc3756087f02fb3c281f7895520ba87c38152f87f43e0afa595d026469b
 func main() {
 	fmt.Println("Starting deployContractUDC example")
 
@@ -60,37 +60,32 @@ func main() {
 		panic(err)
 	}
 
-	classHash, err := utils.HexToFelt(someContractHash)
+	// Build the constructor calldata for the ERC20 contract
+	// ref: https://docs.openzeppelin.com/contracts-cairo/1.0.0/api/erc20#ERC20Upgradeable-constructor
+	name, err := utils.StringToByteArrFelt("My Test Token")
 	if err != nil {
 		panic(err)
 	}
+	symbol, err := utils.StringToByteArrFelt("MTT")
+	if err != nil {
+		panic(err)
+	}
+	supply, err := utils.HexToU256Felt("0x200000000000000000")
+	if err != nil {
+		panic(err)
+	}
+	recipient := accnt.Address
+	owner := accnt.Address
 
-	// For modern contracts, strings are represented as `ByteArray` which serialize into multiple felts.
-	nameAsFelts, err := utils.StringToByteArrFelt("My Test Token")
-	if err != nil {
-		panic(err)
-	}
-	symbolAsFelts, err := utils.StringToByteArrFelt("MTT")
-	if err != nil {
-		panic(err)
-	}
-	recipient, err := utils.HexToFelt(accountAddress)
-	if err != nil {
-		panic(err)
-	}
+	constructorCalldata := make([]*felt.Felt, 0, 10)
+	constructorCalldata = append(constructorCalldata, name...)
+	constructorCalldata = append(constructorCalldata, symbol...)
+	constructorCalldata = append(constructorCalldata, supply...)
+	constructorCalldata = append(constructorCalldata, recipient)
+	constructorCalldata = append(constructorCalldata, owner)
 
-	// Assemble the constructor calldata.
-	constructorCalldata := nameAsFelts
-	constructorCalldata = append(constructorCalldata, symbolAsFelts...)
-	constructorCalldata = append(constructorCalldata,
-		// u256 supply: 1000 tokens with 18 decimals (10^21)
-		new(felt.Felt).SetBigInt(new(big.Int).And(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1)))), // low
-		new(felt.Felt).SetBigInt(new(big.Int).Rsh(new(big.Int).Exp(big.NewInt(10), big.NewInt(21), nil), 128)),                                                                   // high
-		recipient, // recipient
-		recipient, // owner
-	)
-
-	resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
+	// Deploy the contract with UDC
+	resp, salt, err := accnt.DeployContractWithUDC(context.Background(), erc20ContractHash, constructorCalldata, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -106,4 +101,9 @@ func main() {
 	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
 	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
+
+	// Compute the contract address
+	contractAddress := utils.PrecomputeAddressForUDC(erc20ContractHash, salt, constructorCalldata, utils.UDCCairoV0, accnt.Address)
+
+	fmt.Printf("Contract deployed address: %s\n", contractAddress)
 }
