@@ -841,7 +841,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	t.Run("UDCCairoV0, no constructor, udcOptions nil", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
-		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
@@ -856,7 +856,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
-		_, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
 			Salt:              internalUtils.RANDOM_FELT,
 			UDCVersion:        utils.UDCCairoV0,
 			OriginIndependent: true,
@@ -867,7 +867,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	t.Run("UDCCairoV2, no constructor, only UDCVersion set", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
-		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
 			UDCVersion: utils.UDCCairoV2,
 		})
 		require.NoError(t, err, "DeployContractUDC failed")
@@ -884,7 +884,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
 
-		_, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
 			Salt:              internalUtils.RANDOM_FELT,
 			UDCVersion:        utils.UDCCairoV2,
 			OriginIndependent: true,
@@ -909,7 +909,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	constructorCalldata = append(constructorCalldata, owner)
 
 	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
-		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
@@ -922,7 +922,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
-		_, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
 			Salt:              internalUtils.RANDOM_FELT,
 			UDCVersion:        utils.UDCCairoV0,
 			OriginIndependent: true,
@@ -931,7 +931,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	})
 
 	t.Run("UDCCairoV2, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
-		resp, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
 			UDCVersion: utils.UDCCairoV2,
 		})
 		require.NoError(t, err, "DeployContractUDC failed")
@@ -946,7 +946,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
-		_, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
 			Salt:              internalUtils.RANDOM_FELT,
 			UDCVersion:        utils.UDCCairoV2,
 			OriginIndependent: true,

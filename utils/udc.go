@@ -57,15 +57,16 @@ const (
 //
 // Returns:
 //   - the INVOKE txn function call to deploy the contract, including the UDC address and the calldata
+//   - the salt used for the UDC deployment (either the provided one or the random one)
 //   - an error if any
 func BuildUDCCalldata(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
-) (rpc.InvokeFunctionCall, error) {
+) (rpc.InvokeFunctionCall, *felt.Felt, error) {
 	result := rpc.InvokeFunctionCall{}
 	if classHash == nil {
-		return result, errClassHashNotProvided
+		return result, nil, errClassHashNotProvided
 	}
 
 	if opts == nil {
@@ -76,7 +77,7 @@ func BuildUDCCalldata(
 	if opts.Salt == nil {
 		randFelt, err := new(felt.Felt).SetRandom()
 		if err != nil {
-			return result, err
+			return result, nil, err
 		}
 		opts.Salt = randFelt
 	}
@@ -113,7 +114,7 @@ func BuildUDCCalldata(
 		udcAddress = udcAddressCairoV2
 		methodName = "deploy_contract"
 	default:
-		return result, errInvalidUDCVersion
+		return result, nil, errInvalidUDCVersion
 	}
 
 	result = rpc.InvokeFunctionCall{
@@ -122,7 +123,7 @@ func BuildUDCCalldata(
 		CallData:        udcCallData,
 	}
 
-	return result, nil
+	return result, opts.Salt, nil
 }
 
 func PrecomputeAddressForUDC(

@@ -112,7 +112,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result, err := BuildUDCCalldata(tt.classHash, tt.constructorCalldata, tt.opts)
+			result, _, err := BuildUDCCalldata(tt.classHash, tt.constructorCalldata, tt.opts)
 
 			if tt.expectedError != nil {
 				require.Error(t, err)
@@ -202,12 +202,12 @@ func TestBuildUDCCalldata_UDCAddresses(t *testing.T) {
 	constructorCalldata := []*felt.Felt{new(felt.Felt).SetUint64(100)}
 
 	// Test Cairo V0 address
-	result, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0})
+	result, _, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0})
 	require.NoError(t, err)
 	assert.Equal(t, udcAddressCairoV0, result.ContractAddress)
 
 	// Test Cairo V2 address
-	result, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2})
+	result, _, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2})
 	require.NoError(t, err)
 	assert.Equal(t, udcAddressCairoV2, result.ContractAddress)
 }
@@ -219,26 +219,26 @@ func TestBuildUDCCalldata_OriginIndependent(t *testing.T) {
 
 	// **** Test Cairo V0 ****
 	// origin independent
-	result, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0, OriginIndependent: true})
+	result, _, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0, OriginIndependent: true})
 	require.NoError(t, err)
 	// Cairo V0: `unique` should be 0 (false) when OriginIndependent is true
 	assert.Equal(t, new(felt.Felt).SetUint64(0), result.CallData[2])
 
 	// not origin independent
-	result, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0, OriginIndependent: false})
+	result, _, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV0, OriginIndependent: false})
 	require.NoError(t, err)
 	// Cairo V0: `unique` should be 1 (true) when OriginIndependent is false
 	assert.Equal(t, new(felt.Felt).SetUint64(1), result.CallData[2])
 
 	// **** Test Cairo V2 ****
 	// origin independent
-	result, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: true})
+	result, _, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: true})
 	require.NoError(t, err)
 	// Cairo V2: `from_zero` should be 1 (true) when OriginIndependent is true
 	assert.Equal(t, new(felt.Felt).SetUint64(1), result.CallData[2])
 
 	// not origin independent
-	result, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: false})
+	result, _, err = BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: false})
 	require.NoError(t, err)
 	// Cairo V2: `from_zero` should be 0 (false) when OriginIndependent is false
 	assert.Equal(t, new(felt.Felt).SetUint64(0), result.CallData[2])
@@ -252,18 +252,18 @@ func TestBuildUDCCalldata_Salt(t *testing.T) {
 		constructorCalldata := []*felt.Felt{new(felt.Felt).SetUint64(100)}
 
 		// Test that when no salt is provided, a random salt is generated
-		result1, err := BuildUDCCalldata(classHash, constructorCalldata, nil)
+		_, salt1, err := BuildUDCCalldata(classHash, constructorCalldata, nil)
 		require.NoError(t, err)
 
-		result2, err := BuildUDCCalldata(classHash, constructorCalldata, nil)
+		_, salt2, err := BuildUDCCalldata(classHash, constructorCalldata, nil)
 		require.NoError(t, err)
 
 		// The salts should be different (random)
-		assert.NotEqual(t, result1.CallData[1], result2.CallData[1])
+		assert.NotEqual(t, salt1, salt2)
 
 		// The salts should not be zero
-		assert.NotEqual(t, &felt.Zero, result1.CallData[1])
-		assert.NotEqual(t, &felt.Zero, result2.CallData[1])
+		assert.NotZero(t, salt1)
+		assert.NotZero(t, salt2)
 	})
 
 	t.Run("Custom salt", func(t *testing.T) {
@@ -273,9 +273,10 @@ func TestBuildUDCCalldata_Salt(t *testing.T) {
 		customSalt := new(felt.Felt).SetUint64(999)
 
 		// Test that when a custom salt is provided, it's used
-		result, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{Salt: customSalt})
+		result, salt, err := BuildUDCCalldata(classHash, constructorCalldata, &UDCOptions{Salt: customSalt})
 		require.NoError(t, err)
 
+		assert.Equal(t, customSalt, salt)
 		assert.Equal(t, customSalt, result.CallData[1])
 	})
 }
@@ -290,7 +291,7 @@ func TestBuildUDCCalldata_LargeConstructorCalldata(t *testing.T) {
 		largeCalldata[i] = new(felt.Felt).SetUint64(uint64(i))
 	}
 
-	result, err := BuildUDCCalldata(classHash, largeCalldata, &UDCOptions{UDCVersion: UDCCairoV0})
+	result, _, err := BuildUDCCalldata(classHash, largeCalldata, &UDCOptions{UDCVersion: UDCCairoV0})
 	require.NoError(t, err)
 
 	// Check that all constructor calldata is included

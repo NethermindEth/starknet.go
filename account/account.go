@@ -45,7 +45,7 @@ type AccountInterface interface {
 		constructorCalldata []*felt.Felt,
 		txnOpts *TxnOptions,
 		udcOpts *UDCOptions,
-	) (*rpc.AddInvokeTransactionResponse, error)
+	) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
