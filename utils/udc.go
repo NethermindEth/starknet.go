@@ -126,6 +126,18 @@ func BuildUDCCalldata(
 	return result, opts.Salt, nil
 }
 
+// Precomputes the address for a UDC deployment.
+//
+// Parameters:
+//   - classHash: the class hash of the contract to deploy
+//   - salt: the salt to be used for the UDC deployment
+//   - constructorCalldata: the calldata to pass to the constructor of the contract
+//   - UDCVersion: the UDC version to be used
+//   - originAccAddress: the address of the account that will deploy the contract. It
+//     must be `nil` if `OriginIndependent` is `true`.
+//
+// Returns:
+//   - the precomputed address for the UDC deployment
 func PrecomputeAddressForUDC(
 	classHash *felt.Felt,
 	salt *felt.Felt,
