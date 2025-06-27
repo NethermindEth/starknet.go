@@ -9,4 +9,4 @@ Steps:
 1. Make sure you are in the "deployAccountUDC" directory
 1. Execute `go run main.go`
 
-The transaction hash and status will be returned at the end of the execution.
+The transaction hash, status, and the deployed contract address will be returned at the end of the execution.
