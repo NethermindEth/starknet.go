@@ -1,11 +1,19 @@
 package account
 
-import "github.com/NethermindEth/starknet.go/rpc"
+import (
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+// The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
+// Composition wasn't used to avoid the need to create a struct inside another struct
+// when building the options.
 
 // Optional settings for building/sending/estimating a transaction
 // in the BuildAndSend* account methods.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	// Note: only ready to be used after Starknet v0.14.0 upgrade.
 	Tip rpc.U64
 
 	// A boolean flag indicating whether the transaction version should have
@@ -62,3 +70,5 @@ func fmtTipAndMultiplier(opts *TxnOptions) {
 		opts.Tip = "0x0"
 	}
 }
+
+type UDCOptions = utils.UDCOptions

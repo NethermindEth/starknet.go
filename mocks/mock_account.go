@@ -91,6 +91,22 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndSendInvokeTxn(ctx, functionC
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildAndSendInvokeTxn", reflect.TypeOf((*MockAccountInterface)(nil).BuildAndSendInvokeTxn), ctx, functionCalls, opts)
 }
 
+// DeployContractWithUDC mocks base method.
+func (m *MockAccountInterface) DeployContractWithUDC(ctx context.Context, classHash *felt.Felt, constructorCalldata []*felt.Felt, txnOpts *account.TxnOptions, udcOpts *account.UDCOptions) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeployContractWithUDC", ctx, classHash, constructorCalldata, txnOpts, udcOpts)
+	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
+	ret1, _ := ret[1].(*felt.Felt)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// DeployContractWithUDC indicates an expected call of DeployContractWithUDC.
+func (mr *MockAccountInterfaceMockRecorder) DeployContractWithUDC(ctx, classHash, constructorCalldata, txnOpts, udcOpts any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeployContractWithUDC", reflect.TypeOf((*MockAccountInterface)(nil).DeployContractWithUDC), ctx, classHash, constructorCalldata, txnOpts, udcOpts)
+}
+
 // Nonce mocks base method.
 func (m *MockAccountInterface) Nonce(ctx context.Context) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
@@ -221,6 +237,21 @@ func (m *MockAccountInterface) TransactionHashInvoke(invokeTxn rpc.InvokeTxnType
 func (mr *MockAccountInterfaceMockRecorder) TransactionHashInvoke(invokeTxn any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionHashInvoke", reflect.TypeOf((*MockAccountInterface)(nil).TransactionHashInvoke), invokeTxn)
+}
+
+// Verify mocks base method.
+func (m *MockAccountInterface) Verify(msgHash *felt.Felt, signature []*felt.Felt) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", msgHash, signature)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockAccountInterfaceMockRecorder) Verify(msgHash, signature any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockAccountInterface)(nil).Verify), msgHash, signature)
 }
 
 // WaitForTransactionReceipt mocks base method.

@@ -14,15 +14,17 @@ import (
 )
 
 const (
-	maxUint64                 uint64 = math.MaxUint64
-	maxUint128                       = "0xffffffffffffffffffffffffffffffff"
-	negativeResourceBoundsErr        = "resource bounds cannot be negative, got '%#x'"
-	invalidResourceBoundsErr         = "invalid resource bounds: '%v' is not a valid big.Int"
+	maxUint64  uint64 = math.MaxUint64
+	maxUint128        = "0xffffffffffffffffffffffffffffffff"
+
+	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
+	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
 // Optional settings when building a transaction.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
+	// Note: only ready to be used after Starknet v0.14.0 upgrade.
 	Tip rpc.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version

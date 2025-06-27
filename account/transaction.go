@@ -18,7 +18,7 @@ import (
 //   - ctx: The context.Context for the request.
 //   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
 //     multiple function calls in the same transaction.
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -97,7 +97,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -180,7 +180,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - salt: the salt for the address of the deployed contract
 //   - classHash: the class hash of the contract to be deployed
 //   - constructorCalldata: the parameters passed to the constructor
-//   - opts: options for building/estimating the transaction. See more info in the TxnOptions type description.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
 //   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
@@ -241,6 +241,39 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	return broadcastDepAccTxnV3, precomputedAddress, nil
+}
+
+// A helper to deploy a contract from an existing class using UDC.
+//
+// Parameters:
+//   - ctx: The context.Context for the request.
+//   - classHash: The class hash of the contract to be deployed.
+//   - constructorCalldata: The parameters passed to the constructor. Pass `nil` if the constructor has no arguments.
+//   - txnOpts: The options for building/estimating the transaction. Pass `nil` to use default values.
+//   - udcOpts: The options for building the UDC calldata. Pass `nil` to use default values.
+//
+// Returns:
+//   - *rpc.AddInvokeTransactionResponse: the response of the submitted UDC transaction.
+//   - *felt.Felt: the salt used for the UDC deployment (either the provided one or the random one)
+//   - error: An error if any.
+func (account *Account) DeployContractWithUDC(
+	ctx context.Context,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	txnOpts *TxnOptions,
+	udcOpts *UDCOptions,
+) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
+	udcCallData, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, udcOpts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	txnResponse, err := account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{udcCallData}, txnOpts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return txnResponse, salt, nil
 }
 
 // SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
