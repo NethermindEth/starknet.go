@@ -20,12 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Verify` method to the `Account` type and `AccountInterface` interface
   - `CairoVersion` type
   - `TxnOptions` type, allowing optional settings when building/estimating/sending a transaction with the Build* methods
+  - `DeployContractWithUDC` method for deploying contracts using the Universal Deployer Contract (UDC)
 - `utils` pkg
   - `TxnOptions` type, allowing optional settings when building a transaction (set tip and query bit version)
+  - `BuildUDCCalldata` function to build calldata for UDC contract deployments
+  - `PrecomputeAddressForUDC` function to compute contract addresses deployed with UDC
+  - `UDCOptions` type and `UDCVersion` enum for configuring UDC deployments
 - A warning message when calling `rpc.NewProvider` with a provider using a different RPC version than the one implemented by starknet.go.
-
-### Removed
-- `rpc.NewClient` function
 
 ### Removed
 - `rpc.NewClient` function
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
 - examples in `examples` folder updated to use `utils.TxnOptions` and `account.CairoVersion`
 - Updated `examples/typedData/main.go` to use the new `Verify` method
+- Updated `examples/deployContractUDC/main.go` to use the new `DeployContractWithUDC` method and UDC utilities
 
 ### Dev updates
 - Added tests:
@@ -48,8 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `rpc.TestVersionCompatibility`
   - `account_test.TestTxnOptions`
   - `account_test.TestVerify`
-- New `testConfig` struct to the `account_test` package, for easier test configuration
-- The `account` package has been refactored and split into multiple files.
+  - `account_test.TestDeployContractWithUDC` with comprehensive test cases for ERC20 and no-constructor deployments
+  - `utils_test.TestBuildUDCCalldata` + others, covering various UDC scenarios and options
+  - `utils_test.TestPrecomputeAddressForUDC` for origin-dependent and independent address computation
 - RPC pkg:
   - Added "Warning" word in the logs when missing the .env file on `internal/test.go`
   - New `warnVersionCheckFailed` and `warnVersionMismatch` variables in `rpc/provider.go`
@@ -58,9 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `rpcVersion` constant in `rpc/provider.go`, representing the version of the RPC spec that starknet.go is compatible with
   - Updated `TestSpecVersion` to use the `rpcVersion` constant
 - In `account.NewAccount` function, the `cairoVersion` parameter is now of type `account.CairoVersion` 
-- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+- New `testConfig` struct to the `account_test` package, for easier test configuration
+- The `account` package has been refactored and split into multiple files.
+- Regenerated mocks for Account interface
 - `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
 - Updated `examples/typedData/main.go` to use the new `Verify` method
+- `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added
