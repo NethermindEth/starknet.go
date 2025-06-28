@@ -19,7 +19,7 @@ func (provider *Provider) AddInvokeTransaction(
 ) (AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
-		return output, tryUnwrapToRPCErr(
+		return AddInvokeTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
@@ -50,7 +50,7 @@ func (provider *Provider) AddDeclareTransaction(
 ) (AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
-		return result, tryUnwrapToRPCErr(
+		return AddDeclareTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrClassAlreadyDeclared,
 			ErrCompilationFailed,
@@ -84,7 +84,7 @@ func (provider *Provider) AddDeployAccountTransaction(
 ) (AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
-		return result, tryUnwrapToRPCErr(
+		return AddDeployAccountTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
