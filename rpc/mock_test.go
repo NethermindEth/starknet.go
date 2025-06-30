@@ -132,6 +132,16 @@ func methodsSwitchList(result interface{}, method string, args ...interface{}) e
 		return mock_starknet_traceBlockTransactions(result, args...)
 	case "starknet_traceTransaction":
 		return mock_starknet_traceTransaction(result, args...)
+	case "paymaster_isAvailable":
+		return mock_paymaster_isAvailable(result, args...)
+	case "paymaster_getSupportedTokens":
+		return mock_paymaster_getSupportedTokens(result, args...)
+	case "paymaster_buildTransaction":
+		return mock_paymaster_buildTransaction(result, args...)
+	case "paymaster_trackingIdToLatestHash":
+		return mock_paymaster_trackingIdToLatestHash(result, args...)
+	case "paymaster_executeTransaction":
+		return mock_paymaster_executeTransaction(result, args...)
 	default:
 		return errNotFound
 	}
@@ -1536,5 +1546,134 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 		return err
 	}
 
+	return json.Unmarshal(outputContent, r)
+}
+
+func mock_paymaster_isAvailable(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 0 {
+		return errWrongArgs
+	}
+
+	output := true
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(outputContent, r)
+}
+
+func mock_paymaster_getSupportedTokens(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 0 {
+		return errWrongArgs
+	}
+
+	tokenFelt, err := new(felt.Felt).SetString("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+	output := []TokenData{
+		{
+			TokenAddress: tokenFelt,
+			Decimals:     18,
+			PriceInStrk:  "1",
+		},
+	}
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(outputContent, r)
+}
+
+func mock_paymaster_buildTransaction(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	_, ok = args[0].(BuildTransactionRequest)
+	if !ok {
+		return errWrongArgs
+	}
+
+	output := BuildTransactionResponse{
+		Type: "invoke",
+	}
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(outputContent, r)
+}
+
+func mock_paymaster_trackingIdToLatestHash(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	_, ok = args[0].(*felt.Felt)
+	if !ok {
+		return errWrongArgs
+	}
+
+	hash, err := new(felt.Felt).SetString("0x456")
+	if err != nil {
+		return err
+	}
+
+	output := TrackingIdResponse{
+		TransactionHash: hash,
+		Status:          "active",
+	}
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(outputContent, r)
+}
+
+func mock_paymaster_executeTransaction(result interface{}, args ...interface{}) error {
+	r, ok := result.(*json.RawMessage)
+	if !ok || r == nil {
+		return errWrongType
+	}
+	if len(args) != 1 {
+		return errWrongArgs
+	}
+	_, ok = args[0].(ExecuteTransactionRequest)
+	if !ok {
+		return errWrongArgs
+	}
+
+	trackingId, err := new(felt.Felt).SetString("0x123")
+	if err != nil {
+		return err
+	}
+	txHash, err := new(felt.Felt).SetString("0xdeadbeef")
+	if err != nil {
+		return err
+	}
+
+	output := ExecuteTransactionResponse{
+		TrackingId:      trackingId,
+		TransactionHash: txHash,
+	}
+	outputContent, err := json.Marshal(output)
+	if err != nil {
+		return err
+	}
 	return json.Unmarshal(outputContent, r)
 }
