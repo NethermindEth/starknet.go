@@ -26,22 +26,26 @@ type AccountInterface interface {
 		salt *felt.Felt,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
-		multiplier float64,
-		withQueryBitVersion bool,
-	) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+		opts *TxnOptions,
+	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,
-		multiplier float64,
-		withQueryBitVersion bool,
-	) (rpc.AddInvokeTransactionResponse, error)
+		opts *TxnOptions,
+	) (*rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
-		multiplier float64,
-		withQueryBitVersion bool,
-	) (rpc.AddDeclareTransactionResponse, error)
+		opts *TxnOptions,
+	) (*rpc.AddDeclareTransactionResponse, error)
+	DeployContractWithUDC(
+		ctx context.Context,
+		classHash *felt.Felt,
+		constructorCalldata []*felt.Felt,
+		txnOpts *TxnOptions,
+		udcOpts *UDCOptions,
+	) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
