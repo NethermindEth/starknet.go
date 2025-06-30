@@ -27,7 +27,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []rpc.InvokeFunctionCall,
 	opts *TxnOptions,
-) (*rpc.AddInvokeTransactionResponse, error) {
+) (rpc.AddInvokeTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return rpc.AddInvokeTransactionResponse{}, err
@@ -107,7 +107,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	opts *TxnOptions,
-) (*rpc.AddDeclareTransactionResponse, error) {
+) (rpc.AddDeclareTransactionResponse, error) {
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return rpc.AddDeclareTransactionResponse{}, err
@@ -192,7 +192,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *TxnOptions,
-) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
@@ -262,15 +262,15 @@ func (account *Account) DeployContractWithUDC(
 	constructorCalldata []*felt.Felt,
 	txnOpts *TxnOptions,
 	udcOpts *UDCOptions,
-) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
+) (rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
 	udcCallData, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, udcOpts)
 	if err != nil {
-		return nil, nil, err
+		return rpc.AddInvokeTransactionResponse{}, nil, err
 	}
 
 	txnResponse, err := account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{udcCallData}, txnOpts)
 	if err != nil {
-		return nil, nil, err
+		return rpc.AddInvokeTransactionResponse{}, nil, err
 	}
 
 	return txnResponse, salt, nil
