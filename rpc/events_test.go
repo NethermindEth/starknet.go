@@ -142,3 +142,41 @@ func TestEvents(t *testing.T) {
 		require.Exactly(t, test.expectedResp.Events[0], events.Events[0], "Events mismatch")
 	}
 }
+
+func TestEventWith(t *testing.T) {
+	key := "0xabc"
+	feltKey := internalUtils.TestHexToFelt(t, key)
+
+	events := []Event{
+		{
+			EventContent: EventContent{
+				Keys: []*felt.Felt{feltKey},
+			},
+		},
+	}
+
+	found := EventWith(events, key)
+	require.NotNil(t, found, "Expected to find event")
+	require.True(t, found.Keys[0].Equal(feltKey), "Expected matching key")
+}
+
+func TestTransactionReceiptWithBlockInfo_EventWith(t *testing.T) {
+	key := "0xdead"
+	feltKey := internalUtils.TestHexToFelt(t, key)
+
+	receipt := &TransactionReceiptWithBlockInfo{
+		TransactionReceipt: TransactionReceipt{
+			Events: []Event{
+				{
+					EventContent: EventContent{
+						Keys: []*felt.Felt{feltKey},
+					},
+				},
+			},
+		},
+	}
+
+	found := receipt.EventWith(key)
+	require.NotNil(t, found, "Expected to find event from receipt method")
+	require.True(t, found.Keys[0].Equal(feltKey), "Expected matching key in receipt method")
+}
