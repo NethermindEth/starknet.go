@@ -13,14 +13,14 @@
 			"price_in_wei": "0x73424cf6f"
 		},
 		"l1_data_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
 		},
 		"l1_da_mode": "CALLDATA",
 		"starknet_version": "0.13.0",
 		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
 		},
 		"transactions": [
 			{
