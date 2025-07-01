@@ -28,14 +28,15 @@ func (account *Account) BuildAndSendInvokeTxn(
 	functionCalls []rpc.InvokeFunctionCall,
 	opts *TxnOptions,
 ) (rpc.AddInvokeTransactionResponse, error) {
+	var zeroResp rpc.AddInvokeTransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	if opts == nil {
@@ -57,7 +58,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	// estimate txn fee
@@ -68,7 +69,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		opts.BlockID(),
 	)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, err
+		return zeroResp, err
 	}
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
@@ -79,7 +80,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	txnResponse, err := account.Provider.AddInvokeTransaction(ctx, broadcastInvokeTxnV3)
@@ -108,9 +109,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	contractClass *contracts.ContractClass,
 	opts *TxnOptions,
 ) (rpc.AddDeclareTransactionResponse, error) {
+	var zeroResp rpc.AddDeclareTransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
-		return rpc.AddDeclareTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	if opts == nil {
@@ -131,12 +133,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 		},
 	)
 	if err != nil {
-		return rpc.AddDeclareTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
-		return rpc.AddDeclareTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	// estimate txn fee
@@ -147,7 +149,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		opts.BlockID(),
 	)
 	if err != nil {
-		return rpc.AddDeclareTransactionResponse{}, err
+		return zeroResp, err
 	}
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
@@ -158,7 +160,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
-		return rpc.AddDeclareTransactionResponse{}, err
+		return zeroResp, err
 	}
 
 	txnResponse, err := account.Provider.AddDeclareTransaction(ctx, broadcastDeclareTxnV3)
@@ -263,14 +265,15 @@ func (account *Account) DeployContractWithUDC(
 	txnOpts *TxnOptions,
 	udcOpts *UDCOptions,
 ) (rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
+	var zeroResp rpc.AddInvokeTransactionResponse
 	udcCallData, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, udcOpts)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, nil, err
+		return zeroResp, nil, err
 	}
 
 	txnResponse, err := account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{udcCallData}, txnOpts)
 	if err != nil {
-		return rpc.AddInvokeTransactionResponse{}, nil, err
+		return zeroResp, nil, err
 	}
 
 	return txnResponse, salt, nil
@@ -287,19 +290,20 @@ func (account *Account) DeployContractWithUDC(
 //   - rpc.TransactionResponse: the transaction response.
 //   - error: an error if any.
 func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error) {
+	var zeroResp rpc.TransactionResponse
 	switch tx := txn.(type) {
 	// broadcast invoke v3, pointer and struct
 	case *rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
@@ -307,14 +311,14 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
@@ -322,19 +326,19 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
-			return rpc.TransactionResponse{}, err
+			return zeroResp, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
 	default:
-		return rpc.TransactionResponse{}, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
+		return zeroResp, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
 	}
 }
 
