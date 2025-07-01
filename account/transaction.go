@@ -183,7 +183,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 //   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
 //
 // Returns:
-//   - rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
+//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
 //   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
 //   - error: an error if any
 func (account *Account) BuildAndEstimateDeployAccountTxn(
@@ -192,7 +192,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *TxnOptions,
-) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
@@ -215,7 +215,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 
 	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
-		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
+		return nil, nil, err
 	}
 
 	// estimate txn fee
@@ -226,7 +226,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		opts.BlockID(),
 	)
 	if err != nil {
-		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
+		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
@@ -237,10 +237,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
-		return rpc.BroadcastDeployAccountTxnV3{}, nil, err
+		return nil, nil, err
 	}
 
-	return *broadcastDepAccTxnV3, precomputedAddress, nil
+	return broadcastDepAccTxnV3, precomputedAddress, nil
 }
 
 // A helper to deploy a contract from an existing class using UDC.

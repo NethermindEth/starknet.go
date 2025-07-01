@@ -27,7 +27,7 @@ type AccountInterface interface {
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		opts *TxnOptions,
-	) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,

@@ -46,10 +46,10 @@ func (m *MockAccountInterface) EXPECT() *MockAccountInterfaceMockRecorder {
 }
 
 // BuildAndEstimateDeployAccountTxn mocks base method.
-func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *account.TxnOptions) (rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+func (m *MockAccountInterface) BuildAndEstimateDeployAccountTxn(ctx context.Context, salt, classHash *felt.Felt, constructorCalldata []*felt.Felt, opts *account.TxnOptions) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndEstimateDeployAccountTxn", ctx, salt, classHash, constructorCalldata, opts)
-	ret0, _ := ret[0].(rpc.BroadcastDeployAccountTxnV3)
+	ret0, _ := ret[0].(*rpc.BroadcastDeployAccountTxnV3)
 	ret1, _ := ret[1].(*felt.Felt)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2

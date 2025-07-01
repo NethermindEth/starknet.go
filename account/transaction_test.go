@@ -172,7 +172,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	transferSTRKAndWaitConfirmation(t, acc, overallFee, precomputedAddress)
 
 	// Deploy the new account
-	resp, err := provider.AddDeployAccountTransaction(context.Background(), &deployAccTxn)
+	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
 	require.NotNil(t, resp.Hash)
