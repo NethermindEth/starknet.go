@@ -10,15 +10,14 @@ import (
 
 // TestSpecVersion tests starknet_specVersion
 func TestSpecVersion(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {},
-		tests.MainnetEnv: {},
-		tests.MockEnv:    {},
 		tests.TestnetEnv: {{
 			ExpectedResp: rpcVersion,
 		}},

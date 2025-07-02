@@ -27,6 +27,8 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {

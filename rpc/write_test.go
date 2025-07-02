@@ -12,6 +12,8 @@ import (
 )
 
 func TestDeclareTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -20,8 +22,6 @@ func TestDeclareTransaction(t *testing.T) {
 		ExpectedError *RPCError
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {},
-		tests.MainnetEnv: {},
 		tests.MockEnv: {
 			{
 				DeclareTx: BroadcastDeclareTxnV3{},
@@ -31,7 +31,6 @@ func TestDeclareTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		tests.TestnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -51,6 +50,8 @@ func TestDeclareTransaction(t *testing.T) {
 }
 
 func TestAddInvokeTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -59,8 +60,6 @@ func TestAddInvokeTransaction(t *testing.T) {
 		ExpectedError *RPCError
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {},
-		tests.MainnetEnv: {},
 		tests.MockEnv: {
 			{
 				InvokeTx: BroadcastInvokeTxnV3{
@@ -109,7 +108,6 @@ func TestAddInvokeTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		tests.TestnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -123,6 +121,8 @@ func TestAddInvokeTransaction(t *testing.T) {
 }
 
 func TestAddDeployAccountTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -131,8 +131,6 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		ExpectedError error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {},
-		tests.MainnetEnv: {},
 		tests.MockEnv: {
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{

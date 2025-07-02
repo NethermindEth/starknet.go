@@ -19,6 +19,8 @@ import (
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -56,7 +58,6 @@ func TestTransactionByHash(t *testing.T) {
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		tx, err := testConfig.provider.TransactionByHash(context.Background(), test.TxHash)
@@ -83,6 +84,8 @@ func TestTransactionByHash(t *testing.T) {
 //
 //	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -108,7 +111,6 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
@@ -119,6 +121,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 func TestTransactionReceipt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -148,8 +152,6 @@ func TestTransactionReceipt(t *testing.T) {
 				ExpectedResp: receiptTxn52767_16,
 			},
 		},
-		tests.MainnetEnv: {},
-		tests.DevnetEnv:  {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -163,6 +165,8 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -171,7 +175,6 @@ func TestGetTransactionStatus(t *testing.T) {
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.MockEnv: {},
 		tests.TestnetEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
@@ -186,7 +189,6 @@ func TestGetTransactionStatus(t *testing.T) {
 				},
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -200,6 +202,8 @@ func TestGetTransactionStatus(t *testing.T) {
 
 // TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -247,7 +251,6 @@ func TestGetMessagesStatus(t *testing.T) {
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {

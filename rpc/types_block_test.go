@@ -32,6 +32,8 @@ import (
 //
 //	none
 func TestBlockID_Marshal(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	blockNumber := uint64(420)
 	for _, tc := range []struct {
 		id      BlockID
@@ -91,6 +93,8 @@ func TestBlockID_Marshal(t *testing.T) {
 //
 //	none
 func TestBlockStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	for _, tc := range []struct {
 		status string
 		want   BlockStatus
@@ -130,6 +134,7 @@ var rawBlock []byte
 //
 //	none
 func TestBlock_Unmarshal(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {
 		t.Fatalf("Unmarshalling block: %v", err)
@@ -137,6 +142,8 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {

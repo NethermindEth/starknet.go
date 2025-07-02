@@ -20,6 +20,8 @@ import (
 //
 //	none
 func TestBlockNumber(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
@@ -37,6 +39,8 @@ func TestBlockNumber(t *testing.T) {
 //
 //	none
 func TestBlockHashAndNumber(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
@@ -77,6 +81,8 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -142,7 +148,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -192,6 +197,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 //	none
 func TestBlockWithTxs(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -264,7 +271,6 @@ func TestBlockWithTxs(t *testing.T) {
 				L1HandlerV0Index: 4,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	// TODO: refactor test to check the marshal result against the expected json file
@@ -367,6 +373,8 @@ func TestBlockWithTxs(t *testing.T) {
 //
 //	none
 func TestBlockTransactionCount(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -395,7 +403,6 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
@@ -416,6 +423,8 @@ func TestBlockTransactionCount(t *testing.T) {
 //
 //	none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -423,14 +432,12 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 		EndBlock   uint64
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.MockEnv: {},
 		tests.TestnetEnv: {
 			{
 				StartBlock: 52959,
 				EndBlock:   52960,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
@@ -473,6 +480,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 //	none
 func TestStateUpdate(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -628,7 +637,6 @@ func TestStateUpdate(t *testing.T) {
 				},
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)

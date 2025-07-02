@@ -15,6 +15,8 @@ import (
 )
 
 func TestCompiledCasm(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -41,7 +43,6 @@ func TestCompiledCasm(t *testing.T) {
 				ExpectedError: ErrCompilationError,
 			},
 		},
-		tests.DevnetEnv: {},
 		tests.TestnetEnv: {
 			{
 				Description:        "normal call, with field class_hash",
@@ -55,7 +56,6 @@ func TestCompiledCasm(t *testing.T) {
 			},
 			// TODO: add test for compilation error when Juno implements it (maybe the class hash from block 1 could be a valid input)
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {

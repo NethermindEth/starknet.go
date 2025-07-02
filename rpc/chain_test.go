@@ -24,6 +24,8 @@ import (
 //
 //	none
 func TestChainID(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -59,6 +61,8 @@ func TestChainID(t *testing.T) {
 //
 //	none
 func TestSyncing(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -66,7 +70,6 @@ func TestSyncing(t *testing.T) {
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {},
 		tests.MainnetEnv: {{ChainID: "SN_MAIN"}},
 		tests.MockEnv:    {{ChainID: "MOCK"}},
 		tests.TestnetEnv: {{ChainID: "SN_SEPOLIA"}},

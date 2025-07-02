@@ -12,10 +12,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCookieManagement(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	// Don't return anything unless cookie is set.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Handle version check request
@@ -95,6 +98,8 @@ func TestCookieManagement(t *testing.T) {
 
 // TestVersionCompatibility tests that the provider correctly handles version compatibility warnings
 func TestVersionCompatibility(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	const wrongVersion = "0.5.0"
 
 	// Set up a single server that responds differently based on query parameters

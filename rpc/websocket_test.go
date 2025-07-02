@@ -13,6 +13,8 @@ import (
 )
 
 func TestSubscribeNewHeads(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
@@ -31,7 +33,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
-	testSet, ok := map[tests.TestEnv][]testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
 			{
 				headers:         make(chan *BlockHeader),
@@ -59,10 +61,6 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 		},
 	}[tests.TEST_ENV]
-
-	if !ok {
-		t.Skip("test environment not supported")
-	}
 
 	for _, test := range testSet {
 		t.Run("test: "+test.description, func(t *testing.T) {
@@ -110,6 +108,8 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 //nolint:gocyclo
 func TestSubscribeEvents(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
@@ -120,7 +120,7 @@ func TestSubscribeEvents(t *testing.T) {
 		keyExample         *felt.Felt
 	}
 
-	testSet, ok := map[tests.TestEnv]testSetType{
+	testSet := map[tests.TestEnv]testSetType{
 		tests.TestnetEnv: {
 			// sepolia StarkGate: ETH Token
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -128,10 +128,6 @@ func TestSubscribeEvents(t *testing.T) {
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 	}[tests.TEST_ENV]
-
-	if !ok {
-		t.Skip("test environment not supported")
-	}
 
 	provider := testConfig.provider
 	blockNumber, err := provider.BlockNumber(context.Background())
@@ -382,17 +378,11 @@ func TestSubscribeEvents(t *testing.T) {
 }
 
 func TestSubscribeTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
-
-	testSet := map[tests.TestEnv]bool{
-		tests.TestnetEnv: true,
-	}[tests.TEST_ENV]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
 
 	provider := testConfig.provider
 	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
@@ -441,6 +431,8 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 }
 
 func TestSubscribePendingTransactions(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
@@ -457,7 +449,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 		addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
 	}
 
-	testSet, ok := map[tests.TestEnv][]testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
 			{
 				pendingTxns: make(chan *PendingTxn),
@@ -482,10 +474,6 @@ func TestSubscribePendingTransactions(t *testing.T) {
 			},
 		},
 	}[tests.TEST_ENV]
-
-	if !ok {
-		t.Skip("test environment not supported")
-	}
 
 	for _, test := range testSet {
 		t.Run("test: "+test.description, func(t *testing.T) {
@@ -529,17 +517,11 @@ func TestSubscribePendingTransactions(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	t.Parallel()
 
 	testConfig := beforeEach(t, true)
-
-	testSet := map[tests.TestEnv]bool{
-		tests.TestnetEnv: true,
-	}[tests.TEST_ENV]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
 
 	wsProvider := testConfig.wsProvider
 

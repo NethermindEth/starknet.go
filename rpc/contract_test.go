@@ -32,6 +32,8 @@ import (
 //
 //	none
 func TestClassAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -121,6 +123,8 @@ func TestClassAt(t *testing.T) {
 //
 //	none
 func TestClassHashAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -200,6 +204,8 @@ func TestClassHashAt(t *testing.T) {
 //
 //	none
 func TestClass(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -280,6 +286,8 @@ func TestClass(t *testing.T) {
 //
 //	none
 func TestStorageAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -344,6 +352,8 @@ func TestStorageAt(t *testing.T) {
 //
 //	none
 func TestNonce(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -399,6 +409,8 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -467,7 +479,6 @@ func TestEstimateMessageFee(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
-		"mainnet": {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -484,6 +495,8 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -497,7 +510,7 @@ func TestEstimateFee(t *testing.T) {
 
 	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 
-	testSet, ok := map[tests.TestEnv][]testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				description: "without flag",
@@ -632,11 +645,6 @@ func TestEstimateFee(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
-	// TODO: implement this pattern in all tests to know which test cases are being skipped
-	if !ok {
-		t.Skipf("'%s' environment testset not implemented by this test", tests.TEST_ENV)
-	}
-
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
 			resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
@@ -657,6 +665,8 @@ func TestEstimateFee(t *testing.T) {
 }
 
 func TestGetStorageProof(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -665,8 +675,6 @@ func TestGetStorageProof(t *testing.T) {
 		ExpectedError     error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.MockEnv:   {},
-		tests.DevnetEnv: {},
 		tests.TestnetEnv: {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
@@ -771,7 +779,6 @@ func TestGetStorageProof(t *testing.T) {
 				ExpectedError: ErrStorageProofNotSupported,
 			},
 		},
-		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {

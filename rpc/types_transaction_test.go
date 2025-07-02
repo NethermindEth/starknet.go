@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransactionVersionBigInt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	tests := []struct {
 		name     string
 		version  TransactionVersion
@@ -88,6 +91,8 @@ func TestTransactionVersionBigInt(t *testing.T) {
 }
 
 func TestTransactionVersionInt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	tests := []struct {
 		name     string
 		version  TransactionVersion
