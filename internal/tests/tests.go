@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	TEST_ENV = loadEnv()
+	loadEnv()
 }
 
 // the environment for the test, default: mock
@@ -31,7 +31,6 @@ func loadFlags() {
 	var testEnvStr string
 	// set the environment for the test, default: mock
 	flag.StringVar(&testEnvStr, "env", string(MockEnv), "set the test environment")
-	flag.Parse()
 
 	TEST_ENV = TestEnv(testEnvStr)
 }
