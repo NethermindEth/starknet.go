@@ -83,10 +83,10 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(
@@ -222,10 +222,10 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 // It'll check if the txn version when estimating has the query bit, and if the txn version when sending does NOT have it.
 func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 
 	t.Run("on mock", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
@@ -536,10 +536,10 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Compiled Class Hash
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 	compClassHash, err := hash.CompiledClassHash(&casmClass)
 	require.NoError(t, err)
 
