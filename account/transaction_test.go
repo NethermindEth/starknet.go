@@ -48,7 +48,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 			FunctionName:    "mint",
 			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
-	}, 1.5, false)
+	}, nil)
 	require.NoError(t, err, "Error building and sending invoke txn")
 
 	// check the transaction hash
@@ -89,7 +89,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
-	resp, err := acc.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, false)
+	resp, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		&casmClass,
+		&class,
+		nil,
+	)
 	if err != nil {
 		require.EqualError(
 			t,
@@ -154,8 +159,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
-		1.5,
-		false,
+		nil,
 	)
 	require.NoError(t, err, "Error building and estimating deploy account txn")
 	require.NotNil(t, deployAccTxn)
@@ -197,7 +201,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 			FunctionName:    "transfer",
 			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 		},
-	}, 1.5, false)
+	}, nil)
 	require.NoError(t, err, "Error transferring STRK tokens")
 
 	// check the transaction hash
@@ -279,7 +283,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					ContractAddress: internalUtils.RANDOM_FELT,
 					FunctionName:    "transfer",
 				},
-			}, 1.5, true)
+			}, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 		})
 
@@ -296,7 +302,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 		})
 
@@ -306,8 +314,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				internalUtils.RANDOM_FELT,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
 			)
 			require.NoError(t, err)
 
@@ -329,7 +338,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		acnt := newDevnetAccount(t, client, acnts[0], account.CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, 1.5, true)
+			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -352,7 +363,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName:    "transfer",
 					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
-			}, 1.5, true)
+			}, &account.TxnOptions{
+				UseQueryBit: true,
+			})
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -378,8 +391,9 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
-				1.5,
-				true,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
 			)
 			require.NoError(t, err)
 			require.NotNil(t, txn)
@@ -577,7 +591,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
 //
 // The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
-// and provider using the base URL. After that, it sets up a devnet environment and creates a fake user account. The
+// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user account. The
 // fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
 // and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
 // user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
@@ -743,7 +757,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
 //
 // It checks if the test environment is "devnet" and skips the test if it's not.
-// It creates a new RPC client using the base URL and "/rpc" endpoint.
+// It creates a new RPC client using the tConfig.base URL and "/rpc" endpoint.
 // It creates a new RPC provider using the client.
 // It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
 // It defines a testSet variable that contains an array of testSetType structs.
@@ -810,3 +824,132 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		}()
 	}
 }
+
+func TestDeployContractWithUDC(t *testing.T) {
+	if testEnv != "testnet" {
+		t.Skip("This test is only for testnet")
+	}
+
+	provider, err := rpc.NewProvider(tConfig.providerURL)
+	require.NoError(t, err, "Error in rpc.NewProvider")
+
+	accnt, err := setupAcc(t, provider)
+	require.NoError(t, err, "Error in setupAcc")
+
+	t.Run("UDCCairoV0, no constructor, udcOptions nil", func(t *testing.T) {
+		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
+		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+			Salt:              internalUtils.RANDOM_FELT,
+			UDCVersion:        utils.UDCCairoV0,
+			OriginIndependent: true,
+		})
+		assert.ErrorContains(t, err, "contract already deployed")
+	})
+
+	t.Run("UDCCairoV2, no constructor, only UDCVersion set", func(t *testing.T) {
+		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+			UDCVersion: utils.UDCCairoV2,
+		})
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
+		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
+			Salt:              internalUtils.RANDOM_FELT,
+			UDCVersion:        utils.UDCCairoV2,
+			OriginIndependent: true,
+		})
+		assert.ErrorContains(t, err, "contract already deployed")
+	})
+
+	// erc20 calldata:
+	classHash, _ := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+	name, _ := utils.StringToByteArrFelt("My Test Token")
+	symbol, _ := utils.StringToByteArrFelt("MTT")
+	supply, _ := utils.HexToU256Felt("0x200000000000000000")
+	recipient := accnt.Address
+	owner := accnt.Address
+
+	// https://docs.openzeppelin.com/contracts-cairo/1.0.0/api/erc20#ERC20Upgradeable-constructor
+	constructorCalldata := make([]*felt.Felt, 0, 10)
+	constructorCalldata = append(constructorCalldata, name...)
+	constructorCalldata = append(constructorCalldata, symbol...)
+	constructorCalldata = append(constructorCalldata, supply...)
+	constructorCalldata = append(constructorCalldata, recipient, owner)
+
+	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+			Salt:              internalUtils.RANDOM_FELT,
+			UDCVersion:        utils.UDCCairoV0,
+			OriginIndependent: true,
+		})
+		assert.ErrorContains(t, err, "contract already deployed")
+	})
+
+	t.Run("UDCCairoV2, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
+		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+			UDCVersion: utils.UDCCairoV2,
+		})
+		require.NoError(t, err, "DeployContractUDC failed")
+
+		t.Logf("Transaction hash: %s", resp.Hash)
+
+		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		require.NoError(t, err, "Waiting for tx receipt failed")
+
+		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	})
+
+	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
+		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
+			Salt:              internalUtils.RANDOM_FELT,
+			UDCVersion:        utils.UDCCairoV2,
+			OriginIndependent: true,
+		})
+		assert.ErrorContains(t, err, "contract already deployed")
+	})
+}
+
+// TODO: add more tests for the BuildAnd* functions, testing each of them with different TxnOption's

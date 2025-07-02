@@ -105,7 +105,7 @@ func TestCookieManagement(t *testing.T) {
 				data := map[string]interface{}{
 					"jsonrpc": "2.0",
 					"id":      request["id"],
-					"result":  "0.8.0",
+					"result":  rpcVersion,
 				}
 				if err := json.NewEncoder(w).Encode(data); err != nil {
 					log.Fatal(err)

@@ -136,6 +136,8 @@ func FeltArrToStringArr(f []*felt.Felt) []string {
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
 func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
+	// TODO: make this helper return no error
+
 	const SHORT_LENGTH = 31
 	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
 	r := regexp.MustCompile(exp)
