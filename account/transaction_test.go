@@ -25,14 +25,8 @@ import (
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	testSet := map[tests.TestEnv]bool{
-		tests.TestnetEnv: true,
-		tests.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[tests.TEST_ENV]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -67,14 +61,8 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	testSet := map[tests.TestEnv]bool{
-		tests.TestnetEnv: true,
-		tests.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[tests.TEST_ENV]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -124,14 +112,8 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
-	testSet := map[tests.TestEnv]bool{
-		tests.TestnetEnv: true,
-		tests.DevnetEnv:  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[tests.TEST_ENV]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -221,6 +203,8 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 // The tests will test the methods when called with the 'hasQueryBitVersion' parameter set to true.
 // It'll check if the txn version when estimating has the query bit, and if the txn version when sending does NOT have it.
 func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv)
+
 	// Class
 	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
@@ -228,6 +212,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 
 	t.Run("on mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
+
 		ctrl := gomock.NewController(t)
 		mockRpcProvider := mocks.NewMockRpcProvider(ctrl)
 
@@ -326,9 +312,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	})
 
 	t.Run("on devnet", func(t *testing.T) {
-		if tests.TEST_ENV != "devnet" {
-			t.Skip("Skipping test as it requires a devnet environment")
-		}
+		tests.RunTestOn(t, tests.DevnetEnv)
+
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -416,6 +401,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 //
 //	none
 func TestSendInvokeTxn(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	type testSetType struct {
 		ExpectedErr          error
 		CairoContractVersion account.CairoVersion
@@ -514,9 +501,8 @@ func TestSendInvokeTxn(t *testing.T) {
 //
 //	none
 func TestSendDeclareTxn(t *testing.T) {
-	if tests.TEST_ENV != tests.TestnetEnv {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	expectedTxHash := internalUtils.TestHexToFelt(t, "0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0")
 	expectedClassHash := internalUtils.TestHexToFelt(t, "0x06ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17")
 
@@ -606,9 +592,8 @@ func TestSendDeclareTxn(t *testing.T) {
 //
 //	none
 func TestSendDeployAccountDevnet(t *testing.T) {
-	if tests.TEST_ENV != tests.DevnetEnv {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
+
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -685,9 +670,8 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
-	if tests.TEST_ENV != tests.MockEnv {
-		t.Skip("Skipping test as it requires a mock environment")
-	}
+	tests.RunTestOn(t, tests.MockEnv)
+
 	mockCtrl := gomock.NewController(t)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
@@ -777,9 +761,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceipt(t *testing.T) {
-	if tests.TEST_ENV != tests.DevnetEnv {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
+
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -826,9 +809,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 }
 
 func TestDeployContractWithUDC(t *testing.T) {
-	if tests.TEST_ENV != tests.TestnetEnv {
-		t.Skip("This test is only for testnet")
-	}
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")

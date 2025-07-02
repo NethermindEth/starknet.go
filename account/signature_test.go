@@ -17,6 +17,7 @@ import (
 // TestVerify tests the account.Verify method.
 
 func TestVerify(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
 
 	// setup mock account
@@ -142,10 +143,6 @@ func TestVerify(t *testing.T) {
 			},
 		},
 	}[tests.TEST_ENV]
-
-	if len(testSet) == 0 {
-		t.Skip("test environment not supported")
-	}
 
 	// tests
 	for _, test := range testSet {
