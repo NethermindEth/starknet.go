@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
@@ -22,7 +22,7 @@ import (
 //
 //	none
 func TestDevnet_IsAlive(t *testing.T) {
-	if internal.TEST_ENV != "devnet" {
+	if tests.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 
@@ -44,7 +44,7 @@ func TestDevnet_IsAlive(t *testing.T) {
 //
 //	none
 func TestDevnet_Accounts(t *testing.T) {
-	if internal.TEST_ENV != "devnet" {
+	if tests.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 
@@ -72,7 +72,7 @@ func TestDevnet_Accounts(t *testing.T) {
 //
 //	none
 func TestDevnet_Mint(t *testing.T) {
-	if internal.TEST_ENV != "devnet" {
+	if tests.TEST_ENV != "devnet" {
 		t.Skip("Skipping test as it requires a devnet environment")
 	}
 

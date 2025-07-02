@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +41,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 
 	var testConfig testConfiguration
 
-	if internal.TEST_ENV == internal.MockEnv {
+	if tests.TEST_ENV == tests.MockEnv {
 		testConfig.provider = &Provider{
 			c: &rpcMock{},
 		}
@@ -63,7 +63,7 @@ func beforeEach(t *testing.T, isWs bool) *testConfiguration {
 		testConfig.provider.c.Close()
 	})
 
-	if internal.TEST_ENV == internal.DevnetEnv || internal.TEST_ENV == internal.MainnetEnv {
+	if tests.TEST_ENV == tests.DevnetEnv || tests.TEST_ENV == tests.MainnetEnv {
 		return &testConfig
 	}
 

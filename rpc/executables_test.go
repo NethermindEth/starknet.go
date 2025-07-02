@@ -8,7 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,8 +23,8 @@ func TestCompiledCasm(t *testing.T) {
 		ExpectedResultPath string
 		ExpectedError      *RPCError
 	}
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.MockEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				Description:        "success - get compiled CASM",
 				ClassHash:          internalUtils.RANDOM_FELT,
@@ -41,8 +41,8 @@ func TestCompiledCasm(t *testing.T) {
 				ExpectedError: ErrCompilationError,
 			},
 		},
-		internal.DevnetEnv: {},
-		internal.TestnetEnv: {
+		tests.DevnetEnv: {},
+		tests.TestnetEnv: {
 			{
 				Description:        "normal call, with field class_hash",
 				ClassHash:          internalUtils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
@@ -55,8 +55,8 @@ func TestCompiledCasm(t *testing.T) {
 			},
 			// TODO: add test for compilation error when Juno implements it (maybe the class hash from block 1 could be a valid input)
 		},
-		internal.MainnetEnv: {},
-	}[internal.TEST_ENV]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](test.ExpectedResultPath, "result")

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,8 +35,8 @@ func TestTransactionTrace(t *testing.T) {
 		ExpectedRespFile string
 		ExpectedError    error
 	}
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.MockEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -57,8 +57,8 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		internal.DevnetEnv: {},
-		internal.TestnetEnv: {
+		tests.DevnetEnv: {},
+		tests.TestnetEnv: {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -70,8 +70,8 @@ func TestTransactionTrace(t *testing.T) {
 				ExpectedError:    nil,
 			},
 		},
-		internal.MainnetEnv: {},
-	}[internal.TEST_ENV]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
@@ -119,19 +119,19 @@ func TestSimulateTransaction(t *testing.T) {
 	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
 	expectedRespFile := "./testData/trace/sepoliaSimulateInvokeTxResp.json"
 
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.DevnetEnv: {},
-		internal.MockEnv: {testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv: {},
+		tests.MockEnv: {testSetType{
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
-		internal.TestnetEnv: {testSetType{
+		tests.TestnetEnv: {testSetType{
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
 		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
-		internal.MainnetEnv: {},
-	}[internal.TEST_ENV]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
@@ -207,17 +207,17 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
-		internal.MainnetEnv: {},
-		internal.TestnetEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
+		tests.MainnetEnv: {},
+		tests.TestnetEnv: {
 			testSetType{
 				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
 		},
-		internal.MockEnv: {
+		tests.MockEnv: {
 			testSetType{
 				BlockID:          WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
 				ExpectedRespFile: expectedRespFile,
@@ -229,7 +229,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      ErrBlockNotFound,
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")

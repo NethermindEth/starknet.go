@@ -9,7 +9,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -39,8 +39,8 @@ func TestFmtCallData(t *testing.T) {
 		FnCall           rpc.FunctionCall
 		ExpectedCallData []*felt.Felt
 	}
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.TestnetEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				CairoVersion: account.CairoV2,
 				ChainID:      "SN_SEPOLIA",
@@ -78,19 +78,19 @@ func TestFmtCallData(t *testing.T) {
 				}),
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		var acc *account.Account
 		var err error
-		if internal.TEST_ENV == internal.TestnetEnv {
+		if tests.TEST_ENV == tests.TestnetEnv {
 			var client *rpc.Provider
 			client, err = rpc.NewProvider(tConfig.providerURL)
 			require.NoError(t, err, "Error in rpc.NewClient")
 			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 			require.NoError(t, err)
 		}
-		if internal.TEST_ENV == internal.MockEnv {
+		if tests.TEST_ENV == tests.MockEnv {
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 			acc, err = account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
 			require.NoError(t, err)
@@ -125,8 +125,8 @@ func TestChainIdMOCK(t *testing.T) {
 		ChainID    string
 		ExpectedID string
 	}
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.MockEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ChainID:    "SN_MAIN",
 				ExpectedID: "0x534e5f4d41494e",
@@ -136,7 +136,7 @@ func TestChainIdMOCK(t *testing.T) {
 				ExpectedID: "0x534e5f5345504f4c4941",
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
@@ -165,14 +165,14 @@ func TestChainId(t *testing.T) {
 		ChainID    string
 		ExpectedID string
 	}
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.DevnetEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv: {
 			{
 				ChainID:    "SN_SEPOLIA",
 				ExpectedID: "0x534e5f5345504f4c4941",
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		client, err := rpc.NewProvider(tConfig.providerURL)
@@ -200,8 +200,8 @@ func TestBraavosAccountWarning(t *testing.T) {
 		"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
 	}
 
-	testSet := map[internal.TestEnv][]testSetType{
-		internal.MockEnv: {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[0]),
 				ExpectedOutput: true,
@@ -219,7 +219,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 				ExpectedOutput: false,
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {

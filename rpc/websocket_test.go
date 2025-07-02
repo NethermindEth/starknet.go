@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -31,8 +31,8 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
-	testSet, ok := map[internal.TestEnv][]testSetType{
-		internal.TestnetEnv: {
+	testSet, ok := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				headers:         make(chan *BlockHeader),
 				isErrorExpected: false,
@@ -58,7 +58,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	if !ok {
 		t.Skip("test environment not supported")
@@ -120,14 +120,14 @@ func TestSubscribeEvents(t *testing.T) {
 		keyExample         *felt.Felt
 	}
 
-	testSet, ok := map[internal.TestEnv]testSetType{
-		internal.TestnetEnv: {
+	testSet, ok := map[tests.TestEnv]testSetType{
+		tests.TestnetEnv: {
 			// sepolia StarkGate: ETH Token
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	if !ok {
 		t.Skip("test environment not supported")
@@ -386,9 +386,9 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 	testConfig := beforeEach(t, true)
 
-	testSet := map[internal.TestEnv]bool{
-		internal.TestnetEnv: true,
-	}[internal.TEST_ENV]
+	testSet := map[tests.TestEnv]bool{
+		tests.TestnetEnv: true,
+	}[tests.TEST_ENV]
 
 	if !testSet {
 		t.Skip("test environment not supported")
@@ -457,8 +457,8 @@ func TestSubscribePendingTransactions(t *testing.T) {
 		addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
 	}
 
-	testSet, ok := map[internal.TestEnv][]testSetType{
-		internal.TestnetEnv: {
+	testSet, ok := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				pendingTxns: make(chan *PendingTxn),
 				options:     nil,
@@ -481,7 +481,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 				description:   "error: too many addresses",
 			},
 		},
-	}[internal.TEST_ENV]
+	}[tests.TEST_ENV]
 
 	if !ok {
 		t.Skip("test environment not supported")
@@ -533,9 +533,9 @@ func TestUnsubscribe(t *testing.T) {
 
 	testConfig := beforeEach(t, true)
 
-	testSet := map[internal.TestEnv]bool{
-		internal.TestnetEnv: true,
-	}[internal.TEST_ENV]
+	testSet := map[tests.TestEnv]bool{
+		tests.TestnetEnv: true,
+	}[tests.TEST_ENV]
 
 	if !testSet {
 		t.Skip("test environment not supported")
