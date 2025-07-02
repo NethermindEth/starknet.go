@@ -9,13 +9,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-	loadEnv()
-}
-
-// the environment for the test, default: mock
+// The environment for the test defined by the `-env` flag. If not set, default: mock
 var TEST_ENV TestEnv
 
+// An enum representing the environments for the test.
 type TestEnv string
 
 const (
@@ -27,16 +24,20 @@ const (
 	Devnet_TestnetEnv TestEnv = "devnet-testnet"
 )
 
-func loadFlags() {
+func loadEnvFlag() {
 	var testEnvStr string
 	// set the environment for the test, default: mock
 	flag.StringVar(&testEnvStr, "env", string(MockEnv), "set the test environment")
+	flag.Parse()
 
 	TEST_ENV = TestEnv(testEnvStr)
 }
 
-func loadEnv() TestEnv {
-	loadFlags()
+// Loads the environment for the tests. It must be called before `m.Run` in the TestMain function
+// of each package.
+// It looks for a `.env.<testEnv>` file in the `internal/tests` directory, where `<testEnv>` is the value of the `-env` flag. If the file is not found, a warning is logged.
+func LoadEnv() {
+	loadEnvFlag()
 
 	switch TEST_ENV {
 	case MockEnv, IntegrationEnv, TestnetEnv, MainnetEnv, DevnetEnv, Devnet_TestnetEnv:
@@ -59,15 +60,6 @@ func loadEnv() TestEnv {
 	if err != nil {
 		log.Printf("Warning: failed to load %s, err: %s", customEnv, err)
 	} else {
-		log.Printf("successfully loaded %s", customEnv)
+		log.Printf("Successfully loaded %s", customEnv)
 	}
-
-	err = godotenv.Load(filepath.Join(sourceDir, ".env"))
-	if err != nil {
-		log.Printf("Warning: failed to load .env, err: %s", err)
-	} else {
-		log.Printf("successfully loaded .env")
-	}
-
-	return TEST_ENV
 }
