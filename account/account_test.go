@@ -30,6 +30,8 @@ import (
 //
 //	none
 func TestFmtCallData(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	mockCtrl := gomock.NewController(t)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
@@ -39,66 +41,55 @@ func TestFmtCallData(t *testing.T) {
 		FnCall           rpc.FunctionCall
 		ExpectedCallData []*felt.Felt
 	}
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
-			{
-				CairoVersion: account.CairoV2,
-				ChainID:      "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
-					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
-					},
+	testSet := []testSetType{
+		{
+			CairoVersion: account.CairoV2,
+			ChainID:      "SN_SEPOLIA",
+			FnCall: rpc.FunctionCall{
+				ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
+				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
+				Calldata: []*felt.Felt{
+					internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
 				},
-				ExpectedCallData: internalUtils.TestHexArrToFelt(t, []string{
-					"0x01",
-					"0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902",
-					"0x0166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac",
-					"0x01",
-					"0x617279616e5f676f64617261",
-				}),
 			},
-			{
-				CairoVersion: account.CairoV2,
-				ChainID:      "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
-					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
-					},
-				},
-				ExpectedCallData: internalUtils.TestHexArrToFelt(t, []string{
-					"0x01",
-					"0x017ce9dffa7c87a03eb496c96e04ac36c4902085030763a83a35788d475e15ca",
-					"0x0166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac",
-					"0x01",
-					"0x737461726b6e6574",
-				}),
-			},
+			ExpectedCallData: internalUtils.TestHexArrToFelt(t, []string{
+				"0x01",
+				"0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902",
+				"0x0166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac",
+				"0x01",
+				"0x617279616e5f676f64617261",
+			}),
 		},
-	}[tests.TEST_ENV]
+		{
+			CairoVersion: account.CairoV2,
+			ChainID:      "SN_SEPOLIA",
+			FnCall: rpc.FunctionCall{
+				ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
+				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
+				Calldata: []*felt.Felt{
+					internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
+				},
+			},
+			ExpectedCallData: internalUtils.TestHexArrToFelt(t, []string{
+				"0x01",
+				"0x017ce9dffa7c87a03eb496c96e04ac36c4902085030763a83a35788d475e15ca",
+				"0x0166d775d0cf161f1ce9b90698485f0c7a0e249af1c4b38126bddb37859737ac",
+				"0x01",
+				"0x737461726b6e6574",
+			}),
+		},
+	}
 
 	for _, test := range testSet {
-		var acc *account.Account
-		var err error
-		if tests.TEST_ENV == tests.TestnetEnv {
-			var client *rpc.Provider
-			client, err = rpc.NewProvider(tConfig.providerURL)
-			require.NoError(t, err, "Error in rpc.NewClient")
-			acc, err = account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
-			require.NoError(t, err)
-		}
-		if tests.TEST_ENV == tests.MockEnv {
-			mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-			acc, err = account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
-			require.NoError(t, err)
-		}
+		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
+		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
+		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
+		require.NoError(t, err)
 
 		fmtCallData, err := acc.FmtCalldata([]rpc.FunctionCall{test.FnCall})
 		require.NoError(t, err)
-		require.Equal(t, fmtCallData, test.ExpectedCallData)
+		assert.Equal(t, fmtCallData, test.ExpectedCallData)
 	}
 }
 
