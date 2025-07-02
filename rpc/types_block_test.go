@@ -114,7 +114,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block/sepoliaBlockTxs65083.json
+//go:embed testData/block/sepoliaBlockTxs65083.json
 var rawBlock []byte
 
 // TestBlock_Unmarshal tests the Unmarshal function of the Block type.
@@ -149,9 +149,9 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	switch internal.TEST_ENV {
 	case internal.TestnetEnv:
-		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./testData/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
 	case internal.MainnetEnv:
-		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./testData/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")

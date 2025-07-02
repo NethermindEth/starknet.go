@@ -28,7 +28,7 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
+	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
 	type testSetType struct {
 		TransactionHash  *felt.Felt
@@ -66,7 +66,7 @@ func TestTransactionTrace(t *testing.T) {
 			},
 			testSetType{ // with 6 out of 6 fields
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
-				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
+				ExpectedRespFile: "./testData/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
 				ExpectedError:    nil,
 			},
 		},
@@ -116,8 +116,8 @@ func TestSimulateTransaction(t *testing.T) {
 		ExpectedRespFile     string
 	}
 
-	expectedInputFile := "./tests/trace/sepoliaSimulateInvokeTx.json"
-	expectedRespFile := "./tests/trace/sepoliaSimulateInvokeTxResp.json"
+	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
+	expectedRespFile := "./testData/trace/sepoliaSimulateInvokeTxResp.json"
 
 	testSet := map[internal.TestEnv][]testSetType{
 		internal.DevnetEnv: {},
@@ -205,7 +205,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 		ExpectedErr      *RPCError
 	}
 
-	expectedRespFile := "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
+	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
 	testSet := map[internal.TestEnv][]testSetType{
 		internal.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api

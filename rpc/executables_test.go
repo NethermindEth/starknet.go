@@ -28,7 +28,7 @@ func TestCompiledCasm(t *testing.T) {
 			{
 				Description:        "success - get compiled CASM",
 				ClassHash:          internalUtils.RANDOM_FELT,
-				ExpectedResultPath: "./tests/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm.json",
 			},
 			{
 				Description:   "error - class hash not found",
@@ -46,7 +46,7 @@ func TestCompiledCasm(t *testing.T) {
 			{
 				Description:        "normal call, with field class_hash",
 				ClassHash:          internalUtils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
-				ExpectedResultPath: "./tests/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm.json",
 			},
 			{
 				Description:   "error call, inexistent class_hash",
