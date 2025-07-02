@@ -30,6 +30,8 @@ var (
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
+	tests.LoadEnv()
+
 	if tests.TEST_ENV == tests.MockEnv {
 		os.Exit(m.Run())
 	}
