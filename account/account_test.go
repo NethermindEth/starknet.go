@@ -109,6 +109,8 @@ func TestFmtCallData(t *testing.T) {
 //
 //	none
 func TestChainIdMOCK(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	mockCtrl := gomock.NewController(t)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
@@ -152,6 +154,8 @@ func TestChainIdMOCK(t *testing.T) {
 //
 //	none
 func TestChainId(t *testing.T) {
+	tests.RunTestOn(t, tests.DevnetEnv)
+
 	type testSetType struct {
 		ChainID    string
 		ExpectedID string
@@ -176,6 +180,8 @@ func TestChainId(t *testing.T) {
 }
 
 func TestBraavosAccountWarning(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	mockCtrl := gomock.NewController(t)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
