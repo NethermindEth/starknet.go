@@ -2,6 +2,7 @@ package devnet
 
 import (
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -9,6 +10,11 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
+
+func TestMain(m *testing.M) {
+	tests.LoadEnv()
+	os.Exit(m.Run())
+}
 
 // TestDevnet_IsAlive tests the IsAlive method of the Devnet struct.
 //
@@ -22,9 +28,7 @@ import (
 //
 //	none
 func TestDevnet_IsAlive(t *testing.T) {
-	if tests.TEST_ENV != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
 
 	d := NewDevNet()
 	if !d.IsAlive() {
@@ -44,9 +48,7 @@ func TestDevnet_IsAlive(t *testing.T) {
 //
 //	none
 func TestDevnet_Accounts(t *testing.T) {
-	if tests.TEST_ENV != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
 
 	d := NewDevNet()
 	accounts, err := d.Accounts()
@@ -72,9 +74,7 @@ func TestDevnet_Accounts(t *testing.T) {
 //
 //	none
 func TestDevnet_Mint(t *testing.T) {
-	if tests.TEST_ENV != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
 
 	d := NewDevNet()
 	amount := big.NewInt(int64(1000000000000000000))
