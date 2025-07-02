@@ -37,7 +37,8 @@ func loadEnvFlag() {
 
 // Loads the environment for the tests. It must be called before `m.Run` in the TestMain function
 // of each package.
-// It looks for a `.env.<testEnv>` file in the `internal/tests` directory, where `<testEnv>` is the value of the `-env` flag. If the file is not found, a warning is logged.
+// It looks for a `.env.<testEnv>` file in the `internal/tests` directory, where `<testEnv>` is the value of the `-env` flag.
+// If the file is not found, a warning is logged.
 func LoadEnv() {
 	loadEnvFlag()
 

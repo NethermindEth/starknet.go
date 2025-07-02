@@ -24,9 +24,7 @@ type testConfig struct {
 	accountAddress string
 }
 
-var (
-	tConfig testConfig
-)
+var tConfig testConfig
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
