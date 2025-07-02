@@ -25,7 +25,6 @@ const (
 	MainnetEnv        TestEnv = "mainnet"
 	DevnetEnv         TestEnv = "devnet"
 	Devnet_TestnetEnv TestEnv = "devnet-testnet"
-	Devnet_MainnetEnv TestEnv = "devnet-mainnet"
 )
 
 func loadFlags() {
@@ -41,10 +40,10 @@ func loadEnv() TestEnv {
 	loadFlags()
 
 	switch TEST_ENV {
-	case MockEnv, IntegrationEnv, TestnetEnv, MainnetEnv, DevnetEnv, Devnet_TestnetEnv, Devnet_MainnetEnv:
+	case MockEnv, IntegrationEnv, TestnetEnv, MainnetEnv, DevnetEnv, Devnet_TestnetEnv:
 		break
 	default:
-		log.Fatalf("invalid test environment '%s', supports: mock, integration, testnet, mainnet, devnet, devnet-testnet, devnet-mainnet", TEST_ENV)
+		log.Fatalf("invalid test environment '%s', supports: mock, integration, testnet, mainnet, devnet, devnet-testnet", TEST_ENV)
 	}
 
 	// get the source file path
