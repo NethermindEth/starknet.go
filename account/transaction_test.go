@@ -826,7 +826,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 }
 
 func TestDeployContractWithUDC(t *testing.T) {
-	if testEnv != "testnet" {
+	if internal.TEST_ENV != internal.TestnetEnv {
 		t.Skip("This test is only for testnet")
 	}
 
