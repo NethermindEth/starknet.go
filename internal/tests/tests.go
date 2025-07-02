@@ -5,6 +5,8 @@ import (
 	"log"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"testing"
 
 	"github.com/joho/godotenv"
 )
@@ -61,5 +63,25 @@ func LoadEnv() {
 		log.Printf("Warning: failed to load %s, err: %s", customEnv, err)
 	} else {
 		log.Printf("Successfully loaded %s", customEnv)
+	}
+}
+
+// Runs the test only if the environment is in the list of environments provided.
+// If no environment is provided, the test fails.
+// If the environment is not in the list of environments, the test is skipped.
+//
+// Packages like `account` and `rpc` are run on multiple environments, so
+// in order to easily skip tests that are not supported on a specific environment, we use this helper.
+// If a test is not supported on a specific environment, it should be skipped; otherwise, it could
+// pass (since the environment is not being tested) and give a false positive.
+func RunTestOn(t *testing.T, envs ...TestEnv) {
+	t.Helper()
+
+	if len(envs) == 0 {
+		t.Fatal("No test environment provided")
+	}
+
+	if !slices.Contains(envs, TEST_ENV) {
+		t.Skipf("Test not defined to run on '%s' environment, skipping...", TEST_ENV)
 	}
 }
