@@ -217,7 +217,7 @@ func TestClass(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:         WithBlockTag("pending"),
+				BlockID:         WithBlockTag("pre_confirmed"),
 				ClassHash:       internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
@@ -750,9 +750,9 @@ func TestGetStorageProof(t *testing.T) {
 				ExpectedError: nil,
 			},
 			{
-				Description: "error: using pending tag in block_id",
+				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: BlockID{Tag: "pending"},
+					BlockID: BlockID{Tag: "pre_confirmed"},
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},

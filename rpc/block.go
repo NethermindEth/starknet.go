@@ -105,11 +105,11 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
-	// if header.Hash == nil it's a pending block
+	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &PendingBlockTxHashes{
-			PendingBlockHeader{
-				ParentHash:       result.ParentHash,
+		return &Pre_confirmedBlockTxHashes{
+			Pre_confirmedBlockHeader{
+				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
@@ -178,11 +178,11 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
 	}
-	// if header.Hash == nil it's a pending block
+	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &PendingBlock{
-			PendingBlockHeader{
-				ParentHash:       result.ParentHash,
+		return &Pre_confirmedBlock{
+			Pre_confirmedBlockHeader{
+				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
@@ -210,7 +210,7 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 		return nil, Err(InternalError, StringErrData(err.Error()))
 	}
 
-	// PendingBlockWithReceipts doesn't contain a "status" field
+	// Pre_confirmedBlockWithReceipts doesn't contain a "status" field
 	if _, ok := m["status"]; ok {
 		var block BlockWithReceipts
 		if err := json.Unmarshal(result, &block); err != nil {
@@ -219,11 +219,11 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 
 		return &block, nil
 	} else {
-		var pendingBlock PendingBlockWithReceipts
-		if err := json.Unmarshal(result, &pendingBlock); err != nil {
+		var pre_confirmedBlock Pre_confirmedBlockWithReceipts
+		if err := json.Unmarshal(result, &pre_confirmedBlock); err != nil {
 			return nil, Err(InternalError, StringErrData(err.Error()))
 		}
 
-		return &pendingBlock, nil
+		return &pre_confirmedBlock, nil
 	}
 }

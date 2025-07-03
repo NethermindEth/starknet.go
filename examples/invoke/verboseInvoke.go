@@ -75,7 +75,7 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 		context.Background(),
 		[]rpc.BroadcastTxn{InvokeTx},
 		[]rpc.SimulationFlag{},
-		rpc.WithBlockTag("pending"),
+		rpc.WithBlockTag("pre_confirmed"),
 	)
 	if err != nil {
 		panic(err)
