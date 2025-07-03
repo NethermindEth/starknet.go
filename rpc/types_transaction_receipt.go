@@ -150,7 +150,8 @@ type TxnStatus string
 
 const (
 	TxnStatus_Received       TxnStatus = "RECEIVED"
-	TxnStatus_Rejected       TxnStatus = "REJECTED"
+	TxnStatus_Candidate      TxnStatus = "CANDIDATE"
+	TxnStatus_Pre_confirmed  TxnStatus = "PRE_CONFIRMED"
 	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
 )
