@@ -5,12 +5,15 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeclareTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -18,10 +21,8 @@ func TestDeclareTransaction(t *testing.T) {
 		ExpectedResp  AddDeclareTransactionResponse
 		ExpectedError *RPCError
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				DeclareTx: BroadcastDeclareTxnV3{},
 				ExpectedResp: AddDeclareTransactionResponse{
@@ -30,8 +31,7 @@ func TestDeclareTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		"testnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
@@ -50,6 +50,8 @@ func TestDeclareTransaction(t *testing.T) {
 }
 
 func TestAddInvokeTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -57,10 +59,8 @@ func TestAddInvokeTransaction(t *testing.T) {
 		ExpectedResp  AddInvokeTransactionResponse
 		ExpectedError *RPCError
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				InvokeTx: BroadcastInvokeTxnV3{
 					Type:    TransactionType_Invoke,
@@ -108,8 +108,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-		"testnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -122,6 +121,8 @@ func TestAddInvokeTransaction(t *testing.T) {
 }
 
 func TestAddDeployAccountTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -129,10 +130,8 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		ExpectedResp  AddDeployAccountTransactionResponse
 		ExpectedError error
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
 					Type:      TransactionType_DeployAccount,
@@ -169,7 +168,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 				ExpectedError: nil,
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)

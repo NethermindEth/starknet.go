@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,15 +28,15 @@ import (
 func TestTransactionTrace(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
-	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
+	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
 	type testSetType struct {
 		TransactionHash  *felt.Felt
 		ExpectedRespFile string
 		ExpectedError    error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -56,8 +57,8 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		"devnet": {},
-		"testnet": {
+		tests.DevnetEnv: {},
+		tests.TestnetEnv: {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -65,12 +66,12 @@ func TestTransactionTrace(t *testing.T) {
 			},
 			testSetType{ // with 6 out of 6 fields
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
-				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
+				ExpectedRespFile: "./testData/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
 				ExpectedError:    nil,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
@@ -115,22 +116,22 @@ func TestSimulateTransaction(t *testing.T) {
 		ExpectedRespFile     string
 	}
 
-	expectedInputFile := "./tests/trace/sepoliaSimulateInvokeTx.json"
-	expectedRespFile := "./tests/trace/sepoliaSimulateInvokeTxResp.json"
+	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
+	expectedRespFile := "./testData/trace/sepoliaSimulateInvokeTxResp.json"
 
-	testSet := map[string][]testSetType{
-		"devnet": {},
-		"mock": {testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv: {},
+		tests.MockEnv: {testSetType{
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
-		"testnet": {testSetType{
+		tests.TestnetEnv: {testSetType{
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
 		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
-		"mainnet": {},
-	}[testEnv]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
@@ -204,19 +205,19 @@ func TestTraceBlockTransactions(t *testing.T) {
 		ExpectedErr      *RPCError
 	}
 
-	expectedRespFile := "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
+	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
-	testSet := map[string][]testSetType{
-		"devnet":  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
-		"mainnet": {},
-		"testnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
+		tests.MainnetEnv: {},
+		tests.TestnetEnv: {
 			testSetType{
 				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
 		},
-		"mock": {
+		tests.MockEnv: {
 			testSetType{
 				BlockID:          WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
 				ExpectedRespFile: expectedRespFile,
@@ -228,7 +229,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      ErrBlockNotFound,
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")

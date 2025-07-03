@@ -31,13 +31,13 @@ func TestUnmarshalContractClass(t *testing.T) {
 
 	testCases := []testSetType{
 		{
-			CasmPath:       "./tests/hello_starknet_compiled.sierra.json",
+			CasmPath:       "./testData/hello_starknet_compiled.sierra.json",
 			SierraProgram0: "0x1",
 			SierraProgram1: "0x3",
 		},
 		{
 			// Test that if abi is valid JSON object (not string), is is still unmarshallable
-			CasmPath:       "./tests/test_contract.sierra.json",
+			CasmPath:       "./testData/test_contract.sierra.json",
 			SierraProgram0: "0x1",
 			SierraProgram1: "0x6",
 		},
@@ -82,7 +82,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 
 	testCases := []testSetType{
 		{
-			CasmPath: "./tests/hello_starknet_compiled.casm.json",
+			CasmPath: "./testData/hello_starknet_compiled.casm.json",
 			ExpectedCasmClass: ExpectedCasmClass{
 				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
 				Version: "2.1.0",
@@ -106,7 +106,7 @@ func TestUnmarshalCasmClass(t *testing.T) {
 			},
 		},
 		{
-			CasmPath: "./tests/test_contract.casm.json",
+			CasmPath: "./testData/test_contract.casm.json",
 			ExpectedCasmClass: ExpectedCasmClass{
 				Prime:   "0x800000000000011000000000000000000000000000000000000000000000001",
 				Version: "2.7.0",
@@ -248,7 +248,7 @@ func newNestedFieldArray(val ...NestedUints) *NestedUints {
 //
 //	none
 func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
-	content, err := os.ReadFile("./tests/0x01b661756bf7d16210fc611626e1af4569baa1781ffc964bd018f4585ae241c1.json")
+	content, err := os.ReadFile("./testData/0x01b661756bf7d16210fc611626e1af4569baa1781ffc964bd018f4585ae241c1.json")
 	if err != nil {
 		t.Fatal("should be able to read file", err)
 	}
@@ -272,7 +272,7 @@ func TestDeprecatedContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
 //
 //	none
 func TestContractClass_UnmarshalValidJSON_Successful(t *testing.T) {
-	content, err := os.ReadFile("./tests/0x03e9b96873987da76121f74a3df71e38c44527d8ce2ad115bcfda3cba0548cc3.json")
+	content, err := os.ReadFile("./testData/0x03e9b96873987da76121f74a3df71e38c44527d8ce2ad115bcfda3cba0548cc3.json")
 	if err != nil {
 		t.Fatal("should be able to read file", err)
 	}

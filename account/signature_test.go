@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,7 @@ import (
 // TestVerify tests the account.Verify method.
 
 func TestVerify(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
 
 	// setup mock account
@@ -46,8 +48,8 @@ func TestVerify(t *testing.T) {
 		result  bool
 	}
 
-	testSet := map[string][]TestSet{
-		"mock": { // all values were taken from Sepolia Voyager
+	testSet := map[tests.TestEnv][]TestSet{
+		tests.MockEnv: { // all values were taken from Sepolia Voyager
 			{
 				txnHash: "0x3211b659c22723984cc6082f48fc0a1f1ef5de635ae50a4faa6dffc2eb902b0",
 				r:       "0x3fe1dd281704514cb0dfefba6219d7e51104dd1a16f41612e0ab48274c8fb60",
@@ -140,11 +142,7 @@ func TestVerify(t *testing.T) {
 				result:  false,
 			},
 		},
-	}[testEnv]
-
-	if len(testSet) == 0 {
-		t.Skip("test environment not supported")
-	}
+	}[tests.TEST_ENV]
 
 	// tests
 	for _, test := range testSet {
