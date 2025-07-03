@@ -34,8 +34,10 @@ type MessageStatus struct {
 	Hash *felt.Felt `json:"transaction_hash"`
 	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or
 	// failed validation during the block construction phase
-	FinalityStatus TxnStatus `json:"finality_status"`
-	// The failure reason, only appears if finality_status is REJECTED
+	FinalityStatus TxnFinalityStatus `json:"finality_status"`
+	// The execution status of the L1_HANDLER transaction
+	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	// The failure reason. Only appears if `execution_status` is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
 

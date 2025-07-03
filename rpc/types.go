@@ -291,8 +291,9 @@ func (s TxnExecutionStatus) String() string {
 type TxnFinalityStatus string
 
 const (
-	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
-	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusPre_confirmed TxnFinalityStatus = "PRE_CONFIRMED"
+	TxnFinalityStatusAcceptedOnL1  TxnFinalityStatus = "ACCEPTED_ON_L1"
+	TxnFinalityStatusAcceptedOnL2  TxnFinalityStatus = "ACCEPTED_ON_L2"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
@@ -308,6 +309,8 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	switch unquoted {
+	case "PRE_CONFIRMED":
+		*ts = TxnFinalityStatusPre_confirmed
 	case "ACCEPTED_ON_L1":
 		*ts = TxnFinalityStatusAcceptedOnL1
 	case "ACCEPTED_ON_L2":
