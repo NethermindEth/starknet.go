@@ -109,7 +109,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 	if result.Hash == nil {
 		return &Pre_confirmedBlockTxHashes{
 			Pre_confirmedBlockHeader{
-				ParentHash:       result.ParentHash,
+				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,
@@ -182,7 +182,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	if result.Hash == nil {
 		return &Pre_confirmedBlock{
 			Pre_confirmedBlockHeader{
-				ParentHash:       result.ParentHash,
+				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
 				L1GasPrice:       result.L1GasPrice,

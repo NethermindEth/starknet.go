@@ -85,8 +85,9 @@ type BlockHeader struct {
 }
 
 type Pre_confirmedBlockHeader struct {
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
+	// The block number of the block that the proposer is currently building.
+	// Note that this is a local view of the node, whose accuracy depends on its polling interval length.
+	Number uint64 `json:"block_number"`
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
 	// SequencerAddress the StarkNet identity of the sequencer submitting this block

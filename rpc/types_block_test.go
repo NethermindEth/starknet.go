@@ -191,7 +191,7 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	pre_confirmedBlockMock123 := Pre_confirmedBlockWithReceipts{
 		Pre_confirmedBlockHeader{
-			ParentHash: deadBeef,
+			Number: 1234,
 		},
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
@@ -267,7 +267,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				require.Exactly(t, pBlock, test.ExpectedPre_confirmedBlockWithReceipts)
 			} else {
-				require.NotEmpty(t, pBlock.ParentHash, "Error in Pre_confirmedBlockWithReceipts ParentHash")
+				require.NotEmpty(t, pBlock.Number, "Error in Pre_confirmedBlockWithReceipts ParentHash")
 				require.NotEmpty(t, pBlock.SequencerAddress, "Error in Pre_confirmedBlockWithReceipts SequencerAddress")
 				require.NotEmpty(t, pBlock.Timestamp, "Error in Pre_confirmedBlockWithReceipts Timestamp")
 			}

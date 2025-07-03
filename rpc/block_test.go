@@ -98,7 +98,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
 		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
-	fakeFelt := internalUtils.TestHexToFelt(t, "0xbeef")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -107,21 +106,21 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
 					Pre_confirmedBlockHeader{
-						ParentHash:       fakeFelt,
+						Number:           1234,
 						Timestamp:        123,
-						SequencerAddress: fakeFelt,
+						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
 					txHashes,
 				},
 			},
 			{
-				BlockID: BlockID{Hash: fakeFelt},
+				BlockID: BlockID{Hash: internalUtils.RANDOM_FELT},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						Hash:             fakeFelt,
-						ParentHash:       fakeFelt,
+						Hash:             internalUtils.RANDOM_FELT,
+						ParentHash:       internalUtils.RANDOM_FELT,
 						Timestamp:        124,
-						SequencerAddress: fakeFelt,
+						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
 					Status:       BlockStatus_AcceptedOnL1,
 					Transactions: txHashes,
@@ -231,7 +230,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("pre_confirmed"),
 				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
 					Pre_confirmedBlockHeader{
-						ParentHash:       internalUtils.RANDOM_FELT,
+						Number:           1234,
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
@@ -658,7 +657,7 @@ func TestStateUpdate(t *testing.T) {
 }
 
 func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
-	require.NotZero(t, pBlock.ParentHash)
+	require.NotZero(t, pBlock.Number)
 	require.NotZero(t, pBlock.Timestamp)
 	require.NotZero(t, pBlock.SequencerAddress)
 	require.NotZero(t, pBlock.L1GasPrice)

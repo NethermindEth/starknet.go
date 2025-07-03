@@ -1135,18 +1135,13 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return errWrongArgs
 	}
 
-	fakeFeltField, err := internalUtils.HexToFelt("0xdeadbeef")
-	if err != nil {
-		return err
-	}
-
 	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, err := json.Marshal(
 			Pre_confirmedBlock{
 				Pre_confirmedBlockHeader{
-					ParentHash:       fakeFeltField,
+					Number:           1234,
 					Timestamp:        123,
-					SequencerAddress: fakeFeltField,
+					SequencerAddress: internalUtils.RANDOM_FELT,
 				},
 				[]BlockTransaction{},
 			},
@@ -1202,18 +1197,14 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 	if err != nil {
 		return err
 	}
-	fakeFelt, err := internalUtils.HexToFelt("0xbeef")
-	if err != nil {
-		return err
-	}
 
 	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, innerErr := json.Marshal(
 			Pre_confirmedBlockTxHashes{
 				Pre_confirmedBlockHeader{
-					ParentHash:       fakeFelt,
+					Number:           1234,
 					Timestamp:        123,
-					SequencerAddress: fakeFelt,
+					SequencerAddress: internalUtils.RANDOM_FELT,
 				},
 				txHashes,
 			})
@@ -1228,10 +1219,10 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		block, innerErr := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					Hash:             fakeFelt,
-					ParentHash:       fakeFelt,
+					Hash:             internalUtils.RANDOM_FELT,
+					ParentHash:       internalUtils.RANDOM_FELT,
 					Timestamp:        124,
-					SequencerAddress: fakeFelt,
+					SequencerAddress: internalUtils.RANDOM_FELT,
 				},
 				Status:       BlockStatus_AcceptedOnL1,
 				Transactions: txHashes,
@@ -1263,30 +1254,26 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	fakeFeltField, err := internalUtils.HexToFelt("0xdeadbeef")
-	if err != nil {
-		return err
-	}
 	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, innerErr := json.Marshal(
 			Pre_confirmedBlockWithReceipts{
 				Pre_confirmedBlockHeader{
-					ParentHash: fakeFeltField,
+					Number: 1234,
 				},
 				BlockBodyWithReceipts{
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								Hash: fakeFeltField,
+								Hash: internalUtils.RANDOM_FELT,
 								Transaction: InvokeTxnV1{
 									Type:          "INVOKE",
 									Version:       TransactionV1,
-									SenderAddress: fakeFeltField,
+									SenderAddress: internalUtils.RANDOM_FELT,
 								},
 							},
 							Receipt: TransactionReceipt{
 								Type:            "INVOKE",
-								Hash:            fakeFeltField,
+								Hash:            internalUtils.RANDOM_FELT,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1298,7 +1285,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		if innerErr != nil {
 			return innerErr
 		}
-		err = json.Unmarshal(pBlock, &r)
+		err := json.Unmarshal(pBlock, &r)
 		if err != nil {
 			return err
 		}
@@ -1306,23 +1293,23 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		block, innerErr := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
-					Hash: fakeFeltField,
+					Hash: internalUtils.RANDOM_FELT,
 				},
 				"ACCEPTED_ON_L1",
 				BlockBodyWithReceipts{
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								Hash: fakeFeltField,
+								Hash: internalUtils.RANDOM_FELT,
 								Transaction: InvokeTxnV1{
 									Type:          "INVOKE",
 									Version:       TransactionV1,
-									SenderAddress: fakeFeltField,
+									SenderAddress: internalUtils.RANDOM_FELT,
 								},
 							},
 							Receipt: TransactionReceipt{
 								Type:            "INVOKE",
-								Hash:            fakeFeltField,
+								Hash:            internalUtils.RANDOM_FELT,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 							},
@@ -1334,7 +1321,7 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		if innerErr != nil {
 			return innerErr
 		}
-		err = json.Unmarshal(block, &r)
+		err := json.Unmarshal(block, &r)
 		if err != nil {
 			return err
 		}
