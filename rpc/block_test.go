@@ -55,7 +55,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 // TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
 //
 // The function takes a testing.T object as a parameter and initialises a testConfig object.
-// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
+// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPre_confirmedBlockWithTxHashes.
 // The function then initialises a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
 // It also initialises a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
@@ -71,7 +71,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //   - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
 //   - It checks the type of the result variable and performs specific assertions based on the type.
 //   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
-//   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
+//   - If the result is of type *Pre_confirmedBlockTxHashes, it checks various fields of the Pre_confirmedBlockTxHashes object against the expected values.
 //   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
 //
 // Parameters:
@@ -86,10 +86,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                          BlockID
-		ExpectedErr                      error
-		ExpectedBlockWithTxHashes        *BlockTxHashes
-		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
+		BlockID                                BlockID
+		ExpectedErr                            error
+		ExpectedBlockWithTxHashes              *BlockTxHashes
+		ExpectedPre_confirmedBlockWithTxHashes *Pre_confirmedBlockTxHashes
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
@@ -105,8 +105,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 			{
 				BlockID:     BlockID{Tag: "latest"},
 				ExpectedErr: nil,
-				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
-					PendingBlockHeader{
+				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
+					Pre_confirmedBlockHeader{
 						ParentHash:       fakeFelt,
 						Timestamp:        123,
 						SequencerAddress: fakeFelt,
@@ -134,7 +134,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag("pending"),
+				BlockID:     WithBlockTag("pre_confirmed"),
 				ExpectedErr: nil,
 			},
 			{
@@ -168,14 +168,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if test.ExpectedBlockWithTxHashes != nil {
 				require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 			}
-		case *PendingBlockTxHashes:
-			pBlock, ok := result.(*PendingBlockTxHashes)
-			require.Truef(t, ok, "should return *PendingBlockTxHashes, instead: %T\n", result)
+		case *Pre_confirmedBlockTxHashes:
+			pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
+			require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
 
-			if test.ExpectedPendingBlockWithTxHashes == nil {
-				validatePendingBlockHeader(t, &pBlock.PendingBlockHeader)
+			if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
+				validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
 			} else {
-				require.Exactly(t, test.ExpectedPendingBlockWithTxHashes, pBlock)
+				require.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
 			}
 		default:
 			t.Fatalf("unexpected block type, found: %T\n", resultType)
@@ -202,20 +202,20 @@ func TestBlockWithTxs(t *testing.T) {
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
-		BlockID              BlockID
-		ExpectedBlock        *Block
-		ExpectedPendingBlock *PendingBlock
-		InvokeV0Index        int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		InvokeV1Index        int
-		InvokeV3Index        int
-		DeclareV0Index       int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		DeclareV1Index       int
-		DeclareV2Index       int
-		DeclareV3Index       int // TODO: implement testcase
-		DeployAccountV1Index int
-		DeployAccountV3Index int // TODO: implement testcase
-		L1HandlerV0Index     int
-		DeployV0Index        int // TODO: implement testcase
+		BlockID                    BlockID
+		ExpectedBlock              *Block
+		ExpectedPre_confirmedBlock *Pre_confirmedBlock
+		InvokeV0Index              int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		InvokeV1Index              int
+		InvokeV3Index              int
+		DeclareV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		DeclareV1Index             int
+		DeclareV2Index             int
+		DeclareV3Index             int // TODO: implement testcase
+		DeployAccountV1Index       int
+		DeployAccountV3Index       int // TODO: implement testcase
+		L1HandlerV0Index           int
+		DeployV0Index              int // TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
@@ -228,9 +228,9 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("latest"),
 			},
 			{
-				BlockID: WithBlockTag("pending"),
-				ExpectedPendingBlock: &PendingBlock{
-					PendingBlockHeader{
+				BlockID: WithBlockTag("pre_confirmed"),
+				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
+					Pre_confirmedBlockHeader{
 						ParentHash:       internalUtils.RANDOM_FELT,
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
@@ -254,7 +254,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("latest"),
 			},
 			{
-				BlockID: WithBlockTag("pending"),
+				BlockID: WithBlockTag("pre_confirmed"),
 			},
 			{
 				BlockID:              WithBlockNumber(65083),
@@ -279,11 +279,11 @@ func TestBlockWithTxs(t *testing.T) {
 		require.NoError(t, err, "Unable to fetch the given block.")
 
 		switch block := blockWithTxsInterface.(type) {
-		case *PendingBlock:
-			if test.ExpectedPendingBlock == nil {
-				validatePendingBlockHeader(t, &block.PendingBlockHeader)
+		case *Pre_confirmedBlock:
+			if test.ExpectedPre_confirmedBlock == nil {
+				validatePre_confirmedBlockHeader(t, &block.Pre_confirmedBlockHeader)
 			} else {
-				require.Exactly(t, test.ExpectedPendingBlock, block)
+				require.Exactly(t, test.ExpectedPre_confirmedBlock, block)
 			}
 		case *Block:
 			if test.ExpectedBlock == nil {
@@ -496,7 +496,7 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					PendingStateUpdate: PendingStateUpdate{
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
 						StateDiff: StateDiff{
 							StorageDiffs: []ContractStorageDiffItem{
@@ -521,7 +521,7 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					PendingStateUpdate: PendingStateUpdate{
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x1d2922de7bb14766d0c3aa323876d9f5a4b1733f6dc199bbe596d06dd8f70e4"),
 						StateDiff: StateDiff{
 							StorageDiffs: []ContractStorageDiffItem{
@@ -657,7 +657,7 @@ func TestStateUpdate(t *testing.T) {
 	}
 }
 
-func validatePendingBlockHeader(t *testing.T, pBlock *PendingBlockHeader) {
+func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
 	require.NotZero(t, pBlock.ParentHash)
 	require.NotZero(t, pBlock.Timestamp)
 	require.NotZero(t, pBlock.SequencerAddress)

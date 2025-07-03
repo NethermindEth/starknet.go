@@ -1038,7 +1038,7 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 	output := StateUpdateOutput{
 		BlockHash: stateFeltArr[0],
 		NewRoot:   stateFeltArr[1],
-		PendingStateUpdate: PendingStateUpdate{
+		Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
 			OldRoot: stateFeltArr[2],
 			StateDiff: StateDiff{
 				StorageDiffs: []ContractStorageDiffItem{{
@@ -1140,10 +1140,10 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return err
 	}
 
-	if blockId.Tag == BlockTagPending {
+	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, err := json.Marshal(
-			PendingBlock{
-				PendingBlockHeader{
+			Pre_confirmedBlock{
+				Pre_confirmedBlockHeader{
 					ParentHash:       fakeFeltField,
 					Timestamp:        123,
 					SequencerAddress: fakeFeltField,
@@ -1207,10 +1207,10 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return err
 	}
 
-	if blockId.Tag == BlockTagPending {
+	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, innerErr := json.Marshal(
-			PendingBlockTxHashes{
-				PendingBlockHeader{
+			Pre_confirmedBlockTxHashes{
+				Pre_confirmedBlockHeader{
 					ParentHash:       fakeFelt,
 					Timestamp:        123,
 					SequencerAddress: fakeFelt,
@@ -1267,10 +1267,10 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 	if err != nil {
 		return err
 	}
-	if blockId.Tag == BlockTagPending {
+	if blockId.Tag == BlockTagPre_confirmed {
 		pBlock, innerErr := json.Marshal(
-			PendingBlockWithReceipts{
-				PendingBlockHeader{
+			Pre_confirmedBlockWithReceipts{
+				Pre_confirmedBlockHeader{
 					ParentHash: fakeFeltField,
 				},
 				BlockBodyWithReceipts{

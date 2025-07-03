@@ -200,7 +200,7 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 //nolint:gocritic
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
-	err := checkForPending(storageProofInput.BlockID)
+	err := checkForPre_confirmed(storageProofInput.BlockID)
 	if err != nil {
 		return nil, err
 	}

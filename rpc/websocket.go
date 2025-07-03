@@ -31,7 +31,7 @@ func (provider *WsProvider) SubscribeEvents(
 	events chan<- *EmittedEvent,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
-	err := checkForPending(options.BlockID)
+	err := checkForPre_confirmed(options.BlockID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (provider *WsProvider) SubscribeNewHeads(
 	headers chan<- *BlockHeader,
 	blockID BlockID,
 ) (*client.ClientSubscription, error) {
-	err := checkForPending(blockID)
+	err := checkForPre_confirmed(blockID)
 	if err != nil {
 		return nil, err
 	}

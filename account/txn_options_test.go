@@ -78,7 +78,7 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name:            "Default value (nil)",
 				opts:            nil,
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
 			},
 			{
 				name: "latest set to true",
@@ -92,7 +92,7 @@ func TestTxnOptions(t *testing.T) {
 				opts: &TxnOptions{
 					UseLatest: false,
 				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
 			},
 		}
 

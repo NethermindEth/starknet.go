@@ -85,12 +85,12 @@ type StateUpdateOutput struct {
 	BlockHash *felt.Felt `json:"block_hash"`
 	// NewRoot is the new global state root.
 	NewRoot *felt.Felt `json:"new_root"`
-	// Pending
-	PendingStateUpdate
+	// Pre_confirmed
+	Pre_confirmedStateUpdate
 }
 
 // PENDING_STATE_UPDATE in spec
-type PendingStateUpdate struct {
+type Pre_confirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
 	OldRoot *felt.Felt `json:"old_root"`
 	// AcceptedTime is when the block was accepted on L1.
