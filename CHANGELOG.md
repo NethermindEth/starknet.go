@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Dev updates
+- Renamed account/tests, rpc/tests, contracts/tests, hash/tests, and typedData/tests folders to testData
+- Migrate internal/test.go file to the new internal/tests pkg
+- New tests.TestEnv enum type representing test environments
+- New tests.RunTestOn func for environment validation
+- Updated all testing to use the new enum and the RunTestOn when necessary
+
 ## [0.13.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.0) - 2025-06-27
 ### Added
 - `account` pkg
