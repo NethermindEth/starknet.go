@@ -201,8 +201,8 @@ type TxDetails struct {
 	Version TransactionVersion
 }
 
-// a sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
-type FeeEstimation struct {
+// Fee estimation common fields
+type FeeEstimationCommon struct {
 	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
 	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
 
@@ -224,9 +224,18 @@ type FeeEstimation struct {
 	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to
 	// gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
+}
 
-	// Units in which the fee is given
-	FeeUnit PriceUnit `json:"unit"`
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+
+type MessageFeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be WEI
+	Unit PriceUnitWei `json:"unit"`
 }
 
 type TxnExecutionStatus string

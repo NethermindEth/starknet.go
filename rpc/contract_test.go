@@ -416,7 +416,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst *FeeEstimation
+		ExpectedFeeEst MessageFeeEstimation
 		ExpectedError  *RPCError
 	}
 
@@ -439,12 +439,17 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: &FeeEstimation{
-					L1GasConsumed: internalUtils.RANDOM_FELT,
-					L1GasPrice:    internalUtils.RANDOM_FELT,
-					L2GasConsumed: internalUtils.RANDOM_FELT,
-					L2GasPrice:    internalUtils.RANDOM_FELT,
-					OverallFee:    internalUtils.RANDOM_FELT,
+				ExpectedFeeEst: MessageFeeEstimation{
+					FeeEstimationCommon: FeeEstimationCommon{
+						L1GasConsumed:     internalUtils.RANDOM_FELT,
+						L1GasPrice:        internalUtils.RANDOM_FELT,
+						L2GasConsumed:     internalUtils.RANDOM_FELT,
+						L2GasPrice:        internalUtils.RANDOM_FELT,
+						L1DataGasConsumed: internalUtils.RANDOM_FELT,
+						L1DataGasPrice:    internalUtils.RANDOM_FELT,
+						OverallFee:        internalUtils.RANDOM_FELT,
+					},
+					Unit: WeiUnit,
 				},
 			},
 		},
@@ -452,15 +457,17 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(523066),
-				ExpectedFeeEst: &FeeEstimation{
-					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed1"),
-					L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
-					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
-					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
-					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
-					OverallFee:        internalUtils.TestHexToFelt(t, "0x26d196042c45"),
-					FeeUnit:           UnitWei,
+				ExpectedFeeEst: MessageFeeEstimation{
+					FeeEstimationCommon: FeeEstimationCommon{
+						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed1"),
+						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
+						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
+						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
+						OverallFee:        internalUtils.TestHexToFelt(t, "0x26d196042c45"),
+					},
+					Unit: WeiUnit,
 				},
 			},
 			{ // invalid msg data
@@ -522,14 +529,16 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						L1GasConsumed:     internalUtils.RANDOM_FELT,
-						L1GasPrice:        internalUtils.RANDOM_FELT,
-						L2GasConsumed:     internalUtils.RANDOM_FELT,
-						L2GasPrice:        internalUtils.RANDOM_FELT,
-						L1DataGasConsumed: internalUtils.RANDOM_FELT,
-						L1DataGasPrice:    internalUtils.RANDOM_FELT,
-						OverallFee:        internalUtils.RANDOM_FELT,
-						FeeUnit:           UnitWei,
+						FeeEstimationCommon: FeeEstimationCommon{
+							L1GasConsumed:     internalUtils.RANDOM_FELT,
+							L1GasPrice:        internalUtils.RANDOM_FELT,
+							L2GasConsumed:     internalUtils.RANDOM_FELT,
+							L2GasPrice:        internalUtils.RANDOM_FELT,
+							L1DataGasConsumed: internalUtils.RANDOM_FELT,
+							L1DataGasPrice:    internalUtils.RANDOM_FELT,
+							OverallFee:        internalUtils.RANDOM_FELT,
+						},
+						Unit: FriUnit,
 					},
 				},
 			},
@@ -543,14 +552,16 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						L1GasConsumed:     new(felt.Felt).SetUint64(1234),
-						L1GasPrice:        new(felt.Felt).SetUint64(1234),
-						L2GasConsumed:     new(felt.Felt).SetUint64(1234),
-						L2GasPrice:        new(felt.Felt).SetUint64(1234),
-						L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
-						L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
-						OverallFee:        new(felt.Felt).SetUint64(1234),
-						FeeUnit:           UnitWei,
+						FeeEstimationCommon: FeeEstimationCommon{
+							L1GasConsumed:     new(felt.Felt).SetUint64(1234),
+							L1GasPrice:        new(felt.Felt).SetUint64(1234),
+							L2GasConsumed:     new(felt.Felt).SetUint64(1234),
+							L2GasPrice:        new(felt.Felt).SetUint64(1234),
+							L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
+							L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
+							OverallFee:        new(felt.Felt).SetUint64(1234),
+						},
+						Unit: FriUnit,
 					},
 				},
 			},
@@ -566,14 +577,16 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-						L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
-						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xf49c0"),
-						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
-						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
-						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
-						OverallFee:        internalUtils.TestHexToFelt(t, "0xf68e5bb1e2580"),
-						FeeUnit:           UnitStrk,
+						FeeEstimationCommon: FeeEstimationCommon{
+							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+							L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
+							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xf49c0"),
+							L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
+							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
+							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
+							OverallFee:        internalUtils.TestHexToFelt(t, "0xf68e5bb1e2580"),
+						},
+						Unit: FriUnit,
 					},
 				},
 			},
@@ -587,14 +600,16 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
 					{
-						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-						L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
-						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xe1140"),
-						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
-						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
-						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
-						OverallFee:        internalUtils.TestHexToFelt(t, "0xe2de90e0cbb00"),
-						FeeUnit:           UnitStrk,
+						FeeEstimationCommon: FeeEstimationCommon{
+							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+							L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
+							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xe1140"),
+							L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
+							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
+							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
+							OverallFee:        internalUtils.TestHexToFelt(t, "0xe2de90e0cbb00"),
+						},
+						Unit: FriUnit,
 					},
 				},
 			},

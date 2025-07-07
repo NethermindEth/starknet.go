@@ -240,12 +240,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 				return []rpc.FeeEstimation{
 					{
-						L1GasPrice:        new(felt.Felt).SetUint64(10),
-						L1GasConsumed:     new(felt.Felt).SetUint64(100),
-						L1DataGasPrice:    new(felt.Felt).SetUint64(5),
-						L1DataGasConsumed: new(felt.Felt).SetUint64(50),
-						L2GasPrice:        new(felt.Felt).SetUint64(3),
-						L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						FeeEstimationCommon: rpc.FeeEstimationCommon{
+							L1GasPrice:        new(felt.Felt).SetUint64(10),
+							L1GasConsumed:     new(felt.Felt).SetUint64(100),
+							L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+							L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+							L2GasPrice:        new(felt.Felt).SetUint64(3),
+							L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						},
 					},
 				}, nil
 			},

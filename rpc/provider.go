@@ -121,7 +121,7 @@ type RpcProvider interface {
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
 	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error)
-	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error)
+	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)

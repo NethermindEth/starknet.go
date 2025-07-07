@@ -56,8 +56,8 @@ type FeePayment struct {
 type PriceUnit string
 
 const (
-	UnitWei  PriceUnit = "WEI"
-	UnitStrk PriceUnit = "FRI"
+	UnitWei PriceUnit = "WEI"
+	UnitFri PriceUnit = "FRI"
 )
 
 // Representation of the unit WEI
@@ -85,7 +85,7 @@ func (f *PriceUnit) UnmarshalJSON(data []byte) error {
 	case "WEI":
 		*f = UnitWei
 	case "FRI":
-		*f = UnitStrk
+		*f = UnitFri
 	default:
 		return fmt.Errorf("unsupported price unit: %s", data)
 	}
@@ -100,7 +100,7 @@ func (f *PriceUnitWei) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if unquoted != "WEI" {
+	if unquoted != string(WeiUnit) {
 		return fmt.Errorf("price unit should be WEI, got: %s", data)
 	}
 
@@ -116,7 +116,7 @@ func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if unquoted != "FRI" {
+	if unquoted != string(FriUnit) {
 		return fmt.Errorf("price unit should be FRI, got: %s", data)
 	}
 

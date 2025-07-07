@@ -750,25 +750,29 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 
 	if len(flags) > 0 {
 		output = FeeEstimation{
-			L1GasConsumed:     new(felt.Felt).SetUint64(1234),
-			L1GasPrice:        new(felt.Felt).SetUint64(1234),
-			L2GasConsumed:     new(felt.Felt).SetUint64(1234),
-			L2GasPrice:        new(felt.Felt).SetUint64(1234),
-			L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
-			L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
-			OverallFee:        new(felt.Felt).SetUint64(1234),
-			FeeUnit:           UnitWei,
+			FeeEstimationCommon: FeeEstimationCommon{
+				L1GasConsumed:     new(felt.Felt).SetUint64(1234),
+				L1GasPrice:        new(felt.Felt).SetUint64(1234),
+				L2GasConsumed:     new(felt.Felt).SetUint64(1234),
+				L2GasPrice:        new(felt.Felt).SetUint64(1234),
+				L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
+				L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
+				OverallFee:        new(felt.Felt).SetUint64(1234),
+			},
+			Unit: FriUnit,
 		}
 	} else {
 		output = FeeEstimation{
-			L1GasConsumed:     internalUtils.RANDOM_FELT,
-			L1GasPrice:        internalUtils.RANDOM_FELT,
-			L2GasConsumed:     internalUtils.RANDOM_FELT,
-			L2GasPrice:        internalUtils.RANDOM_FELT,
-			L1DataGasConsumed: internalUtils.RANDOM_FELT,
-			L1DataGasPrice:    internalUtils.RANDOM_FELT,
-			OverallFee:        internalUtils.RANDOM_FELT,
-			FeeUnit:           UnitWei,
+			FeeEstimationCommon: FeeEstimationCommon{
+				L1GasConsumed:     internalUtils.RANDOM_FELT,
+				L1GasPrice:        internalUtils.RANDOM_FELT,
+				L2GasConsumed:     internalUtils.RANDOM_FELT,
+				L2GasPrice:        internalUtils.RANDOM_FELT,
+				L1DataGasConsumed: internalUtils.RANDOM_FELT,
+				L1DataGasPrice:    internalUtils.RANDOM_FELT,
+				OverallFee:        internalUtils.RANDOM_FELT,
+			},
+			Unit: FriUnit,
 		}
 	}
 
@@ -814,12 +818,17 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 		return errWrongArgs
 	}
 
-	output := FeeEstimation{
-		L1GasConsumed: internalUtils.RANDOM_FELT,
-		L1GasPrice:    internalUtils.RANDOM_FELT,
-		L2GasConsumed: internalUtils.RANDOM_FELT,
-		L2GasPrice:    internalUtils.RANDOM_FELT,
-		OverallFee:    internalUtils.RANDOM_FELT,
+	output := MessageFeeEstimation{
+		FeeEstimationCommon: FeeEstimationCommon{
+			L1DataGasConsumed: internalUtils.RANDOM_FELT,
+			L1DataGasPrice:    internalUtils.RANDOM_FELT,
+			L1GasConsumed:     internalUtils.RANDOM_FELT,
+			L1GasPrice:        internalUtils.RANDOM_FELT,
+			L2GasConsumed:     internalUtils.RANDOM_FELT,
+			L2GasPrice:        internalUtils.RANDOM_FELT,
+			OverallFee:        internalUtils.RANDOM_FELT,
+		},
+		Unit: WeiUnit,
 	}
 	outputContent, err := json.Marshal(output)
 	if err != nil {
