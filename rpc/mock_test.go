@@ -1508,11 +1508,11 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	response := []MessageStatus{
 		{
 			Hash:           internalUtils.RANDOM_FELT,
-			FinalityStatus: TxnStatus_Accepted_On_L2,
+			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 		},
 		{
 			Hash:           internalUtils.RANDOM_FELT,
-			FinalityStatus: TxnStatus_Accepted_On_L2,
+			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 		},
 	}
 
