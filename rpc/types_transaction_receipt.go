@@ -48,16 +48,82 @@ type OrderedMsg struct {
 }
 
 type FeePayment struct {
-	Amount *felt.Felt     `json:"amount"`
-	Unit   FeePaymentUnit `json:"unit"`
+	Amount *felt.Felt `json:"amount"`
+	Unit   PriceUnit  `json:"unit"`
 }
 
-type FeePaymentUnit string
+// Units in which the fee is given
+type PriceUnit string
 
 const (
-	UnitWei  FeePaymentUnit = "WEI"
-	UnitStrk FeePaymentUnit = "FRI"
+	UnitWei  PriceUnit = "WEI"
+	UnitStrk PriceUnit = "FRI"
 )
+
+// Representation of the unit WEI
+type PriceUnitWei string
+
+const (
+	WeiUnit PriceUnitWei = "WEI"
+)
+
+// Representation of the unit FRI
+type PriceUnitFri string
+
+const (
+	FriUnit PriceUnitFri = "FRI"
+)
+
+// Unmarshals the JSON data into a PriceUnit.
+func (f *PriceUnit) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "WEI":
+		*f = UnitWei
+	case "FRI":
+		*f = UnitStrk
+	default:
+		return fmt.Errorf("unsupported price unit: %s", data)
+	}
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitWei.
+func (f *PriceUnitWei) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != "WEI" {
+		return fmt.Errorf("price unit should be WEI, got: %s", data)
+	}
+
+	*f = WeiUnit
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitFri.
+func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != "FRI" {
+		return fmt.Errorf("price unit should be FRI, got: %s", data)
+	}
+
+	*f = FriUnit
+
+	return nil
+}
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {

@@ -226,7 +226,7 @@ type FeeEstimation struct {
 	OverallFee *felt.Felt `json:"overall_fee"`
 
 	// Units in which the fee is given
-	FeeUnit FeePaymentUnit `json:"unit"`
+	FeeUnit PriceUnit `json:"unit"`
 }
 
 type TxnExecutionStatus string
