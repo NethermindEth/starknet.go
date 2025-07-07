@@ -254,7 +254,7 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	case "REVERTED":
 		*ts = TxnExecutionStatusREVERTED
 	default:
-		return fmt.Errorf("unsupported status: %s", data)
+		return fmt.Errorf("unsupported execution status: %s", data)
 	}
 
 	return nil
@@ -316,7 +316,7 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	case "ACCEPTED_ON_L2":
 		*ts = TxnFinalityStatusAcceptedOnL2
 	default:
-		return fmt.Errorf("unsupported status: %s", data)
+		return fmt.Errorf("unsupported finality status: %s", data)
 	}
 
 	return nil

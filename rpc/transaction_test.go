@@ -254,12 +254,14 @@ func TestGetMessagesStatus(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)
-		if test.ExpectedErr != nil {
-			require.EqualError(t, err, test.ExpectedErr.Error())
-		} else {
-			require.Nil(t, err)
-			require.Equal(t, test.ExpectedResp, resp)
-		}
+		t.Run(string(test.TxHash), func(t *testing.T) {
+			resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)
+			if test.ExpectedErr != nil {
+				require.EqualError(t, err, test.ExpectedErr.Error())
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, test.ExpectedResp, resp)
+			}
+		})
 	}
 }
