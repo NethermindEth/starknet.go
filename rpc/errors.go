@@ -261,6 +261,7 @@ var (
 	ErrInvalidTransactionNonce = &RPCError{
 		Code:    52,
 		Message: "Invalid transaction nonce",
+		Data:    StringErrData(""),
 	}
 	ErrInsufficientResourcesForValidate = &RPCError{
 		Code:    53,
