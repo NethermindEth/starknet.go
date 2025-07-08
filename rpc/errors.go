@@ -67,7 +67,7 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 		}
 	}
 
-	if nodeErr.Code <= 0 {
+	if nodeErr.Code == 0 {
 		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
 	}
 
