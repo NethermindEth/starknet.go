@@ -309,6 +309,14 @@ var (
 		Message: "An unexpected error occurred",
 		Data:    StringErrData(""),
 	}
+	ErrReplacementTransactionUnderpriced = &RPCError{
+		Code:    64,
+		Message: "Replacement transaction is underpriced",
+	}
+	ErrFeeBelowMinimum = &RPCError{
+		Code:    65,
+		Message: "Transaction fee below minimum",
+	}
 	ErrInvalidSubscriptionID = &RPCError{
 		Code:    66,
 		Message: "Invalid subscription id",
