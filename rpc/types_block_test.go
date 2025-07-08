@@ -161,28 +161,31 @@ func TestBlockWithReceipts(t *testing.T) {
 		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./testData/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
-	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 	blockMock123 := BlockWithReceipts{
 		BlockHeader{
-			Hash: deadBeef,
+			Hash: internalUtils.RANDOM_FELT,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: deadBeef,
+						Hash: internalUtils.RANDOM_FELT,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: deadBeef,
+							SenderAddress: internalUtils.RANDOM_FELT,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            deadBeef,
+						Hash:            internalUtils.RANDOM_FELT,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						ActualFee: FeePayment{
+							Amount: internalUtils.RANDOM_FELT,
+							Unit:   UnitFri,
+						},
 					},
 				},
 			},
@@ -197,18 +200,22 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: deadBeef,
+						Hash: internalUtils.RANDOM_FELT,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: deadBeef,
+							SenderAddress: internalUtils.RANDOM_FELT,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            deadBeef,
+						Hash:            internalUtils.RANDOM_FELT,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						ActualFee: FeePayment{
+							Amount: internalUtils.RANDOM_FELT,
+							Unit:   UnitFri,
+						},
 					},
 				},
 			},

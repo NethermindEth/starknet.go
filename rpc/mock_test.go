@@ -1285,6 +1285,10 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								Hash:            internalUtils.RANDOM_FELT,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+								ActualFee: FeePayment{
+									Amount: internalUtils.RANDOM_FELT,
+									Unit:   UnitFri,
+								},
 							},
 						},
 					},
@@ -1321,6 +1325,10 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 								Hash:            internalUtils.RANDOM_FELT,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+								ActualFee: FeePayment{
+									Amount: internalUtils.RANDOM_FELT,
+									Unit:   UnitFri,
+								},
 							},
 						},
 					},
