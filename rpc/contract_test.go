@@ -130,7 +130,7 @@ func TestClassAt(t *testing.T) {
 //
 //	none
 func TestClassHashAt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -165,6 +165,12 @@ func TestClassHashAt(t *testing.T) {
 			{
 				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				ContractHash:      internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 			},
 		},
 		tests.MainnetEnv: {
