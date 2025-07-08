@@ -217,7 +217,7 @@ func TestClassHashAt(t *testing.T) {
 //
 //	none
 func TestClass(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -254,6 +254,15 @@ func TestClass(t *testing.T) {
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+		},
+		tests.IntegrationEnv: {
+			// v2 class
+			{
+				BlockID:                       WithBlockTag("latest"),
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x1ec80b01438a4b40600900e4b8578b123001c0a0090122f4578b1").String(),
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 38, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
 		tests.MainnetEnv: {
