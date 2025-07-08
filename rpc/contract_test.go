@@ -382,7 +382,7 @@ func TestStorageAt(t *testing.T) {
 //
 //	none
 func TestNonce(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -410,6 +410,13 @@ func TestNonce(t *testing.T) {
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				Block:           WithBlockNumber(69399),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0567f76279d525c7d02057465dd492526b291f864484f3e9c1371c0f770acf0c"),
+				Block:           WithBlockNumber(1_300_000),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 		},
