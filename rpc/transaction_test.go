@@ -92,7 +92,7 @@ func TestTransactionByHash(t *testing.T) {
 //
 //	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -103,6 +103,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 
 	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByBlockIndex/integration-1300000-0.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -117,6 +119,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:       3,
 				ExpectedTxn: InvokeTxnV3example,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:     WithBlockNumber(1_300_000),
+				Index:       0,
+				ExpectedTxn: integrationInvokeV3Example,
 			},
 		},
 	}[tests.TEST_ENV]
