@@ -81,7 +81,8 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	// @todo: fix pre_confirmed block testcase
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -93,6 +94,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
+	blockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/integration1_300_000.json", "result")
 
 	txHashes := internalUtils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
@@ -129,11 +131,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockTag("latest"),
+				BlockID:     WithBlockTag(BlockTagLatest),
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag("pre_confirmed"),
+				BlockID:     WithBlockTag(BlockTagPre_confirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -147,38 +149,61 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:                   WithBlockHash(internalUtils.TestHexToFelt(t, "0x503e44c7d47a2e17022c52092e7dadd338b79df84f844b9f26dbdd1598a23e")),
+				ExpectedErr:               nil,
+				ExpectedBlockWithTxHashes: &blockIntegration1300000,
+			},
+			{
+				BlockID:                   WithBlockNumber(1300000),
+				ExpectedErr:               nil,
+				ExpectedBlockWithTxHashes: &blockIntegration1300000,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
-		require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
-		switch resultType := result.(type) {
-		case *BlockTxHashes:
-			block, ok := result.(*BlockTxHashes)
-			require.Truef(t, ok, "should return *BlockTxHashes, instead: %T\n", result)
+		blockID, _ := test.BlockID.MarshalJSON()
+		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
+			require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
+			switch resultType := result.(type) {
+			case *BlockTxHashes:
+				block, ok := result.(*BlockTxHashes)
+				require.Truef(t, ok, "should return *BlockTxHashes, instead: %T\n", result)
 
-			if test.ExpectedErr != nil {
-				continue
+				if test.ExpectedErr != nil {
+					return
+				}
+
+				require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
+				require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
+
+				if test.ExpectedBlockWithTxHashes != nil {
+					require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
+				}
+			case *Pre_confirmedBlockTxHashes:
+				pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
+				require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
+
+				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
+					validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
+				} else {
+					require.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
+				}
+			default:
+				t.Fatalf("unexpected block type, found: %T\n", resultType)
 			}
-
-			require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
-			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
-
-			if test.ExpectedBlockWithTxHashes != nil {
-				require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
-			}
-		case *Pre_confirmedBlockTxHashes:
-			pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
-			require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
-
-			if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
-				validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
-			} else {
-				require.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
-			}
-		default:
-			t.Fatalf("unexpected block type, found: %T\n", resultType)
-		}
+		})
 	}
 }
 
