@@ -32,7 +32,7 @@ import (
 //
 //	none
 func TestClassAt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -61,6 +61,13 @@ func TestClassAt(t *testing.T) {
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
 				Block:             WithBlockNumber(65168),
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("decimals").String(),
+				Block:             WithBlockNumber(643360),
 			},
 		},
 		tests.MainnetEnv: {
