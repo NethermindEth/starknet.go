@@ -24,7 +24,7 @@ import (
 //
 //	none
 func TestChainID(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -32,10 +32,11 @@ func TestChainID(t *testing.T) {
 		ChainID string
 	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {{ChainID: "SN_SEPOLIA"}},
-		tests.MainnetEnv: {{ChainID: "SN_MAIN"}},
-		tests.MockEnv:    {{ChainID: "SN_SEPOLIA"}},
-		tests.TestnetEnv: {{ChainID: "SN_SEPOLIA"}},
+		tests.DevnetEnv:      {{ChainID: "SN_SEPOLIA"}},
+		tests.MainnetEnv:     {{ChainID: "SN_MAIN"}},
+		tests.MockEnv:        {{ChainID: "SN_SEPOLIA"}},
+		tests.TestnetEnv:     {{ChainID: "SN_SEPOLIA"}},
+		tests.IntegrationEnv: {{ChainID: "SN_INTEGRATION_SEPOLIA"}},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
