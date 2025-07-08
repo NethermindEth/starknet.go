@@ -190,7 +190,7 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -212,6 +212,12 @@ func TestGetTransactionStatus(t *testing.T) {
 					ExecutionStatus: TxnExecutionStatusREVERTED,
 					FailureReason:   "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x036d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06, class hash: 0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError at pc=0:4835:\nCairo traceback (most recent call last):\nUnknown location (pc=0:67)\nUnknown location (pc=0:1835)\nUnknown location (pc=0:2554)\nUnknown location (pc=0:3436)\nUnknown location (pc=0:4040)\n\n1: Error in the called contract (contract address: 0x00000000000000000000000000000000000000000000000000000000ffffffff, class hash: 0x0000000000000000000000000000000000000000000000000000000000000000, selector: 0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354):\nRequested contract address 0x00000000000000000000000000000000000000000000000000000000ffffffff is not deployed.\n",
 				},
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatus_Accepted_On_L2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
 			},
 		},
 	}[tests.TEST_ENV]
