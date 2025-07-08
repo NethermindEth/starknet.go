@@ -138,7 +138,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 func TestTransactionReceipt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -148,6 +148,8 @@ func TestTransactionReceipt(t *testing.T) {
 	}
 
 	receiptTxn52767_16 := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
 
 	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
 	receiptL1Handler := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
@@ -167,6 +169,12 @@ func TestTransactionReceipt(t *testing.T) {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: receiptTxn52767_16,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedResp: integrationInvokeV3Example,
 			},
 		},
 	}[tests.TEST_ENV]
