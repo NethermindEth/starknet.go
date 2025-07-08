@@ -19,7 +19,7 @@ import (
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -45,6 +45,8 @@ func TestTransactionByHash(t *testing.T) {
 		},
 	}
 
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByHash/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
@@ -56,6 +58,12 @@ func TestTransactionByHash(t *testing.T) {
 			{
 				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedTxn: BlockDeclareTxnV2Example,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				TxHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedTxn: integrationInvokeV3Example,
 			},
 		},
 	}[tests.TEST_ENV]
