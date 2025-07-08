@@ -446,6 +446,7 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
+	// TODO: add integration testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := beforeEach(t, false)
@@ -539,7 +540,7 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -553,6 +554,7 @@ func TestEstimateFee(t *testing.T) {
 	}
 
 	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
+	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -645,6 +647,75 @@ func TestEstimateFee(t *testing.T) {
 							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
 							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
 							OverallFee:        internalUtils.TestHexToFelt(t, "0xe2de90e0cbb00"),
+						},
+						Unit: FriUnit,
+					},
+				},
+			},
+			{
+				description: "invalid transaction",
+				txs: []BroadcastTxn{
+					InvokeTxnV3{
+						ResourceBounds: &ResourceBoundsMapping{
+							L1Gas: ResourceBounds{
+								MaxAmount:       "0x0",
+								MaxPricePerUnit: "0x4305031628668",
+							},
+							L1DataGas: ResourceBounds{
+								MaxAmount:       "0x210",
+								MaxPricePerUnit: "0x948",
+							},
+							L2Gas: ResourceBounds{
+								MaxAmount:       "0x15cde0",
+								MaxPricePerUnit: "0x18955dc56",
+							},
+						},
+						Type:                  TransactionType_Invoke,
+						Version:               TransactionV3,
+						SenderAddress:         internalUtils.RANDOM_FELT,
+						Nonce:                 &felt.Zero,
+						Calldata:              []*felt.Felt{},
+						Signature:             []*felt.Felt{},
+						Tip:                   "0x0",
+						PayMasterData:         []*felt.Felt{},
+						AccountDeploymentData: []*felt.Felt{},
+						NonceDataMode:         DAModeL1,
+						FeeMode:               DAModeL1,
+					},
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(100000),
+				expectedError: ErrTxnExec,
+			},
+			{
+				description: "invalid block",
+				txs: []BroadcastTxn{
+					bradcastInvokeV3,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(9999999999999999999),
+				expectedError: ErrBlockNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				description: "with flag",
+				txs: []BroadcastTxn{
+					integrationInvokeV3,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockNumber(1_300_000),
+				expectedError: nil,
+				expectedResp: []FeeEstimation{
+					{
+						FeeEstimationCommon: FeeEstimationCommon{
+							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
+							L1GasPrice:        internalUtils.TestHexToFelt(t, "0x883068d9d050"),
+							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xc25b1"),
+							L2GasPrice:        internalUtils.TestHexToFelt(t, "0xb2d05e00"),
+							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
+							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x5a41"),
+							OverallFee:        internalUtils.TestHexToFelt(t, "0x7f873c855a280"),
 						},
 						Unit: FriUnit,
 					},
