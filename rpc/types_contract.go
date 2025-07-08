@@ -12,10 +12,10 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 )
 
-// An integer number in hex format (0x...)
+// An unsigned integer number in hex format (0x...)
 type NumAsHex string
 
-// 64 bit integers, represented by hex string of length at most 16
+// 64 bit unsigned integers, represented by hex string of length at most 16
 type U64 string
 
 // ToUint64 converts the U64 type to a uint64.
@@ -30,7 +30,7 @@ func (u U64) ToUint64() (uint64, error) {
 	return val, nil
 }
 
-// 64 bit integers, represented by hex string of length at most 32
+// 128 bit unsigned integers, represented by hex string of length at most 32
 type U128 string
 
 type ClassOutput interface{}
@@ -143,7 +143,7 @@ func (m *MerkleNode) MarshalJSON() ([]byte, error) {
 
 // Represents a path to the highest non-zero descendant node
 type EdgeNode struct {
-	// an integer whose binary representation represents the path from the current node to its highest non-zero descendant (bounded by 2^251)
+	// an unsigned integer whose binary representation represents the path from the current node to its highest non-zero descendant (bounded by 2^251)
 	Path NumAsHex `json:"path"`
 	// the length of the path (bounded by 251)
 	Length uint `json:"length"`

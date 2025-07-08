@@ -52,7 +52,7 @@ func (c *CasmClass) UnmarshalJSON(data []byte) error {
 	return c.Validate()
 }
 
-// An integer number in hex format (0x...)
+// An unsigned integer number in hex format (0x...)
 // TODO: duplicate of rpc.NumAsHex to avoid import cycle. Maybe move to a shared 'types' package?
 type NumAsHex string
 
