@@ -370,7 +370,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			classHash := internalUtils.TestHexToFelt(
 				t,
-				"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+				"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 			) // preDeployed OZ account classhash in devnet
 			// Build and send deploy account txn
 			txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
@@ -608,7 +608,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
-		"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+		"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 	) // preDeployed classhash
 	require.NoError(t, err)
 
