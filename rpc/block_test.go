@@ -81,7 +81,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
-	// @todo: fix pre_confirmed block testcase
+	// @todo fix pre_confirmed block testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
@@ -221,7 +221,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 //	none
 func TestBlockWithTxs(t *testing.T) {
-	// @todo: fix pre_confirmed block testcase
+	// @todo fix pre_confirmed block testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
@@ -414,7 +414,7 @@ func TestBlockWithTxs(t *testing.T) {
 //
 //	none
 func TestBlockTransactionCount(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -438,6 +438,20 @@ func TestBlockTransactionCount(t *testing.T) {
 			{
 				BlockID:       WithBlockNumber(52959),
 				ExpectedCount: 58,
+			},
+			{
+				BlockID:       WithBlockNumber(7338746823462834783),
+				ExpectedError: ErrBlockNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:       WithBlockNumber(30000),
+				ExpectedCount: 4,
+			},
+			{
+				BlockID:       WithBlockNumber(529590),
+				ExpectedCount: 6,
 			},
 			{
 				BlockID:       WithBlockNumber(7338746823462834783),
