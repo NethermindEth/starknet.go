@@ -535,7 +535,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 //	none
 func TestStateUpdate(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -683,6 +683,91 @@ func TestStateUpdate(t *testing.T) {
 										{
 											Key:   internalUtils.TestHexToFelt(t, "0x7526"),
 											Value: internalUtils.TestHexToFelt(t, "0x32f159b038c06f9829d8ee63db1556a3390265b0b49b89c48235b6f77326339"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				BlockID: WithBlockNumber(30000),
+				ExpectedStateUpdateOutput: StateUpdateOutput{
+					BlockHash: internalUtils.TestHexToFelt(t, "0x7ea6a0b34ef6f1b70d604d49f4d74194ffe469a6dae9032d161cdcf41765c7d"),
+					NewRoot:   internalUtils.TestHexToFelt(t, "0x64bcce6a527b08468d19272bc983c96fed203ceee349dd25d254e2dd55f4d15"),
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
+						OldRoot: internalUtils.TestHexToFelt(t, "0x56b53b03314bb7ba59d3857101b3cbcc3964abe0a2ff6e4dfe55275cfb4662a"),
+						StateDiff: StateDiff{
+							StorageDiffs: []ContractStorageDiffItem{
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
+											Value: internalUtils.TestHexToFelt(t, "0xaec9124c8ebf66a"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
+											Value: internalUtils.TestHexToFelt(t, "0x3453d83976b3a9c46"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
+											Value: internalUtils.TestHexToFelt(t, "0x202c5731346dac20f29"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
+											Value: internalUtils.TestHexToFelt(t, "0x72b879f81dca55140e6"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x3c0d5831d7f82a24e775f11648c93291b11ff3cd534f453aa1153ab8345fd63"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f1"),
+											Value: internalUtils.TestHexToFelt(t, "0x1dcc6c56e96e5271d3e12c16cf1d1492b7718d0fbc6838da25892717ce5f449"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5"),
+											Value: internalUtils.TestHexToFelt(t, "0x66"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f2"),
+											Value: internalUtils.TestHexToFelt(t, "0x9aed6d58cb3da27c876b80641983098961098701ae303ea4285c73d094e7d9"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x75dee990300b73f75e44a7d809aa089d3ee0d0023a9069efd3441a41a530ead"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274eae"),
+											Value: internalUtils.TestHexToFelt(t, "0x5abfbc84231f3a1c7647ac748c937aa6ea21bad7d3f9da00babacb4cb111c41"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274ead"),
+											Value: internalUtils.TestHexToFelt(t, "0x4735f9fc5266e2d156600e1cd3ae4f960c87170f1bdad89e1cce5d580299ef7"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5"),
+											Value: internalUtils.TestHexToFelt(t, "0x456"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x1"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x7526"),
+											Value: internalUtils.TestHexToFelt(t, "0xb1f83cd79527fec4159d2e7082931e7f3ddef02248fdff666709f49ea6d4e7"),
 										},
 									},
 								},
