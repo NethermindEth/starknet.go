@@ -308,7 +308,7 @@ func TestClass(t *testing.T) {
 //
 //	none
 func TestStorageAt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -341,6 +341,14 @@ func TestStorageAt(t *testing.T) {
 				StorageKey:    "_signer",
 				Block:         WithBlockNumber(69399),
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:    "ERC20_decimals",
+				Block:         WithBlockNumber(1_000_000),
+				ExpectedValue: "0x12",
 			},
 		},
 		tests.MainnetEnv: {
