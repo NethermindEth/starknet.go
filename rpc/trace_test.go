@@ -26,6 +26,7 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 	testConfig := beforeEach(t, false)
 
 	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
@@ -57,7 +58,6 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		tests.DevnetEnv: {},
 		tests.TestnetEnv: {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
@@ -70,7 +70,13 @@ func TestTransactionTrace(t *testing.T) {
 				ExpectedError:    nil,
 			},
 		},
-		tests.MainnetEnv: {},
+		tests.IntegrationEnv: {
+			testSetType{
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedRespFile: "./testData/trace/integrationInvokeTrace_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
+				ExpectedError:    nil,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
