@@ -143,7 +143,8 @@ func (m *MerkleNode) MarshalJSON() ([]byte, error) {
 
 // Represents a path to the highest non-zero descendant node
 type EdgeNode struct {
-	// an unsigned integer whose binary representation represents the path from the current node to its highest non-zero descendant (bounded by 2^251)
+	// an unsigned integer whose binary representation represents the path from the current node
+	// to its highest non-zero descendant (bounded by 2^251)
 	Path NumAsHex `json:"path"`
 	// the length of the path (bounded by 251)
 	Length uint `json:"length"`
