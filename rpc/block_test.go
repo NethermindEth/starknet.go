@@ -39,7 +39,7 @@ func TestBlockNumber(t *testing.T) {
 //
 //	none
 func TestBlockHashAndNumber(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
