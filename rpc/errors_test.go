@@ -30,6 +30,8 @@ func TestRPCError(t *testing.T) {
 		assert.ErrorContains(t, err, strconv.Itoa(rpcErr.Code))
 		assert.ErrorContains(t, err, rpcErr.Message)
 		assert.ErrorContains(t, err, rpcErr.Data.ErrorMessage())
+
+		return
 	}
 
 	testConfig := beforeEach(t, false)

@@ -1488,7 +1488,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Read the test data from file
-	resp, err := internalUtils.UnmarshalJSONFileToType[json.RawMessage]("testData/compiledCasm.json", "result")
+	resp, err := internalUtils.UnmarshalJSONFileToType[json.RawMessage]("testData/compiledCasm/sepolia.json", "result")
 	if err != nil {
 		return err
 	}
