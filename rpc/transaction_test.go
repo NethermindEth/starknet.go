@@ -233,6 +233,7 @@ func TestGetTransactionStatus(t *testing.T) {
 
 // TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
+	// TODO: add integration testcases
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := beforeEach(t, false)
