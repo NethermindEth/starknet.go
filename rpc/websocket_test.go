@@ -134,7 +134,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 //nolint:gocyclo
 func TestSubscribeEvents(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	t.Parallel()
 
@@ -150,6 +150,12 @@ func TestSubscribeEvents(t *testing.T) {
 		tests.TestnetEnv: {
 			// sepolia StarkGate: ETH Token
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
+			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+		},
+		tests.IntegrationEnv: {
+			// a contract with a lot of txns in integration network
+			fromAddressExample: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
@@ -198,7 +204,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithBlockNumber(blockNumber - 100),
+			BlockID: WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -220,9 +226,16 @@ func TestSubscribeEvents(t *testing.T) {
 				uniqueAddresses[resp.FromAddress.String()] = true
 				uniqueKeys[resp.Keys[0].String()] = true
 
-				// check if there are at least 3 different addresses and keys in the received events
-				if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
-					return
+				if tests.TEST_ENV == tests.IntegrationEnv {
+					// in integration network, there less unique addresses and keys
+					if len(uniqueAddresses) >= 2 && len(uniqueKeys) >= 2 {
+						return
+					}
+				} else {
+					// check if there are at least 3 different addresses and keys in the received events
+					if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
+						return
+					}
 				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
@@ -260,6 +273,11 @@ func TestSubscribeEvents(t *testing.T) {
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+
+				if tests.TEST_ENV == tests.IntegrationEnv {
+					// integration network is not very used by external users, so let's skip the keys verification
+					return
+				}
 
 				uniqueKeys[resp.Keys[0].String()] = true
 
@@ -307,6 +325,11 @@ func TestSubscribeEvents(t *testing.T) {
 				if len(uniqueAddresses) >= 2 {
 					return
 				}
+
+				if tests.TEST_ENV == tests.IntegrationEnv {
+					// integration network is not very used by external users, so let's skip the keys verification
+					return
+				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-time.After(20 * time.Second):
@@ -322,7 +345,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithBlockNumber(blockNumber - 100),
+			BlockID:     WithBlockNumber(blockNumber - 1000),
 			FromAddress: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
@@ -361,8 +384,8 @@ func TestSubscribeEvents(t *testing.T) {
 			expectedError error
 		}
 
-		keys := make([][]*felt.Felt, 1025)
-		for i := range 1025 {
+		keys := make([][]*felt.Felt, 2000)
+		for i := range 2000 {
 			keys[i] = []*felt.Felt{internalUtils.TestHexToFelt(t, "0x1")}
 		}
 
@@ -375,21 +398,22 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber - 1025),
+					BlockID: WithBlockNumber(blockNumber - 2000),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber + 100),
+					BlockID: WithBlockNumber(blockNumber + 10000),
 				},
 				expectedError: ErrBlockNotFound,
 			},
 		}
 
 		for _, test := range testSet {
-			func(t *testing.T) {
-				t.Logf("test: %+v", test.expectedError.Error())
+			t.Run(test.expectedError.Error(), func(t *testing.T) {
+				t.Parallel()
+
 				events := make(chan *EmittedEvent)
 				defer close(events)
 				sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
@@ -398,7 +422,7 @@ func TestSubscribeEvents(t *testing.T) {
 				}
 				require.Nil(t, sub)
 				require.EqualError(t, err, test.expectedError.Error())
-			}(t)
+			})
 		}
 	})
 }
