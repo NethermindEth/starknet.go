@@ -13,7 +13,7 @@ import (
 )
 
 func TestSubscribeNewHeads(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	t.Parallel()
 
@@ -35,6 +35,32 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
+			{
+				headers:         make(chan *BlockHeader),
+				isErrorExpected: false,
+				description:     "normal call, without subBlockID",
+			},
+			{
+				headers:         make(chan *BlockHeader),
+				subBlockID:      WithBlockTag("latest"),
+				isErrorExpected: false,
+				description:     "with tag latest",
+			},
+			{
+				headers:         make(chan *BlockHeader),
+				subBlockID:      WithBlockNumber(blockNumber - 100),
+				counter:         100,
+				isErrorExpected: false,
+				description:     "with block number within the range of 1024 blocks",
+			},
+			{
+				headers:         make(chan *BlockHeader),
+				subBlockID:      WithBlockNumber(blockNumber - 1025),
+				isErrorExpected: true,
+				description:     "invalid, with block number out of the range of 1024 blocks",
+			},
+		},
+		tests.IntegrationEnv: {
 			{
 				headers:         make(chan *BlockHeader),
 				isErrorExpected: false,
