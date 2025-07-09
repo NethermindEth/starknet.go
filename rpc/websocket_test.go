@@ -481,7 +481,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 }
 
 func TestSubscribePendingTransactions(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	t.Parallel()
 
@@ -501,6 +501,29 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
+			{
+				pendingTxns: make(chan *PendingTxn),
+				options:     nil,
+				description: "nil input",
+			},
+			{
+				pendingTxns: make(chan *PendingTxn),
+				options:     &SubPendingTxnsInput{},
+				description: "empty input",
+			},
+			{
+				pendingTxns: make(chan *PendingTxn),
+				options:     &SubPendingTxnsInput{TransactionDetails: true},
+				description: "with transanctionDetails true",
+			},
+			{
+				pendingTxns:   make(chan *PendingTxn),
+				options:       &SubPendingTxnsInput{SenderAddress: addresses},
+				expectedError: ErrTooManyAddressesInFilter,
+				description:   "error: too many addresses",
+			},
+		},
+		tests.IntegrationEnv: {
 			{
 				pendingTxns: make(chan *PendingTxn),
 				options:     nil,
