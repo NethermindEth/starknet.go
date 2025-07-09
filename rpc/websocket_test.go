@@ -590,7 +590,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	t.Parallel()
 
