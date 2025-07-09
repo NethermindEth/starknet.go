@@ -539,6 +539,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	}
 }
 
+//nolint:dupl // fix this later
 func TestEstimateFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -787,6 +788,7 @@ func TestEstimateFee(t *testing.T) {
 	}
 }
 
+//nolint:dupl // fix this later
 func TestGetStorageProof(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
