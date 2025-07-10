@@ -25,8 +25,8 @@ var (
 
 	// Warning messages for version compatibility
 	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-	warnVersionMismatch    = `warning: the RPC provider version is %s, and is different from
-	the version %s implemented by the SDK. This may cause unexpected behaviour.`
+	//nolint:lll
+	warnVersionMismatch = "warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour."
 )
 
 // Checks if the RPC provider version is compatible with the SDK version
