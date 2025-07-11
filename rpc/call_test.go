@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +28,7 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -116,6 +117,18 @@ func TestCall(t *testing.T) {
 				ExpectedError: ErrContractNotFound,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				name: "Ok",
+				FunctionCall: FunctionCall{
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:               WithBlockTag("latest"),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
+			},
+		},
 		tests.MainnetEnv: {
 			{
 				name: "Ok",
@@ -133,14 +146,14 @@ func TestCall(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Network: %s, Test: %s", tests.TEST_ENV, test.name), func(t *testing.T) {
 			output, err := testConfig.provider.Call(context.Background(), test.FunctionCall, test.BlockID)
-			if err != nil {
+			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)
 				require.True(t, ok)
-				require.ErrorContains(t, test.ExpectedError, rpcErr.Message)
+				assert.ErrorContains(t, test.ExpectedError, rpcErr.Message)
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, output, "should return an output")
-				require.Equal(t, test.ExpectedPatternResult, output[0])
+				assert.Equal(t, test.ExpectedPatternResult, output[0])
 			}
 		})
 	}

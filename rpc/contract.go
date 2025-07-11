@@ -175,15 +175,15 @@ func (provider *Provider) EstimateFee(
 //   - blockID: The ID of the block to estimate the fee in
 //
 // Returns:
-//   - *FeeEstimation: the fee estimated for the message
+//   - MessageFeeEstimation: the fee estimated for the message
 //   - error: an error if any occurred during the execution
-func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error) {
-	var raw FeeEstimation
+func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (MessageFeeEstimation, error) {
+	var raw MessageFeeEstimation
 	if err := do(ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
+		return raw, tryUnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
 	}
 
-	return &raw, nil
+	return raw, nil
 }
 
 // Get merkle paths in one of the state tries: global state, classes, individual contract.
@@ -200,7 +200,7 @@ func (provider *Provider) EstimateMessageFee(ctx context.Context, msg MsgFromL1,
 //
 //nolint:gocritic
 func (provider *Provider) GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error) {
-	err := checkForPending(storageProofInput.BlockID)
+	err := checkForPre_confirmed(storageProofInput.BlockID)
 	if err != nil {
 		return nil, err
 	}

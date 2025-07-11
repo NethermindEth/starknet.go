@@ -15,7 +15,7 @@ import (
 )
 
 func TestCompiledCasm(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := beforeEach(t, false)
 
@@ -30,7 +30,7 @@ func TestCompiledCasm(t *testing.T) {
 			{
 				Description:        "success - get compiled CASM",
 				ClassHash:          internalUtils.RANDOM_FELT,
-				ExpectedResultPath: "./testData/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
 			},
 			{
 				Description:   "error - class hash not found",
@@ -47,7 +47,19 @@ func TestCompiledCasm(t *testing.T) {
 			{
 				Description:        "normal call, with field class_hash",
 				ClassHash:          internalUtils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
-				ExpectedResultPath: "./testData/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
+			},
+			{
+				Description:   "error call, inexistent class_hash",
+				ClassHash:     internalUtils.TestHexToFelt(t, "0xdedededededede"),
+				ExpectedError: ErrClassHashNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				Description:        "normal call, with field class_hash",
+				ClassHash:          internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
+				ExpectedResultPath: "./testData/compiledCasm/integration.json",
 			},
 			{
 				Description:   "error call, inexistent class_hash",

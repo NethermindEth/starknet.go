@@ -285,10 +285,10 @@ func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag
 }
 
 // EstimateMessageFee mocks base method.
-func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimation, error) {
+func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (rpc.MessageFeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateMessageFee", ctx, msg, blockID)
-	ret0, _ := ret[0].(*rpc.FeeEstimation)
+	ret0, _ := ret[0].(rpc.MessageFeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

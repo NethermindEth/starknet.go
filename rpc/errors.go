@@ -67,7 +67,7 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 		}
 	}
 
-	if nodeErr.Code <= 0 {
+	if nodeErr.Code == 0 {
 		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
 	}
 
@@ -261,6 +261,7 @@ var (
 	ErrInvalidTransactionNonce = &RPCError{
 		Code:    52,
 		Message: "Invalid transaction nonce",
+		Data:    StringErrData(""),
 	}
 	ErrInsufficientResourcesForValidate = &RPCError{
 		Code:    53,
@@ -308,6 +309,14 @@ var (
 		Code:    63,
 		Message: "An unexpected error occurred",
 		Data:    StringErrData(""),
+	}
+	ErrReplacementTransactionUnderpriced = &RPCError{
+		Code:    64,
+		Message: "Replacement transaction is underpriced",
+	}
+	ErrFeeBelowMinimum = &RPCError{
+		Code:    65,
+		Message: "Transaction fee below minimum",
 	}
 	ErrInvalidSubscriptionID = &RPCError{
 		Code:    66,
