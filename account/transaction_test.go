@@ -603,7 +603,8 @@ func TestSendDeclareTxn(t *testing.T) {
 	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
-		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+		rpcErr := err.(*rpc.RPCError)
+		require.Equal(t, rpc.ErrInvalidTransactionNonce.Code, rpcErr.Code, "AddDeclareTransaction error not what expected")
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
