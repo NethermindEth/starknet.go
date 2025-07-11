@@ -148,15 +148,15 @@ func TestSubscribeEvents(t *testing.T) {
 
 	testSet := map[tests.TestEnv]testSetType{
 		tests.TestnetEnv: {
-			// sepolia StarkGate: ETH Token
-			fromAddressExample: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+			// sepolia StarkGate: STRK Token
+			fromAddressExample: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
 			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 		tests.IntegrationEnv: {
 			// a contract with a lot of txns in integration network
 			fromAddressExample: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
+			// "Transfer" event key
 			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
 		},
 	}[tests.TEST_ENV]
