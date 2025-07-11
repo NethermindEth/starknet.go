@@ -439,7 +439,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
 	type testSetType struct {
-		ExpectedErr          error
+		ExpectedErr          *rpc.RPCError
 		CairoContractVersion account.CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -451,7 +451,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
-				ExpectedErr:          rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrInvalidTransactionNonce,
 				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
@@ -518,7 +518,8 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+			rpcErr := err.(*rpc.RPCError)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code, "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
 		}
 	}
