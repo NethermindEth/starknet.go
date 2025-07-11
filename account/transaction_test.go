@@ -100,11 +100,11 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -162,11 +162,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+	assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -190,11 +190,44 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 	require.NotNil(t, resp.Hash)
 	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
+	err = waitForTransactionStatus(context.Background(), acc.Provider, resp.Hash, rpc.TxnStatus_Accepted_On_L2, 500*time.Millisecond)
+	require.NoError(t, err, "Error waiting for transfer transaction status")
+
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+}
+
+// TODO: make it an exported utility function
+func waitForTransactionStatus(
+	ctx context.Context,
+	provider rpc.RpcProvider,
+	transactionHash *felt.Felt,
+	txnStatus rpc.TxnStatus,
+	pollInterval time.Duration,
+) error {
+	t := time.NewTicker(pollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+		case <-t.C:
+			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
+			if err != nil {
+				rpcErr := err.(*rpc.RPCError)
+				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
+					continue
+				} else {
+					return err
+				}
+			}
+
+			if returnedTxnStatus.FinalityStatus == txnStatus {
+				return nil
+			}
+		}
+	}
 }
 
 // TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
