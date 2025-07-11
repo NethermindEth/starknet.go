@@ -866,7 +866,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
@@ -894,7 +894,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
@@ -933,7 +933,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
@@ -957,7 +957,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
