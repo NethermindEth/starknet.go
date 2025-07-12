@@ -15,6 +15,9 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
+// Regular expression for extracting type names
+var typeNameRegexp = regexp.MustCompile(`[^\(\),\s]+`)
+
 type TypedData struct {
 	Types       map[string]TypeDefinition
 	PrimaryType string
@@ -308,8 +311,7 @@ func encodeTypes(
 
 		for i, param := range typeDef.Parameters {
 			if len(isEnum) != 0 {
-				reg := regexp.MustCompile(`[^\(\),\s]+`)
-				typesArr := reg.FindAllString(param.Type, -1)
+				typesArr := typeNameRegexp.FindAllString(param.Type, -1)
 				var fullTypeName string
 				for i, typeNam := range typesArr {
 					fullTypeName += `"` + typeNam + `"`
@@ -676,8 +678,7 @@ func encodeData(
 				break
 			}
 
-			reg := regexp.MustCompile(`[^\(\),\s]+`)
-			typesArr := reg.FindAllString(param.Type, -1)
+			typesArr := typeNameRegexp.FindAllString(param.Type, -1)
 
 			for i, typeName := range typesArr {
 				resp, err := verifyType(TypeParameter{Type: typeName, Name: "", Contains: ""}, dataArr[i], false)
