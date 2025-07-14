@@ -68,7 +68,7 @@ func TestTransactionByHash(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.provider.TransactionByHash(context.Background(), test.TxHash)
+		tx, err := testConfig.Provider.TransactionByHash(context.Background(), test.TxHash)
 		require.NoError(t, err)
 		require.NotNil(t, tx)
 
@@ -130,7 +130,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+		tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		require.NoError(t, err)
 		require.NotNil(t, tx)
 		assert.Equal(t, test.ExpectedTxn, *tx)
@@ -180,9 +180,9 @@ func TestTransactionReceipt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
+		spy := NewSpy(testConfig.Provider.c)
+		testConfig.Provider.c = spy
+		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
@@ -223,7 +223,7 @@ func TestGetTransactionStatus(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.GetTransactionStatus(context.Background(), test.TxnHash)
+		resp, err := testConfig.Provider.GetTransactionStatus(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
 		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
@@ -291,7 +291,7 @@ func TestGetMessagesStatus(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(string(test.TxHash), func(t *testing.T) {
-			resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)
+			resp, err := testConfig.Provider.GetMessagesStatus(context.Background(), test.TxHash)
 			if test.ExpectedErr != nil {
 				require.EqualError(t, err, test.ExpectedErr.Error())
 			} else {

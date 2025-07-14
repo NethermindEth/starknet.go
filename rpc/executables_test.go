@@ -77,7 +77,7 @@ func TestCompiledCasm(t *testing.T) {
 		}
 
 		// getting the result from the provider and asserting equality
-		result, err := testConfig.provider.CompiledCasm(context.Background(), test.ClassHash)
+		result, err := testConfig.Provider.CompiledCasm(context.Background(), test.ClassHash)
 		if test.ExpectedError != nil {
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)

@@ -83,7 +83,7 @@ func TestTransactionTrace(t *testing.T) {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
-			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
+			resp, err := testConfig.Provider.TraceTransaction(context.Background(), test.TransactionHash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
 
@@ -143,7 +143,7 @@ func TestSimulateTransaction(t *testing.T) {
 		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
 		expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "")
 
-		resp, err := testConfig.provider.SimulateTransactions(
+		resp, err := testConfig.Provider.SimulateTransactions(
 			context.Background(),
 			simulateTxIn.BlockID,
 			simulateTxIn.Txns,
@@ -239,7 +239,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 	for _, test := range testSet {
 		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
-		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
+		resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
 		if err != nil {
 			require.Equal(t, test.ExpectedErr, err)
 

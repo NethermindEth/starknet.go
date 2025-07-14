@@ -24,7 +24,7 @@ func TestBlockNumber(t *testing.T) {
 
 	testConfig := BeforeEach(t, false)
 
-	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
+	blockNumber, err := testConfig.Provider.BlockNumber(context.Background())
 	require.NoError(t, err, "BlockNumber should not return an error")
 	if tests.TEST_ENV == tests.MockEnv {
 		require.Equal(t, uint64(1234), blockNumber)
@@ -43,7 +43,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	testConfig := BeforeEach(t, false)
 
-	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
+	blockHashAndNumber, err := testConfig.Provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
 	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
@@ -173,7 +173,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
-			result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
+			result, err := testConfig.Provider.BlockWithTxHashes(context.Background(), test.BlockID)
 			require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
 			switch resultType := result.(type) {
 			case *BlockTxHashes:
@@ -313,7 +313,7 @@ func TestBlockWithTxs(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
-			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), test.BlockID)
 			require.NoError(t, err, "Unable to fetch the given block.")
 
 			switch block := blockWithTxsInterface.(type) {
@@ -458,7 +458,7 @@ func TestBlockTransactionCount(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
+		count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
 		if err != nil {
 			require.EqualError(t, test.ExpectedError, err.Error())
 		} else {
@@ -494,7 +494,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
 			require.NoError(t, err)
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
@@ -777,9 +777,9 @@ func TestStateUpdate(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.Provider.c)
+		testConfig.Provider.c = spy
+		stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
 		require.NoError(t, err, "Unable to fetch the given block.")
 
 		require.Equal(

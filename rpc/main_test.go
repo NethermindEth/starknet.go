@@ -17,12 +17,12 @@ const (
 	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 )
 
-// testConfiguration is a type that is used to configure tests
-type testConfiguration struct {
-	provider   *Provider
-	wsProvider *WsProvider
-	base       string
-	wsBase     string
+// TestConfiguration is a type that is used to configure tests
+type TestConfiguration struct {
+	Provider   *Provider
+	WsProvider *WsProvider
+	Base       string
+	WsBase     string
 }
 
 // BeforeEach initialises the test environment configuration before running the script.
@@ -33,13 +33,13 @@ type testConfiguration struct {
 //
 // Returns:
 //   - *testConfiguration: a pointer to the testConfiguration struct
-func BeforeEach(t *testing.T, isWs bool) *testConfiguration {
+func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	t.Helper()
 
-	var testConfig testConfiguration
+	var testConfig TestConfiguration
 
 	if tests.TEST_ENV == tests.MockEnv {
-		testConfig.provider = &Provider{
+		testConfig.Provider = &Provider{
 			c: &rpcMock{},
 		}
 
@@ -48,16 +48,16 @@ func BeforeEach(t *testing.T, isWs bool) *testConfiguration {
 
 	base := os.Getenv("HTTP_PROVIDER_URL")
 	if base != "" {
-		testConfig.base = base
+		testConfig.Base = base
 	}
 
-	client, err := NewProvider(testConfig.base)
+	client, err := NewProvider(testConfig.Base)
 	if err != nil {
-		t.Fatalf("failed to connect to the %s provider: %v", testConfig.base, err)
+		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
-	testConfig.provider = client
+	testConfig.Provider = client
 	t.Cleanup(func() {
-		testConfig.provider.c.Close()
+		testConfig.Provider.c.Close()
 	})
 
 	if tests.TEST_ENV == tests.DevnetEnv || tests.TEST_ENV == tests.MainnetEnv {
@@ -67,16 +67,16 @@ func BeforeEach(t *testing.T, isWs bool) *testConfiguration {
 	if isWs {
 		wsBase := os.Getenv("WS_PROVIDER_URL")
 		if wsBase != "" {
-			testConfig.wsBase = wsBase
+			testConfig.WsBase = wsBase
 		}
 
-		wsClient, err := NewWebsocketProvider(testConfig.wsBase)
+		wsClient, err := NewWebsocketProvider(testConfig.WsBase)
 		if err != nil {
-			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.wsBase, err)
+			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.WsBase, err)
 		}
-		testConfig.wsProvider = wsClient
+		testConfig.WsProvider = wsClient
 		t.Cleanup(func() {
-			testConfig.wsProvider.c.Close()
+			testConfig.WsProvider.c.Close()
 		})
 	}
 

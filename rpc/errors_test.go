@@ -17,10 +17,10 @@ func TestRPCError(t *testing.T) {
 
 	if tests.TEST_ENV == tests.MockEnv {
 		testConfig := BeforeEach(t, false)
-		_, err := testConfig.provider.ChainID(context.Background())
+		_, err := testConfig.Provider.ChainID(context.Background())
 		require.NoError(t, err)
 
-		_, err = testConfig.provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
+		_, err = testConfig.Provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
 		require.Error(t, err)
 		rpcErr := err.(*RPCError)
 		assert.Equal(t, rpcErr.Code, InternalError)
@@ -44,7 +44,7 @@ func TestRPCError(t *testing.T) {
 		Payload:     []*felt.Felt{},
 	}
 
-	_, err := testConfig.provider.EstimateMessageFee(context.Background(), msgFromL1, WithBlockNumber(523066))
+	_, err := testConfig.Provider.EstimateMessageFee(context.Background(), msgFromL1, WithBlockNumber(523066))
 	require.Error(t, err)
 	rpcErr := err.(*RPCError)
 

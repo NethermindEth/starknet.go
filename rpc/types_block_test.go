@@ -270,7 +270,7 @@ func TestBlockWithReceipts(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(string(blockID), func(t *testing.T) {
-			result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
+			result, err := testConfig.Provider.BlockWithReceipts(context.Background(), test.BlockID)
 			require.NoError(t, err, "Error in BlockWithReceipts")
 
 			switch resultType := result.(type) {

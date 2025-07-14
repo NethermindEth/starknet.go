@@ -80,7 +80,7 @@ func TestClassAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
+		resp, err := testConfig.Provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
 		require.NoError(t, err)
 
 		switch class := resp.(type) {
@@ -182,7 +182,7 @@ func TestClassHashAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
+		classhash, err := testConfig.Provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
 		require.NoError(t, err)
 		require.NotEmpty(t, classhash, "should return a class")
 		require.Equal(t, test.ExpectedClassHash, classhash)
@@ -277,7 +277,7 @@ func TestClass(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
+		resp, err := testConfig.Provider.Class(context.Background(), test.BlockID, test.ClassHash)
 		require.NoError(t, err)
 
 		switch class := resp.(type) {
@@ -362,7 +362,7 @@ func TestStorageAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
+		value, err := testConfig.Provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
 		require.NoError(t, err)
 		require.EqualValues(t, test.ExpectedValue, value)
 	}
@@ -430,7 +430,7 @@ func TestNonce(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
+		nonce, err := testConfig.Provider.Nonce(context.Background(), test.Block, test.ContractAddress)
 		require.NoError(t, err)
 		require.NotNil(t, nonce, "should return a nonce")
 		require.Equal(t, test.ExpectedNonce, nonce)
@@ -527,7 +527,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
+		resp, err := testConfig.Provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
 		if err != nil {
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)
@@ -771,7 +771,7 @@ func TestEstimateFee(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
-			resp, err := testConfig.provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
+			resp, err := testConfig.Provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
 			if test.expectedError != nil {
 				require.Error(t, err)
 				rpcErr, ok := err.(*RPCError)
@@ -1012,7 +1012,7 @@ func TestGetStorageProof(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			result, err := testConfig.provider.GetStorageProof(context.Background(), test.StorageProofInput)
+			result, err := testConfig.Provider.GetStorageProof(context.Background(), test.StorageProofInput)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
@@ -1031,7 +1031,7 @@ func TestGetStorageProof(t *testing.T) {
 			input.BlockID = WithBlockHash(
 				result.GlobalRoots.BlockHash,
 			) // using the same block returned by GetStorageProof to avoid temporal coupling
-			err = testConfig.provider.c.CallContext(
+			err = testConfig.Provider.c.CallContext(
 				context.Background(),
 				&rawResult,
 				"starknet_getStorageProof",

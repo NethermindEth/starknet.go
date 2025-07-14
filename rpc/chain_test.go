@@ -41,7 +41,7 @@ func TestChainID(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		chain, err := testConfig.provider.ChainID(context.Background())
+		chain, err := testConfig.Provider.ChainID(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, test.ChainID, chain)
 	}
@@ -67,7 +67,7 @@ func TestSyncing(t *testing.T) {
 
 	testConfig := BeforeEach(t, false)
 
-	sync, err := testConfig.provider.Syncing(context.Background())
+	sync, err := testConfig.Provider.Syncing(context.Background())
 	require.NoError(t, err)
 
 	if tests.TEST_ENV == tests.MockEnv {

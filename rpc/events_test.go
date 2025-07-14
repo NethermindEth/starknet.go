@@ -179,7 +179,7 @@ func TestEvents(t *testing.T) {
 			EventFilter:       test.eventFilter,
 			ResultPageRequest: test.resPageReq,
 		}
-		events, err := testConfig.provider.Events(context.Background(), eventInput)
+		events, err := testConfig.Provider.Events(context.Background(), eventInput)
 		require.NoError(t, err, "Events failed")
 		require.Exactly(t, test.expectedResp.Events[0], events.Events[0], "Events mismatch")
 	}

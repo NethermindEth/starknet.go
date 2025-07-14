@@ -27,7 +27,7 @@ func TestSpecVersion(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.SpecVersion(context.Background())
+		resp, err := testConfig.Provider.SpecVersion(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedResp, resp)
 	}

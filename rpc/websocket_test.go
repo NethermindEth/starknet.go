@@ -27,7 +27,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 		description     string
 	}
 
-	provider := testConfig.provider
+	provider := testConfig.Provider
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
@@ -92,7 +92,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
-			wsProvider := testConfig.wsProvider
+			wsProvider := testConfig.WsProvider
 
 			var sub *client.ClientSubscription
 			sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.subBlockID)
@@ -161,7 +161,7 @@ func TestSubscribeEvents(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
-	provider := testConfig.provider
+	provider := testConfig.Provider
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
@@ -172,7 +172,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("with empty args", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
@@ -200,7 +200,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("blockID only", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
@@ -248,7 +248,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
@@ -296,7 +296,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("keys only, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
@@ -341,7 +341,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("with all arguments, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
@@ -377,7 +377,7 @@ func TestSubscribeEvents(t *testing.T) {
 	t.Run("error calls", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		type testSetType struct {
 			input         EventSubscriptionInput
@@ -434,7 +434,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 	testConfig := BeforeEach(t, true)
 
-	provider := testConfig.provider
+	provider := testConfig.Provider
 
 	var block *Pre_confirmedBlockTxHashes
 
@@ -460,7 +460,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	t.Run("normal call", func(t *testing.T) {
 		t.Parallel()
 
-		wsProvider := testConfig.wsProvider
+		wsProvider := testConfig.WsProvider
 
 		txnStatus := make(chan *NewTxnStatus)
 		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), txnStatus, txHash)
@@ -569,7 +569,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
 
-			wsProvider := testConfig.wsProvider
+			wsProvider := testConfig.WsProvider
 
 			sub, err := wsProvider.SubscribePendingTransactions(context.Background(), test.pendingTxns, test.options)
 			if sub != nil {
@@ -613,7 +613,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	testConfig := BeforeEach(t, true)
 
-	wsProvider := testConfig.wsProvider
+	wsProvider := testConfig.WsProvider
 
 	events := make(chan *EmittedEvent)
 	sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})

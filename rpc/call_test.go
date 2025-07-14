@@ -145,7 +145,7 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Network: %s, Test: %s", tests.TEST_ENV, test.name), func(t *testing.T) {
-			output, err := testConfig.provider.Call(context.Background(), test.FunctionCall, test.BlockID)
+			output, err := testConfig.Provider.Call(context.Background(), test.FunctionCall, test.BlockID)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)
 				require.True(t, ok)
