@@ -435,46 +435,63 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	testConfig := beforeEach(t, true)
 
 	provider := testConfig.provider
-	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
-	require.NoError(t, err)
-	block := blockInterface.(*BlockTxHashes)
 
-	txHash := new(felt.Felt)
-	for _, tx := range block.Transactions {
-		status, err := provider.GetTransactionStatus(context.Background(), tx)
+	var block *Pre_confirmedBlockTxHashes
+
+	loopFlag := true
+	for loopFlag {
+		blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(BlockTagPre_confirmed))
 		require.NoError(t, err)
-		if status.FinalityStatus == TxnStatus_Accepted_On_L2 {
-			txHash = tx
+		block = blockInterface.(*Pre_confirmedBlockTxHashes)
 
-			break
+		// if the block is empty, we need to find a block with transactions
+		if len(block.Transactions) == 0 {
+			time.Sleep(250 * time.Millisecond)
+			continue
 		}
+		loopFlag = false
 	}
+
+	txHash := block.Transactions[0]
+	status, err := provider.GetTransactionStatus(context.Background(), txHash)
+	require.NoError(t, err)
+	require.Equal(t, TxnStatus_Pre_confirmed, status.FinalityStatus)
 
 	t.Run("normal call", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.wsProvider
 
-		events := make(chan *NewTxnStatus)
-		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), events, txHash)
+		txnStatus := make(chan *NewTxnStatus)
+		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), txnStatus, txHash)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// TODO: improve this test. Pre-calc the hash of a txn, subscribe to the txn status, and send the txn to the network.
+		// Then, check if the txn status is received correctly.
+
+		// firstIteration := true
 		for {
 			select {
-			case resp := <-events:
+			case resp := <-txnStatus:
 				require.IsType(t, &NewTxnStatus{}, resp)
 				require.Equal(t, txHash, resp.TransactionHash)
+
+				// if firstIteration {
+				// 	require.Equal(t, TxnStatus_Pre_confirmed, resp.Status.FinalityStatus)
+				// 	firstIteration = false
+				// } else {
 				require.Equal(t, TxnStatus_Accepted_On_L2, resp.Status.FinalityStatus)
+				// }
 
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
-				t.Fatal("timeout waiting for events")
+			case <-time.After(20 * time.Second):
+				t.Fatal("timeout waiting for txn status")
 			}
 		}
 	})
