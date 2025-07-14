@@ -22,7 +22,7 @@ import (
 func TestBlockNumber(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
 	require.NoError(t, err, "BlockNumber should not return an error")
@@ -41,7 +41,7 @@ func TestBlockNumber(t *testing.T) {
 func TestBlockHashAndNumber(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
@@ -83,7 +83,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 func TestBlockWithTxHashes(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                                BlockID
@@ -222,7 +222,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 func TestBlockWithTxs(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                    BlockID
@@ -414,7 +414,7 @@ func TestBlockWithTxs(t *testing.T) {
 func TestBlockTransactionCount(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID       BlockID
@@ -478,7 +478,7 @@ func TestBlockTransactionCount(t *testing.T) {
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		StartBlock uint64
@@ -535,7 +535,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 func TestStateUpdate(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                   BlockID

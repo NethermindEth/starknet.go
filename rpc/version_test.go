@@ -12,7 +12,7 @@ import (
 func TestSpecVersion(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string

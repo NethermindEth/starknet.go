@@ -16,7 +16,7 @@ func TestRPCError(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	if tests.TEST_ENV == tests.MockEnv {
-		testConfig := beforeEach(t, false)
+		testConfig := BeforeEach(t, false)
 		_, err := testConfig.provider.ChainID(context.Background())
 		require.NoError(t, err)
 
@@ -34,7 +34,7 @@ func TestRPCError(t *testing.T) {
 		return
 	}
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	// invalid msg
 	msgFromL1 := MsgFromL1{

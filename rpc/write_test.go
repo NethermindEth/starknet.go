@@ -14,7 +14,7 @@ import (
 func TestDeclareTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		DeclareTx     BroadcastDeclareTxnV3
@@ -52,7 +52,7 @@ func TestDeclareTransaction(t *testing.T) {
 func TestAddInvokeTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		InvokeTx      BroadcastInvokeTxnV3
@@ -123,7 +123,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 func TestAddDeployAccountTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		DeployTx      BroadcastDeployAccountTxnV3

@@ -27,7 +27,7 @@ import (
 func TestChainID(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ChainID string
@@ -65,7 +65,7 @@ func TestChainID(t *testing.T) {
 func TestSyncing(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	sync, err := testConfig.provider.Syncing(context.Background())
 	require.NoError(t, err)

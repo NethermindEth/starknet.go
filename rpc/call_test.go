@@ -30,7 +30,7 @@ import (
 func TestCall(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		name                  string

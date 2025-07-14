@@ -25,7 +25,7 @@ type testConfiguration struct {
 	wsBase     string
 }
 
-// beforeEach initialises the test environment configuration before running the script.
+// BeforeEach initialises the test environment configuration before running the script.
 //
 // Parameters:
 //   - t: The testing.T object for testing purposes
@@ -33,7 +33,7 @@ type testConfiguration struct {
 //
 // Returns:
 //   - *testConfiguration: a pointer to the testConfiguration struct
-func beforeEach(t *testing.T, isWs bool) *testConfiguration {
+func BeforeEach(t *testing.T, isWs bool) *testConfiguration {
 	t.Helper()
 
 	var testConfig testConfiguration

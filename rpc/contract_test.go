@@ -34,7 +34,7 @@ import (
 func TestClassAt(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ContractAddress   *felt.Felt
@@ -132,7 +132,7 @@ func TestClassAt(t *testing.T) {
 func TestClassHashAt(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ContractHash      *felt.Felt
@@ -219,7 +219,7 @@ func TestClassHashAt(t *testing.T) {
 func TestClass(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                       BlockID
@@ -310,7 +310,7 @@ func TestClass(t *testing.T) {
 func TestStorageAt(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ContractHash  *felt.Felt
@@ -384,7 +384,7 @@ func TestStorageAt(t *testing.T) {
 func TestNonce(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ContractAddress *felt.Felt
@@ -449,7 +449,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	// TODO: add integration testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		MsgFromL1
@@ -543,7 +543,7 @@ func TestEstimateMessageFee(t *testing.T) {
 func TestEstimateFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		description   string
@@ -792,7 +792,7 @@ func TestEstimateFee(t *testing.T) {
 func TestGetStorageProof(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		Description       string

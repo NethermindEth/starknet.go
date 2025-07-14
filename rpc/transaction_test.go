@@ -21,7 +21,7 @@ import (
 func TestTransactionByHash(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxHash      *felt.Felt
@@ -94,7 +94,7 @@ func TestTransactionByHash(t *testing.T) {
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID     BlockID
@@ -140,7 +140,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 func TestTransactionReceipt(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt
@@ -192,7 +192,7 @@ func TestTransactionReceipt(t *testing.T) {
 func TestGetTransactionStatus(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt
@@ -236,7 +236,7 @@ func TestGetMessagesStatus(t *testing.T) {
 	// TODO: add integration testcases
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxHash       NumAsHex

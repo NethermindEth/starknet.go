@@ -17,7 +17,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := beforeEach(t, true)
+	testConfig := BeforeEach(t, true)
 
 	type testSetType struct {
 		headers         chan *BlockHeader
@@ -138,7 +138,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := beforeEach(t, true)
+	testConfig := BeforeEach(t, true)
 
 	type testSetType struct {
 		// Example values for the test
@@ -432,7 +432,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := beforeEach(t, true)
+	testConfig := BeforeEach(t, true)
 
 	provider := testConfig.provider
 
@@ -502,7 +502,7 @@ func TestSubscribePendingTransactions(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := beforeEach(t, true)
+	testConfig := BeforeEach(t, true)
 
 	type testSetType struct {
 		pendingTxns   chan *PendingTxn
@@ -611,7 +611,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := beforeEach(t, true)
+	testConfig := BeforeEach(t, true)
 
 	wsProvider := testConfig.wsProvider
 

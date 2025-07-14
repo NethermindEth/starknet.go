@@ -27,7 +27,7 @@ import (
 //	none
 func TestTransactionTrace(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
@@ -115,7 +115,7 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		SimulateTxnInputFile string
@@ -203,7 +203,7 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID          BlockID
