@@ -35,7 +35,7 @@
 		"events": [],
 		"messages": [],
 		"execution_resources": {
-			"l1_gas": 0,
+			"l1_gas": 8,
 			"l2_gas": 0
 		},
 		"is_reverted": false
@@ -115,7 +115,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 4,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -151,7 +151,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 8,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -187,7 +187,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 7,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -235,7 +235,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 9,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -289,7 +289,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 12,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -332,7 +332,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 6,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -341,7 +341,7 @@
 				"events": [],
 				"messages": [],
 				"execution_resources": {
-					"l1_gas": 0,
+					"l1_gas": 67,
 					"l2_gas": 0
 				},
 				"is_reverted": false
@@ -386,7 +386,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 4,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -422,7 +422,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 8,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -458,7 +458,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 7,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -506,7 +506,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 9,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -560,7 +560,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 12,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -603,7 +603,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 6,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -612,7 +612,7 @@
 				"events": [],
 				"messages": [],
 				"execution_resources": {
-					"l1_gas": 0,
+					"l1_gas": 67,
 					"l2_gas": 0
 				},
 				"is_reverted": false
@@ -657,7 +657,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 4,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -693,7 +693,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 8,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -729,7 +729,7 @@
 						"events": [],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 7,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -777,7 +777,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 9,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -831,7 +831,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 12,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -874,7 +874,7 @@
 						],
 						"messages": [],
 						"execution_resources": {
-							"l1_gas": 0,
+							"l1_gas": 6,
 							"l2_gas": 0
 						},
 						"is_reverted": false
@@ -883,7 +883,7 @@
 				"events": [],
 				"messages": [],
 				"execution_resources": {
-					"l1_gas": 0,
+					"l1_gas": 67,
 					"l2_gas": 0
 				},
 				"is_reverted": false
@@ -906,7 +906,7 @@
 		],
 		"messages": [],
 		"execution_resources": {
-			"l1_gas": 0,
+			"l1_gas": 213,
 			"l2_gas": 0
 		},
 		"is_reverted": false
@@ -943,7 +943,7 @@
 		],
 		"messages": [],
 		"execution_resources": {
-			"l1_gas": 0,
+			"l1_gas": 4,
 			"l2_gas": 0
 		},
 		"is_reverted": false
@@ -954,20 +954,20 @@
 				"address": "0x5bf7c190fb66c95ca7be87eb04101150fe34eee456a5df6f967e2098a4ef05",
 				"storage_entries": [
 					{
-						"key": "0x648ec3acf8db480ef6daa46cdcfc278fdc621b2ca3b67cddc7bb8ce795b2ad0",
-						"value": "0xc8"
-					},
-					{
 						"key": "0xed8ffdbb9b94b680e52430314f33488098f6823e1cb2e0cb83d2550114e3dc",
 						"value": "0x64"
+					},
+					{
+						"key": "0x7f1fb6de85654de90e94c845e34803bba097a74db1ac00ece5629a51b57f8d7",
+						"value": "0x401"
 					},
 					{
 						"key": "0x4c1900d6e0e25c340c966589db07c2093bb8ab625bf7953fab2318d7a944043",
 						"value": "0x64"
 					},
 					{
-						"key": "0x7f1fb6de85654de90e94c845e34803bba097a74db1ac00ece5629a51b57f8d7",
-						"value": "0x401"
+						"key": "0x648ec3acf8db480ef6daa46cdcfc278fdc621b2ca3b67cddc7bb8ce795b2ad0",
+						"value": "0xc8"
 					}
 				]
 			},
@@ -975,12 +975,12 @@
 				"address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
 				"storage_entries": [
 					{
-						"key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
-						"value": "0x1db58edc3380d823504a0"
-					},
-					{
 						"key": "0x292e951d1a4dd76d510763e0cb3811ba48454d4f439b123cc1af0810fb3e9bb",
 						"value": "0x4a6868c4fb0a2123d"
+					},
+					{
+						"key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+						"value": "0x1db58edc3380d823504a0"
 					}
 				]
 			}
