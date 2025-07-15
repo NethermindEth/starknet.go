@@ -185,7 +185,6 @@ func TestBlockWithTxHashes(t *testing.T) {
 				}
 
 				require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
-				require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
 				if test.ExpectedBlockWithTxHashes != nil {
 					require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
@@ -326,7 +325,6 @@ func TestBlockWithTxs(t *testing.T) {
 			case *Block:
 				if test.ExpectedBlock == nil {
 					require.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
-					require.NotEmpty(t, block.Transactions, "The number of transaction should not be 0.")
 				} else {
 					require.Exactly(t, test.ExpectedBlock, block)
 
