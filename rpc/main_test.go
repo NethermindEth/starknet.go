@@ -17,12 +17,16 @@ const (
 	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 )
 
-// TestConfiguration is a type that is used to configure tests
+// testConfiguration is a type that is used to configure tests
 type TestConfiguration struct {
 	Provider   *Provider
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
+
+	AccountAddress string
+	PrivKey        string
+	PubKey         string
 }
 
 // BeforeEach initialises the test environment configuration before running the script.
@@ -79,6 +83,11 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 			testConfig.WsProvider.c.Close()
 		})
 	}
+
+	// load the test account data, only required for some tests
+	testConfig.PrivKey = os.Getenv("STARKNET_PRIVATE_KEY")
+	testConfig.PubKey = os.Getenv("STARKNET_PUBLIC_KEY")
+	testConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
 	return &testConfig
 }
