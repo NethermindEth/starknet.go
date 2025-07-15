@@ -32,7 +32,7 @@ func (provider *WsProvider) SubscribeEvents(
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
 	if options == nil {
-		options = &EventSubscriptionInput{}
+		options = &EventSubscriptionInput{} //nolint:exhaustruct
 	}
 
 	err := checkForPre_confirmed(options.BlockID)

@@ -42,7 +42,8 @@ func setupAcc(t *testing.T, tConfig *rpc.TestConfiguration) (*account.Account, e
 	return acc, nil
 }
 
-func TestTxnStatus(t *testing.T) {
+//nolint:tparallel
+func TestSubscribeTransactionStatus(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
 	tConfig := rpc.BeforeEach(t, true)
@@ -120,7 +121,7 @@ func TestTxnStatus(t *testing.T) {
 		t.Parallel()
 
 		txnStatus := make(chan *rpc.NewTxnStatus)
-		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), txnStatus, txnHash)
+		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), txnStatus, txnHash) //nolint:govet
 		require.NoError(t, err, "Error subscribing to txn status")
 		defer sub.Unsubscribe()
 
