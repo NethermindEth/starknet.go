@@ -31,6 +31,10 @@ func (provider *WsProvider) SubscribeEvents(
 	events chan<- *EmittedEvent,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
+	if options == nil {
+		options = &EventSubscriptionInput{}
+	}
+
 	err := checkForPre_confirmed(options.BlockID)
 	if err != nil {
 		return nil, err

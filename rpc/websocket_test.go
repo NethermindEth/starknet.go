@@ -546,7 +546,7 @@ func TestUnsubscribe(t *testing.T) {
 	wsProvider := testConfig.WsProvider
 
 	events := make(chan *EmittedEvent)
-	sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+	sub, err := wsProvider.SubscribeEvents(context.Background(), events, nil)
 	if sub != nil {
 		defer sub.Unsubscribe()
 	}
