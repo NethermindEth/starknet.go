@@ -14,7 +14,7 @@ import (
 
 // TestUnmarshalCasmClassHash is a test function that tests the unmarshaling of a CasmClass hash.
 //
-// It reads the content of the "./tests/hello_starknet_compiled.casm.json" file and unmarshals it into a contracts.CasmClass variable.
+// It reads the content of the "./testData/hello_starknet_compiled.casm.json" file and unmarshals it into a contracts.CasmClass variable.
 // The function returns an assertion error if there is an error reading the file or unmarshaling the content.
 // Parameters:
 //   - t: A testing.T object used for running the test and reporting any failures.
@@ -30,11 +30,11 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 	testSet := []testSetType{
 		{
 			Description: "Compile: 2.1.0, no 'bytecode_segment_lengths' field",
-			CasmPath:    "./tests/hello_starknet_compiled.compiled_contract_class.json",
+			CasmPath:    "./testData/hello_starknet_compiled.compiled_contract_class.json",
 		},
 		{
 			Description: "Compile: 2.7.0, 'bytecode_segment_lengths' with uint64 values",
-			CasmPath:    "./tests/contracts_v2_TestContract.compiled_contract_class.json",
+			CasmPath:    "./testData/contracts_v2_TestContract.compiled_contract_class.json",
 		},
 	}
 
@@ -109,7 +109,7 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test Sierra ClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/"+test.FileNameWithoutExtensions+".contract_class.json", "")
+				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/"+test.FileNameWithoutExtensions+".contract_class.json", "")
 
 				hashResult := hash.ClassHash(&sierraClass)
 				assert.Equal(t, test.ExpectedClassHash, hashResult.String())
@@ -120,7 +120,7 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test CompiledClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
+				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
 
 				hashResult, err := hash.CompiledClassHash(&casmClass)
 				require.NoError(t, err)

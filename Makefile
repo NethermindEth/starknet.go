@@ -58,7 +58,7 @@ lint: ## Run linting
 install-deps: install-mockgen install-golangci-lint
 
 install-mockgen:
-	which mockgen || go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+	go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
 
 install-golangci-lint:
-	which golangci-lint || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)

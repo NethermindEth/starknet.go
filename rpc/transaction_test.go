@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,6 +19,8 @@ import (
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -42,21 +45,20 @@ func TestTransactionByHash(t *testing.T) {
 		},
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		tx, err := testConfig.provider.TransactionByHash(context.Background(), test.TxHash)
 		require.NoError(t, err)
@@ -82,6 +84,8 @@ func TestTransactionByHash(t *testing.T) {
 //
 //	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -90,25 +94,24 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn BlockTransaction
 	}
 
-	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./tests/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:       0,
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:       3,
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		require.NoError(t, err)
@@ -118,6 +121,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 func TestTransactionReceipt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -125,13 +130,13 @@ func TestTransactionReceipt(t *testing.T) {
 		ExpectedResp TransactionReceiptWithBlockInfo
 	}
 
-	receiptTxn52767_16 := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+	receiptTxn52767_16 := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
 
 	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
-	receiptL1Handler := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./tests/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
+	receiptL1Handler := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: receiptTxn52767_16,
@@ -141,15 +146,13 @@ func TestTransactionReceipt(t *testing.T) {
 				ExpectedResp: receiptL1Handler,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 				ExpectedResp: receiptTxn52767_16,
 			},
 		},
-		"mainnet":     {},
-		"integration": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
@@ -162,6 +165,8 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -169,9 +174,8 @@ func TestGetTransactionStatus(t *testing.T) {
 		ExpectedResp TxnStatusResult
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatus_Accepted_On_L1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
@@ -185,8 +189,7 @@ func TestGetTransactionStatus(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.GetTransactionStatus(context.Background(), test.TxnHash)
@@ -199,6 +202,8 @@ func TestGetTransactionStatus(t *testing.T) {
 
 // TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -207,8 +212,8 @@ func TestGetMessagesStatus(t *testing.T) {
 		ExpectedErr  error
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatus{
@@ -227,7 +232,7 @@ func TestGetMessagesStatus(t *testing.T) {
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
 				ExpectedResp: []MessageStatus{
@@ -246,8 +251,7 @@ func TestGetMessagesStatus(t *testing.T) {
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)

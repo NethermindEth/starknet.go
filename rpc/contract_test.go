@@ -8,6 +8,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,6 +32,8 @@ import (
 //
 //	none
 func TestClassAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -38,15 +41,15 @@ func TestClassAt(t *testing.T) {
 		ExpectedOperation string
 		Block             BlockID
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedOperation: "0xdeadbeef",
 				Block:             WithBlockNumber(58344),
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			// v0 contract
 			{
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
@@ -60,14 +63,14 @@ func TestClassAt(t *testing.T) {
 				Block:             WithBlockNumber(65168),
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			{
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("get_name").String(),
 				Block:             WithBlockNumber(643360),
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
@@ -120,26 +123,28 @@ func TestClassAt(t *testing.T) {
 //
 //	none
 func TestClassHashAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ContractHash      *felt.Felt
 		ExpectedClassHash *felt.Felt
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ContractHash:      internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
-		"devnet": {
+		tests.DevnetEnv: {
 			{
 				ContractHash:      internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			// v0 contracts
 			{
 				ContractHash:      internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
@@ -155,13 +160,13 @@ func TestClassHashAt(t *testing.T) {
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			{
 				ContractHash:      internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		classhash, err := testConfig.provider.ClassHashAt(context.Background(), WithBlockTag("latest"), test.ContractHash)
@@ -199,6 +204,8 @@ func TestClassHashAt(t *testing.T) {
 //
 //	none
 func TestClass(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -207,15 +214,15 @@ func TestClass(t *testing.T) {
 		ExpectedProgram               string
 		ExpectedEntryPointConstructor contracts.SierraEntryPoint
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID:         WithBlockTag("pending"),
 				ClassHash:       internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			// v0 class
 			{
 				BlockID:         WithBlockTag("latest"),
@@ -236,7 +243,7 @@ func TestClass(t *testing.T) {
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			// v2 class
 			{
 				BlockID:                       WithBlockTag("latest"),
@@ -245,7 +252,7 @@ func TestClass(t *testing.T) {
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.Class(context.Background(), test.BlockID, test.ClassHash)
@@ -279,6 +286,8 @@ func TestClass(t *testing.T) {
 //
 //	none
 func TestStorageAt(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -287,8 +296,8 @@ func TestStorageAt(t *testing.T) {
 		Block         BlockID
 		ExpectedValue string
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 				StorageKey:    "_signer",
@@ -296,7 +305,7 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0xdeadbeef",
 			},
 		},
-		"devnet": {
+		tests.DevnetEnv: {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:    "ERC20_name",
@@ -304,7 +313,7 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0x537461726b4e657420546f6b656e",
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:    "_signer",
@@ -312,7 +321,7 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:    "_signer",
@@ -320,7 +329,7 @@ func TestStorageAt(t *testing.T) {
 				ExpectedValue: "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		value, err := testConfig.provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
@@ -343,6 +352,8 @@ func TestStorageAt(t *testing.T) {
 //
 //	none
 func TestNonce(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -350,36 +361,36 @@ func TestNonce(t *testing.T) {
 		Block           BlockID
 		ExpectedNonce   *felt.Felt
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
 				Block:           WithBlockTag("latest"),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
 			},
 		},
-		"devnet": {
+		tests.DevnetEnv: {
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				Block:           WithBlockTag("latest"),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x0"),
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				Block:           WithBlockNumber(69399),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
 				Block:           WithBlockNumber(644060),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x2"),
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		nonce, err := testConfig.provider.Nonce(context.Background(), test.Block, test.ContractAddress)
@@ -398,6 +409,8 @@ func TestNonce(t *testing.T) {
 //
 //	none
 func TestEstimateMessageFee(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -421,8 +434,8 @@ func TestEstimateMessageFee(t *testing.T) {
 		}),
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
@@ -435,7 +448,7 @@ func TestEstimateMessageFee(t *testing.T) {
 				},
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(523066),
@@ -466,8 +479,7 @@ func TestEstimateMessageFee(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
@@ -483,6 +495,8 @@ func TestEstimateMessageFee(t *testing.T) {
 }
 
 func TestEstimateFee(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -494,10 +508,10 @@ func TestEstimateFee(t *testing.T) {
 		expectedError *RPCError
 	}
 
-	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./tests/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
+	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 
-	testSet, ok := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				description: "without flag",
 				txs: []BroadcastTxn{
@@ -541,7 +555,7 @@ func TestEstimateFee(t *testing.T) {
 				},
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				description: "without flag",
 				txs: []BroadcastTxn{
@@ -629,12 +643,7 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: ErrBlockNotFound,
 			},
 		},
-	}[testEnv]
-
-	// TODO: implement this pattern in all tests to know which test cases are being skipped
-	if !ok {
-		t.Skipf("'%s' environment testset not implemented by this test", testEnv)
-	}
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
@@ -656,6 +665,8 @@ func TestEstimateFee(t *testing.T) {
 }
 
 func TestGetStorageProof(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -663,10 +674,8 @@ func TestGetStorageProof(t *testing.T) {
 		StorageProofInput StorageProofInput
 		ExpectedError     error
 	}
-	testSet := map[string][]testSetType{
-		"mock":   {},
-		"devnet": {},
-		"testnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
@@ -770,8 +779,7 @@ func TestGetStorageProof(t *testing.T) {
 				ExpectedError: ErrStorageProofNotSupported,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {

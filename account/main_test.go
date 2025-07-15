@@ -9,7 +9,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/internal"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/require"
@@ -24,17 +24,13 @@ type testConfig struct {
 	accountAddress string
 }
 
-var (
-	// the environment for the test, default: mock
-	testEnv = ""
-	tConfig testConfig
-)
+var tConfig testConfig
 
 // TestMain is used to trigger the tests and, in that case, check for the environment to use.
 func TestMain(m *testing.M) {
-	testEnv = internal.LoadEnv()
+	tests.LoadEnv()
 
-	if testEnv == "mock" {
+	if tests.TEST_ENV == tests.MockEnv {
 		os.Exit(m.Run())
 	}
 	tConfig.providerURL = os.Getenv("HTTP_PROVIDER_URL")

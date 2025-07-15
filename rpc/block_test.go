@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -19,11 +20,13 @@ import (
 //
 //	none
 func TestBlockNumber(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
 	require.NoError(t, err, "BlockNumber should not return an error")
-	if testEnv == "mock" {
+	if tests.TEST_ENV == tests.MockEnv {
 		require.Equal(t, uint64(1234), blockNumber)
 	}
 }
@@ -36,13 +39,15 @@ func TestBlockNumber(t *testing.T) {
 //
 //	none
 func TestBlockHashAndNumber(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
 	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
-	if testEnv == "mock" {
+	if tests.TEST_ENV == tests.MockEnv {
 		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
 	}
 }
@@ -76,6 +81,8 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -85,7 +92,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
 	}
 
-	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./tests/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
+	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
 
 	txHashes := internalUtils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
@@ -93,8 +100,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 	})
 	fakeFelt := internalUtils.TestHexToFelt(t, "0xbeef")
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID:     BlockID{Tag: "latest"},
 				ExpectedErr: nil,
@@ -121,7 +128,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				},
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID:     WithBlockTag("latest"),
 				ExpectedErr: nil,
@@ -141,8 +148,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
@@ -191,6 +197,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 //	none
 func TestBlockWithTxs(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -210,12 +218,12 @@ func TestBlockWithTxs(t *testing.T) {
 		DeployV0Index        int // TODO: implement testcase
 	}
 
-	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs65083.json", "result")
+	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
 
-	fullBlockSepolia122476 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./tests/block/sepoliaBlockTxs122476.json", "result")
+	fullBlockSepolia122476 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs122476.json", "result")
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID: WithBlockTag("latest"),
 			},
@@ -241,7 +249,7 @@ func TestBlockWithTxs(t *testing.T) {
 				InvokeV1Index: 1,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID: WithBlockTag("latest"),
 			},
@@ -263,8 +271,7 @@ func TestBlockWithTxs(t *testing.T) {
 				L1HandlerV0Index: 4,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	// TODO: refactor test to check the marshal result against the expected json file
 	for _, test := range testSet {
@@ -366,6 +373,8 @@ func TestBlockWithTxs(t *testing.T) {
 //
 //	none
 func TestBlockTransactionCount(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -373,14 +382,14 @@ func TestBlockTransactionCount(t *testing.T) {
 		ExpectedCount uint64
 		ExpectedError error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID:       WithBlockNumber(300000),
 				ExpectedCount: 10,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID:       WithBlockNumber(30000),
 				ExpectedCount: 4,
@@ -394,8 +403,7 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
 		if err != nil {
@@ -415,22 +423,22 @@ func TestBlockTransactionCount(t *testing.T) {
 //
 //	none
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		StartBlock uint64
 		EndBlock   uint64
 	}
-	testSet := map[string][]testSetType{
-		"mock": {},
-		"testnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				StartBlock: 52959,
 				EndBlock:   52960,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
 			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
@@ -472,6 +480,8 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 //	none
 func TestStateUpdate(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -479,8 +489,8 @@ func TestStateUpdate(t *testing.T) {
 		ExpectedStateUpdateOutput StateUpdateOutput
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID: WithBlockNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
@@ -505,7 +515,7 @@ func TestStateUpdate(t *testing.T) {
 				},
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID: WithBlockNumber(30000),
 				ExpectedStateUpdateOutput: StateUpdateOutput{
@@ -627,8 +637,7 @@ func TestStateUpdate(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		spy := NewSpy(testConfig.provider.c)
 		testConfig.provider.c = spy

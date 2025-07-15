@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Dev updates
+- Renamed account/tests, rpc/tests, contracts/tests, hash/tests, and typedData/tests folders to testData
+- Migrate internal/test.go file to the new internal/tests pkg
+- New tests.TestEnv enum type representing test environments
+- New tests.RunTestOn func for environment validation
+- Updated all testing to use the new enum and the RunTestOn when necessary
+
 ## [0.13.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.0) - 2025-06-27
 ### Added
 - `account` pkg
@@ -69,6 +76,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rpc.WithBlockTag` now accepts `BlockTag` instead of `string` as parameter
 - Updated `examples/typedData/main.go` to use the new `Verify` method
 - `setup.GetAccountCairoVersion` now returns `account.CairoVersion` instead of `int`
+
+## What's Changed
+* refactor: split account pkg into multiple files by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/750
+* chore(deps): bump brace-expansion from 2.0.1 to 2.0.2 in /www in the npm_and_yarn group across 1 directory by @dependabot in https://github.com/NethermindEth/starknet.go/pull/754
+* Thiagodeev/feat account verify by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/753
+* Feature/version compatibility check by @RafieAmandio in https://github.com/NethermindEth/starknet.go/pull/725
+* Thiagodeev/small random changes by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/755
+* Fix: increase block range for websocket tests by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/757
+* Add CODEOWNERS file by @nethermind-oss-compliance in https://github.com/NethermindEth/starknet.go/pull/761
+* replace dead link README.md by @eeemmmmmm in https://github.com/NethermindEth/starknet.go/pull/762
+* Add DeployContractWithUDC method to improve contract deployment experience. by @HACKER097 in https://github.com/NethermindEth/starknet.go/pull/760
+* release v0.13.0 by @thiagodeev in https://github.com/NethermindEth/starknet.go/pull/763
+
+**Full Changelog**: https://github.com/NethermindEth/starknet.go/compare/v0.12.0...v0.13.0
 
 ## [0.12.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.12.0) - 2025-06-02
 ### Added

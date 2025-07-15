@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -31,6 +32,8 @@ import (
 //
 //	none
 func TestBlockID_Marshal(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	blockNumber := uint64(420)
 	for _, tc := range []struct {
 		id      BlockID
@@ -90,6 +93,8 @@ func TestBlockID_Marshal(t *testing.T) {
 //
 //	none
 func TestBlockStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
 	for _, tc := range []struct {
 		status string
 		want   BlockStatus
@@ -113,7 +118,7 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed tests/block/sepoliaBlockTxs65083.json
+//go:embed testData/block/sepoliaBlockTxs65083.json
 var rawBlock []byte
 
 // TestBlock_Unmarshal tests the Unmarshal function of the Block type.
@@ -129,6 +134,7 @@ var rawBlock []byte
 //
 //	none
 func TestBlock_Unmarshal(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	b := Block{}
 	if err := json.Unmarshal(rawBlock, &b); err != nil {
 		t.Fatalf("Unmarshalling block: %v", err)
@@ -136,6 +142,8 @@ func TestBlock_Unmarshal(t *testing.T) {
 }
 
 func TestBlockWithReceipts(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
@@ -146,11 +154,11 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	var blockWithReceipt BlockWithReceipts
 
-	switch testEnv {
-	case "testnet":
-		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
-	case "mainnet":
-		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./tests/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
+	switch tests.TEST_ENV {
+	case tests.TestnetEnv:
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./testData/blockWithReceipts/sepoliaBlockReceipts64159.json", "result")
+	case tests.MainnetEnv:
+		blockWithReceipt = *internalUtils.TestUnmarshalJSONFileToType[BlockWithReceipts](t, "./testData/blockWithReceipts/mainnetBlockReceipts588763.json", "result")
 	}
 
 	deadBeef := internalUtils.TestHexToFelt(t, "0xdeadbeef")
@@ -207,8 +215,8 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				BlockID:                          WithBlockTag("latest"),
 				ExpectedBlockWithReceipts:        &blockMock123,
@@ -220,7 +228,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedPendingBlockWithReceipts: &pendingBlockMock123,
 			},
 		},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				BlockID: WithBlockTag("pending"),
 			},
@@ -229,7 +237,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
-		"mainnet": {
+		tests.MainnetEnv: {
 			{
 				BlockID: WithBlockTag("pending"),
 			},
@@ -238,7 +246,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedBlockWithReceipts: &blockWithReceipt,
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		result, err := testConfig.provider.BlockWithReceipts(context.Background(), test.BlockID)
@@ -256,7 +264,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			pBlock, ok := result.(*PendingBlockWithReceipts)
 			require.True(t, ok, fmt.Sprintf("should return *PendingBlockWithReceipts, instead: %T\n", result))
 
-			if testEnv == "mock" {
+			if tests.TEST_ENV == tests.MockEnv {
 				require.Exactly(t, pBlock, test.ExpectedPendingBlockWithReceipts)
 			} else {
 				require.NotEmpty(t, pBlock.ParentHash, "Error in PendingBlockWithReceipts ParentHash")

@@ -4,24 +4,24 @@ import (
 	"context"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/require"
 )
 
 // TestSpecVersion tests starknet_specVersion
 func TestSpecVersion(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	testConfig := beforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {},
-		"mock":    {},
-		"testnet": {{
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {{
 			ExpectedResp: rpcVersion,
 		}},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		resp, err := testConfig.provider.SpecVersion(context.Background())
