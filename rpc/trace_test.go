@@ -203,6 +203,8 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv, tests.MockEnv)
+
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
@@ -214,8 +216,6 @@ func TestTraceBlockTransactions(t *testing.T) {
 	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
-		tests.MainnetEnv: {},
 		tests.TestnetEnv: {
 			testSetType{
 				BlockID:          WithBlockNumber(99433),
