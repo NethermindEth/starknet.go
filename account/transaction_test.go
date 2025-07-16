@@ -483,7 +483,12 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.EqualError(t, test.ExpectedErr, rpc.ErrInvalidTransactionNonce.Error(), "AddInvokeTransaction returned an unexpected error")
+			require.EqualError(
+				t,
+				test.ExpectedErr,
+				rpc.ErrInvalidTransactionNonce.Error(),
+				"AddInvokeTransaction returned an unexpected error",
+			)
 			require.Nil(t, resp)
 		}
 	}
@@ -566,7 +571,7 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
-	// TODO: centralize the SendTransaction tests in a single test with subtests, and
+	// TODO: centralise the SendTransaction tests in a single test with subtests, and
 	// make build a random txn for each test
 	if err != nil {
 		rpcErr, ok := err.(*rpc.RPCError)
