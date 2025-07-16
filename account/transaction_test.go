@@ -416,7 +416,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
-				ExpectedErr:          rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrInvalidTransactionNonce,
 				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
@@ -483,7 +483,7 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+			require.EqualError(t, test.ExpectedErr, rpc.ErrInvalidTransactionNonce.Error(), "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
 		}
 	}
@@ -566,8 +566,12 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
+	// TODO: centralize the SendTransaction tests in a single test with subtests, and
+	// make build a random txn for each test
 	if err != nil {
-		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+		rpcErr, ok := err.(*rpc.RPCError)
+		require.True(t, ok)
+		require.Equal(t, rpc.ErrValidationFailure.Code, rpcErr.Code)
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
