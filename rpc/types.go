@@ -99,7 +99,7 @@ type PendingStateUpdate struct {
 
 // SyncStatus is An object describing the node synchronisation status
 type SyncStatus struct {
-	SyncStatus        *bool
+	IsSyncing         bool
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
 	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
@@ -124,7 +124,7 @@ type SyncStatus struct {
 //
 //nolint:gocritic
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
-	if !*s.SyncStatus {
+	if !s.IsSyncing {
 		return []byte("false"), nil
 	}
 	output := map[string]interface{}{}
@@ -149,7 +149,7 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	var b bool
 	if string(data) == "false" {
-		s.SyncStatus = &b
+		s.IsSyncing = b
 
 		return nil
 	}
@@ -163,7 +163,7 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	*s = SyncStatus(result)
-	s.SyncStatus = &b
+	s.IsSyncing = b
 
 	return nil
 }

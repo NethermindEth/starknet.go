@@ -435,10 +435,10 @@ func (mr *MockRpcProviderMockRecorder) StorageAt(ctx, contractAddress, key, bloc
 }
 
 // Syncing mocks base method.
-func (m *MockRpcProvider) Syncing(ctx context.Context) (*rpc.SyncStatus, error) {
+func (m *MockRpcProvider) Syncing(ctx context.Context) (rpc.SyncStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Syncing", ctx)
-	ret0, _ := ret[0].(*rpc.SyncStatus)
+	ret0, _ := ret[0].(rpc.SyncStatus)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
