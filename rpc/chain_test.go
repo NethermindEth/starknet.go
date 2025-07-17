@@ -81,6 +81,7 @@ func TestSyncing(t *testing.T) {
 
 		if tests.TEST_ENV == tests.MockEnv {
 			value := SyncStatus{
+				IsSyncing:         true,
 				StartingBlockHash: internalUtils.RANDOM_FELT,
 				StartingBlockNum:  1234,
 				CurrentBlockHash:  internalUtils.RANDOM_FELT,
@@ -88,7 +89,7 @@ func TestSyncing(t *testing.T) {
 				HighestBlockHash:  internalUtils.RANDOM_FELT,
 				HighestBlockNum:   1234,
 			}
-			require.Exactly(t, &value, sync)
+			require.Exactly(t, value, sync)
 
 			continue
 		}
