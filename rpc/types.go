@@ -125,7 +125,7 @@ type SyncStatus struct {
 //   - []byte: the JSON encoding of the SyncStatus struct
 //   - error: any error that occurred during the marshalling process
 //
-//nolint:gocritic
+
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !s.IsSyncing {
 		return []byte("false"), nil
