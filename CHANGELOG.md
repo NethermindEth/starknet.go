@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Removed
+- `curve.g1Affline` variable, use new instances of `starkcurve.G1Affine` instead. It was causing bugs in the tests when running in parallel.
+
 ### Dev updates
 - Renamed account/tests, rpc/tests, contracts/tests, hash/tests, and typedData/tests folders to testData
 - Migrate internal/test.go file to the new internal/tests pkg
