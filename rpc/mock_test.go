@@ -236,11 +236,11 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 
 	value := SyncStatus{
 		StartingBlockHash: internalUtils.RANDOM_FELT,
-		StartingBlockNum:  "0x4c602",
+		StartingBlockNum:  1234,
 		CurrentBlockHash:  internalUtils.RANDOM_FELT,
-		CurrentBlockNum:   "0x4c727",
+		CurrentBlockNum:   1234,
 		HighestBlockHash:  internalUtils.RANDOM_FELT,
-		HighestBlockNum:   "0x4c727",
+		HighestBlockNum:   1234,
 	}
 	*r = value
 
