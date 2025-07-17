@@ -385,18 +385,16 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	testConfig := beforeEach(t, true)
 
 	provider := testConfig.provider
-	blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag("latest"))
-	require.NoError(t, err)
-	block := blockInterface.(*BlockTxHashes)
+	var txHash *felt.Felt
+	isBlockEmpty := true
 
-	txHash := new(felt.Felt)
-	for _, tx := range block.Transactions {
-		status, err := provider.GetTransactionStatus(context.Background(), tx)
+	for isBlockEmpty {
+		blockInterface, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(BlockTagLatest))
 		require.NoError(t, err)
-		if status.FinalityStatus == TxnStatus_Accepted_On_L2 {
-			txHash = tx
-
-			break
+		block := blockInterface.(*BlockTxHashes)
+		if len(block.Transactions) > 0 {
+			isBlockEmpty = false
+			txHash = block.Transactions[0]
 		}
 	}
 
