@@ -265,7 +265,7 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
+	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero to avoid nil pointer dereference
 	if txnResp.BlockHash == nil {
 		txnResp.BlockHash = new(felt.Felt)
 	}

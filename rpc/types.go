@@ -89,7 +89,7 @@ type StateUpdateOutput struct {
 	Pre_confirmedStateUpdate
 }
 
-// PENDING_STATE_UPDATE in spec
+// PRE_CONFIRMED_STATE_UPDATE in spec
 type Pre_confirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
 	OldRoot *felt.Felt `json:"old_root"`
