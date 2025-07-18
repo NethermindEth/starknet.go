@@ -114,10 +114,12 @@ type BlockHashAndNumberOutput struct {
 type BlockTag string
 
 const (
-	// BlockTagLatest represents the latest confirmed block.
-	BlockTagLatest BlockTag = "latest"
-	// BlockTagPre_confirmed represents the pre_confirmed block that is yet to be confirmed.
+	// The block which is currently being built by the block proposer in height `latest` + 1.
 	BlockTagPre_confirmed BlockTag = "pre_confirmed"
+	// The latest Starknet block finalized by the consensus on L2.
+	BlockTagLatest BlockTag = "latest"
+	// The latest Starknet block which was included in a state update on L1 and finalized by the consensus on L1.
+	BlockTagL1Accepted BlockTag = "l1_accepted"
 )
 
 // BlockID is a struct that is used to choose between different
