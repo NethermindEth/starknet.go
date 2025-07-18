@@ -99,19 +99,20 @@ func TestBlockStatus(t *testing.T) {
 	for _, tc := range []struct {
 		status string
 		want   BlockStatus
-	}{{
-		status: `"PENDING"`,
-		want:   BlockStatus_Pre_confirmed,
-	}, {
-		status: `"ACCEPTED_ON_L2"`,
-		want:   BlockStatus_AcceptedOnL2,
-	}, {
-		status: `"ACCEPTED_ON_L1"`,
-		want:   BlockStatus_AcceptedOnL1,
-	}, {
-		status: `"REJECTED"`,
-		want:   BlockStatus_Rejected,
-	}} {
+	}{
+		{
+			status: `"PRE_CONFIRMED"`,
+			want:   BlockStatus_Pre_confirmed,
+		},
+		{
+			status: `"ACCEPTED_ON_L2"`,
+			want:   BlockStatus_AcceptedOnL2,
+		},
+		{
+			status: `"ACCEPTED_ON_L1"`,
+			want:   BlockStatus_AcceptedOnL1,
+		},
+	} {
 		tx := new(BlockStatus)
 		if err := json.Unmarshal([]byte(tc.status), tx); err != nil {
 			t.Errorf("unmarshalling status want: %s", err)

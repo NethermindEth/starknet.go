@@ -175,10 +175,9 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 type BlockStatus string
 
 const (
-	BlockStatus_Pre_confirmed BlockStatus = "PENDING"
+	BlockStatus_Pre_confirmed BlockStatus = "PRE_CONFIRMED"
 	BlockStatus_AcceptedOnL2  BlockStatus = "ACCEPTED_ON_L2"
 	BlockStatus_AcceptedOnL1  BlockStatus = "ACCEPTED_ON_L1"
-	BlockStatus_Rejected      BlockStatus = "REJECTED"
 )
 
 // UnmarshalJSON unmarshals the JSON representation of a BlockStatus.
@@ -198,14 +197,12 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	switch unquoted {
-	case "PENDING":
+	case "PRE_CONFIRMED":
 		*bs = BlockStatus_Pre_confirmed
 	case "ACCEPTED_ON_L2":
 		*bs = BlockStatus_AcceptedOnL2
 	case "ACCEPTED_ON_L1":
 		*bs = BlockStatus_AcceptedOnL1
-	case "REJECTED":
-		*bs = BlockStatus_Rejected
 	default:
 		return fmt.Errorf("unsupported status: %s", data)
 	}
