@@ -15,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Fixed
+- `rpc.Syncing` was crashing when the node response was that it was syncing.
+
+### Changed
+- `rpc.Syncing` method now returns a `rpc.SyncStatus` struct instead of a pointer to it.
+- `rpc.SyncStatus` type: `StartingBlockNum`, `HighestBlockNum` and `CurrentBlockNum` are now of type `uint64` instead of `NumAsHex`
+- `rpc.SyncStatus` type: `SyncStatus` field was renamed to `IsSyncing`
+
+### Removed
+- `curve.g1Affline` variable, users should use new instances of `starkcurve.G1Affine` instead. It was causing bugs in the tests when running in parallel.
+
 ### Dev updates
 - Renamed account/tests, rpc/tests, contracts/tests, hash/tests, and typedData/tests folders to testData
 - Migrate internal/test.go file to the new internal/tests pkg

@@ -99,13 +99,16 @@ type Pre_confirmedStateUpdate struct {
 
 // SyncStatus is An object describing the node synchronisation status
 type SyncStatus struct {
-	SyncStatus        *bool
+	// A boolean indicating whether the node is syncing. If false, all other fields are empty.
+	IsSyncing bool
+
+	// All these fields are only present if IsSyncing is true.
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
-	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
+	StartingBlockNum  uint64     `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
-	CurrentBlockNum   NumAsHex   `json:"current_block_num,omitempty"`
+	CurrentBlockNum   uint64     `json:"current_block_num,omitempty"`
 	HighestBlockHash  *felt.Felt `json:"highest_block_hash,omitempty"`
-	HighestBlockNum   NumAsHex   `json:"highest_block_num,omitempty"`
+	HighestBlockNum   uint64     `json:"highest_block_num,omitempty"`
 }
 
 // MarshalJSON marshals the SyncStatus struct into JSON format.
@@ -122,9 +125,9 @@ type SyncStatus struct {
 //   - []byte: the JSON encoding of the SyncStatus struct
 //   - error: any error that occurred during the marshalling process
 //
-//nolint:gocritic
+
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
-	if !*s.SyncStatus {
+	if !s.IsSyncing {
 		return []byte("false"), nil
 	}
 	output := map[string]interface{}{}
@@ -147,13 +150,11 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
-	var b bool
 	if string(data) == "false" {
-		s.SyncStatus = &b
+		s.IsSyncing = false
 
 		return nil
 	}
-	b = true
 
 	type alias SyncStatus
 	var result alias
@@ -163,7 +164,7 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	*s = SyncStatus(result)
-	s.SyncStatus = &b
+	s.IsSyncing = true
 
 	return nil
 }

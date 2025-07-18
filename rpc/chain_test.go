@@ -72,19 +72,20 @@ func TestSyncing(t *testing.T) {
 
 	if tests.TEST_ENV == tests.MockEnv {
 		value := SyncStatus{
+			IsSyncing:         true,
 			StartingBlockHash: internalUtils.RANDOM_FELT,
-			StartingBlockNum:  "0x4c602",
+			StartingBlockNum:  1234,
 			CurrentBlockHash:  internalUtils.RANDOM_FELT,
-			CurrentBlockNum:   "0x4c727",
+			CurrentBlockNum:   1234,
 			HighestBlockHash:  internalUtils.RANDOM_FELT,
-			HighestBlockNum:   "0x4c727",
+			HighestBlockNum:   1234,
 		}
-		assert.Exactly(t, &value, sync)
+		assert.Exactly(t, value, sync)
 
 		return
 	}
 
-	if sync.SyncStatus == nil {
+	if sync.IsSyncing {
 		require.True(
 			t,
 			strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"),
@@ -97,7 +98,7 @@ func TestSyncing(t *testing.T) {
 		assert.NotZero(t, sync.HighestBlockHash)
 		assert.NotZero(t, sync.HighestBlockNum)
 	} else {
-		assert.False(t, *sync.SyncStatus)
+		assert.False(t, sync.IsSyncing)
 		assert.Zero(t, sync.StartingBlockHash)
 		assert.Zero(t, sync.StartingBlockNum)
 		assert.Zero(t, sync.CurrentBlockHash)

@@ -226,7 +226,7 @@ func mock_starknet_chainId(result interface{}, args ...interface{}) error {
 //   - error: an error if there is a wrong type or wrong number of arguments
 func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 	// Note: Since starknet_syncing returns with bool or SyncStatus, we pass in interface{}
-	r, ok := result.(*interface{})
+	r, ok := result.(*json.RawMessage)
 	if !ok {
 		return errWrongType
 	}
@@ -235,16 +235,21 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 	}
 
 	value := SyncStatus{
+		IsSyncing:         true,
 		StartingBlockHash: internalUtils.RANDOM_FELT,
-		StartingBlockNum:  "0x4c602",
+		StartingBlockNum:  1234,
 		CurrentBlockHash:  internalUtils.RANDOM_FELT,
-		CurrentBlockNum:   "0x4c727",
+		CurrentBlockNum:   1234,
 		HighestBlockHash:  internalUtils.RANDOM_FELT,
-		HighestBlockNum:   "0x4c727",
+		HighestBlockNum:   1234,
 	}
-	*r = value
 
-	return nil
+	resp, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(resp, r)
 }
 
 // mock_starknet_getTransactionByBlockIdAndIndex is a function that mocks the behaviour of getting
