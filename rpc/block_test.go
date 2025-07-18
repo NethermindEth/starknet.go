@@ -198,10 +198,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 					return
 				}
 
-				require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
+				assert.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
 
 				if test.ExpectedBlockWithTxHashes != nil {
-					require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
+					assert.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 				}
 			case *Pre_confirmedBlockTxHashes:
 				pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
@@ -210,7 +210,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
 					validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
 				} else {
-					require.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
+					assert.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
 				}
 			default:
 				t.Fatalf("unexpected block type, found: %T\n", resultType)
