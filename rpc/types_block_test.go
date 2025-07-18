@@ -229,19 +229,30 @@ func TestBlockWithReceipts(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:                                WithBlockTag("latest"),
+				BlockID:                                WithBlockTag(BlockTagLatest),
 				ExpectedBlockWithReceipts:              &blockMock123,
 				ExpectedPre_confirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag("pre_confirmed"),
+				BlockID:                                WithBlockTag(BlockTagL1Accepted),
+				ExpectedBlockWithReceipts:              &blockMock123,
+				ExpectedPre_confirmedBlockWithReceipts: nil,
+			},
+			{
+				BlockID:                                WithBlockTag(BlockTagPre_confirmed),
 				ExpectedBlockWithReceipts:              nil,
 				ExpectedPre_confirmedBlockWithReceipts: &pre_confirmedBlockMock123,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockTag("pre_confirmed"),
+				BlockID: WithBlockTag(BlockTagL1Accepted),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagLatest),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(64159),
@@ -250,7 +261,13 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockTag("pre_confirmed"),
+				BlockID: WithBlockTag(BlockTagL1Accepted),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagLatest),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(1_300_000),
