@@ -95,15 +95,25 @@ func TestBlockWithTxHashes(t *testing.T) {
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
 	blockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/integration1_300_000.json", "result")
 
-	txHashes := internalUtils.TestHexArrToFelt(t, []string{
+	txHashesMock := internalUtils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
 		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
+	blockMock := BlockTxHashes{
+		BlockHeader: BlockHeader{
+			Hash:             internalUtils.RANDOM_FELT,
+			ParentHash:       internalUtils.RANDOM_FELT,
+			Timestamp:        124,
+			SequencerAddress: internalUtils.RANDOM_FELT,
+		},
+		Status:       BlockStatus_AcceptedOnL1,
+		Transactions: txHashesMock,
+	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:     BlockID{Tag: "latest"},
+				BlockID:     BlockID{Tag: BlockTagPre_confirmed},
 				ExpectedErr: nil,
 				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
 					Pre_confirmedBlockHeader{
@@ -111,21 +121,16 @@ func TestBlockWithTxHashes(t *testing.T) {
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
-					txHashes,
+					txHashesMock,
 				},
 			},
 			{
-				BlockID: BlockID{Hash: internalUtils.RANDOM_FELT},
-				ExpectedBlockWithTxHashes: &BlockTxHashes{
-					BlockHeader: BlockHeader{
-						Hash:             internalUtils.RANDOM_FELT,
-						ParentHash:       internalUtils.RANDOM_FELT,
-						Timestamp:        124,
-						SequencerAddress: internalUtils.RANDOM_FELT,
-					},
-					Status:       BlockStatus_AcceptedOnL1,
-					Transactions: txHashes,
-				},
+				BlockID:                   BlockID{Hash: internalUtils.RANDOM_FELT},
+				ExpectedBlockWithTxHashes: &blockMock,
+			},
+			{
+				BlockID:                   BlockID{Tag: BlockTagL1Accepted},
+				ExpectedBlockWithTxHashes: &blockMock,
 			},
 		},
 		tests.TestnetEnv: {
@@ -135,6 +140,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 			},
 			{
 				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:     WithBlockTag(BlockTagL1Accepted),
 				ExpectedErr: nil,
 			},
 			{
@@ -155,6 +164,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 			},
 			{
 				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:     WithBlockTag(BlockTagL1Accepted),
 				ExpectedErr: nil,
 			},
 			{
