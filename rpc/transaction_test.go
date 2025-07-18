@@ -19,9 +19,9 @@ import (
 // Returns:
 // none
 func TestTransactionByHash(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxHash      *felt.Felt
@@ -45,6 +45,8 @@ func TestTransactionByHash(t *testing.T) {
 		},
 	}
 
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByHash/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
@@ -58,9 +60,15 @@ func TestTransactionByHash(t *testing.T) {
 				ExpectedTxn: BlockDeclareTxnV2Example,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				TxHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedTxn: integrationInvokeV3Example,
+			},
+		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.provider.TransactionByHash(context.Background(), test.TxHash)
+		tx, err := testConfig.Provider.TransactionByHash(context.Background(), test.TxHash)
 		require.NoError(t, err)
 		require.NotNil(t, tx)
 
@@ -84,9 +92,9 @@ func TestTransactionByHash(t *testing.T) {
 //
 //	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID     BlockID
@@ -95,6 +103,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}
 
 	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByBlockIndex/integration-1300000-0.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -111,9 +121,16 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				ExpectedTxn: InvokeTxnV3example,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:     WithBlockNumber(1_300_000),
+				Index:       0,
+				ExpectedTxn: integrationInvokeV3Example,
+			},
+		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+		tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
 		require.NoError(t, err)
 		require.NotNil(t, tx)
 		assert.Equal(t, test.ExpectedTxn, *tx)
@@ -121,9 +138,9 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 }
 
 func TestTransactionReceipt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt
@@ -131,6 +148,8 @@ func TestTransactionReceipt(t *testing.T) {
 	}
 
 	receiptTxn52767_16 := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
+
+	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
 
 	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
 	receiptL1Handler := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
@@ -152,12 +171,18 @@ func TestTransactionReceipt(t *testing.T) {
 				ExpectedResp: receiptTxn52767_16,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedResp: integrationInvokeV3Example,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		txReceiptWithBlockInfo, err := testConfig.provider.TransactionReceipt(context.Background(), test.TxnHash)
+		spy := NewSpy(testConfig.Provider.c)
+		testConfig.Provider.c = spy
+		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
@@ -165,9 +190,9 @@ func TestTransactionReceipt(t *testing.T) {
 
 // TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
 func TestGetTransactionStatus(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxnHash      *felt.Felt
@@ -189,10 +214,16 @@ func TestGetTransactionStatus(t *testing.T) {
 				},
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatus_Accepted_On_L2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.GetTransactionStatus(context.Background(), test.TxnHash)
+		resp, err := testConfig.Provider.GetTransactionStatus(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
 		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
@@ -202,9 +233,10 @@ func TestGetTransactionStatus(t *testing.T) {
 
 // TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
 func TestGetMessagesStatus(t *testing.T) {
+	// TODO: add integration testcases
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		TxHash       NumAsHex
@@ -218,12 +250,14 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatus{
 					{
-						Hash:           internalUtils.RANDOM_FELT,
-						FinalityStatus: TxnStatus_Accepted_On_L2,
+						Hash:            internalUtils.RANDOM_FELT,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 					{
-						Hash:           internalUtils.RANDOM_FELT,
-						FinalityStatus: TxnStatus_Accepted_On_L2,
+						Hash:            internalUtils.RANDOM_FELT,
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 				},
 			},
@@ -237,12 +271,14 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
 				ExpectedResp: []MessageStatus{
 					{
-						Hash:           internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
-						FinalityStatus: TxnStatus_Accepted_On_L1,
+						Hash:            internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 					{
-						Hash:           internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
-						FinalityStatus: TxnStatus_Accepted_On_L1,
+						Hash:            internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
+						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
+						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 				},
 			},
@@ -254,12 +290,14 @@ func TestGetMessagesStatus(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.GetMessagesStatus(context.Background(), test.TxHash)
-		if test.ExpectedErr != nil {
-			require.EqualError(t, err, test.ExpectedErr.Error())
-		} else {
-			require.Nil(t, err)
-			require.Equal(t, test.ExpectedResp, resp)
-		}
+		t.Run(string(test.TxHash), func(t *testing.T) {
+			resp, err := testConfig.Provider.GetMessagesStatus(context.Background(), test.TxHash)
+			if test.ExpectedErr != nil {
+				require.EqualError(t, err, test.ExpectedErr.Error())
+			} else {
+				require.Nil(t, err)
+				require.Equal(t, test.ExpectedResp, resp)
+			}
+		})
 	}
 }

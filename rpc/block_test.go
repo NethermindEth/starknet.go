@@ -20,11 +20,11 @@ import (
 //
 //	none
 func TestBlockNumber(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
-	blockNumber, err := testConfig.provider.BlockNumber(context.Background())
+	blockNumber, err := testConfig.Provider.BlockNumber(context.Background())
 	require.NoError(t, err, "BlockNumber should not return an error")
 	if tests.TEST_ENV == tests.MockEnv {
 		require.Equal(t, uint64(1234), blockNumber)
@@ -39,11 +39,11 @@ func TestBlockNumber(t *testing.T) {
 //
 //	none
 func TestBlockHashAndNumber(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
-	blockHashAndNumber, err := testConfig.provider.BlockHashAndNumber(context.Background())
+	blockHashAndNumber, err := testConfig.Provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
 	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
 
@@ -55,7 +55,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 // TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
 //
 // The function takes a testing.T object as a parameter and initialises a testConfig object.
-// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPendingBlockWithTxHashes.
+// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPre_confirmedBlockWithTxHashes.
 // The function then initialises a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
 // It also initialises a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
 //
@@ -71,7 +71,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 //   - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
 //   - It checks the type of the result variable and performs specific assertions based on the type.
 //   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
-//   - If the result is of type *PendingBlockTxHashes, it checks various fields of the PendingBlockTxHashes object against the expected values.
+//   - If the result is of type *Pre_confirmedBlockTxHashes, it checks various fields of the Pre_confirmedBlockTxHashes object against the expected values.
 //   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
 //
 // Parameters:
@@ -81,47 +81,47 @@ func TestBlockHashAndNumber(t *testing.T) {
 //
 //	none
 func TestBlockWithTxHashes(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                          BlockID
-		ExpectedErr                      error
-		ExpectedBlockWithTxHashes        *BlockTxHashes
-		ExpectedPendingBlockWithTxHashes *PendingBlockTxHashes
+		BlockID                                BlockID
+		ExpectedErr                            error
+		ExpectedBlockWithTxHashes              *BlockTxHashes
+		ExpectedPre_confirmedBlockWithTxHashes *Pre_confirmedBlockTxHashes
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
+	blockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/integration1_300_000.json", "result")
 
 	txHashes := internalUtils.TestHexArrToFelt(t, []string{
 		"0x5754961d70d6f39d0e2c71a1a4ff5df0a26b1ceda4881ca82898994379e1e73",
 		"0x692381bba0e8505a8e0b92d0f046c8272de9e65f050850df678a0c10d8781d",
 	})
-	fakeFelt := internalUtils.TestHexToFelt(t, "0xbeef")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				BlockID:     BlockID{Tag: "latest"},
 				ExpectedErr: nil,
-				ExpectedPendingBlockWithTxHashes: &PendingBlockTxHashes{
-					PendingBlockHeader{
-						ParentHash:       fakeFelt,
+				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
+					Pre_confirmedBlockHeader{
+						Number:           1234,
 						Timestamp:        123,
-						SequencerAddress: fakeFelt,
+						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
 					txHashes,
 				},
 			},
 			{
-				BlockID: BlockID{Hash: fakeFelt},
+				BlockID: BlockID{Hash: internalUtils.RANDOM_FELT},
 				ExpectedBlockWithTxHashes: &BlockTxHashes{
 					BlockHeader: BlockHeader{
-						Hash:             fakeFelt,
-						ParentHash:       fakeFelt,
+						Hash:             internalUtils.RANDOM_FELT,
+						ParentHash:       internalUtils.RANDOM_FELT,
 						Timestamp:        124,
-						SequencerAddress: fakeFelt,
+						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
 					Status:       BlockStatus_AcceptedOnL1,
 					Transactions: txHashes,
@@ -130,11 +130,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockTag("latest"),
+				BlockID:     WithBlockTag(BlockTagLatest),
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag("pending"),
+				BlockID:     WithBlockTag(BlockTagPre_confirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -148,38 +148,60 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedBlockWithTxHashes: &blockSepolia64159,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				ExpectedErr: nil,
+			},
+			{
+				BlockID:                   WithBlockHash(internalUtils.TestHexToFelt(t, "0x503e44c7d47a2e17022c52092e7dadd338b79df84f844b9f26dbdd1598a23e")),
+				ExpectedErr:               nil,
+				ExpectedBlockWithTxHashes: &blockIntegration1300000,
+			},
+			{
+				BlockID:                   WithBlockNumber(1300000),
+				ExpectedErr:               nil,
+				ExpectedBlockWithTxHashes: &blockIntegration1300000,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		result, err := testConfig.provider.BlockWithTxHashes(context.Background(), test.BlockID)
-		require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
-		switch resultType := result.(type) {
-		case *BlockTxHashes:
-			block, ok := result.(*BlockTxHashes)
-			require.Truef(t, ok, "should return *BlockTxHashes, instead: %T\n", result)
+		blockID, _ := test.BlockID.MarshalJSON()
+		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			result, err := testConfig.Provider.BlockWithTxHashes(context.Background(), test.BlockID)
+			require.Equal(t, test.ExpectedErr, err, "Error in BlockWithTxHashes")
+			switch resultType := result.(type) {
+			case *BlockTxHashes:
+				block, ok := result.(*BlockTxHashes)
+				require.Truef(t, ok, "should return *BlockTxHashes, instead: %T\n", result)
 
-			if test.ExpectedErr != nil {
-				continue
+				if test.ExpectedErr != nil {
+					return
+				}
+
+				require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
+
+				if test.ExpectedBlockWithTxHashes != nil {
+					require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
+				}
+			case *Pre_confirmedBlockTxHashes:
+				pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
+				require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
+
+				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
+					validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
+				} else {
+					require.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
+				}
+			default:
+				t.Fatalf("unexpected block type, found: %T\n", resultType)
 			}
-
-			require.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
-			require.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
-
-			if test.ExpectedBlockWithTxHashes != nil {
-				require.Exactly(t, test.ExpectedBlockWithTxHashes, block)
-			}
-		case *PendingBlockTxHashes:
-			pBlock, ok := result.(*PendingBlockTxHashes)
-			require.Truef(t, ok, "should return *PendingBlockTxHashes, instead: %T\n", result)
-
-			if test.ExpectedPendingBlockWithTxHashes == nil {
-				validatePendingBlockHeader(t, &pBlock.PendingBlockHeader)
-			} else {
-				require.Exactly(t, test.ExpectedPendingBlockWithTxHashes, pBlock)
-			}
-		default:
-			t.Fatalf("unexpected block type, found: %T\n", resultType)
-		}
+		})
 	}
 }
 
@@ -197,30 +219,30 @@ func TestBlockWithTxHashes(t *testing.T) {
 //
 //	none
 func TestBlockWithTxs(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID              BlockID
-		ExpectedBlock        *Block
-		ExpectedPendingBlock *PendingBlock
-		InvokeV0Index        int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		InvokeV1Index        int
-		InvokeV3Index        int
-		DeclareV0Index       int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		DeclareV1Index       int
-		DeclareV2Index       int
-		DeclareV3Index       int // TODO: implement testcase
-		DeployAccountV1Index int
-		DeployAccountV3Index int // TODO: implement testcase
-		L1HandlerV0Index     int
-		DeployV0Index        int // TODO: implement testcase
+		BlockID                    BlockID
+		ExpectedBlock              *Block
+		ExpectedPre_confirmedBlock *Pre_confirmedBlock
+		InvokeV0Index              int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		InvokeV1Index              int
+		InvokeV3Index              int
+		DeclareV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		DeclareV1Index             int
+		DeclareV2Index             int
+		DeclareV3Index             int // TODO: implement testcase
+		DeployAccountV1Index       int
+		DeployAccountV3Index       int // TODO: implement testcase
+		L1HandlerV0Index           int
+		DeployV0Index              int // TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
-
 	fullBlockSepolia122476 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs122476.json", "result")
+	fullBlockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/integration1_300_000.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -228,10 +250,10 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("latest"),
 			},
 			{
-				BlockID: WithBlockTag("pending"),
-				ExpectedPendingBlock: &PendingBlock{
-					PendingBlockHeader{
-						ParentHash:       internalUtils.RANDOM_FELT,
+				BlockID: WithBlockTag("pre_confirmed"),
+				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
+					Pre_confirmedBlockHeader{
+						Number:           1234,
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
 					},
@@ -254,7 +276,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag("latest"),
 			},
 			{
-				BlockID: WithBlockTag("pending"),
+				BlockID: WithBlockTag("pre_confirmed"),
 			},
 			{
 				BlockID:              WithBlockNumber(65083),
@@ -271,88 +293,103 @@ func TestBlockWithTxs(t *testing.T) {
 				L1HandlerV0Index: 4,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID: WithBlockTag("latest"),
+			},
+			{
+				BlockID: WithBlockTag("pre_confirmed"),
+			},
+			{
+				BlockID:       WithBlockNumber(1300000),
+				ExpectedBlock: &fullBlockIntegration1300000,
+				InvokeV3Index: 1,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	// TODO: refactor test to check the marshal result against the expected json file
 	for _, test := range testSet {
-		blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), test.BlockID)
-		require.NoError(t, err, "Unable to fetch the given block.")
+		blockID, _ := test.BlockID.MarshalJSON()
+		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), test.BlockID)
+			require.NoError(t, err, "Unable to fetch the given block.")
 
-		switch block := blockWithTxsInterface.(type) {
-		case *PendingBlock:
-			if test.ExpectedPendingBlock == nil {
-				validatePendingBlockHeader(t, &block.PendingBlockHeader)
-			} else {
-				require.Exactly(t, test.ExpectedPendingBlock, block)
+			switch block := blockWithTxsInterface.(type) {
+			case *Pre_confirmedBlock:
+				if test.ExpectedPre_confirmedBlock == nil {
+					validatePre_confirmedBlockHeader(t, &block.Pre_confirmedBlockHeader)
+				} else {
+					require.Exactly(t, test.ExpectedPre_confirmedBlock, block)
+				}
+			case *Block:
+				if test.ExpectedBlock == nil {
+					require.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+				} else {
+					require.Exactly(t, test.ExpectedBlock, block)
+
+					// validates an BlockInvokeV1 transaction
+					if test.InvokeV1Index > 0 {
+						invokeV1Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
+						require.True(t, ok, "Expected invoke v1 transaction.")
+						invokeV1Block, ok := block.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
+						require.True(t, ok, "Expected invoke v1 transaction.")
+
+						require.Exactly(t, invokeV1Expected, invokeV1Block)
+					}
+
+					// validates an BlockInvokeV3 transaction
+					if test.InvokeV3Index > 0 {
+						invokeV3Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
+						require.True(t, ok, "Expected invoke v3 transaction.")
+						invokeV3Block, ok := block.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
+						require.True(t, ok, "Expected invoke v3 transaction.")
+
+						require.Exactly(t, invokeV3Expected, invokeV3Block)
+					}
+
+					// validates an BlockDeclareV1 transaction
+					if test.DeclareV1Index > 0 {
+						declareV1Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
+						require.True(t, ok, "Expected declare v1 transaction.")
+						declareV1Block, ok := block.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
+						require.True(t, ok, "Expected declare v1 transaction.")
+
+						require.Exactly(t, declareV1Expected, declareV1Block)
+					}
+
+					// validates an BlockDeclareV2 transaction
+					if test.DeclareV2Index > 0 {
+						declareV2Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
+						require.True(t, ok, "Expected declare v2 transaction.")
+						declareV2Block, ok := block.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
+						require.True(t, ok, "Expected declare v2 transaction.")
+
+						require.Exactly(t, declareV2Expected, declareV2Block)
+					}
+
+					// validates an BlockDeployAccountV1 transaction
+					if test.DeployAccountV1Index > 0 {
+						deployAccountV1Expected, ok := test.ExpectedBlock.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
+						require.True(t, ok, "Expected deploy account v1 transaction.")
+						deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
+						require.True(t, ok, "Expected deploy account v1 transaction.")
+
+						require.Exactly(t, deployAccountV1Expected, deployAccountV1Block)
+					}
+
+					// validates an BlockL1HandlerV0 transaction
+					if test.L1HandlerV0Index > 0 {
+						l1HandlerV0Expected, ok := test.ExpectedBlock.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
+						require.True(t, ok, "Expected L1 handler transaction.")
+						l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
+						require.True(t, ok, "Expected L1 handler transaction.")
+
+						require.Exactly(t, l1HandlerV0Expected, l1HandlerV0Block)
+					}
+				}
 			}
-		case *Block:
-			if test.ExpectedBlock == nil {
-				require.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
-				require.NotEmpty(t, block.Transactions, "The number of transaction should not be 0.")
-			} else {
-				require.Exactly(t, test.ExpectedBlock, block)
-
-				// validates an BlockInvokeV1 transaction
-				if test.InvokeV1Index > 0 {
-					invokeV1Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-					require.True(t, ok, "Expected invoke v1 transaction.")
-					invokeV1Block, ok := block.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-					require.True(t, ok, "Expected invoke v1 transaction.")
-
-					require.Exactly(t, invokeV1Expected, invokeV1Block)
-				}
-
-				// validates an BlockInvokeV3 transaction
-				if test.InvokeV3Index > 0 {
-					invokeV3Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-					require.True(t, ok, "Expected invoke v3 transaction.")
-					invokeV3Block, ok := block.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-					require.True(t, ok, "Expected invoke v3 transaction.")
-
-					require.Exactly(t, invokeV3Expected, invokeV3Block)
-				}
-
-				// validates an BlockDeclareV1 transaction
-				if test.DeclareV1Index > 0 {
-					declareV1Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-					require.True(t, ok, "Expected declare v1 transaction.")
-					declareV1Block, ok := block.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-					require.True(t, ok, "Expected declare v1 transaction.")
-
-					require.Exactly(t, declareV1Expected, declareV1Block)
-				}
-
-				// validates an BlockDeclareV2 transaction
-				if test.DeclareV2Index > 0 {
-					declareV2Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-					require.True(t, ok, "Expected declare v2 transaction.")
-					declareV2Block, ok := block.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-					require.True(t, ok, "Expected declare v2 transaction.")
-
-					require.Exactly(t, declareV2Expected, declareV2Block)
-				}
-
-				// validates an BlockDeployAccountV1 transaction
-				if test.DeployAccountV1Index > 0 {
-					deployAccountV1Expected, ok := test.ExpectedBlock.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-					require.True(t, ok, "Expected deploy account v1 transaction.")
-					deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-					require.True(t, ok, "Expected deploy account v1 transaction.")
-
-					require.Exactly(t, deployAccountV1Expected, deployAccountV1Block)
-				}
-
-				// validates an BlockL1HandlerV0 transaction
-				if test.L1HandlerV0Index > 0 {
-					l1HandlerV0Expected, ok := test.ExpectedBlock.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-					require.True(t, ok, "Expected L1 handler transaction.")
-					l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-					require.True(t, ok, "Expected L1 handler transaction.")
-
-					require.Exactly(t, l1HandlerV0Expected, l1HandlerV0Block)
-				}
-			}
-		}
+		})
 	}
 }
 
@@ -373,9 +410,9 @@ func TestBlockWithTxs(t *testing.T) {
 //
 //	none
 func TestBlockTransactionCount(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID       BlockID
@@ -403,9 +440,23 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:       WithBlockNumber(30000),
+				ExpectedCount: 4,
+			},
+			{
+				BlockID:       WithBlockNumber(529590),
+				ExpectedCount: 6,
+			},
+			{
+				BlockID:       WithBlockNumber(7338746823462834783),
+				ExpectedError: ErrBlockNotFound,
+			},
+		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		count, err := testConfig.provider.BlockTransactionCount(context.Background(), test.BlockID)
+		count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
 		if err != nil {
 			require.EqualError(t, test.ExpectedError, err.Error())
 		} else {
@@ -425,7 +476,7 @@ func TestBlockTransactionCount(t *testing.T) {
 func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		StartBlock uint64
@@ -441,7 +492,7 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
 			require.NoError(t, err)
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
@@ -480,9 +531,9 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 //
 //	none
 func TestStateUpdate(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID                   BlockID
@@ -496,7 +547,7 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					PendingStateUpdate: PendingStateUpdate{
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
 						StateDiff: StateDiff{
 							StorageDiffs: []ContractStorageDiffItem{
@@ -521,7 +572,7 @@ func TestStateUpdate(t *testing.T) {
 				ExpectedStateUpdateOutput: StateUpdateOutput{
 					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
 					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					PendingStateUpdate: PendingStateUpdate{
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
 						OldRoot: internalUtils.TestHexToFelt(t, "0x1d2922de7bb14766d0c3aa323876d9f5a4b1733f6dc199bbe596d06dd8f70e4"),
 						StateDiff: StateDiff{
 							StorageDiffs: []ContractStorageDiffItem{
@@ -637,11 +688,96 @@ func TestStateUpdate(t *testing.T) {
 				},
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				BlockID: WithBlockNumber(30000),
+				ExpectedStateUpdateOutput: StateUpdateOutput{
+					BlockHash: internalUtils.TestHexToFelt(t, "0x7ea6a0b34ef6f1b70d604d49f4d74194ffe469a6dae9032d161cdcf41765c7d"),
+					NewRoot:   internalUtils.TestHexToFelt(t, "0x64bcce6a527b08468d19272bc983c96fed203ceee349dd25d254e2dd55f4d15"),
+					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
+						OldRoot: internalUtils.TestHexToFelt(t, "0x56b53b03314bb7ba59d3857101b3cbcc3964abe0a2ff6e4dfe55275cfb4662a"),
+						StateDiff: StateDiff{
+							StorageDiffs: []ContractStorageDiffItem{
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
+											Value: internalUtils.TestHexToFelt(t, "0xaec9124c8ebf66a"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
+											Value: internalUtils.TestHexToFelt(t, "0x3453d83976b3a9c46"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
+											Value: internalUtils.TestHexToFelt(t, "0x202c5731346dac20f29"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
+											Value: internalUtils.TestHexToFelt(t, "0x72b879f81dca55140e6"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x3c0d5831d7f82a24e775f11648c93291b11ff3cd534f453aa1153ab8345fd63"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f1"),
+											Value: internalUtils.TestHexToFelt(t, "0x1dcc6c56e96e5271d3e12c16cf1d1492b7718d0fbc6838da25892717ce5f449"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5"),
+											Value: internalUtils.TestHexToFelt(t, "0x66"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f2"),
+											Value: internalUtils.TestHexToFelt(t, "0x9aed6d58cb3da27c876b80641983098961098701ae303ea4285c73d094e7d9"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x75dee990300b73f75e44a7d809aa089d3ee0d0023a9069efd3441a41a530ead"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274eae"),
+											Value: internalUtils.TestHexToFelt(t, "0x5abfbc84231f3a1c7647ac748c937aa6ea21bad7d3f9da00babacb4cb111c41"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274ead"),
+											Value: internalUtils.TestHexToFelt(t, "0x4735f9fc5266e2d156600e1cd3ae4f960c87170f1bdad89e1cce5d580299ef7"),
+										},
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x5"),
+											Value: internalUtils.TestHexToFelt(t, "0x456"),
+										},
+									},
+								},
+								{
+									Address: internalUtils.TestHexToFelt(t, "0x1"),
+									StorageEntries: []StorageEntry{
+										{
+											Key:   internalUtils.TestHexToFelt(t, "0x7526"),
+											Value: internalUtils.TestHexToFelt(t, "0xb1f83cd79527fec4159d2e7082931e7f3ddef02248fdff666709f49ea6d4e7"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.provider.c)
-		testConfig.provider.c = spy
-		stateUpdate, err := testConfig.provider.StateUpdate(context.Background(), test.BlockID)
+		spy := NewSpy(testConfig.Provider.c)
+		testConfig.Provider.c = spy
+		stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
 		require.NoError(t, err, "Unable to fetch the given block.")
 
 		require.Equal(
@@ -657,8 +793,8 @@ func TestStateUpdate(t *testing.T) {
 	}
 }
 
-func validatePendingBlockHeader(t *testing.T, pBlock *PendingBlockHeader) {
-	require.NotZero(t, pBlock.ParentHash)
+func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
+	require.NotZero(t, pBlock.Number)
 	require.NotZero(t, pBlock.Timestamp)
 	require.NotZero(t, pBlock.SequencerAddress)
 	require.NotZero(t, pBlock.L1GasPrice)
