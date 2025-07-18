@@ -153,7 +153,7 @@ func checkForPre_confirmed(b BlockID) error {
 //   - []byte: the JSON representation of the BlockID
 //   - error: any error that occurred during the marshalling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
-	if b.Tag == BlockTagPre_confirmed || b.Tag == BlockTagLatest {
+	if b.Tag == BlockTagPre_confirmed || b.Tag == BlockTagLatest || b.Tag == BlockTagL1Accepted {
 		return []byte(strconv.Quote(string(b.Tag))), nil
 	}
 
