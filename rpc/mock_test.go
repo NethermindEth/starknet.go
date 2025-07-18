@@ -1154,8 +1154,22 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 			Pre_confirmedBlock{
 				Pre_confirmedBlockHeader{
 					Number:           1234,
-					Timestamp:        123,
+					Timestamp:        1234,
 					SequencerAddress: internalUtils.RANDOM_FELT,
+					L1GasPrice: ResourcePrice{
+						PriceInFRI: internalUtils.RANDOM_FELT,
+						PriceInWei: internalUtils.RANDOM_FELT,
+					},
+					L2GasPrice: ResourcePrice{
+						PriceInFRI: internalUtils.RANDOM_FELT,
+						PriceInWei: internalUtils.RANDOM_FELT,
+					},
+					L1DataGasPrice: ResourcePrice{
+						PriceInFRI: internalUtils.RANDOM_FELT,
+						PriceInWei: internalUtils.RANDOM_FELT,
+					},
+					L1DAMode:        L1DAModeBlob,
+					StarknetVersion: "0.14.0",
 				},
 				[]BlockTransaction{},
 			},

@@ -8,6 +8,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -260,15 +261,32 @@ func TestBlockWithTxs(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag("latest"),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag("pre_confirmed"),
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
 					Pre_confirmedBlockHeader{
 						Number:           1234,
-						Timestamp:        123,
+						Timestamp:        1234,
 						SequencerAddress: internalUtils.RANDOM_FELT,
+						L1GasPrice: ResourcePrice{
+							PriceInFRI: internalUtils.RANDOM_FELT,
+							PriceInWei: internalUtils.RANDOM_FELT,
+						},
+						L2GasPrice: ResourcePrice{
+							PriceInFRI: internalUtils.RANDOM_FELT,
+							PriceInWei: internalUtils.RANDOM_FELT,
+						},
+						L1DataGasPrice: ResourcePrice{
+							PriceInFRI: internalUtils.RANDOM_FELT,
+							PriceInWei: internalUtils.RANDOM_FELT,
+						},
+						L1DAMode:        L1DAModeBlob,
+						StarknetVersion: "0.14.0",
 					},
 					[]BlockTransaction{},
 				},
@@ -286,10 +304,13 @@ func TestBlockWithTxs(t *testing.T) {
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockTag("latest"),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag("pre_confirmed"),
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
 				BlockID:              WithBlockNumber(65083),
@@ -308,10 +329,13 @@ func TestBlockWithTxs(t *testing.T) {
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockTag("latest"),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag("pre_confirmed"),
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
 				BlockID:       WithBlockNumber(1300000),
@@ -333,72 +357,72 @@ func TestBlockWithTxs(t *testing.T) {
 				if test.ExpectedPre_confirmedBlock == nil {
 					validatePre_confirmedBlockHeader(t, &block.Pre_confirmedBlockHeader)
 				} else {
-					require.Exactly(t, test.ExpectedPre_confirmedBlock, block)
+					assert.Exactly(t, test.ExpectedPre_confirmedBlock, block)
 				}
 			case *Block:
 				if test.ExpectedBlock == nil {
-					require.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
+					assert.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
 				} else {
-					require.Exactly(t, test.ExpectedBlock, block)
+					assert.Exactly(t, test.ExpectedBlock, block)
 
 					// validates an BlockInvokeV1 transaction
 					if test.InvokeV1Index > 0 {
 						invokeV1Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-						require.True(t, ok, "Expected invoke v1 transaction.")
+						assert.True(t, ok, "Expected invoke v1 transaction.")
 						invokeV1Block, ok := block.Transactions[test.InvokeV1Index].Transaction.(InvokeTxnV1)
-						require.True(t, ok, "Expected invoke v1 transaction.")
+						assert.True(t, ok, "Expected invoke v1 transaction.")
 
-						require.Exactly(t, invokeV1Expected, invokeV1Block)
+						assert.Exactly(t, invokeV1Expected, invokeV1Block)
 					}
 
 					// validates an BlockInvokeV3 transaction
 					if test.InvokeV3Index > 0 {
 						invokeV3Expected, ok := test.ExpectedBlock.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-						require.True(t, ok, "Expected invoke v3 transaction.")
+						assert.True(t, ok, "Expected invoke v3 transaction.")
 						invokeV3Block, ok := block.Transactions[test.InvokeV3Index].Transaction.(InvokeTxnV3)
-						require.True(t, ok, "Expected invoke v3 transaction.")
+						assert.True(t, ok, "Expected invoke v3 transaction.")
 
-						require.Exactly(t, invokeV3Expected, invokeV3Block)
+						assert.Exactly(t, invokeV3Expected, invokeV3Block)
 					}
 
 					// validates an BlockDeclareV1 transaction
 					if test.DeclareV1Index > 0 {
 						declareV1Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-						require.True(t, ok, "Expected declare v1 transaction.")
+						assert.True(t, ok, "Expected declare v1 transaction.")
 						declareV1Block, ok := block.Transactions[test.DeclareV1Index].Transaction.(DeclareTxnV1)
-						require.True(t, ok, "Expected declare v1 transaction.")
+						assert.True(t, ok, "Expected declare v1 transaction.")
 
-						require.Exactly(t, declareV1Expected, declareV1Block)
+						assert.Exactly(t, declareV1Expected, declareV1Block)
 					}
 
 					// validates an BlockDeclareV2 transaction
 					if test.DeclareV2Index > 0 {
 						declareV2Expected, ok := test.ExpectedBlock.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-						require.True(t, ok, "Expected declare v2 transaction.")
+						assert.True(t, ok, "Expected declare v2 transaction.")
 						declareV2Block, ok := block.Transactions[test.DeclareV2Index].Transaction.(DeclareTxnV2)
-						require.True(t, ok, "Expected declare v2 transaction.")
+						assert.True(t, ok, "Expected declare v2 transaction.")
 
-						require.Exactly(t, declareV2Expected, declareV2Block)
+						assert.Exactly(t, declareV2Expected, declareV2Block)
 					}
 
 					// validates an BlockDeployAccountV1 transaction
 					if test.DeployAccountV1Index > 0 {
 						deployAccountV1Expected, ok := test.ExpectedBlock.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-						require.True(t, ok, "Expected deploy account v1 transaction.")
+						assert.True(t, ok, "Expected deploy account v1 transaction.")
 						deployAccountV1Block, ok := block.Transactions[test.DeployAccountV1Index].Transaction.(DeployAccountTxnV1)
-						require.True(t, ok, "Expected deploy account v1 transaction.")
+						assert.True(t, ok, "Expected deploy account v1 transaction.")
 
-						require.Exactly(t, deployAccountV1Expected, deployAccountV1Block)
+						assert.Exactly(t, deployAccountV1Expected, deployAccountV1Block)
 					}
 
 					// validates an BlockL1HandlerV0 transaction
 					if test.L1HandlerV0Index > 0 {
 						l1HandlerV0Expected, ok := test.ExpectedBlock.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-						require.True(t, ok, "Expected L1 handler transaction.")
+						assert.True(t, ok, "Expected L1 handler transaction.")
 						l1HandlerV0Block, ok := block.Transactions[test.L1HandlerV0Index].Transaction.(L1HandlerTxn)
-						require.True(t, ok, "Expected L1 handler transaction.")
+						assert.True(t, ok, "Expected L1 handler transaction.")
 
-						require.Exactly(t, l1HandlerV0Expected, l1HandlerV0Block)
+						assert.Exactly(t, l1HandlerV0Expected, l1HandlerV0Block)
 					}
 				}
 			}
@@ -807,10 +831,11 @@ func TestStateUpdate(t *testing.T) {
 }
 
 func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
-	require.NotZero(t, pBlock.Number)
-	require.NotZero(t, pBlock.Timestamp)
-	require.NotZero(t, pBlock.SequencerAddress)
-	require.NotZero(t, pBlock.L1GasPrice)
-	require.NotZero(t, pBlock.StarknetVersion)
-	require.NotZero(t, pBlock.L1DataGasPrice)
+	assert.NotZero(t, pBlock.Number)
+	assert.NotZero(t, pBlock.Timestamp)
+	assert.NotZero(t, pBlock.SequencerAddress)
+	assert.NotZero(t, pBlock.L1GasPrice)
+	assert.NotZero(t, pBlock.L2GasPrice)
+	assert.NotZero(t, pBlock.L1DataGasPrice)
+	assert.NotZero(t, pBlock.StarknetVersion)
 }
