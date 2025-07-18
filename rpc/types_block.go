@@ -116,9 +116,9 @@ type BlockTag string
 const (
 	// The block which is currently being built by the block proposer in height `latest` + 1.
 	BlockTagPre_confirmed BlockTag = "pre_confirmed"
-	// The latest Starknet block finalized by the consensus on L2.
+	// The latest Starknet block finalised by the consensus on L2.
 	BlockTagLatest BlockTag = "latest"
-	// The latest Starknet block which was included in a state update on L1 and finalized by the consensus on L1.
+	// The latest Starknet block which was included in a state update on L1 and finalised by the consensus on L1.
 	BlockTagL1Accepted BlockTag = "l1_accepted"
 )
 
