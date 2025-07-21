@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -99,12 +100,12 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	type testSetType struct {
 		BlockID     BlockID
 		Index       uint64
-		ExpectedTxn BlockTransaction
+		ExpectedTxn *BlockTransaction
 	}
 
-	InvokeTxnV3example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	InvokeTxnV3example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
 
-	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByBlockIndex/integration-1300000-0.json", "result")
+	integrationInvokeV3Example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByBlockIndex/integration-1300000-0.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -120,6 +121,19 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				Index:       3,
 				ExpectedTxn: InvokeTxnV3example,
 			},
+			{
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				Index:   0,
+			},
+			{
+				BlockID:     WithBlockTag(BlockTagL1Accepted),
+				Index:       3,
+				ExpectedTxn: InvokeTxnV3example,
+			},
+			{
+				BlockID: WithBlockTag(BlockTagLatest),
+				Index:   0,
+			},
 		},
 		tests.IntegrationEnv: {
 			{
@@ -130,10 +144,19 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
-		require.NoError(t, err)
-		require.NotNil(t, tx)
-		assert.Equal(t, test.ExpectedTxn, *tx)
+		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
+			tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+			if err != nil {
+				// in case the block has no transactions
+				assert.EqualError(t, err, ErrInvalidTxnIndex.Error())
+				return
+			}
+			if test.ExpectedTxn != nil {
+				assert.Equal(t, test.ExpectedTxn, tx)
+				return
+			}
+			assert.NotEmpty(t, tx)
+		})
 	}
 }
 
