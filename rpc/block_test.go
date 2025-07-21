@@ -455,13 +455,25 @@ func TestBlockTransactionCount(t *testing.T) {
 
 	type testSetType struct {
 		BlockID       BlockID
-		ExpectedCount uint64
+		ExpectedCount int64
 		ExpectedError error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				BlockID:       WithBlockNumber(300000),
+				ExpectedCount: 10,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedCount: 10,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				ExpectedCount: 10,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagL1Accepted),
 				ExpectedCount: 10,
 			},
 		},
@@ -473,6 +485,18 @@ func TestBlockTransactionCount(t *testing.T) {
 			{
 				BlockID:       WithBlockNumber(52959),
 				ExpectedCount: 58,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				ExpectedCount: -1,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedCount: -1,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagL1Accepted),
+				ExpectedCount: -1,
 			},
 			{
 				BlockID:       WithBlockNumber(7338746823462834783),
@@ -495,12 +519,21 @@ func TestBlockTransactionCount(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
-		if err != nil {
-			require.EqualError(t, test.ExpectedError, err.Error())
-		} else {
-			require.Equalf(t, test.ExpectedCount, count, "structure expecting %d, instead: %d", test.ExpectedCount, count)
-		}
+		t.Run(fmt.Sprintf("Count: %v, BlockID: %v", test.ExpectedCount, test.BlockID), func(t *testing.T) {
+			count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
+			if test.ExpectedError != nil {
+				require.EqualError(t, test.ExpectedError, err.Error())
+				return
+			}
+			require.NoError(t, err)
+
+			if test.ExpectedCount == -1 {
+				// since 0 is the default value of an int64 var, let's set the expected count to -1 when we want to skip the count check
+				return
+			}
+
+			assert.Equal(t, uint64(test.ExpectedCount), count)
+		})
 	}
 }
 
