@@ -494,6 +494,21 @@ func TestNonce(t *testing.T) {
 				Block:           WithBlockNumber(69399),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
+			{
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+			},
+			{
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				Block:           WithBlockTag(BlockTagPre_confirmed),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+			},
+			{
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				Block:           WithBlockTag(BlockTagL1Accepted),
+				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+			},
 		},
 		tests.IntegrationEnv: {
 			{
@@ -512,10 +527,12 @@ func TestNonce(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		nonce, err := testConfig.Provider.Nonce(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(t, err)
-		require.NotNil(t, nonce, "should return a nonce")
-		require.Equal(t, test.ExpectedNonce, nonce)
+		t.Run(fmt.Sprintf("blockID: %v, contractAddress: %s", test.Block, test.ContractAddress), func(t *testing.T) {
+			nonce, err := testConfig.Provider.Nonce(context.Background(), test.Block, test.ContractAddress)
+			require.NoError(t, err)
+			require.NotNil(t, nonce, "should return a nonce")
+			require.Equal(t, test.ExpectedNonce, nonce)
+		})
 	}
 }
 
