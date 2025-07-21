@@ -536,7 +536,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst MessageFeeEstimation
+		ExpectedFeeEst *MessageFeeEstimation
 		ExpectedError  *RPCError
 	}
 
@@ -559,7 +559,7 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: MessageFeeEstimation{
+				ExpectedFeeEst: &MessageFeeEstimation{
 					FeeEstimationCommon: FeeEstimationCommon{
 						L1GasConsumed:     internalUtils.RANDOM_FELT,
 						L1GasPrice:        internalUtils.RANDOM_FELT,
@@ -577,7 +577,7 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(523066),
-				ExpectedFeeEst: MessageFeeEstimation{
+				ExpectedFeeEst: &MessageFeeEstimation{
 					FeeEstimationCommon: FeeEstimationCommon{
 						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed3"),
 						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
@@ -589,6 +589,21 @@ func TestEstimateMessageFee(t *testing.T) {
 					},
 					Unit: WeiUnit,
 				},
+			},
+			{
+				MsgFromL1:      l1Handler,
+				BlockID:        WithBlockTag(BlockTagLatest),
+				ExpectedFeeEst: nil,
+			},
+			{
+				MsgFromL1:      l1Handler,
+				BlockID:        WithBlockTag(BlockTagPre_confirmed),
+				ExpectedFeeEst: nil,
+			},
+			{
+				MsgFromL1:      l1Handler,
+				BlockID:        WithBlockTag(BlockTagL1Accepted),
+				ExpectedFeeEst: nil,
 			},
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
@@ -609,15 +624,23 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
-		if err != nil {
-			rpcErr, ok := err.(*RPCError)
-			require.True(t, ok)
-			require.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			require.Equal(t, test.ExpectedError.Message, rpcErr.Message)
-		} else {
-			require.Exactly(t, test.ExpectedFeeEst, resp)
-		}
+		t.Run(fmt.Sprintf("blockID: %v, fromAddress: %s", test.BlockID, test.FromAddress), func(t *testing.T) {
+			resp, err := testConfig.Provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
+			if test.ExpectedError != nil {
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+				return
+			}
+			require.NoError(t, err)
+
+			if test.ExpectedFeeEst != nil {
+				assert.Exactly(t, *test.ExpectedFeeEst, resp)
+				return
+			}
+			assert.NotEmpty(t, resp)
+		})
 	}
 }
 
