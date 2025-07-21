@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -230,27 +231,39 @@ func TestClass(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:         WithBlockTag("pre_confirmed"),
-				ClassHash:       internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+				BlockID:         WithBlockTag(BlockTagPre_confirmed),
+				ClassHash:       internalUtils.RANDOM_FELT,
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
 		tests.TestnetEnv: {
 			// v0 class
 			{
-				BlockID:         WithBlockTag("latest"),
+				BlockID:         WithBlockTag(BlockTagLatest),
 				ClassHash:       internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 			// v2 classes
 			{
-				BlockID:                       WithBlockTag("latest"),
+				BlockID:                       WithBlockTag(BlockTagLatest),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 34, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 			{
-				BlockID:                       WithBlockTag("latest"),
+				BlockID:                       WithBlockTag(BlockTagLatest),
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+			{
+				BlockID:                       WithBlockTag(BlockTagPre_confirmed),
+				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+			},
+			{
+				BlockID:                       WithBlockTag(BlockTagL1Accepted),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
@@ -259,7 +272,7 @@ func TestClass(t *testing.T) {
 		tests.IntegrationEnv: {
 			// v2 class
 			{
-				BlockID:                       WithBlockTag("latest"),
+				BlockID:                       WithBlockTag(BlockTagLatest),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x1ec80b01438a4b40600900e4b8578b123001c0a0090122f4578b1").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 38, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
@@ -268,7 +281,7 @@ func TestClass(t *testing.T) {
 		tests.MainnetEnv: {
 			// v2 class
 			{
-				BlockID:                       WithBlockTag("latest"),
+				BlockID:                       WithBlockTag(BlockTagLatest),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
@@ -277,18 +290,20 @@ func TestClass(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.Class(context.Background(), test.BlockID, test.ClassHash)
-		require.NoError(t, err)
+		t.Run(fmt.Sprintf("BlockID: %v, ClassHash: %v", test.BlockID, test.ClassHash), func(t *testing.T) {
+			resp, err := testConfig.Provider.Class(context.Background(), test.BlockID, test.ClassHash)
+			require.NoError(t, err)
 
-		switch class := resp.(type) {
-		case *contracts.DeprecatedContractClass:
-			assert.Contains(t, class.Program, test.ExpectedProgram)
-		case *contracts.ContractClass:
-			assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-			assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
-		default:
-			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
-		}
+			switch class := resp.(type) {
+			case *contracts.DeprecatedContractClass:
+				assert.Contains(t, class.Program, test.ExpectedProgram)
+			case *contracts.ContractClass:
+				assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+				assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+			default:
+				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+			}
+		})
 	}
 }
 
