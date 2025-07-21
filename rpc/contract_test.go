@@ -321,10 +321,22 @@ func TestStorageAt(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+				ContractHash:  internalUtils.RANDOM_FELT,
 				StorageKey:    "_signer",
-				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0xdeadbeef",
+				Block:         WithBlockTag(BlockTagPre_confirmed),
+				ExpectedValue: internalUtils.RANDOM_FELT.String(),
+			},
+			{
+				ContractHash:  internalUtils.RANDOM_FELT,
+				StorageKey:    "_signer",
+				Block:         WithBlockTag(BlockTagLatest),
+				ExpectedValue: internalUtils.RANDOM_FELT.String(),
+			},
+			{
+				ContractHash:  internalUtils.RANDOM_FELT,
+				StorageKey:    "_signer",
+				Block:         WithBlockTag(BlockTagL1Accepted),
+				ExpectedValue: internalUtils.RANDOM_FELT.String(),
 			},
 		},
 		tests.DevnetEnv: {
@@ -340,6 +352,24 @@ func TestStorageAt(t *testing.T) {
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:    "_signer",
 				Block:         WithBlockNumber(69399),
+				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+			},
+			{
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:    "_signer",
+				Block:         WithBlockTag(BlockTagPre_confirmed),
+				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+			},
+			{
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:    "_signer",
+				Block:         WithBlockTag(BlockTagL1Accepted),
+				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+			},
+			{
+				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:    "_signer",
+				Block:         WithBlockTag(BlockTagLatest),
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 		},
