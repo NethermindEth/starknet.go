@@ -639,6 +639,9 @@ func TestEstimateFee(t *testing.T) {
 	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "")
 
+	bradcastInvokeV3WithNewNonce := bradcastInvokeV3
+	bradcastInvokeV3WithNewNonce.Nonce = new(felt.Felt).SetUint64(84)
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
@@ -734,6 +737,36 @@ func TestEstimateFee(t *testing.T) {
 						Unit: FriUnit,
 					},
 				},
+			},
+			{
+				description: "with flag - latest block tag",
+				txs: []BroadcastTxn{
+					bradcastInvokeV3WithNewNonce,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockTag(BlockTagLatest),
+				expectedError: nil,
+				expectedResp:  nil,
+			},
+			{
+				description: "with flag - pre_confirmed block tag",
+				txs: []BroadcastTxn{
+					bradcastInvokeV3WithNewNonce,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockTag(BlockTagPre_confirmed),
+				expectedError: nil,
+				expectedResp:  nil,
+			},
+			{
+				description: "with flag - l1_accepted block tag",
+				txs: []BroadcastTxn{
+					bradcastInvokeV3WithNewNonce,
+				},
+				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				blockID:       WithBlockTag(BlockTagL1Accepted),
+				expectedError: nil,
+				expectedResp:  nil,
 			},
 			{
 				description: "invalid transaction",
@@ -865,7 +898,9 @@ func TestEstimateFee(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			assert.Exactly(t, test.expectedResp, resp)
+			if test.expectedResp != nil {
+				assert.Exactly(t, test.expectedResp, resp)
+			}
 		})
 	}
 }
