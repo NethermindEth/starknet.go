@@ -127,17 +127,27 @@ const (
 type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
-	Tag    BlockTag   `json:"block_tag,omitempty"`
+	Tag    BlockTag   `json:",omitempty"`
 }
 
-// checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it does, it returns an error.
-// This is used to prevent the user from using the 'pre_confirmed' tag on methods that do not support it.
-func checkForPre_confirmed(b BlockID) error {
-	if b.Tag == BlockTagPre_confirmed {
-		return errors.Join(ErrInvalidBlockID, errors.New("'pre_confirmed' tag is not supported on this method"))
+func (b *BlockID) UnmarshalJSON(data []byte) error {
+	var tag string
+
+	if err := json.Unmarshal(data, &tag); err == nil {
+		if tag == string(BlockTagPre_confirmed) || tag == string(BlockTagLatest) || tag == string(BlockTagL1Accepted) {
+			b.Tag = BlockTag(tag)
+			return nil
+		}
 	}
 
-	return nil
+	type Alias BlockID
+	var aux Alias
+	if err := json.Unmarshal(data, &aux); err == nil {
+		*b = BlockID(aux)
+		return nil
+	}
+
+	return errors.New("invalid block ID")
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
@@ -170,6 +180,16 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(nil)
+}
+
+// checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it does, it returns an error.
+// This is used to prevent the user from using the 'pre_confirmed' tag on methods that do not support it.
+func checkForPre_confirmed(b BlockID) error {
+	if b.Tag == BlockTagPre_confirmed {
+		return errors.Join(ErrInvalidBlockID, errors.New("'pre_confirmed' tag is not supported on this method"))
+	}
+
+	return nil
 }
 
 type BlockStatus string
