@@ -45,8 +45,8 @@ func TestClassAt(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
-				ExpectedOperation: "0xdeadbeef",
+				ContractAddress:   internalUtils.RANDOM_FELT,
+				ExpectedOperation: internalUtils.RANDOM_FELT.String(),
 				Block:             WithBlockNumber(58344),
 			},
 		},
@@ -62,6 +62,21 @@ func TestClassAt(t *testing.T) {
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
 				Block:             WithBlockNumber(65168),
+			},
+			{
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
+				Block:             WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
+				Block:             WithBlockTag(BlockTagLatest),
+			},
+			{
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
+				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
+				Block:             WithBlockTag(BlockTagL1Accepted),
 			},
 		},
 		tests.IntegrationEnv: {
@@ -81,37 +96,39 @@ func TestClassAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
-		require.NoError(t, err)
+		t.Run(fmt.Sprintf("BlockID: %v, ContractAddress: %v", test.Block, test.ContractAddress), func(t *testing.T) {
+			resp, err := testConfig.Provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
+			require.NoError(t, err)
 
-		switch class := resp.(type) {
-		case *contracts.DeprecatedContractClass:
-			require.NotEmpty(t, class.Program, "code should exist")
+			switch class := resp.(type) {
+			case *contracts.DeprecatedContractClass:
+				require.NotEmpty(t, class.Program, "code should exist")
 
-			require.Condition(t, func() bool {
-				for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
-					if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
-						return true
+				assert.Condition(t, func() bool {
+					for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
+						if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
+							return true
+						}
 					}
-				}
 
-				return false
-			}, "operation not found in the class")
-		case *contracts.ContractClass:
-			require.NotEmpty(t, class.SierraProgram, "code should exist")
+					return false
+				}, "operation not found in the class")
+			case *contracts.ContractClass:
+				require.NotEmpty(t, class.SierraProgram, "code should exist")
 
-			require.Condition(t, func() bool {
-				for _, entryPointsByType := range class.EntryPointsByType.External {
-					if test.ExpectedOperation == entryPointsByType.Selector.String() {
-						return true
+				assert.Condition(t, func() bool {
+					for _, entryPointsByType := range class.EntryPointsByType.External {
+						if test.ExpectedOperation == entryPointsByType.Selector.String() {
+							return true
+						}
 					}
-				}
 
-				return false
-			}, "operation not found in the class")
-		default:
-			t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
-		}
+					return false
+				}, "operation not found in the class")
+			default:
+				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+			}
+		})
 	}
 }
 
