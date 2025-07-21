@@ -49,7 +49,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
+				BlockID:               WithBlockTag(BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
@@ -57,23 +57,43 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+					ContractAddress:    internalUtils.RANDOM_FELT,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
-				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+				BlockID:               WithBlockTag(BlockTagLatest),
+				ExpectedPatternResult: internalUtils.RANDOM_FELT,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				name: "Ok",
+				name: "Ok - latest block tag",
 				FunctionCall: FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
+				BlockID:               WithBlockTag(BlockTagLatest),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
+			},
+			{
+				name: "Ok - pre_confirmed block tag",
+				FunctionCall: FunctionCall{
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:               WithBlockTag(BlockTagPre_confirmed),
+				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
+			},
+			{
+				name: "Ok - l1_accepted block tag",
+				FunctionCall: FunctionCall{
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
+					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
+					Calldata:           []*felt.Felt{},
+				},
+				BlockID:               WithBlockTag(BlockTagL1Accepted),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
@@ -83,7 +103,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{&felt.Zero},
 				},
-				BlockID:       WithBlockTag("latest"),
+				BlockID:       WithBlockTag(BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
@@ -93,7 +113,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       WithBlockTag("latest"),
+				BlockID:       WithBlockTag(BlockTagLatest),
 				ExpectedError: ErrEntrypointNotFound,
 			},
 			{
@@ -113,7 +133,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       WithBlockTag("latest"),
+				BlockID:       WithBlockTag(BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 		},
@@ -125,7 +145,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
+				BlockID:               WithBlockTag(BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
@@ -137,14 +157,14 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag("latest"),
+				BlockID:               WithBlockTag(BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("Network: %s, Test: %s", tests.TEST_ENV, test.name), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Test: %s", test.name), func(t *testing.T) {
 			output, err := testConfig.Provider.Call(context.Background(), test.FunctionCall, test.BlockID)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)
