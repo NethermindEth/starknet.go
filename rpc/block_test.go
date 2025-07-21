@@ -2,7 +2,9 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -573,261 +575,138 @@ func TestStateUpdate(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                   BlockID
-		ExpectedStateUpdateOutput StateUpdateOutput
+		BlockID                       BlockID
+		ExpectedStateUpdateOutputPath string
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockNumber(30000),
-				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
-					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
-						OldRoot: internalUtils.TestHexToFelt(t, "0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af"),
-						StateDiff: StateDiff{
-							StorageDiffs: []ContractStorageDiffItem{
-								{
-									Address: internalUtils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-											Value: internalUtils.TestHexToFelt(t, "0x630b4197"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				BlockID:                       WithBlockNumber(30000),
+				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_30000.json",
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockNumber(30000),
-				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: internalUtils.TestHexToFelt(t, "0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938"),
-					NewRoot:   internalUtils.TestHexToFelt(t, "0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec"),
-					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
-						OldRoot: internalUtils.TestHexToFelt(t, "0x1d2922de7bb14766d0c3aa323876d9f5a4b1733f6dc199bbe596d06dd8f70e4"),
-						StateDiff: StateDiff{
-							StorageDiffs: []ContractStorageDiffItem{
-								{
-									Address: internalUtils.TestHexToFelt(t, "0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e"),
-											Value: internalUtils.TestHexToFelt(t, "0x630b4197"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x7b3303ee433d39925f7c289cd2048052a2d8e2d653bdd7cdfa6a6ab8365445d"),
-											Value: internalUtils.TestHexToFelt(t, "0x462893a80b9b5834"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
-											Value: internalUtils.TestHexToFelt(t, "0x1bc48439cb7402fb6"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x36031daa264c24520b11d93af622c848b2499b66b41d611bac95e13cfca131a"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x6f64efd140d53af83432093bb6c3d5e8db645bd89feead6dda806955f68ef2a"),
-											Value: internalUtils.TestHexToFelt(t, "0x3df78515979000000000000000000000000065bfec4b"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x143dae8bc0e9898f65cb1eb84f16bfb9cb09431972541141677721dd541f055"),
-											Value: internalUtils.TestHexToFelt(t, "0x5f35296000000000000000000000000065bfec4c"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x2d04b0419a0e89f6b4dabc3dc19b087e71f0dec9f1785606f00517d3468636b"),
-											Value: internalUtils.TestHexToFelt(t, "0x5f5f2e4000000000000000000000000065bfec4c"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x55c3ad197a2fa1dce3a999ae803099406fab085f187b926e7e1f0e38592043d"),
-											Value: internalUtils.TestHexToFelt(t, "0x3985cb98c08000000000000000000000000065bfec4b"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x8653303a2624a587179380e17d7876d346aea7f02dbd57782950500ea7276e"),
-											Value: internalUtils.TestHexToFelt(t, "0x3e076b4dfa2000000000000000000000000065bfec4b"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x56041f8991ff7eff841647cfda1f1cfb9e7321c5a96c53d4a5072497de6b50f"),
-											Value: internalUtils.TestHexToFelt(t, "0x23b8c472000000000000000000000000065bfec4c"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x6a6414ca66551a2324e436ed37d069f1660ef01bc3fe90497fc729ee60781b8"),
-											Value: internalUtils.TestHexToFelt(t, "0x3511a8db1d000000000000000000000000065bfec4b"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x437f038e1991939def57775a3405a3b6f0c0830f09d0e6cfc309393950fa773"),
-											Value: internalUtils.TestHexToFelt(t, "0x3d5e14753a000000000000000000000000065bfec4c"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x7b4de97b546ed17a0d490dab334867e9383e029411c268a8902768b6da6a2eb"),
-											Value: internalUtils.TestHexToFelt(t, "0x5f38d0b000000000000000000000000065bfec4b"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x28e86558bd7c5a9c26fceeafb9570eb7b3011db4a9ff813b318f91129935c37"),
-											Value: internalUtils.TestHexToFelt(t, "0xf423c000000000000000000000000065bfec4c"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x1b3f3d264a9c63c581333d4b97c556b6f20f9a1abf64c7f71e04b35df62cc70"),
-											Value: internalUtils.TestHexToFelt(t, "0xf407f000000000000000000000000065bfec4c"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
-											Value: internalUtils.TestHexToFelt(t, "0x5d8da32bae8513cfa"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x295c615dc08b568dce79348e5dd16f45bc6458ddb026f09e16ce03f3c68e12e"),
-											Value: internalUtils.TestHexToFelt(t, "0x218cbd49b5dafd0cec6"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x47ad6a25df680763e5663bd0eba3d2bfd18b24b1e8f6bd36b71c37433c63ed0"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x38b0933d0e83013f5bd5aee82962149fed820534bfc3978a5180646208e7937"),
-											Value: internalUtils.TestHexToFelt(t, "0x7df9d41833d7cf135b059ccc165ed4332cc32ac3eddf3f6239594731b0d8c8"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x38b0933d0e83013f5bd5aee82962149fed820534bfc3978a5180646208e7936"),
-											Value: internalUtils.TestHexToFelt(t, "0x3b2f128039c288928ff492627eba9969d760b7fd0b16f3d39aa18f1f8744765"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x1"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x7526"),
-											Value: internalUtils.TestHexToFelt(t, "0x32f159b038c06f9829d8ee63db1556a3390265b0b49b89c48235b6f77326339"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				BlockID: WithBlockTag(BlockTagLatest),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagL1Accepted),
+			},
+			{
+				BlockID:                       WithBlockNumber(30000),
+				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_30000.json",
+			},
+			{
+				BlockID:                       WithBlockNumber(1060000),
+				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_1_060_000.json",
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockNumber(30000),
-				ExpectedStateUpdateOutput: StateUpdateOutput{
-					BlockHash: internalUtils.TestHexToFelt(t, "0x7ea6a0b34ef6f1b70d604d49f4d74194ffe469a6dae9032d161cdcf41765c7d"),
-					NewRoot:   internalUtils.TestHexToFelt(t, "0x64bcce6a527b08468d19272bc983c96fed203ceee349dd25d254e2dd55f4d15"),
-					Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
-						OldRoot: internalUtils.TestHexToFelt(t, "0x56b53b03314bb7ba59d3857101b3cbcc3964abe0a2ff6e4dfe55275cfb4662a"),
-						StateDiff: StateDiff{
-							StorageDiffs: []ContractStorageDiffItem{
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
-											Value: internalUtils.TestHexToFelt(t, "0xaec9124c8ebf66a"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
-											Value: internalUtils.TestHexToFelt(t, "0x3453d83976b3a9c46"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5fd2d8ba5f4be0a0888ef0fb89ae08b7bc01101dfd572ceaaf71319515710a4"),
-											Value: internalUtils.TestHexToFelt(t, "0x202c5731346dac20f29"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a"),
-											Value: internalUtils.TestHexToFelt(t, "0x72b879f81dca55140e6"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x3c0d5831d7f82a24e775f11648c93291b11ff3cd534f453aa1153ab8345fd63"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f1"),
-											Value: internalUtils.TestHexToFelt(t, "0x1dcc6c56e96e5271d3e12c16cf1d1492b7718d0fbc6838da25892717ce5f449"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5"),
-											Value: internalUtils.TestHexToFelt(t, "0x66"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x59c416708854159443ca790171780441a517bc5fce1d729d869ecc54ff152f2"),
-											Value: internalUtils.TestHexToFelt(t, "0x9aed6d58cb3da27c876b80641983098961098701ae303ea4285c73d094e7d9"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x75dee990300b73f75e44a7d809aa089d3ee0d0023a9069efd3441a41a530ead"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274eae"),
-											Value: internalUtils.TestHexToFelt(t, "0x5abfbc84231f3a1c7647ac748c937aa6ea21bad7d3f9da00babacb4cb111c41"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x1ec72f7bffa16752aeb4195bf3a6e15c4d2525b9247e0cadb5df6c344274ead"),
-											Value: internalUtils.TestHexToFelt(t, "0x4735f9fc5266e2d156600e1cd3ae4f960c87170f1bdad89e1cce5d580299ef7"),
-										},
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x5"),
-											Value: internalUtils.TestHexToFelt(t, "0x456"),
-										},
-									},
-								},
-								{
-									Address: internalUtils.TestHexToFelt(t, "0x1"),
-									StorageEntries: []StorageEntry{
-										{
-											Key:   internalUtils.TestHexToFelt(t, "0x7526"),
-											Value: internalUtils.TestHexToFelt(t, "0xb1f83cd79527fec4159d2e7082931e7f3ddef02248fdff666709f49ea6d4e7"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				BlockID: WithBlockTag(BlockTagLatest),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagPre_confirmed),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagL1Accepted),
+			},
+			{
+				BlockID:                       WithBlockNumber(30000),
+				ExpectedStateUpdateOutputPath: "testData/stateUpdate/integration_30000.json",
 			},
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.Provider.c)
-		testConfig.Provider.c = spy
-		stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
-		require.NoError(t, err, "Unable to fetch the given block.")
+		t.Run(fmt.Sprintf("BlockID: %v", test.BlockID), func(t *testing.T) {
+			spy := NewSpy(testConfig.Provider.c)
+			testConfig.Provider.c = spy
+			stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
+			require.NoError(t, err, "Unable to fetch the given block.")
 
-		require.Equal(
-			t,
-			test.ExpectedStateUpdateOutput.BlockHash.String(),
-			stateUpdate.BlockHash.String(),
-			fmt.Sprintf(
-				"structure expecting %s, instead: %s",
-				test.ExpectedStateUpdateOutput.BlockHash.String(),
-				stateUpdate.BlockHash.String(),
-			),
-		)
+			if test.ExpectedStateUpdateOutputPath != "" {
+				rawExpectedCasmClass, err := os.ReadFile(test.ExpectedStateUpdateOutputPath)
+				require.NoError(t, err)
+
+				rawActualCasmClass, err := json.Marshal(stateUpdate)
+				require.NoError(t, err)
+
+				assertStateUpdateJSONEquality(t, "result", rawExpectedCasmClass, rawActualCasmClass)
+				return
+			}
+			assert.NotEmpty(t, stateUpdate)
+		})
 	}
+}
+
+func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult, result []byte) {
+	// unmarshal to map[string]any
+	var expectedResultMap, resultMap map[string]any
+	require.NoError(t, json.Unmarshal(expectedResult, &expectedResultMap))
+	require.NoError(t, json.Unmarshal(result, &resultMap))
+
+	if subfield != "" {
+		var ok bool
+		expectedResultMap, ok = expectedResultMap[subfield].(map[string]any)
+		require.True(t, ok, "expected result map should have a subfield %s", subfield)
+	}
+
+	assert.Equal(t, expectedResultMap["block_hash"], resultMap["block_hash"])
+	assert.Equal(t, expectedResultMap["new_root"], resultMap["new_root"])
+	assert.Equal(t, expectedResultMap["old_root"], resultMap["old_root"])
+
+	// ********** compare 'state_diff' **********
+	expectedStateDiff, ok := expectedResultMap["state_diff"].(map[string]any)
+	require.True(t, ok)
+	resultStateDiff, ok := resultMap["state_diff"].(map[string]any)
+	require.True(t, ok)
+
+	// compare 'state_diff.storage_diffs'
+	expectedStorageDiffs, ok := expectedStateDiff["storage_diffs"].([]any)
+	require.True(t, ok)
+	resultStorageDiffs, ok := resultStateDiff["storage_diffs"].([]any)
+	require.True(t, ok)
+
+	expectedStorageDiffsMap := make(map[string]any)
+	resultStorageDiffsMap := make(map[string]any)
+
+	for i, expectedStorageDiff := range expectedStorageDiffs {
+		expectedStorageDiffMap, ok := expectedStorageDiff.(map[string]any)
+		require.True(t, ok)
+		address, ok := expectedStorageDiffMap["address"].(string)
+		require.True(t, ok)
+		storageEntries, ok := expectedStorageDiffMap["storage_entries"].([]any)
+		require.True(t, ok)
+
+		expectedStorageDiffsMap[address] = storageEntries
+
+		resultStorageDiffMap, ok := resultStorageDiffs[i].(map[string]any)
+		require.True(t, ok)
+		address2, ok := resultStorageDiffMap["address"].(string)
+		require.True(t, ok)
+		storageEntries2, ok := resultStorageDiffMap["storage_entries"].([]any)
+		require.True(t, ok)
+
+		resultStorageDiffsMap[address2] = storageEntries2
+	}
+
+	assert.Len(t, resultStorageDiffsMap, len(expectedStorageDiffsMap))
+	for address, expectedStorageEntries := range expectedStorageDiffsMap {
+		resultStorageEntries, ok := resultStorageDiffsMap[address]
+		require.True(t, ok, "address %s not found in resultStorageDiffsMap", address)
+		assert.ElementsMatch(t, expectedStorageEntries, resultStorageEntries)
+	}
+
+	// other state diff fields
+	assert.ElementsMatch(t, expectedResultMap["nonces"], resultMap["nonces"])
+	assert.ElementsMatch(t, expectedResultMap["deployed_contracts"], resultMap["deployed_contracts"])
+	assert.ElementsMatch(t, expectedResultMap["deprecated_declared_classes"], resultMap["deprecated_declared_classes"])
+	assert.ElementsMatch(t, expectedResultMap["declared_classes"], resultMap["declared_classes"])
+	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
 
 func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {

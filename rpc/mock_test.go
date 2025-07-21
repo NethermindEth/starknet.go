@@ -1037,35 +1037,9 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 		return errWrongArgs
 	}
 
-	stateFeltArr, err := internalUtils.HexArrToFelt([]string{
-		"0x62ab7b3ade3e7c26d0f50cb539c621b679e07440685d639904663213f906938",
-		"0x491250c959067f21177f50cfdfede2bd9c8f2597f4ed071dbdba4a7ee3dabec",
-		"0x19aa982a75263d4c4de4cc4c5d75c3dec32e00b95bef7bbb4d17762a0b138af",
-		"0xe5cc6f2b6d34979184b88334eb64173fe4300cab46ecd3229633fcc45c83d4",
-		"0x1813aac5f5e7799684c6dc33e51f44d3627fd748c800724a184ed5be09b713e",
-		"0x630b4197",
-	})
+	output, err := internalUtils.UnmarshalJSONFileToType[StateUpdateOutput]("testData/stateUpdate/sepolia_30000.json", "result")
 	if err != nil {
 		return err
-	}
-
-	output := StateUpdateOutput{
-		BlockHash: stateFeltArr[0],
-		NewRoot:   stateFeltArr[1],
-		Pre_confirmedStateUpdate: Pre_confirmedStateUpdate{
-			OldRoot: stateFeltArr[2],
-			StateDiff: StateDiff{
-				StorageDiffs: []ContractStorageDiffItem{{
-					Address: stateFeltArr[3],
-					StorageEntries: []StorageEntry{
-						{
-							Key:   stateFeltArr[4],
-							Value: stateFeltArr[5],
-						},
-					},
-				}},
-			},
-		},
 	}
 	outputContent, err := json.Marshal(output)
 	if err != nil {

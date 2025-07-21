@@ -81,20 +81,18 @@ type StateDiff struct {
 
 // STATE_UPDATE in spec
 type StateUpdateOutput struct {
-	// BlockHash is the block identifier,
+	// BlockHash is the block identifier. Nil for pre_confirmed block.
 	BlockHash *felt.Felt `json:"block_hash"`
-	// NewRoot is the new global state root.
+	// NewRoot is the new global state root. Nil for pre_confirmed block.
 	NewRoot *felt.Felt `json:"new_root"`
-	// Pre_confirmed
 	Pre_confirmedStateUpdate
 }
 
 // PRE_CONFIRMED_STATE_UPDATE in spec
 type Pre_confirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
-	OldRoot *felt.Felt `json:"old_root"`
-	// AcceptedTime is when the block was accepted on L1.
-	StateDiff StateDiff `json:"state_diff"`
+	OldRoot   *felt.Felt `json:"old_root"`
+	StateDiff StateDiff  `json:"state_diff"`
 }
 
 // SyncStatus is An object describing the node synchronisation status
