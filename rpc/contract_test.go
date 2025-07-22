@@ -648,12 +648,14 @@ func TestEstimateMessageFee(t *testing.T) {
 				require.True(t, ok)
 				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
 				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
 				return
 			}
 			require.NoError(t, err)
 
 			if test.ExpectedFeeEst != nil {
 				assert.Exactly(t, *test.ExpectedFeeEst, resp)
+
 				return
 			}
 			assert.NotEmpty(t, resp)

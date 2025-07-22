@@ -523,6 +523,7 @@ func TestBlockTransactionCount(t *testing.T) {
 			count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
 			if test.ExpectedError != nil {
 				require.EqualError(t, test.ExpectedError, err.Error())
+
 				return
 			}
 			require.NoError(t, err)
@@ -669,6 +670,7 @@ func TestStateUpdate(t *testing.T) {
 				require.NoError(t, err)
 
 				assertStateUpdateJSONEquality(t, "result", rawExpectedCasmClass, rawActualCasmClass)
+
 				return
 			}
 			assert.NotEmpty(t, stateUpdate)

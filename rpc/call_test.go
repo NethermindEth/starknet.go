@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -164,7 +163,7 @@ func TestCall(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("Test: %s", test.name), func(t *testing.T) {
+		t.Run("Test: "+test.name, func(t *testing.T) {
 			output, err := testConfig.Provider.Call(context.Background(), test.FunctionCall, test.BlockID)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)

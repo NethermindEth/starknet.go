@@ -103,9 +103,17 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		ExpectedTxn *BlockTransaction
 	}
 
-	InvokeTxnV3example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json", "")
+	InvokeTxnV3example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](
+		t,
+		"./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json",
+		"",
+	)
 
-	integrationInvokeV3Example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByBlockIndex/integration-1300000-0.json", "result")
+	integrationInvokeV3Example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](
+		t,
+		"./testData/txnByBlockIndex/integration-1300000-0.json",
+		"result",
+	)
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -149,10 +157,12 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			if err != nil {
 				// in case the block has no transactions
 				assert.EqualError(t, err, ErrInvalidTxnIndex.Error())
+
 				return
 			}
 			if test.ExpectedTxn != nil {
 				assert.Equal(t, test.ExpectedTxn, tx)
+
 				return
 			}
 			assert.NotEmpty(t, tx)

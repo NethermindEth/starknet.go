@@ -136,6 +136,7 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &tag); err == nil {
 		if tag == string(BlockTagPre_confirmed) || tag == string(BlockTagLatest) || tag == string(BlockTagL1Accepted) {
 			b.Tag = BlockTag(tag)
+
 			return nil
 		}
 	}
@@ -144,6 +145,7 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var aux Alias
 	if err := json.Unmarshal(data, &aux); err == nil {
 		*b = BlockID(aux)
+
 		return nil
 	}
 

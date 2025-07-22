@@ -228,7 +228,8 @@ const (
 type TxnStatusResult struct {
 	FinalityStatus  TxnStatus          `json:"finality_status"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
-	FailureReason   string             `json:"failure_reason,omitempty"`
+	// the failure reason, only appears if execution_status is REVERTED
+	FailureReason string `json:"failure_reason,omitempty"`
 }
 
 // The response of the starknet_subscribeTransactionStatus subscription.
