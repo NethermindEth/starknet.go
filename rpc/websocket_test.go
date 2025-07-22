@@ -208,7 +208,7 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("blockID only", func(t *testing.T) {
+	t.Run("blockID only - 1000 blocks back", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.WsProvider
@@ -254,6 +254,52 @@ func TestSubscribeEvents(t *testing.T) {
 				t.Fatal("timeout waiting for events")
 			}
 		}
+	})
+
+	t.Run("blockID only", func(t *testing.T) {
+		runWithBlockID := func(t *testing.T, blockTag BlockTag) {
+			t.Helper()
+
+			wsProvider := testConfig.WsProvider
+			provider := testConfig.Provider
+			rawBlock, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(blockTag))
+			require.NoError(t, err)
+			expectedBlock, ok := rawBlock.(*BlockTxHashes)
+			require.True(t, ok)
+
+			events := make(chan *EmittedEvent)
+			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+				BlockID: WithBlockTag(blockTag),
+			})
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
+			require.NoError(t, err)
+			require.NotNil(t, sub)
+
+			for {
+				select {
+				case resp := <-events:
+					require.IsType(t, &EmittedEvent{}, resp)
+					require.Equal(t, expectedBlock.Number, resp.BlockNumber)
+
+					return
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				case <-time.After(4 * time.Second):
+					t.Fatal("timeout waiting for events")
+				}
+			}
+
+		}
+
+		t.Run("with tag l1_accepted", func(t *testing.T) {
+			runWithBlockID(t, BlockTagL1Accepted)
+		})
+
+		t.Run("with tag latest", func(t *testing.T) {
+			runWithBlockID(t, BlockTagLatest)
+		})
 	})
 
 	t.Run("fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
