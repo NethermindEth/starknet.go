@@ -42,9 +42,15 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockTag("latest"),
+				subBlockID:      WithBlockTag(BlockTagLatest),
 				isErrorExpected: false,
 				description:     "with tag latest",
+			},
+			{
+				headers:         make(chan *BlockHeader),
+				subBlockID:      WithBlockTag(BlockTagL1Accepted),
+				isErrorExpected: false,
+				description:     "with tag l1_accepted",
 			},
 			{
 				headers:         make(chan *BlockHeader),
@@ -68,9 +74,15 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockTag("latest"),
+				subBlockID:      WithBlockTag(BlockTagLatest),
 				isErrorExpected: false,
 				description:     "with tag latest",
+			},
+			{
+				headers:         make(chan *BlockHeader),
+				subBlockID:      WithBlockTag(BlockTagL1Accepted),
+				isErrorExpected: false,
+				description:     "with tag l1_accepted",
 			},
 			{
 				headers:         make(chan *BlockHeader),
