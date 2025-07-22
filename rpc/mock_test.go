@@ -884,7 +884,10 @@ func mock_starknet_simulateTransactions(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	output, err := internalUtils.UnmarshalJSONFileToType[[]SimulatedTransaction]("./testData/trace/sepoliaSimulateInvokeTxResp.json", "result")
+	output, err := internalUtils.UnmarshalJSONFileToType[[]SimulatedTransaction](
+		"./testData/trace/sepoliaSimulateInvokeTxResp.json",
+		"result",
+	)
 	if err != nil {
 		return err
 	}
