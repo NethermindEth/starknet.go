@@ -248,9 +248,19 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
-			testSetType{
+			{
 				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
+				ExpectedErr:      nil,
+			},
+			{
+				BlockID:          WithBlockTag(BlockTagLatest),
+				ExpectedRespFile: "",
+				ExpectedErr:      nil,
+			},
+			{
+				BlockID:          WithBlockTag(BlockTagL1Accepted),
+				ExpectedRespFile: "",
 				ExpectedErr:      nil,
 			},
 		},
@@ -269,50 +279,59 @@ func TestTraceBlockTransactions(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
-		resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
-		if err != nil {
-			require.Equal(t, test.ExpectedErr, err)
+		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
+			resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
+			if test.ExpectedErr != nil {
+				require.Equal(t, test.ExpectedErr, err)
 
-			continue
-		}
-
-		// read file to compare JSONs
-		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-		require.NoError(t, err)
-		expectedRespArr := make([]any, 0)
-		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
-
-		//nolint:dupl
-		for i, actualTrace := range resp {
-			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
-			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
-
-			// compare JSONs
-			// get transaction_hash and trace_root from expected response JSON file
-			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-			require.True(t, ok)
-			expectedTxHash, ok := expectedRespMap["transaction_hash"]
-			require.True(t, ok)
-			expectedTxnTrace, ok := expectedRespMap["trace_root"]
-			require.True(t, ok)
-
-			// compare transaction_hash
-			rawExpectedTxHash, err := json.Marshal(expectedTxHash)
-			require.NoError(t, err)
-			rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				return
+			}
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+			if test.ExpectedRespFile == "" {
+				assert.NotEmpty(t, resp)
 
-			// compare trace_root
-			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
-			require.NoError(t, err)
-			rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
-			require.NoError(t, err)
+				return
+			}
+			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
 
-			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-		}
+			// read file to compare JSONs
+			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+			require.NoError(t, err)
+			expectedRespArr := make([]any, 0)
+			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+
+			//nolint:dupl
+			for i, actualTrace := range resp {
+				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
+				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
+
+				// compare JSONs
+				// get transaction_hash and trace_root from expected response JSON file
+				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+				require.True(t, ok)
+				expectedTxHash, ok := expectedRespMap["transaction_hash"]
+				require.True(t, ok)
+				expectedTxnTrace, ok := expectedRespMap["trace_root"]
+				require.True(t, ok)
+
+				// compare transaction_hash
+				rawExpectedTxHash, err := json.Marshal(expectedTxHash)
+				require.NoError(t, err)
+				rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				require.NoError(t, err)
+
+				assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+
+				// compare trace_root
+				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+				require.NoError(t, err)
+				rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
+				require.NoError(t, err)
+
+				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
+			}
+		})
 	}
 }
 
