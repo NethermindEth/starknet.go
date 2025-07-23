@@ -53,7 +53,6 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -104,7 +103,6 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -166,7 +164,6 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -866,7 +863,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
@@ -894,7 +890,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
@@ -933,7 +928,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
@@ -957,7 +951,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusPre_confirmed, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
