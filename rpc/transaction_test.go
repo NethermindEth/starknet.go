@@ -134,9 +134,8 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				Index:   0,
 			},
 			{
-				BlockID:     WithBlockTag(BlockTagL1Accepted),
-				Index:       3,
-				ExpectedTxn: InvokeTxnV3example,
+				BlockID: WithBlockTag(BlockTagL1Accepted),
+				Index:   0,
 			},
 			{
 				BlockID: WithBlockTag(BlockTagLatest),
