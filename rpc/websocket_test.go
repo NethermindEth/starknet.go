@@ -245,49 +245,45 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("blockID only", func(t *testing.T) {
-		runWithBlockID := func(t *testing.T, blockTag BlockTag) {
-			t.Helper()
+	t.Run("blockID only - with tag latest", func(t *testing.T) {
+		t.Parallel()
 
-			wsProvider := testConfig.WsProvider
-			provider := testConfig.Provider
-			rawBlock, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(blockTag))
-			require.NoError(t, err)
-			expectedBlock, ok := rawBlock.(*BlockTxHashes)
-			require.True(t, ok)
+		wsProvider := testConfig.WsProvider
+		provider := testConfig.Provider
+		rawBlock, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(BlockTagLatest))
+		require.NoError(t, err)
+		expectedBlock, ok := rawBlock.(*BlockTxHashes)
+		require.True(t, ok)
 
-			events := make(chan *EmittedEvent)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-				BlockID: WithBlockTag(blockTag),
-			})
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-			require.NoError(t, err)
-			require.NotNil(t, sub)
+		events := make(chan *EmittedEvent)
+		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+			BlockID: WithBlockTag(BlockTagLatest),
+		})
+		if sub != nil {
+			defer sub.Unsubscribe()
+		}
+		require.NoError(t, err)
+		require.NotNil(t, sub)
 
-			for {
-				select {
-				case resp := <-events:
-					require.IsType(t, &EmittedEvent{}, resp)
+		for {
+			select {
+			case resp := <-events:
+				require.IsType(t, &EmittedEvent{}, resp)
+				if len(expectedBlock.Transactions) > 0 {
+					// since we are subscribing to the latest block, the event block number should be the same as the latest block number,
+					// but if the latest block is empty, the subscription will return events from later blocks.
+					// Also, we can have race condition here, in case the latest block is updated between the `BlockWithTxHashes`
+					// request and the subscription.
 					require.Equal(t, expectedBlock.Number, resp.BlockNumber)
-
-					return
-				case err := <-sub.Err():
-					require.NoError(t, err)
-				case <-time.After(4 * time.Second):
-					t.Fatal("timeout waiting for events")
 				}
+
+				return
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(4 * time.Second):
+				t.Fatal("timeout waiting for events")
 			}
 		}
-
-		t.Run("with tag l1_accepted", func(t *testing.T) {
-			runWithBlockID(t, BlockTagL1Accepted)
-		})
-
-		t.Run("with tag latest", func(t *testing.T) {
-			runWithBlockID(t, BlockTagLatest)
-		})
 	})
 
 	t.Run("fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
