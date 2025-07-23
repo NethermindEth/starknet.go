@@ -23,15 +23,15 @@
         "resource_bounds": {
           "l1_gas": {
             "max_amount": "0x0",
-            "max_price_per_unit": "0x235ae605ff2b"
+            "max_price_per_unit": "0xff35ae605ff2b"
           },
           "l2_gas": {
             "max_amount": "0x18c360",
-            "max_price_per_unit": "0x10c388d00"
+            "max_price_per_unit": "0xf10c388d00"
           },
           "l1_data_gas": {
             "max_amount": "0x1e0",
-            "max_price_per_unit": "0x92d6"
+            "max_price_per_unit": "0xff92d6"
           }
         },
         "tip": "0x0",
