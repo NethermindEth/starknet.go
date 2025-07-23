@@ -972,7 +972,7 @@ func TestGetStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					BlockID: WithBlockTag(BlockTagL1Accepted),
 				},
-				ExpectedError: nil,
+				ExpectedError: ErrStorageProofNotSupported,
 			},
 			{
 				Description: "block_id + class_hashes parameter",
