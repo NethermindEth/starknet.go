@@ -33,7 +33,6 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
 
-	//nolint:dupl //just about duplicated test cases on different environments
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
 			{
