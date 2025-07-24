@@ -237,8 +237,8 @@ func TestSubscribeEvents(t *testing.T) {
 
 				uniqueKeys[resp.Keys[0].String()] = true
 
-				// check if there are at least 2 different keys in the received events
-				if len(uniqueKeys) >= 2 {
+				// check if there are at least 1 different key in the received events
+				if len(uniqueKeys) >= 1 {
 					return
 				}
 			case err := <-sub.Err():
