@@ -42,7 +42,7 @@ var (
 // the execution trace of an invoke transaction
 type InvokeTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
-	// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
+	// the trace of the __execute__ call
 	ExecuteInvocation     ExecInvocation     `json:"execute_invocation"`
 	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
 	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
@@ -62,7 +62,7 @@ type DeclareTxnTrace struct {
 // the execution trace of a deploy account transaction
 type DeployAccountTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
-	// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
+	// the trace of the constructor call
 	ConstructorInvocation FnInvocation       `json:"constructor_invocation"`
 	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
 	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
@@ -72,7 +72,7 @@ type DeployAccountTxnTrace struct {
 
 // the execution trace of an L1 handler transaction
 type L1HandlerTxnTrace struct {
-	// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
+	// the trace of the L1 handler call
 	FunctionInvocation FnInvocation       `json:"function_invocation"`
 	StateDiff          *StateDiff         `json:"state_diff,omitempty"`
 	ExecutionResources ExecutionResources `json:"execution_resources"`
@@ -143,6 +143,7 @@ type Trace struct {
 
 type ExecInvocation struct {
 	*FnInvocation
+	// the revert reason for the failed invocation
 	RevertReason string `json:"revert_reason,omitempty"`
 }
 

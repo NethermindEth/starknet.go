@@ -49,11 +49,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NotNil(t, resp.Hash)
 	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -100,11 +99,10 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -162,11 +160,10 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -190,11 +187,44 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 	require.NotNil(t, resp.Hash)
 	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
+	err = waitForTransactionStatus(context.Background(), acc.Provider, resp.Hash, rpc.TxnStatus_Accepted_On_L2, 500*time.Millisecond)
+	require.NoError(t, err, "Error waiting for transfer transaction status")
+
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+}
+
+// TODO: make it an exported utility function
+func waitForTransactionStatus(
+	ctx context.Context,
+	provider rpc.RpcProvider,
+	transactionHash *felt.Felt,
+	txnStatus rpc.TxnStatus,
+	pollInterval time.Duration,
+) error {
+	t := time.NewTicker(pollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+		case <-t.C:
+			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
+			if err != nil {
+				rpcErr := err.(*rpc.RPCError)
+				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
+					continue
+				} else {
+					return err
+				}
+			}
+
+			if returnedTxnStatus.FinalityStatus == txnStatus {
+				return nil
+			}
+		}
+	}
 }
 
 // TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
@@ -240,12 +270,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 				return []rpc.FeeEstimation{
 					{
-						L1GasPrice:        new(felt.Felt).SetUint64(10),
-						L1GasConsumed:     new(felt.Felt).SetUint64(100),
-						L1DataGasPrice:    new(felt.Felt).SetUint64(5),
-						L1DataGasConsumed: new(felt.Felt).SetUint64(50),
-						L2GasPrice:        new(felt.Felt).SetUint64(3),
-						L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						FeeEstimationCommon: rpc.FeeEstimationCommon{
+							L1GasPrice:        new(felt.Felt).SetUint64(10),
+							L1GasConsumed:     new(felt.Felt).SetUint64(100),
+							L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+							L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+							L2GasPrice:        new(felt.Felt).SetUint64(3),
+							L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						},
 					},
 				}, nil
 			},
@@ -368,7 +400,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			classHash := internalUtils.TestHexToFelt(
 				t,
-				"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+				"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 			) // preDeployed OZ account classhash in devnet
 			// Build and send deploy account txn
 			txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
@@ -404,7 +436,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
 	type testSetType struct {
-		ExpectedErr          error
+		ExpectedErr          *rpc.RPCError
 		CairoContractVersion account.CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -416,7 +448,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
-				ExpectedErr:          rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrInvalidTransactionNonce,
 				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
@@ -483,7 +515,8 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+			rpcErr := err.(*rpc.RPCError)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code, "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
 		}
 	}
@@ -567,7 +600,8 @@ func TestSendDeclareTxn(t *testing.T) {
 	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
-		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+		rpcErr := err.(*rpc.RPCError)
+		require.Equal(t, rpc.ErrInvalidTransactionNonce.Code, rpcErr.Code, "AddDeclareTransaction error not what expected")
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
@@ -606,7 +640,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
-		"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+		"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 	) // preDeployed classhash
 	require.NoError(t, err)
 
@@ -829,7 +863,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
@@ -857,7 +890,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
@@ -896,7 +928,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
@@ -920,7 +951,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {

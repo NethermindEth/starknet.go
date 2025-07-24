@@ -33,7 +33,7 @@ type TxnOptions struct {
 	Multiplier float64
 
 	// A boolean flag indicating whether to use the latest block tag
-	// when estimating fees instead of the pending block. Default: `false`.
+	// when estimating fees instead of the pre_confirmed block. Default: `false`.
 	UseLatest bool
 	// The simulation flag to be used when estimating fees. Default: none.
 	SimulationFlag rpc.SimulationFlag
@@ -41,13 +41,13 @@ type TxnOptions struct {
 
 // BlockID returns the block ID for fee estimation based on the UseLatest flag.
 // If UseLatest is `true`, returns the latest block ID.
-// Otherwise, returns the pending block ID.
+// Otherwise, returns the pre_confirmed block ID.
 func (opts *TxnOptions) BlockID() rpc.BlockID {
 	if opts.UseLatest {
 		return rpc.WithBlockTag(rpc.BlockTagLatest)
 	}
 
-	return rpc.WithBlockTag(rpc.BlockTagPending)
+	return rpc.WithBlockTag(rpc.BlockTagPre_confirmed)
 }
 
 // Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.

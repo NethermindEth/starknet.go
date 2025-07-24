@@ -17,7 +17,7 @@ import (
 
 // rpcVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-const rpcVersion = "0.8.1"
+const rpcVersion = "0.9.0-rc2"
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
@@ -25,7 +25,8 @@ var (
 
 	// Warning messages for version compatibility
 	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-	warnVersionMismatch    = "warning: RPC provider version %s is different from expected version %s. This may cause unexpected behaviour."
+	//nolint:lll
+	warnVersionMismatch = "warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour."
 )
 
 // Checks if the RPC provider version is compatible with the SDK version
@@ -121,7 +122,7 @@ type RpcProvider interface {
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
 	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error)
-	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error)
+	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)

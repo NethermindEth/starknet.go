@@ -1,0 +1,149 @@
+{
+	"type": "INVOKE",
+	"validate_invocation": {
+		"contract_address": "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+		"entry_point_selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+		"calldata": [
+			"0x1",
+			"0x5c1c7eca392fa7c8ff79bbd7559f45f9693278ddc62edf335e374648d17cbb",
+			"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
+			"0x1",
+			"0x157"
+		],
+		"caller_address": "0x0",
+		"class_hash": "0x345354e2d801833068de73d1a2028e2f619f71045dd5229e79469fa7f598038",
+		"entry_point_type": "EXTERNAL",
+		"call_type": "CALL",
+		"result": [
+			"0x56414c4944"
+		],
+		"calls": [],
+		"events": [],
+		"messages": [],
+		"execution_resources": {
+			"l1_gas": 0,
+			"l2_gas": 0
+		},
+		"is_reverted": false
+	},
+	"execute_invocation": {
+		"contract_address": "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+		"entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+		"calldata": [
+			"0x1",
+			"0x5c1c7eca392fa7c8ff79bbd7559f45f9693278ddc62edf335e374648d17cbb",
+			"0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
+			"0x1",
+			"0x157"
+		],
+		"caller_address": "0x0",
+		"class_hash": "0x345354e2d801833068de73d1a2028e2f619f71045dd5229e79469fa7f598038",
+		"entry_point_type": "EXTERNAL",
+		"call_type": "CALL",
+		"result": [
+			"0x1",
+			"0x1",
+			"0x5cf10b1fbbf10de2da0060bb6558932eb49afdeb53b757f19c9a3fd8412f1b2"
+		],
+		"calls": [
+			{
+				"contract_address": "0x5c1c7eca392fa7c8ff79bbd7559f45f9693278ddc62edf335e374648d17cbb",
+				"entry_point_selector": "0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf",
+				"calldata": [
+					"0x157"
+				],
+				"caller_address": "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+				"class_hash": "0x626c15d497f8ef78da749cbe21ac3006470829ee8b5d0d166f3a139633c6a93",
+				"entry_point_type": "EXTERNAL",
+				"call_type": "CALL",
+				"result": [
+					"0x5cf10b1fbbf10de2da0060bb6558932eb49afdeb53b757f19c9a3fd8412f1b2"
+				],
+				"calls": [],
+				"events": [],
+				"messages": [],
+				"execution_resources": {
+					"l1_gas": 0,
+					"l2_gas": 0
+				},
+				"is_reverted": false
+			}
+		],
+		"events": [],
+		"messages": [],
+		"execution_resources": {
+			"l1_gas": 0,
+			"l2_gas": 0
+		},
+		"is_reverted": false
+	},
+	"fee_transfer_invocation": {
+		"contract_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+		"entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+		"calldata": [
+			"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+			"0x8d13973fc8d80",
+			"0x0"
+		],
+		"caller_address": "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+		"class_hash": "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040",
+		"entry_point_type": "EXTERNAL",
+		"call_type": "CALL",
+		"result": [
+			"0x1"
+		],
+		"calls": [],
+		"events": [
+			{
+				"order": 0,
+				"keys": [
+					"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+					"0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+					"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"
+				],
+				"data": [
+					"0x8d13973fc8d80",
+					"0x0"
+				]
+			}
+		],
+		"messages": [],
+		"execution_resources": {
+			"l1_gas": 0,
+			"l2_gas": 0
+		},
+		"is_reverted": false
+	},
+	"state_diff": {
+		"storage_diffs": [
+			{
+				"address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+				"storage_entries": [
+					{
+						"key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
+						"value": "0x1f44b73331c79fdef1d1"
+					},
+					{
+						"key": "0x3c204dd68b8e800b4f42e438d9ed4ccbba9f8e436518758cd36553715c1d6ab",
+						"value": "0x15e88b073a00c0685b3"
+					}
+				]
+			}
+		],
+		"nonces": [
+			{
+				"contract_address": "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d",
+				"nonce": "0x48c11e"
+			}
+		],
+		"deployed_contracts": [],
+		"deprecated_declared_classes": [],
+		"declared_classes": [],
+		"replaced_classes": []
+	},
+	"execution_resources": {
+		"l1_gas": 0,
+		"l2_gas": 800595,
+		"l1_data_gas": 128
+	}
+}

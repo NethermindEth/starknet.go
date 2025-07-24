@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
@@ -26,7 +27,8 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	testConfig := BeforeEach(t, false)
 
 	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
@@ -57,7 +59,6 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		tests.DevnetEnv: {},
 		tests.TestnetEnv: {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
@@ -70,14 +71,20 @@ func TestTransactionTrace(t *testing.T) {
 				ExpectedError:    nil,
 			},
 		},
-		tests.MainnetEnv: {},
+		tests.IntegrationEnv: {
+			testSetType{
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedRespFile: "./testData/trace/integrationInvokeTrace_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
+				ExpectedError:    nil,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
-			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
+			resp, err := testConfig.Provider.TraceTransaction(context.Background(), test.TransactionHash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
 
@@ -109,11 +116,14 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		SimulateTxnInputFile string
 		ExpectedRespFile     string
+
+		// quick fix for calls with other block ID than the one in the input file
+		AnotherBlockID *BlockID
 	}
 
 	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
@@ -125,61 +135,88 @@ func TestSimulateTransaction(t *testing.T) {
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
-		tests.TestnetEnv: {testSetType{
-			SimulateTxnInputFile: expectedInputFile,
-			ExpectedRespFile:     expectedRespFile,
-		}},
+		tests.TestnetEnv: {
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagLatest},
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagPre_confirmed},
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagL1Accepted},
+			},
+		},
 		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
 		tests.MainnetEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
-		expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "")
+		t.Run(fmt.Sprintf("blockID: %v", test.AnotherBlockID), func(t *testing.T) {
+			simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "params")
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "result")
 
-		resp, err := testConfig.provider.SimulateTransactions(
-			context.Background(),
-			simulateTxIn.BlockID,
-			simulateTxIn.Txns,
-			simulateTxIn.SimulationFlags)
-		require.NoError(t, err)
+			if test.AnotherBlockID != nil {
+				simulateTxIn.BlockID = *test.AnotherBlockID
+			}
 
-		// read file to compare JSONs
-		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-		require.NoError(t, err)
-		expectedRespArr := make([]any, 0)
-		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
-
-		//nolint:dupl
-		for i, trace := range resp {
-			require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
-			compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
-
-			// compare JSONs
-			// get fee_estimation and transaction_trace from expected response JSON file
-			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-			require.True(t, ok)
-			expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
-			require.True(t, ok)
-			expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
-			require.True(t, ok)
-
-			// compare fee_estimation
-			rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
-			require.NoError(t, err)
-			rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
+			resp, err := testConfig.Provider.SimulateTransactions(
+				context.Background(),
+				simulateTxIn.BlockID,
+				simulateTxIn.Txns,
+				simulateTxIn.SimulationFlags)
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
+			if test.AnotherBlockID != nil {
+				// since the block ID is not the same as the one in the input file, we only check that the response is not empty
+				assert.NotEmpty(t, resp)
 
-			// compare transaction_trace
-			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
-			require.NoError(t, err)
-			rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
-			require.NoError(t, err)
+				return
+			}
 
-			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-		}
+			// read file to compare JSONs
+			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
+
+			//nolint:dupl
+			for i, trace := range resp {
+				require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
+				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
+
+				// compare JSONs
+				// get fee_estimation and transaction_trace from expected response JSON file
+				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+				require.True(t, ok)
+				expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
+				require.True(t, ok)
+				expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
+				require.True(t, ok)
+
+				// compare fee_estimation
+				rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
+				require.NoError(t, err)
+				rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
+				require.NoError(t, err)
+
+				assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
+
+				// compare transaction_trace
+				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+				require.NoError(t, err)
+				rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
+				require.NoError(t, err)
+
+				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
+			}
+		})
 	}
 }
 
@@ -197,7 +234,9 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.MockEnv)
+
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID          BlockID
@@ -208,12 +247,20 @@ func TestTraceBlockTransactions(t *testing.T) {
 	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
-		tests.MainnetEnv: {},
 		tests.TestnetEnv: {
-			testSetType{
+			{
 				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
+				ExpectedErr:      nil,
+			},
+			{
+				BlockID:          WithBlockTag(BlockTagLatest),
+				ExpectedRespFile: "",
+				ExpectedErr:      nil,
+			},
+			{
+				BlockID:          WithBlockTag(BlockTagL1Accepted),
+				ExpectedRespFile: "",
 				ExpectedErr:      nil,
 			},
 		},
@@ -232,50 +279,59 @@ func TestTraceBlockTransactions(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
-		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
-		if err != nil {
-			require.Equal(t, test.ExpectedErr, err)
+		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
+			resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
+			if test.ExpectedErr != nil {
+				require.Equal(t, test.ExpectedErr, err)
 
-			continue
-		}
-
-		// read file to compare JSONs
-		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-		require.NoError(t, err)
-		expectedRespArr := make([]any, 0)
-		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
-
-		//nolint:dupl
-		for i, actualTrace := range resp {
-			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
-			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
-
-			// compare JSONs
-			// get transaction_hash and trace_root from expected response JSON file
-			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-			require.True(t, ok)
-			expectedTxHash, ok := expectedRespMap["transaction_hash"]
-			require.True(t, ok)
-			expectedTxnTrace, ok := expectedRespMap["trace_root"]
-			require.True(t, ok)
-
-			// compare transaction_hash
-			rawExpectedTxHash, err := json.Marshal(expectedTxHash)
-			require.NoError(t, err)
-			rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				return
+			}
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+			if test.ExpectedRespFile == "" {
+				assert.NotEmpty(t, resp)
 
-			// compare trace_root
-			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
-			require.NoError(t, err)
-			rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
-			require.NoError(t, err)
+				return
+			}
+			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
 
-			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-		}
+			// read file to compare JSONs
+			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+			require.NoError(t, err)
+			expectedRespArr := make([]any, 0)
+			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+
+			//nolint:dupl
+			for i, actualTrace := range resp {
+				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
+				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
+
+				// compare JSONs
+				// get transaction_hash and trace_root from expected response JSON file
+				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+				require.True(t, ok)
+				expectedTxHash, ok := expectedRespMap["transaction_hash"]
+				require.True(t, ok)
+				expectedTxnTrace, ok := expectedRespMap["trace_root"]
+				require.True(t, ok)
+
+				// compare transaction_hash
+				rawExpectedTxHash, err := json.Marshal(expectedTxHash)
+				require.NoError(t, err)
+				rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				require.NoError(t, err)
+
+				assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+
+				// compare trace_root
+				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+				require.NoError(t, err)
+				rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
+				require.NoError(t, err)
+
+				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
+			}
+		})
 	}
 }
 
