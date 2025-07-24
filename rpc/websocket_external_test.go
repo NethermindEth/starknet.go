@@ -130,6 +130,9 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		for {
 			select {
 			case txnStatus := <-txnStatus:
+				// since Juno will only return the current status, skipping previous statuses
+				// (e.g: it can go directly from RECEIVED to ACCEPTED_ON_L2),
+				// we'll only check if the txn has been marked at least as received
 				switch txnStatus.Status.FinalityStatus {
 				case rpc.TxnStatus_Received:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
@@ -138,21 +141,17 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 					expectedStatus = rpc.TxnStatus_Candidate
 				case rpc.TxnStatus_Candidate:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.Equal(t, expectedStatus, rpc.TxnStatus_Candidate)
+					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
 
 					expectedStatus = rpc.TxnStatus_Pre_confirmed
 				case rpc.TxnStatus_Pre_confirmed:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					if expectedStatus == rpc.TxnStatus_Candidate {
-						// candidate status is not supported yet by Juno
-						expectedStatus = rpc.TxnStatus_Pre_confirmed
-					}
-					assert.Equal(t, expectedStatus, rpc.TxnStatus_Pre_confirmed)
+					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
 
 					expectedStatus = rpc.TxnStatus_Accepted_On_L2
 				case rpc.TxnStatus_Accepted_On_L2:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.Equal(t, expectedStatus, rpc.TxnStatus_Accepted_On_L2)
+					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
 
 					return
 				}
