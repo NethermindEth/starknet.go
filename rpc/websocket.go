@@ -2,13 +2,15 @@ package rpc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 )
 
 // Events subscription.
-// Creates a WebSocket stream which will fire events for new Starknet events with applied filters
+// Creates a WebSocket stream which will fire events for new Starknet events with applied filters.
+// Events are emitted for all events from the specified block_id, up to the latest block
 //
 // Parameters:
 //
@@ -28,11 +30,15 @@ import (
 //   - error: An error, if any
 func (provider *WsProvider) SubscribeEvents(
 	ctx context.Context,
-	events chan<- *EmittedEvent,
+	events chan<- *EmittedEventWithFinalityStatus,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
 	if options == nil {
 		options = &EventSubscriptionInput{} //nolint:exhaustruct
+	}
+
+	if options.FinalityStatus == TxnFinalityStatusAcceptedOnL1 {
+		return nil, errors.New("ACCEPTED_ON_L1 is not supported on this method")
 	}
 
 	err := checkForPre_confirmed(options.BlockID)

@@ -173,7 +173,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		wsProvider := testConfig.WsProvider
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -184,7 +184,7 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
+				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
 
 				return
@@ -201,7 +201,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		wsProvider := testConfig.WsProvider
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID: WithBlockNumber(blockNumber - 1000),
 		})
@@ -217,7 +217,7 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
+				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
 				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
 				// As none filters are applied, the events should be from all addresses and keys.
@@ -254,7 +254,7 @@ func TestSubscribeEvents(t *testing.T) {
 		expectedBlock, ok := rawBlock.(*BlockTxHashes)
 		require.True(t, ok)
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID: WithBlockTag(BlockTagLatest),
 		})
@@ -267,7 +267,7 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
+				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				if len(expectedBlock.Transactions) > 0 {
 					// since we are subscribing to the latest block, the event block number should be the same as the latest block number,
 					// but if the latest block is empty, the subscription will return events from later blocks.
@@ -290,7 +290,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		wsProvider := testConfig.WsProvider
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: testSet.fromAddressExample,
 			BlockID:     WithBlockNumber(blockNumber - 1000),
@@ -306,7 +306,7 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
+				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with fromAddress should only return events from the specified address.
@@ -338,7 +338,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		wsProvider := testConfig.WsProvider
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			Keys:    [][]*felt.Felt{{testSet.keyExample}},
 			BlockID: WithBlockNumber(blockNumber - 1000),
@@ -353,7 +353,7 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
+				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with keys should only return events with the specified keys.
@@ -383,7 +383,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		wsProvider := testConfig.WsProvider
 
-		events := make(chan *EmittedEvent)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			BlockID:     WithBlockNumber(blockNumber - 1000),
 			FromAddress: testSet.fromAddressExample,
@@ -454,7 +454,7 @@ func TestSubscribeEvents(t *testing.T) {
 			t.Run(test.expectedError.Error(), func(t *testing.T) {
 				t.Parallel()
 
-				events := make(chan *EmittedEvent)
+				events := make(chan *EmittedEventWithFinalityStatus)
 				defer close(events)
 				sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
 				if sub != nil {
@@ -585,7 +585,7 @@ func TestUnsubscribe(t *testing.T) {
 
 	wsProvider := testConfig.WsProvider
 
-	events := make(chan *EmittedEvent)
+	events := make(chan *EmittedEventWithFinalityStatus)
 	sub, err := wsProvider.SubscribeEvents(context.Background(), events, nil)
 	if sub != nil {
 		defer sub.Unsubscribe()
@@ -603,7 +603,7 @@ loop:
 	for {
 		select {
 		case resp := <-events:
-			require.IsType(t, &EmittedEvent{}, resp)
+			require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 		case err := <-sub.Err():
 			// when unsubscribing, the error channel should return nil
 			require.Nil(t, err)

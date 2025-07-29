@@ -53,9 +53,21 @@ type EventsInput struct {
 }
 
 type EventSubscriptionInput struct {
-	FromAddress *felt.Felt     `json:"from_address,omitempty"` // Optional. Filter events by from_address which emitted the event
-	Keys        [][]*felt.Felt `json:"keys,omitempty"`         // Optional. Per key (by position), designate the possible values to be
+	// (Optional) Filter events by from_address which emitted the event
+	FromAddress *felt.Felt `json:"from_address,omitempty"`
+	// (Optional) Per key (by position), designate the possible values to be
 	// matched for events to be returned. Empty array designates 'any' value
-	BlockID BlockID `json:"block_id,omitempty"` // Optional. The block to get notifications from, limited to 1024 blocks back.
-	// Default is latest
+	Keys [][]*felt.Felt `json:"keys,omitempty"`
+	// (Optional) The block to get notifications from, limited to 1024 blocks back.
+	BlockID BlockID `json:"block_id,omitempty"`
+	// (Optional) The finality status of the most recent events to include.
+	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	FinalityStatus TxnFinalityStatus `json:"finality_status,omitempty"`
+}
+
+// Notification from the server about a new event.
+// The event also includes the finality status of the transaction emitting the event.
+type EmittedEventWithFinalityStatus struct {
+	EmittedEvent
+	FinalityStatus TxnFinalityStatus `json:"finality_status"`
 }
