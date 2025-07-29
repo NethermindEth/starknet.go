@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -285,7 +286,91 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("fromAddress only, within the range of 1024 blocks", func(t *testing.T) {
+	t.Run("finalityStatus only", func(t *testing.T) {
+		t.Parallel()
+
+		wsProvider := testConfig.WsProvider
+
+		t.Run("with finality status ACCEPTED_ON_L2", func(t *testing.T) {
+			t.Parallel()
+
+			events := make(chan *EmittedEventWithFinalityStatus)
+			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+			})
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
+			require.NoError(t, err)
+			require.NotNil(t, sub)
+
+			var blockNumber uint64
+
+			for {
+				select {
+				case resp := <-events:
+					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
+
+					if blockNumber == 0 {
+						// first event
+						blockNumber = resp.BlockNumber
+					} else if resp.BlockNumber > blockNumber {
+						// that means we received events from the next block, and no PRE_CONFIRMED was received. Success!
+						return
+					}
+
+					assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				case <-time.After(4 * time.Second):
+					t.Fatal("timeout waiting for events")
+				}
+			}
+		})
+		t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
+			t.Parallel()
+
+			events := make(chan *EmittedEventWithFinalityStatus)
+			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
+				FinalityStatus: TxnFinalityStatusPre_confirmed,
+			})
+			if sub != nil {
+				defer sub.Unsubscribe()
+			}
+			require.NoError(t, err)
+			require.NotNil(t, sub)
+
+			var preConfirmedEventFound bool
+			var acceptedOnL2EventFound bool
+
+			for {
+				select {
+				case resp := <-events:
+					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
+
+					if preConfirmedEventFound && acceptedOnL2EventFound {
+						// subscribing with PRE_CONFIRMED should return both PRE_CONFIRMED and ACCEPTED_ON_L2 events
+						return
+					}
+
+					switch resp.FinalityStatus {
+					case TxnFinalityStatusPre_confirmed:
+						preConfirmedEventFound = true
+					case TxnFinalityStatusAcceptedOnL2:
+						acceptedOnL2EventFound = true
+					default:
+						t.Fatalf("unexpected finality status: %s", resp.FinalityStatus)
+					}
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				case <-time.After(4 * time.Second):
+					t.Fatal("timeout waiting for events")
+				}
+			}
+		})
+	})
+
+	t.Run("fromAddress + blockID, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.WsProvider
@@ -333,7 +418,7 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 	})
 
-	t.Run("keys only, within the range of 1024 blocks", func(t *testing.T) {
+	t.Run("keys + blockID, within the range of 1024 blocks", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.WsProvider
