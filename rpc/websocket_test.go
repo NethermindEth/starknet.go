@@ -304,17 +304,17 @@ func TestSubscribeEvents(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
-			var blockNumber uint64
+			var blockNum uint64
 
 			for {
 				select {
 				case resp := <-events:
 					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 
-					if blockNumber == 0 {
+					if blockNum == 0 {
 						// first event
-						blockNumber = resp.BlockNumber
-					} else if resp.BlockNumber > blockNumber {
+						blockNum = resp.BlockNumber
+					} else if resp.BlockNumber > blockNum {
 						// that means we received events from the next block, and no PRE_CONFIRMED was received. Success!
 						return
 					}

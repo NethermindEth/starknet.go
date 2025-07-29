@@ -303,7 +303,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	}
 
 	// Create a channel to receive events
-	eventsChan := make(chan *rpc.EmittedEvent)
+	eventsChan := make(chan *rpc.EmittedEventWithFinalityStatus)
 
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{

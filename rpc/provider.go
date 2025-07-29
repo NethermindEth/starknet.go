@@ -146,7 +146,11 @@ type RpcProvider interface {
 }
 
 type WebsocketProvider interface {
-	SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error)
+	SubscribeEvents(
+		ctx context.Context,
+		events chan<- *EmittedEventWithFinalityStatus,
+		options *EventSubscriptionInput,
+	) (*client.ClientSubscription, error)
 	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
 	SubscribePendingTransactions(
 		ctx context.Context,
