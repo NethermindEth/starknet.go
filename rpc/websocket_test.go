@@ -470,9 +470,10 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithBlockNumber(blockNumber - 1000),
-			FromAddress: testSet.fromAddressExample,
-			Keys:        [][]*felt.Felt{{testSet.keyExample}},
+			BlockID:        WithBlockNumber(blockNumber - 1000),
+			FromAddress:    testSet.fromAddressExample,
+			Keys:           [][]*felt.Felt{{testSet.keyExample}},
+			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -483,12 +484,13 @@ func TestSubscribeEvents(t *testing.T) {
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
+				assert.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
+				assert.Less(t, resp.BlockNumber, blockNumber)
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
-				require.Equal(t, testSet.keyExample, resp.Keys[0])
+				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				assert.Equal(t, testSet.keyExample, resp.Keys[0])
+				assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
 
 				return
 			case err := <-sub.Err():
