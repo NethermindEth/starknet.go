@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -542,113 +543,240 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 }
 
-func TestSubscribePendingTransactions(t *testing.T) {
+//nolint:dupl,gocyclo
+func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
 	t.Parallel()
 
 	testConfig := BeforeEach(t, true)
+	wsProvider := testConfig.WsProvider
 
-	type testSetType struct {
-		pendingTxns   chan *PendingTxn
-		options       *SubPendingTxnsInput
-		expectedError error
-		description   string
-	}
+	t.Run("general cases", func(t *testing.T) {
+		t.Parallel()
 
-	addresses := make([]*felt.Felt, 1025)
-	for i := range 1025 {
-		addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
-	}
+		type testSetType struct {
+			txnReceipts   chan *TransactionReceiptWithBlockInfo
+			options       *SubNewTxnReceiptsInput
+			expectedError error
+			description   string
+		}
 
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
+		addresses := make([]*felt.Felt, 1025)
+		for i := range 1025 {
+			addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
+		}
+
+		testSet := []testSetType{
 			{
-				pendingTxns: make(chan *PendingTxn),
+				txnReceipts: make(chan *TransactionReceiptWithBlockInfo),
 				options:     nil,
 				description: "nil input",
 			},
 			{
-				pendingTxns: make(chan *PendingTxn),
-				options:     &SubPendingTxnsInput{},
+				txnReceipts: make(chan *TransactionReceiptWithBlockInfo),
+				options:     &SubNewTxnReceiptsInput{},
 				description: "empty input",
 			},
 			{
-				pendingTxns: make(chan *PendingTxn),
-				options:     &SubPendingTxnsInput{TransactionDetails: true},
-				description: "with transanctionDetails true",
-			},
-			{
-				pendingTxns:   make(chan *PendingTxn),
-				options:       &SubPendingTxnsInput{SenderAddress: addresses},
+				txnReceipts:   make(chan *TransactionReceiptWithBlockInfo),
+				options:       &SubNewTxnReceiptsInput{SenderAddress: addresses},
 				expectedError: ErrTooManyAddressesInFilter,
 				description:   "error: too many addresses",
 			},
-		},
-		tests.IntegrationEnv: {
-			{
-				pendingTxns: make(chan *PendingTxn),
-				options:     nil,
-				description: "nil input",
-			},
-			{
-				pendingTxns: make(chan *PendingTxn),
-				options:     &SubPendingTxnsInput{},
-				description: "empty input",
-			},
-			{
-				pendingTxns: make(chan *PendingTxn),
-				options:     &SubPendingTxnsInput{TransactionDetails: true},
-				description: "with transanctionDetails true",
-			},
-			{
-				pendingTxns:   make(chan *PendingTxn),
-				options:       &SubPendingTxnsInput{SenderAddress: addresses},
-				expectedError: ErrTooManyAddressesInFilter,
-				description:   "error: too many addresses",
-			},
-		},
-	}[tests.TEST_ENV]
+		}
 
-	for _, test := range testSet {
-		t.Run("test: "+test.description, func(t *testing.T) {
-			t.Parallel()
+		for _, test := range testSet {
+			t.Run("test: "+test.description, func(t *testing.T) {
+				t.Parallel()
 
-			wsProvider := testConfig.WsProvider
+				sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), test.txnReceipts, test.options)
+				if test.expectedError != nil {
+					require.EqualError(t, err, test.expectedError.Error())
 
-			sub, err := wsProvider.SubscribePendingTransactions(context.Background(), test.pendingTxns, test.options)
-			if sub != nil {
+					return
+				}
 				defer sub.Unsubscribe()
-			}
 
-			if test.expectedError != nil {
-				require.EqualError(t, err, test.expectedError.Error())
+				require.NoError(t, err)
+				require.NotNil(t, sub)
+
+				for {
+					select {
+					case resp := <-test.txnReceipts:
+						assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
+						assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+
+						return
+					case err := <-sub.Err():
+						require.NoError(t, err)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("with finality status ACCEPTED_ON_L2", func(t *testing.T) {
+		t.Parallel()
+
+		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
+		options := &SubNewTxnReceiptsInput{
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-txnReceipts:
+				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
+				assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
+				assert.NotEmpty(t, resp.BlockHash)
+				assert.NotEmpty(t, resp.BlockNumber)
+				assert.NotEmpty(t, resp.TransactionReceipt)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no events received")
 
 				return
 			}
-			require.NoError(t, err)
-			require.NotNil(t, sub)
+		}
+	})
 
-			for {
-				select {
-				case resp := <-test.pendingTxns:
-					require.IsType(t, &PendingTxn{}, resp)
+	t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
+		t.Parallel()
 
-					if test.options == nil || !test.options.TransactionDetails {
-						require.NotEmpty(t, resp.Hash)
-						require.Empty(t, resp.Transaction)
-					} else {
-						require.NotEmpty(t, resp.Hash)
-						require.NotEmpty(t, resp.Transaction)
-					}
+		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
+		options := &SubNewTxnReceiptsInput{
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed},
+		}
 
-					return
-				case err := <-sub.Err():
-					require.NoError(t, err)
-				}
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-txnReceipts:
+				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
+				assert.Equal(t, TxnFinalityStatusPre_confirmed, resp.FinalityStatus)
+				assert.Empty(t, resp.BlockHash)
+				assert.NotEmpty(t, resp.BlockNumber)
+				assert.NotEmpty(t, resp.TransactionReceipt)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no events received")
+
+				return
 			}
-		})
-	}
+		}
+	})
+
+	t.Run("with both PRE_CONFIRMED and ACCEPTED_ON_L2 finality statuses", func(t *testing.T) {
+		t.Parallel()
+
+		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
+		options := &SubNewTxnReceiptsInput{
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed, TxnFinalityStatusAcceptedOnL2},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		preConfirmedReceived := false
+		acceptedOnL2Received := false
+
+		for {
+			select {
+			case resp := <-txnReceipts:
+				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
+				assert.Equal(t, TxnFinalityStatusPre_confirmed, resp.FinalityStatus)
+				assert.Empty(t, resp.BlockHash)
+				assert.NotEmpty(t, resp.BlockNumber)
+				assert.NotEmpty(t, resp.TransactionReceipt)
+
+				if resp.FinalityStatus == TxnFinalityStatusPre_confirmed {
+					preConfirmedReceived = true
+				}
+
+				if resp.FinalityStatus == TxnFinalityStatusAcceptedOnL2 {
+					acceptedOnL2Received = true
+				}
+
+				if preConfirmedReceived && acceptedOnL2Received {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			}
+		}
+	})
+
+	t.Run("with sender address filter", func(t *testing.T) {
+		t.Parallel()
+
+		// and address currently sending a lot of transactions in Sepolia
+		randAddress := internalUtils.TestHexToFelt(t, "0x0352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d")
+		provider := testConfig.Provider
+		tempStruct := struct {
+			SenderAddress *felt.Felt `json:"sender_address"`
+		}{}
+
+		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
+		options := &SubNewTxnReceiptsInput{
+			SenderAddress: []*felt.Felt{randAddress},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-txnReceipts:
+				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
+
+				txn, err := provider.TransactionByHash(context.Background(), resp.Hash)
+				require.NoError(t, err)
+
+				raw, err := json.Marshal(txn)
+				require.NoError(t, err)
+
+				err = json.Unmarshal(raw, &tempStruct)
+				require.NoError(t, err)
+
+				assert.Equal(t, randAddress, tempStruct.SenderAddress)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no receipts received")
+
+				return
+			}
+		}
+	})
 }
 
 func TestUnsubscribe(t *testing.T) {
