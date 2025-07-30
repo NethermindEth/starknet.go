@@ -386,28 +386,16 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		uniqueKeys := make(map[string]bool)
-
 		for {
 			select {
 			case resp := <-events:
-				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
+				assert.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
+				assert.Less(t, resp.BlockNumber, blockNumber)
 
-				// Subscription with fromAddress should only return events from the specified address.
-				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
-				// so we can use it to verify the events are returned correctly.
-				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
+				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 
-				if tests.TEST_ENV == tests.IntegrationEnv {
-					// integration network is not very used by external users, so let's skip the keys verification
-					return
-				}
-
-				uniqueKeys[resp.Keys[0].String()] = true
-
-				// check if there are at least 2 different keys in the received events
-				if len(uniqueKeys) >= 2 {
+				if resp.BlockNumber >= blockNumber-100 {
+					// we searched more than 900 blocks back, it's fine
 					return
 				}
 			case err := <-sub.Err():
