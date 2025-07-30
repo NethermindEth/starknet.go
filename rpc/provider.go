@@ -157,11 +157,6 @@ type WebsocketProvider interface {
 		txnReceipts chan<- *TransactionReceiptWithBlockInfo,
 		options *SubNewTxnReceiptsInput,
 	) (*client.ClientSubscription, error)
-	SubscribePendingTransactions(
-		ctx context.Context,
-		pendingTxns chan<- *PendingTxn,
-		options *SubPendingTxnsInput,
-	) (*client.ClientSubscription, error)
 	SubscribeTransactionStatus(
 		ctx context.Context,
 		newStatus chan<- *NewTxnStatus,

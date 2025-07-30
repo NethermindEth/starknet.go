@@ -329,14 +329,6 @@ func (v *TransactionVersion) Int() int {
 	return -1
 }
 
-// SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
-type SubPendingTxnsInput struct {
-	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
-	TransactionDetails bool `json:"transaction_details,omitempty"`
-	// Optional: Filter transactions to only receive notification from address list
-	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
-}
-
 // SubPendingTxnsInput is the optional input of the starknet_subscribeNewTransactionReceipts subscription.
 type SubNewTxnReceiptsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
@@ -344,39 +336,6 @@ type SubNewTxnReceiptsInput struct {
 	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
 	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
-}
-
-// PendingTxn is the response of the starknet_subscribePendingTransactions subscription.
-type PendingTxn struct {
-	// The hash of the pending transaction. Always present.
-	Hash *felt.Felt
-	// The full transaction details. Only present if transactionDetails is true.
-	Transaction *BlockTransaction
-}
-
-// UnmarshalJSON unmarshals the JSON data into a PendingTxn object.
-//
-// Parameters:
-//   - data: The JSON data to be unmarshalled
-//
-// Returns:
-//   - error: An error if the unmarshalling process fails
-func (s *PendingTxn) UnmarshalJSON(data []byte) error {
-	var txn *BlockTransaction
-	if err := json.Unmarshal(data, &txn); err == nil {
-		s.Transaction = txn
-		s.Hash = txn.Hash
-
-		return nil
-	}
-	var txnHash *felt.Felt
-	if err := json.Unmarshal(data, &txnHash); err == nil {
-		s.Hash = txnHash
-
-		return nil
-	}
-
-	return errors.New("failed to unmarshal PendingTxn")
 }
 
 // UnmarshalJSON unmarshals the data into a BlockTransaction object.

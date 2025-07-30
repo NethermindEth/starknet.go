@@ -549,7 +549,7 @@ func (m *MockWebsocketProvider) EXPECT() *MockWebsocketProviderMockRecorder {
 }
 
 // SubscribeEvents mocks base method.
-func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEvent, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEventWithFinalityStatus, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeEvents", ctx, events, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)
@@ -578,19 +578,19 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, blockID)
 }
 
-// SubscribePendingTransactions mocks base method.
-func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.PendingTxn, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
+// SubscribeNewTransactionReceipts mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *rpc.TransactionReceiptWithBlockInfo, options *rpc.SubNewTxnReceiptsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubscribePendingTransactions", ctx, pendingTxns, options)
+	ret := m.ctrl.Call(m, "SubscribeNewTransactionReceipts", ctx, txnReceipts, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SubscribePendingTransactions indicates an expected call of SubscribePendingTransactions.
-func (mr *MockWebsocketProviderMockRecorder) SubscribePendingTransactions(ctx, pendingTxns, options any) *gomock.Call {
+// SubscribeNewTransactionReceipts indicates an expected call of SubscribeNewTransactionReceipts.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactionReceipts(ctx, txnReceipts, options any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribePendingTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribePendingTransactions), ctx, pendingTxns, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewTransactionReceipts", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewTransactionReceipts), ctx, txnReceipts, options)
 }
 
 // SubscribeTransactionStatus mocks base method.

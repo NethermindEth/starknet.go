@@ -78,31 +78,6 @@ func (provider *WsProvider) SubscribeNewHeads(
 	return sub, nil
 }
 
-// New Pending Transactions subscription
-// Creates a WebSocket stream which will fire events when a new pending transaction is added.
-// While there is no mempool, this notifies of transactions in the pending block.
-//
-// Parameters:
-//   - ctx: The context.Context object for controlling the function call
-//   - pendingTxns: The channel to send the new pending transactions to
-//   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
-//
-// Returns:
-//   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
-//   - error: An error, if any
-func (provider *WsProvider) SubscribePendingTransactions(
-	ctx context.Context,
-	pendingTxns chan<- *PendingTxn,
-	options *SubPendingTxnsInput,
-) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribePendingTransactions", pendingTxns, options)
-	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
-	}
-
-	return sub, nil
-}
-
 // New transactions receipts subscription
 // Creates a WebSocket stream which will fire events when new transaction receipts are created.
 // The endpoint receives a vector of finality statuses. An event is fired for each finality status update.
