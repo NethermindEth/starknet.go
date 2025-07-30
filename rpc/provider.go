@@ -152,6 +152,11 @@ type WebsocketProvider interface {
 		options *EventSubscriptionInput,
 	) (*client.ClientSubscription, error)
 	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
+	SubscribeNewTransactionReceipts(
+		ctx context.Context,
+		txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+		options *SubNewTxnReceiptsInput,
+	) (*client.ClientSubscription, error)
 	SubscribePendingTransactions(
 		ctx context.Context,
 		pendingTxns chan<- *PendingTxn,

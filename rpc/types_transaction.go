@@ -337,6 +337,15 @@ type SubPendingTxnsInput struct {
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
+// SubPendingTxnsInput is the optional input of the starknet_subscribeNewTransactionReceipts subscription.
+type SubNewTxnReceiptsInput struct {
+	// Optional: A vector of finality statuses to receive updates for.
+	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
+	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
+	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+}
+
 // PendingTxn is the response of the starknet_subscribePendingTransactions subscription.
 type PendingTxn struct {
 	// The hash of the pending transaction. Always present.
