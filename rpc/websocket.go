@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
@@ -35,10 +34,6 @@ func (provider *WsProvider) SubscribeEvents(
 ) (*client.ClientSubscription, error) {
 	if options == nil {
 		options = &EventSubscriptionInput{} //nolint:exhaustruct
-	}
-
-	if options.FinalityStatus == TxnFinalityStatusAcceptedOnL1 {
-		return nil, errors.New("ACCEPTED_ON_L1 is not supported on this method")
 	}
 
 	err := checkForPre_confirmed(options.BlockID)
@@ -126,7 +121,7 @@ func (provider *WsProvider) SubscribeNewTransactionReceipts(
 	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
 	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "starknet_subscribeNewTransactionReceipts", txnReceipts, options)
+	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactionReceipts", txnReceipts, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
