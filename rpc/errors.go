@@ -355,7 +355,7 @@ func (c *ContractErrData) ErrorMessage() string {
 
 // Structured type for the ErrTransactionExecError data
 type TransactionExecErrData struct {
-	TransactionIndex int                    `json:"transaction_index,omitempty"`
+	TransactionIndex int                    `json:"transaction_index"`
 	ExecutionError   ContractExecutionError `json:"execution_error,omitempty"`
 }
 
