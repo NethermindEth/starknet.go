@@ -593,6 +593,21 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactionReceipts(ctx
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewTransactionReceipts", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewTransactionReceipts), ctx, txnReceipts, options)
 }
 
+// SubscribeNewTransactions mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewTransactions(ctx context.Context, newTxns chan<- *rpc.TxnWithHashAndStatus, options *rpc.SubNewTxnsInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeNewTransactions", ctx, newTxns, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeNewTransactions indicates an expected call of SubscribeNewTransactions.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactions(ctx, newTxns, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewTransactions), ctx, newTxns, options)
+}
+
 // SubscribeTransactionStatus mocks base method.
 func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
