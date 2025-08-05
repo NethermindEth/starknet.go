@@ -337,7 +337,7 @@ func (s StringErrData) ErrorMessage() string {
 
 // Structured type for the ErrCompilationError data
 type CompilationErrData struct {
-	CompilationError string `json:"compilation_error,omitempty"`
+	CompilationError string `json:"compilation_error"`
 }
 
 func (c *CompilationErrData) ErrorMessage() string {
@@ -346,7 +346,7 @@ func (c *CompilationErrData) ErrorMessage() string {
 
 // Structured type for the ErrContractError data
 type ContractErrData struct {
-	RevertError ContractExecutionError `json:"revert_error,omitempty"`
+	RevertError ContractExecutionError `json:"revert_error"`
 }
 
 func (c *ContractErrData) ErrorMessage() string {
@@ -356,7 +356,7 @@ func (c *ContractErrData) ErrorMessage() string {
 // Structured type for the ErrTransactionExecError data
 type TransactionExecErrData struct {
 	TransactionIndex int                    `json:"transaction_index"`
-	ExecutionError   ContractExecutionError `json:"execution_error,omitempty"`
+	ExecutionError   ContractExecutionError `json:"execution_error"`
 }
 
 func (t *TransactionExecErrData) ErrorMessage() string {
@@ -365,7 +365,7 @@ func (t *TransactionExecErrData) ErrorMessage() string {
 
 // Structured type for the ErrTraceStatusError data
 type TraceStatusErrData struct {
-	Status TraceStatus `json:"status,omitempty"`
+	Status TraceStatus `json:"status"`
 }
 
 func (t *TraceStatusErrData) ErrorMessage() string {
@@ -375,8 +375,8 @@ func (t *TraceStatusErrData) ErrorMessage() string {
 // structured error that can later be processed by wallets or sdks
 type ContractExecutionError struct {
 	// the error raised during execution
-	Message              string                       `json:",omitempty"`
-	ContractExecErrInner *ContractExecutionErrorInner `json:",omitempty"`
+	Message              string
+	ContractExecErrInner *ContractExecutionErrorInner
 }
 
 func (contractEx *ContractExecutionError) UnmarshalJSON(data []byte) error {
