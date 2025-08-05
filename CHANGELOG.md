@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.13.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.13.1...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.13.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.1) - 2025-08-05
 ### Fixed
 - `rpc.Syncing` was crashing when the node response was that it was syncing.
+- Removed wrong `omitempty` tags in the RPC error data types.
 
 ### Changed
 - `rpc.Syncing` method now returns a `rpc.SyncStatus` struct instead of a pointer to it.
