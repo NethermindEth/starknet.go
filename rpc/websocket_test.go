@@ -779,6 +779,301 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	})
 }
 
+//nolint:dupl,gocyclo
+func TestSubscribeNewTransactions(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
+
+	t.Parallel()
+
+	testConfig := BeforeEach(t, true)
+	wsProvider := testConfig.WsProvider
+
+	t.Run("general cases", func(t *testing.T) {
+		t.Parallel()
+
+		type testSetType struct {
+			newTxns       chan *TxnWithHashAndStatus
+			options       *SubNewTxnsInput
+			expectedError error
+			description   string
+		}
+
+		addresses := make([]*felt.Felt, 1025)
+		for i := range 1025 {
+			addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
+		}
+
+		testSet := []testSetType{
+			{
+				newTxns:     make(chan *TxnWithHashAndStatus),
+				options:     nil,
+				description: "nil input",
+			},
+			{
+				newTxns:     make(chan *TxnWithHashAndStatus),
+				options:     &SubNewTxnsInput{},
+				description: "empty input",
+			},
+			{
+				newTxns:       make(chan *TxnWithHashAndStatus),
+				options:       &SubNewTxnsInput{SenderAddress: addresses},
+				expectedError: ErrTooManyAddressesInFilter,
+				description:   "error: too many addresses",
+			},
+		}
+
+		for _, test := range testSet {
+			t.Run("test: "+test.description, func(t *testing.T) {
+				t.Parallel()
+
+				sub, err := wsProvider.SubscribeNewTransactions(context.Background(), test.newTxns, test.options)
+				if test.expectedError != nil {
+					require.EqualError(t, err, test.expectedError.Error())
+
+					return
+				}
+				defer sub.Unsubscribe()
+
+				require.NoError(t, err)
+				require.NotNil(t, sub)
+
+				for {
+					select {
+					case resp := <-test.newTxns:
+						assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+						assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+
+						return
+					case <-time.After(5 * time.Second):
+						assert.Fail(t, "no events received within timeout")
+
+						return
+					case err := <-sub.Err():
+						require.NoError(t, err)
+					}
+				}
+			})
+		}
+	})
+
+	t.Run("with finality status ACCEPTED_ON_L2", func(t *testing.T) {
+		t.Parallel()
+
+		newTxns := make(chan *TxnWithHashAndStatus)
+		options := &SubNewTxnsInput{
+			FinalityStatus: []TxnStatus{TxnStatus_Accepted_On_L2},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-newTxns:
+				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+				assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus)
+				assert.NotEmpty(t, resp.Transaction)
+				assert.NotEmpty(t, resp.Hash)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no events received")
+
+				return
+			}
+		}
+	})
+
+	t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
+		t.Parallel()
+
+		newTxns := make(chan *TxnWithHashAndStatus)
+		options := &SubNewTxnsInput{
+			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-newTxns:
+				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+				assert.Equal(t, TxnStatus_Pre_confirmed, resp.FinalityStatus)
+				assert.NotEmpty(t, resp.Hash)
+				assert.NotEmpty(t, resp.Transaction)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no events received")
+
+				return
+			}
+		}
+	})
+
+	t.Run("with both PRE_CONFIRMED and ACCEPTED_ON_L2 finality statuses", func(t *testing.T) {
+		t.Parallel()
+
+		newTxns := make(chan *TxnWithHashAndStatus)
+		options := &SubNewTxnsInput{
+			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		preConfirmedReceived := false
+		acceptedOnL2Received := false
+
+		for {
+			select {
+			case resp := <-newTxns:
+				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+				assert.NotEmpty(t, resp.Hash)
+				assert.NotEmpty(t, resp.Transaction)
+
+				if resp.FinalityStatus == TxnStatus_Pre_confirmed {
+					preConfirmedReceived = true
+				}
+
+				if resp.FinalityStatus == TxnStatus_Accepted_On_L2 {
+					acceptedOnL2Received = true
+				}
+
+				if preConfirmedReceived && acceptedOnL2Received {
+					return
+				}
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(8 * time.Second):
+				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no events received from both finality statuses")
+
+				return
+			}
+		}
+	})
+
+	t.Run("with all finality statuses, except ACCEPTED_ON_L1", func(t *testing.T) {
+		t.Parallel()
+
+		newTxns := make(chan *TxnWithHashAndStatus)
+		options := &SubNewTxnsInput{
+			FinalityStatus: []TxnStatus{TxnStatus_Received, TxnStatus_Candidate, TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		receivedReceived := false
+		candidateReceived := false
+		preConfirmedReceived := false
+		acceptedOnL2Received := false
+
+		for {
+			select {
+			case resp := <-newTxns:
+				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+				assert.NotEmpty(t, resp.Hash)
+				assert.NotEmpty(t, resp.Transaction)
+
+				switch resp.FinalityStatus {
+				case TxnStatus_Received:
+					t.Log("RECEIVED txn received")
+					receivedReceived = true
+				case TxnStatus_Candidate:
+					t.Log("CANDIDATE txn received")
+					candidateReceived = true
+				case TxnStatus_Pre_confirmed:
+					t.Log("PRE_CONFIRMED txn received")
+					preConfirmedReceived = true
+				case TxnStatus_Accepted_On_L2:
+					t.Log("ACCEPTED_ON_L2 txn received")
+					acceptedOnL2Received = true
+				}
+
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(8 * time.Second):
+				assert.True(
+					t,
+					(receivedReceived || candidateReceived || preConfirmedReceived || acceptedOnL2Received),
+					"no events received",
+				)
+
+				return
+			}
+		}
+	})
+
+	t.Run("with sender address filter", func(t *testing.T) {
+		t.Parallel()
+
+		// and address currently sending a lot of transactions in Sepolia
+		randAddress := internalUtils.TestHexToFelt(t, "0x0352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d")
+		provider := testConfig.Provider
+		tempStruct := struct {
+			SenderAddress *felt.Felt `json:"sender_address"`
+		}{}
+
+		newTxns := make(chan *TxnWithHashAndStatus)
+		options := &SubNewTxnsInput{
+			SenderAddress: []*felt.Felt{randAddress},
+		}
+
+		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
+		require.NoError(t, err)
+		require.NotNil(t, sub)
+
+		defer sub.Unsubscribe()
+
+		counter := 0
+		for {
+			select {
+			case resp := <-newTxns:
+				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+
+				txn, err := provider.TransactionByHash(context.Background(), resp.Hash)
+				require.NoError(t, err)
+
+				raw, err := json.Marshal(txn)
+				require.NoError(t, err)
+
+				err = json.Unmarshal(raw, &tempStruct)
+				require.NoError(t, err)
+
+				assert.Equal(t, randAddress, tempStruct.SenderAddress)
+
+				counter++
+			case err := <-sub.Err():
+				require.NoError(t, err)
+			case <-time.After(5 * time.Second):
+				assert.Greater(t, counter, 0, "no receipts received")
+
+				return
+			}
+		}
+	})
+}
+
 func TestUnsubscribe(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
