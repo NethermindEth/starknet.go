@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Added
+- `rpc.SubscriptionBlockID` type for websocket subscriptions, which is a restricted version of `BlockID` that doesn't allow `pre_confirmed` or `l1_accepted` tags
+- Helper methods for `SubscriptionBlockID`: `WithBlockNumber()`, `WithBlockHash()`, and `WithLatestTag()`
+
+### Changed
+- **Breaking**: `SubscribeNewHeads` method now accepts `SubscriptionBlockID` instead of `BlockID` parameter
+- **Breaking**: `EventSubscriptionInput.BlockID` field renamed to `SubBlockID` and changed from `BlockID` to `SubscriptionBlockID` type
+- Updated websocket examples to use the new `SubscriptionBlockID` type with helper methods
+- Removed validation checks for `pre_confirmed` tag in websocket methods since `SubscriptionBlockID` prevents invalid tags at the type level
+
 ## [0.13.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.1) - 2025-08-05
 ### Fixed
 - `rpc.Syncing` was crashing when the node response was that it was syncing.
