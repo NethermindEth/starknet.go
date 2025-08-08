@@ -23,7 +23,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		headers         chan *BlockHeader
-		subBlockID      BlockID
+		subBlockID      SubscriptionBlockID
 		counter         int
 		isErrorExpected bool
 		description     string
@@ -44,20 +44,20 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockTag(BlockTagLatest),
+				subBlockID:      new(SubscriptionBlockID).WithLatestTag(),
 				isErrorExpected: false,
 				description:     "with tag latest",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 100),
+				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 1025),
+				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -70,20 +70,20 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockTag(BlockTagLatest),
+				subBlockID:      new(SubscriptionBlockID).WithLatestTag(),
 				isErrorExpected: false,
 				description:     "with tag latest",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 100),
+				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 100),
 				counter:         100,
 				isErrorExpected: false,
 				description:     "with block number within the range of 1024 blocks",
 			},
 			{
 				headers:         make(chan *BlockHeader),
-				subBlockID:      WithBlockNumber(blockNumber - 1025),
+				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1025),
 				isErrorExpected: true,
 				description:     "invalid, with block number out of the range of 1024 blocks",
 			},
@@ -205,7 +205,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithBlockNumber(blockNumber - 1000),
+			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -258,7 +258,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID: WithBlockTag(BlockTagLatest),
+			SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -379,7 +379,7 @@ func TestSubscribeEvents(t *testing.T) {
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
 			FromAddress: testSet.fromAddressExample,
-			BlockID:     WithBlockNumber(blockNumber - 1000),
+			SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -414,8 +414,8 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			Keys:    [][]*felt.Felt{{testSet.keyExample}},
-			BlockID: WithBlockNumber(blockNumber - 1000),
+			Keys:       [][]*felt.Felt{{testSet.keyExample}},
+			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 		})
 		if sub != nil {
 			defer sub.Unsubscribe()
@@ -459,7 +459,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:        WithBlockNumber(blockNumber - 1000),
+			SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 			FromAddress:    testSet.fromAddressExample,
 			Keys:           [][]*felt.Felt{{testSet.keyExample}},
 			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
@@ -514,13 +514,13 @@ func TestSubscribeEvents(t *testing.T) {
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber - 2000),
+					SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 2000),
 				},
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				input: EventSubscriptionInput{
-					BlockID: WithBlockNumber(blockNumber + 10000),
+					SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber + 10000),
 				},
 				expectedError: ErrBlockNotFound,
 			},
