@@ -66,7 +66,11 @@ loop1:
 
 	// We'll now subscribe to the node again, but this time we'll pass in an older block number as the blockID.
 	// This way, the node will send us block headers from that block number onwards.
-	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, new(rpc.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10))
+	sub, err = wsClient.SubscribeNewHeads(
+		context.Background(),
+		newHeadsChan,
+		new(rpc.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
+	)
 	if err != nil {
 		panic(err)
 	}
