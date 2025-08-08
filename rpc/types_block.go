@@ -127,8 +127,16 @@ const (
 type BlockID struct {
 	Number *uint64    `json:"block_number,omitempty"`
 	Hash   *felt.Felt `json:"block_hash,omitempty"`
-	Tag    BlockTag   `json:",omitempty"`
+	// A tag specifying a dynamic reference to a block. Tag `l1_accepted` refers
+	// to the latest Starknet block which was included in a state update on L1 and
+	// finalized by the consensus on L1. Tag `latest` refers to the latest Starknet
+	// block finalized by the consensus on L2. Tag `pre_confirmed` refers to the block
+	// which is currently being built by the block proposer in height `latest` + 1.
+	Tag BlockTag `json:",omitempty"`
 }
+
+// Block hash, number or tag, same as BLOCK_ID, but without 'pre_confirmed' or 'l1_accepted'
+type SubscriptionBlockID BlockID
 
 func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var tag string
@@ -150,6 +158,21 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	}
 
 	return errors.New("invalid block ID")
+}
+
+func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
+	var aux BlockID
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.Tag == BlockTagPre_confirmed || aux.Tag == BlockTagL1Accepted {
+		return fmt.Errorf("invalid block tag for this type: %s", aux.Tag)
+	}
+
+	*b = SubscriptionBlockID(aux)
+
+	return nil
 }
 
 // MarshalJSON marshals the BlockID to JSON format.
@@ -182,6 +205,14 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(nil)
+}
+
+func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
+	if b.Tag == BlockTagPre_confirmed || b.Tag == BlockTagL1Accepted {
+		return nil, fmt.Errorf("invalid block tag for this type: %s", b.Tag)
+	}
+
+	return BlockID(b).MarshalJSON()
 }
 
 // checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it does, it returns an error.
