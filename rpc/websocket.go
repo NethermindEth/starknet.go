@@ -13,16 +13,9 @@ import (
 //
 // Parameters:
 //
-// - ctx: The context.Context object for controlling the function call
-//
-// - events: The channel to send the new events to
-//
-// - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
-//
-//   - fromAddress: Filter events by from_address which emitted the event
-//   - keys: Per key (by position), designate the possible values to be matched for events to be returned.
-//     Empty array designates 'any' value
-//   - blockID: The block to get notifications from, limited to 1024 blocks back. If empty, the latest block will be used
+//   - ctx: The context.Context object for controlling the function call
+//   - events: The channel to send the new events to
+//   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
@@ -32,15 +25,6 @@ func (provider *WsProvider) SubscribeEvents(
 	events chan<- *EmittedEventWithFinalityStatus,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
-	if options == nil {
-		options = &EventSubscriptionInput{} //nolint:exhaustruct
-	}
-
-	err := checkForPre_confirmed(options.BlockID)
-	if err != nil {
-		return nil, err
-	}
-
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
@@ -63,14 +47,9 @@ func (provider *WsProvider) SubscribeEvents(
 func (provider *WsProvider) SubscribeNewHeads(
 	ctx context.Context,
 	headers chan<- *BlockHeader,
-	blockID BlockID,
+	subBlockID SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
-	err := checkForPre_confirmed(blockID)
-	if err != nil {
-		return nil, err
-	}
-
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, blockID)
+	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}

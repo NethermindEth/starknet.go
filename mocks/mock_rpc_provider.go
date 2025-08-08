@@ -564,18 +564,18 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, option
 }
 
 // SubscribeNewHeads mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, blockID rpc.BlockID) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID rpc.SubscriptionBlockID) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, blockID)
+	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
 	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SubscribeNewHeads indicates an expected call of SubscribeNewHeads.
-func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blockID any) *gomock.Call {
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, subBlockID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, subBlockID)
 }
 
 // SubscribeNewTransactionReceipts mocks base method.

@@ -58,8 +58,8 @@ type EventSubscriptionInput struct {
 	// (Optional) Per key (by position), designate the possible values to be
 	// matched for events to be returned. Empty array designates 'any' value
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
-	// (Optional) The block to get notifications from, limited to 1024 blocks back.
-	BlockID BlockID `json:"block_id,omitempty"`
+	// (Optional) The block to get notifications from, default is latest, limited to 1024 blocks back
+	SubBlockID SubscriptionBlockID `json:"block_id,omitempty"`
 	// (Optional) The finality status of the most recent events to include.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
 	FinalityStatus TxnFinalityStatus `json:"finality_status,omitempty"`

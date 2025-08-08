@@ -151,7 +151,7 @@ type WebsocketProvider interface {
 		events chan<- *EmittedEventWithFinalityStatus,
 		options *EventSubscriptionInput,
 	) (*client.ClientSubscription, error)
-	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
+	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID SubscriptionBlockID) (*client.ClientSubscription, error)
 	SubscribeNewTransactions(
 		ctx context.Context,
 		newTxns chan<- *TxnWithHashAndStatus,
