@@ -307,9 +307,11 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
-		FromAddress: contractAddress,                       // only events from this contract address
-		BlockID:     rpc.WithBlockNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
+		// Only events from this contract address
+		FromAddress: contractAddress,
+		// Subscribe to events from the latest block minus 10 (it'll return
 		// events from the last 10 blocks and progressively update as new blocks are added)
+		SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
 		Keys: [][]*felt.Felt{
 			// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
 			// So this will return all events that have the 'Transfer' selector as the first key.

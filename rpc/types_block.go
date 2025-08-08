@@ -138,6 +138,28 @@ type BlockID struct {
 // Block hash, number or tag, same as BLOCK_ID, but without 'pre_confirmed' or 'l1_accepted'
 type SubscriptionBlockID BlockID
 
+// WithBlockNumber sets the block number for the SubscriptionBlockID.
+func (b *SubscriptionBlockID) WithBlockNumber(number uint64) SubscriptionBlockID {
+	b.Number = &number
+
+	return *b
+}
+
+// WithBlockHash sets the block hash for the SubscriptionBlockID.
+func (b *SubscriptionBlockID) WithBlockHash(hash *felt.Felt) SubscriptionBlockID {
+	b.Hash = hash
+
+	return *b
+}
+
+// WithLatestTag sets the block tag to latest for the SubscriptionBlockID.
+// It's the only block tag allowed for this type.
+func (b *SubscriptionBlockID) WithLatestTag() SubscriptionBlockID {
+	b.Tag = BlockTagLatest
+
+	return *b
+}
+
 func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var tag string
 
