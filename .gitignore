@@ -1,19 +1,9 @@
-.tool-versions
-starknet.go
+.idea/
+.vscode/
 vendor/
+
+.tool-versions
 .env*
 !.env.template
-rpc*/.env.mainnet
-rpc*/.env.testnet
 
-*.txt
 
-tmp/
-
-examples/**/*.sum
-
-*/**/*abi.json
-
-.idea/
-
-.vscode/settings.json
