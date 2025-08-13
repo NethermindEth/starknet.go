@@ -1,46 +1,39 @@
-# Get started with Starknet.go
+# Getting Started
 
-StarkNet.go is a comprehensive Go library that facilitates interaction with the StarkNet blockchain network. StarkNet is a permissionless, decentralized ZK-Rollup operating as a Layer 2 scaling solution for Ethereum.
+This guide walks you through creating your first Starknet.go application. You'll build a simple program that connects to Starknet and retrieves blockchain data.
 
 ## Prerequisites
 
-Before you begin, make sure you have:
-- Installed Go 1.20 or higher
-- [Installed Starknet.go](/docs/introduction/installation)
+- Go 1.20 or higher installed
+- [Starknet.go installed](/docs/introduction/installation) in your project
 - Basic understanding of Go programming
 
-## Overview
+## Your First Application
 
-Starknet.go enables Go backend applications and WASM frontends to seamlessly connect with Starknet by providing abstractions for the Starknet RPC, account managements and wallet operations.
+We'll create an application that connects to Starknet and retrieves the latest block information.
 
+### Step 1: Project Setup
 
-## Creating Your First Starknet.go Application
+Create a new directory and initialize a Go module:
 
-Let's create a simple application that connects to Starknet and retrieves the latest block number.
-
-### Step 1: Set up your project
-
-Create a new directory for your project and initialize a Go module:
-
-```bash [Terminal] 
+```bash
 mkdir my-starknet-app
 cd my-starknet-app
 go mod init my-starknet-app
 ```
 
-### Step 2: Install dependencies
+Add Starknet.go dependency:
 
-Add Starknet.go to your project:
-
-```bash [Terminal]
+```bash
 go get github.com/NethermindEth/starknet.go
+go mod tidy
 ```
 
-### Step 3: Create the main application
+### Step 2: Create the Application
 
-Create a new file `main.go` with the following code:
+Create `main.go` with the following code:
 
-```go [main.go]
+```go
 package main
 
 import (
@@ -52,39 +45,50 @@ import (
 )
 
 func main() {
-    // Initialize connection to RPC provider
-    rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-    client, err := rpc.NewProvider(rpcUrl)
+    // Connect to Starknet Sepolia testnet
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Failed to create client:", err)
     }
 
-    fmt.Println("Established connection with the client")
+    // Get chain information
+    chainID, err := client.ChainID(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get chain ID:", err)
+    }
 
-    // Get the latest block number
     blockNumber, err := client.BlockNumber(context.Background())
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Failed to get block number:", err)
     }
 
-    fmt.Printf("Latest block number: %d\n", blockNumber)
+    fmt.Printf("Connected to Starknet\n")
+    fmt.Printf("Chain ID: %s\n", chainID)
+    fmt.Printf("Latest block: %d\n", blockNumber)
 }
 ```
 
-### Step 4: Run the application
+### Step 3: Run the Application
 
-Run your application:
-
-```bash [Terminal]
+```bash
 go run main.go
 ```
 
-You should see output similar to:
+Expected output:
+```
+Connected to Starknet
+Chain ID: SN_SEPOLIA
+Latest block: 1506321
+```
 
-```
-Established connection with the client
-Latest block number: 123456
-```
+## Understanding the Code
+
+**RPC Client**: The `rpc.NewProvider()` function creates a client that communicates with Starknet nodes via JSON-RPC.
+
+**Context**: Go's context package manages request timeouts and cancellation. Use `context.Background()` for simple operations.
+
+**Error Handling**: Always check for errors when making RPC calls, as network operations can fail.
+
 
 ## Next Steps
 
@@ -101,4 +105,4 @@ If you encounter any issues:
 1. Make sure your Starknet node URL is correct and accessible
 2. Check that you have the latest version of Starknet.go installed
 3. Verify your Go version meets the minimum requirement (1.20 or higher)
-4. Check the [documentation](/docs/introduction/installation) for more detailed setup instructions
+4. Avoid naming your module after Go standard library packages

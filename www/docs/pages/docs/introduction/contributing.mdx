@@ -1,53 +1,45 @@
 # Contributing to Starknet.go
 
-We welcome contributions from the community! This guide will help you get started with contributing to Starknet.go.
-
-## Code of Conduct
-
-Please read and follow our [Code of Conduct](https://github.com/NethermindEth/starknet.go/blob/main/CODE_OF_CONDUCT.md) to keep our community approachable and respectable.
+Starknet.go is an open-source Go library for Starknet developed by NethermindEth. We welcome all contributions to help enrich the Starknet community.
 
 ## How to Contribute
 
-There are many ways to contribute to Starknet.go:
+We operate using an issue and pull request model. Track the [GitHub Issues](https://github.com/NethermindEth/starknet.go/issues) section and submit [Pull Requests](https://github.com/NethermindEth/starknet.go/pulls) for review by maintainers.
 
-- Reporting bugs
-- Suggesting enhancements
-- Improving documentation
-- Submitting pull requests
+## Ways to Contribute
 
 ### Reporting Bugs
 
-If you find a bug, please create an issue on our [GitHub repository](https://github.com/NethermindEth/starknet.go/issues) with:
+Create an issue on our [GitHub repository](https://github.com/NethermindEth/starknet.go) with:
 
-- A clear title and description
-- As much relevant information as possible
-- A code sample or test case demonstrating the bug
+- Clear, descriptive title
+- Detailed description of the issue
+- Steps to reproduce the bug
+- Expected vs actual behavior
+- Environment details (Go version, OS, etc.)
+- Code sample demonstrating the issue
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are also welcome. Please create an issue with:
+Submit enhancement requests with:
 
-- A clear title and description
-- A detailed explanation of the proposed functionality
-- Any relevant examples or use cases
+- Clear title and description
+- Detailed explanation of proposed functionality
+- Use cases and examples
+- Potential implementation approach
 
 ### Improving Documentation
 
-Documentation improvements are always welcome. You can:
+Documentation contributions include:
 
-- Fix typos or clarify existing documentation
-- Add examples or tutorials
-- Expand on technical details
+- Fixing typos and clarifying content
+- Adding code examples and tutorials
+- Expanding technical explanations
+- Improving API documentation
 
-### Pull Requests
+### Code Contributions
 
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests to ensure they pass
-5. Commit your changes (`git commit -m 'Add some amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+Follow our development workflow for code changes.
 
 ## Development Setup
 
@@ -55,25 +47,89 @@ Documentation improvements are always welcome. You can:
 
 - Go 1.20 or higher
 - Git
+- Basic understanding of Go modules and testing
 
-### Setting Up the Development Environment
+### Environment Setup
 
-1. Clone your fork of the repository:
-   ```bash [Terminal]
+1. **Fork the repository** on GitHub
+
+2. **Clone your fork:**
+   ```bash
    git clone https://github.com/yourusername/starknet.go.git
    cd starknet.go
    ```
 
-2. Add the original repository as an upstream remote:
-   ```bash [Terminal]
+3. **Add upstream remote:**
+   ```bash
    git remote add upstream https://github.com/NethermindEth/starknet.go.git
    ```
 
-3. Install dependencies:
-   ```bash [Terminal]
+4. **Install dependencies:**
+   ```bash
    go mod download
    ```
 
-### Running Tests
 
-Run the test suite to ensure everything is working correctly:
+
+### Development Workflow
+
+We recommend the following workflow for contributors:
+
+1. **Find an issue** to work on and use comments to communicate your intentions and ask questions
+2. **Work in a feature branch** of your personal fork (github.com/YOUR_NAME/starknet.go) of the main repository (github.com/NethermindEth/starknet.go)
+3. **Create a pull request** to merge your changes into the main repository after implementing the solution
+4. **Wait for review** by repository maintainers to ensure the issue is addressed
+5. **Merge approval** - if the issue is resolved, maintainers will merge your pull request
+
+### Linter Requirements
+
+Starknet.go requires linter checks to pass before merging. Follow these steps:
+
+1. **Install golangci-lint:**
+   ```bash
+   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.60.0
+   ```
+
+2. **Run the linter:**
+   ```bash
+   golangci-lint run
+   ```
+
+3. **Run linter on specific files:**
+   ```bash
+   golangci-lint run path/to/your/file.go
+   golangci-lint run path/to/your/directory
+   ```
+
+Ensure no linter errors exist before submitting your pull request.
+
+## Project Structure
+
+Understanding the codebase organization:
+
+```
+├── account/        # Account management and signing
+├── client/         # High-level client interfaces
+├── curve/          # Cryptographic operations
+├── examples/       # Usage examples
+├── rpc/           # RPC client implementation
+├── utils/         # Utility functions
+└── ...
+```
+
+## Additional Resources
+
+For a detailed guide on contributing to GitHub projects, see this [contribution guide](https://github.com/NethermindEth/starknet.go/blob/main/docs/CONTRIBUTING.md).
+
+## Getting Help
+
+- **Issues**: Create [GitHub Issues](https://github.com/NethermindEth/starknet.go/issues)
+- **Package Documentation**: Check [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go)
+
+## Review Process
+
+1. Maintainers review all pull requests
+2. Code review feedback should be addressed
+3. Approved PRs are merged by maintainers
+
+Thank you for contributing to Starknet.go!
