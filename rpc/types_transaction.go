@@ -355,6 +355,30 @@ type TxnWithHashAndStatus struct {
 	FinalityStatus TxnStatus `json:"finality_status"`
 }
 
+func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
+	// type alias TxnWithHashAndStatus
+	var aux BlockTransaction
+
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
+	}
+
+	var aux2 struct {
+		FinalityStatus TxnStatus `json:"finality_status"`
+	}
+
+	err = json.Unmarshal(data, &aux2)
+	if err != nil {
+		return err
+	}
+
+	txn.BlockTransaction = aux
+	txn.FinalityStatus = aux2.FinalityStatus
+
+	return nil
+}
+
 // UnmarshalJSON unmarshals the data into a BlockTransaction object.
 //
 // It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
