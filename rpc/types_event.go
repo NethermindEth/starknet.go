@@ -62,6 +62,7 @@ type EventSubscriptionInput struct {
 	SubBlockID SubscriptionBlockID `json:"block_id,omitempty"`
 	// (Optional) The finality status of the most recent events to include.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	// If PRE_CONFIRMED finality is selected, events might appear multiple times, once for each finality status update.
 	FinalityStatus TxnFinalityStatus `json:"finality_status,omitempty"`
 }
 

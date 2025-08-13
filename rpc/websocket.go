@@ -9,7 +9,9 @@ import (
 
 // Events subscription.
 // Creates a WebSocket stream which will fire events for new Starknet events with applied filters.
-// Events are emitted for all events from the specified block_id, up to the latest block
+// Events are emitted for all events from the specified block_id, up to the latest block.
+// If PRE_CONFIRMED finality status is provided, events might appear multiple times, for each finality
+// status update. If a single event is required, ACCEPTED_ON_L2 must be selected (the default).
 //
 // Parameters:
 //
