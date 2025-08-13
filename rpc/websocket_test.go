@@ -986,6 +986,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
+		timeout := time.After(8 * time.Second)
+
 		for {
 			select {
 			case resp := <-newTxns:
@@ -1010,7 +1012,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(8 * time.Second):
+			case <-timeout:
 				assert.True(
 					t,
 					(receivedReceived || candidateReceived || preConfirmedReceived || acceptedOnL2Received),
