@@ -41,7 +41,7 @@ func checkVersionCompatibility(provider *Provider) {
 	}
 
 	if !strings.Contains(version, rpcVersion) {
-		fmt.Println(fmt.Sprintf(warnVersionMismatch, rpcVersion, version))
+		fmt.Println(fmt.Sprintf(warnVersionMismatch, version, rpcVersion))
 	}
 }
 
