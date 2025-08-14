@@ -69,7 +69,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 //
 // Parameters:
 //   - ctx: the context.Context object for controlling the request
-//   - blockHash: the hash of the block to retrieve the traces from
+//   - blockID: the block to retrieve the traces from. `pre_confirmed` tag is not allowed
 //
 // Returns:
 //   - []Trace: a slice of Trace objects representing the traces of transactions in the block
