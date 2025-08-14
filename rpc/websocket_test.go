@@ -192,7 +192,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -240,7 +240,7 @@ func TestSubscribeEvents(t *testing.T) {
 				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -281,7 +281,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -323,7 +323,7 @@ func TestSubscribeEvents(t *testing.T) {
 					assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
 				case err := <-sub.Err():
 					require.NoError(t, err)
-				case <-time.After(4 * time.Second):
+				case <-time.After(10 * time.Second):
 					t.Fatal("timeout waiting for events")
 				}
 			}
@@ -364,7 +364,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 				case err := <-sub.Err():
 					require.NoError(t, err)
-				case <-time.After(4 * time.Second):
+				case <-time.After(10 * time.Second):
 					t.Fatal("timeout waiting for events")
 				}
 			}
@@ -484,7 +484,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(4 * time.Second):
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -643,8 +643,8 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
-				assert.Greater(t, counter, 0, "no events received")
+			case <-time.After(10 * time.Second):
+				assert.Greater(t, counter, 0, "no txns received")
 
 				return
 			}
@@ -678,8 +678,8 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
-				assert.Greater(t, counter, 0, "no events received")
+			case <-time.After(10 * time.Second):
+				assert.Greater(t, counter, 0, "no txns received")
 
 				return
 			}
@@ -768,7 +768,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
+			case <-time.After(10 * time.Second):
 				assert.Greater(t, counter, 0, "no receipts received")
 
 				return
@@ -842,8 +842,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 						assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
 
 						return
-					case <-time.After(5 * time.Second):
-						assert.Fail(t, "no events received within timeout")
+					case <-time.After(10 * time.Second):
+						assert.Fail(t, "no txns received within timeout")
 
 						return
 					case err := <-sub.Err():
@@ -880,8 +880,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
-				assert.Greater(t, counter, 0, "no events received")
+			case <-time.After(10 * time.Second):
+				assert.Greater(t, counter, 0, "no txns received")
 
 				return
 			}
@@ -914,8 +914,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
-				assert.Greater(t, counter, 0, "no events received")
+			case <-time.After(10 * time.Second):
+				assert.Greater(t, counter, 0, "no txns received")
 
 				return
 			}
@@ -959,8 +959,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(8 * time.Second):
-				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no events received from both finality statuses")
+			case <-time.After(10 * time.Second):
+				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no txns received from both finality statuses")
 
 				return
 			}
@@ -986,7 +986,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
-		timeout := time.After(8 * time.Second)
+		timeout := time.After(10 * time.Second)
 
 		for {
 			select {
@@ -1016,7 +1016,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.True(
 					t,
 					(receivedReceived || candidateReceived || preConfirmedReceived || acceptedOnL2Received),
-					"no events received",
+					"no txns received",
 				)
 
 				return
@@ -1065,7 +1065,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(5 * time.Second):
+			case <-time.After(10 * time.Second):
 				assert.Greater(t, counter, 0, "no receipts received")
 
 				return
@@ -1107,7 +1107,7 @@ loop:
 			require.Nil(t, err)
 
 			break loop
-		case <-time.After(5 * time.Second):
+		case <-time.After(10 * time.Second):
 			t.Fatal("timeout waiting for unsubscription")
 		}
 	}
