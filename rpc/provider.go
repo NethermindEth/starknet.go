@@ -17,7 +17,7 @@ import (
 
 // rpcVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-const rpcVersion = "0.9.0-rc2"
+const rpcVersion = "0.9.0"
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
