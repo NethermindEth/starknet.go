@@ -138,6 +138,15 @@ type BlockID struct {
 // Block hash, number or tag, same as BLOCK_ID, but without 'pre_confirmed' or 'l1_accepted'
 type SubscriptionBlockID BlockID
 
+// BlockID returns a BlockID from a SubscriptionBlockID.
+func (b *SubscriptionBlockID) BlockID() BlockID {
+	return BlockID{
+		Number: b.Number,
+		Hash:   b.Hash,
+		Tag:    b.Tag,
+	}
+}
+
 // WithBlockNumber sets the block number for the SubscriptionBlockID.
 func (b *SubscriptionBlockID) WithBlockNumber(number uint64) SubscriptionBlockID {
 	b.Number = &number
