@@ -52,6 +52,8 @@ type EventsInput struct {
 	ResultPageRequest
 }
 
+// EventSubscriptionInput is the input for the 'starknet_subscribeEvents' method.
+
 type EventSubscriptionInput struct {
 	// (Optional) Filter events by from_address which emitted the event
 	FromAddress *felt.Felt `json:"from_address,omitempty"`
