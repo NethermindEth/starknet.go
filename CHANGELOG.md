@@ -16,14 +16,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -->
 
 ### Added
+- New WebSocket subscription endpoints:
+  - `rpc.SubscribeNewTransactions`
+  - `rpc.SubscribeNewTransactionReceipts`
 - `rpc.SubscriptionBlockID` type for websocket subscriptions, which is a restricted version of `BlockID` that doesn't allow `pre_confirmed` or `l1_accepted` tags
-- Helper methods for `SubscriptionBlockID`: `WithBlockNumber()`, `WithBlockHash()`, and `WithLatestTag()`
+- Helper methods for `SubscriptionBlockID`: `BlockID()`, `WithBlockNumber()`, `WithBlockHash()`, and `WithLatestTag()`
+- `l1_accepted` and `pre_confirmed` block tags in the `rpc.BlockTag` type
+- `rpc.ErrFeeBelowMinimum` and `rpc.ErrReplacementTransactionUnderpriced` rpc errors
+- Types:
+  - `rpc.EmittedEventWithFinalityStatus`: the return value for the `rpc.SubscribeEvents` endpoint
+  - `rpc.PriceUnitWei` and `rpc.PriceUnitFri` enums: representing the `WEI` and `FRI` units
+  - `rpc.SubNewTxnReceiptsInput`: input for the `rpc.SubscribeNewTransactionReceipts` endpoint
+  - `rpc.SubNewTxnsInput`: input for the `rpc.SubscribeNewTransactions` endpoint
+  - `rpc.TxnWithHashAndStatus`: return value for the `rpc.SubscribeNewTransactions` endpoint
+  - `rpc.MessageFeeEstimation`: return value for the `rpc.EstimateMessageFee` endpoint
+  - `rpc.FeeEstimationCommon`: common fields for `rpc.FeeEstimation` and `rpc.MessageFeeEstimation`
 
 ### Changed
-- **Breaking**: `SubscribeNewHeads` method now accepts `SubscriptionBlockID` instead of `BlockID` parameter
-- **Breaking**: `EventSubscriptionInput.BlockID` field renamed to `SubBlockID` and changed from `BlockID` to `SubscriptionBlockID` type
-- Updated websocket examples to use the new `SubscriptionBlockID` type with helper methods
-- Removed validation checks for `pre_confirmed` tag in websocket methods since `SubscriptionBlockID` prevents invalid tags at the type level
+- `pending` terminology replaced by `pre_confirmed` across RPC headers, statuses and documentation
+- `rpc.SubscribeNewHeads` endpoint now accepts `rpc.SubscriptionBlockID` instead of `rpc.BlockID` parameter
+- `rpc.SubscribeEvents` endpoint now accepts the `rpc.EmittedEventWithFinalityStatus` type as parameter
+- `rpc.EstimateMessageFee` endpoint now returns `MessageFeeEstimation` instead of a `FeeEstimation` pointer
+- Improved RPC error handling: only code `0` is considered invalid in `tryUnwrapToRPCErr`
+- `rpc.TraceBlockTransactions` endpoint now checks for `pre_confirmed` tag in the `BlockID` parameter and returns an error if it is set
+- Small change in the error returned by the `UnmarshalJSON` method of the `rpc.TxnExecutionStatus` and `rpc.TxnFinalityStatus` types
+- New errors returned by the `rpc.AddInvokeTransaction`, `rpc.AddDeclareTransaction`, and `rpc.AddDeployAccountTransaction` endpoints
+- Types:
+  - `rpc.RpcProvider` interface: change in the `EstimateMessageFee` method return value
+  - `rpc.WebsocketProvider` interface: endpoints added/removed
+  - `rpc.ErrInvalidTransactionNonce`: new string `data` field
+  - `rpc.EventSubscriptionInput`: new/renamed fields
+  - `rpc.MessageStatus`: new/renamed fields
+  - `rpc.FeePayment`: change in a field type
+  - `rpc.FeePaymentUnit` enum: renamed to `rpc.PriceUnit`
+  - `rpc.TxnStatus` enum: new values
+  - `rpc.StateUpdateOutput`: changed field type
+  - `rpc.PendingStateUpdate`: renamed to `rpc.Pre_confirmedStateUpdate`
+  - `rpc.FeeEstimation`: new/changed fields
+  - `rpc.TxnFinalityStatus` enum: new value
+
+### Removed
+- `rpc.(*WsProvider).SubscribePendingTransactions` endpoint in favor of `rpc.SubscribeNewTransactions`
+- `REJECTED` block tag in the `rpc.BlockStatus` type
+- `rpc.checkForPre_confirmed` function calls in websocket methods since `rpc.SubscriptionBlockID` type prevents invalid tags at the type level
+- `rpc.TxnStatus` enum: removed `REJECTED` value
+- Types:
+  - `rpc.SubPendingTxnsInput`
+  - `rpc.PendingTxn`
+
+### Fixed
+- Wrong displayed versions in the warning message when using a different RPC version than the one implemented by starknet.go
+
+### Dev updates
+- Big refactor in the tests organization
+- Add integration environment for testing
+- A lot of tests refactorings and updates
+- Removed `.vscode/launch.json` file
+- Expanded integration tests and datasets; CI and `Makefile` targets updated to include integration runs
 
 ## [0.13.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.1) - 2025-08-05
 ### Fixed
