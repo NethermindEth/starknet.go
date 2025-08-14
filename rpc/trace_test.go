@@ -188,7 +188,7 @@ func TestSimulateTransaction(t *testing.T) {
 
 			//nolint:dupl
 			for i, trace := range resp {
-				require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
+				assert.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
 				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
 
 				// compare JSONs
@@ -341,29 +341,29 @@ func TestTraceBlockTransactions(t *testing.T) {
 func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
 	switch traceTx := traceTx1.(type) {
 	case DeclareTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeclareTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
 	case DeployAccountTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeployAccountTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
 	case InvokeTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(InvokeTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
 	case L1HandlerTxnTrace:
-		require.Equal(t, traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
+		assert.Equal(t, traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(L1HandlerTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
+		assert.Equal(t, traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
 	default:
 		require.Failf(t, "unknown trace", "type: %T", traceTx)
 	}
@@ -377,11 +377,11 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 		return
 	}
 
-	require.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
-	require.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
-	require.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
-	require.ElementsMatch(t, stateDiff1.ReplacedClasses, stateDiff2.ReplacedClasses)
-	require.ElementsMatch(t, stateDiff1.Nonces, stateDiff2.Nonces)
+	assert.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
+	assert.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
+	assert.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
+	assert.ElementsMatch(t, stateDiff1.ReplacedClasses, stateDiff2.ReplacedClasses)
+	assert.ElementsMatch(t, stateDiff1.Nonces, stateDiff2.Nonces)
 
 	// compares storage diffs (they come in a random order)
 	rawStorageDiff, err := json.Marshal(stateDiff2.StorageDiffs)
@@ -404,10 +404,10 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 			err = remarshal(diffElem, &diff2)
 			require.NoError(t, err)
 		}
-		require.NotEmpty(t, diff2)
+		assert.NotEmpty(t, diff2)
 
-		require.Equal(t, diff1.Address, diff2.Address)
-		require.ElementsMatch(t, diff1.StorageEntries, diff2.StorageEntries)
+		assert.Equal(t, diff1.Address, diff2.Address)
+		assert.ElementsMatch(t, diff1.StorageEntries, diff2.StorageEntries)
 	}
 }
 

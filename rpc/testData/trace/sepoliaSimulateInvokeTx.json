@@ -31,7 +31,7 @@
           },
           "l1_data_gas": {
             "max_amount": "0x1e0",
-            "max_price_per_unit": "0xff92d6"
+            "max_price_per_unit": "0xfffffffff92d6"
           }
         },
         "tip": "0x0",
