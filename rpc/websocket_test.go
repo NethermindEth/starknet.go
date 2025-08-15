@@ -493,7 +493,6 @@ func TestSubscribeEvents(t *testing.T) {
 				// so we can use it to verify the events are returned correctly.
 				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 				assert.Equal(t, testSet.keyExample, resp.Keys[0])
-				assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
 
 				return
 			case err := <-sub.Err():

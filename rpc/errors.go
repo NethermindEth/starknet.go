@@ -37,6 +37,7 @@ func Err(code int, data RPCData) *RPCError {
 		return &RPCError{Code: InvalidParams, Message: "Invalid Params", Data: data}
 	default:
 		data = StringErrData(fmt.Sprintf("%d %s", code, data))
+
 		return &RPCError{Code: InternalError, Message: "Internal Error", Data: data}
 	}
 }

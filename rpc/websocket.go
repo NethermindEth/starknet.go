@@ -55,7 +55,7 @@ func (provider *WsProvider) SubscribeNewHeads(
 	var err error
 
 	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
-	if subBlockID == (SubscriptionBlockID{}) {
+	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct
 		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
 	} else {
 		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
