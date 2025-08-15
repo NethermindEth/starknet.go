@@ -681,8 +681,9 @@ func TestEstimateFee(t *testing.T) {
 	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
 	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "")
 
+	// we use for this test a random txn. If the sender address nonce is updated, we need to update the nonce here too
 	bradcastInvokeV3WithNewNonce := bradcastInvokeV3
-	bradcastInvokeV3WithNewNonce.Nonce = new(felt.Felt).SetUint64(84)
+	bradcastInvokeV3WithNewNonce.Nonce = internalUtils.TestHexToFelt(t, "0x57")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
