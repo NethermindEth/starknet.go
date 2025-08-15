@@ -8,34 +8,25 @@ import (
 )
 
 // Events subscription.
-// Creates a WebSocket stream which will fire events for new Starknet events with applied filters
+// Creates a WebSocket stream which will fire events for new Starknet events with applied filters.
+// Events are emitted for all events from the specified block_id, up to the latest block.
+// If PRE_CONFIRMED finality status is provided, events might appear multiple times, for each finality
+// status update. If a single event is required, ACCEPTED_ON_L2 must be selected (the default).
 //
 // Parameters:
 //
-// - ctx: The context.Context object for controlling the function call
-//
-// - events: The channel to send the new events to
-//
-// - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
-//
-//   - fromAddress: Filter events by from_address which emitted the event
-//   - keys: Per key (by position), designate the possible values to be matched for events to be returned.
-//     Empty array designates 'any' value
-//   - blockID: The block to get notifications from, limited to 1024 blocks back. If empty, the latest block will be used
+//   - ctx: The context.Context object for controlling the function call
+//   - events: The channel to send the new events to
+//   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
 func (provider *WsProvider) SubscribeEvents(
 	ctx context.Context,
-	events chan<- *EmittedEvent,
+	events chan<- *EmittedEventWithFinalityStatus,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
-	err := checkForPending(options.BlockID)
-	if err != nil {
-		return nil, err
-	}
-
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
@@ -58,14 +49,18 @@ func (provider *WsProvider) SubscribeEvents(
 func (provider *WsProvider) SubscribeNewHeads(
 	ctx context.Context,
 	headers chan<- *BlockHeader,
-	blockID BlockID,
+	subBlockID SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
-	err := checkForPending(blockID)
-	if err != nil {
-		return nil, err
+	var sub *client.ClientSubscription
+	var err error
+
+	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
+	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct
+		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
+	} else {
+		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
 	}
 
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, blockID)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
@@ -73,24 +68,52 @@ func (provider *WsProvider) SubscribeNewHeads(
 	return sub, nil
 }
 
-// New Pending Transactions subscription
-// Creates a WebSocket stream which will fire events when a new pending transaction is added.
-// While there is no mempool, this notifies of transactions in the pending block.
+// New transactions receipts subscription
+// Creates a WebSocket stream which will fire events when new transaction receipts are created.
+// The endpoint receives a vector of finality statuses. An event is fired for each finality status update.
+// It is possible for receipts for pre-confirmed transactions to be received multiple times, or not at all.
 //
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
-//   - pendingTxns: The channel to send the new pending transactions to
+//   - txnReceipts: The channel to send the new transaction receipts to
 //   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
 //
 // Returns:
 //   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribePendingTransactions(
+func (provider *WsProvider) SubscribeNewTransactionReceipts(
 	ctx context.Context,
-	pendingTxns chan<- *PendingTxn,
-	options *SubPendingTxnsInput,
+	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribePendingTransactions", pendingTxns, options)
+	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactionReceipts", txnReceipts, options)
+	if err != nil {
+		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
+	}
+
+	return sub, nil
+}
+
+// New transactions subscription
+// Creates a WebSocket stream which will fire events when new transaction are created.
+// The endpoint receives a vector of finality statuses. An event is fired for each finality
+// status update. It is possible for events for pre-confirmed and candidate transactions
+// to be received multiple times, or not at all.
+//
+// Parameters:
+//   - ctx: The context.Context object for controlling the function call
+//   - newTxns: The channel to send the new transactions to
+//   - options: The optional input struct containing the optional filters. Set to nil if no filters are needed.
+//
+// Returns:
+//   - clientSubscription: The client subscription object, used to unsubscribe from the stream and to get errors
+//   - error: An error, if any
+func (provider *WsProvider) SubscribeNewTransactions(
+	ctx context.Context,
+	newTxns chan<- *TxnWithHashAndStatus,
+	options *SubNewTxnsInput,
+) (*client.ClientSubscription, error) {
+	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}

@@ -227,12 +227,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Basic calculation with multiplier 1.0",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        BigIntToFelt(big.NewInt(10)),
-				L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
-				L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
-				L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
-				L2GasPrice:        BigIntToFelt(big.NewInt(3)),
-				L2GasConsumed:     BigIntToFelt(big.NewInt(200)),
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(3)),
+					L2GasConsumed:     BigIntToFelt(big.NewInt(200)),
+				},
 			},
 			multiplier: 1.0,
 			expected: rpc.ResourceBoundsMapping{
@@ -253,12 +255,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Multiplier less than 1",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
-				L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
-				L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
-				L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
-				L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
-				L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
+					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
+					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
+					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
+					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
+					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+				},
 			},
 			multiplier: 0.5,
 			expected: rpc.ResourceBoundsMapping{
@@ -286,12 +290,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "With multiplier 1.5",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        BigIntToFelt(big.NewInt(10)),
-				L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
-				L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
-				L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
-				L2GasPrice:        BigIntToFelt(big.NewInt(3)),
-				L2GasConsumed:     BigIntToFelt(big.NewInt(200)),
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(3)),
+					L2GasConsumed:     BigIntToFelt(big.NewInt(200)),
+				},
 			},
 			multiplier: 1.5,
 			expected: rpc.ResourceBoundsMapping{
@@ -312,12 +318,23 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Very large fractional values, within the uint128 and uint64 ranges",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"), // 55753724871440480815496793359074663
-				L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),              // 10028457877064151426
-				L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xf0e1d2c3b4a5968778695a4b3c2d1"), // 78170717918204611383717257769370321
-				L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"),              // 1885667171979197067
-				L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcd"), // 5907679981266292691599931071900621
-				L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xfedcba98765432"),                // 71737338064426034
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xabcdef1234567890abcdef1234567",
+					), // 55753724871440480815496793359074663
+					L1GasConsumed: internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"), // 10028457877064151426
+					L1DataGasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xf0e1d2c3b4a5968778695a4b3c2d1",
+					), // 78170717918204611383717257769370321
+					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"), // 1885667171979197067
+					L2GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcd",
+					), // 5907679981266292691599931071900621
+					L2GasConsumed: internalUtils.TestHexToFelt(t, "0xfedcba98765432"), // 71737338064426034
+				},
 			},
 			multiplier: 1.7,
 			expected: rpc.ResourceBoundsMapping{
@@ -344,12 +361,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Zero values",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        BigIntToFelt(big.NewInt(0)),
-				L1GasConsumed:     BigIntToFelt(big.NewInt(0)),
-				L1DataGasPrice:    BigIntToFelt(big.NewInt(0)),
-				L1DataGasConsumed: BigIntToFelt(big.NewInt(0)),
-				L2GasPrice:        BigIntToFelt(big.NewInt(0)),
-				L2GasConsumed:     BigIntToFelt(big.NewInt(0)),
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(0)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(0)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(0)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(0)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(0)),
+					L2GasConsumed:     BigIntToFelt(big.NewInt(0)),
+				},
 			},
 			multiplier: 1.0,
 			expected: rpc.ResourceBoundsMapping{
@@ -370,12 +389,14 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Overflow",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
-				L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
-				L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
-				L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
-				L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
-				L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
+					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
+					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
+					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
+					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
+					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+				},
 			},
 			multiplier: 1.7,
 			expected: rpc.ResourceBoundsMapping{
@@ -403,12 +424,23 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		{
 			name: "Negative multiplier",
 			feeEstimation: rpc.FeeEstimation{
-				L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"), // 55753724871440480815496793359074663
-				L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),              // 10028457877064151426
-				L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xf0e1d2c3b4a5968778695a4b3c2d1"), // 78170717918204611383717257769370321
-				L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"),              // 1885667171979197067
-				L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcd"), // 5907679981266292691599931071900621
-				L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xfedcba98765432"),                // 71737338064426034
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xabcdef1234567890abcdef1234567",
+					), // 55753724871440480815496793359074663
+					L1GasConsumed: internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"), // 10028457877064151426
+					L1DataGasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xf0e1d2c3b4a5968778695a4b3c2d1",
+					), // 78170717918204611383717257769370321
+					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"), // 1885667171979197067
+					L2GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcd",
+					), // 5907679981266292691599931071900621
+					L2GasConsumed: internalUtils.TestHexToFelt(t, "0xfedcba98765432"), // 71737338064426034
+				},
 			},
 			multiplier: -1.7,
 			expected: rpc.ResourceBoundsMapping{

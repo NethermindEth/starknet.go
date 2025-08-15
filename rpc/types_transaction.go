@@ -329,45 +329,54 @@ func (v *TransactionVersion) Int() int {
 	return -1
 }
 
-// SubPendingTxnsInput is the optional input of the starknet_subscribePendingTransactions subscription.
-type SubPendingTxnsInput struct {
-	// Optional: Get all transaction details, and not only the hash. If not provided, only hash is returned. Default is false
-	TransactionDetails bool `json:"transaction_details,omitempty"`
-	// Optional: Filter transactions to only receive notification from address list
+// SubPendingTxnsInput is the optional input of the starknet_subscribeNewTransactionReceipts subscription.
+type SubNewTxnReceiptsInput struct {
+	// Optional: A vector of finality statuses to receive updates for.
+	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
+	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// PendingTxn is the response of the starknet_subscribePendingTransactions subscription.
-type PendingTxn struct {
-	// The hash of the pending transaction. Always present.
-	Hash *felt.Felt
-	// The full transaction details. Only present if transactionDetails is true.
-	Transaction *BlockTransaction
+// SubNewTxnsInput is the optional input of the starknet_subscribeNewTransactions subscription.
+type SubNewTxnsInput struct {
+	// Optional: A vector of finality statuses to receive updates for.
+	// Support all transaction statuses, except `ACCEPTED_ON_L1`. Default is `ACCEPTED_ON_L2`.
+	FinalityStatus []TxnStatus `json:"finality_status,omitempty"`
+	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
+	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// UnmarshalJSON unmarshals the JSON data into a PendingTxn object.
-//
-// Parameters:
-//   - data: The JSON data to be unmarshalled
-//
-// Returns:
-//   - error: An error if the unmarshalling process fails
-func (s *PendingTxn) UnmarshalJSON(data []byte) error {
-	var txn *BlockTransaction
-	if err := json.Unmarshal(data, &txn); err == nil {
-		s.Transaction = txn
-		s.Hash = txn.Hash
+// TxnWithHashAndStatus is the response of the starknet_subscribeNewTransactions subscription.
+type TxnWithHashAndStatus struct {
+	// Transaction with hash and status
+	BlockTransaction
+	// Finality status of the transaction, except `ACCEPTED_ON_L1`.
+	FinalityStatus TxnStatus `json:"finality_status"`
+}
 
-		return nil
-	}
-	var txnHash *felt.Felt
-	if err := json.Unmarshal(data, &txnHash); err == nil {
-		s.Hash = txnHash
+func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
+	// type alias TxnWithHashAndStatus
+	var aux BlockTransaction
 
-		return nil
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
 	}
 
-	return errors.New("failed to unmarshal PendingTxn")
+	var aux2 struct {
+		FinalityStatus TxnStatus `json:"finality_status"`
+	}
+
+	err = json.Unmarshal(data, &aux2)
+	if err != nil {
+		return err
+	}
+
+	txn.BlockTransaction = aux
+	txn.FinalityStatus = aux2.FinalityStatus
+
+	return nil
 }
 
 // UnmarshalJSON unmarshals the data into a BlockTransaction object.

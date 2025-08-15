@@ -285,10 +285,10 @@ func (mr *MockRpcProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag
 }
 
 // EstimateMessageFee mocks base method.
-func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (*rpc.FeeEstimation, error) {
+func (m *MockRpcProvider) EstimateMessageFee(ctx context.Context, msg rpc.MsgFromL1, blockID rpc.BlockID) (rpc.MessageFeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateMessageFee", ctx, msg, blockID)
-	ret0, _ := ret[0].(*rpc.FeeEstimation)
+	ret0, _ := ret[0].(rpc.MessageFeeEstimation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -549,7 +549,7 @@ func (m *MockWebsocketProvider) EXPECT() *MockWebsocketProviderMockRecorder {
 }
 
 // SubscribeEvents mocks base method.
-func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEvent, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEventWithFinalityStatus, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeEvents", ctx, events, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)
@@ -564,33 +564,48 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, option
 }
 
 // SubscribeNewHeads mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, blockID rpc.BlockID) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID rpc.SubscriptionBlockID) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, blockID)
+	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
 	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SubscribeNewHeads indicates an expected call of SubscribeNewHeads.
-func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, blockID any) *gomock.Call {
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, subBlockID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewHeads", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewHeads), ctx, headers, subBlockID)
 }
 
-// SubscribePendingTransactions mocks base method.
-func (m *MockWebsocketProvider) SubscribePendingTransactions(ctx context.Context, pendingTxns chan<- *rpc.PendingTxn, options *rpc.SubPendingTxnsInput) (*client.ClientSubscription, error) {
+// SubscribeNewTransactionReceipts mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *rpc.TransactionReceiptWithBlockInfo, options *rpc.SubNewTxnReceiptsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SubscribePendingTransactions", ctx, pendingTxns, options)
+	ret := m.ctrl.Call(m, "SubscribeNewTransactionReceipts", ctx, txnReceipts, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SubscribePendingTransactions indicates an expected call of SubscribePendingTransactions.
-func (mr *MockWebsocketProviderMockRecorder) SubscribePendingTransactions(ctx, pendingTxns, options any) *gomock.Call {
+// SubscribeNewTransactionReceipts indicates an expected call of SubscribeNewTransactionReceipts.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactionReceipts(ctx, txnReceipts, options any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribePendingTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribePendingTransactions), ctx, pendingTxns, options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewTransactionReceipts", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewTransactionReceipts), ctx, txnReceipts, options)
+}
+
+// SubscribeNewTransactions mocks base method.
+func (m *MockWebsocketProvider) SubscribeNewTransactions(ctx context.Context, newTxns chan<- *rpc.TxnWithHashAndStatus, options *rpc.SubNewTxnsInput) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SubscribeNewTransactions", ctx, newTxns, options)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeNewTransactions indicates an expected call of SubscribeNewTransactions.
+func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactions(ctx, newTxns, options any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeNewTransactions", reflect.TypeOf((*MockWebsocketProvider)(nil).SubscribeNewTransactions), ctx, newTxns, options)
 }
 
 // SubscribeTransactionStatus mocks base method.

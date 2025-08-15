@@ -39,7 +39,7 @@ jobs:
     
     services:
       devnet:
-        image: shardlabs/starknet-devnet-rs:0.4.0
+        image: shardlabs/starknet-devnet-rs:0.5.0-rc.1
         ports:
           - 5050:5050
 

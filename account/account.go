@@ -144,7 +144,7 @@ func NewAccount(
 
 // Nonce retrieves the nonce for the account's contract address.
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
-	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
+	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pre_confirmed"), account.Address)
 }
 
 // PrecomputeAccountAddress calculates the precomputed address for an account.
