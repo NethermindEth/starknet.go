@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rpc.TraceBlockTransactions` endpoint now checks for `pre_confirmed` tag in the `BlockID` parameter and returns an error if it is set
 - Small change in the error returned by the `UnmarshalJSON` method of the `rpc.TxnExecutionStatus` and `rpc.TxnFinalityStatus` types
 - New errors returned by the `rpc.AddInvokeTransaction`, `rpc.AddDeclareTransaction`, and `rpc.AddDeployAccountTransaction` endpoints
+- RPCErrors now returns more data than before when the error is not a known RPC error
 - Types:
   - `rpc.RpcProvider` interface: change in the `EstimateMessageFee` method return value
   - `rpc.WebsocketProvider` interface: endpoints added/removed
@@ -67,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Wrong displayed versions in the warning message when using a different RPC version than the one implemented by starknet.go
+- Error when subscribing to the `rpc.SubscribeEvents` and `rpc.SubscribeNewHeads` endpoints with an empty `rpc.SubscriptionBlockID` on Pathfinder node
 
 ### Dev updates
 - Big refactor in the tests organization
