@@ -51,7 +51,15 @@ func (provider *WsProvider) SubscribeNewHeads(
 	headers chan<- *BlockHeader,
 	subBlockID SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
+	var sub *client.ClientSubscription
+	var err error
+
+	if subBlockID == (SubscriptionBlockID{}) {
+		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
+	} else {
+		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers, subBlockID)
+	}
+
 	if err != nil {
 		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
