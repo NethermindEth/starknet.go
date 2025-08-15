@@ -122,7 +122,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       WithBlockNumber(9999999999999999999),
+				BlockID:       WithBlockNumber(999999999999999),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
