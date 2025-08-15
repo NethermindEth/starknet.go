@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -35,6 +36,7 @@ func Err(code int, data RPCData) *RPCError {
 	case InvalidParams:
 		return &RPCError{Code: InvalidParams, Message: "Invalid Params", Data: data}
 	default:
+		data = StringErrData(fmt.Sprintf("%d %s", code, data))
 		return &RPCError{Code: InternalError, Message: "Internal Error", Data: data}
 	}
 }
@@ -62,7 +64,7 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 	}
 
 	for _, rpcErr := range rpcErrors {
-		if nodeErr.Code == rpcErr.Code && nodeErr.Message == rpcErr.Message {
+		if nodeErr.Code == rpcErr.Code && strings.EqualFold(nodeErr.Message, rpcErr.Message) {
 			return &nodeErr
 		}
 	}
@@ -71,7 +73,12 @@ func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
 	}
 
-	return Err(nodeErr.Code, nodeErr.Data)
+	// return many data as possible
+	if nodeErr.Data != nil {
+		return Err(nodeErr.Code, StringErrData(fmt.Sprintf("%s %s", nodeErr.Message, nodeErr.Data.ErrorMessage())))
+	}
+
+	return Err(nodeErr.Code, StringErrData(nodeErr.Message))
 }
 
 type RPCError struct {
@@ -147,16 +154,12 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 		}
 		e.Data = &data
 	default:
-		// For unknown error codes, try to unmarshal as string
-		var strData string
-		if err := json.Unmarshal(temp.Data, &strData); err == nil {
-			e.Data = StringErrData(strData)
-
-			return nil
+		// For unknown error codes, returns the string representation of the error
+		rawData, err := temp.Data.MarshalJSON()
+		if err != nil {
+			return err
 		}
-
-		// If not a string, set Data to nil and ignore the data field
-		e.Data = nil
+		e.Data = StringErrData(string(rawData))
 	}
 
 	return nil

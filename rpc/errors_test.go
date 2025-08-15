@@ -49,9 +49,9 @@ func TestRPCError(t *testing.T) {
 	rpcErr := err.(*RPCError)
 
 	// check if the error code, message, and data are correct
-	assert.Equal(t, rpcErr.Code, ErrContractError.Code)
-	assert.Equal(t, rpcErr.Message, ErrContractError.Message)
-	assert.IsType(t, rpcErr.Data, ErrContractError.Data)
+	assert.Equal(t, ErrContractError.Code, rpcErr.Code)
+	assert.Equal(t, ErrContractError.Message, rpcErr.Message)
+	assert.IsType(t, ErrContractError.Data, rpcErr.Data)
 	assert.NotEmpty(t, rpcErr.Data)
 
 	// check if the error message contains the error code, message, and data
