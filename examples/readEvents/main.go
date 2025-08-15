@@ -291,7 +291,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
-	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
+	contractAddress, err := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D") // StarkGate: ETH Token
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}

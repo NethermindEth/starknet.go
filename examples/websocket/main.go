@@ -78,8 +78,8 @@ loop1:
 	fmt.Println("Successfully subscribed to the node. Subscription ID:", sub.ID())
 
 	go func() {
-		time.Sleep(20 * time.Second)
-		// Unsubscribe from the subscription after 20 seconds
+		time.Sleep(10 * time.Second)
+		// Unsubscribe from the subscription after 10 seconds
 		sub.Unsubscribe()
 	}()
 
