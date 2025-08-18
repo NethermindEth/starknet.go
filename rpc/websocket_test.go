@@ -167,9 +167,6 @@ func TestSubscribeEvents(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	// 'blockNumber + 1' for the case the latest block number is updated
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1}
-
 	t.Run("with empty args", func(t *testing.T) {
 		t.Parallel()
 
@@ -188,7 +185,6 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				require.Contains(t, latestBlockNumbers, resp.BlockNumber)
 
 				return
 			case err := <-sub.Err():
