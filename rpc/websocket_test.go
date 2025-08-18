@@ -748,7 +748,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x0352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d")
+		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`
@@ -1055,7 +1055,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x0352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d")
+		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`
