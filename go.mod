@@ -1,6 +1,6 @@
 module github.com/NethermindEth/starknet.go
 
-go 1.23.4
+go 1.25.0
 
 require (
 	github.com/NethermindEth/juno v0.14.0
