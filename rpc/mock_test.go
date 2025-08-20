@@ -3,13 +3,13 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -711,7 +711,7 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 		return nil
 	}
 
-	return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BroadcastDeclareTxnV3, got %T\n", args[0]))
+	return fmt.Errorf("%w: args[0] should be BroadcastDeclareTxnV3, got %T\n", errWrongArgs, args[0])
 }
 
 // mock_starknet_estimateFee simulates the estimation of a fee in the StarkNet network.
@@ -914,7 +914,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 		return errWrongType
 	}
 	if len(args) != 1 {
-		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
+		return fmt.Errorf("%w: wrong number of args %d", errWrongArgs, len(args))
 	}
 	switch args[0].(type) {
 	case *BroadcastInvokeTxnV3, BroadcastInvokeTxnV3:
@@ -935,7 +935,7 @@ func mock_starknet_addInvokeTransaction(result interface{}, args ...interface{})
 
 		return nil
 	default:
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be InvokeTxnV3, got %T\n", args[0]))
+		return fmt.Errorf("%w: args[0] should be InvokeTxnV3, got %T\n", errWrongArgs, args[0])
 	}
 }
 
@@ -945,7 +945,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 		return errWrongType
 	}
 	if len(args) != 1 {
-		return errors.Wrap(errWrongArgs, fmt.Sprint("wrong number of args ", len(args)))
+		return fmt.Errorf("%w: wrong number of args %d", errWrongArgs, len(args))
 	}
 	switch args[0].(type) {
 	case *BroadcastDeployAccountTxnV3, BroadcastDeployAccountTxnV3:
@@ -968,7 +968,7 @@ func mock_starknet_addDeployAccountTransaction(result interface{}, args ...inter
 
 		return nil
 	default:
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be DeployAccountTxnV3, got %T\n", args[0]))
+		return fmt.Errorf("%w: args[0] should be DeployAccountTxnV3, got %T\n", errWrongArgs, args[0])
 	}
 }
 
@@ -1367,7 +1367,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 	}
 	blockID, ok := args[0].(BlockID)
 	if !ok {
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be BlockID, got %T\n", args[0]))
+		return fmt.Errorf("%w: args[0] should be BlockID, got %T\n", errWrongArgs, args[0])
 	}
 	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 		rawBlockTrace, err := internalUtils.UnmarshalJSONFileToType[[]Trace](
@@ -1420,7 +1420,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	}
 	transactionHash, ok := args[0].(*felt.Felt)
 	if !ok {
-		return errors.Wrap(errWrongArgs, fmt.Sprintf("args[0] should be felt, got %T\n", args[0]))
+		return fmt.Errorf("%w: args[0] should be felt, got %T\n", errWrongArgs, args[0])
 	}
 	switch transactionHash.String() {
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
