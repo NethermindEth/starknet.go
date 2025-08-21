@@ -1,10 +1,10 @@
-GOLANGCI_LINT_VERSION := v2.1.5
+GOLANGCI_LINT_VERSION := v2.4.0
 MOCKGEN_VERSION := v0.5.0
 .PHONY: test lint format
 
 # You should first check the 'internal/.env.template' file to set the correct values for the variables.
 # tip: use the '-j' flag to run tests in parallel. Example: 'make -j test'
-test: clean-testcache mock-test devnet-test testnet-test mainnet-test ## Run all tests
+test: clean-testcache mock-test devnet-test testnet-test mainnet-test ## Run all tests, except integration tests
 spinup-test: clean-testcache mock-test spinup-devnet-test testnet-test mainnet-test ## Run all tests, but spin up devnet automatically (requires 'starknet-devnet' to be installed)
 
 # small helpers to run 'rpc' and 'account' tests on a specified environment
@@ -23,6 +23,13 @@ testnet-test-rpc:
 	$(call test_rpc_on,testnet)
 testnet-test-account:
 	$(call test_account_on,testnet)
+
+integration-test: integration-test-rpc integration-test-account ## Run 'rpc' and 'account' tests on integration environment
+# splitted to best run in parallel
+integration-test-rpc:
+	$(call test_rpc_on,integration)
+integration-test-account:
+	$(call test_account_on,integration)
 
 mainnet-test: mainnet-test-rpc mainnet-test-account ## Run 'rpc' and 'account' tests on mainnet environment
 # splitted to best run in parallel
@@ -58,7 +65,7 @@ lint: ## Run linting
 install-deps: install-mockgen install-golangci-lint
 
 install-mockgen:
-	which mockgen || go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
+	go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
 
 install-golangci-lint:
-	which golangci-lint || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)

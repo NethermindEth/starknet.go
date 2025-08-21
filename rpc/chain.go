@@ -35,18 +35,11 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 // Returns:
 //   - *SyncStatus: The synchronisation status
 //   - error: An error if any occurred during the execution
-func (provider *Provider) Syncing(ctx context.Context) (*SyncStatus, error) {
-	var result interface{}
+func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error) {
+	var result SyncStatus
+	if err := do(ctx, provider.c, "starknet_syncing", &result); err != nil {
+		return SyncStatus{}, tryUnwrapToRPCErr(err)
+	}
 
-	if err := provider.c.CallContextWithSliceArgs(ctx, &result, "starknet_syncing"); err != nil {
-		return nil, Err(InternalError, StringErrData(err.Error()))
-	}
-	switch res := result.(type) {
-	case bool:
-		return &SyncStatus{SyncStatus: &res}, nil //nolint:exhaustruct
-	case SyncStatus:
-		return &res, nil
-	default:
-		return nil, Err(InternalError, StringErrData("internal error with starknet_syncing"))
-	}
+	return result, nil
 }

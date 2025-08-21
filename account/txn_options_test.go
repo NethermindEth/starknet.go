@@ -3,6 +3,7 @@ package account
 import (
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 )
@@ -10,6 +11,7 @@ import (
 // TestTxnOptions tests the methods of the TxnOptions struct,
 // verifying that default values are set correctly and edge cases are handled properly
 func TestTxnOptions(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
 
 	t.Run("SafeMultiplier", func(t *testing.T) {
@@ -76,7 +78,7 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name:            "Default value (nil)",
 				opts:            nil,
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
 			},
 			{
 				name: "latest set to true",
@@ -90,7 +92,7 @@ func TestTxnOptions(t *testing.T) {
 				opts: &TxnOptions{
 					UseLatest: false,
 				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPending),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
 			},
 		}
 

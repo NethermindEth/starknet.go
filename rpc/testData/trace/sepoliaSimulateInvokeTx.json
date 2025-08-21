@@ -1,0 +1,52 @@
+{
+  "jsonrpc": "2.0",
+  "method": "starknet_simulateTransactions",
+  "params": {
+    "transactions": [
+      {
+        "type": "INVOKE",
+        "version": "0x3",
+        "nonce": "0x3",
+        "sender_address": "0x5f88badf1b74fc2c68112dc8996ebd337f21978dca93ce57f3b2f7dfbb025bd",
+        "signature": [
+          "0x3f1d36fedc367051ca7ad1b7501a19e24c65e6fa28e8f6f9e0745a185f093cd",
+          "0x2084828bfd5859ee10a36c70b68912bc3ad2dc139c29c5242592b46d75e54e5"
+        ],
+        "calldata": [
+          "0x1",
+          "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+          "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+          "0x2",
+          "0xffffffff",
+          "0x0"
+        ],
+        "resource_bounds": {
+          "l1_gas": {
+            "max_amount": "0x0",
+            "max_price_per_unit": "0xff35ae605ff2b"
+          },
+          "l2_gas": {
+            "max_amount": "0x18c360",
+            "max_price_per_unit": "0xf10c388d00"
+          },
+          "l1_data_gas": {
+            "max_amount": "0x1e0",
+            "max_price_per_unit": "0xfffffffff92d6"
+          }
+        },
+        "tip": "0x0",
+        "paymaster_data": [],
+        "account_deployment_data": [],
+        "nonce_data_availability_mode": "L1",
+        "fee_data_availability_mode": "L1"
+      }
+    ],
+    "simulation_flags": [
+      "SKIP_VALIDATE"
+    ],
+    "block_id": {
+      "block_number": 1130000
+    }
+  },
+  "id": 0
+}

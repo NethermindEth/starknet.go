@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 
 	for _, fileName := range fileNames {
 		var ttd TypedData
-		content, err := os.ReadFile(fmt.Sprintf("./tests/%s.json", fileName))
+		content, err := os.ReadFile(fmt.Sprintf("./testData/%s.json", fileName))
 		if err != nil {
 			panic(fmt.Errorf("fail to read file: %w", err))
 		}
@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 //   - ttd: A TypedData instance loaded from the base example file
 func BMockTypedData(b *testing.B) (ttd TypedData) {
 	b.Helper()
-	content, err := os.ReadFile("./tests/baseExample.json")
+	content, err := os.ReadFile("./testData/baseExample.json")
 	require.NoError(b, err)
 
 	err = json.Unmarshal(content, &ttd)

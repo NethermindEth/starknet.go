@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransactionVersionBigInt(t *testing.T) {
-	tests := []struct {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	testSet := []struct {
 		name     string
 		version  TransactionVersion
 		expected string
@@ -71,7 +74,7 @@ func TestTransactionVersionBigInt(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range testSet {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := tt.version.BigInt()
 			if tt.wantErr {
@@ -88,7 +91,9 @@ func TestTransactionVersionBigInt(t *testing.T) {
 }
 
 func TestTransactionVersionInt(t *testing.T) {
-	tests := []struct {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	testSet := []struct {
 		name     string
 		version  TransactionVersion
 		expected int
@@ -140,7 +145,7 @@ func TestTransactionVersionInt(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for _, tt := range testSet {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.version.Int()
 			assert.Equal(t, tt.expected, got)

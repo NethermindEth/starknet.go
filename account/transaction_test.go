@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -24,14 +25,8 @@ import (
 // This function tests the BuildAndSendInvokeTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendInvokeTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -54,11 +49,10 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NotNil(t, resp.Hash)
 	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -66,14 +60,8 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 // This function tests the BuildAndSendDeclareTxn method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndSendDeclareTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -82,10 +70,10 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(
@@ -111,11 +99,10 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -123,14 +110,8 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
 // It asserts that the expected hash and error values are returned for each test set.
 func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
-	testSet := map[string]bool{
-		"testnet": true,
-		"devnet":  false, // TODO:change to true once devnet supports full v3 transaction type, and adapt the code to use it
-	}[testEnv]
-
-	if !testSet {
-		t.Skip("test environment not supported")
-	}
+	// TODO: implement devnet support
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -179,11 +160,10 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -207,11 +187,44 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 	require.NotNil(t, resp.Hash)
 	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 1*time.Second)
+	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
+	err = waitForTransactionStatus(context.Background(), acc.Provider, resp.Hash, rpc.TxnStatus_Accepted_On_L2, 500*time.Millisecond)
+	require.NoError(t, err, "Error waiting for transfer transaction status")
+
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-	assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
+}
+
+// TODO: make it an exported utility function
+func waitForTransactionStatus(
+	ctx context.Context,
+	provider rpc.RpcProvider,
+	transactionHash *felt.Felt,
+	txnStatus rpc.TxnStatus,
+	pollInterval time.Duration,
+) error {
+	t := time.NewTicker(pollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			return rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+		case <-t.C:
+			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
+			if err != nil {
+				rpcErr := err.(*rpc.RPCError)
+				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
+					continue
+				} else {
+					return err
+				}
+			}
+
+			if returnedTxnStatus.FinalityStatus == txnStatus {
+				return nil
+			}
+		}
+	}
 }
 
 // TestBuildAndSendMethodsWithQueryBit is a test function that tests the BuildAndSendDeclareTxn, BuildAndSendInvokeTxn
@@ -220,13 +233,17 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 // The tests will test the methods when called with the 'hasQueryBitVersion' parameter set to true.
 // It'll check if the txn version when estimating has the query bit, and if the txn version when sending does NOT have it.
 func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv)
+
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 
 	t.Run("on mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
+
 		ctrl := gomock.NewController(t)
 		mockRpcProvider := mocks.NewMockRpcProvider(ctrl)
 
@@ -253,12 +270,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 				return []rpc.FeeEstimation{
 					{
-						L1GasPrice:        new(felt.Felt).SetUint64(10),
-						L1GasConsumed:     new(felt.Felt).SetUint64(100),
-						L1DataGasPrice:    new(felt.Felt).SetUint64(5),
-						L1DataGasConsumed: new(felt.Felt).SetUint64(50),
-						L2GasPrice:        new(felt.Felt).SetUint64(3),
-						L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						FeeEstimationCommon: rpc.FeeEstimationCommon{
+							L1GasPrice:        new(felt.Felt).SetUint64(10),
+							L1GasConsumed:     new(felt.Felt).SetUint64(100),
+							L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+							L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+							L2GasPrice:        new(felt.Felt).SetUint64(3),
+							L2GasConsumed:     new(felt.Felt).SetUint64(200),
+						},
 					},
 				}, nil
 			},
@@ -325,9 +344,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	})
 
 	t.Run("on devnet", func(t *testing.T) {
-		if testEnv != "devnet" {
-			t.Skip("Skipping test as it requires a devnet environment")
-		}
+		tests.RunTestOn(t, tests.DevnetEnv)
+
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -382,7 +400,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			classHash := internalUtils.TestHexToFelt(
 				t,
-				"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+				"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 			) // preDeployed OZ account classhash in devnet
 			// Build and send deploy account txn
 			txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
@@ -415,8 +433,10 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 //
 //	none
 func TestSendInvokeTxn(t *testing.T) {
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	type testSetType struct {
-		ExpectedErr          error
+		ExpectedErr          *rpc.RPCError
 		CairoContractVersion account.CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -424,13 +444,11 @@ func TestSendInvokeTxn(t *testing.T) {
 		PrivKey              *felt.Felt
 		InvokeTx             rpc.BroadcastInvokeTxnV3
 	}
-	testSet := map[string][]testSetType{
-		"mock":   {},
-		"devnet": {},
-		"testnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x7aac4792c8fd7578dd01b20ff04565f2e2ce6ea3c792c5e609a088704c1dd87
-				ExpectedErr:          rpc.ErrDuplicateTx,
+				ExpectedErr:          rpc.ErrInvalidTransactionNonce,
 				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
@@ -475,8 +493,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				},
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		client, err := rpc.NewProvider(tConfig.providerURL)
@@ -498,7 +515,8 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
-			require.Equal(t, test.ExpectedErr.Error(), err.Error(), "AddInvokeTransaction returned an unexpected error")
+			rpcErr := err.(*rpc.RPCError)
+			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code, "AddInvokeTransaction returned an unexpected error")
 			require.Nil(t, resp)
 		}
 	}
@@ -516,9 +534,8 @@ func TestSendInvokeTxn(t *testing.T) {
 //
 //	none
 func TestSendDeclareTxn(t *testing.T) {
-	if testEnv != "testnet" {
-		t.Skip("Skipping test as it requires a testnet environment")
-	}
+	tests.RunTestOn(t, tests.TestnetEnv)
+
 	expectedTxHash := internalUtils.TestHexToFelt(t, "0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0")
 	expectedClassHash := internalUtils.TestHexToFelt(t, "0x06ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17")
 
@@ -538,10 +555,10 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./tests/contracts_v2_HelloStarknet.sierra.json", "")
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
 
 	// Compiled Class Hash
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./tests/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
 	compClassHash, err := hash.CompiledClassHash(&casmClass)
 	require.NoError(t, err)
 
@@ -583,7 +600,8 @@ func TestSendDeclareTxn(t *testing.T) {
 	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
 
 	if err != nil {
-		require.Equal(t, rpc.ErrDuplicateTx.Error(), err.Error(), "AddDeclareTransaction error not what expected")
+		rpcErr := err.(*rpc.RPCError)
+		require.Equal(t, rpc.ErrInvalidTransactionNonce.Code, rpcErr.Code, "AddDeclareTransaction error not what expected")
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
@@ -608,9 +626,8 @@ func TestSendDeclareTxn(t *testing.T) {
 //
 //	none
 func TestSendDeployAccountDevnet(t *testing.T) {
-	if testEnv != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
+
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -623,7 +640,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
-		"0x02b31e19e45c06f29234e06e2ee98a9966479ba3067f8785ed972794fdb0065c",
+		"0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
 	) // preDeployed classhash
 	require.NoError(t, err)
 
@@ -687,9 +704,8 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceiptMOCK(t *testing.T) {
-	if testEnv != "mock" {
-		t.Skip("Skipping test as it requires a mock environment")
-	}
+	tests.RunTestOn(t, tests.MockEnv)
+
 	mockCtrl := gomock.NewController(t)
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 
@@ -706,8 +722,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		ExpectedErr                  error
 		ExpectedReceipt              *rpc.TransactionReceiptWithBlockInfo
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				Timeout:                      time.Duration(1000),
 				ShouldCallTransactionReceipt: true,
@@ -735,7 +751,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		go func() {
@@ -764,7 +780,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 // It creates a new account using the provider, a zero-value Felt object, the "pubkey" string, and a new memory keystore.
 // It defines a testSet variable that contains an array of testSetType structs.
 // Each testSetType struct contains a Timeout integer, a Hash object, an ExpectedErr error, and an ExpectedReceipt TransactionReceipt object.
-// It retrieves the testSet based on the testEnv variable.
+// It retrieves the testSet based on the tests.TEST_ENV variable.
 // It iterates over each test in the testSet.
 // For each test, it creates a new context with a timeout based on the test's Timeout value.
 // It calls the WaitForTransactionReceipt method on the account object, passing the context, the test's Hash value, and a 1-second timeout.
@@ -779,9 +795,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 //
 //	none
 func TestWaitForTransactionReceipt(t *testing.T) {
-	if testEnv != "devnet" {
-		t.Skip("Skipping test as it requires a devnet environment")
-	}
+	tests.RunTestOn(t, tests.DevnetEnv)
+
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
@@ -794,8 +809,8 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		ExpectedErr     *rpc.RPCError
 		ExpectedReceipt rpc.TransactionReceipt
 	}
-	testSet := map[string][]testSetType{
-		"devnet": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv: {
 			{
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
@@ -803,7 +818,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		go func() {
@@ -828,9 +843,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 }
 
 func TestDeployContractWithUDC(t *testing.T) {
-	if testEnv != "testnet" {
-		t.Skip("This test is only for testnet")
-	}
+	tests.RunTestOn(t, tests.TestnetEnv)
 
 	provider, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
@@ -850,7 +863,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
@@ -878,7 +890,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
@@ -917,7 +928,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
@@ -941,7 +951,6 @@ func TestDeployContractWithUDC(t *testing.T) {
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
-		assert.Equal(t, rpc.TxnFinalityStatusAcceptedOnL2, txReceipt.FinalityStatus)
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {

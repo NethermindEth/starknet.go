@@ -3,10 +3,12 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,17 +27,18 @@ import (
 //
 //	none
 func TestTransactionTrace(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	testConfig := BeforeEach(t, false)
 
-	expectedFile1 := "./tests/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
+	expectedFile1 := "./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json"
 
 	type testSetType struct {
 		TransactionHash  *felt.Felt
 		ExpectedRespFile string
 		ExpectedError    error
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			testSetType{
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -56,8 +59,7 @@ func TestTransactionTrace(t *testing.T) {
 				},
 			},
 		},
-		"devnet": {},
-		"testnet": {
+		tests.TestnetEnv: {
 			testSetType{ // with 5 out of 6 fields (without state diff)
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282"),
 				ExpectedRespFile: expectedFile1,
@@ -65,18 +67,24 @@ func TestTransactionTrace(t *testing.T) {
 			},
 			testSetType{ // with 6 out of 6 fields
 				TransactionHash:  internalUtils.TestHexToFelt(t, "0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2"),
-				ExpectedRespFile: "./tests/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
+				ExpectedRespFile: "./testData/trace/sepoliaInvokeTrace_0x49d98a0328fee1de19d43d950cbaeb973d080d0c74c652523371e034cc0bbb2.json",
 				ExpectedError:    nil,
 			},
 		},
-		"mainnet": {},
-	}[testEnv]
+		tests.IntegrationEnv: {
+			testSetType{
+				TransactionHash:  internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ExpectedRespFile: "./testData/trace/integrationInvokeTrace_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
+				ExpectedError:    nil,
+			},
+		},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
-			resp, err := testConfig.provider.TraceTransaction(context.Background(), test.TransactionHash)
+			resp, err := testConfig.Provider.TraceTransaction(context.Background(), test.TransactionHash)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
 
@@ -108,77 +116,107 @@ func TestTransactionTrace(t *testing.T) {
 //
 //	none
 func TestSimulateTransaction(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		SimulateTxnInputFile string
 		ExpectedRespFile     string
+
+		// quick fix for calls with other block ID than the one in the input file
+		AnotherBlockID *BlockID
 	}
 
-	expectedInputFile := "./tests/trace/sepoliaSimulateInvokeTx.json"
-	expectedRespFile := "./tests/trace/sepoliaSimulateInvokeTxResp.json"
+	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
+	expectedRespFile := "./testData/trace/sepoliaSimulateInvokeTxResp.json"
 
-	testSet := map[string][]testSetType{
-		"devnet": {},
-		"mock": {testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv: {},
+		tests.MockEnv: {testSetType{
 			SimulateTxnInputFile: expectedInputFile,
 			ExpectedRespFile:     expectedRespFile,
 		}},
-		"testnet": {testSetType{
-			SimulateTxnInputFile: expectedInputFile,
-			ExpectedRespFile:     expectedRespFile,
-		}},
+		tests.TestnetEnv: {
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagLatest},
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagPre_confirmed},
+			},
+			{
+				SimulateTxnInputFile: expectedInputFile,
+				ExpectedRespFile:     expectedRespFile,
+				AnotherBlockID:       &BlockID{Tag: BlockTagL1Accepted},
+			},
+		},
 		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
-		"mainnet": {},
-	}[testEnv]
+		tests.MainnetEnv: {},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "")
-		expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "")
+		t.Run(fmt.Sprintf("blockID: %v", test.AnotherBlockID), func(t *testing.T) {
+			simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "params")
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "result")
 
-		resp, err := testConfig.provider.SimulateTransactions(
-			context.Background(),
-			simulateTxIn.BlockID,
-			simulateTxIn.Txns,
-			simulateTxIn.SimulationFlags)
-		require.NoError(t, err)
+			if test.AnotherBlockID != nil {
+				simulateTxIn.BlockID = *test.AnotherBlockID
+			}
 
-		// read file to compare JSONs
-		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-		require.NoError(t, err)
-		expectedRespArr := make([]any, 0)
-		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
-
-		//nolint:dupl
-		for i, trace := range resp {
-			require.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
-			compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
-
-			// compare JSONs
-			// get fee_estimation and transaction_trace from expected response JSON file
-			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-			require.True(t, ok)
-			expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
-			require.True(t, ok)
-			expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
-			require.True(t, ok)
-
-			// compare fee_estimation
-			rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
-			require.NoError(t, err)
-			rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
+			resp, err := testConfig.Provider.SimulateTransactions(
+				context.Background(),
+				simulateTxIn.BlockID,
+				simulateTxIn.Txns,
+				simulateTxIn.SimulationFlags)
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
+			if test.AnotherBlockID != nil {
+				// since the block ID is not the same as the one in the input file, we only check that the response is not empty
+				assert.NotEmpty(t, resp)
 
-			// compare transaction_trace
-			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
-			require.NoError(t, err)
-			rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
-			require.NoError(t, err)
+				return
+			}
 
-			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-		}
+			// read file to compare JSONs
+			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
+
+			//nolint:dupl
+			for i, trace := range resp {
+				assert.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
+				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
+
+				// compare JSONs
+				// get fee_estimation and transaction_trace from expected response JSON file
+				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+				require.True(t, ok)
+				expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
+				require.True(t, ok)
+				expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
+				require.True(t, ok)
+
+				// compare fee_estimation
+				rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
+				require.NoError(t, err)
+				rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
+				require.NoError(t, err)
+
+				assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
+
+				// compare transaction_trace
+				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+				require.NoError(t, err)
+				rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
+				require.NoError(t, err)
+
+				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
+			}
+		})
 	}
 }
 
@@ -196,7 +234,9 @@ func TestSimulateTransaction(t *testing.T) {
 //
 //	none
 func TestTraceBlockTransactions(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.MockEnv)
+
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		BlockID          BlockID
@@ -204,19 +244,27 @@ func TestTraceBlockTransactions(t *testing.T) {
 		ExpectedErr      *RPCError
 	}
 
-	expectedRespFile := "./tests/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
+	expectedRespFile := "./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json"
 
-	testSet := map[string][]testSetType{
-		"devnet":  {}, // devenet doesn't support TraceBlockTransactions https://0xspaceshard.github.io/starknet-devnet/docs/guide/json-rpc-api#trace-api
-		"mainnet": {},
-		"testnet": {
-			testSetType{
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.TestnetEnv: {
+			{
 				BlockID:          WithBlockNumber(99433),
 				ExpectedRespFile: expectedRespFile,
 				ExpectedErr:      nil,
 			},
+			{
+				BlockID:          WithBlockTag(BlockTagLatest),
+				ExpectedRespFile: "",
+				ExpectedErr:      nil,
+			},
+			{
+				BlockID:          WithBlockTag(BlockTagL1Accepted),
+				ExpectedRespFile: "",
+				ExpectedErr:      nil,
+			},
 		},
-		"mock": {
+		tests.MockEnv: {
 			testSetType{
 				BlockID:          WithBlockHash(internalUtils.TestHexToFelt(t, "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2")),
 				ExpectedRespFile: expectedRespFile,
@@ -228,53 +276,62 @@ func TestTraceBlockTransactions(t *testing.T) {
 				ExpectedErr:      ErrBlockNotFound,
 			},
 		},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
-		resp, err := testConfig.provider.TraceBlockTransactions(context.Background(), test.BlockID)
-		if err != nil {
-			require.Equal(t, test.ExpectedErr, err)
+		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
+			resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
+			if test.ExpectedErr != nil {
+				require.Equal(t, test.ExpectedErr, err)
 
-			continue
-		}
-
-		// read file to compare JSONs
-		rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-		require.NoError(t, err)
-		expectedRespArr := make([]any, 0)
-		require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
-
-		//nolint:dupl
-		for i, actualTrace := range resp {
-			require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
-			compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
-
-			// compare JSONs
-			// get transaction_hash and trace_root from expected response JSON file
-			expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-			require.True(t, ok)
-			expectedTxHash, ok := expectedRespMap["transaction_hash"]
-			require.True(t, ok)
-			expectedTxnTrace, ok := expectedRespMap["trace_root"]
-			require.True(t, ok)
-
-			// compare transaction_hash
-			rawExpectedTxHash, err := json.Marshal(expectedTxHash)
-			require.NoError(t, err)
-			rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				return
+			}
 			require.NoError(t, err)
 
-			assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+			if test.ExpectedRespFile == "" {
+				assert.NotEmpty(t, resp)
 
-			// compare trace_root
-			rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
-			require.NoError(t, err)
-			rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
-			require.NoError(t, err)
+				return
+			}
+			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
 
-			compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-		}
+			// read file to compare JSONs
+			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
+			require.NoError(t, err)
+			expectedRespArr := make([]any, 0)
+			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+
+			//nolint:dupl
+			for i, actualTrace := range resp {
+				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
+				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
+
+				// compare JSONs
+				// get transaction_hash and trace_root from expected response JSON file
+				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
+				require.True(t, ok)
+				expectedTxHash, ok := expectedRespMap["transaction_hash"]
+				require.True(t, ok)
+				expectedTxnTrace, ok := expectedRespMap["trace_root"]
+				require.True(t, ok)
+
+				// compare transaction_hash
+				rawExpectedTxHash, err := json.Marshal(expectedTxHash)
+				require.NoError(t, err)
+				rawActualTxHash, err := json.Marshal(actualTrace.TxnHash)
+				require.NoError(t, err)
+
+				assert.JSONEq(t, string(rawExpectedTxHash), string(rawActualTxHash))
+
+				// compare trace_root
+				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+				require.NoError(t, err)
+				rawActualTxnTrace, err := json.Marshal(actualTrace.TraceRoot)
+				require.NoError(t, err)
+
+				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
+			}
+		})
 	}
 }
 
@@ -284,29 +341,29 @@ func TestTraceBlockTransactions(t *testing.T) {
 func compareTraceTxs(t *testing.T, traceTx1, traceTx2 TxnTrace) {
 	switch traceTx := traceTx1.(type) {
 	case DeclareTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeclareTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeclareTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeclareTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(DeclareTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(DeclareTxnTrace).ExecutionResources)
 	case DeployAccountTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(DeployAccountTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.ConstructorInvocation, traceTx2.(DeployAccountTxnTrace).ConstructorInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(DeployAccountTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(DeployAccountTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(DeployAccountTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(DeployAccountTxnTrace).ExecutionResources)
 	case InvokeTxnTrace:
-		require.Equal(t, traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
-		require.Equal(t, traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
-		require.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
+		assert.Equal(t, traceTx.ValidateInvocation, traceTx2.(InvokeTxnTrace).ValidateInvocation)
+		assert.Equal(t, traceTx.ExecuteInvocation, traceTx2.(InvokeTxnTrace).ExecuteInvocation)
+		assert.Equal(t, traceTx.FeeTransferInvocation, traceTx2.(InvokeTxnTrace).FeeTransferInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(InvokeTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
-		require.Equal(t, traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
+		assert.Equal(t, traceTx.Type, traceTx2.(InvokeTxnTrace).Type)
+		assert.Equal(t, traceTx.ExecutionResources, traceTx2.(InvokeTxnTrace).ExecutionResources)
 	case L1HandlerTxnTrace:
-		require.Equal(t, traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
+		assert.Equal(t, traceTx.FunctionInvocation, traceTx2.(L1HandlerTxnTrace).FunctionInvocation)
 		compareStateDiffs(t, traceTx.StateDiff, traceTx2.(L1HandlerTxnTrace).StateDiff)
-		require.Equal(t, traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
+		assert.Equal(t, traceTx.Type, traceTx2.(L1HandlerTxnTrace).Type)
 	default:
 		require.Failf(t, "unknown trace", "type: %T", traceTx)
 	}
@@ -320,11 +377,11 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 		return
 	}
 
-	require.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
-	require.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
-	require.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
-	require.ElementsMatch(t, stateDiff1.ReplacedClasses, stateDiff2.ReplacedClasses)
-	require.ElementsMatch(t, stateDiff1.Nonces, stateDiff2.Nonces)
+	assert.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
+	assert.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
+	assert.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
+	assert.ElementsMatch(t, stateDiff1.ReplacedClasses, stateDiff2.ReplacedClasses)
+	assert.ElementsMatch(t, stateDiff1.Nonces, stateDiff2.Nonces)
 
 	// compares storage diffs (they come in a random order)
 	rawStorageDiff, err := json.Marshal(stateDiff2.StorageDiffs)
@@ -347,10 +404,10 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 			err = remarshal(diffElem, &diff2)
 			require.NoError(t, err)
 		}
-		require.NotEmpty(t, diff2)
+		assert.NotEmpty(t, diff2)
 
-		require.Equal(t, diff1.Address, diff2.Address)
-		require.ElementsMatch(t, diff1.StorageEntries, diff2.StorageEntries)
+		assert.Equal(t, diff1.Address, diff2.Address)
+		assert.ElementsMatch(t, diff1.StorageEntries, diff2.StorageEntries)
 	}
 }
 

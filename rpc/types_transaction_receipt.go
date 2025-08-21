@@ -34,8 +34,10 @@ type MessageStatus struct {
 	Hash *felt.Felt `json:"transaction_hash"`
 	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or
 	// failed validation during the block construction phase
-	FinalityStatus TxnStatus `json:"finality_status"`
-	// The failure reason, only appears if finality_status is REJECTED
+	FinalityStatus TxnFinalityStatus `json:"finality_status"`
+	// The execution status of the L1_HANDLER transaction
+	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	// The failure reason. Only appears if `execution_status` is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
 
@@ -46,16 +48,82 @@ type OrderedMsg struct {
 }
 
 type FeePayment struct {
-	Amount *felt.Felt     `json:"amount"`
-	Unit   FeePaymentUnit `json:"unit"`
+	Amount *felt.Felt `json:"amount"`
+	Unit   PriceUnit  `json:"unit"`
 }
 
-type FeePaymentUnit string
+// Units in which the fee is given
+type PriceUnit string
 
 const (
-	UnitWei  FeePaymentUnit = "WEI"
-	UnitStrk FeePaymentUnit = "FRI"
+	UnitWei PriceUnit = "WEI"
+	UnitFri PriceUnit = "FRI"
 )
+
+// Representation of the unit WEI
+type PriceUnitWei string
+
+const (
+	WeiUnit PriceUnitWei = "WEI"
+)
+
+// Representation of the unit FRI
+type PriceUnitFri string
+
+const (
+	FriUnit PriceUnitFri = "FRI"
+)
+
+// Unmarshals the JSON data into a PriceUnit.
+func (f *PriceUnit) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "WEI":
+		*f = UnitWei
+	case "FRI":
+		*f = UnitFri
+	default:
+		return fmt.Errorf("unsupported price unit: %s", data)
+	}
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitWei.
+func (f *PriceUnitWei) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != string(WeiUnit) {
+		return fmt.Errorf("price unit should be WEI, got: %s", data)
+	}
+
+	*f = WeiUnit
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitFri.
+func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != string(FriUnit) {
+		return fmt.Errorf("price unit should be FRI, got: %s", data)
+	}
+
+	*f = FriUnit
+
+	return nil
+}
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
@@ -150,7 +218,8 @@ type TxnStatus string
 
 const (
 	TxnStatus_Received       TxnStatus = "RECEIVED"
-	TxnStatus_Rejected       TxnStatus = "REJECTED"
+	TxnStatus_Candidate      TxnStatus = "CANDIDATE"
+	TxnStatus_Pre_confirmed  TxnStatus = "PRE_CONFIRMED"
 	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
 	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
 )
@@ -159,7 +228,8 @@ const (
 type TxnStatusResult struct {
 	FinalityStatus  TxnStatus          `json:"finality_status"`
 	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
-	FailureReason   string             `json:"failure_reason,omitempty"`
+	// the failure reason, only appears if execution_status is REVERTED
+	FailureReason string `json:"failure_reason,omitempty"`
 }
 
 // The response of the starknet_subscribeTransactionStatus subscription.
@@ -196,7 +266,7 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// If the block hash is nil (txn from pending block), set it to felt.Zero to avoid nil pointer dereference
+	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero to avoid nil pointer dereference
 	if txnResp.BlockHash == nil {
 		txnResp.BlockHash = new(felt.Felt)
 	}

@@ -5,7 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,20 +25,23 @@ import (
 //
 //	none
 func TestChainID(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
+
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ChainID string
 	}
-	testSet := map[string][]testSetType{
-		"devnet":  {{ChainID: "SN_SEPOLIA"}},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "SN_SEPOLIA"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.DevnetEnv:      {{ChainID: "SN_SEPOLIA"}},
+		tests.MainnetEnv:     {{ChainID: "SN_MAIN"}},
+		tests.MockEnv:        {{ChainID: "SN_SEPOLIA"}},
+		tests.TestnetEnv:     {{ChainID: "SN_SEPOLIA"}},
+		tests.IntegrationEnv: {{ChainID: "SN_INTEGRATION_SEPOLIA"}},
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		chain, err := testConfig.provider.ChainID(context.Background())
+		chain, err := testConfig.Provider.ChainID(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, test.ChainID, chain)
 	}
@@ -58,57 +63,47 @@ func TestChainID(t *testing.T) {
 //
 //	none
 func TestSyncing(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	type testSetType struct {
-		ChainID string
+	testConfig := BeforeEach(t, false)
+
+	sync, err := testConfig.Provider.Syncing(context.Background())
+	require.NoError(t, err)
+
+	if tests.TEST_ENV == tests.MockEnv {
+		value := SyncStatus{
+			IsSyncing:         true,
+			StartingBlockHash: internalUtils.RANDOM_FELT,
+			StartingBlockNum:  1234,
+			CurrentBlockHash:  internalUtils.RANDOM_FELT,
+			CurrentBlockNum:   1234,
+			HighestBlockHash:  internalUtils.RANDOM_FELT,
+			HighestBlockNum:   1234,
+		}
+		assert.Exactly(t, value, sync)
+
+		return
 	}
 
-	testSet := map[string][]testSetType{
-		"devnet":  {},
-		"mainnet": {{ChainID: "SN_MAIN"}},
-		"mock":    {{ChainID: "MOCK"}},
-		"testnet": {{ChainID: "SN_SEPOLIA"}},
-	}[testEnv]
-
-	for range testSet {
-		sync, err := testConfig.provider.Syncing(context.Background())
-		require.NoError(t, err)
-
-		if testEnv == "mock" {
-			value := SyncStatus{
-				StartingBlockHash: internalUtils.RANDOM_FELT,
-				StartingBlockNum:  "0x4c602",
-				CurrentBlockHash:  internalUtils.RANDOM_FELT,
-				CurrentBlockNum:   "0x4c727",
-				HighestBlockHash:  internalUtils.RANDOM_FELT,
-				HighestBlockNum:   "0x4c727",
-			}
-			require.Exactly(t, &value, sync)
-
-			continue
-		}
-
-		if sync.SyncStatus == nil {
-			require.True(
-				t,
-				strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"),
-				"current block hash should return a string starting with 0x",
-			)
-			require.NotZero(t, sync.StartingBlockHash)
-			require.NotZero(t, sync.StartingBlockNum)
-			require.NotZero(t, sync.CurrentBlockHash)
-			require.NotZero(t, sync.CurrentBlockNum)
-			require.NotZero(t, sync.HighestBlockHash)
-			require.NotZero(t, sync.HighestBlockNum)
-		} else {
-			require.False(t, *sync.SyncStatus)
-			require.Zero(t, sync.StartingBlockHash)
-			require.Zero(t, sync.StartingBlockNum)
-			require.Zero(t, sync.CurrentBlockHash)
-			require.Zero(t, sync.CurrentBlockNum)
-			require.Zero(t, sync.HighestBlockHash)
-			require.Zero(t, sync.HighestBlockNum)
-		}
+	if sync.IsSyncing {
+		require.True(
+			t,
+			strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"),
+			"current block hash should return a string starting with 0x",
+		)
+		assert.NotZero(t, sync.StartingBlockHash)
+		assert.NotZero(t, sync.StartingBlockNum)
+		assert.NotZero(t, sync.CurrentBlockHash)
+		assert.NotZero(t, sync.CurrentBlockNum)
+		assert.NotZero(t, sync.HighestBlockHash)
+		assert.NotZero(t, sync.HighestBlockNum)
+	} else {
+		assert.False(t, sync.IsSyncing)
+		assert.Zero(t, sync.StartingBlockHash)
+		assert.Zero(t, sync.StartingBlockNum)
+		assert.Zero(t, sync.CurrentBlockHash)
+		assert.Zero(t, sync.CurrentBlockNum)
+		assert.Zero(t, sync.HighestBlockHash)
+		assert.Zero(t, sync.HighestBlockNum)
 	}
 }

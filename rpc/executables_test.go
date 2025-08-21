@@ -8,13 +8,16 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCompiledCasm(t *testing.T) {
-	testConfig := beforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		Description        string
@@ -22,12 +25,12 @@ func TestCompiledCasm(t *testing.T) {
 		ExpectedResultPath string
 		ExpectedError      *RPCError
 	}
-	testSet := map[string][]testSetType{
-		"mock": {
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
 			{
 				Description:        "success - get compiled CASM",
 				ClassHash:          internalUtils.RANDOM_FELT,
-				ExpectedResultPath: "./tests/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
 			},
 			{
 				Description:   "error - class hash not found",
@@ -40,12 +43,23 @@ func TestCompiledCasm(t *testing.T) {
 				ExpectedError: ErrCompilationError,
 			},
 		},
-		"devnet": {},
-		"testnet": {
+		tests.TestnetEnv: {
 			{
 				Description:        "normal call, with field class_hash",
 				ClassHash:          internalUtils.TestHexToFelt(t, "0x00d764f235da1c654c4ca14c47bfc2a54ccd4c0c56b3f4570cd241bd638db448"),
-				ExpectedResultPath: "./tests/compiledCasm.json",
+				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
+			},
+			{
+				Description:   "error call, inexistent class_hash",
+				ClassHash:     internalUtils.TestHexToFelt(t, "0xdedededededede"),
+				ExpectedError: ErrClassHashNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				Description:        "normal call, with field class_hash",
+				ClassHash:          internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
+				ExpectedResultPath: "./testData/compiledCasm/integration.json",
 			},
 			{
 				Description:   "error call, inexistent class_hash",
@@ -54,8 +68,7 @@ func TestCompiledCasm(t *testing.T) {
 			},
 			// TODO: add test for compilation error when Juno implements it (maybe the class hash from block 1 could be a valid input)
 		},
-		"mainnet": {},
-	}[testEnv]
+	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](test.ExpectedResultPath, "result")
@@ -64,7 +77,7 @@ func TestCompiledCasm(t *testing.T) {
 		}
 
 		// getting the result from the provider and asserting equality
-		result, err := testConfig.provider.CompiledCasm(context.Background(), test.ClassHash)
+		result, err := testConfig.Provider.CompiledCasm(context.Background(), test.ClassHash)
 		if test.ExpectedError != nil {
 			rpcErr, ok := err.(*RPCError)
 			require.True(t, ok)
