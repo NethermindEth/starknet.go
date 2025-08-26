@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+
+### Changed
+- The following functions now return the response as a value instead of a pointer:
+  - `rpc.AddInvokeTransaction`
+  - `rpc.AddDeclareTransaction`
+  - `rpc.AddDeployAccountTransaction`
+  - `account.BuildAndSendInvokeTxn`
+  - `account.BuildAndSendDeclareTxn`
+  - `account.DeployContractWithUDC`
+  - `account.SendTransaction`
+- The `account.AccountInterface` and the `rpc.RpcProvider` were updated to reflect the new return types.
+
+### Dev updates
+- Regenerated mocks for the `account` and `rpc` packages
+- Tests updated accordingly
+
 ## [0.14.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.14.0) - 2025-08-15
 ### Added
 - New WebSocket subscription endpoints:

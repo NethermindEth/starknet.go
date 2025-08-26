@@ -11,15 +11,15 @@ import (
 //   - invokeTxn: The invoke transaction to be added.
 //
 // Returns:
-//   - *AddInvokeTransactionResponse: the response of adding the invoke transaction
+//   - AddInvokeTransactionResponse: the response of adding the invoke transaction
 //   - error: an error if any
 func (provider *Provider) AddInvokeTransaction(
 	ctx context.Context,
 	invokeTxn *BroadcastInvokeTxnV3,
-) (*AddInvokeTransactionResponse, error) {
+) (AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
-		return nil, tryUnwrapToRPCErr(
+		return AddInvokeTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
@@ -34,7 +34,7 @@ func (provider *Provider) AddInvokeTransaction(
 		)
 	}
 
-	return &output, nil
+	return output, nil
 }
 
 // AddDeclareTransaction submits a declare transaction to the StarkNet contract.
@@ -44,15 +44,15 @@ func (provider *Provider) AddInvokeTransaction(
 //   - declareTransaction: The input for the declare transaction.
 //
 // Returns:
-//   - *AddDeclareTransactionResponse: The response of submitting the declare transaction
+//   - AddDeclareTransactionResponse: The response of submitting the declare transaction
 //   - error: an error if any
 func (provider *Provider) AddDeclareTransaction(
 	ctx context.Context,
 	declareTransaction *BroadcastDeclareTxnV3,
-) (*AddDeclareTransactionResponse, error) {
+) (AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
-		return nil, tryUnwrapToRPCErr(
+		return AddDeclareTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrClassAlreadyDeclared,
 			ErrCompilationFailed,
@@ -71,7 +71,7 @@ func (provider *Provider) AddDeclareTransaction(
 		)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // AddDeployAccountTransaction adds a DEPLOY_ACCOUNT transaction to the provider.
@@ -81,14 +81,14 @@ func (provider *Provider) AddDeclareTransaction(
 //   - deployAccountTransaction: The deploy account transaction to be added
 //
 // Returns:
-//   - *AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
+//   - AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
 func (provider *Provider) AddDeployAccountTransaction(
 	ctx context.Context,
 	deployAccountTransaction *BroadcastDeployAccountTxnV3,
-) (*AddDeployAccountTransactionResponse, error) {
+) (AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
-		return nil, tryUnwrapToRPCErr(
+		return AddDeployAccountTransactionResponse{}, tryUnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
@@ -103,5 +103,5 @@ func (provider *Provider) AddDeployAccountTransaction(
 		)
 	}
 
-	return &result, nil
+	return result, nil
 }

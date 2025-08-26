@@ -62,10 +62,10 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndEstimateDeployAccountTxn(ctx
 }
 
 // BuildAndSendDeclareTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *account.TxnOptions) (*rpc.AddDeclareTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendDeclareTxn(ctx context.Context, casmClass *contracts.CasmClass, contractClass *contracts.ContractClass, opts *account.TxnOptions) (rpc.AddDeclareTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndSendDeclareTxn", ctx, casmClass, contractClass, opts)
-	ret0, _ := ret[0].(*rpc.AddDeclareTransactionResponse)
+	ret0, _ := ret[0].(rpc.AddDeclareTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -77,10 +77,10 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndSendDeclareTxn(ctx, casmClas
 }
 
 // BuildAndSendInvokeTxn mocks base method.
-func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *account.TxnOptions) (*rpc.AddInvokeTransactionResponse, error) {
+func (m *MockAccountInterface) BuildAndSendInvokeTxn(ctx context.Context, functionCalls []rpc.InvokeFunctionCall, opts *account.TxnOptions) (rpc.AddInvokeTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildAndSendInvokeTxn", ctx, functionCalls, opts)
-	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
+	ret0, _ := ret[0].(rpc.AddInvokeTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -92,10 +92,10 @@ func (mr *MockAccountInterfaceMockRecorder) BuildAndSendInvokeTxn(ctx, functionC
 }
 
 // DeployContractWithUDC mocks base method.
-func (m *MockAccountInterface) DeployContractWithUDC(ctx context.Context, classHash *felt.Felt, constructorCalldata []*felt.Felt, txnOpts *account.TxnOptions, udcOpts *account.UDCOptions) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
+func (m *MockAccountInterface) DeployContractWithUDC(ctx context.Context, classHash *felt.Felt, constructorCalldata []*felt.Felt, txnOpts *account.TxnOptions, udcOpts *account.UDCOptions) (rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeployContractWithUDC", ctx, classHash, constructorCalldata, txnOpts, udcOpts)
-	ret0, _ := ret[0].(*rpc.AddInvokeTransactionResponse)
+	ret0, _ := ret[0].(rpc.AddInvokeTransactionResponse)
 	ret1, _ := ret[1].(*felt.Felt)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -123,10 +123,10 @@ func (mr *MockAccountInterfaceMockRecorder) Nonce(ctx any) *gomock.Call {
 }
 
 // SendTransaction mocks base method.
-func (m *MockAccountInterface) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error) {
+func (m *MockAccountInterface) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendTransaction", ctx, txn)
-	ret0, _ := ret[0].(*rpc.TransactionResponse)
+	ret0, _ := ret[0].(rpc.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
