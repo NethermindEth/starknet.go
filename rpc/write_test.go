@@ -45,7 +45,7 @@ func TestDeclareTransaction(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		assert.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
+		assert.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
 	}
 }
 
@@ -175,7 +175,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
+			require.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
 		}
 	}
 }
