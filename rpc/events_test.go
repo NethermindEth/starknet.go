@@ -31,9 +31,9 @@ import (
 //
 //	none
 func TestEvents(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		eventFilter  EventFilter
@@ -133,6 +133,45 @@ func TestEvents(t *testing.T) {
 				},
 			},
 		},
+		tests.IntegrationEnv: {
+			{
+				eventFilter: EventFilter{
+					FromBlock: WithBlockNumber(144932),
+					ToBlock:   WithBlockNumber(144933),
+					Address:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+					Keys: [][]*felt.Felt{{
+						internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+						internalUtils.TestHexToFelt(t, "0x0143fe26927dd6a302522ea1cd6a821ab06b3753194acee38d88a85c93b3cbc6"),
+					}},
+				},
+				resPageReq: ResultPageRequest{
+					ChunkSize: 1000,
+				},
+				expectedResp: EventChunk{
+					Events: []EmittedEvent{
+						{
+							Event: Event{
+								FromAddress: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+								EventContent: EventContent{
+									Keys: []*felt.Felt{
+										internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
+										internalUtils.TestHexToFelt(t, "0x352057331d5ad77465315d30b98135ddb815b86aa485d659dfeef59a904f88d"),
+										internalUtils.TestHexToFelt(t, "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8"),
+									},
+									Data: internalUtils.TestHexArrToFelt(t, []string{
+										"0x1e03a73820",
+										"0x0",
+									}),
+								},
+							},
+							BlockHash:       internalUtils.TestHexToFelt(t, "0x2bc26a46f2bcf0f163514d0936040030fc52a3896133bfede267e49a1d5906f"),
+							BlockNumber:     144932,
+							TransactionHash: internalUtils.TestHexToFelt(t, "0x15be3c702ac6982b37e112962b1e94f896d8dcb90fc1655e1ea1571047e2a64"),
+						},
+					},
+				},
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -140,7 +179,7 @@ func TestEvents(t *testing.T) {
 			EventFilter:       test.eventFilter,
 			ResultPageRequest: test.resPageReq,
 		}
-		events, err := testConfig.provider.Events(context.Background(), eventInput)
+		events, err := testConfig.Provider.Events(context.Background(), eventInput)
 		require.NoError(t, err, "Events failed")
 		require.Exactly(t, test.expectedResp.Events[0], events.Events[0], "Events mismatch")
 	}

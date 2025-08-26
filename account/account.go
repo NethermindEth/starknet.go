@@ -32,22 +32,22 @@ type AccountInterface interface {
 		ctx context.Context,
 		functionCalls []rpc.InvokeFunctionCall,
 		opts *TxnOptions,
-	) (*rpc.AddInvokeTransactionResponse, error)
+	) (rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
 		opts *TxnOptions,
-	) (*rpc.AddDeclareTransactionResponse, error)
+	) (rpc.AddDeclareTransactionResponse, error)
 	DeployContractWithUDC(
 		ctx context.Context,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		txnOpts *TxnOptions,
 		udcOpts *UDCOptions,
-	) (*rpc.AddInvokeTransactionResponse, *felt.Felt, error)
+	) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
-	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (*rpc.TransactionResponse, error)
+	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
 	SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error
@@ -144,7 +144,7 @@ func NewAccount(
 
 // Nonce retrieves the nonce for the account's contract address.
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
-	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pending"), account.Address)
+	return account.Provider.Nonce(context.Background(), rpc.WithBlockTag("pre_confirmed"), account.Address)
 }
 
 // PrecomputeAccountAddress calculates the precomputed address for an account.

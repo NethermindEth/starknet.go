@@ -274,7 +274,8 @@ func (sub *ClientSubscription) Err() <-chan error {
 }
 
 // Reorg returns a channel that notifies the subscriber of a reorganisation of the chain.
-// A reorg event could be received only from subscribing to NewHeads, Events, and TransactionStatus
+// A reorg event could be received from subscribing to NewHeads, Events, TransactionStatus,
+// NewTransactions, and NewTransactionReceipts.
 func (sub *ClientSubscription) Reorg() <-chan *ReorgEvent {
 	return sub.reorgChannel
 }

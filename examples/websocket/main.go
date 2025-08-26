@@ -33,7 +33,7 @@ func main() {
 	// We then call the desired websocket method, passing in the channel and the parameters if needed.
 	// For example, to subscribe to new block headers, we call the SubscribeNewHeads method, passing in the channel and the blockID.
 	// As the description says it's optional, we pass an empty BlockID as value. That way, the latest block will be used by default.
-	sub, err := wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.BlockID{})
+	sub, err := wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.SubscriptionBlockID{})
 	if err != nil {
 		panic(err)
 	}
@@ -66,7 +66,11 @@ loop1:
 
 	// We'll now subscribe to the node again, but this time we'll pass in an older block number as the blockID.
 	// This way, the node will send us block headers from that block number onwards.
-	sub, err = wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.WithBlockNumber(latestBlockNumber-10))
+	sub, err = wsClient.SubscribeNewHeads(
+		context.Background(),
+		newHeadsChan,
+		new(rpc.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -74,8 +78,8 @@ loop1:
 	fmt.Println("Successfully subscribed to the node. Subscription ID:", sub.ID())
 
 	go func() {
-		time.Sleep(20 * time.Second)
-		// Unsubscribe from the subscription after 20 seconds
+		time.Sleep(10 * time.Second)
+		// Unsubscribe from the subscription after 10 seconds
 		sub.Unsubscribe()
 	}()
 

@@ -100,7 +100,7 @@ func TestCookieManagement(t *testing.T) {
 func TestVersionCompatibility(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	const wrongVersion = "0.5.0"
+	const diffNodeVersion = "0.5.0"
 
 	// Set up a single server that responds differently based on query parameters
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -112,31 +112,20 @@ func TestVersionCompatibility(t *testing.T) {
 		}
 
 		if method, ok := request["method"].(string); ok && method == "starknet_specVersion" {
-			// Get test case from query parameter
-			testCase := r.URL.Query().Get("testCase")
+			// get node version from query parameter
+			nodeVersion := r.URL.Query().Get("nodeVersion")
 
-			switch testCase {
-			case "compatible":
+			if nodeVersion != "" {
 				// Return the same version as RPCVersion
 				data := map[string]interface{}{
 					"jsonrpc": "2.0",
 					"id":      request["id"],
-					"result":  rpcVersion,
+					"result":  nodeVersion,
 				}
 				if err := json.NewEncoder(w).Encode(data); err != nil {
 					log.Fatal(err)
 				}
-			case "incompatible":
-				// Return a different version
-				data := map[string]interface{}{
-					"jsonrpc": "2.0",
-					"id":      request["id"],
-					"result":  wrongVersion, // Different version
-				}
-				if err := json.NewEncoder(w).Encode(data); err != nil {
-					log.Fatal(err)
-				}
-			case "error":
+			} else {
 				// Return an error
 				data := map[string]interface{}{
 					"jsonrpc": "2.0",
@@ -157,22 +146,22 @@ func TestVersionCompatibility(t *testing.T) {
 	// Test cases
 	testCases := []struct {
 		name            string
-		queryParam      string
+		nodeVersion     string
 		expectedWarning string
 	}{
 		{
 			name:            "Compatible version",
-			queryParam:      "compatible",
+			nodeVersion:     rpcVersion,
 			expectedWarning: "",
 		},
 		{
 			name:            "Incompatible version",
-			queryParam:      "incompatible",
-			expectedWarning: fmt.Sprintf(warnVersionMismatch, rpcVersion, wrongVersion),
+			nodeVersion:     diffNodeVersion,
+			expectedWarning: "warning: the RPC provider version is " + diffNodeVersion + ", and is different from the version " + rpcVersion + " implemented by the SDK. This may cause unexpected behaviour.",
 		},
 		{
 			name:            "Error fetching version",
-			queryParam:      "error",
+			nodeVersion:     "",
 			expectedWarning: warnVersionCheckFailed,
 		},
 	}
@@ -185,7 +174,7 @@ func TestVersionCompatibility(t *testing.T) {
 			os.Stdout = w
 
 			// Create provider with query parameter - this will trigger the version check
-			serverURL := testServer.URL + "?testCase=" + tc.queryParam
+			serverURL := testServer.URL + "?nodeVersion=" + tc.nodeVersion
 			provider, err := NewProvider(serverURL)
 			require.NoError(t, err)
 			require.NotNil(t, provider)

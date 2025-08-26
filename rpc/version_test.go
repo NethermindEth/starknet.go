@@ -10,9 +10,9 @@ import (
 
 // TestSpecVersion tests starknet_specVersion
 func TestSpecVersion(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		ExpectedResp string
@@ -21,10 +21,13 @@ func TestSpecVersion(t *testing.T) {
 		tests.TestnetEnv: {{
 			ExpectedResp: rpcVersion,
 		}},
+		tests.IntegrationEnv: {{
+			ExpectedResp: rpcVersion,
+		}},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.SpecVersion(context.Background())
+		resp, err := testConfig.Provider.SpecVersion(context.Background())
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedResp, resp)
 	}

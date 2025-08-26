@@ -14,7 +14,7 @@ import (
 func TestDeclareTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		DeclareTx     BroadcastDeclareTxnV3
@@ -34,7 +34,7 @@ func TestDeclareTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
+		resp, err := testConfig.Provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
 		if test.ExpectedError != nil {
 			require.Error(t, err)
 			rpcErr, ok := err.(*RPCError)
@@ -45,14 +45,14 @@ func TestDeclareTransaction(t *testing.T) {
 			continue
 		}
 		require.NoError(t, err)
-		assert.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
+		assert.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
 	}
 }
 
 func TestAddInvokeTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		InvokeTx      BroadcastInvokeTxnV3
@@ -111,11 +111,11 @@ func TestAddInvokeTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
+		resp, err := testConfig.Provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
 		if test.ExpectedError != nil {
 			require.Equal(t, test.ExpectedError, err)
 		} else {
-			require.Equal(t, *resp, test.ExpectedResp)
+			require.Equal(t, resp, test.ExpectedResp)
 		}
 	}
 }
@@ -123,7 +123,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 func TestAddDeployAccountTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	testConfig := beforeEach(t, false)
+	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
 		DeployTx      BroadcastDeployAccountTxnV3
@@ -171,11 +171,11 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
+		resp, err := testConfig.Provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {
-			require.Equal(t, (*resp.Hash).String(), (*test.ExpectedResp.Hash).String())
+			require.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
 		}
 	}
 }
