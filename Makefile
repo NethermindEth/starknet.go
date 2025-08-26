@@ -1,5 +1,5 @@
 GOLANGCI_LINT_VERSION := v2.4.0
-MOCKGEN_VERSION := v0.5.0
+MOCKGEN_VERSION := v0.6.0
 .PHONY: test lint format
 
 # You should first check the 'internal/.env.template' file to set the correct values for the variables.
