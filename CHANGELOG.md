@@ -17,19 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Changed
-- **rpc**
-  - `AddInvokeTransaction`, `AddDeclareTransaction`, `AddDeployAccountTransaction` now return their response structs **by value**.
-  - Error paths in the above functions now return the zero‐value struct, never a partially-filled response.
-- **account**
-  - `AccountInterface` and implementations updated to reflect new return types.
-  - `BuildAndSendInvokeTxn`, `BuildAndSendDeclareTxn`, `DeployContractWithUDC`, and `SendTransaction` now use a single `zeroResp` helper variable for error returns (DRY).
-  - Reverted `BuildAndEstimateDeployAccountTxn` to return `*BroadcastDeployAccountTxnV3` (pointer) as it represents a full, mutable transaction.
-- **tests & mocks**
-  - Updated all affected tests and regenerated mocks (`go generate ./...`) to match the new signatures.
-### Fixed
-- Returning partially-initialised structs on RPC errors.
-### Developer Experience
-- Clearer function signatures and fewer heap allocations when handling small response structs.
+- The following functions now return the response as a value instead of a pointer:
+  - `rpc.AddInvokeTransaction`
+  - `rpc.AddDeclareTransaction`
+  - `rpc.AddDeployAccountTransaction`
+  - `account.BuildAndSendInvokeTxn`
+  - `account.BuildAndSendDeclareTxn`
+  - `account.DeployContractWithUDC`
+  - `account.SendTransaction`
+- The `account.AccountInterface` and the `rpc.RpcProvider` were updated to reflect the new return types.
+
+### Dev updates
+- Regenerated mocks for the `account` and `rpc` packages
+- Tests updated accordingly
 
 ## [0.14.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.14.0) - 2025-08-15
 ### Added
