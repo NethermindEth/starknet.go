@@ -275,3 +275,9 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// EventWith finds the first event in the transaction receipt that has a specific key.
+// The key is provided as a hex string. If no event is found, it returns nil.
+func (tr *TransactionReceiptWithBlockInfo) EventWith(key string) *Event {
+	return EventWith(tr.Events, key)
+}
