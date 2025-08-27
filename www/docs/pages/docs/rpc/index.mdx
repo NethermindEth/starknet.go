@@ -1,27 +1,78 @@
 # RPC Package
 
-The RPC package provides functionality for interacting with Starknet nodes using JSON-RPC. This package contains various components and utilities for making RPC calls to Starknet nodes.
+The RPC package provides complete access to Starknet's JSON-RPC API. It implements the Starknet RPC v0.9.0 specification for interacting with Starknet nodes.
 
-## Overview
+## What You Can Do
 
-The RPC package includes:
-- RPC methods
-- RPC examples
-- RPC utilities
+**Query Blockchain Data**
+- Get latest blocks and transactions
+- Read contract storage and state
+- Query historical events
 
-## Available Submodules
+**Submit Transactions**
+- Deploy accounts and contracts
+- Execute contract functions
+- Estimate transaction fees
 
-- [RPC Methods](/docs/rpc/methods)
-- [RPC Examples](/docs/rpc/examples)
+**Real-time Updates**
+- Subscribe to new blocks
+- Monitor contract events
+- Track transaction status
 
 ## Getting Started
 
-To use the RPC package, import it in your Go code:
-
 ```go
-import "github.com/NethermindEth/starknet.go/rpc"
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Make RPC calls
+    blockNumber, err := client.BlockNumber(context.Background())
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Latest block number: %d\n", blockNumber)
+}
 ```
 
-## Version
+## Core Components
 
-This documentation is based on version v0.8.1 of the Starknet.go library. 
+**Provider**: HTTP client for standard RPC calls
+**WebSocketProvider**: Real-time subscriptions and updates
+**Types**: Complete type definitions for all operations
+
+## Method Categories
+
+**Blocks** - `BlockNumber()`, `BlockHashAndNumber()`, `BlockWithTxs()`, `BlockWithTxHashes()`, `BlockWithReceipts()`, `BlockTransactionCount()`, `StateUpdate()`
+
+**Transactions** - `TransactionByHash()`, `TransactionByBlockIdAndIndex()`, `TransactionReceipt()`, `GetTransactionStatus()`, `AddInvokeTransaction()`, `AddDeclareTransaction()`, `AddDeployAccountTransaction()`, `GetMessagesStatus()`
+
+**Contracts** - `Call()`, `Class()`, `ClassAt()`, `ClassHashAt()`, `StorageAt()`, `Nonce()`, `EstimateFee()`, `EstimateMessageFee()`, `GetStorageProof()`, `CompiledCasm()`
+
+**Chain** - `ChainID()`, `Syncing()`, `SpecVersion()`
+
+**Events** - `Events()` with comprehensive filtering support
+
+**Debug & Tracing** - `TraceTransaction()`, `TraceBlockTransactions()`, `SimulateTransactions()`
+
+## Network Support
+
+Works with all Starknet networks - mainnet, sepolia testnet, and local devnets. Simply change the RPC URL to switch networks.
+
+---
+
+Ready to interact with Starknet? The RPC package provides everything you need to build robust applications on Starknet.

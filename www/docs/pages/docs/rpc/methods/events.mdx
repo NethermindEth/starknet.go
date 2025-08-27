@@ -1,0 +1,177 @@
+# Events
+
+Gets events matching the specified filter criteria with pagination support.
+
+## Method Signature
+
+```go
+func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `input` - EventsInput containing filter parameters and pagination settings
+
+## Returns
+
+- `*EventChunk` - Chunk of events matching the filter with optional continuation token
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Create events input with basic filter
+    eventsInput := rpc.EventsInput{
+        EventFilter: rpc.EventFilter{
+            FromBlock: rpc.WithBlockNumber(1676500), // Starting from block
+            ToBlock:   rpc.WithBlockNumber(1676510), // Small range for testing
+        },
+        ResultPageRequest: rpc.ResultPageRequest{
+            ChunkSize: 5, // Limit to 5 events for testing
+        },
+    }
+
+    // Get events
+    eventChunk, err := client.Events(context.Background(), eventsInput)
+    if err != nil {
+        log.Fatal("Failed to get events:", err)
+    }
+
+    // Pretty print the events
+    eventsJSON, _ := json.MarshalIndent(eventChunk, "", "  ")
+    fmt.Printf("Events:\n%s\n", eventsJSON)
+
+    fmt.Printf("Found %d events\n", len(eventChunk.Events))
+    if eventChunk.ContinuationToken != "" {
+        fmt.Printf("More events available with token: %s\n", eventChunk.ContinuationToken)
+    }
+}
+```
+
+## Expected Output
+
+```
+Events:
+{
+  "events": [
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "0x627bebf0c7a880",
+        "0x0"
+      ],
+      "block_hash": "0x6c383681fb7329fce83a59f93580eb0752a77d697231d99ef1a5744810a47ca",
+      "block_number": 1676500,
+      "transaction_hash": "0x5f517bab35dde643b2e9d89f167b39d0466866947e9a7486019eb4216ff4094"
+    },
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "0x627bebf0c7a880",
+        "0x0"
+      ],
+      "block_hash": "0x2d66543a7ca9aeb50318aad5176bbf8fb33e3b685e3f3aa94bdf660d713fcb1",
+      "block_number": 1676502,
+      "transaction_hash": "0x65ca3a5d27642fe873417dd707d5e723e7de9c4690ea675b11594e3433bbacc"
+    },
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x324b04e5a4270605007334372ce455c47581e51cdd091559df2739d1c4e2677",
+        "0x517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802",
+        "0x821ab0d4414980000",
+        "0x0"
+      ],
+      "block_hash": "0x5bb74eb0e28807cdee96dd47ccbcf8d154851db4a759c59ad54ced22ea7ea41",
+      "block_number": 1676503,
+      "transaction_hash": "0x5a8a9b5f9bface71749fb018fcb17931c93d5a284c8a0014f0e999ee0a1d0a4"
+    },
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x324b04e5a4270605007334372ce455c47581e51cdd091559df2739d1c4e2677",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "0xee32587f77560",
+        "0x0"
+      ],
+      "block_hash": "0x5bb74eb0e28807cdee96dd47ccbcf8d154851db4a759c59ad54ced22ea7ea41",
+      "block_number": 1676503,
+      "transaction_hash": "0x5a8a9b5f9bface71749fb018fcb17931c93d5a284c8a0014f0e999ee0a1d0a4"
+    },
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "0x627bebf0c7a880",
+        "0x0"
+      ],
+      "block_hash": "0x23a2ebdb716354400ec435322744cfa10cdb4c1b4fec64ef715ad1b89c3d5ad",
+      "block_number": 1676504,
+      "transaction_hash": "0x70652ed7789fc66be2de7e31075dd3e9a0e66fe8854778c08f3b20001a723fc"
+    }
+  ],
+  "continuation_token": "1676505-0"
+}
+Found 5 events
+More events available with token: 1676505-0
+```
+
+## Use Cases
+
+- Monitor contract events for specific activities
+- Track token transfers and other contract interactions  
+- Analyze historical blockchain data within block ranges
+- Build event-driven applications that react to on-chain events
+- Filter events by contract address or event keys for targeted monitoring
+
+## Error Handling
+
+Common errors include network timeouts and invalid filter parameters. Always check the error before using the returned value.
+
+```go
+eventChunk, err := client.Events(ctx, eventsInput)
+if err != nil {
+    log.Printf("Error getting events: %v", err)
+    return
+}
+// Safe to use eventChunk
+```

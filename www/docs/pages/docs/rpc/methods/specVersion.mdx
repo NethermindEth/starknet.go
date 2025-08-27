@@ -1,11 +1,11 @@
-# BlockNumber
+# SpecVersion
 
-Gets the number (height) of the most recent block.
+Gets the RPC specification version supported by the node.
 
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error)
+func (provider *Provider) SpecVersion(ctx context.Context) (string, error)
 ```
 
 ## Parameters
@@ -14,7 +14,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error)
 
 ## Returns
 
-- `uint64` - The latest block number
+- `string` - The RPC specification version
 - `error` - Error if the request fails
 
 ## Usage Example
@@ -37,38 +37,38 @@ func main() {
         log.Fatal("Failed to create client:", err)
     }
 
-    // Get latest block number
-    blockNumber, err := client.BlockNumber(context.Background())
+    // Get spec version
+    version, err := client.SpecVersion(context.Background())
     if err != nil {
-        log.Fatal("Failed to get block number:", err)
+        log.Fatal("Failed to get spec version:", err)
     }
 
-    fmt.Printf("Latest block number: %d\n", blockNumber)
+    fmt.Printf("RPC Spec Version: %s\n", version)
 }
 ```
 
 ## Expected Output
 
 ```
-Latest block number: 1506789
+RPC Spec Version: 0.8.1
 ```
 
 ## Use Cases
 
-- Check network synchronization status
-- Monitor for new blocks
-- Validate block references in applications
-- Track network activity and growth
+- Verify node supports required RPC methods
+- Determine which RPC features are available
+- Ensure client library compatibility with node
+- Debug version compatibility issues
 
 ## Error Handling
 
 Common errors include network timeouts and RPC endpoint unavailability. Always check the error before using the returned value.
 
 ```go
-blockNumber, err := client.BlockNumber(ctx)
+version, err := client.SpecVersion(ctx)
 if err != nil {
-    log.Printf("Error getting block number: %v", err)
+    log.Printf("Error getting spec version: %v", err)
     return
 }
-// Safe to use blockNumber
+// Safe to use version
 ```
