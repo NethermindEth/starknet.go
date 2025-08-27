@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.13.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.14.0...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -14,6 +14,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+
+
+### Changed
+- The following functions now return the response as a value instead of a pointer:
+  - `rpc.AddInvokeTransaction`
+  - `rpc.AddDeclareTransaction`
+  - `rpc.AddDeployAccountTransaction`
+  - `account.BuildAndSendInvokeTxn`
+  - `account.BuildAndSendDeclareTxn`
+  - `account.DeployContractWithUDC`
+  - `account.SendTransaction`
+- The `account.AccountInterface` and the `rpc.RpcProvider` were updated to reflect the new return types.
+
+### Dev updates
+- Regenerated mocks for the `account` and `rpc` packages
+- Tests updated accordingly
+
+## [0.14.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.14.0) - 2025-08-15
+### Added
+- New WebSocket subscription endpoints:
+  - `rpc.SubscribeNewTransactions`
+  - `rpc.SubscribeNewTransactionReceipts`
+- `rpc.SubscriptionBlockID` type for websocket subscriptions, which is a restricted version of `BlockID` that doesn't allow `pre_confirmed` or `l1_accepted` tags
+- Helper methods for `SubscriptionBlockID`: `BlockID()`, `WithBlockNumber()`, `WithBlockHash()`, and `WithLatestTag()`
+- `l1_accepted` and `pre_confirmed` block tags in the `rpc.BlockTag` type
+- `rpc.ErrFeeBelowMinimum` and `rpc.ErrReplacementTransactionUnderpriced` rpc errors
+- Types:
+  - `rpc.EmittedEventWithFinalityStatus`: the return value for the `rpc.SubscribeEvents` endpoint
+  - `rpc.PriceUnitWei` and `rpc.PriceUnitFri` enums: representing the `WEI` and `FRI` units
+  - `rpc.SubNewTxnReceiptsInput`: input for the `rpc.SubscribeNewTransactionReceipts` endpoint
+  - `rpc.SubNewTxnsInput`: input for the `rpc.SubscribeNewTransactions` endpoint
+  - `rpc.TxnWithHashAndStatus`: return value for the `rpc.SubscribeNewTransactions` endpoint
+  - `rpc.MessageFeeEstimation`: return value for the `rpc.EstimateMessageFee` endpoint
+  - `rpc.FeeEstimationCommon`: common fields for `rpc.FeeEstimation` and `rpc.MessageFeeEstimation`
+
+### Changed
+- `pending` terminology replaced by `pre_confirmed` across RPC headers, statuses and documentation
+- `rpc.SubscribeNewHeads` endpoint now accepts `rpc.SubscriptionBlockID` instead of `rpc.BlockID` parameter
+- `rpc.SubscribeEvents` endpoint now accepts the `rpc.EmittedEventWithFinalityStatus` type as parameter
+- `rpc.EstimateMessageFee` endpoint now returns `MessageFeeEstimation` instead of a `FeeEstimation` pointer
+- Improved RPC error handling: only code `0` is considered invalid in `tryUnwrapToRPCErr`
+- `rpc.TraceBlockTransactions` endpoint now checks for `pre_confirmed` tag in the `BlockID` parameter and returns an error if it is set
+- Small change in the error returned by the `UnmarshalJSON` method of the `rpc.TxnExecutionStatus` and `rpc.TxnFinalityStatus` types
+- New errors returned by the `rpc.AddInvokeTransaction`, `rpc.AddDeclareTransaction`, and `rpc.AddDeployAccountTransaction` endpoints
+- RPCErrors now returns more data than before when the error is not a known RPC error
+- Types:
+  - `rpc.RpcProvider` interface: change in the `EstimateMessageFee` method return value
+  - `rpc.WebsocketProvider` interface: endpoints added/removed
+  - `rpc.ErrInvalidTransactionNonce`: new string `data` field
+  - `rpc.EventSubscriptionInput`: new/renamed fields
+  - `rpc.MessageStatus`: new/renamed fields
+  - `rpc.FeePayment`: change in a field type
+  - `rpc.FeePaymentUnit` enum: renamed to `rpc.PriceUnit`
+  - `rpc.TxnStatus` enum: new values
+  - `rpc.StateUpdateOutput`: changed field type
+  - `rpc.PendingStateUpdate`: renamed to `rpc.Pre_confirmedStateUpdate`
+  - `rpc.FeeEstimation`: new/changed fields
+  - `rpc.TxnFinalityStatus` enum: new value
+
+### Removed
+- `rpc.(*WsProvider).SubscribePendingTransactions` endpoint in favor of `rpc.SubscribeNewTransactions`
+- `REJECTED` block tag in the `rpc.BlockStatus` type
+- `rpc.checkForPre_confirmed` function calls in websocket methods since `rpc.SubscriptionBlockID` type prevents invalid tags at the type level
+- `rpc.TxnStatus` enum: removed `REJECTED` value
+- Types:
+  - `rpc.SubPendingTxnsInput`
+  - `rpc.PendingTxn`
+
+### Fixed
+- Wrong displayed versions in the warning message when using a different RPC version than the one implemented by starknet.go
+- Error when subscribing to the `rpc.SubscribeEvents` and `rpc.SubscribeNewHeads` endpoints with an empty `rpc.SubscriptionBlockID` on Pathfinder node
+
+### Dev updates
+- Big refactor in the tests organization
+- Add integration environment for testing
+- A lot of tests refactorings and updates
+- Removed `.vscode/launch.json` file
+- Expanded integration tests and datasets; CI and `Makefile` targets updated to include integration runs
+
+## [0.13.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.1) - 2025-08-05
+### Fixed
+- `rpc.Syncing` was crashing when the node response was that it was syncing.
+- Removed wrong `omitempty` tags in the RPC error data types.
+
+### Changed
+- `rpc.Syncing` method now returns a `rpc.SyncStatus` struct instead of a pointer to it.
+- `rpc.SyncStatus` type: `StartingBlockNum`, `HighestBlockNum` and `CurrentBlockNum` are now of type `uint64` instead of `NumAsHex`
+- `rpc.SyncStatus` type: `SyncStatus` field was renamed to `IsSyncing`
+
+### Removed
+- `curve.g1Affline` variable, users should use new instances of `starkcurve.G1Affine` instead. It was causing bugs in the tests when running in parallel.
 
 ### Dev updates
 - Renamed account/tests, rpc/tests, contracts/tests, hash/tests, and typedData/tests folders to testData

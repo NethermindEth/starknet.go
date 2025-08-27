@@ -291,7 +291,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
-	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
+	contractAddress, err := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D") // StarkGate: ETH Token
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}
@@ -303,13 +303,15 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	}
 
 	// Create a channel to receive events
-	eventsChan := make(chan *rpc.EmittedEvent)
+	eventsChan := make(chan *rpc.EmittedEventWithFinalityStatus)
 
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
-		FromAddress: contractAddress,                       // only events from this contract address
-		BlockID:     rpc.WithBlockNumber(blockNumber - 10), // Subscribe to events from the latest block minus 10 (it'll return
+		// Only events from this contract address
+		FromAddress: contractAddress,
+		// Subscribe to events from the latest block minus 10 (it'll return
 		// events from the last 10 blocks and progressively update as new blocks are added)
+		SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
 		Keys: [][]*felt.Felt{
 			// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
 			// So this will return all events that have the 'Transfer' selector as the first key.

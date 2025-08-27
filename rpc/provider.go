@@ -17,7 +17,7 @@ import (
 
 // rpcVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-const rpcVersion = "0.8.1"
+const rpcVersion = "0.9.0"
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
@@ -25,7 +25,8 @@ var (
 
 	// Warning messages for version compatibility
 	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-	warnVersionMismatch    = "warning: RPC provider version %s is different from expected version %s. This may cause unexpected behaviour."
+	//nolint:lll
+	warnVersionMismatch = "warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour."
 )
 
 // Checks if the RPC provider version is compatible with the SDK version
@@ -40,7 +41,7 @@ func checkVersionCompatibility(provider *Provider) {
 	}
 
 	if !strings.Contains(version, rpcVersion) {
-		fmt.Println(fmt.Sprintf(warnVersionMismatch, rpcVersion, version))
+		fmt.Println(fmt.Sprintf(warnVersionMismatch, version, rpcVersion))
 	}
 }
 
@@ -102,12 +103,12 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
 type RpcProvider interface {
-	AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (*AddDeclareTransactionResponse, error)
+	AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(
 		ctx context.Context,
 		deployAccountTransaction *BroadcastDeployAccountTxnV3,
-	) (*AddDeployAccountTransactionResponse, error)
+	) (AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
@@ -121,7 +122,7 @@ type RpcProvider interface {
 	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
 	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error)
-	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (*FeeEstimation, error)
+	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error)
 	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
@@ -136,7 +137,7 @@ type RpcProvider interface {
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	SpecVersion(ctx context.Context) (string, error)
-	Syncing(ctx context.Context) (*SyncStatus, error)
+	Syncing(ctx context.Context) (SyncStatus, error)
 	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
 	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
@@ -145,12 +146,21 @@ type RpcProvider interface {
 }
 
 type WebsocketProvider interface {
-	SubscribeEvents(ctx context.Context, events chan<- *EmittedEvent, options *EventSubscriptionInput) (*client.ClientSubscription, error)
-	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, blockID BlockID) (*client.ClientSubscription, error)
-	SubscribePendingTransactions(
+	SubscribeEvents(
 		ctx context.Context,
-		pendingTxns chan<- *PendingTxn,
-		options *SubPendingTxnsInput,
+		events chan<- *EmittedEventWithFinalityStatus,
+		options *EventSubscriptionInput,
+	) (*client.ClientSubscription, error)
+	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID SubscriptionBlockID) (*client.ClientSubscription, error)
+	SubscribeNewTransactions(
+		ctx context.Context,
+		newTxns chan<- *TxnWithHashAndStatus,
+		options *SubNewTxnsInput,
+	) (*client.ClientSubscription, error)
+	SubscribeNewTransactionReceipts(
+		ctx context.Context,
+		txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+		options *SubNewTxnReceiptsInput,
 	) (*client.ClientSubscription, error)
 	SubscribeTransactionStatus(
 		ctx context.Context,

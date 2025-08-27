@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -152,6 +153,7 @@ func TestPrivateKeyEndToEnd(t *testing.T) {
 
 				privK := internalUtils.HexToBN(test.privK)
 
+				g1Affline := starkcurve.G1Affine{}
 				g1a := g1Affline.ScalarMultiplicationBase(privK)
 
 				// ****** asserts whether a public key returned by the 'ecdsa.PublicKey' struct is

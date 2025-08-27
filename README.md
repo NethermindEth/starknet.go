@@ -64,83 +64,12 @@ operations on the wallets. The package has excellent documentation for a smooth
 - [typed data example](./examples/typedData) to sign and verify a typed data.
 - [websocket example](./examples/websocket) to learn how to subscribe to WebSocket methods.
 
-### Run Examples
-
-***starknet simpleCall***
- 
-```sh
-cd examples/simpleCall
-go run main.go
-```
-> Check [here](examples/simpleCall/README.md) for more details
-
-***starknet simpleDeclare***
- 
-```sh
-cd examples/simpleDeclare
-go run main.go
-```
-> Check [here](examples/simpleDeclare/README.md) for more details
-
-***starknet deployAccount***
-
-```sh
-cd examples/deployAccount
-go run main.go
-```
-
-> Check [here](examples/deployAccount/README.md) for more details
-
-***starknet invoke***
-
-```sh
-cd examples/invoke
-go run main.go simpleInvoke.go verboseInvoke.go
-```
-
-> Check [here](examples/invoke/README.md) for more details
-
-***starknet deployContractUDC***
-
-```sh
-cd examples/deployContractUDC
-go run main.go
-```
-
-> Check [here](examples/deployContractUDC/README.md) for more details.
-
-***starknet readEvents***
- 
-```sh
-cd examples/readEvents
-go run main.go
-```
-> Check [here](examples/readEvents/README.md) for more details
-
-***starknet typedData***
-
-```sh
-cd examples/typedData
-go run main.go
-```
-
-> Check [here](examples/typedData/README.md) for more details.
-
-***starknet websocket***
-
-```sh
-cd examples/websocket
-go run main.go
-```
-
-> Check [here](examples/websocket/README.md) for more details.
-
-<br/> Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ answered by these examples.
+Check [here](https://github.com/NethermindEth/starknet.go/tree/main/examples) for some FAQ.
 
 
 ### RPC
 
-`starknet.go` RPC implements the Starknet [RPC v0.8.0 spec](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.8.0)
+`starknet.go` RPC implements the Starknet [RPC v0.9.0 spec](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.9.0)
 
 | Method                                     | Implemented (*)    |
 | ------------------------------------------ | ------------------ |
@@ -183,8 +112,8 @@ go run main.go
 | ------------------------------------------ | ------------------ |
 | `starknet_subscribeEvents`                 | :heavy_check_mark: |
 | `starknet_subscribeNewHeads`               | :heavy_check_mark: |
-| `starknet_subscribePendingTransactions`    | :heavy_check_mark: |
-| `starknet_subscribeTransactionStatus`      | :heavy_check_mark: |
+| `starknet_subscribeNewTransactions`        | :heavy_check_mark: |
+| `starknet_subscribeNewTransactionReceipts` | :heavy_check_mark: |
 
 ### Run Tests
 
@@ -203,8 +132,6 @@ go test -v ./rpc -env [mainnet|devnet|testnet|mock]
 ```go
 go test -bench=.
 ```
-
-### Compatibility and stability
 
 
 ## 🤝 Contribute

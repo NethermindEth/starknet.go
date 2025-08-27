@@ -81,31 +81,32 @@ type StateDiff struct {
 
 // STATE_UPDATE in spec
 type StateUpdateOutput struct {
-	// BlockHash is the block identifier,
+	// BlockHash is the block identifier. Nil for pre_confirmed block.
 	BlockHash *felt.Felt `json:"block_hash"`
-	// NewRoot is the new global state root.
+	// NewRoot is the new global state root. Nil for pre_confirmed block.
 	NewRoot *felt.Felt `json:"new_root"`
-	// Pending
-	PendingStateUpdate
+	Pre_confirmedStateUpdate
 }
 
-// PENDING_STATE_UPDATE in spec
-type PendingStateUpdate struct {
+// PRE_CONFIRMED_STATE_UPDATE in spec
+type Pre_confirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
-	OldRoot *felt.Felt `json:"old_root"`
-	// AcceptedTime is when the block was accepted on L1.
-	StateDiff StateDiff `json:"state_diff"`
+	OldRoot   *felt.Felt `json:"old_root"`
+	StateDiff StateDiff  `json:"state_diff"`
 }
 
 // SyncStatus is An object describing the node synchronisation status
 type SyncStatus struct {
-	SyncStatus        *bool
+	// A boolean indicating whether the node is syncing. If false, all other fields are empty.
+	IsSyncing bool
+
+	// All these fields are only present if IsSyncing is true.
 	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
-	StartingBlockNum  NumAsHex   `json:"starting_block_num,omitempty"`
+	StartingBlockNum  uint64     `json:"starting_block_num,omitempty"`
 	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
-	CurrentBlockNum   NumAsHex   `json:"current_block_num,omitempty"`
+	CurrentBlockNum   uint64     `json:"current_block_num,omitempty"`
 	HighestBlockHash  *felt.Felt `json:"highest_block_hash,omitempty"`
-	HighestBlockNum   NumAsHex   `json:"highest_block_num,omitempty"`
+	HighestBlockNum   uint64     `json:"highest_block_num,omitempty"`
 }
 
 // MarshalJSON marshals the SyncStatus struct into JSON format.
@@ -122,9 +123,9 @@ type SyncStatus struct {
 //   - []byte: the JSON encoding of the SyncStatus struct
 //   - error: any error that occurred during the marshalling process
 //
-//nolint:gocritic
+
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
-	if !*s.SyncStatus {
+	if !s.IsSyncing {
 		return []byte("false"), nil
 	}
 	output := map[string]interface{}{}
@@ -147,13 +148,11 @@ func (s SyncStatus) MarshalJSON() ([]byte, error) {
 // Returns:
 //   - error: an error if the unmarshaling fails
 func (s *SyncStatus) UnmarshalJSON(data []byte) error {
-	var b bool
 	if string(data) == "false" {
-		s.SyncStatus = &b
+		s.IsSyncing = false
 
 		return nil
 	}
-	b = true
 
 	type alias SyncStatus
 	var result alias
@@ -163,7 +162,7 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	*s = SyncStatus(result)
-	s.SyncStatus = &b
+	s.IsSyncing = true
 
 	return nil
 }
@@ -201,8 +200,8 @@ type TxDetails struct {
 	Version TransactionVersion
 }
 
-// a sequence of fee estimation where the i'th estimate corresponds to the i'th transaction
-type FeeEstimation struct {
+// Fee estimation common fields
+type FeeEstimationCommon struct {
 	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
 	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
 
@@ -224,9 +223,18 @@ type FeeEstimation struct {
 	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to
 	// gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
+}
 
-	// Units in which the fee is given
-	FeeUnit FeePaymentUnit `json:"unit"`
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+
+type MessageFeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be WEI
+	Unit PriceUnitWei `json:"unit"`
 }
 
 type TxnExecutionStatus string
@@ -254,7 +262,7 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	case "REVERTED":
 		*ts = TxnExecutionStatusREVERTED
 	default:
-		return fmt.Errorf("unsupported status: %s", data)
+		return fmt.Errorf("unsupported execution status: %s", data)
 	}
 
 	return nil
@@ -291,8 +299,9 @@ func (s TxnExecutionStatus) String() string {
 type TxnFinalityStatus string
 
 const (
-	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
-	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusPre_confirmed TxnFinalityStatus = "PRE_CONFIRMED"
+	TxnFinalityStatusAcceptedOnL2  TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusAcceptedOnL1  TxnFinalityStatus = "ACCEPTED_ON_L1"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
@@ -308,12 +317,14 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	switch unquoted {
-	case "ACCEPTED_ON_L1":
-		*ts = TxnFinalityStatusAcceptedOnL1
+	case "PRE_CONFIRMED":
+		*ts = TxnFinalityStatusPre_confirmed
 	case "ACCEPTED_ON_L2":
 		*ts = TxnFinalityStatusAcceptedOnL2
+	case "ACCEPTED_ON_L1":
+		*ts = TxnFinalityStatusAcceptedOnL1
 	default:
-		return fmt.Errorf("unsupported status: %s", data)
+		return fmt.Errorf("unsupported finality status: %s", data)
 	}
 
 	return nil

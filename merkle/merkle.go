@@ -116,7 +116,7 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 		return nil, fmt.Errorf("key 0x%s not found in branch", leaf.Text(16)) //nolint:mnd //hex base
 	}
 	nextProof := big.NewInt(0)
-	if index%2 == 0 && index < len(branch) {
+	if index%2 == 0 && index+1 < len(branch) {
 		nextProof = branch[index+1]
 	}
 	if index%2 != 0 {
