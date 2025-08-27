@@ -1,0 +1,228 @@
+# TransactionByBlockIdAndIndex
+
+Gets the details of a transaction by specifying the block and the transaction's index within that block.
+
+## Method Signature
+
+```go
+func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - Block identifier (number, hash, or tag)
+- `index` - Transaction index within the block (0-based)
+
+## Returns
+
+- `*BlockTransaction` - Complete transaction details
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get transaction by block and index
+    blockID := rpc.WithBlockTag("latest")
+    txIndex := uint64(0) // First transaction in block
+    
+    transaction, err := client.TransactionByBlockIdAndIndex(context.Background(), blockID, txIndex)
+    if err != nil {
+        log.Fatal("Failed to get transaction:", err)
+    }
+
+    // Pretty print the result
+    txJSON, _ := json.MarshalIndent(transaction, "", "  ")
+    fmt.Printf("Transaction by block and index:\n%s\n", txJSON)
+}
+```
+
+## Expected Output
+
+```json
+{
+  "transaction_hash": "0x4d11bd47c90e63ea5f772f7d690f43411f1ece1b5ccab74e4654322a8a92255",
+  "type": "INVOKE",
+  "version": "0x3",
+  "nonce": "0x34",
+  "sender_address": "0x5e01db693cbf7461a016343042786dac5a6000104813cf134a1e8b1d0a6810b",
+  "calldata": [
+    "0x1",
+    "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+    "0x3",
+    "0xe4adc534dd5e4a4509ae7f4e7020e14de8fd2b1e460dd0ca196376e4b8ecc2",
+    "0xde0b6b3a7640000",
+    "0x0"
+  ],
+  "signature": [
+    "0x1a8ee93a1ddea10618367b20ad57b75e01f058cec9ec3244f882d9ff4c3b095",
+    "0x506e3c709ab938094443d1d3793e9b582bc70fc0725d93d9a1305acf2d0a4fd"
+  ],
+  "resource_bounds": {
+    "l1_gas": {"max_amount": "0x0", "max_price_per_unit": "0x337e7eb3c2c6"},
+    "l2_gas": {"max_amount": "0x167c40", "max_price_per_unit": "0x10c388d00"},
+    "l1_data_gas": {"max_amount": "0x150", "max_price_per_unit": "0xda1c"}
+  },
+  "tip": "0x0",
+  "fee_data_availability_mode": "L1",
+  "nonce_data_availability_mode": "L1"
+}
+```
+
+Shows the first transaction (index 0) from the latest block with complete transaction details including calldata and resource bounds.
+
+## Iterate Through Block Transactions Example
+
+```go
+// Get all transactions in a specific block
+blockNumber := uint64(1675853)
+blockID := rpc.WithBlockNumber(blockNumber)
+
+// First get the transaction count
+txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+if err != nil {
+    log.Fatal("Failed to get transaction count:", err)
+}
+
+fmt.Printf("Block %d contains %d transactions:\n", blockNumber, txCount)
+
+// Iterate through each transaction
+for i := uint64(0); i < txCount; i++ {
+    transaction, err := client.TransactionByBlockIdAndIndex(context.Background(), blockID, i)
+    if err != nil {
+        log.Printf("Failed to get transaction %d: %v", i, err)
+        continue
+    }
+
+    fmt.Printf("  Tx %d: %s (Type: %s, Nonce: %s)\n", 
+        i, 
+        transaction.Hash.String(),
+        transaction.Transaction.GetType(),
+        transaction.Transaction.GetVersion())
+}
+```
+
+## Access Different Block Types Example
+
+```go
+// Access transactions from different block references
+examples := []struct{
+    name string
+    blockID rpc.BlockID
+    index uint64
+}{
+    {"Latest block, first tx", rpc.WithBlockTag("latest"), 0},
+    {"Specific block by number", rpc.WithBlockNumber(1675000), 0},
+    {"Block by hash", rpc.WithBlockHash(blockHash), 1}, // Second tx
+}
+
+for _, example := range examples {
+    fmt.Printf("\n--- %s ---\n", example.name)
+    
+    transaction, err := client.TransactionByBlockIdAndIndex(
+        context.Background(), example.blockID, example.index)
+    if err != nil {
+        log.Printf("Failed: %v\n", err)
+        continue
+    }
+
+    fmt.Printf("Transaction: %s\n", transaction.Hash.String())
+    fmt.Printf("Sender: %s\n", transaction.Transaction.GetSenderAddress().String())
+}
+```
+
+## Transaction Analysis by Position
+
+```go
+// Analyze transaction patterns by block position
+blockID := rpc.WithBlockTag("latest")
+
+// Get first transaction (index 0)
+firstTx, err := client.TransactionByBlockIdAndIndex(context.Background(), blockID, 0)
+if err == nil {
+    fmt.Printf("First transaction: %s\n", firstTx.Hash.String())
+    
+    // Analyze if it's a high-priority transaction
+    if firstTx.Transaction.GetTip != nil && firstTx.Transaction.GetTip() > 0 {
+        fmt.Printf("  High priority transaction (has tip)\n")
+    }
+}
+
+// Try to get second transaction (index 1)
+secondTx, err := client.TransactionByBlockIdAndIndex(context.Background(), blockID, 1)
+if err != nil {
+    fmt.Printf("Block only has one transaction\n")
+} else {
+    fmt.Printf("Second transaction: %s\n", secondTx.Hash.String())
+}
+```
+
+## Use Cases
+
+- **Block Analysis** - Examine transactions in chronological order within blocks
+- **Transaction Ordering** - Understand transaction sequencing and priority
+- **Block Explorer Development** - Display transactions by their position in blocks
+- **Pattern Analysis** - Study transaction patterns and block composition
+- **Sequential Processing** - Process transactions in the order they appear in blocks
+- **Debugging** - Investigate specific transactions by their block position
+- **MEV Research** - Analyze front-running and transaction ordering
+
+## Index-Based Access Benefits
+
+- **Deterministic Ordering** - Transactions are in the exact order they appear in blocks
+- **Efficient Iteration** - Process all transactions in a block sequentially
+- **No Hash Required** - Access transactions without knowing their hashes
+- **Block Structure Analysis** - Understand how blocks are composed
+
+## Error Handling
+
+```go
+transaction, err := client.TransactionByBlockIdAndIndex(ctx, blockID, index)
+if err != nil {
+    // Handle different error types
+    if strings.Contains(err.Error(), "index out of range") {
+        log.Printf("Transaction index %d doesn't exist in block", index)
+    } else if strings.Contains(err.Error(), "block not found") {
+        log.Printf("Block not found")
+    } else {
+        log.Printf("Error: %v", err)
+    }
+    return
+}
+
+fmt.Printf("Retrieved transaction: %s\n", transaction.Hash.String())
+```
+
+## Performance Considerations
+
+- **Index Validation** - Ensure index is within block's transaction count
+- **Block Finality** - Use finalized blocks for consistent results
+- **Sequential Access** - More efficient than random hash-based lookups for bulk processing
+- **Caching** - Consider caching results for frequently accessed blocks
+
+## Comparison with Other Methods
+
+| Method | Access Pattern | Use Case |
+|--------|----------------|----------|
+| `TransactionByHash` | By hash | Known transaction lookup |
+| `TransactionByBlockIdAndIndex` | By position | Sequential block processing |
+| `BlockWithTxs` | All at once | Complete block analysis |

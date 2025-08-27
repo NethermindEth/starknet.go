@@ -1,31 +1,167 @@
----
-title: starknet_getMessagesStatus
-description: Gets the status of messages sent from L1 to L2.
----
+# GetMessagesStatus Method Usage
 
-# starknet_getMessagesStatus
+## Method Signature
 
-Gets the status of messages sent from L1 to L2.
+```go
+GetMessagesStatus(ctx context.Context, l1TxHash NumAsHex) (MessagesStatus, error)
+```
 
 ## Parameters
 
-1. `messages` - An array of messages to check the status for.
-   - `from_address` - The L1 address from which the message was sent.
-   - `to_address` - The L2 address to which the message was sent.
-   - `selector` - The selector of the L2 function to be called.
-   - `payload` - The payload of the message.
-   - `nonce` - The nonce of the message.
+- `ctx` - Context for the request
+- `l1TxHash` - The L1 transaction hash that sent messages to Starknet (as NumAsHex)
 
 ## Returns
 
-An object containing:
-- `messages` - An array of message statuses, each containing:
-  - `from_address` - The L1 address from which the message was sent.
-  - `to_address` - The L2 address to which the message was sent.
-  - `selector` - The selector of the L2 function to be called.
-  - `payload` - The payload of the message.
-  - `nonce` - The nonce of the message.
-  - `status` - The status of the message. Can be "RECEIVED", "CONSUMED", or "NOT_RECEIVED".
-  - `block_number` - The block number in which the message was received (if applicable).
+- `MessagesStatus` - Status information for all messages sent by the L1 transaction
+- `error` - Error if the request fails
 
-## Example
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Use an L1 transaction hash that sent messages to Starknet
+    // This should be a real Ethereum transaction hash that called sendMessageToL2
+    l1TxHashStr := "0xa1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+    
+    // Convert to NumAsHex (as required by the method signature)
+    var l1TxHash rpc.NumAsHex
+    l1TxHash = rpc.NumAsHex(l1TxHashStr)
+
+    // Get messages status
+    messagesStatus, err := client.GetMessagesStatus(context.Background(), l1TxHash)
+    if err != nil {
+        log.Fatal("Failed to get messages status:", err)
+    }
+
+    // Pretty print the result
+    statusJSON, _ := json.MarshalIndent(messagesStatus, "", "  ")
+    fmt.Printf("Messages status:\n%s\n", statusJSON)
+}
+```
+
+## Expected Output Structure
+
+When successful, the method returns information about all messages sent by the L1 transaction:
+
+```json
+{
+  "messages": [
+    {
+      "message_hash": "0x123...",
+      "l1_to_l2_message": {
+        "from_address": "0x456...",
+        "to_address": "0x789...",
+        "selector": "0xabc...",
+        "payload": ["0x1", "0x2", "0x3"],
+        "nonce": "0x0"
+      },
+      "status": "RECEIVED"
+    }
+  ]
+}
+```
+
+## Message Status Values
+
+The status field can have the following values:
+
+- `RECEIVED` - Message received by Starknet sequencer
+- `PENDING` - Message is being processed
+- `ACCEPTED_ON_L2` - Message successfully processed on L2
+- `REJECTED` - Message rejected during processing
+
+## Use Cases
+
+### Cross-Chain Bridge Monitoring
+```go
+// Monitor bridge transaction status
+func monitorBridgeTransaction(client *rpc.Provider, l1TxHash string) {
+    hash := rpc.NumAsHex(l1TxHash)
+    
+    status, err := client.GetMessagesStatus(context.Background(), hash)
+    if err != nil {
+        log.Printf("Error getting message status: %v", err)
+        return
+    }
+    
+    for _, msg := range status.Messages {
+        fmt.Printf("Message %s: %s\n", msg.MessageHash, msg.Status)
+    }
+}
+```
+
+### DApp Integration Status Check
+```go
+// Check if L1->L2 message was successfully delivered
+func checkMessageDelivery(client *rpc.Provider, l1TxHash string) bool {
+    hash := rpc.NumAsHex(l1TxHash)
+    
+    status, err := client.GetMessagesStatus(context.Background(), hash)
+    if err != nil {
+        return false
+    }
+    
+    for _, msg := range status.Messages {
+        if msg.Status == "ACCEPTED_ON_L2" {
+            return true
+        }
+    }
+    return false
+}
+```
+
+## Important Notes
+
+### L1 Transaction Requirements
+- The L1 transaction hash must correspond to an Ethereum transaction that called `sendMessageToL2` on the Starknet Core Contract
+- The transaction must be on the same network as your RPC endpoint (use Sepolia L1 hashes with Sepolia Starknet RPC)
+- The transaction must have been processed by the Starknet sequencer
+
+### Network Compatibility
+- **Mainnet**: Use L1 transaction hashes from Ethereum Mainnet
+- **Sepolia**: Use L1 transaction hashes from Ethereum Sepolia testnet
+
+### Error Handling
+- `Transaction hash not found` - The L1 transaction doesn't exist or didn't send messages to Starknet
+- `Invalid transaction hash` - The hash format is incorrect
+
+## L1-L2 Messaging Flow
+
+1. **L1 Transaction**: User calls `sendMessageToL2` on Ethereum
+2. **Sequencer Processing**: Starknet sequencer detects the L1 transaction
+3. **L2 Execution**: Sequencer creates L1 handler transaction on Starknet
+4. **Status Tracking**: This method tracks the entire process
+
+## Related Methods
+
+- [TransactionByHash](./transaction-by-hash.md) - Get L2 transaction details
+- [TransactionReceipt](./transaction-receipt.md) - Get L2 transaction execution results
+- [BlockWithTxs](./block-with-txs.md) - Get block containing L1 handler transactions
+
+## Performance Considerations
+
+- This method queries both L1 and L2 data, so response times may be higher than pure L2 queries
+- Results are cached to improve performance for repeated queries
+- Consider implementing retry logic for temporary network issues
+
+---
+
+*This method is essential for tracking cross-chain messaging and ensuring reliable L1↔L2 communication in your dApps.*

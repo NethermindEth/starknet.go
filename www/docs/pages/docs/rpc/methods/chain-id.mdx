@@ -1,48 +1,67 @@
-# Chain ID
+# ChainID Method Usage
 
-Returns the chain ID for transaction replay protection.
+## Method Signature
+
+```go
+ChainID(ctx context.Context) (string, error)
+```
 
 ## Parameters
 
-- `ctx` - The context of the request.
+- `ctx` - Context for the request
 
 ## Returns
 
-- `result` - The chain ID as a Felt.
-- `error` - An error if any occurred.
+- `string` - The chain ID for transaction replay protection
+- `error` - Error if the request fails
 
-## Example
+## Usage Example
 
 ```go
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"github.com/NethermindEth/starknet.go/rpc"
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	provider, err := rpc.NewProvider(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
 
-	result, err := provider.ChainID(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Chain ID:", result)
+    // Get chain ID
+    chainID, err := client.ChainID(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get chain ID:", err)
+    }
+
+    fmt.Printf("Chain ID: %s\n", chainID)
 }
 ```
 
-## Output
-```json
-Chain ID: SN_MAIN
+## Expected Output
+
+```
+Chain ID: SN_SEPOLIA
 ```
 
-## Error Cases
+## Chain ID Values
 
-None 
+- **SN_MAIN** - Starknet Mainnet
+- **SN_SEPOLIA** - Starknet Sepolia Testnet
+
+## Use Cases
+
+- **Transaction Signing**: Chain ID is used for transaction replay protection
+- **Network Verification**: Confirm you're connected to the expected network
+- **Multi-Chain Applications**: Determine which Starknet network you're interacting with
+
+---
+
+*ChainID is essential for transaction replay protection and network identification.*

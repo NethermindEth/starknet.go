@@ -1,0 +1,216 @@
+# TransactionReceipt
+
+Gets the receipt of a transaction by its hash, showing execution results and resource consumption.
+
+## Method Signature
+
+```go
+func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `transactionHash` - Transaction hash as a felt.Felt
+
+## Returns
+
+- `*TransactionReceiptWithBlockInfo` - Transaction receipt with execution details
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Use the same transaction hash
+    txHashStr := "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa"
+    txHash, err := new(felt.Felt).SetString(txHashStr)
+    if err != nil {
+        log.Fatal("Failed to parse transaction hash:", err)
+    }
+
+    // Get transaction receipt
+    receipt, err := client.TransactionReceipt(context.Background(), txHash)
+    if err != nil {
+        log.Fatal("Failed to get transaction receipt:", err)
+    }
+
+    // Pretty print the result
+    receiptJSON, _ := json.MarshalIndent(receipt, "", "  ")
+    fmt.Printf("Transaction receipt:\n%s\n", receiptJSON)
+}
+```
+
+## Expected Output
+
+```json
+{
+  "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
+  "type": "INVOKE",
+  "actual_fee": {
+    "amount": "0x627bebf0c73a80",
+    "unit": "FRI"
+  },
+  "finality_status": "ACCEPTED_ON_L2",
+  "execution_status": "REVERTED",
+  "revert_reason": "INVALID_STARK_KEY_SIGNATURE",
+  "events": [
+    {
+      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "keys": [
+        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+      ],
+      "data": [
+        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
+        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+        "0x627bebf0c73a80",
+        "0x0"
+      ]
+    }
+  ],
+  "execution_resources": {
+    "l1_gas": 0,
+    "l1_data_gas": 128,
+    "l2_gas": 9240267
+  },
+  "messages_sent": [],
+  "block_hash": "0x66fa94498a5413e02d11aeb8646d4d47f1c2a067d8dbe3e33b2f0e8bb7f31df",
+  "block_number": 1675853
+}
+```
+
+Shows transaction execution results including status, fees paid, events emitted, and resource consumption. This example shows a reverted transaction due to an invalid signature.
+
+## Receipt Analysis Example
+
+```go
+// Analyze transaction execution results
+receipt, err := client.TransactionReceipt(context.Background(), txHash)
+if err != nil {
+    log.Fatal("Failed to get receipt:", err)
+}
+
+// Check execution status
+switch receipt.ExecutionStatus {
+case "SUCCEEDED":
+    fmt.Printf("✅ Transaction executed successfully\n")
+case "REVERTED":
+    fmt.Printf("❌ Transaction reverted: %s\n", receipt.RevertReason)
+default:
+    fmt.Printf("⚠️  Unknown status: %s\n", receipt.ExecutionStatus)
+}
+
+// Analyze fees
+fmt.Printf("💰 Fee paid: %s %s\n", 
+    receipt.ActualFee.Amount, receipt.ActualFee.Unit)
+
+// Check resource consumption
+resources := receipt.ExecutionResources
+fmt.Printf("⛽ Gas used: L1=%d, L2=%d, L1_data=%d\n", 
+    resources.L1Gas, resources.L2Gas, resources.L1DataGas)
+
+// Count events
+fmt.Printf("📋 Events emitted: %d\n", len(receipt.Events))
+```
+
+## Receipt Structure Analysis
+
+**Transaction Identification:**
+- `transaction_hash` - Unique transaction identifier
+- `type` - Transaction type (INVOKE, DECLARE, DEPLOY_ACCOUNT)
+- `block_hash` - Block containing this transaction
+- `block_number` - Block height
+
+**Execution Results:**
+- `execution_status` - SUCCEEDED or REVERTED
+- `finality_status` - Transaction finality (ACCEPTED_ON_L2, ACCEPTED_ON_L1)
+- `revert_reason` - Detailed error message if reverted
+
+**Fee Information:**
+- `actual_fee` - Real fee paid (amount and unit)
+- Fees are charged even for reverted transactions
+
+**Resource Consumption:**
+- `l1_gas` - L1 gas used (0 for L2-only operations)
+- `l2_gas` - L2 computation gas used
+- `l1_data_gas` - L1 data availability gas used
+
+**Events and Messages:**
+- `events` - Events emitted during execution
+- `messages_sent` - Messages sent to L1 (empty array if none)
+
+## Multiple Receipts Example
+
+```go
+// Check multiple transaction receipts
+txHashes := []string{
+    "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa", // Reverted
+    "0x54fed1df2162fffe2afe8ff866eea1e219a5c416eb3fd68f9f22ecc1e73a4ff", // Success
+}
+
+for i, hashStr := range txHashes {
+    txHash, _ := new(felt.Felt).SetString(hashStr)
+    receipt, err := client.TransactionReceipt(context.Background(), txHash)
+    if err != nil {
+        log.Printf("Failed to get receipt %d: %v", i, err)
+        continue
+    }
+
+    fmt.Printf("Transaction %d: %s - Fee: %s FRI\n", 
+        i, receipt.ExecutionStatus, receipt.ActualFee.Amount)
+}
+```
+
+## Use Cases
+
+- **Transaction Verification** - Confirm transaction execution and status
+- **Fee Analysis** - Analyze actual gas costs and fee optimization
+- **Event Processing** - Extract events for application logic
+- **Error Debugging** - Understand why transactions failed
+- **Audit Trails** - Create comprehensive transaction logs
+- **User Interfaces** - Display transaction results to users
+- **Analytics** - Analyze network usage and gas consumption patterns
+
+## Error Handling
+
+```go
+receipt, err := client.TransactionReceipt(ctx, txHash)
+if err != nil {
+    log.Printf("Error getting receipt: %v", err)
+    return
+}
+
+// Check if transaction was successful
+if receipt.ExecutionStatus == "REVERTED" {
+    fmt.Printf("Transaction failed: %s\n", receipt.RevertReason)
+} else {
+    fmt.Printf("Transaction succeeded, fee: %s\n", receipt.ActualFee.Amount)
+}
+```
+
+## Comparison with Transaction Details
+
+| Method | Returns | Use Case |
+|--------|---------|----------|
+| `TransactionByHash` | Transaction details | Input parameters and signatures |
+| `TransactionReceipt` | Execution results | Output, fees, events, and status |
+
+Use both methods together for complete transaction analysis.

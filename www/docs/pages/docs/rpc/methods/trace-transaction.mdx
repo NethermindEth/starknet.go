@@ -1,25 +1,201 @@
----
-title: starknet_traceTransaction
-description: Traces the execution of a transaction.
----
+# TraceTransaction
 
-# starknet_traceTransaction
+Gets the execution trace of a specific transaction showing detailed call flow and resource usage.
 
-Traces the execution of a transaction, returning detailed information about the execution steps.
+## Method Signature
+
+```go
+func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+```
 
 ## Parameters
 
-1. `transaction_hash` - The hash of the transaction to trace.
-2. `options` - (Optional) Configuration options for the trace.
+- `ctx` - Context for request cancellation and timeout
+- `transactionHash` - Hash of the transaction to trace
 
 ## Returns
 
-An object containing:
-- `trace` - The execution trace of the transaction, including:
-  - `function_invocation` - Details of the function invocation.
-  - `signature` - The signature of the transaction.
-  - `events` - Events emitted during execution.
-  - `messages` - Messages sent during execution.
-  - `execution_resources` - Resources consumed during execution.
+- `TxnTrace` - Detailed execution trace of the transaction
+- `error` - Error if the request fails
 
-## Example
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Use a real transaction hash from our previous testing
+    txHash, _ := new(felt.Felt).SetString("0x0487bcdd78ea9f9512ba1c772114f851dc1dc057a23b27d6f2ffe2c84f97140d")
+
+    // Trace the transaction
+    trace, err := client.TraceTransaction(context.Background(), txHash)
+    if err != nil {
+        log.Fatal("Failed to trace transaction:", err)
+    }
+
+    // Pretty print the trace
+    traceJSON, _ := json.MarshalIndent(trace, "", "  ")
+    fmt.Printf("Transaction Trace:\n%s\n", traceJSON)
+}
+```
+
+## Expected Output
+
+```
+Transaction Trace:
+{
+  "validate_invocation": {
+    "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+    "entry_point_selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
+    "calldata": [
+      "0x1",
+      "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+      "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
+      "0x0"
+    ],
+    "caller_address": "0x0",
+    "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
+    "entry_point_type": "EXTERNAL",
+    "call_type": "CALL",
+    "result": [
+      "0x56414c4944"
+    ],
+    "calls": [],
+    "events": [],
+    "messages": [],
+    "execution_resources": {
+      "l1_gas": 0,
+      "l2_gas": 320000
+    },
+    "is_reverted": false
+  },
+  "execute_invocation": {
+    "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+    "entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+    "calldata": [
+      "0x1",
+      "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+      "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
+      "0x0"
+    ],
+    "caller_address": "0x0",
+    "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
+    "entry_point_type": "EXTERNAL",
+    "call_type": "CALL",
+    "result": [
+      "0x1",
+      "0x1",
+      "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"
+    ],
+    "calls": [
+      {
+        "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+        "entry_point_selector": "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
+        "calldata": [],
+        "caller_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+        "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
+        "entry_point_type": "EXTERNAL",
+        "call_type": "CALL",
+        "result": [
+          "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"
+        ],
+        "calls": [],
+        "events": [],
+        "messages": [],
+        "execution_resources": {
+          "l1_gas": 0,
+          "l2_gas": 40000
+        },
+        "is_reverted": false
+      }
+    ],
+    "events": [],
+    "messages": [],
+    "execution_resources": {
+      "l1_gas": 0,
+      "l2_gas": 280000
+    },
+    "is_reverted": false
+  },
+  "fee_transfer_invocation": {
+    "contract_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    "entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+    "calldata": [
+      "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+      "0xa22063feda080",
+      "0x0"
+    ],
+    "caller_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+    "class_hash": "0x9524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f",
+    "entry_point_type": "EXTERNAL",
+    "call_type": "CALL",
+    "result": [
+      "0x1"
+    ],
+    "calls": [],
+    "events": [
+      {
+        "order": 0,
+        "keys": [
+          "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+        ],
+        "data": [
+          "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+          "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+          "0xa22063feda080",
+          "0x0"
+        ]
+      }
+    ],
+    "messages": [],
+    "execution_resources": {
+      "l1_gas": 0,
+      "l2_gas": 189030
+    },
+    "is_reverted": false
+  },
+  "type": "INVOKE",
+  "execution_resources": {
+    "l1_gas": 0,
+    "l1_data_gas": 128,
+    "l2_gas": 950720
+  }
+}
+```
+
+## Use Cases
+
+- Debug transaction failures by examining the exact execution flow
+- Analyze gas consumption patterns for transaction optimization
+- Understand nested contract calls and their interactions
+- Audit transaction execution for security analysis
+- Monitor events and messages emitted during transaction execution
+
+## Error Handling
+
+Common errors include network timeouts and invalid transaction hashes. Always check the error before using the returned value.
+
+```go
+trace, err := client.TraceTransaction(ctx, txHash)
+if err != nil {
+    log.Printf("Error tracing transaction: %v", err)
+    return
+}
+// Safe to use trace
+```
