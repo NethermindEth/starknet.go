@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	felt "github.com/NethermindEth/juno/core/felt"
-	rpc "github.com/NethermindEth/starknet.go/rpc"
+	paymaster "github.com/NethermindEth/starknet.go/paymaster"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,10 +43,10 @@ func (m *MockPaymasterProvider) EXPECT() *MockPaymasterProviderMockRecorder {
 }
 
 // BuildTransaction mocks base method.
-func (m *MockPaymasterProvider) BuildTransaction(ctx context.Context, request rpc.BuildTransactionRequest) (*rpc.BuildTransactionResponse, error) {
+func (m *MockPaymasterProvider) BuildTransaction(ctx context.Context, request paymaster.BuildTransactionRequest) (*paymaster.BuildTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuildTransaction", ctx, request)
-	ret0, _ := ret[0].(*rpc.BuildTransactionResponse)
+	ret0, _ := ret[0].(*paymaster.BuildTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -58,10 +58,10 @@ func (mr *MockPaymasterProviderMockRecorder) BuildTransaction(ctx, request any) 
 }
 
 // ExecuteTransaction mocks base method.
-func (m *MockPaymasterProvider) ExecuteTransaction(ctx context.Context, request rpc.ExecuteTransactionRequest) (*rpc.ExecuteTransactionResponse, error) {
+func (m *MockPaymasterProvider) ExecuteTransaction(ctx context.Context, request paymaster.ExecuteTransactionRequest) (*paymaster.ExecuteTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ExecuteTransaction", ctx, request)
-	ret0, _ := ret[0].(*rpc.ExecuteTransactionResponse)
+	ret0, _ := ret[0].(*paymaster.ExecuteTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -73,10 +73,10 @@ func (mr *MockPaymasterProviderMockRecorder) ExecuteTransaction(ctx, request any
 }
 
 // GetSupportedTokens mocks base method.
-func (m *MockPaymasterProvider) GetSupportedTokens(ctx context.Context) ([]rpc.TokenData, error) {
+func (m *MockPaymasterProvider) GetSupportedTokens(ctx context.Context) ([]paymaster.TokenData, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSupportedTokens", ctx)
-	ret0, _ := ret[0].([]rpc.TokenData)
+	ret0, _ := ret[0].([]paymaster.TokenData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -103,10 +103,10 @@ func (mr *MockPaymasterProviderMockRecorder) IsAvailable(ctx any) *gomock.Call {
 }
 
 // TrackingIdToLatestHash mocks base method.
-func (m *MockPaymasterProvider) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*rpc.TrackingIdResponse, error) {
+func (m *MockPaymasterProvider) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*paymaster.TrackingIdResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TrackingIdToLatestHash", ctx, trackingId)
-	ret0, _ := ret[0].(*rpc.TrackingIdResponse)
+	ret0, _ := ret[0].(*paymaster.TrackingIdResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
