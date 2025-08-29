@@ -224,8 +224,8 @@ func TestOutsideExecutionTypedData(t *testing.T) {
 }
 
 func TestPaymasterClient(t *testing.T) {
-	testConfig := beforeEach(t, false)
-	client := &PaymasterClient{c: testConfig.provider.c}
+	testConfig := BeforeEach(t, false)
+	client := &PaymasterClient{c: testConfig.Provider.c}
 
 	t.Run("IsAvailable", func(t *testing.T) {
 		spy := NewSpy(client.c)
