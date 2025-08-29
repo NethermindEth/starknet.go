@@ -1,9 +1,10 @@
-package rpc
+package paymaster
 
 import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 // Package rpc provides the RPC client implementation for Starknet.
@@ -27,7 +28,7 @@ type PaymasterClient struct {
 func NewPaymasterClient(url string) (*PaymasterClient, error) {
 	// For now, we'll use the same client creation pattern as Provider
 	// In a real implementation, this would connect to a paymaster service
-	provider, err := NewProvider(url)
+	provider, err := rpc.NewProvider(url)
 	if err != nil {
 		return nil, err
 	}

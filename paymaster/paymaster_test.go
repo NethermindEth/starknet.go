@@ -1,4 +1,4 @@
-package rpc
+package paymaster
 
 import (
 	"context"
@@ -224,19 +224,15 @@ func TestOutsideExecutionTypedData(t *testing.T) {
 }
 
 func TestPaymasterClient(t *testing.T) {
-	testConfig := BeforeEach(t, false)
+	testConfig := rpc.BeforeEach(t, false)
 	client := &PaymasterClient{c: testConfig.Provider.c}
 
 	t.Run("IsAvailable", func(t *testing.T) {
-		spy := NewSpy(client.c)
-		client.c = spy
 		_, err := client.IsAvailable(context.Background())
 		require.NoError(t, err)
 	})
 
 	t.Run("GetSupportedTokens", func(t *testing.T) {
-		spy := NewSpy(client.c)
-		client.c = spy
 		_, err := client.GetSupportedTokens(context.Background())
 		require.NoError(t, err)
 	})
