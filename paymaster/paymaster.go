@@ -2,18 +2,26 @@ package paymaster
 
 import (
 	"context"
+	"net/http"
+	"net/http/cookiejar"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/client"
+	"golang.org/x/net/publicsuffix"
 )
 
-// Package rpc provides the RPC client implementation for Starknet.
-// This file contains the paymaster API implementation based on SNIP-29 specification.
-
-// PaymasterClient is a client for interacting with a paymaster service via the SNIP-29 API.
+// Paymaster is a client for interacting with a paymaster service via the SNIP-29 API.
 // It provides methods to build and execute transactions, check service status, and track transaction status.
-type PaymasterClient struct {
+type Paymaster struct {
+	// c is the underlying client for the paymaster service.
 	c callCloser
+}
+
+// callCloser is an interface that defines the methods for calling a remote procedure.
+type callCloser interface {
+	// CallContextWithSliceArgs call 'CallContext' with a slice of arguments.
+	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
 }
 
 // NewPaymasterClient creates a new paymaster client for the given service URL.
@@ -25,17 +33,24 @@ type PaymasterClient struct {
 // Returns:
 //   - *PaymasterClient: A new paymaster client instance
 //   - error: An error if the client creation fails
-func NewPaymasterClient(url string) (*PaymasterClient, error) {
-	// For now, we'll use the same client creation pattern as Provider
-	// In a real implementation, this would connect to a paymaster service
-	provider, err := rpc.NewProvider(url)
+//
+// NewProvider creates a new HTTP rpc Provider instance.
+func NewPaymasterClient(url string, options ...client.ClientOption) (*Paymaster, error) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct
+	// prepend the custom client to allow users to override
+	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
+	c, err := client.DialOptions(context.Background(), url, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PaymasterClient{
-		c: provider.c,
-	}, nil
+	paymaster := &Paymaster{c: c}
+
+	return paymaster, nil
 }
 
 // IsAvailable checks if the paymaster service is up and running.
@@ -47,12 +62,12 @@ func NewPaymasterClient(url string) (*PaymasterClient, error) {
 // Returns:
 //   - bool: True if the paymaster service is correctly functioning, false otherwise
 //   - error: An error if the request fails
-func (pc *PaymasterClient) IsAvailable(ctx context.Context) (bool, error) {
-	var result bool
-	if err := do(ctx, pc.c, "paymaster_isAvailable", &result); err != nil {
+func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
+	var response bool
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_isAvailable", &response); err != nil {
 		return false, err
 	}
-	return result, nil
+	return response, nil
 }
 
 // GetSupportedTokens gets a list of tokens supported by the paymaster service.
@@ -64,12 +79,12 @@ func (pc *PaymasterClient) IsAvailable(ctx context.Context) (bool, error) {
 // Returns:
 //   - []TokenData: An array of token data
 //   - error: An error if the request fails
-func (pc *PaymasterClient) GetSupportedTokens(ctx context.Context) ([]TokenData, error) {
-	var result []TokenData
-	if err := do(ctx, pc.c, "paymaster_getSupportedTokens", &result); err != nil {
+func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error) {
+	var response []TokenData
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_getSupportedTokens", &response); err != nil {
 		return nil, err
 	}
-	return result, nil
+	return response, nil
 }
 
 // TrackingIdToLatestHash gets the latest transaction hash and status for a given tracking ID.
@@ -82,12 +97,12 @@ func (pc *PaymasterClient) GetSupportedTokens(ctx context.Context) ([]TokenData,
 // Returns:
 //   - *TrackingIdResponse: The response containing transaction hash and status
 //   - error: An error if the request fails
-func (pc *PaymasterClient) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*TrackingIdResponse, error) {
-	var result TrackingIdResponse
-	if err := do(ctx, pc.c, "paymaster_trackingIdToLatestHash", &result, trackingId); err != nil {
+func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*TrackingIdResponse, error) {
+	var response TrackingIdResponse
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", &response, trackingId); err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return &response, nil
 }
 
 // BuildTransaction builds a transaction, returning typed data for signature and a fee estimate.
@@ -100,9 +115,9 @@ func (pc *PaymasterClient) TrackingIdToLatestHash(ctx context.Context, trackingI
 // Returns:
 //   - *BuildTransactionResponse: The response containing typed data and fee estimate
 //   - error: An error if the request fails
-func (pc *PaymasterClient) BuildTransaction(ctx context.Context, request BuildTransactionRequest) (*BuildTransactionResponse, error) {
+func (p *Paymaster) BuildTransaction(ctx context.Context, request BuildTransactionRequest) (*BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
-	if err := do(ctx, pc.c, "paymaster_buildTransaction", &response, request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", &response, request); err != nil {
 		return nil, err
 	}
 	return &response, nil
@@ -118,9 +133,9 @@ func (pc *PaymasterClient) BuildTransaction(ctx context.Context, request BuildTr
 // Returns:
 //   - *ExecuteTransactionResponse: The response containing tracking ID and transaction hash
 //   - error: An error if the execution fails
-func (pc *PaymasterClient) ExecuteTransaction(ctx context.Context, request ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
+func (p *Paymaster) ExecuteTransaction(ctx context.Context, request ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
-	if err := do(ctx, pc.c, "paymaster_executeTransaction", &response, request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", &response, request); err != nil {
 		return nil, err
 	}
 	return &response, nil
