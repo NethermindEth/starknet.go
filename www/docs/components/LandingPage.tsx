@@ -359,6 +359,63 @@ export function StarknetLanding() {
           /* Styles for links with hideexternalicon attribute */
         }
         
+        /* Get Started Button Animations - Same as Banner */
+        .get-started-btn .btn-dot {
+          animation: none;
+        }
+        
+        .get-started-btn:hover .btn-dot {
+          animation: bounce 2s infinite;
+        }
+        
+        .get-started-btn:hover .btn-dot:nth-child(1) {
+          animation-delay: 0s;
+        }
+        
+        .get-started-btn:hover .btn-dot:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        
+        .get-started-btn:hover .btn-dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        
+        .get-started-btn .btn-shimmer {
+          animation: none;
+        }
+        
+        .get-started-btn:hover .btn-shimmer {
+          animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        .get-started-btn .btn-icon {
+          animation: none;
+        }
+        
+        .get-started-btn:hover .btn-icon {
+          animation: spin 3s linear infinite;
+        }
+        
+        .get-started-btn:hover {
+          background: linear-gradient(135deg, hsl(14 97% 55%), hsl(14 97% 49%));
+          box-shadow: 0 8px 25px rgba(251, 146, 60, 0.4);
+        }
+        
+        .get-started-btn {
+          transition: background 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        
+        /* Prevent iframe flashing */
+        iframe {
+          display: block;
+          background: #03032a !important;
+        }
+        
+        iframe[src*="gopher-animation"] {
+          background: #03032a !important;
+          opacity: 1 !important;
+        }
+        
         /* Immediately hide Vocs elements to prevent flash */
         .vocs_Header,
         .vocs_Nav,
@@ -653,7 +710,7 @@ export function StarknetLanding() {
                 width: '300px',
                 height: '195px',
                 border: 'none',
-                background: 'transparent'
+                background: '#03032a'
               }}
               title="Gopher Stars Animation"
             />
@@ -752,6 +809,7 @@ export function StarknetLanding() {
           {/* CTA Button */}
           <a 
             href="/docs/introduction/getting-started"
+            className="get-started-btn"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -765,12 +823,55 @@ export function StarknetLanding() {
               borderRadius: '0.5rem',
               border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.15s',
-              textDecoration: 'none'
-            }}
-            onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'hsl(14 97% 49% / 0.9)'}
-            onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'hsl(14 97% 49%)'}>
-            Get Started
+              textDecoration: 'none',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 4px 15px rgba(251, 146, 60, 0.2)'
+            }}>
+            {/* Animated background pattern */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              opacity: 0.15,
+              background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)'
+            }} />
+            
+            {/* Animated dots */}
+            <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="btn-dot"
+                  style={{
+                    position: 'absolute',
+                    width: '4px',
+                    height: '4px',
+                    background: 'rgba(255, 255, 255, 0.4)',
+                    borderRadius: '50%',
+                    left: `${20 + i * 25}%`,
+                    top: '50%',
+                    transform: 'translateY(-50%)'
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Shimmer effect */}
+            <div className="btn-shimmer" style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent)',
+              width: '25%',
+              transform: 'translateX(-100%) skewX(-12deg)'
+            }} />
+            
+            <span style={{ position: 'relative', zIndex: 1 }}>Get Started</span>
+            <Code style={{
+              width: '16px',
+              height: '16px',
+              position: 'relative',
+              zIndex: 1
+            }} className="btn-icon" />
           </a>
         </div>
       </section>
