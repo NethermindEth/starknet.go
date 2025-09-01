@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gopher Stars Animation</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { min-height: 100vh; display: grid; place-items: center; background: #05042C; color: #fff; }
+
+        /* Single stage wrapper */
+        .stage {
+            position: relative;
+            width: 300px;
+            height: 195px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        /* Stars group - positioned in bottom left corner of gopher */
+        .stars-group {
+            position: absolute;
+            bottom: 64px;
+            left: 0px;
+            z-index: 2;
+        }
+
+        /* Individual star positioning within the group */
+        .star {
+            position: absolute;
+            object-fit: cover;
+        }
+
+        .star1 {
+            width: 17px;
+            height: 17px;
+            top: -20px;
+            left: 0;
+        }
+
+        .star2 {
+            width: 12px;
+            height: 12px;
+            top: 0;
+            left: 15px;
+            transform: translateY(-50%);
+        }
+
+        .star3 {
+            width: 16px;
+            height: 16px;
+            top: 20px;
+            left: 5px;
+        }
+
+        /* Gopher positioning */
+        .gopher {
+            width: 185px;
+            height: 147px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Framer Motion will handle animations */
+    </style>
+</head>
+<body>
+    <div class="stage">
+        <!-- Gopher -->
+        <img class="gopher" src="gopher.png" alt="Gopher" />
+
+        <!-- Stars group positioned in bottom left corner of gopher -->
+        <div class="stars-group">
+            <img class="star star1" src="star.png" alt="Star 1" />
+            <img class="star star2" src="star.png" alt="Star 2" />
+            <img class="star star3" src="star.png" alt="Star 3" />
+        </div>
+    </div>
+
+    <!-- Motion library using the correct ESM import syntax -->
+    <script type="module">
+        import { animate } from "https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm";
+
+        // Gopher floating animation (exact Framer bezier: 0.44, 0, 0.56, 1)
+        animate('.gopher, .stars-group', {
+            y: [0, -15, 0],
+        }, {
+            duration: 1.4,
+            ease: [0.44, 0, 0.56, 1], // Exact Framer easeInOut bezier
+            repeat: Infinity
+        });
+
+        // Star animations with horizontal movement, growing, and disappearing
+        // Stars use easeInOut bezier: 0.44, 0, 0.56, 1 (exact from Framer)
+        animate('.star1', {
+            x: [0,-40],
+            scale: [0.3, 1.4],
+            opacity: [0, 1, 0]
+        }, {
+            duration: 0.8,
+            ease: [0.44, 0, 0.56, 1], // Exact Framer easeInOut bezier
+            repeat: Infinity,
+            delay: 0
+        });
+
+        animate('.star2', {
+            x: [0, -50],
+            scale: [0.2, 1.6, 0.2],
+            opacity: [0, 1, 0]
+        }, {
+            duration: 0.8,
+            ease: [0.44, 0, 0.56, 1], // Exact Framer easeInOut bezier
+            repeat: Infinity,
+            delay: 1
+        });
+
+        animate('.star3', {
+            x: [0,-40],
+            scale: [0.4, 1.3, 0.4],
+            opacity: [0, 1, 0]
+        }, {
+            duration: 0.8,
+            ease: [0.44, 0, 0.56, 1], // Exact Framer easeInOut bezier
+            repeat: Infinity,
+            delay: 2
+        });
+    </script>
+
+    <script data-framer-appear-animation="no-preference"></script>
+</body>
+</html>
