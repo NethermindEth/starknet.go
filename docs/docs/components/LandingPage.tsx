@@ -542,7 +542,7 @@ export function StarknetLanding() {
                 onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(249 250 251)'}
                 onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'white'}
               >
-                <img src="/docIcon.png" alt="" style={{ width: '14px', height: '14px' }} />
+                <img src="/DocIcon.png" alt="" style={{ width: '14px', height: '14px' }} />
                 DOCS
               </a>
               
