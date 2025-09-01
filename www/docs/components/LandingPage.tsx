@@ -17,6 +17,38 @@ export function StarknetLanding() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Handle scrollbar visibility on scroll
+  useEffect(() => {
+    let scrollTimer: NodeJS.Timeout;
+    
+    const handleScroll = () => {
+      document.body.classList.add('scrolling');
+      
+      // Clear existing timer
+      clearTimeout(scrollTimer);
+      
+      // Hide scrollbar after scroll stops (after 1 second)
+      scrollTimer = setTimeout(() => {
+        document.body.classList.remove('scrolling');
+      }, 1000);
+    };
+
+    // Add listeners to both window and the main container
+    window.addEventListener('scroll', handleScroll, true);
+    const mainContainer = document.querySelector('[style*="position: fixed"][style*="overflow: auto"]');
+    if (mainContainer) {
+      mainContainer.addEventListener('scroll', handleScroll);
+    }
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      if (mainContainer) {
+        mainContainer.removeEventListener('scroll', handleScroll);
+      }
+      clearTimeout(scrollTimer);
+    };
+  }, []);
+
   // Hide vocs.dev header and make full screen
   useEffect(() => {
     // Hide vocs-specific elements
@@ -222,7 +254,7 @@ export function StarknetLanding() {
               <span style={{
                 animation: bannerIsAnimating ? 'pulse 1s infinite' : 'none'
               }}>
-                Documentation Under Active Development
+                Documentation is Under Active Development
               </span>
             </div>
 
@@ -233,11 +265,11 @@ export function StarknetLanding() {
                 height: '14px',
                 animation: 'spin 3s linear infinite'
               }} />
-              <Zap style={{
+              {/* <Zap style={{
                 width: '14px',
                 height: '14px',
                 animation: bannerIsAnimating ? 'bounce 1s infinite' : 'none'
-              }} />
+              }} /> */}
             </div>
           </div>
         </div>
@@ -281,6 +313,52 @@ export function StarknetLanding() {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+        
+        /* Custom Scrollbar Styling */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: hsl(240 76% 8%);
+          border-radius: 4px;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, hsl(14 97% 49%), hsl(14 97% 45%));
+          border-radius: 4px;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, hsl(14 97% 55%), hsl(14 97% 50%));
+          box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
+        }
+        
+        /* Show scrollbar during scroll */
+        body.scrolling ::-webkit-scrollbar-track,
+        body.scrolling ::-webkit-scrollbar-thumb {
+          opacity: 1;
+        }
+        
+        /* Firefox Scrollbar */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: transparent transparent;
+        }
+        
+        body.scrolling * {
+          scrollbar-color: hsl(14 97% 49%) hsl(240 76% 8%);
+        }
+        
+        /* Hide external link icons if needed */
+        a[hideexternalicon] {
+          /* Styles for links with hideexternalicon attribute */
+        }
+        
         /* Immediately hide Vocs elements to prevent flash */
         .vocs_Header,
         .vocs_Nav,
@@ -397,7 +475,7 @@ export function StarknetLanding() {
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   borderRadius: '0.5rem',
-                  border: '1px solid rgb(229 231 235)',
+                  border: '1px solid hsl(240 76% 8%)',
                   backgroundColor: 'white',
                   color: 'rgb(17 24 39)',
                   cursor: 'pointer',
@@ -407,7 +485,8 @@ export function StarknetLanding() {
                 onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(249 250 251)'}
                 onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'white'}
               >
-                📖 DOCS
+                <img src="/docIcon.png" alt="" style={{ width: '14px', height: '14px' }} />
+                DOCS
               </a>
               
               {/* Twitter/X */}
@@ -422,12 +501,30 @@ export function StarknetLanding() {
                   color: 'rgb(17 24 39)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
-                  textDecoration: 'none',
-                  fontSize: '14px'
+                  textDecoration: 'none'
                 }}
                 onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(243 244 246)'}
                 onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}>
-                ✕
+                <img src="/xicon.svg" alt="X" style={{ width: '16px', height: '16px' }} />
+              </a>
+              
+              {/* Telegram */}
+              <a href="https://t.me/StarknetGo" target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2rem',
+                  height: '2rem',
+                  borderRadius: '0.5rem',
+                  color: 'rgb(17 24 39)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(243 244 246)'}
+                onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}>
+                <img src="/Telegram.svg" alt="Telegram" style={{ width: '16px', height: '16px' }} />
               </a>
               
               {/* Github */}
@@ -445,7 +542,7 @@ export function StarknetLanding() {
                 }}
                 onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(243 244 246)'}
                 onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}>
-                <Github style={{ width: '1rem', height: '1rem' }} />
+                <img src="/Githubicon.svg" alt="GitHub" style={{ width: '16px', height: '16px' }} />
               </a>
             </div>
           </div>
