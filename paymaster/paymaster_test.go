@@ -1,11 +1,44 @@
 package paymaster
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
+
+// an enum to define the test environment for the paymaster tests
+type testEnv int
+
+const (
+	// the environment for run only mock tests
+	mock testEnv = iota
+	// the environment for run integration tests using a real paymaster
+	integration
+)
+
+// Creates a new paymaster client for the given environment.
+func SetupPaymaster(t *testing.T, env testEnv) *Paymaster {
+	t.Helper()
+	var pm *Paymaster
+	var err error
+	if env == integration {
+		pm, err = NewPaymasterClient("https://sepolia.paymaster.avnu.fi")
+		if err != nil {
+			panic(fmt.Errorf("failed to create paymaster client: %w", err))
+		}
+	} else {
+		client := mocks.NewMockClient(gomock.NewController(t))
+		pm = &Paymaster{c: client}
+		if err != nil {
+			panic(fmt.Errorf("failed to create paymaster client: %w", err))
+		}
+	}
+	return pm
+}
 
 func TestPaymasterTypes(t *testing.T) {
 	t.Run("Call", func(t *testing.T) {
