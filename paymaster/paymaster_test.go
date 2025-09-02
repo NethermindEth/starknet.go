@@ -1,6 +1,7 @@
 package paymaster
 
 import (
+	"context"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -36,6 +37,24 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 		c:         client,
 	}
 	return mpm
+}
+
+// Test the 'paymaster_isAvailable' method
+func TestIsAvailable(t *testing.T) {
+	t.Run("integration", func(t *testing.T) {
+		pm := SetupPaymaster(t)
+		available, err := pm.IsAvailable(context.Background())
+		require.NoError(t, err)
+		assert.True(t, available)
+	})
+
+	t.Run("mock", func(t *testing.T) {
+		pm := SetupMockPaymaster(t)
+		pm.c.EXPECT().CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").SetArg(1, true).Return(nil)
+		available, err := pm.IsAvailable(context.Background())
+		assert.NoError(t, err)
+		assert.True(t, available)
+	})
 }
 
 func TestPaymasterTypes(t *testing.T) {
