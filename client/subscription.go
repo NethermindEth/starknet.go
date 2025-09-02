@@ -239,23 +239,19 @@ type ClientSubscription struct {
 // This is the sentinel value sent on sub.quit when Unsubscribe is called.
 var errUnsubscribed = errors.New("unsubscribed")
 
-func newClientSubscription(c *Client, namespace string, channel reflect.Value, method string) *ClientSubscription {
+func newClientSubscription(c *Client, namespace string, channel reflect.Value) *ClientSubscription {
 	sub := &ClientSubscription{
-		client:      c,
-		namespace:   namespace,
-		etype:       channel.Type().Elem(),
-		channel:     channel,
-		in:          make(chan json.RawMessage),
-		quit:        make(chan error),
-		forwardDone: make(chan struct{}),
-		unsubDone:   make(chan struct{}),
-		err:         make(chan error, 1),
-	}
-
-	// A reorg event can be received from subscribing to newHeads, Events, TransactionStatus
-	if strings.HasSuffix(method, "NewHeads") || strings.HasSuffix(method, "Events") || strings.HasSuffix(method, "TransactionStatus") {
-		sub.reorgChannel = make(chan *ReorgEvent)
-		sub.reorgEtype = reflect.TypeOf(&ReorgEvent{})
+		client:       c,
+		namespace:    namespace,
+		etype:        channel.Type().Elem(),
+		channel:      channel,
+		reorgEtype:   reflect.TypeOf(&ReorgEvent{}),
+		reorgChannel: make(chan *ReorgEvent),
+		in:           make(chan json.RawMessage),
+		quit:         make(chan error),
+		forwardDone:  make(chan struct{}),
+		unsubDone:    make(chan struct{}),
+		err:          make(chan error, 1),
 	}
 
 	return sub
@@ -274,8 +270,7 @@ func (sub *ClientSubscription) Err() <-chan error {
 }
 
 // Reorg returns a channel that notifies the subscriber of a reorganisation of the chain.
-// A reorg event could be received from subscribing to NewHeads, Events, TransactionStatus,
-// NewTransactions, and NewTransactionReceipts.
+// A reorg event can be received from subscribing to any Starknet subscription.
 func (sub *ClientSubscription) Reorg() <-chan *ReorgEvent {
 	return sub.reorgChannel
 }
@@ -320,9 +315,7 @@ func (sub *ClientSubscription) close(err error) {
 // is launched by the client's handler after the subscription has been created.
 func (sub *ClientSubscription) run() {
 	defer close(sub.unsubDone)
-	if sub.reorgChannel != nil {
-		defer close(sub.reorgChannel)
-	}
+	defer close(sub.reorgChannel)
 
 	unsubscribe, err := sub.forward()
 
@@ -356,13 +349,10 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 	}
 
 	// a workaround to handle reorg events as it'll come in the same subscription
-	var casesWithReorg []reflect.SelectCase
-	if sub.reorgChannel != nil {
-		casesWithReorg = []reflect.SelectCase{
-			cases[0],
-			cases[1],
-			{Dir: reflect.SelectSend, Chan: reflect.ValueOf(sub.reorgChannel)},
-		}
+	casesWithReorg := []reflect.SelectCase{
+		cases[0],
+		cases[1],
+		{Dir: reflect.SelectSend, Chan: reflect.ValueOf(sub.reorgChannel)},
 	}
 
 	buffer := list.New()
