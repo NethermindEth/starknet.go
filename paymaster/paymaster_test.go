@@ -24,6 +24,7 @@ func SetupPaymaster(t *testing.T) *Paymaster {
 	t.Helper()
 	pm, err := NewPaymasterClient("https://sepolia.paymaster.avnu.fi")
 	require.NoError(t, err, "failed to create paymaster client")
+
 	return pm
 }
 
@@ -36,6 +37,7 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 		Paymaster: &Paymaster{c: client},
 		c:         client,
 	}
+
 	return mpm
 }
 
@@ -50,7 +52,10 @@ func TestIsAvailable(t *testing.T) {
 
 	t.Run("mock", func(t *testing.T) {
 		pm := SetupMockPaymaster(t)
-		pm.c.EXPECT().CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").SetArg(1, true).Return(nil)
+		pm.c.EXPECT().
+			CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").
+			SetArg(1, true).
+			Return(nil)
 		available, err := pm.IsAvailable(context.Background())
 		assert.NoError(t, err)
 		assert.True(t, available)
@@ -255,7 +260,7 @@ func TestOutsideExecutionTypedData(t *testing.T) {
 			Calls:         []Call{},
 			Fee:           map[string]interface{}{"No Fee": "test"},
 		}
-		typedData := GetOutsideExecutionTypedDataV3RC(message)
+		typedData := GetOutsideExecutionTypedDataV3RC(&message)
 
 		assert.Equal(t, "OutsideExecution", typedData.PrimaryType)
 		assert.Equal(t, "Account.execute_from_outside", typedData.Domain.Name)
