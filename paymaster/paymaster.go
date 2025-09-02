@@ -68,6 +68,7 @@ func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_isAvailable"); err != nil {
 		return false, err
 	}
+
 	return response, nil
 }
 
@@ -82,9 +83,10 @@ func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
 //   - error: An error if the request fails
 func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error) {
 	var response []TokenData
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_getSupportedTokens", &response); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_getSupportedTokens"); err != nil {
 		return nil, err
 	}
+
 	return response, nil
 }
 
@@ -100,9 +102,10 @@ func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error)
 //   - error: An error if the request fails
 func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*TrackingIdResponse, error) {
 	var response TrackingIdResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", &response, trackingId); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", trackingId); err != nil {
 		return nil, err
 	}
+
 	return &response, nil
 }
 
@@ -116,11 +119,12 @@ func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt
 // Returns:
 //   - *BuildTransactionResponse: The response containing typed data and fee estimate
 //   - error: An error if the request fails
-func (p *Paymaster) BuildTransaction(ctx context.Context, request BuildTransactionRequest) (*BuildTransactionResponse, error) {
+func (p *Paymaster) BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", &response, request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", request); err != nil {
 		return nil, err
 	}
+
 	return &response, nil
 }
 
@@ -134,11 +138,12 @@ func (p *Paymaster) BuildTransaction(ctx context.Context, request BuildTransacti
 // Returns:
 //   - *ExecuteTransactionResponse: The response containing tracking ID and transaction hash
 //   - error: An error if the execution fails
-func (p *Paymaster) ExecuteTransaction(ctx context.Context, request ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
+func (p *Paymaster) ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", &response, request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", request); err != nil {
 		return nil, err
 	}
+
 	return &response, nil
 }
 
@@ -222,7 +227,7 @@ func GetOutsideExecutionTypedDataV2(message OutsideExecutionMessageV2) OutsideEx
 }
 
 // GetOutsideExecutionTypedDataV3RC returns the typed data structure for version 3-rc
-func GetOutsideExecutionTypedDataV3RC(message OutsideExecutionMessageV3) OutsideExecutionTypedData {
+func GetOutsideExecutionTypedDataV3RC(message *OutsideExecutionMessageV3) OutsideExecutionTypedData {
 	return OutsideExecutionTypedData{
 		Types: map[string][]TypedDataField{
 			"StarknetDomain": {
