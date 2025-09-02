@@ -18,6 +18,7 @@ type Paymaster struct {
 }
 
 // callCloser is an interface that defines the methods for calling a remote procedure.
+// It was created to match the Client struct from the 'client' package.
 type callCloser interface {
 	// CallContextWithSliceArgs call 'CallContext' with a slice of arguments.
 	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
@@ -64,7 +65,7 @@ func NewPaymasterClient(url string, options ...client.ClientOption) (*Paymaster,
 //   - error: An error if the request fails
 func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
 	var response bool
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_isAvailable", &response); err != nil {
+	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_isAvailable"); err != nil {
 		return false, err
 	}
 	return response, nil
