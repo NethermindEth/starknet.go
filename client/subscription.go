@@ -414,27 +414,26 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 	}
 }
 
-func (sub *ClientSubscription) unmarshal(result json.RawMessage, isReorg *bool) (interface{}, error) {
+func (sub *ClientSubscription) unmarshal(value json.RawMessage) (resp interface{}, isReorg bool, err error) {
 	val := reflect.New(sub.etype)
-	dec := json.NewDecoder(bytes.NewReader(result))
+	dec := json.NewDecoder(bytes.NewReader(value))
 	dec.DisallowUnknownFields()
-	err := dec.Decode(val.Interface())
+	err = dec.Decode(val.Interface())
 
 	// If there's an error when unmarshalling to the main channel type, maybe it's a reorg event
 	if err != nil && sub.reorgEtype != nil {
-		val = reflect.New(sub.reorgEtype)
-		err2 := json.Unmarshal(result, val.Interface())
+		reorgVal := reflect.New(sub.reorgEtype)
+		dec := json.NewDecoder(bytes.NewReader(value))
+		dec.DisallowUnknownFields()
+		err2 := dec.Decode(reorgVal.Interface())
 		if err2 != nil {
-			err = errors.Join(err, err2)
-		} else {
-			*isReorg = true
-
-			return val.Elem().Interface(), nil
+			return nil, false, errors.Join(err, err2)
 		}
-	}
-	*isReorg = false
 
-	return val.Elem().Interface(), err
+		return reorgVal.Elem().Interface(), true, nil
+	}
+
+	return val.Elem().Interface(), false, err
 }
 
 func (sub *ClientSubscription) requestUnsubscribe() error {
