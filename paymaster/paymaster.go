@@ -32,7 +32,7 @@ type callCloser interface {
 //   - url: The URL of the paymaster service
 //
 // Returns:
-//   - *PaymasterClient: A new paymaster client instance
+//   - *Paymaster: A new paymaster client instance
 //   - error: An error if the client creation fails
 //
 // NewProvider creates a new HTTP rpc Provider instance.
@@ -54,15 +54,15 @@ func NewPaymasterClient(url string, options ...client.ClientOption) (*Paymaster,
 	return paymaster, nil
 }
 
-// IsAvailable checks if the paymaster service is up and running.
-// Returns true if available, false otherwise.
+// IsAvailable returns the status of the paymaster service.
+// If the paymaster service is correctly functioning, return true. Else, return false
 //
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //
 // Returns:
 //   - bool: True if the paymaster service is correctly functioning, false otherwise
-//   - error: An error if the request fails
+//   - error: An error if any
 func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
 	var response bool
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_isAvailable"); err != nil {
@@ -72,15 +72,14 @@ func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error) {
 	return response, nil
 }
 
-// GetSupportedTokens gets a list of tokens supported by the paymaster service.
-// Returns an array of TokenData.
+// Get a list of the tokens that the paymaster supports, together with their prices in STRK
 //
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
 //
 // Returns:
 //   - []TokenData: An array of token data
-//   - error: An error if the request fails
+//   - error: An error if any
 func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error) {
 	var response []TokenData
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_getSupportedTokens"); err != nil {
