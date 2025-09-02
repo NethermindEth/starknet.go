@@ -355,26 +355,34 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 		{Dir: reflect.SelectSend, Chan: sub.channel},
 	}
 
-	// a separate case for reorg events as it'll come in the same subscription
-	var reorgCases []reflect.SelectCase
+	// a workaround to handle reorg events as it'll come in the same subscription
+	var casesWithReorg []reflect.SelectCase
 	if sub.reorgChannel != nil {
-		reorgCases = append(cases[:2:2], reflect.SelectCase{Dir: reflect.SelectSend, Chan: reflect.ValueOf(sub.reorgChannel)})
+		casesWithReorg = []reflect.SelectCase{
+			cases[0],
+			cases[1],
+			{Dir: reflect.SelectSend, Chan: reflect.ValueOf(sub.reorgChannel)},
+		}
 	}
 
 	buffer := list.New()
-	isReorg := false
+	reorgBuffer := list.New()
 
 	for {
 		var chosen int
 		var recv reflect.Value
-		if buffer.Len() == 0 {
-			// Idle, omit send case.
+		var isReorg bool
+
+		if buffer.Len() == 0 && reorgBuffer.Len() == 0 {
+			// Idle, omit send cases.
 			chosen, recv, _ = reflect.Select(cases[:2])
 		} else {
 			// Non-empty buffer, send the first queued item.
-			if isReorg {
-				reorgCases[2].Send = reflect.ValueOf(buffer.Front().Value)
-				chosen, recv, _ = reflect.Select(reorgCases)
+
+			if reorgBuffer.Len() > 0 {
+				casesWithReorg[2].Send = reflect.ValueOf(reorgBuffer.Front().Value)
+				chosen, recv, _ = reflect.Select(casesWithReorg)
+				isReorg = true
 			} else {
 				cases[2].Send = reflect.ValueOf(buffer.Front().Value)
 				chosen, recv, _ = reflect.Select(cases)
@@ -394,22 +402,28 @@ func (sub *ClientSubscription) forward() (unsubscribeServer bool, err error) {
 			return false, err
 
 		case 1: // <-sub.in
-			val, err := sub.unmarshal(recv.Interface().(json.RawMessage), &isReorg)
+			resp, isReorgVal, err := sub.unmarshal(recv.Interface().(json.RawMessage))
 			if err != nil {
 				return true, err
 			}
-			if buffer.Len() == maxClientSubscriptionBuffer {
+			if buffer.Len()+reorgBuffer.Len() == maxClientSubscriptionBuffer {
 				return true, ErrSubscriptionQueueOverflow
 			}
-			buffer.PushBack(val)
 
-		case 2: // sub.channel<- OR sub.reorgChannel<-
-			if isReorg {
-				reorgCases[2].Send = reflect.Value{} // Don't hold onto the value.
+			if isReorgVal {
+				reorgBuffer.PushBack(resp)
 			} else {
-				cases[2].Send = reflect.Value{} // Don't hold onto the value.
+				buffer.PushBack(resp)
 			}
-			buffer.Remove(buffer.Front())
+
+		case 2: // sub.channel<- || sub.reorgChannel<-
+			if isReorg {
+				casesWithReorg[2].Send = reflect.Value{} // Cleaning up memory
+				reorgBuffer.Remove(reorgBuffer.Front())
+			} else {
+				cases[2].Send = reflect.Value{} // Cleaning up memory
+				buffer.Remove(buffer.Front())
+			}
 		}
 	}
 }
