@@ -43,7 +43,9 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 
 // Test the 'paymaster_isAvailable' method
 func TestIsAvailable(t *testing.T) {
+	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
+		t.Parallel()
 		pm := SetupPaymaster(t)
 		available, err := pm.IsAvailable(context.Background())
 		require.NoError(t, err)
@@ -51,6 +53,7 @@ func TestIsAvailable(t *testing.T) {
 	})
 
 	t.Run("mock", func(t *testing.T) {
+		t.Parallel()
 		pm := SetupMockPaymaster(t)
 		pm.c.EXPECT().
 			CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").
@@ -60,6 +63,35 @@ func TestIsAvailable(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, available)
 	})
+}
+
+// Test the 'paymaster_getSupportedTokens' method
+func TestGetSupportedTokens(t *testing.T) {
+	t.Parallel()
+	t.Run("integration", func(t *testing.T) {
+		t.Parallel()
+		pm := SetupPaymaster(t)
+		tokens, err := pm.GetSupportedTokens(context.Background())
+		require.NoError(t, err)
+		assert.NotNil(t, tokens)
+
+		for _, token := range tokens {
+			assert.NotNil(t, token.TokenAddress)
+			assert.NotZero(t, token.Decimals)
+			assert.NotZero(t, token.PriceInStrk)
+		}
+	})
+
+	// t.Run("mock", func(t *testing.T) {
+	// 	pm := SetupMockPaymaster(t)
+	// 	pm.c.EXPECT().
+	// 		CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new([]TokenData)), "paymaster_getSupportedTokens").
+	// 		SetArg(1, []TokenData{}).
+	// 		Return(nil)
+	// 	tokens, err := pm.GetSupportedTokens(context.Background())
+	// 	assert.NoError(t, err)
+	// 	assert.NotNil(t, tokens)
+	// })
 }
 
 func TestPaymasterTypes(t *testing.T) {
