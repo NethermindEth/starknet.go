@@ -65,11 +65,14 @@ type TypedDataDomain struct {
 
 // ===== SNIP-X TYPES (Official Specification) =====
 
-// TokenData contains information about a supported token (address, decimals, price in STRK).
+// Object containing data about the token: contract address, number of decimals and current price in STRK
 type TokenData struct {
+	// Token contract address
 	TokenAddress *felt.Felt `json:"token_address"`
-	Decimals     int        `json:"decimals"`
-	PriceInStrk  string     `json:"price_in_strk"` // u256 as string
+	// The number of decimals of the token
+	Decimals uint8 `json:"decimals"`
+	// Price in STRK (in FRI units)
+	PriceInStrk string `json:"price_in_strk"` // u256 as a hex string
 }
 
 // TrackingIdResponse is the response for tracking a transaction by ID (latest tx hash and status).
