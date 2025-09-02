@@ -1,43 +1,41 @@
 package paymaster
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-// an enum to define the test environment for the paymaster tests
-type testEnv int
+type MockPaymaster struct {
+	*Paymaster
+	// this should be a pointer to the mock client used in the Paymaster struct.
+	// This is intended to have an easy access to the mock client, without having to
+	// type cast it from the `callCloser` interface every time.
+	c *mocks.MockClient
+}
 
-const (
-	// the environment for run only mock tests
-	mock testEnv = iota
-	// the environment for run integration tests using a real paymaster
-	integration
-)
-
-// Creates a new paymaster client for the given environment.
-func SetupPaymaster(t *testing.T, env testEnv) *Paymaster {
+// Creates a real Sepolia paymaster client.
+func SetupPaymaster(t *testing.T) *Paymaster {
 	t.Helper()
-	var pm *Paymaster
-	var err error
-	if env == integration {
-		pm, err = NewPaymasterClient("https://sepolia.paymaster.avnu.fi")
-		if err != nil {
-			panic(fmt.Errorf("failed to create paymaster client: %w", err))
-		}
-	} else {
-		client := mocks.NewMockClient(gomock.NewController(t))
-		pm = &Paymaster{c: client}
-		if err != nil {
-			panic(fmt.Errorf("failed to create paymaster client: %w", err))
-		}
-	}
+	pm, err := NewPaymasterClient("https://sepolia.paymaster.avnu.fi")
+	require.NoError(t, err, "failed to create paymaster client")
 	return pm
+}
+
+// Creates a mock paymaster client.
+func SetupMockPaymaster(t *testing.T) *MockPaymaster {
+	t.Helper()
+
+	client := mocks.NewMockClient(gomock.NewController(t))
+	mpm := &MockPaymaster{
+		Paymaster: &Paymaster{c: client},
+		c:         client,
+	}
+	return mpm
 }
 
 func TestPaymasterTypes(t *testing.T) {
