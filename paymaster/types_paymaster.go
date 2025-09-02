@@ -1,8 +1,6 @@
 package paymaster
 
 import (
-	"context"
-
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -162,22 +160,4 @@ type ExecuteTransactionRequest struct {
 type ExecuteTransactionResponse struct {
 	TrackingId      *felt.Felt `json:"tracking_id"`
 	TransactionHash *felt.Felt `json:"transaction_hash"`
-}
-
-// PaymasterProvider is the interface for paymaster operations (SNIP-X methods only).
-//
-// Methods:
-//   - IsAvailable: Check if the paymaster service is available.
-//   - GetSupportedTokens: List supported tokens.
-//   - TrackingIdToLatestHash: Get latest tx hash and status for a tracking ID.
-//   - BuildTransaction: Build a transaction (get typed data and fee).
-//   - ExecuteTransaction: Execute a signed transaction.
-//
-//go:generate go run go.uber.org/mock/mockgen -destination=../mocks/mock_paymaster_provider.go -package=mocks -source=types_paymaster.go PaymasterProvider
-type PaymasterProvider interface {
-	IsAvailable(ctx context.Context) (bool, error)
-	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
-	TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (*TrackingIdResponse, error)
-	BuildTransaction(ctx context.Context, request BuildTransactionRequest) (*BuildTransactionResponse, error)
-	ExecuteTransaction(ctx context.Context, request ExecuteTransactionRequest) (*ExecuteTransactionResponse, error)
 }
