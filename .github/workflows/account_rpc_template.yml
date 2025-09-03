@@ -1,5 +1,8 @@
 name: run account and rpc tests
 
+permissions:
+  contents: read
+  
 on:
   workflow_call:
     inputs:
