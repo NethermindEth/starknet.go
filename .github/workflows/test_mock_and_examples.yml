@@ -1,0 +1,36 @@
+name: mock tests and examples
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  run-mock-tests-and-build-examples:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          
+      - name: Build examples
+        run: |
+          cd examples/deployAccount && go build
+          cd ../deployContractUDC && go build
+          cd ../invoke && go build
+          cd ../readEvents && go build
+          cd ../simpleCall && go build
+          cd ../simpleDeclare && go build
+          cd ../typedData && go build
+          cd ../websocket && go build
+
+      - name: Run all mock tests
+        run: go test -v ./...
