@@ -1143,6 +1143,7 @@ loop:
 
 // A simple test was made to make sure the reorg events are received. Ref:
 // https://github.com/NethermindEth/starknet.go/pull/651#discussion_r1927356194
+// Also here: https://github.com/NethermindEth/starknet.go/pull/781
 func TestReorgEvents(t *testing.T) {
 	t.Skip("TODO: implement reorg test")
 }
