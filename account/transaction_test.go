@@ -517,7 +517,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		if err != nil {
 			rpcErr := err.(*rpc.RPCError)
 			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code, "AddInvokeTransaction returned an unexpected error")
-			require.Nil(t, resp)
+			require.Zero(t, resp)
 		}
 	}
 }
