@@ -1,4 +1,4 @@
-name: run account and rpc tests
+name: account and rpc tests template
 
 permissions:
   contents: read
@@ -43,6 +43,7 @@ jobs:
 
   rpc-tests:
     runs-on: ubuntu-22.04
+    needs: account-tests # wait for account tests to finish to avoid nonce conflicts
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
