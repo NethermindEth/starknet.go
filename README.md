@@ -12,7 +12,7 @@
     <a href="https://github.com/nethermindeth/starknet.go/blob/main/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-black">
     </a>
-    <a href="https://github.com/NethermindEth/starknet.go/actions/workflows/ci_tests.yml">
+    <a href="https://github.com/NethermindEth/starknet.go/actions/workflows/test_testnet.yml">
         <img src="https://github.com/NethermindEth/starknet.go/actions/workflows/ci_tests.yml/badge.svg" alt="Main tests">
     </a>
     <a href="https://github.com/NethermindEth/starknet.go/stargazers">
