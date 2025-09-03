@@ -1,4 +1,4 @@
-name: run mock tests and build the examples
+name: mock tests and examples
 
 permissions:
   contents: read
@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_test:
+  run-mock-tests-and-build-examples:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout branch
@@ -20,10 +20,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
-
-      - name: Run all mock tests
-        run: go test -v ./...
-
+          
       - name: Build examples
         run: |
           cd examples/deployAccount && go build
@@ -34,3 +31,6 @@ jobs:
           cd ../simpleDeclare && go build
           cd ../typedData && go build
           cd ../websocket && go build
+
+      - name: Run all mock tests
+        run: go test -v ./...

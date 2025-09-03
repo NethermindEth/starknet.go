@@ -1,4 +1,4 @@
-name: run devnet tests
+name: devnet tests
 
 permissions:
   contents: read
@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  build_and_test:
+  run-devnet-tests:
     runs-on: ubuntu-22.04
 
     services:
@@ -31,15 +31,15 @@ jobs:
       - name: wait for devnet to be up...
         run: ./.bin/devnet.sh
 
-      - name: Test devnet tests
+      - name: Run devnet tests
         run: cd devnet && go test -timeout 300s -v -env devnet .
 
-      - name: Test Account on devnet
+      - name: Run Account tests on devnet
         run: cd account && go test -timeout 300s -v -env devnet .
         env:
           HTTP_PROVIDER_URL: "http://localhost:5050"
 
-      - name: Test RPC on devnet
+      - name: Run RPC tests on devnet
         run: cd rpc && go test -timeout 300s -v -env devnet .
         env:
           HTTP_PROVIDER_URL: "http://localhost:5050/"

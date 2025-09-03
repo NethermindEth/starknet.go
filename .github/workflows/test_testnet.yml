@@ -1,4 +1,4 @@
-name: run testnet tests
+name: testnet tests
 
 permissions:
   contents: read
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  run-testnet-tests:
+  run:
     uses: ./.github/workflows/account_rpc_template.yml
     with:
       env: testnet

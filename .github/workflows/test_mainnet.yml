@@ -1,4 +1,4 @@
-name: run mainnet tests
+name: mainnet tests
 
 permissions:
   contents: read
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  run-mainnet-tests:
+  run:
     uses: ./.github/workflows/account_rpc_template.yml
     with:
       env: mainnet
