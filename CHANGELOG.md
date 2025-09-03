@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `account.DeployContractWithUDC`
   - `account.SendTransaction`
 - The `account.AccountInterface` and the `rpc.RpcProvider` were updated to reflect the new return types.
+- Reorg events are now supported in all Starknet subscriptions.
 
 ### Fixed
 - Bug when receiving reorg events from subscriptions, which was panicking in some cases.
