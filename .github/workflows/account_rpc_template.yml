@@ -1,0 +1,59 @@
+name: run account and rpc tests
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+    secrets:
+      HTTP_PROVIDER_URL:
+        required: true
+      WS_PROVIDER_URL:
+        required: true
+      STARKNET_PRIVATE_KEY:
+      STARKNET_PUBLIC_KEY:
+      STARKNET_ACCOUNT_ADDRESS:
+
+
+
+jobs:
+  account-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Run account tests on ${{ inputs.env }} env
+        run: cd account && go test -timeout 300s -v -env ${{ inputs.env }} .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.HTTP_PROVIDER_URL }}
+          WS_PROVIDER_URL: ${{ secrets.WS_PROVIDER_URL }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.STARKNET_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.STARKNET_ACCOUNT_ADDRESS }}
+
+  rpc-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Run rpc tests on ${{ inputs.env }} env
+        run: cd rpc && go test -timeout 300s -v -env ${{ inputs.env }} .
+        env:
+          HTTP_PROVIDER_URL: ${{ secrets.HTTP_PROVIDER_URL }}
+          WS_PROVIDER_URL: ${{ secrets.WS_PROVIDER_URL }}
+          STARKNET_PRIVATE_KEY: ${{ secrets.STARKNET_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.STARKNET_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.STARKNET_ACCOUNT_ADDRESS }}
