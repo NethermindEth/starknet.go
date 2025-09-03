@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `account.SendTransaction`
 - The `account.AccountInterface` and the `rpc.RpcProvider` were updated to reflect the new return types.
 
+### Fixed
+- Bug when receiving reorg events from subscriptions, which was panicking in some cases.
+
 ### Dev updates
 - Regenerated mocks for the `account` and `rpc` packages
 - Tests updated accordingly
