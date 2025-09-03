@@ -1,0 +1,21 @@
+name: run testnet tests
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-testnet-tests:
+    uses: ./.github/workflows/account_rpc_template.yml
+    with:
+      env: testnet
+    secrets:
+      HTTP_PROVIDER_URL: ${{ secrets.TESTNET_HTTP_PROVIDER_URL }}
+      WS_PROVIDER_URL: ${{ secrets.TESTNET_WS_PROVIDER_URL }}
+      STARKNET_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+      STARKNET_PUBLIC_KEY: ${{ secrets.TESTNET_ACCOUNT_PUBLIC_KEY }}
+      STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
