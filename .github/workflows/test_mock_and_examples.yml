@@ -1,21 +1,17 @@
-name: (pull requests) - build, mock and devnet tests
+name: run mock tests and build the examples
 
 permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
 
 jobs:
   build_and_test:
     runs-on: ubuntu-22.04
-
-    services:
-      devnet:
-        image: shardlabs/starknet-devnet-rs:0.5.0
-        ports:
-          - 5050:5050
-
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -27,19 +23,6 @@ jobs:
 
       - name: Run all mock tests
         run: go test -v ./...
-
-      - name: wait for devnet to be up...
-        run: ./.bin/devnet.sh
-
-      - name: Test Account on devnet
-        run: cd account && go test -timeout 300s -v -env devnet .
-        env:
-          HTTP_PROVIDER_URL: "http://localhost:5050"
-
-      - name: Test RPC on devnet
-        run: cd rpc && go test -timeout 300s -v -env devnet .
-        env:
-          HTTP_PROVIDER_URL: "http://localhost:5050/"
 
       - name: Build examples
         run: |
