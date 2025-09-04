@@ -707,7 +707,7 @@ export function StarknetLanding() {
             <iframe
               src="/gopher-animation.html"
               style={{
-                width: '300px',
+                width: '400px',
                 height: '195px',
                 border: 'none',
                 background: '#03032a'
