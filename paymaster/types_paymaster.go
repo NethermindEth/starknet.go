@@ -1,6 +1,9 @@
 package paymaster
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -110,9 +113,50 @@ type UserInvoke struct {
 	Calls       []Call     `json:"calls"`
 }
 
+// An enum representing the type of the transaction to be executed by the paymaster
+type UserTxnType string
+
+const (
+	// Represents a deploy transaction
+	UserTxnDeploy UserTxnType = "deploy"
+	// Represents an invoke transaction
+	UserTxnInvoke UserTxnType = "invoke"
+	// Represents a deploy and invoke transaction
+	UserTxnDeployAndInvoke UserTxnType = "deploy_and_invoke"
+)
+
+// MarshalJSON marshals the UserTxnType to JSON.
+func (u UserTxnType) MarshalJSON() ([]byte, error) {
+	switch u {
+	case UserTxnDeploy, UserTxnInvoke, UserTxnDeployAndInvoke:
+		return json.Marshal(string(u))
+	}
+
+	return nil, fmt.Errorf("invalid user transaction type: %s", u)
+}
+
+// UnmarshalJSON unmarshals the JSON data into a UserTxnType.
+func (u UserTxnType) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "deploy":
+		u = UserTxnDeploy
+	case "invoke":
+		u = UserTxnInvoke
+	case "deploy_and_invoke":
+		u = UserTxnDeployAndInvoke
+	default:
+		return fmt.Errorf("invalid user transaction type: %s", s)
+	}
+	return nil
+}
+
 // UserTransaction represents a user transaction (deploy, invoke, or deploy_and_invoke).
 type UserTransaction struct {
-	Type   string      `json:"type"` // "deploy", "invoke", "deploy_and_invoke"
+	Type   UserTxnType `json:"type"`
 	Deploy interface{} `json:"deployment,omitempty"`
 	Invoke UserInvoke  `json:"invoke,omitempty"`
 }
@@ -133,8 +177,10 @@ type UserParameters struct {
 
 // BuildTransactionRequest is the request to build a transaction for the paymaster (transaction + parameters).
 type BuildTransactionRequest struct {
+	// The transaction to be executed by the paymaster
 	Transaction UserTransaction `json:"transaction"`
-	Parameters  UserParameters  `json:"parameters"`
+	// Execution parameters to be used when executing the transaction
+	Parameters UserParameters `json:"parameters"`
 }
 
 // FeeEstimateResponse is a detailed fee estimation (in STRK and gas token, with suggested max).
