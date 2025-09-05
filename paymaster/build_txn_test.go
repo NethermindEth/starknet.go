@@ -32,7 +32,7 @@ func TestUserTxnType(t *testing.T) {
 			ErrorExpected: false,
 		},
 		{
-			Input:         `"invalid"`,
+			Input:         `"unknown"`,
 			ErrorExpected: true,
 		},
 	}
@@ -44,6 +44,44 @@ func TestUserTxnType(t *testing.T) {
 	}
 }
 
+// Test the FeeModeType type
+func TestFeeModeType(t *testing.T) {
+	type testCase struct {
+		Input         string
+		Expected      FeeModeType
+		ErrorExpected bool
+	}
+
+	tests := []testCase{
+		{
+			Input:         `"default"`,
+			Expected:      FeeModeDefault,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"priority"`,
+			Expected:      FeeModePriority,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"sponsored"`,
+			Expected:      FeeModeSponsored,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"unknown"`,
+			ErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Input, func(t *testing.T) {
+			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
+		})
+	}
+}
+
+// CompareEnumsHelper compares an enum type with the expected value and error expected.
 func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpected bool) {
 	t.Helper()
 
