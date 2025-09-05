@@ -17,6 +17,16 @@ type Paymaster struct {
 	c callCloser
 }
 
+type PaymasterInterface interface {
+	IsAvailable(ctx context.Context) (bool, error)
+	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
+	TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (TrackingIdResponse, error)
+	BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error)
+	ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error)
+}
+
+var _ PaymasterInterface = &Paymaster{}
+
 // callCloser is an interface that defines the methods for calling a remote procedure.
 // It was created to match the Client struct from the 'client' package.
 type callCloser interface {
