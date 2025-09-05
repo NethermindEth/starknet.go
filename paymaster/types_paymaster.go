@@ -142,13 +142,6 @@ type UserInvoke struct {
 	Calls       []Call     `json:"calls"`
 }
 
-// FeeMode specifies how the transaction fee should be paid (mode, gas token, tip).
-type FeeMode struct {
-	Mode      string     `json:"mode"` // "sponsored", "default", "priority"
-	GasToken  *felt.Felt `json:"gas_token,omitempty"`
-	TipInStrk *felt.Felt `json:"tip_in_strk,omitempty"`
-}
-
 // ExecutableUserInvoke is an invoke transaction ready for execution (user address, typed data, signature).
 type ExecutableUserInvoke struct {
 	UserAddress *felt.Felt   `json:"user_address"`

@@ -30,16 +30,9 @@ func (p *Paymaster) BuildTransaction(ctx context.Context, request *BuildTransact
 // BuildTransactionRequest is the request to build a transaction for the paymaster (transaction + parameters).
 type BuildTransactionRequest struct {
 	// The transaction to be executed by the paymaster
-	Transaction UserTransaction `json:"transaction"`
+	Transaction *UserTransaction `json:"transaction"`
 	// Execution parameters to be used when executing the transaction
-	Parameters UserParameters `json:"parameters"`
-}
-
-// UserParameters are execution parameters for the transaction (version, fee mode, time bounds).
-type UserParameters struct {
-	Version    string      `json:"version"` // "0x1"
-	FeeMode    FeeMode     `json:"fee_mode"`
-	TimeBounds interface{} `json:"time_bounds,omitempty"`
+	Parameters *UserParameters `json:"parameters"`
 }
 
 // UserTransaction represents a user transaction (deploy, invoke, or deploy_and_invoke).
@@ -77,18 +70,18 @@ func (u UserTxnType) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals the JSON data into a UserTxnType.
-func (u UserTxnType) UnmarshalJSON(b []byte) error {
+func (u *UserTxnType) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 	switch s {
 	case "deploy":
-		u = UserTxnDeploy
+		*u = UserTxnDeploy
 	case "invoke":
-		u = UserTxnInvoke
+		*u = UserTxnInvoke
 	case "deploy_and_invoke":
-		u = UserTxnDeployAndInvoke
+		*u = UserTxnDeployAndInvoke
 	default:
 		return fmt.Errorf("invalid user transaction type: %s", s)
 	}
@@ -109,6 +102,68 @@ type AccDeploymentData struct {
 	SignatureData []*felt.Felt `json:"sigdata,omitempty"`
 	// The Cairo version (CairoZero is not supported)
 	Version uint8 `json:"version"`
+}
+
+// Execution parameters to be used when executing the transaction through the paymaster
+type UserParameters struct {
+	// Version of the execution parameters which is not tied to the execute from outside version.
+	Version string `json:"version"` // "0x1"
+	// Fee mode to use for the execution
+	FeeMode    FeeMode     `json:"fee_mode"`
+	TimeBounds interface{} `json:"time_bounds,omitempty"`
+}
+
+// An enum representing the fee mode to use for the transaction
+type FeeModeType string
+
+const (
+	// Specify that the transaction should be sponsored. This argument does not
+	// guaranteed sponsorship and will depend on the paymaster provider
+	FeeModeSponsored FeeModeType = "sponsored"
+	// Default fee mode where the transaction is paid by the user in the given gas token
+	FeeModeDefault FeeModeType = "default"
+	// Fee mode where the transaction is paid by the user in the given gas token and
+	// the user can specify a tip
+	FeeModePriority FeeModeType = "priority"
+)
+
+// MarshalJSON marshals the FeeModeType to JSON.
+func (feeMode FeeModeType) MarshalJSON() ([]byte, error) {
+	switch feeMode {
+	case FeeModeSponsored, FeeModeDefault, FeeModePriority:
+		return json.Marshal(string(feeMode))
+	}
+	return nil, fmt.Errorf("invalid fee mode: %s", feeMode)
+}
+
+// UnmarshalJSON unmarshals the JSON data into a FeeModeType.
+func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case "sponsored":
+		*feeMode = FeeModeSponsored
+	case "default":
+		*feeMode = FeeModeDefault
+	case "priority":
+		*feeMode = FeeModePriority
+	default:
+		return fmt.Errorf("invalid fee mode: %s", s)
+	}
+	return nil
+}
+
+// Specify how the transaction should be paid. Either by the user specifying a gas token or through sponsorship
+type FeeMode struct {
+	// The fee mode type to use for the transaction
+	Mode FeeModeType `json:"mode"`
+	// The gas token to use for the transaction. Should be omitted for `sponsored` fee mode
+	GasToken *felt.Felt `json:"gas_token,omitempty"`
+	// The tip to use for the transaction. Only used for `priority` fee mode
+	TipInStrk *felt.Felt `json:"tip_in_strk,omitempty"`
 }
 
 // FeeEstimateResponse is a detailed fee estimation (in STRK and gas token, with suggested max).
