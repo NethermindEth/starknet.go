@@ -44,9 +44,14 @@ type UserParameters struct {
 
 // UserTransaction represents a user transaction (deploy, invoke, or deploy_and_invoke).
 type UserTransaction struct {
-	Type   UserTxnType `json:"type"`
-	Deploy interface{} `json:"deployment,omitempty"`
-	Invoke UserInvoke  `json:"invoke,omitempty"`
+	// The type of the transaction to be executed by the paymaster
+	Type UserTxnType `json:"type"`
+	// The deployment data for the transaction, used for `deploy` and `deploy_and_invoke` transaction types.
+	// Should be omitted for `invoke` transaction types.
+	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	// The invoke data for the transaction, used for `invoke` and `deploy_and_invoke` transaction types.
+	// Should be omitted for `deploy` transaction types.
+	Invoke *UserInvoke `json:"invoke,omitempty"`
 }
 
 // An enum representing the type of the transaction to be executed by the paymaster
@@ -88,6 +93,22 @@ func (u UserTxnType) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("invalid user transaction type: %s", s)
 	}
 	return nil
+}
+
+// Data required to deploy an account at an address.
+type AccDeploymentData struct {
+	// The expected address to be deployed, used to double check
+	Address *felt.Felt `json:"address"`
+	// The hash of the deployed contract's class
+	ClassHash *felt.Felt `json:"class_hash"`
+	// The salt used for the contract address calculation
+	Salt *felt.Felt `json:"salt"`
+	// The parameters passed to the constructor
+	ConstructorCalldata []*felt.Felt `json:"calldata"`
+	// Optional array of felts to be added to the signature
+	SignatureData []*felt.Felt `json:"sigdata,omitempty"`
+	// The Cairo version (CairoZero is not supported)
+	Version uint8 `json:"version"`
 }
 
 // FeeEstimateResponse is a detailed fee estimation (in STRK and gas token, with suggested max).
