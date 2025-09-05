@@ -156,7 +156,7 @@ func TestPaymasterTypes(t *testing.T) {
 	t.Run("UserTransaction", func(t *testing.T) {
 		transaction := UserTransaction{
 			Type: "invoke",
-			Invoke: UserInvoke{
+			Invoke: &UserInvoke{
 				UserAddress: &felt.Felt{},
 				Calls:       []Call{},
 			},
@@ -193,7 +193,7 @@ func TestPaymasterTypes(t *testing.T) {
 		request := BuildTransactionRequest{
 			Transaction: UserTransaction{
 				Type: "invoke",
-				Invoke: UserInvoke{
+				Invoke: &UserInvoke{
 					UserAddress: &felt.Felt{},
 					Calls:       []Call{},
 				},
