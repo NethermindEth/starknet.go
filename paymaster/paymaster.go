@@ -112,25 +112,6 @@ func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt
 	return response, nil
 }
 
-// BuildTransaction receives the transaction the user wants to execute. Returns the typed
-// data along with the estimated gas cost and the maximum gas cost suggested to ensure execution
-//
-// Parameters:
-//   - ctx: The context.Context object for controlling the function call
-//   - request: The BuildTransactionRequest containing the transaction and parameters
-//
-// Returns:
-//   - *BuildTransactionResponse: The response containing typed data and fee estimate
-//   - error: An error if the request fails
-func (p *Paymaster) BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error) {
-	var response BuildTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", request); err != nil {
-		return nil, err
-	}
-
-	return &response, nil
-}
-
 // ExecuteTransaction executes a signed transaction via the paymaster service.
 // Returns an ExecuteTransactionResponse with tracking ID and transaction hash.
 //
