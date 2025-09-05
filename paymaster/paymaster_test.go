@@ -191,14 +191,14 @@ func TestPaymasterTypes(t *testing.T) {
 
 	t.Run("BuildTransactionRequest", func(t *testing.T) {
 		request := BuildTransactionRequest{
-			Transaction: UserTransaction{
+			Transaction: &UserTransaction{
 				Type: "invoke",
 				Invoke: &UserInvoke{
 					UserAddress: &felt.Felt{},
 					Calls:       []Call{},
 				},
 			},
-			Parameters: UserParameters{
+			Parameters: &UserParameters{
 				Version: "0x1",
 				FeeMode: FeeMode{
 					Mode: "sponsored",
