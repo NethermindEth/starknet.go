@@ -11,6 +11,8 @@ import (
 )
 
 // Test the UserTxnType type
+//
+//nolint:dupl
 func TestUserTxnType(t *testing.T) {
 	t.Parallel()
 	type testCase struct {
@@ -50,6 +52,8 @@ func TestUserTxnType(t *testing.T) {
 }
 
 // Test the FeeModeType type
+//
+//nolint:dupl
 func TestFeeModeType(t *testing.T) {
 	t.Parallel()
 	type testCase struct {
@@ -144,6 +148,5 @@ func TestBuildTransaction(t *testing.T) {
 		// tokens, err := pm.BuildTransaction(context.Background(), request)
 		// require.NoError(t, err)
 		// assert.NotNil(t, tokens)
-
 	})
 }
