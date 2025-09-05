@@ -75,10 +75,26 @@ type TokenData struct {
 	PriceInStrk string `json:"price_in_strk"` // u256 as a hex string
 }
 
-// TrackingIdResponse is the response for tracking a transaction by ID (latest tx hash and status).
+// An enum representing the status of the transaction associated with a tracking ID
+type TxnStatus string
+
+const (
+	// Indicates that the latest transaction associated with the ID is not yet
+	// included in a block but is still being handled and monitored by the paymaster
+	TxnActive TxnStatus = "active"
+	// Indicates that a transaction associated with the ID has been accepted on L2
+	TxnAccepted TxnStatus = "accepted"
+	// Indicates that no transaction associated with the ID managed to enter a block
+	// and the request has been dropped by the paymaster
+	TxnDropped TxnStatus = "dropped"
+)
+
+// TrackingIdResponse is the response for the `paymaster_trackingIdToLatestHash` method.
 type TrackingIdResponse struct {
+	// The hash of the most recent tx sent by the paymaster and corresponding to the ID
 	TransactionHash *felt.Felt `json:"transaction_hash"`
-	Status          string     `json:"status"` // "active", "accepted", "dropped"
+	// The status of the transaction associated with the ID
+	Status TxnStatus `json:"status"`
 }
 
 // Call represents a single contract call (to, selector, calldata).
