@@ -25,7 +25,7 @@ type PaymasterInterface interface {
 	ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error)
 }
 
-var _ PaymasterInterface = &Paymaster{}
+var _ PaymasterInterface = &Paymaster{} //nolint:exhaustruct
 
 // callCloser is an interface that defines the methods for calling a remote procedure.
 // It was created to match the Client struct from the 'client' package.
