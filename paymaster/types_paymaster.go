@@ -92,6 +92,35 @@ const (
 	TxnDropped TxnStatus = "dropped"
 )
 
+// MarshalJSON marshals the TxnStatus to JSON.
+func (t TxnStatus) MarshalJSON() ([]byte, error) {
+	switch t {
+	case TxnActive, TxnAccepted, TxnDropped:
+		return json.Marshal(string(t))
+	}
+	return nil, fmt.Errorf("invalid transaction status: %s", t)
+}
+
+// UnmarshalJSON unmarshals the JSON data into a TxnStatus.
+func (t TxnStatus) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	switch s {
+	case "active":
+		t = TxnActive
+	case "accepted":
+		t = TxnAccepted
+	case "dropped":
+		t = TxnDropped
+	default:
+		return fmt.Errorf("invalid transaction status: %s", s)
+	}
+	return nil
+}
+
 // TrackingIdResponse is the response for the `paymaster_trackingIdToLatestHash` method.
 type TrackingIdResponse struct {
 	// The hash of the most recent tx sent by the paymaster and corresponding to the ID
