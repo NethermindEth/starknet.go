@@ -112,8 +112,8 @@ func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt
 	return response, nil
 }
 
-// BuildTransaction builds a transaction, returning typed data for signature and a fee estimate.
-// Returns a BuildTransactionResponse.
+// BuildTransaction receives the transaction the user wants to execute. Returns the typed
+// data along with the estimated gas cost and the maximum gas cost suggested to ensure execution
 //
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
