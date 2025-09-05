@@ -85,6 +85,7 @@ func (u *UserTxnType) UnmarshalJSON(b []byte) error {
 	default:
 		return fmt.Errorf("invalid user transaction type: %s", s)
 	}
+
 	return nil
 }
 
@@ -134,6 +135,7 @@ func (feeMode FeeModeType) MarshalJSON() ([]byte, error) {
 	case FeeModeSponsored, FeeModeDefault, FeeModePriority:
 		return json.Marshal(string(feeMode))
 	}
+
 	return nil, fmt.Errorf("invalid fee mode: %s", feeMode)
 }
 
@@ -154,6 +156,7 @@ func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
 	default:
 		return fmt.Errorf("invalid fee mode: %s", s)
 	}
+
 	return nil
 }
 

@@ -98,11 +98,12 @@ func (t TxnStatus) MarshalJSON() ([]byte, error) {
 	case TxnActive, TxnAccepted, TxnDropped:
 		return json.Marshal(string(t))
 	}
+
 	return nil, fmt.Errorf("invalid transaction status: %s", t)
 }
 
 // UnmarshalJSON unmarshals the JSON data into a TxnStatus.
-func (t TxnStatus) UnmarshalJSON(b []byte) error {
+func (t *TxnStatus) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
@@ -110,14 +111,15 @@ func (t TxnStatus) UnmarshalJSON(b []byte) error {
 
 	switch s {
 	case "active":
-		t = TxnActive
+		*t = TxnActive
 	case "accepted":
-		t = TxnAccepted
+		*t = TxnAccepted
 	case "dropped":
-		t = TxnDropped
+		*t = TxnDropped
 	default:
 		return fmt.Errorf("invalid transaction status: %s", s)
 	}
+
 	return nil
 }
 
