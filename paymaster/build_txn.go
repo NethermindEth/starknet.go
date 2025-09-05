@@ -109,8 +109,9 @@ type UserParameters struct {
 	// Version of the execution parameters which is not tied to the execute from outside version.
 	Version string `json:"version"` // "0x1"
 	// Fee mode to use for the execution
-	FeeMode    FeeMode     `json:"fee_mode"`
-	TimeBounds interface{} `json:"time_bounds,omitempty"`
+	FeeMode FeeMode `json:"fee_mode"`
+	// Optional. Time constraint on the execution
+	TimeBounds *TimeBounds `json:"time_bounds,omitempty"`
 }
 
 // An enum representing the fee mode to use for the transaction
@@ -164,6 +165,14 @@ type FeeMode struct {
 	GasToken *felt.Felt `json:"gas_token,omitempty"`
 	// The tip to use for the transaction. Only used for `priority` fee mode
 	TipInStrk *felt.Felt `json:"tip_in_strk,omitempty"`
+}
+
+// Object containing timestamps corresponding to `Execute After` and `Execute Before`
+type TimeBounds struct {
+	// A lower bound after which an outside call is valid in UNIX timestamp format
+	ExecuteAfter string `json:"execute_after"`
+	// An upper bound before which an outside call is valid in UNIX timestamp format
+	ExecuteBefore string `json:"execute_before"`
 }
 
 // FeeEstimateResponse is a detailed fee estimation (in STRK and gas token, with suggested max).
