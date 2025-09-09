@@ -208,21 +208,21 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 
 	var m map[string]interface{}
 	if err := json.Unmarshal(result, &m); err != nil {
-		return nil, Err(InternalError, StringErrData(err.Error()))
+		return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	// Pre_confirmedBlockWithReceipts doesn't contain a "status" field
 	if _, ok := m["status"]; ok {
 		var block BlockWithReceipts
 		if err := json.Unmarshal(result, &block); err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &block, nil
 	} else {
 		var pre_confirmedBlock Pre_confirmedBlockWithReceipts
 		if err := json.Unmarshal(result, &pre_confirmedBlock); err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &pre_confirmedBlock, nil

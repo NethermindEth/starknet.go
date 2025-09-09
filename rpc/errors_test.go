@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpcerr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +24,7 @@ func TestRPCError(t *testing.T) {
 		_, err = testConfig.Provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
 		require.Error(t, err)
 		rpcErr := err.(*RPCError)
-		assert.Equal(t, rpcErr.Code, InternalError)
+		assert.Equal(t, rpcErr.Code, rpcerr.InternalError)
 		assert.NotNil(t, rpcErr.Message, "Internal Error")
 		assert.NotNil(t, rpcErr.Data, "-ChuckSize error message-")
 
