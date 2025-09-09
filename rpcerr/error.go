@@ -86,7 +86,8 @@ var (
 	_ RPCData = StringErrData("")
 )
 
-// Err returns an RPCError based on the given code and data.
+// Err returns a predefined JSON-RPC error based on the given code and data.
+// If the error code is not a predefined one, it returns an InternalError with the given data.
 //
 // Parameters:
 //   - code: an integer representing the error code.
@@ -104,6 +105,8 @@ func Err(code int, data RPCData) *RPCError {
 		return &RPCError{Code: MethodNotFound, Message: "Method Not Found", Data: data}
 	case InvalidParams:
 		return &RPCError{Code: InvalidParams, Message: "Invalid Params", Data: data}
+	case InternalError:
+		return &RPCError{Code: InternalError, Message: "Internal Error", Data: data}
 	default:
 		data = StringErrData(fmt.Sprintf("%d %s", code, data))
 
