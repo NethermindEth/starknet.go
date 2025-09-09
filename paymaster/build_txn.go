@@ -107,12 +107,41 @@ type AccDeploymentData struct {
 
 // Execution parameters to be used when executing the transaction through the paymaster
 type UserParameters struct {
-	// Version of the execution parameters which is not tied to the execute from outside version.
-	Version string `json:"version"` // "0x1"
+	// Version of the execution parameters which is not tied to the 'execute from outside' version.
+	Version UserParamVersion `json:"version"`
 	// Fee mode to use for the execution
 	FeeMode FeeMode `json:"fee_mode"`
 	// Optional. Time constraint on the execution
 	TimeBounds *TimeBounds `json:"time_bounds,omitempty"`
+}
+
+// An enum representing the version of the execution parameters
+type UserParamVersion string
+
+const (
+	// Represents the v1 of the execution parameters
+	UserParamV1 UserParamVersion = "0x1"
+)
+
+// MarshalJSON marshals the UserParamVersion to JSON.
+func (v UserParamVersion) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(v))
+}
+
+// UnmarshalJSON unmarshals the JSON data into a UserParamVersion.
+func (v *UserParamVersion) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "0x1":
+		*v = UserParamV1
+	default:
+		return fmt.Errorf("invalid user parameter version: %s", s)
+	}
+
+	return nil
 }
 
 // An enum representing the fee mode to use for the transaction
