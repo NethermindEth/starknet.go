@@ -1,6 +1,7 @@
 package paymaster
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -146,7 +147,7 @@ func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
 		t.Parallel()
-		// pm := SetupPaymaster(t)
+		pm := SetupPaymaster(t)
 
 		_, pubK, _ := account.GetRandomKeys()
 
@@ -167,18 +168,18 @@ func TestBuildTransaction(t *testing.T) {
 				},
 			},
 			Parameters: &UserParameters{
-				Version: "0x1",
+				Version: UserParamV1,
 				FeeMode: FeeMode{
 					Mode: FeeModeSponsored,
 				},
 			},
 		}
-		raw, err := json.Marshal(request)
-		require.NoError(t, err)
-		t.Logf("Raw: %s", string(raw))
-
-		// tokens, err := pm.BuildTransaction(context.Background(), request)
+		// raw, err := json.Marshal(request)
 		// require.NoError(t, err)
-		// assert.NotNil(t, tokens)
+		// t.Logf("Raw: %s", string(raw))
+
+		tokens, err := pm.BuildTransaction(context.Background(), request)
+		require.NoError(t, err)
+		assert.NotNil(t, tokens)
 	})
 }
