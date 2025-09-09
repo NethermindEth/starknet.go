@@ -93,6 +93,37 @@ func TestFeeModeType(t *testing.T) {
 	}
 }
 
+// Test the UserParamVersion type
+//
+//nolint:dupl
+func TestUserParamVersion(t *testing.T) {
+	t.Parallel()
+	type testCase struct {
+		Input         string
+		Expected      UserParamVersion
+		ErrorExpected bool
+	}
+
+	tests := []testCase{
+		{
+			Input:         `"0x1"`,
+			Expected:      UserParamV1,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"0x2"`,
+			ErrorExpected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Input, func(t *testing.T) {
+			t.Parallel()
+			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
+		})
+	}
+}
+
 // CompareEnumsHelper compares an enum type with the expected value and error expected.
 func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpected bool) {
 	t.Helper()
