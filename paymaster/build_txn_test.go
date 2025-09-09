@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -118,8 +119,8 @@ func TestBuildTransaction(t *testing.T) {
 
 		_, pubK, _ := account.GetRandomKeys()
 
-		classHash := new(felt.Felt).SetBytes([]byte("0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"))
-		salt := new(felt.Felt).SetBytes([]byte("0xdeadbeef"))
+		classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+		salt := internalUtils.TestHexToFelt(t, "0xdeadbeef")
 
 		precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
 
