@@ -4,349 +4,180 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-)
-
-const (
-	InvalidJSON    = -32700 // Invalid JSON was received by the server.
-	InvalidRequest = -32600 // The JSON sent is not a valid Request object.
-	MethodNotFound = -32601 // The method does not exist / is not available.
-	InvalidParams  = -32602 // Invalid method parameter(s).
-	InternalError  = -32603 // Internal JSON-RPC error.
-)
-
-// Err returns an RPCError based on the given code and data.
-//
-// Parameters:
-//   - code: an integer representing the error code.
-//   - data: any data associated with the error.
-//
-// Returns
-//   - *RPCError: a pointer to an RPCError object.
-func Err(code int, data RPCData) *RPCError {
-	switch code {
-	case InvalidJSON:
-		return &RPCError{Code: InvalidJSON, Message: "Parse error", Data: data}
-	case InvalidRequest:
-		return &RPCError{Code: InvalidRequest, Message: "Invalid Request", Data: data}
-	case MethodNotFound:
-		return &RPCError{Code: MethodNotFound, Message: "Method Not Found", Data: data}
-	case InvalidParams:
-		return &RPCError{Code: InvalidParams, Message: "Invalid Params", Data: data}
-	default:
-		data = StringErrData(fmt.Sprintf("%d %s", code, data))
-
-		return &RPCError{Code: InternalError, Message: "Internal Error", Data: data}
-	}
-}
-
-// tryUnwrapToRPCErr unwraps the error and checks if it matches any of the given RPC errors.
-// If a match is found, the corresponding RPC error is returned.
-// If no match is found, the function returns an InternalError with the original error.
-//
-// Parameters:
-//   - err: The error to be unwrapped
-//   - rpcErrors: variadic list of *RPCError objects to be checked
-//
-// Returns:
-//   - error: the original error
-func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
-	errBytes, err := json.Marshal(baseError)
-	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
-	}
-
-	var nodeErr RPCError
-	err = json.Unmarshal(errBytes, &nodeErr)
-	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
-	}
-
-	for _, rpcErr := range rpcErrors {
-		if nodeErr.Code == rpcErr.Code && strings.EqualFold(nodeErr.Message, rpcErr.Message) {
-			return &nodeErr
-		}
-	}
-
-	if nodeErr.Code == 0 {
-		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
-	}
-
-	// return many data as possible
-	if nodeErr.Data != nil {
-		return Err(nodeErr.Code, StringErrData(fmt.Sprintf("%s %s", nodeErr.Message, nodeErr.Data.ErrorMessage())))
-	}
-
-	return Err(nodeErr.Code, StringErrData(nodeErr.Message))
-}
-
-type RPCError struct {
-	Code    int     `json:"code"`
-	Message string  `json:"message"`
-	Data    RPCData `json:"data,omitempty"`
-}
-
-func (e RPCError) Error() string {
-	if e.Data == nil || e.Data.ErrorMessage() == "" {
-		return fmt.Sprintf("%d %s", e.Code, e.Message)
-	}
-
-	return fmt.Sprintf("%d %s: %s", e.Code, e.Message, e.Data.ErrorMessage())
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for RPCError.
-// It handles the deserialization of JSON into an RPCError struct,
-// with special handling for the Data field.
-func (e *RPCError) UnmarshalJSON(data []byte) error {
-	// First try to unmarshal into a temporary struct without the RPCData interface
-	var temp struct {
-		Code    int             `json:"code"`
-		Message string          `json:"message"`
-		Data    json.RawMessage `json:"data,omitempty"`
-	}
-
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	e.Code = temp.Code
-	e.Message = temp.Message
-
-	// If there's no Data field, we're done
-	if len(temp.Data) == 0 {
-		e.Data = nil
-
-		return nil
-	}
-
-	// Try to determine the concrete type of Data based on the RPCError code
-	//nolint:mnd
-	switch e.Code {
-	case 10: // ErrNoTraceAvailable
-		var data TraceStatusErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 40: // ErrContractError
-		var data ContractErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 41: // ErrTxnExec
-		var data TransactionExecErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 55, 56, 63: // ErrValidationFailure, ErrCompilationFailed, ErrUnexpectedError
-		var strData string
-		if err := json.Unmarshal(temp.Data, &strData); err != nil {
-			return err
-		}
-		e.Data = StringErrData(strData)
-	case 100: // ErrCompilationError
-		var data CompilationErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	default:
-		// For unknown error codes, returns the string representation of the error
-		rawData, err := temp.Data.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		e.Data = StringErrData(string(rawData))
-	}
-
-	return nil
-}
-
-// RPCData is the interface that all error data types must implement
-type RPCData interface {
-	ErrorMessage() string
-}
-
-//nolint:exhaustruct
-var (
-	_ RPCData = StringErrData("")
-
-	_ RPCData = &CompilationErrData{}
-	_ RPCData = &ContractErrData{}
-	_ RPCData = &TransactionExecErrData{}
-	_ RPCData = &TraceStatusErrData{}
+	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 //nolint:exhaustruct
 var (
-	ErrFailedToReceiveTxn = &RPCError{
+	_ rpcerr.RPCData = rpcerr.StringErrData("")
+
+	_ rpcerr.RPCData = &CompilationErrData{}
+	_ rpcerr.RPCData = &ContractErrData{}
+	_ rpcerr.RPCData = &TransactionExecErrData{}
+	_ rpcerr.RPCData = &TraceStatusErrData{}
+)
+
+//nolint:exhaustruct
+var (
+	ErrFailedToReceiveTxn = &rpcerr.RPCError{
 		Code:    1,
 		Message: "Failed to write transaction",
 	}
-	ErrNoTraceAvailable = &RPCError{
+	ErrNoTraceAvailable = &rpcerr.RPCError{
 		Code:    10,
 		Message: "No trace available for transaction",
 		Data:    &TraceStatusErrData{},
 	}
-	ErrContractNotFound = &RPCError{
+	ErrContractNotFound = &rpcerr.RPCError{
 		Code:    20,
 		Message: "Contract not found",
 	}
-	ErrEntrypointNotFound = &RPCError{
+	ErrEntrypointNotFound = &rpcerr.RPCError{
 		Code:    21,
 		Message: "Requested entrypoint does not exist in the contract",
 	}
-	ErrBlockNotFound = &RPCError{
+	ErrBlockNotFound = &rpcerr.RPCError{
 		Code:    24,
 		Message: "Block not found",
 	}
-	ErrInvalidTxnHash = &RPCError{
+	ErrInvalidTxnHash = &rpcerr.RPCError{
 		Code:    25,
 		Message: "Invalid transaction hash",
 	}
-	ErrInvalidBlockHash = &RPCError{
+	ErrInvalidBlockHash = &rpcerr.RPCError{
 		Code:    26,
 		Message: "Invalid block hash",
 	}
-	ErrInvalidTxnIndex = &RPCError{
+	ErrInvalidTxnIndex = &rpcerr.RPCError{
 		Code:    27,
 		Message: "Invalid transaction index in a block",
 	}
-	ErrClassHashNotFound = &RPCError{
+	ErrClassHashNotFound = &rpcerr.RPCError{
 		Code:    28,
 		Message: "Class hash not found",
 	}
-	ErrHashNotFound = &RPCError{
+	ErrHashNotFound = &rpcerr.RPCError{
 		Code:    29,
 		Message: "Transaction hash not found",
 	}
-	ErrPageSizeTooBig = &RPCError{
+	ErrPageSizeTooBig = &rpcerr.RPCError{
 		Code:    31,
 		Message: "Requested page size is too big",
 	}
-	ErrNoBlocks = &RPCError{
+	ErrNoBlocks = &rpcerr.RPCError{
 		Code:    32,
 		Message: "There are no blocks",
 	}
-	ErrInvalidContinuationToken = &RPCError{
+	ErrInvalidContinuationToken = &rpcerr.RPCError{
 		Code:    33,
 		Message: "The supplied continuation token is invalid or unknown",
 	}
-	ErrTooManyKeysInFilter = &RPCError{
+	ErrTooManyKeysInFilter = &rpcerr.RPCError{
 		Code:    34,
 		Message: "Too many keys provided in a filter",
 	}
-	ErrContractError = &RPCError{
+	ErrContractError = &rpcerr.RPCError{
 		Code:    40,
 		Message: "Contract error",
 		Data:    &ContractErrData{},
 	}
-	ErrTxnExec = &RPCError{
+	ErrTxnExec = &rpcerr.RPCError{
 		Code:    41,
 		Message: "Transaction execution error",
 		Data:    &TransactionExecErrData{},
 	}
-	ErrStorageProofNotSupported = &RPCError{
+	ErrStorageProofNotSupported = &rpcerr.RPCError{
 		Code:    42,
 		Message: "the node doesn't support storage proofs for blocks that are too far in the past",
 	}
-	ErrInvalidContractClass = &RPCError{
+	ErrInvalidContractClass = &rpcerr.RPCError{
 		Code:    50,
 		Message: "Invalid contract class",
 	}
-	ErrClassAlreadyDeclared = &RPCError{
+	ErrClassAlreadyDeclared = &rpcerr.RPCError{
 		Code:    51,
 		Message: "Class already declared",
 	}
-	ErrInvalidTransactionNonce = &RPCError{
+	ErrInvalidTransactionNonce = &rpcerr.RPCError{
 		Code:    52,
 		Message: "Invalid transaction nonce",
-		Data:    StringErrData(""),
+		Data:    rpcerr.StringErrData(""),
 	}
-	ErrInsufficientResourcesForValidate = &RPCError{
+	ErrInsufficientResourcesForValidate = &rpcerr.RPCError{
 		Code:    53,
 		Message: "The transaction's resources don't cover validation or the minimal transaction fee",
 	}
-	ErrInsufficientAccountBalance = &RPCError{
+	ErrInsufficientAccountBalance = &rpcerr.RPCError{
 		Code:    54,
 		Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
 	}
-	ErrValidationFailure = &RPCError{
+	ErrValidationFailure = &rpcerr.RPCError{
 		Code:    55,
 		Message: "Account validation failed",
-		Data:    StringErrData(""),
+		Data:    rpcerr.StringErrData(""),
 	}
-	ErrCompilationFailed = &RPCError{
+	ErrCompilationFailed = &rpcerr.RPCError{
 		Code:    56,
 		Message: "Compilation failed",
-		Data:    StringErrData(""),
+		Data:    rpcerr.StringErrData(""),
 	}
-	ErrContractClassSizeTooLarge = &RPCError{
+	ErrContractClassSizeTooLarge = &rpcerr.RPCError{
 		Code:    57,
 		Message: "Contract class size is too large",
 	}
-	ErrNonAccount = &RPCError{
+	ErrNonAccount = &rpcerr.RPCError{
 		Code:    58,
 		Message: "Sender address is not an account contract",
 	}
-	ErrDuplicateTx = &RPCError{
+	ErrDuplicateTx = &rpcerr.RPCError{
 		Code:    59,
 		Message: "A transaction with the same hash already exists in the mempool",
 	}
-	ErrCompiledClassHashMismatch = &RPCError{
+	ErrCompiledClassHashMismatch = &rpcerr.RPCError{
 		Code:    60,
 		Message: "The compiled class hash did not match the one supplied in the transaction",
 	}
-	ErrUnsupportedTxVersion = &RPCError{
+	ErrUnsupportedTxVersion = &rpcerr.RPCError{
 		Code:    61,
 		Message: "The transaction version is not supported",
 	}
-	ErrUnsupportedContractClassVersion = &RPCError{
+	ErrUnsupportedContractClassVersion = &rpcerr.RPCError{
 		Code:    62,
 		Message: "The contract class version is not supported",
 	}
-	ErrUnexpectedError = &RPCError{
+	ErrUnexpectedError = &rpcerr.RPCError{
 		Code:    63,
 		Message: "An unexpected error occurred",
-		Data:    StringErrData(""),
+		Data:    rpcerr.StringErrData(""),
 	}
-	ErrReplacementTransactionUnderpriced = &RPCError{
+	ErrReplacementTransactionUnderpriced = &rpcerr.RPCError{
 		Code:    64,
 		Message: "Replacement transaction is underpriced",
 	}
-	ErrFeeBelowMinimum = &RPCError{
+	ErrFeeBelowMinimum = &rpcerr.RPCError{
 		Code:    65,
 		Message: "Transaction fee below minimum",
 	}
-	ErrInvalidSubscriptionID = &RPCError{
+	ErrInvalidSubscriptionID = &rpcerr.RPCError{
 		Code:    66,
 		Message: "Invalid subscription id",
 	}
-	ErrTooManyAddressesInFilter = &RPCError{
+	ErrTooManyAddressesInFilter = &rpcerr.RPCError{
 		Code:    67,
 		Message: "Too many addresses in filter sender_address filter",
 	}
-	ErrTooManyBlocksBack = &RPCError{
+	ErrTooManyBlocksBack = &rpcerr.RPCError{
 		Code:    68,
 		Message: "Cannot go back more than 1024 blocks",
 	}
-	ErrCompilationError = &RPCError{
+	ErrCompilationError = &rpcerr.RPCError{
 		Code:    100,
 		Message: "Failed to compile the contract",
 		Data:    &CompilationErrData{},
 	}
 )
-
-// StringErrData handles plain string data messages
-type StringErrData string
-
-func (s StringErrData) ErrorMessage() string {
-	return string(s)
-}
 
 // Structured type for the ErrCompilationError data
 type CompilationErrData struct {
