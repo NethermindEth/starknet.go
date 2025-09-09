@@ -14,10 +14,14 @@ const (
 	InternalError  = -32603 // Internal JSON-RPC error.
 )
 
+// RPCError represents an error response from a JSON-RPC server.
+// It contains a code, message, and optional data.
 type RPCError struct {
-	Code    int     `json:"code"`
-	Message string  `json:"message"`
-	Data    RPCData `json:"data,omitzero"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	// Data is optional and can be any type that implements the RPCData interface.
+	// It will be nil if there is no data.
+	Data RPCData `json:"data,omitempty"`
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for RPCError.
@@ -28,7 +32,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 	var temp struct {
 		Code    int             `json:"code"`
 		Message string          `json:"message"`
-		Data    json.RawMessage `json:"data,omitzero"`
+		Data    json.RawMessage `json:"data"`
 	}
 
 	if err := json.Unmarshal(data, &temp); err != nil {
