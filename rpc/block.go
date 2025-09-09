@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // BlockNumber returns the block number of the current block.
@@ -23,7 +24,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 			return 0, ErrNoBlocks
 		}
 
-		return 0, tryUnwrapToRPCErr(err)
+		return 0, rpcerr.UnwrapToRPCErr(err)
 	}
 
 	return blockNumber, nil
@@ -40,7 +41,7 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrNoBlocks)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
 	}
 
 	return &block, nil
@@ -102,7 +103,7 @@ func WithBlockTag(tag BlockTag) BlockID {
 func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	// if header.Hash == nil it's a pre_confirmed block
@@ -138,7 +139,7 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return &state, nil
@@ -156,7 +157,7 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
-		return 0, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return result, nil
@@ -176,7 +177,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
@@ -202,7 +203,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result json.RawMessage
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	var m map[string]interface{}

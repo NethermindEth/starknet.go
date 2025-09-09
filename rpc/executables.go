@@ -5,6 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // Get the CASM code resulting from compiling a given class
@@ -19,7 +20,7 @@ import (
 func (provider *Provider) CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error) {
 	var result contracts.CasmClass
 	if err := do(ctx, provider.c, "starknet_getCompiledCasm", &result, classHash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
 	}
 
 	return &result, nil

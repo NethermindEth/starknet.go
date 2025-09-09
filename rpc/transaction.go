@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // TransactionByHash retrieves the details and status of a transaction by its hash.
@@ -18,7 +19,7 @@ import (
 func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error) {
 	var tx BlockTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &tx, nil
@@ -37,7 +38,7 @@ func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt
 func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error) {
 	var tx BlockTransaction
 	if err := do(ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}
 
 	return &tx, nil
@@ -56,7 +57,7 @@ func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHas
 	var receipt TransactionReceiptWithBlockInfo
 	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &receipt, nil
@@ -74,7 +75,7 @@ func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionH
 	var receipt TxnStatusResult
 	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &receipt, nil
@@ -94,7 +95,7 @@ func (provider *Provider) GetMessagesStatus(ctx context.Context, transactionHash
 	var response []MessageStatus
 	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return response, nil

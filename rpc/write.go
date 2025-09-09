@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"context"
+
+	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // AddInvokeTransaction adds an invoke transaction to the provider.
@@ -19,7 +21,7 @@ func (provider *Provider) AddInvokeTransaction(
 ) (AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
-		return AddInvokeTransactionResponse{}, tryUnwrapToRPCErr(
+		return AddInvokeTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
@@ -52,7 +54,7 @@ func (provider *Provider) AddDeclareTransaction(
 ) (AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
-		return AddDeclareTransactionResponse{}, tryUnwrapToRPCErr(
+		return AddDeclareTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrClassAlreadyDeclared,
 			ErrCompilationFailed,
@@ -88,7 +90,7 @@ func (provider *Provider) AddDeployAccountTransaction(
 ) (AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
-		return AddDeployAccountTransactionResponse{}, tryUnwrapToRPCErr(
+		return AddDeployAccountTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,
 			ErrInsufficientResourcesForValidate,
