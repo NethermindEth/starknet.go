@@ -362,7 +362,7 @@ func (account *Account) WaitForTransactionReceipt(
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, rpcerr.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
 			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
 			if err != nil {

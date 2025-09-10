@@ -209,7 +209,7 @@ func waitForTransactionStatus(
 	for {
 		select {
 		case <-ctx.Done():
-			return rpcerr.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
 			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
 			if err != nil {
@@ -730,7 +730,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpcerr.Err(rpc.InternalError, rpc.StringErrData("UnExpectedErr")),
+				ExpectedErr:                  rpcerr.Err(rpcerr.InternalError, rpc.StringErrData("UnExpectedErr")),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -749,7 +749,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpcerr.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
+				ExpectedErr:                  rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -816,7 +816,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpcerr.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
+				ExpectedErr:     rpcerr.Err(rpcerr.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
 	}[tests.TEST_ENV]
