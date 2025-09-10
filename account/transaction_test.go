@@ -14,6 +14,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpcerr"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -208,7 +209,7 @@ func waitForTransactionStatus(
 	for {
 		select {
 		case <-ctx.Done():
-			return rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return rpcerr.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
 			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
 			if err != nil {
@@ -729,7 +730,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData("UnExpectedErr")),
+				ExpectedErr:                  rpcerr.Err(rpc.InternalError, rpc.StringErrData("UnExpectedErr")),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -748,7 +749,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpc.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
+				ExpectedErr:                  rpcerr.Err(rpc.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -815,7 +816,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: rpc.TransactionReceipt{},
-				ExpectedErr:     rpc.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
+				ExpectedErr:     rpcerr.Err(rpc.InternalError, rpc.StringErrData("context deadline exceeded")),
 			},
 		},
 	}[tests.TEST_ENV]

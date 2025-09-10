@@ -25,7 +25,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	switch rawTxnTrace["type"] {
@@ -33,7 +33,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -41,7 +41,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -49,7 +49,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -57,13 +57,13 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
 	}
 
-	return nil, Err(rpcerr.InternalError, StringErrData("Unknown transaction type"))
+	return nil, rpcerr.Err(rpcerr.InternalError, StringErrData("Unknown transaction type"))
 }
 
 // TraceBlockTransactions retrieves the traces of transactions in a given block.

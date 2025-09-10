@@ -148,7 +148,7 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
-		return "", Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
 	if debug {

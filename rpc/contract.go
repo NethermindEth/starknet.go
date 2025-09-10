@@ -59,7 +59,7 @@ func (provider *Provider) ClassAt(ctx context.Context, blockID BlockID, contract
 func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
-		return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
@@ -67,7 +67,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 		var contractClass contracts.ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
-			return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &contractClass, nil
@@ -75,7 +75,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	var depContractClass contracts.DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
-		return nil, Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	return &depContractClass, nil
