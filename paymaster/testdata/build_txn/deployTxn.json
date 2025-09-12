@@ -1,0 +1,33 @@
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"type": "deploy",
+		"deployment": {
+			"address": "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
+			"class_hash": "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+			"salt": "0xdeadbeef",
+			"calldata": [
+				"0x7e8a8ab58f76c52f5e13723cc9cf35f905254eafcc352a084c328635fdf9d5c"
+			],
+			"sigdata": [
+				"0xdeadbeef"
+			],
+			"version": 2
+		},
+		"parameters": {
+			"version": "0x1",
+			"fee_mode": {
+				"mode": "sponsored"
+			},
+			"time_bounds": null
+		},
+		"fee": {
+			"gas_token_price_in_strk": "0xde0b6b3a7640000",
+			"estimated_fee_in_strk": "0xd158fdeefb680",
+			"estimated_fee_in_gas_token": "0xd158fdeefb680",
+			"suggested_max_fee_in_strk": "0x4e815f399e4700",
+			"suggested_max_fee_in_gas_token": "0x4e815f399e4700"
+		}
+	}
+}

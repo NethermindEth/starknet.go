@@ -158,37 +158,46 @@ func TestBuildTransaction(t *testing.T) {
 
 		pm := SetupPaymaster(t)
 
-		_, pubK, _ := account.GetRandomKeys()
+		t.Run("'deploy' transaction type", func(t *testing.T) {
+			t.Parallel()
 
-		classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
-		salt := internalUtils.TestHexToFelt(t, "0xdeadbeef")
+			// setup account data
+			_, pubK, _ := account.GetRandomKeys()
+			// OZ account class hash
+			classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+			salt := internalUtils.RANDOM_FELT
+			precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
 
-		precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
-
-		request := &BuildTransactionRequest{
-			Transaction: &UserTransaction{
-				Type: UserTxnDeploy,
-				Deployment: &AccDeploymentData{
-					Address:             precomputedAddress,
-					ClassHash:           classHash,
-					Salt:                salt,
-					ConstructorCalldata: []*felt.Felt{pubK},
-					Version:             2,
+			// build request
+			request := &BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type: UserTxnDeploy,
+					Deployment: &AccDeploymentData{
+						Address:             precomputedAddress,
+						ClassHash:           classHash,
+						Salt:                salt,
+						ConstructorCalldata: []*felt.Felt{pubK},
+						SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
+						Version:             2,
+					},
 				},
-			},
-			Parameters: &UserParameters{
-				Version: UserParamV1,
-				FeeMode: FeeMode{
-					Mode: FeeModeSponsored,
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+					},
 				},
-			},
-		}
-		// raw, err := json.Marshal(request)
-		// require.NoError(t, err)
-		// t.Logf("Raw: %s", string(raw))
+			}
 
-		tokens, err := pm.BuildTransaction(context.Background(), request)
-		require.NoError(t, err)
-		assert.NotNil(t, tokens)
+			rawRequest, err := json.Marshal(request)
+			require.NoError(t, err)
+			t.Logf("Raw request: %s", string(rawRequest))
+
+			// TODO: continue this
+
+			resp, err := pm.BuildTransaction(context.Background(), request)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+		})
 	})
 }
