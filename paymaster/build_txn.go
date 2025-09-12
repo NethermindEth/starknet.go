@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // BuildTransaction receives the transaction the user wants to execute. Returns the typed
@@ -21,7 +22,16 @@ import (
 func (p *Paymaster) BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", request); err != nil {
-		return nil, err
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			ErrInvalidAddress,
+			ErrClassHashNotSupported,
+			ErrInvalidDeploymentData,
+			ErrTokenNotSupported,
+			ErrInvalidTimeBounds,
+			ErrUnknownError,
+			ErrTransactionExecutionError,
+		)
 	}
 
 	return &response, nil
