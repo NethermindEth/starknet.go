@@ -51,10 +51,10 @@ func SetupPaymaster(t *testing.T) *Paymaster {
 func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 	t.Helper()
 
-	client := mocks.NewMockClient(gomock.NewController(t))
+	pmClient := mocks.NewMockClient(gomock.NewController(t))
 	mpm := &MockPaymaster{
-		Paymaster: &Paymaster{c: client},
-		c:         client,
+		Paymaster: &Paymaster{c: pmClient},
+		c:         pmClient,
 	}
 
 	return mpm
