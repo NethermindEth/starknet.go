@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Added
+- New `client/rpcerr` package for handling RPC errors.
+
+### Changed
+- The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
+  There are some changes in the new package:
+  - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
+  - The `Err` function now have a specific case for the `InternalError` code.
+
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03
 ### Changed
 - The following functions now return the response as a value instead of a pointer:
