@@ -433,21 +433,6 @@ func TestBlockWithTxs(t *testing.T) {
 }
 
 // TestBlockTransactionCount tests the function that calculates the number of transactions in a block.
-//
-// This function tests the BlockTransactionCount function by running it with different test cases.
-// It verifies that the function returns the expected count of transactions for each test case.
-// The test cases include a mock environment, a testnet environment, and a mainnet environment.
-// For each test case, the function sets up a spy provider and calls BlockTransactionCount with a specific block ID.
-// It then compares the returned count with the expected count and verifies that they match.
-// If the counts do not match, the function reports an error and provides additional information.
-// Finally, the function terminates if all test cases pass.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
 func TestBlockTransactionCount(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -590,19 +575,6 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 }
 
 // TestStateUpdate is a test function for the StateUpdate method.
-//
-// It tests the StateUpdate method by creating a test set and iterating through each test case.
-// For each test case, it creates a spy object and sets it as the provider.
-// Then, it calls the StateUpdate method with the given test block ID.
-// If there is an error, it fails the test.
-// If the returned block hash does not match the expected block hash, it fails the test.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
 func TestStateUpdate(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -657,8 +629,6 @@ func TestStateUpdate(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("BlockID: %v", test.BlockID), func(t *testing.T) {
-			spy := tests.NewSpy(testConfig.Provider.c)
-			testConfig.Provider.c = spy
 			stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
 			require.NoError(t, err, "Unable to fetch the given block.")
 

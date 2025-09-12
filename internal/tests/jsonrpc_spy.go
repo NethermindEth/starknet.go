@@ -21,7 +21,7 @@ type callCloser interface {
 	Close()
 }
 
-var _ callCloser = &spy{}
+var _ callCloser = &spy{} //nolint:exhaustruct
 
 // NewJSONRPCSpy creates a new spy object.
 //
@@ -52,6 +52,7 @@ func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
 	return &spy{
 		callCloser: client,
 		buff:       []byte{},
+		mock:       false,
 		debug:      d,
 	}
 }

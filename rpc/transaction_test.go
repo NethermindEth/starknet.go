@@ -78,20 +78,6 @@ func TestTransactionByHash(t *testing.T) {
 }
 
 // TestTransactionByBlockIdAndIndex tests the TransactionByBlockIdAndIndex function.
-//
-// It sets up a test environment and defines a test set. For each test in the set,
-// it creates a spy object and assigns it to the provider's c field. It then calls
-// the TransactionByBlockIdAndIndex function with the specified block ID and index.
-// If there is an error, it fails the test. If the transaction is nil, it fails the test.
-// If the transaction is not of type InvokeTxn3, it fails the test. Finally, it asserts
-// that the transaction type is TransactionType_Invoke and that the transaction is equal to the expected transaction.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
 func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -212,8 +198,6 @@ func TestTransactionReceipt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		spy := tests.NewSpy(testConfig.Provider.c)
-		testConfig.Provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
