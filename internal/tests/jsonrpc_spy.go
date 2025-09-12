@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/nsf/jsondiff"
 )
 
 type spy struct {
@@ -133,39 +130,4 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 	s.s = []byte(raw)
 
 	return err
-}
-
-// Compare compares the spy object with the given object and returns the difference between them.
-//
-// Parameters:
-//   - o: the object to compare with the spy object
-//   - debug: a boolean flag indicating whether to print debug information
-//
-// Returns:
-//   - string: the difference between the spy object and the given object
-//   - error: an error if any occurred during the comparison
-func (s *spy) Compare(o interface{}, debug bool) (string, error) {
-	if s.mock {
-		if debug {
-			fmt.Println("**************************")
-			fmt.Println("This is a mock")
-			fmt.Println("**************************")
-		}
-
-		return "FullMatch", nil
-	}
-	b, err := json.Marshal(o)
-	if err != nil {
-		return "", rpcerr.Err(rpcerr.InternalError, rpcerr.StringErrData(err.Error()))
-	}
-	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
-	if debug {
-		fmt.Println("**************************")
-		fmt.Println(string(s.s))
-		fmt.Println("**************************")
-		fmt.Println(string(b))
-		fmt.Println("**************************")
-	}
-
-	return diff.String(), nil
 }
