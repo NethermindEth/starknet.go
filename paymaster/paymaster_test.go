@@ -6,41 +6,10 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
-
-type MockPaymaster struct {
-	*Paymaster
-	// this should be a pointer to the mock client used in the Paymaster struct.
-	// This is intended to have an easy access to the mock client, without having to
-	// type cast it from the `callCloser` interface every time.
-	c *mocks.MockClient
-}
-
-// Creates a real Sepolia paymaster client.
-func SetupPaymaster(t *testing.T) *Paymaster {
-	t.Helper()
-	pm, err := NewPaymasterClient("https://sepolia.paymaster.avnu.fi")
-	require.NoError(t, err, "failed to create paymaster client")
-
-	return pm
-}
-
-// Creates a mock paymaster client.
-func SetupMockPaymaster(t *testing.T) *MockPaymaster {
-	t.Helper()
-
-	client := mocks.NewMockClient(gomock.NewController(t))
-	mpm := &MockPaymaster{
-		Paymaster: &Paymaster{c: client},
-		c:         client,
-	}
-
-	return mpm
-}
 
 // Test the 'paymaster_isAvailable' method
 func TestIsAvailable(t *testing.T) {
