@@ -26,7 +26,7 @@ func TestUserTxnType(t *testing.T) {
 		ErrorExpected bool
 	}
 
-	tests := []testCase{
+	testCases := []testCase{
 		{
 			Input:         `"deploy"`,
 			Expected:      UserTxnDeploy,
@@ -48,7 +48,7 @@ func TestUserTxnType(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		t.Run(test.Input, func(t *testing.T) {
 			t.Parallel()
 			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
@@ -69,7 +69,7 @@ func TestFeeModeType(t *testing.T) {
 		ErrorExpected bool
 	}
 
-	tests := []testCase{
+	testCases := []testCase{
 		{
 			Input:         `"default"`,
 			Expected:      FeeModeDefault,
@@ -91,7 +91,7 @@ func TestFeeModeType(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		t.Run(test.Input, func(t *testing.T) {
 			t.Parallel()
 			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
@@ -101,7 +101,7 @@ func TestFeeModeType(t *testing.T) {
 
 // Test the UserParamVersion type
 //
-//nolint:dupl
+
 func TestUserParamVersion(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
@@ -112,7 +112,7 @@ func TestUserParamVersion(t *testing.T) {
 		ErrorExpected bool
 	}
 
-	tests := []testCase{
+	testCases := []testCase{
 		{
 			Input:         `"0x1"`,
 			Expected:      UserParamV1,
@@ -124,7 +124,7 @@ func TestUserParamVersion(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, test := range testCases {
 		t.Run(test.Input, func(t *testing.T) {
 			t.Parallel()
 			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
