@@ -8,7 +8,7 @@ import (
 
 type spy struct {
 	callCloser
-	s     []byte
+	buff  json.RawMessage
 	mock  bool
 	debug bool
 }
@@ -43,7 +43,7 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 	if TEST_ENV == MockEnv {
 		return &spy{
 			callCloser: client,
-			s:          []byte{},
+			buff:       []byte{},
 			mock:       true,
 			debug:      d,
 		}
@@ -51,7 +51,7 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 
 	return &spy{
 		callCloser: client,
-		s:          []byte{},
+		buff:       []byte{},
 		debug:      d,
 	}
 }
@@ -90,7 +90,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	}
 
 	err = json.Unmarshal(raw, result)
-	s.s = []byte(raw)
+	s.buff = raw
 
 	return err
 }
@@ -131,9 +131,15 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 	}
 
 	err = json.Unmarshal(raw, result)
-	s.s = []byte(raw)
+	s.buff = raw
 
 	return err
+}
+
+// LastResponse returns the last response captured by the spy.
+// In other words, it returns the raw JSON response received from the server when calling a `callCloser` method.
+func (s *spy) LastResponse() json.RawMessage {
+	return s.buff
 }
 
 // PrettyPrint pretty marshals the data with indentation and prints it.
