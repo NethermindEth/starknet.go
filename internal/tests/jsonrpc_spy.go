@@ -23,7 +23,7 @@ type callCloser interface {
 
 var _ callCloser = &spy{}
 
-// NewSpy creates a new spy object.
+// NewJSONRPCSpy creates a new spy object.
 //
 // It takes a client callCloser as the first parameter and an optional debug parameter.
 // The client callCloser is the interface that the spy will be based on.
@@ -35,7 +35,7 @@ var _ callCloser = &spy{}
 //
 // Returns:
 //   - spy: a new spy object
-func NewSpy(client callCloser, debug ...bool) *spy {
+func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
