@@ -17,7 +17,9 @@ import (
 //
 //nolint:dupl
 func TestUserTxnType(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
+
 	type testCase struct {
 		Input         string
 		Expected      UserTxnType
@@ -58,7 +60,9 @@ func TestUserTxnType(t *testing.T) {
 //
 //nolint:dupl
 func TestFeeModeType(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
+
 	type testCase struct {
 		Input         string
 		Expected      FeeModeType
@@ -99,7 +103,9 @@ func TestFeeModeType(t *testing.T) {
 //
 //nolint:dupl
 func TestUserParamVersion(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
+
 	type testCase struct {
 		Input         string
 		Expected      UserParamVersion
@@ -147,8 +153,8 @@ func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpe
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
-		t.Parallel()
 		tests.RunTestOn(t, tests.IntegrationEnv)
+		t.Parallel()
 
 		pm := SetupPaymaster(t)
 
