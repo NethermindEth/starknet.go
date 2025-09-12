@@ -217,8 +217,8 @@ type TimeBounds struct {
 	ExecuteBefore string `json:"execute_before"`
 }
 
-// FeeEstimateResponse is a detailed fee estimation (in STRK and gas token, with suggested max).
-type FeeEstimateResponse struct {
+// FeeEstimate is a detailed fee estimation (in STRK and gas token, with suggested max).
+type FeeEstimate struct {
 	GasTokenPriceInStrk       *felt.Felt `json:"gas_token_price_in_strk"`
 	EstimatedFeeInStrk        *felt.Felt `json:"estimated_fee_in_strk"`
 	EstimatedFeeInGasToken    *felt.Felt `json:"estimated_fee_in_gas_token"`
@@ -226,11 +226,19 @@ type FeeEstimateResponse struct {
 	SuggestedMaxFeeInGasToken *felt.Felt `json:"suggested_max_fee_in_gas_token"`
 }
 
-// BuildTransactionResponse is the response from building a transaction (typed data, fee, parameters, etc.).
+// BuildTransactionResponse is the response from the `paymaster_buildTransaction` method.
+// It contains the transaction data required for the paymaster to execute, along with an estimation of the fee.
 type BuildTransactionResponse struct {
-	Type       string              `json:"type"` // "deploy", "invoke", "deploy_and_invoke"
-	Deployment interface{}         `json:"deployment,omitempty"`
-	TypedData  interface{}         `json:"typed_data,omitempty"`
-	Parameters UserParameters      `json:"parameters"`
-	Fee        FeeEstimateResponse `json:"fee"`
+	// The type of the transaction
+	Type UserTxnType `json:"type"`
+	// The deployment data for `deploy` and `deploy_and_invoke` transaction types.
+	// It's `nil` for `invoke` transaction types.
+	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	// Execution parameters to be used when executing the transaction
+	Parameters *UserParameters `json:"parameters"`
+	// The typed data for for `invoke` and `deploy_and_invoke` transaction types.
+	// It's `nil` for `deploy` transaction types.
+	TypedData interface{} `json:"typed_data,omitempty"`
+	// The fee estimation for the transaction
+	Fee *FeeEstimate `json:"fee"`
 }
