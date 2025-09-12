@@ -12,18 +12,6 @@ import (
 )
 
 // TestChainID is a function that tests the ChainID function in the Go test file.
-//
-// The function initialises a test configuration and defines a test set with different chain IDs for different environments.
-// It then iterates over the test set and for each test, creates a new spy and sets the spy as the provider's client.
-// The function calls the ChainID function and compares the returned chain ID with the expected chain ID.
-// If there is a mismatch or an error occurs, the function logs a fatal error.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
 func TestChainID(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
 

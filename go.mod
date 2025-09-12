@@ -6,7 +6,6 @@ require (
 	github.com/NethermindEth/juno v0.14.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.4.0
-	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.0
 	golang.org/x/crypto v0.36.0
