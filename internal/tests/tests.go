@@ -18,7 +18,9 @@ var TEST_ENV TestEnv
 type TestEnv string
 
 const (
-	MockEnv           TestEnv = "mock"
+	MockEnv TestEnv = "mock"
+	// Used to run account and rpc tests on the Integration network.
+	// Also, used to run paymaster tests with the Avnu Sepolia paymaster.
 	IntegrationEnv    TestEnv = "integration"
 	TestnetEnv        TestEnv = "testnet"
 	MainnetEnv        TestEnv = "mainnet"

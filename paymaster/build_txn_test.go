@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -147,6 +148,8 @@ func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
 		t.Parallel()
+		tests.RunTestOn(t, tests.IntegrationEnv)
+
 		pm := SetupPaymaster(t)
 
 		_, pubK, _ := account.GetRandomKeys()
