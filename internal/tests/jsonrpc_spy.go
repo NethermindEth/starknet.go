@@ -21,6 +21,8 @@ type callCloser interface {
 	Close()
 }
 
+var _ callCloser = &spy{}
+
 // NewSpy creates a new spy object.
 //
 // It takes a client callCloser as the first parameter and an optional debug parameter.
@@ -68,22 +70,23 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	if s.mock {
 		return s.callCloser.CallContext(ctx, result, method, arg)
 	}
-	raw := json.RawMessage{}
+
 	if s.debug {
-		fmt.Printf("... in parameters\n")
+		fmt.Printf("### Spy Debug mode: in parameters\n")
 		fmt.Printf("   arg.(%T): %+v\n", arg, arg)
+		PrettyPrint(arg)
+		fmt.Println("--------------------------------------------")
 	}
+
+	raw := json.RawMessage{}
 	err := s.callCloser.CallContext(ctx, &raw, method, arg)
 	if err != nil {
 		return err
 	}
+
 	if s.debug {
-		fmt.Printf("... output\n")
-		data, innerErr := raw.MarshalJSON()
-		if innerErr != nil {
-			return innerErr
-		}
-		fmt.Println("output:", string(data))
+		fmt.Printf("### Spy Debug mode: output\n")
+		PrettyPrint(raw)
 	}
 
 	err = json.Unmarshal(raw, result)
@@ -106,28 +109,39 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 	if s.mock {
 		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
 	}
-	raw := json.RawMessage{}
+
 	if s.debug {
-		fmt.Printf("... in parameters\n")
-		for k, v := range args {
-			fmt.Printf("   arg[%d].(%T): %+v\n", k, v, v)
+		fmt.Printf("### Spy Debug mode: in parameters\n")
+		for i, v := range args {
+			fmt.Printf("   Arg[%d].(%T): %+v\n", i, v, v)
+			PrettyPrint(v)
+			fmt.Println("--------------------------------------------")
 		}
 	}
+
+	raw := json.RawMessage{}
 	err := s.callCloser.CallContextWithSliceArgs(ctx, &raw, method, args...)
 	if err != nil {
 		return err
 	}
+
 	if s.debug {
-		fmt.Printf("... output\n")
-		data, innerErr := raw.MarshalJSON()
-		if innerErr != nil {
-			return innerErr
-		}
-		fmt.Println("output:", string(data))
+		fmt.Printf("### Spy Debug mode: output\n")
+		PrettyPrint(raw)
 	}
 
 	err = json.Unmarshal(raw, result)
 	s.s = []byte(raw)
 
 	return err
+}
+
+// PrettyPrint pretty marshals the data with indentation and prints it.
+func PrettyPrint(data interface{}) {
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Raw data:")
+	fmt.Println(string(prettyJSON))
 }
