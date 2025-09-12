@@ -657,7 +657,7 @@ func TestStateUpdate(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("BlockID: %v", test.BlockID), func(t *testing.T) {
-			spy := NewSpy(testConfig.Provider.c)
+			spy := tests.NewSpy(testConfig.Provider.c)
 			testConfig.Provider.c = spy
 			stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
 			require.NoError(t, err, "Unable to fetch the given block.")

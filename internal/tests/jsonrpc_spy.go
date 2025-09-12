@@ -1,4 +1,4 @@
-package rpc
+package tests
 
 import (
 	"context"
@@ -14,6 +14,14 @@ type spy struct {
 	s     []byte
 	mock  bool
 	debug bool
+}
+
+// The callCloser interface used in `rpc` and `paymaster` tests.
+// It's implemented by the `client.Client` type.
+type callCloser interface {
+	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
+	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
 }
 
 // NewSpy creates a new spy object.
@@ -33,7 +41,7 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 	if len(debug) > 0 {
 		d = debug[0]
 	}
-	if _, ok := client.(*rpcMock); ok {
+	if TEST_ENV == MockEnv {
 		return &spy{
 			callCloser: client,
 			s:          []byte{},
@@ -148,7 +156,7 @@ func (s *spy) Compare(o interface{}, debug bool) (string, error) {
 	}
 	b, err := json.Marshal(o)
 	if err != nil {
-		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return "", rpcerr.Err(rpcerr.InternalError, rpcerr.StringErrData(err.Error()))
 	}
 	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
 	if debug {

@@ -212,7 +212,7 @@ func TestTransactionReceipt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		spy := NewSpy(testConfig.Provider.c)
+		spy := tests.NewSpy(testConfig.Provider.c)
 		testConfig.Provider.c = spy
 		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
 		require.Nil(t, err)
