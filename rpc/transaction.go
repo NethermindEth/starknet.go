@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // TransactionByHash retrieves the details and status of a transaction by its hash.

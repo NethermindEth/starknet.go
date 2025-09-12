@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // AddInvokeTransaction adds an invoke transaction to the provider.

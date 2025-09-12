@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/rpcerr"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 

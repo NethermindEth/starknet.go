@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // Events subscription.

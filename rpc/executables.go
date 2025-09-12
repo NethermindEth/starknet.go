@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // Get the CASM code resulting from compiling a given class

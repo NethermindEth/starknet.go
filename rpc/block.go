@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // BlockNumber returns the block number of the current block.

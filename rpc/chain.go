@@ -3,8 +3,8 @@ package rpc
 import (
 	"context"
 
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpcerr"
 )
 
 // ChainID returns the chain ID for transaction replay protection.

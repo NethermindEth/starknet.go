@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/nsf/jsondiff"
 )
 

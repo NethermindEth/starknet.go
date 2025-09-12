@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // Events retrieves events from the provider matching the given filter.

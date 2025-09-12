@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/NethermindEth/starknet.go/rpcerr"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // SpecVersion returns the version of the Starknet JSON-RPC specification being used
