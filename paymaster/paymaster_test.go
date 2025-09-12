@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -15,7 +16,9 @@ import (
 func TestIsAvailable(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
+		tests.RunTestOn(t, tests.IntegrationEnv)
 		t.Parallel()
+
 		pm := SetupPaymaster(t)
 		available, err := pm.IsAvailable(context.Background())
 		require.NoError(t, err)
@@ -23,7 +26,9 @@ func TestIsAvailable(t *testing.T) {
 	})
 
 	t.Run("mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
 		t.Parallel()
+
 		pm := SetupMockPaymaster(t)
 		pm.c.EXPECT().
 			CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").
@@ -39,7 +44,9 @@ func TestIsAvailable(t *testing.T) {
 func TestGetSupportedTokens(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
+		tests.RunTestOn(t, tests.IntegrationEnv)
 		t.Parallel()
+
 		pm := SetupPaymaster(t)
 		tokens, err := pm.GetSupportedTokens(context.Background())
 		require.NoError(t, err)
@@ -53,7 +60,9 @@ func TestGetSupportedTokens(t *testing.T) {
 	})
 
 	t.Run("mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
 		t.Parallel()
+
 		pm := SetupMockPaymaster(t)
 
 		expectedRawResult := `[
