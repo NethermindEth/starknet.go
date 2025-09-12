@@ -3,6 +3,7 @@ package rpcerr
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -50,11 +51,7 @@ func (e *RPCError) UnmarshalJSON(data []byte) error {
 	}
 
 	// If there is data, it stores it as a string in the Data field.
-	rawData, err := temp.Data.MarshalJSON()
-	if err != nil {
-		return err
-	}
-	e.Data = StringErrData(string(rawData))
+	e.Data = StringErrData(string(temp.Data))
 
 	return nil
 }
@@ -81,10 +78,7 @@ func (s StringErrData) ErrorMessage() string {
 	return string(s)
 }
 
-//nolint:exhaustruct
-var (
-	_ RPCData = StringErrData("")
-)
+var _ RPCData = StringErrData("")
 
 // Err returns a predefined JSON-RPC error based on the given code and data.
 // If the error code is not a predefined one, it returns an InternalError with the given data.
@@ -130,7 +124,12 @@ func UnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
 	}
 
-	var nodeErr RPCError
+	var nodeErr struct {
+		Code    int             `json:"code"`
+		Message string          `json:"message"`
+		Data    json.RawMessage `json:"data"`
+	}
+
 	err = json.Unmarshal(errBytes, &nodeErr)
 	if err != nil {
 		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
@@ -138,7 +137,29 @@ func UnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 
 	for _, rpcErr := range rpcErrors {
 		if nodeErr.Code == rpcErr.Code && strings.EqualFold(nodeErr.Message, rpcErr.Message) {
-			return &nodeErr
+			resp := &RPCError{Code: nodeErr.Code, Message: nodeErr.Message, Data: rpcErr.Data}
+
+			// Some RPC provider errors have some custom data types, and for these errors, the `RPCError.Data`
+			// field is instantiated with a pointer to their custom data type.
+			// Here we are verifying if the `RPCError.Data` field is not nil, which means that the error
+			// has a custom data type. Then we return the `data` field as the custom data type to
+			// help the user to get the real data type using type assertions.
+			if rpcErr.Data != nil {
+				dataType := reflect.TypeOf(rpcErr.Data)
+
+				if kind := dataType.Kind(); kind == reflect.Pointer {
+					dataType = dataType.Elem()
+				}
+				newData := reflect.New(dataType).Interface()
+
+				err = json.Unmarshal(nodeErr.Data, newData)
+				if err != nil {
+					return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
+				}
+				resp.Data = newData.(RPCData)
+			}
+
+			return resp
 		}
 	}
 
@@ -148,7 +169,7 @@ func UnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
 
 	// return many data as possible
 	if nodeErr.Data != nil {
-		return Err(nodeErr.Code, StringErrData(fmt.Sprintf("%s %s", nodeErr.Message, nodeErr.Data.ErrorMessage())))
+		return Err(nodeErr.Code, StringErrData(fmt.Sprintf("%s %s", nodeErr.Message, nodeErr.Data)))
 	}
 
 	return Err(nodeErr.Code, StringErrData(nodeErr.Message))

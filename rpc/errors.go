@@ -11,8 +11,10 @@ import (
 
 // aliases to facilitate usage
 
-type RPCError = rpcerr.RPCError
-type StringErrData = rpcerr.StringErrData
+type (
+	RPCError      = rpcerr.RPCError
+	StringErrData = rpcerr.StringErrData
+)
 
 //nolint:exhaustruct
 var (
