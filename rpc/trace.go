@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // TraceTransaction returns the transaction trace for the given transaction hash.
@@ -19,12 +20,12 @@ import (
 func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
 	}
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, Err(InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	switch rawTxnTrace["type"] {
@@ -32,7 +33,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -40,7 +41,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -48,7 +49,7 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -56,13 +57,13 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, Err(InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
 	}
 
-	return nil, Err(InternalError, StringErrData("Unknown transaction type"))
+	return nil, rpcerr.Err(rpcerr.InternalError, StringErrData("Unknown transaction type"))
 }
 
 // TraceBlockTransactions retrieves the traces of transactions in a given block.
@@ -82,7 +83,7 @@ func (provider *Provider) TraceBlockTransactions(ctx context.Context, blockID Bl
 
 	var output []Trace
 	if err := do(ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return output, nil
@@ -113,7 +114,7 @@ func (provider *Provider) SimulateTransactions(
 ) ([]SimulatedTransaction, error) {
 	var output []SimulatedTransaction
 	if err := do(ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 
 	return output, nil

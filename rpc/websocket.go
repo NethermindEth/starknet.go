@@ -5,6 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // Events subscription.
@@ -29,7 +30,7 @@ func (provider *WsProvider) SubscribeEvents(
 ) (*client.ClientSubscription, error) {
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyKeysInFilter, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 
 	return sub, nil
@@ -62,7 +63,7 @@ func (provider *WsProvider) SubscribeNewHeads(
 	}
 
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 
 	return sub, nil
@@ -88,7 +89,7 @@ func (provider *WsProvider) SubscribeNewTransactionReceipts(
 ) (*client.ClientSubscription, error) {
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactionReceipts", txnReceipts, options)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil
@@ -115,7 +116,7 @@ func (provider *WsProvider) SubscribeNewTransactions(
 ) (*client.ClientSubscription, error) {
 	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil
@@ -140,7 +141,7 @@ func (provider *WsProvider) SubscribeTransactionStatus(
 ) (*client.ClientSubscription, error) {
 	sub, err := provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeTransactionStatus", newStatus, transactionHash)
 	if err != nil {
-		return nil, tryUnwrapToRPCErr(err)
+		return nil, rpcerr.UnwrapToRPCErr(err)
 	}
 
 	return sub, nil

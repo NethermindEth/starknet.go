@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
@@ -20,7 +21,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 	}
 	var result string
 	if err := do(ctx, provider.c, "starknet_chainId", &result); err != nil {
-		return "", tryUnwrapToRPCErr(err)
+		return "", rpcerr.UnwrapToRPCErr(err)
 	}
 	provider.chainID = internalUtils.HexToShortStr(result)
 
@@ -38,7 +39,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error) {
 	var result SyncStatus
 	if err := do(ctx, provider.c, "starknet_syncing", &result); err != nil {
-		return SyncStatus{}, tryUnwrapToRPCErr(err)
+		return SyncStatus{}, rpcerr.UnwrapToRPCErr(err)
 	}
 
 	return result, nil

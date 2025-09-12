@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // Call calls the Starknet Provider's function with the given (Starknet) request and block ID.
@@ -23,7 +24,7 @@ func (provider *Provider) Call(ctx context.Context, request FunctionCall, blockI
 
 	var result []*felt.Felt
 	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
-		return nil, tryUnwrapToRPCErr(err, ErrContractNotFound, ErrEntrypointNotFound, ErrContractError, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrEntrypointNotFound, ErrContractError, ErrBlockNotFound)
 	}
 
 	return result, nil

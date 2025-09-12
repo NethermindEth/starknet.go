@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -361,7 +362,7 @@ func (account *Account) WaitForTransactionReceipt(
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, rpc.Err(rpc.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
 			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
 			if err != nil {

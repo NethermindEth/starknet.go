@@ -4,181 +4,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
-const (
-	InvalidJSON    = -32700 // Invalid JSON was received by the server.
-	InvalidRequest = -32600 // The JSON sent is not a valid Request object.
-	MethodNotFound = -32601 // The method does not exist / is not available.
-	InvalidParams  = -32602 // Invalid method parameter(s).
-	InternalError  = -32603 // Internal JSON-RPC error.
+// aliases to facilitate usage
+
+type (
+	RPCError      = rpcerr.RPCError
+	StringErrData = rpcerr.StringErrData
 )
-
-// Err returns an RPCError based on the given code and data.
-//
-// Parameters:
-//   - code: an integer representing the error code.
-//   - data: any data associated with the error.
-//
-// Returns
-//   - *RPCError: a pointer to an RPCError object.
-func Err(code int, data RPCData) *RPCError {
-	switch code {
-	case InvalidJSON:
-		return &RPCError{Code: InvalidJSON, Message: "Parse error", Data: data}
-	case InvalidRequest:
-		return &RPCError{Code: InvalidRequest, Message: "Invalid Request", Data: data}
-	case MethodNotFound:
-		return &RPCError{Code: MethodNotFound, Message: "Method Not Found", Data: data}
-	case InvalidParams:
-		return &RPCError{Code: InvalidParams, Message: "Invalid Params", Data: data}
-	default:
-		data = StringErrData(fmt.Sprintf("%d %s", code, data))
-
-		return &RPCError{Code: InternalError, Message: "Internal Error", Data: data}
-	}
-}
-
-// tryUnwrapToRPCErr unwraps the error and checks if it matches any of the given RPC errors.
-// If a match is found, the corresponding RPC error is returned.
-// If no match is found, the function returns an InternalError with the original error.
-//
-// Parameters:
-//   - err: The error to be unwrapped
-//   - rpcErrors: variadic list of *RPCError objects to be checked
-//
-// Returns:
-//   - error: the original error
-func tryUnwrapToRPCErr(baseError error, rpcErrors ...*RPCError) *RPCError {
-	errBytes, err := json.Marshal(baseError)
-	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
-	}
-
-	var nodeErr RPCError
-	err = json.Unmarshal(errBytes, &nodeErr)
-	if err != nil {
-		return &RPCError{Code: InternalError, Message: err.Error(), Data: StringErrData(baseError.Error())}
-	}
-
-	for _, rpcErr := range rpcErrors {
-		if nodeErr.Code == rpcErr.Code && strings.EqualFold(nodeErr.Message, rpcErr.Message) {
-			return &nodeErr
-		}
-	}
-
-	if nodeErr.Code == 0 {
-		return &RPCError{Code: InternalError, Message: "The error is not a valid RPC error", Data: StringErrData(baseError.Error())}
-	}
-
-	// return many data as possible
-	if nodeErr.Data != nil {
-		return Err(nodeErr.Code, StringErrData(fmt.Sprintf("%s %s", nodeErr.Message, nodeErr.Data.ErrorMessage())))
-	}
-
-	return Err(nodeErr.Code, StringErrData(nodeErr.Message))
-}
-
-type RPCError struct {
-	Code    int     `json:"code"`
-	Message string  `json:"message"`
-	Data    RPCData `json:"data,omitempty"`
-}
-
-func (e RPCError) Error() string {
-	if e.Data == nil || e.Data.ErrorMessage() == "" {
-		return fmt.Sprintf("%d %s", e.Code, e.Message)
-	}
-
-	return fmt.Sprintf("%d %s: %s", e.Code, e.Message, e.Data.ErrorMessage())
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for RPCError.
-// It handles the deserialization of JSON into an RPCError struct,
-// with special handling for the Data field.
-func (e *RPCError) UnmarshalJSON(data []byte) error {
-	// First try to unmarshal into a temporary struct without the RPCData interface
-	var temp struct {
-		Code    int             `json:"code"`
-		Message string          `json:"message"`
-		Data    json.RawMessage `json:"data,omitempty"`
-	}
-
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
-	}
-
-	e.Code = temp.Code
-	e.Message = temp.Message
-
-	// If there's no Data field, we're done
-	if len(temp.Data) == 0 {
-		e.Data = nil
-
-		return nil
-	}
-
-	// Try to determine the concrete type of Data based on the RPCError code
-	//nolint:mnd
-	switch e.Code {
-	case 10: // ErrNoTraceAvailable
-		var data TraceStatusErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 40: // ErrContractError
-		var data ContractErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 41: // ErrTxnExec
-		var data TransactionExecErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	case 55, 56, 63: // ErrValidationFailure, ErrCompilationFailed, ErrUnexpectedError
-		var strData string
-		if err := json.Unmarshal(temp.Data, &strData); err != nil {
-			return err
-		}
-		e.Data = StringErrData(strData)
-	case 100: // ErrCompilationError
-		var data CompilationErrData
-		if err := json.Unmarshal(temp.Data, &data); err != nil {
-			return err
-		}
-		e.Data = &data
-	default:
-		// For unknown error codes, returns the string representation of the error
-		rawData, err := temp.Data.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		e.Data = StringErrData(string(rawData))
-	}
-
-	return nil
-}
-
-// RPCData is the interface that all error data types must implement
-type RPCData interface {
-	ErrorMessage() string
-}
 
 //nolint:exhaustruct
 var (
-	_ RPCData = StringErrData("")
-
-	_ RPCData = &CompilationErrData{}
-	_ RPCData = &ContractErrData{}
-	_ RPCData = &TransactionExecErrData{}
-	_ RPCData = &TraceStatusErrData{}
+	_ rpcerr.RPCData = &CompilationErrData{}
+	_ rpcerr.RPCData = &ContractErrData{}
+	_ rpcerr.RPCData = &TransactionExecErrData{}
+	_ rpcerr.RPCData = &TraceStatusErrData{}
 )
 
 //nolint:exhaustruct
@@ -340,13 +183,6 @@ var (
 		Data:    &CompilationErrData{},
 	}
 )
-
-// StringErrData handles plain string data messages
-type StringErrData string
-
-func (s StringErrData) ErrorMessage() string {
-	return string(s)
-}
 
 // Structured type for the ErrCompilationError data
 type CompilationErrData struct {
