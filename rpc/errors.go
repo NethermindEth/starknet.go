@@ -108,7 +108,7 @@ var (
 	ErrInvalidTransactionNonce = &RPCError{
 		Code:    52,
 		Message: "Invalid transaction nonce",
-		Data:    rpcerr.StringErrData(""),
+		Data:    StringErrData(""),
 	}
 	ErrInsufficientResourcesForValidate = &RPCError{
 		Code:    53,
@@ -121,12 +121,12 @@ var (
 	ErrValidationFailure = &RPCError{
 		Code:    55,
 		Message: "Account validation failed",
-		Data:    rpcerr.StringErrData(""),
+		Data:    StringErrData(""),
 	}
 	ErrCompilationFailed = &RPCError{
 		Code:    56,
 		Message: "Compilation failed",
-		Data:    rpcerr.StringErrData(""),
+		Data:    StringErrData(""),
 	}
 	ErrContractClassSizeTooLarge = &RPCError{
 		Code:    57,
@@ -155,7 +155,7 @@ var (
 	ErrUnexpectedError = &RPCError{
 		Code:    63,
 		Message: "An unexpected error occurred",
-		Data:    rpcerr.StringErrData(""),
+		Data:    StringErrData(""),
 	}
 	ErrReplacementTransactionUnderpriced = &RPCError{
 		Code:    64,
