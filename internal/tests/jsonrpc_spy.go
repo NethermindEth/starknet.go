@@ -8,7 +8,7 @@ import (
 
 type Spy struct {
 	callCloser
-	buff  json.RawMessage
+	buff  []byte
 	mock  bool
 	debug bool
 }
