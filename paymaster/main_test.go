@@ -26,25 +26,21 @@ type MockPaymaster struct {
 	c *mocks.MockClient
 }
 
-// Creates a real Sepolia paymaster client.
-func SetupPaymaster(t *testing.T) *Paymaster {
+// Creates a real Sepolia paymaster client and a spy for integration tests.
+func SetupPaymaster(t *testing.T) (*Paymaster, *tests.Spy) {
 	t.Helper()
 
-	var pm *Paymaster
-	var err error
+	apiKey := os.Getenv("AVNU_API_KEY")
+	require.NotEmpty(t, apiKey, "AVNU_API_KEY is not set")
+	apiHeader := client.WithHeader("x-paymaster-api-key", apiKey)
 
-	if tests.TEST_ENV == tests.IntegrationEnv {
-		apiKey := os.Getenv("AVNU_API_KEY")
-		require.NotEmpty(t, apiKey, "AVNU_API_KEY is not set")
-		apiHeader := client.WithHeader("x-paymaster-api-key", apiKey)
-		pm, err = NewPaymasterClient(avnuPaymasterURL, apiHeader)
-	} else {
-		pm, err = NewPaymasterClient(avnuPaymasterURL)
-	}
-
+	pm, err := NewPaymasterClient(avnuPaymasterURL, apiHeader)
 	require.NoError(t, err, "failed to create paymaster client")
 
-	return pm
+	spy := tests.NewJSONRPCSpy(pm.c)
+	pm.c = spy
+
+	return pm, spy
 }
 
 // Creates a mock paymaster client.

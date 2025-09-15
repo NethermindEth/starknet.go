@@ -30,7 +30,7 @@ var _ PaymasterInterface = &Paymaster{} //nolint:exhaustruct
 // callCloser is an interface that defines the methods for calling a remote procedure.
 // It was created to match the Client struct from the 'client' package.
 type callCloser interface {
-	// CallContextWithSliceArgs call 'CallContext' with a slice of arguments.
+	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
 	Close()
 }
