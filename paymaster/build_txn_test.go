@@ -154,25 +154,22 @@ func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
-		t.Parallel()
 
 		t.Run("'deploy' transaction type", func(t *testing.T) {
 			t.Parallel()
-			pm, spy := SetupPaymaster(t)
-
 			// *** setup account data
 			_, pubK, _ := account.GetRandomKeys()
 			// OZ account class hash
 			classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
 			salt := internalUtils.RANDOM_FELT
-			precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
+			// precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
 
 			// *** build request
-			request := &BuildTransactionRequest{
+			reqBody := BuildTransactionRequest{
 				Transaction: &UserTransaction{
 					Type: UserTxnDeploy,
 					Deployment: &AccDeploymentData{
-						Address:             precomputedAddress,
+						Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
 						ClassHash:           classHash,
 						Salt:                salt,
 						ConstructorCalldata: []*felt.Felt{pubK},
@@ -180,20 +177,46 @@ func TestBuildTransaction(t *testing.T) {
 						Version:             2,
 					},
 				},
-				Parameters: &UserParameters{
+				Parameters: nil,
+			}
+
+			t.Run("'sponsored' fee mode", func(t *testing.T) {
+				t.Parallel()
+				pm, spy := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
 					},
-				},
-			}
+				}
 
-			resp, err := pm.BuildTransaction(context.Background(), request)
-			require.NoError(t, err)
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
 
-			rawResp, err := json.Marshal(resp)
-			require.NoError(t, err)
-			assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+			})
+
+			t.Run("'default' fee mode", func(t *testing.T) {
+				t.Parallel()
+				pm, _ := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode:      FeeModeDefault,
+						GasToken:  internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+						TipInStrk: internalUtils.TestHexToFelt(t, "0xfff"),
+					},
+				}
+
+				_, err := pm.BuildTransaction(context.Background(), &request)
+				require.Error(t, err) // it seems that the default fee mode is not supported for the 'deploy' transaction type
+			})
 		})
 	})
 }
