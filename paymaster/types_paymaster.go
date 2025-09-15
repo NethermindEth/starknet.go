@@ -211,19 +211,6 @@ type TrackingIdResponse struct {
 	Status TxnStatus `json:"status"`
 }
 
-// Call represents a single contract call (to, selector, calldata).
-type Call struct {
-	To       *felt.Felt   `json:"to"`
-	Selector *felt.Felt   `json:"selector"`
-	Calldata []*felt.Felt `json:"calldata"`
-}
-
-// UserInvoke represents an invoke transaction from a user (user address and calls).
-type UserInvoke struct {
-	UserAddress *felt.Felt `json:"user_address"`
-	Calls       []Call     `json:"calls"`
-}
-
 // ExecutableUserInvoke is an invoke transaction ready for execution (user address, typed data, signature).
 type ExecutableUserInvoke struct {
 	UserAddress *felt.Felt   `json:"user_address"`

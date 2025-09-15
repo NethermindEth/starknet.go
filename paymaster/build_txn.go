@@ -115,6 +115,24 @@ type AccDeploymentData struct {
 	Version uint8 `json:"version"`
 }
 
+// Calls to be executed by the paymaster and the user account address that will be called
+type UserInvoke struct {
+	// The address of the user account
+	UserAddress *felt.Felt `json:"user_address"`
+	// The sequence of calls that the user wishes to perform
+	Calls []Call `json:"calls"`
+}
+
+// The object that defines an invocation of a function in a contract
+type Call struct {
+	// The address of the contract to invoke
+	To *felt.Felt `json:"to"`
+	// The selector of the function to invoke
+	Selector *felt.Felt `json:"selector"`
+	// The parameters passed to the function
+	Calldata []*felt.Felt `json:"calldata"`
+}
+
 // Execution parameters to be used when executing the transaction through the paymaster
 type UserParameters struct {
 	// Version of the execution parameters which is not tied to the 'execute from outside' version.
