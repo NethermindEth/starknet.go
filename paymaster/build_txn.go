@@ -122,7 +122,7 @@ type UserParameters struct {
 	// Fee mode to use for the execution
 	FeeMode FeeMode `json:"fee_mode"`
 	// Optional. Time constraint on the execution
-	TimeBounds *TimeBounds `json:"time_bounds,omitempty"`
+	TimeBounds *TimeBounds `json:"time_bounds"`
 }
 
 // An enum representing the version of the execution parameters
