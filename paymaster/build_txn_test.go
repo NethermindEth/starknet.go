@@ -158,7 +158,7 @@ func TestBuildTransaction(t *testing.T) {
 
 		t.Run("'deploy' transaction type", func(t *testing.T) {
 			t.Parallel()
-			pm, _ := SetupPaymaster(t)
+			pm, spy := SetupPaymaster(t)
 
 			// *** setup account data
 			_, pubK, _ := account.GetRandomKeys()
@@ -188,15 +188,12 @@ func TestBuildTransaction(t *testing.T) {
 				},
 			}
 
-			rawRequest, err := json.Marshal(request)
-			require.NoError(t, err)
-			t.Logf("Raw request: %s", string(rawRequest))
-
-			// TODO: continue this
-
 			resp, err := pm.BuildTransaction(context.Background(), request)
 			require.NoError(t, err)
-			assert.NotNil(t, resp)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
 		})
 	})
 }
