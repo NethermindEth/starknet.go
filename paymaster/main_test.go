@@ -4,14 +4,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-var avnuPaymasterURL = "https://sepolia.paymaster.avnu.fi"
+const avnuPaymasterURL = "https://sepolia.paymaster.avnu.fi"
 
 func TestMain(m *testing.M) {
 	tests.LoadEnv()
@@ -54,4 +56,19 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 	}
 
 	return mpm
+}
+
+// GetStrkAccountData returns the STRK account data from the environment variables.
+func GetStrkAccountData(t *testing.T) (privKey *felt.Felt, pubKey *felt.Felt, accountAddress *felt.Felt) {
+	t.Helper()
+
+	strkPrivKey := os.Getenv("STARKNET_PRIVATE_KEY")
+	strkPubKey := os.Getenv("STARKNET_PUBLIC_KEY")
+	strkAccountAddress := os.Getenv("STARKNET_ACCOUNT_ADDRESS")
+
+	privKey = internalUtils.TestHexToFelt(t, strkPrivKey)
+	pubKey = internalUtils.TestHexToFelt(t, strkPubKey)
+	accountAddress = internalUtils.TestHexToFelt(t, strkAccountAddress)
+
+	return
 }
