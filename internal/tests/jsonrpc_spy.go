@@ -1,22 +1,29 @@
-package rpc
+package tests
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/nsf/jsondiff"
 )
 
 type spy struct {
 	callCloser
-	s     []byte
+	buff  json.RawMessage
 	mock  bool
 	debug bool
 }
 
-// NewSpy creates a new spy object.
+// The callCloser interface used in `rpc` and `paymaster` tests.
+// It's implemented by the `client.Client` type.
+type callCloser interface {
+	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
+	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
+}
+
+var _ callCloser = &spy{} //nolint:exhaustruct
+
+// NewJSONRPCSpy creates a new spy object.
 //
 // It takes a client callCloser as the first parameter and an optional debug parameter.
 // The client callCloser is the interface that the spy will be based on.
@@ -28,15 +35,15 @@ type spy struct {
 //
 // Returns:
 //   - spy: a new spy object
-func NewSpy(client callCloser, debug ...bool) *spy {
+func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
 	}
-	if _, ok := client.(*rpcMock); ok {
+	if TEST_ENV == MockEnv {
 		return &spy{
 			callCloser: client,
-			s:          []byte{},
+			buff:       []byte{},
 			mock:       true,
 			debug:      d,
 		}
@@ -44,7 +51,8 @@ func NewSpy(client callCloser, debug ...bool) *spy {
 
 	return &spy{
 		callCloser: client,
-		s:          []byte{},
+		buff:       []byte{},
+		mock:       false,
 		debug:      d,
 	}
 }
@@ -63,26 +71,27 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 	if s.mock {
 		return s.callCloser.CallContext(ctx, result, method, arg)
 	}
-	raw := json.RawMessage{}
+
 	if s.debug {
-		fmt.Printf("... in parameters\n")
+		fmt.Printf("### Spy Debug mode: in parameters\n")
 		fmt.Printf("   arg.(%T): %+v\n", arg, arg)
+		PrettyPrint(arg)
+		fmt.Println("--------------------------------------------")
 	}
+
+	raw := json.RawMessage{}
 	err := s.callCloser.CallContext(ctx, &raw, method, arg)
 	if err != nil {
 		return err
 	}
+
 	if s.debug {
-		fmt.Printf("... output\n")
-		data, innerErr := raw.MarshalJSON()
-		if innerErr != nil {
-			return innerErr
-		}
-		fmt.Println("output:", string(data))
+		fmt.Printf("### Spy Debug mode: output\n")
+		PrettyPrint(raw)
 	}
 
 	err = json.Unmarshal(raw, result)
-	s.s = []byte(raw)
+	s.buff = raw
 
 	return err
 }
@@ -101,63 +110,45 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 	if s.mock {
 		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
 	}
-	raw := json.RawMessage{}
+
 	if s.debug {
-		fmt.Printf("... in parameters\n")
-		for k, v := range args {
-			fmt.Printf("   arg[%d].(%T): %+v\n", k, v, v)
+		fmt.Printf("### Spy Debug mode: in parameters\n")
+		for i, v := range args {
+			fmt.Printf("   Arg[%d].(%T): %+v\n", i, v, v)
+			PrettyPrint(v)
+			fmt.Println("--------------------------------------------")
 		}
 	}
+
+	raw := json.RawMessage{}
 	err := s.callCloser.CallContextWithSliceArgs(ctx, &raw, method, args...)
 	if err != nil {
 		return err
 	}
+
 	if s.debug {
-		fmt.Printf("... output\n")
-		data, innerErr := raw.MarshalJSON()
-		if innerErr != nil {
-			return innerErr
-		}
-		fmt.Println("output:", string(data))
+		fmt.Printf("### Spy Debug mode: output\n")
+		PrettyPrint(raw)
 	}
 
 	err = json.Unmarshal(raw, result)
-	s.s = []byte(raw)
+	s.buff = raw
 
 	return err
 }
 
-// Compare compares the spy object with the given object and returns the difference between them.
-//
-// Parameters:
-//   - o: the object to compare with the spy object
-//   - debug: a boolean flag indicating whether to print debug information
-//
-// Returns:
-//   - string: the difference between the spy object and the given object
-//   - error: an error if any occurred during the comparison
-func (s *spy) Compare(o interface{}, debug bool) (string, error) {
-	if s.mock {
-		if debug {
-			fmt.Println("**************************")
-			fmt.Println("This is a mock")
-			fmt.Println("**************************")
-		}
+// LastResponse returns the last response captured by the spy.
+// In other words, it returns the raw JSON response received from the server when calling a `callCloser` method.
+func (s *spy) LastResponse() json.RawMessage {
+	return s.buff
+}
 
-		return "FullMatch", nil
-	}
-	b, err := json.Marshal(o)
+// PrettyPrint pretty marshals the data with indentation and prints it.
+func PrettyPrint(data interface{}) {
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		panic(err)
 	}
-	diff, _ := jsondiff.Compare(s.s, b, &jsondiff.Options{})
-	if debug {
-		fmt.Println("**************************")
-		fmt.Println(string(s.s))
-		fmt.Println("**************************")
-		fmt.Println(string(b))
-		fmt.Println("**************************")
-	}
-
-	return diff.String(), nil
+	fmt.Println("Raw data:")
+	fmt.Println(string(prettyJSON))
 }
