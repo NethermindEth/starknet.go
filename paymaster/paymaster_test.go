@@ -3,6 +3,7 @@ package paymaster
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -19,9 +20,11 @@ func TestIsAvailable(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 		t.Parallel()
 
-		pm := SetupPaymaster(t)
+		pm, spy := SetupPaymaster(t)
 		available, err := pm.IsAvailable(context.Background())
 		require.NoError(t, err)
+
+		assert.Equal(t, string(spy.LastResponse()), strconv.FormatBool(available))
 		assert.True(t, available)
 	})
 
@@ -47,16 +50,13 @@ func TestGetSupportedTokens(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 		t.Parallel()
 
-		pm := SetupPaymaster(t)
+		pm, spy := SetupPaymaster(t)
 		tokens, err := pm.GetSupportedTokens(context.Background())
 		require.NoError(t, err)
-		assert.NotNil(t, tokens)
 
-		for _, token := range tokens {
-			assert.NotNil(t, token.TokenAddress)
-			assert.NotZero(t, token.Decimals)
-			assert.NotZero(t, token.PriceInStrk)
-		}
+		rawResult, err := json.Marshal(tokens)
+		require.NoError(t, err)
+		assert.EqualValues(t, spy.LastResponse(), rawResult)
 	})
 
 	t.Run("mock", func(t *testing.T) {

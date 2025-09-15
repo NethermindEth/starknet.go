@@ -156,19 +156,18 @@ func TestBuildTransaction(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 		t.Parallel()
 
-		pm := SetupPaymaster(t)
-
 		t.Run("'deploy' transaction type", func(t *testing.T) {
 			t.Parallel()
+			pm, _ := SetupPaymaster(t)
 
-			// setup account data
+			// *** setup account data
 			_, pubK, _ := account.GetRandomKeys()
 			// OZ account class hash
 			classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
 			salt := internalUtils.RANDOM_FELT
 			precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
 
-			// build request
+			// *** build request
 			request := &BuildTransactionRequest{
 				Transaction: &UserTransaction{
 					Type: UserTxnDeploy,
