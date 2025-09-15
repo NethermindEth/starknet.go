@@ -219,4 +219,5 @@ func TestBuildTransaction(t *testing.T) {
 			})
 		})
 	})
+	//@todo add mock tests
 }
