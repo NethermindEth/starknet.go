@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var STRKContractAddress, _ = internalUtils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+
 // Test the UserTxnType type
 //
 //nolint:dupl
@@ -209,13 +211,85 @@ func TestBuildTransaction(t *testing.T) {
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode:      FeeModeDefault,
-						GasToken:  internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
+						GasToken:  STRKContractAddress,
 						TipInStrk: internalUtils.TestHexToFelt(t, "0xfff"),
 					},
 				}
 
 				_, err := pm.BuildTransaction(context.Background(), &request)
 				require.Error(t, err) // it seems that the default fee mode is not supported for the 'deploy' transaction type
+			})
+		})
+
+		t.Run("'invoke' transaction type", func(t *testing.T) {
+			t.Parallel()
+
+			_, _, accountAddress := GetStrkAccountData(t)
+
+			transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
+			reqBody := BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type: UserTxnInvoke,
+					Invoke: &UserInvoke{
+						UserAddress: accountAddress,
+						Calls: []Call{
+							{
+								To:       STRKContractAddress,
+								Selector: internalUtils.GetSelectorFromNameFelt("transfer"),
+								Calldata: append([]*felt.Felt{accountAddress}, transferAmount...),
+							},
+							{
+								// same ERC20 contract as in examples/simpleInvoke
+								To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+								Selector: internalUtils.GetSelectorFromNameFelt("mint"),
+								Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+							},
+						},
+					},
+				},
+				Parameters: nil,
+			}
+
+			t.Run("'sponsored' fee mode", func(t *testing.T) {
+				t.Parallel()
+				pm, spy := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+					},
+				}
+
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
+
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+			})
+
+			t.Run("'default' fee mode", func(t *testing.T) {
+				t.Parallel()
+				pm, spy := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode:      FeeModeDefault,
+						GasToken:  STRKContractAddress,
+						TipInStrk: internalUtils.TestHexToFelt(t, "0xfff"),
+					},
+				}
+
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
+
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
 			})
 		})
 	})
