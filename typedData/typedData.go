@@ -933,3 +933,8 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// MarshalJSON implements the json.Marshaler interface for TypeDefinition
+func (td TypeDefinition) MarshalJSON() ([]byte, error) {
+	return json.Marshal(td.Parameters)
+}
