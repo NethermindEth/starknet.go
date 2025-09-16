@@ -80,6 +80,22 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	}
 }
 
+// TestMarshalJSON tests the MarshalJSON function. It marshals the TypedData and compares the result
+// with the original raw data.
+func TestMarshalJSON(t *testing.T) {
+	for _, filename := range fileNames {
+		t.Run(filename, func(t *testing.T) {
+			rawData, err := os.ReadFile(fmt.Sprintf("./testData/%s.json", filename))
+			require.NoError(t, err)
+
+			marshaledData, err := json.Marshal(typedDataExamples[filename])
+			require.NoError(t, err)
+
+			require.JSONEq(t, string(rawData), string(marshaledData))
+		})
+	}
+}
+
 // TestMessageHash tests the GetMessageHash function.
 //
 // It creates a mock TypedData and sets up a test case for hashing a mail message.
