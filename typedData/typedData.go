@@ -19,11 +19,11 @@ import (
 var typeNameRegexp = regexp.MustCompile(`[^\(\),\s]+`)
 
 type TypedData struct {
-	Types       map[string]TypeDefinition
-	PrimaryType string
-	Domain      Domain
-	Message     map[string]any
-	Revision    *revision
+	Types       map[string]TypeDefinition `json:"types"`
+	PrimaryType string                    `json:"primaryType"`
+	Domain      Domain                    `json:"domain"`
+	Message     map[string]any            `json:"message"`
+	Revision    *revision                 `json:"-"`
 }
 
 type Domain struct {
