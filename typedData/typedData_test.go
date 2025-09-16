@@ -11,6 +11,18 @@ import (
 )
 
 var typedDataExamples = make(map[string]TypedData)
+var fileNames = []string{
+	"baseExample",
+	"example_array",
+	"example_baseTypes",
+	"example_enum",
+	"example_presetTypes",
+	"mail_StructArray",
+	"session_MerkleTree",
+	"v1Nested",
+	"allInOne",
+	"example_enumNested",
+}
 
 // TestMain initialises test data by loading TypedData examples from JSON files.
 // It reads multiple test files and stores them in the typedDataExamples map
@@ -22,19 +34,6 @@ var typedDataExamples = make(map[string]TypedData)
 // Returns:
 //   - None (calls os.Exit directly)
 func TestMain(m *testing.M) {
-	fileNames := []string{
-		"baseExample",
-		"example_array",
-		"example_baseTypes",
-		"example_enum",
-		"example_presetTypes",
-		"mail_StructArray",
-		"session_MerkleTree",
-		"v1Nested",
-		"allInOne",
-		"example_enumNested",
-	}
-
 	for _, fileName := range fileNames {
 		var ttd TypedData
 		content, err := os.ReadFile(fmt.Sprintf("./testData/%s.json", fileName))
@@ -52,23 +51,33 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// BMockTypedData is a helper function for benchmarks that loads a base example
-// TypedData from a JSON file.
-//
-// Parameters:
-//   - b: The testing.B object used for benchmarking
-//
-// Returns:
-//   - ttd: A TypedData instance loaded from the base example file
-func BMockTypedData(b *testing.B) (ttd TypedData) {
-	b.Helper()
-	content, err := os.ReadFile("./testData/baseExample.json")
-	require.NoError(b, err)
+// BenchmarkUnmarshalJSON is a benchmark function for testing the TypedData.UnmarshalJSON function.
+func BenchmarkUnmarshalJSON(b *testing.B) {
+	for _, fileName := range fileNames {
+		rawData, err := os.ReadFile(fmt.Sprintf("./testData/%s.json", fileName))
+		require.NoError(b, err)
 
-	err = json.Unmarshal(content, &ttd)
-	require.NoError(b, err)
+		b.Run(fileName, func(b *testing.B) {
+			for b.Loop() {
+				var ttd TypedData
+				err = json.Unmarshal(rawData, &ttd)
+				require.NoError(b, err)
+			}
+		})
+	}
+}
 
-	return
+// BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.
+func BenchmarkGetMessageHash(b *testing.B) {
+	addr := "0xdeadbeef"
+
+	for key, typedData := range typedDataExamples {
+		b.Run(key, func(b *testing.B) {
+			for b.Loop() {
+				typedData.GetMessageHash(addr)
+			}
+		})
+	}
 }
 
 // TestMessageHash tests the GetMessageHash function.
@@ -155,29 +164,6 @@ func TestGetMessageHash(t *testing.T) {
 			assert.Equal(t, test.ExpectedMessageHash, hash.String())
 		})
 	}
-}
-
-// BenchmarkGetMessageHash is a benchmark function for testing the GetMessageHash function.
-//
-// It tests the performance of the GetMessageHash function by running it with different input sizes.
-// The input size is determined by the bit length of the address parameter, which is converted from
-// a hexadecimal string to a big integer using the HexToBN function from the utils package.
-//
-// Parameters:
-//   - b: a testing.B object that provides methods for benchmarking the function
-//
-// Returns:
-//
-//	none
-func BenchmarkGetMessageHash(b *testing.B) {
-	ttd := BMockTypedData(b)
-
-	addr := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-	b.Run(fmt.Sprintf("input_size_%d", len(addr)), func(b *testing.B) {
-		result, err := ttd.GetMessageHash(addr)
-		require.NoError(b, err)
-		require.NotEmpty(b, result)
-	})
 }
 
 // TestGeneral_GetTypeHash tests the GetTypeHash function.
