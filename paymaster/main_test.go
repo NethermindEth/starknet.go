@@ -29,7 +29,7 @@ type MockPaymaster struct {
 }
 
 // Creates a real Sepolia paymaster client and a spy for integration tests.
-func SetupPaymaster(t *testing.T) (*Paymaster, *tests.Spy) {
+func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, *tests.Spy) {
 	t.Helper()
 
 	apiKey := os.Getenv("AVNU_API_KEY")
@@ -39,7 +39,7 @@ func SetupPaymaster(t *testing.T) (*Paymaster, *tests.Spy) {
 	pm, err := NewPaymasterClient(avnuPaymasterURL, apiHeader)
 	require.NoError(t, err, "failed to create paymaster client")
 
-	spy := tests.NewJSONRPCSpy(pm.c)
+	spy := tests.NewJSONRPCSpy(pm.c, debug...)
 	pm.c = spy
 
 	return pm, spy
