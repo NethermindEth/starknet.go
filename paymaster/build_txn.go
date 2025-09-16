@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/typedData"
 )
 
 // BuildTransaction receives the transaction the user wants to execute. Returns the typed
@@ -256,7 +257,7 @@ type BuildTransactionResponse struct {
 	Parameters *UserParameters `json:"parameters"`
 	// The typed data for for `invoke` and `deploy_and_invoke` transaction types.
 	// It's `nil` for `deploy` transaction types.
-	TypedData interface{} `json:"typed_data,omitempty"`
+	TypedData *typedData.TypedData `json:"typed_data,omitempty"`
 	// The fee estimation for the transaction
 	Fee *FeeEstimate `json:"fee"`
 }

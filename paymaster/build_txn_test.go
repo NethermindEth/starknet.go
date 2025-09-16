@@ -224,6 +224,7 @@ func TestBuildTransaction(t *testing.T) {
 		t.Run("'invoke' transaction type", func(t *testing.T) {
 			t.Parallel()
 
+			// *** setup
 			_, _, accountAddress := GetStrkAccountData(t)
 
 			transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
