@@ -51,10 +51,10 @@ type UserTransaction struct {
 	// The type of the transaction to be executed by the paymaster
 	Type UserTxnType `json:"type"`
 	// The deployment data for the transaction, used for `deploy` and `deploy_and_invoke` transaction types.
-	// Should be omitted for `invoke` transaction types.
+	// Should be `nil` for `invoke` transaction types.
 	Deployment *AccDeploymentData `json:"deployment,omitempty"`
 	// The invoke data for the transaction, used for `invoke` and `deploy_and_invoke` transaction types.
-	// Should be omitted for `deploy` transaction types.
+	// Should be `nil` for `deploy` transaction types.
 	Invoke *UserInvoke `json:"invoke,omitempty"`
 }
 

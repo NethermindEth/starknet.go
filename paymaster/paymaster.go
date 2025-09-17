@@ -122,25 +122,6 @@ func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt
 	return response, nil
 }
 
-// ExecuteTransaction executes a signed transaction via the paymaster service.
-// Returns an ExecuteTransactionResponse with tracking ID and transaction hash.
-//
-// Parameters:
-//   - ctx: The context.Context object for controlling the function call
-//   - request: The ExecuteTransactionRequest containing the transaction and parameters
-//
-// Returns:
-//   - *ExecuteTransactionResponse: The response containing tracking ID and transaction hash
-//   - error: An error if the execution fails
-func (p *Paymaster) ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
-	var response ExecuteTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", request); err != nil {
-		return nil, err
-	}
-
-	return &response, nil
-}
-
 // Constants for the SNIP-X specification
 const (
 	// OUTSIDE_EXECUTION_TYPED_DATA_V1 represents the typed data structure for version 1
