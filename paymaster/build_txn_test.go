@@ -10,6 +10,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 var STRKContractAddress, _ = internalUtils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
@@ -150,44 +151,44 @@ func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpe
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 
+	// *** setup for deploy type transactions
+	classHash := internalUtils.TestHexToFelt(
+		t,
+		"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f", // OZ account class hash
+	)
+
+	deploymentData := &AccDeploymentData{
+		Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
+		ClassHash:           classHash,
+		Salt:                internalUtils.RANDOM_FELT,
+		ConstructorCalldata: []*felt.Felt{internalUtils.RANDOM_FELT},
+		SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
+		Version:             2,
+	}
+
+	// *** setup for invoke type transactions
+	_, _, accountAddress := GetStrkAccountData(t)
+	transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
+
+	invokeData := &UserInvoke{
+		UserAddress: accountAddress,
+		Calls: []Call{
+			{
+				To:       STRKContractAddress,
+				Selector: internalUtils.GetSelectorFromNameFelt("transfer"),
+				Calldata: append([]*felt.Felt{accountAddress}, transferAmount...),
+			},
+			{
+				// same ERC20 contract as in examples/simpleInvoke
+				To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+				Selector: internalUtils.GetSelectorFromNameFelt("mint"),
+				Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+			},
+		},
+	}
+
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
-
-		// *** setup for deploy transaction type
-		classHash := internalUtils.TestHexToFelt(
-			t,
-			"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f", // OZ account class hash
-		)
-
-		deploymentData := &AccDeploymentData{
-			Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
-			ClassHash:           classHash,
-			Salt:                internalUtils.RANDOM_FELT,
-			ConstructorCalldata: []*felt.Felt{internalUtils.RANDOM_FELT},
-			SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
-			Version:             2,
-		}
-
-		// *** setup for invoke transaction type
-		_, _, accountAddress := GetStrkAccountData(t)
-		transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
-
-		invokeData := &UserInvoke{
-			UserAddress: accountAddress,
-			Calls: []Call{
-				{
-					To:       STRKContractAddress,
-					Selector: internalUtils.GetSelectorFromNameFelt("transfer"),
-					Calldata: append([]*felt.Felt{accountAddress}, transferAmount...),
-				},
-				{
-					// same ERC20 contract as in examples/simpleInvoke
-					To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
-					Selector: internalUtils.GetSelectorFromNameFelt("mint"),
-					Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
-				},
-			},
-		}
 
 		t.Run("deploy transaction type", func(t *testing.T) {
 			t.Parallel()
@@ -365,5 +366,57 @@ func TestBuildTransaction(t *testing.T) {
 			})
 		})
 	})
-	//@todo add mock tests
+
+	t.Run("mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
+
+		t.Run("deploy transaction type - sponsored fee mode", func(t *testing.T) {
+			t.Parallel()
+			// *** build request
+			request := BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type:       UserTxnDeploy,
+					Deployment: deploymentData,
+				},
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+					},
+				},
+			}
+
+			// *** assert the request marshalled is equal to the expected request
+			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy-request.json", "params")
+			expectedReq := expectedReqs[0]
+
+			rawReq, err := json.Marshal(request)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(expectedReq), string(rawReq))
+
+			// *** assert the response marshalled is equal to the expected response
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy-response.json", "result")
+
+			var response BuildTransactionResponse
+			err = json.Unmarshal(expectedResp, &response)
+			require.NoError(t, err)
+
+			pm := SetupMockPaymaster(t)
+			pm.c.EXPECT().CallContextWithSliceArgs(
+				context.Background(),
+				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
+				"paymaster_buildTransaction",
+				&request,
+			).Return(nil).
+				SetArg(1, response)
+
+			resp, err := pm.BuildTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expectedResp), string(rawResp))
+		})
+	})
 }
