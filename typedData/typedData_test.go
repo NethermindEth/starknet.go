@@ -10,19 +10,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var typedDataExamples = make(map[string]TypedData)
-var fileNames = []string{
-	"baseExample",
-	"example_array",
-	"example_baseTypes",
-	"example_enum",
-	"example_presetTypes",
-	"mail_StructArray",
-	"session_MerkleTree",
-	"v1Nested",
-	"allInOne",
-	"example_enumNested",
-}
+var (
+	typedDataExamples = make(map[string]TypedData)
+	fileNames         = []string{
+		"baseExample",
+		"example_array",
+		"example_baseTypes",
+		"example_enum",
+		"example_presetTypes",
+		"mail_StructArray",
+		"session_MerkleTree",
+		"v1Nested",
+		"allInOne",
+		"example_enumNested",
+	}
+)
 
 // TestMain initialises test data by loading TypedData examples from JSON files.
 // It reads multiple test files and stores them in the typedDataExamples map
@@ -74,7 +76,10 @@ func BenchmarkGetMessageHash(b *testing.B) {
 	for key, typedData := range typedDataExamples {
 		b.Run(key, func(b *testing.B) {
 			for b.Loop() {
-				typedData.GetMessageHash(addr)
+				_, err := typedData.GetMessageHash(addr)
+				if err != nil {
+					b.Fatal(err)
+				}
 			}
 		})
 	}
