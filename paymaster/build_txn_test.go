@@ -167,7 +167,7 @@ func TestBuildTransaction(t *testing.T) {
 	}
 
 	// *** setup for invoke type transactions
-	_, _, accountAddress := GetStrkAccountData(t)
+	accountAddress := internalUtils.TestHexToFelt(t, "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e")
 	transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
 
 	invokeData := &UserInvoke{
@@ -397,6 +397,61 @@ func TestBuildTransaction(t *testing.T) {
 
 			// *** assert the response marshalled is equal to the expected response
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy-response.json", "result")
+
+			var response BuildTransactionResponse
+			err = json.Unmarshal(expectedResp, &response)
+			require.NoError(t, err)
+
+			pm := SetupMockPaymaster(t)
+			pm.c.EXPECT().CallContextWithSliceArgs(
+				context.Background(),
+				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
+				"paymaster_buildTransaction",
+				&request,
+			).Return(nil).
+				SetArg(1, response)
+
+			resp, err := pm.BuildTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expectedResp), string(rawResp))
+		})
+
+		t.Run("invoke transaction type - default fee mode with custom tip", func(t *testing.T) {
+			t.Parallel()
+			// *** build request
+			customTip := uint64(1000)
+
+			request := BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type:   UserTxnInvoke,
+					Invoke: invokeData,
+				},
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode:     FeeModeDefault,
+						GasToken: STRKContractAddress,
+						Tip: &TipPriority{
+							Custom: &customTip,
+						},
+					},
+				},
+			}
+
+			// *** assert the request marshalled is equal to the expected request
+			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/invoke-request.json", "params")
+			expectedReq := expectedReqs[0]
+
+			rawReq, err := json.Marshal(request)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(expectedReq), string(rawReq))
+
+			// *** assert the response marshalled is equal to the expected response
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/invoke-response.json", "result")
 
 			var response BuildTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
