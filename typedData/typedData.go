@@ -32,9 +32,10 @@ type Domain struct {
 	ChainId  string `json:"chainId"`
 	Revision uint8  `json:"revision,omitempty"`
 
-	// Flags to deal with edge chainId cases, used to marshal the ChainId exactly as it is in the original JSON.
+	// Flags to deal with edge cases, used to marshal the `Domain` exactly as it is in the original JSON.
 	hasStringChainId  bool `json:"-"`
 	hasOldChainIdName bool `json:"-"`
+	HasStringRevision bool `json:"-"`
 }
 
 type TypeDefinition struct {
@@ -906,13 +907,24 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	revision, err := getField("revision")
-	if err != nil {
-		revision = "0"
+	// Custom logic to handle the `revision` field,
+	// used to marshal the Revision exactly as it is in the original JSON.
+	rawRevision, ok := dec["revision"]
+	if !ok {
+		rawRevision = "0"
 	}
-	numRevision, err := strconv.ParseUint(revision, 10, 8)
-	if err != nil {
-		return err
+
+	var numRevision uint64
+	switch revision := rawRevision.(type) {
+	case string:
+		domain.HasStringRevision = true
+		numRevision, err = strconv.ParseUint(revision, 10, 8)
+		if err != nil {
+			return err
+		}
+	case float64:
+		domain.HasStringRevision = false
+		numRevision = uint64(revision)
 	}
 
 	// Custom logic to handle the `chainId` field,
@@ -946,6 +958,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 	}
 	chainId := fmt.Sprintf("%v", rawChainId)
 
+	// Final step
 	*domain = Domain{
 		Name:     name,
 		Version:  version,
@@ -954,18 +967,20 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 
 		hasStringChainId:  domain.hasStringChainId,
 		hasOldChainIdName: domain.hasOldChainIdName,
+		HasStringRevision: domain.HasStringRevision,
 	}
 
 	return nil
 }
 
-// MarshalJSON implements the json.Marshaler interface for Domain
+// MarshalJSON implements the json.Marshaler interface for Domain.
+// Some logic was added to marshal the `Domain` exactly as it is in the original JSON.
 func (domain Domain) MarshalJSON() ([]byte, error) {
 	var chainId any
+	var revision any
 	var err error
 
-	// The purpose of this is to marshal the ChainId exactly as it is in the original JSON.
-	// So, for example, if it's `1`, we marshal it as `1`, not `"1"`.
+	// E.g: if it's `1`, we will marshal it as `1`, not `"1"`.
 	if domain.hasStringChainId {
 		chainId = domain.ChainId
 	} else {
@@ -975,19 +990,30 @@ func (domain Domain) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	// The purpose here is to marshal the ChainId exactly as it is in the original JSON.
+	if domain.Revision == 0 {
+		revision = nil
+	} else {
+		if domain.HasStringRevision {
+			revision = fmt.Sprintf("%v", domain.Revision)
+		} else {
+			revision = domain.Revision
+		}
+	}
+
+	// The purpose here is to marshal the `Domain` exactly as it is in the original JSON.
 	// This is achieved by having two chainId fields, one for the old name and one for the new name,
 	// and using the `omitempty` tag to only include one of them, the one that is the same as the original JSON.
+	// Similar for the `Revision` field.
 	var temp struct {
 		Name       string `json:"name"`
 		Version    string `json:"version"`
 		ChainIdOld any    `json:"chain_id,omitempty"` // old chainId json name
 		ChainIdNew any    `json:"chainId,omitempty"`  // new chainId json name
-		Revision   uint8  `json:"revision,omitempty"`
+		Revision   any    `json:"revision,omitempty"`
 	}
 	temp.Name = domain.Name
 	temp.Version = domain.Version
-	temp.Revision = domain.Revision
+	temp.Revision = revision
 
 	if domain.hasOldChainIdName {
 		temp.ChainIdOld = chainId
