@@ -31,6 +31,10 @@ type Domain struct {
 	Version  string `json:"version"`
 	ChainId  string `json:"chainId"`
 	Revision uint8  `json:"revision,omitempty"`
+
+	// Flags to deal with edge chainId cases, used to marshal the ChainId exactly as it is in the original JSON.
+	hasStringChainId  bool `json:"-"`
+	hasOldChainIdName bool `json:"-"`
 }
 
 type TypeDefinition struct {
@@ -911,30 +915,94 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	chainId, err := getField("chainId")
+	// Custom logic to handle the `chainId` field,
+	// used to marshal the ChainId exactly as it is in the original JSON.
+	rawChainId, ok := dec["chainId"]
+	if !ok {
+		err = errors.New("error getting the value of 'chainId' from 'domain' struct")
+	}
+
 	if err != nil {
 		if numRevision == 1 {
 			return err
 		}
-		var err2 error
+
+		// `chain_id` was also used in the past, so we check for it if the `chainId` field is not found
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
-		chainId, err2 = getField("chain_id")
-		if err2 != nil {
+		rawChainId, ok = dec["chain_id"]
+		if !ok {
+			err2 := errors.New("error getting the value of 'chain_id' from 'domain' struct")
+
 			return fmt.Errorf("%w: %w", err, err2)
 		}
+		domain.hasOldChainIdName = true
 	}
+
+	switch rawChainId.(type) {
+	case string:
+		domain.hasStringChainId = true
+	case float64:
+		domain.hasStringChainId = false
+	}
+	chainId := fmt.Sprintf("%v", rawChainId)
 
 	*domain = Domain{
 		Name:     name,
 		Version:  version,
 		ChainId:  chainId,
 		Revision: uint8(numRevision),
+
+		hasStringChainId:  domain.hasStringChainId,
+		hasOldChainIdName: domain.hasOldChainIdName,
 	}
 
 	return nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for Domain
+func (domain Domain) MarshalJSON() ([]byte, error) {
+	var chainId any
+	var err error
+
+	// The purpose of this is to marshal the ChainId exactly as it is in the original JSON.
+	// So, for example, if it's `1`, we marshal it as `1`, not `"1"`.
+	if domain.hasStringChainId {
+		chainId = domain.ChainId
+	} else {
+		chainId, err = strconv.Atoi(domain.ChainId)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// The purpose here is to marshal the ChainId exactly as it is in the original JSON.
+	// This is achieved by having two chainId fields, one for the old name and one for the new name,
+	// and using the `omitempty` tag to only include one of them, the one that is the same as the original JSON.
+	var temp struct {
+		Name       string `json:"name"`
+		Version    string `json:"version"`
+		ChainIdOld any    `json:"chain_id,omitempty"` // old chainId json name
+		ChainIdNew any    `json:"chainId,omitempty"`  // new chainId json name
+		Revision   uint8  `json:"revision,omitempty"`
+	}
+	temp.Name = domain.Name
+	temp.Version = domain.Version
+	temp.Revision = domain.Revision
+
+	if domain.hasOldChainIdName {
+		temp.ChainIdOld = chainId
+
+		return json.Marshal(temp)
+	}
+
+	temp.ChainIdNew = chainId
+
+	return json.Marshal(temp)
+}
+
 // MarshalJSON implements the json.Marshaler interface for TypeDefinition
+//
+//nolint:gocritic //  json.Marshaler interface requires a value receiver
 func (td TypeDefinition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(td.Parameters)
 }
