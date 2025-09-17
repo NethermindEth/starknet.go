@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -147,33 +146,56 @@ func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpe
 	}
 }
 
+// Test the BuildTransaction method with different transaction types and fee modes.
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
 
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
+		// *** setup for deploy transaction type
+		classHash := internalUtils.TestHexToFelt(
+			t,
+			"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f", // OZ account class hash
+		)
+
+		deploymentData := &AccDeploymentData{
+			Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
+			ClassHash:           classHash,
+			Salt:                internalUtils.RANDOM_FELT,
+			ConstructorCalldata: []*felt.Felt{internalUtils.RANDOM_FELT},
+			SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
+			Version:             2,
+		}
+
+		// *** setup for invoke transaction type
+		_, _, accountAddress := GetStrkAccountData(t)
+		transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
+
+		invokeData := &UserInvoke{
+			UserAddress: accountAddress,
+			Calls: []Call{
+				{
+					To:       STRKContractAddress,
+					Selector: internalUtils.GetSelectorFromNameFelt("transfer"),
+					Calldata: append([]*felt.Felt{accountAddress}, transferAmount...),
+				},
+				{
+					// same ERC20 contract as in examples/simpleInvoke
+					To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+					Selector: internalUtils.GetSelectorFromNameFelt("mint"),
+					Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+				},
+			},
+		}
+
 		t.Run("deploy transaction type", func(t *testing.T) {
 			t.Parallel()
-			// *** setup account data
-			_, pubK, _ := account.GetRandomKeys()
-			// OZ account class hash
-			classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
-			salt := internalUtils.RANDOM_FELT
-			// precomputedAddress := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{pubK})
-
 			// *** build request
 			reqBody := BuildTransactionRequest{
 				Transaction: &UserTransaction{
-					Type: UserTxnDeploy,
-					Deployment: &AccDeploymentData{
-						Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
-						ClassHash:           classHash,
-						Salt:                salt,
-						ConstructorCalldata: []*felt.Felt{pubK},
-						SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
-						Version:             2,
-					},
+					Type:       UserTxnDeploy,
+					Deployment: deploymentData,
 				},
 				Parameters: nil,
 			}
@@ -220,34 +242,15 @@ func TestBuildTransaction(t *testing.T) {
 		t.Run("invoke transaction type", func(t *testing.T) {
 			t.Parallel()
 
-			// *** setup
-			_, _, accountAddress := GetStrkAccountData(t)
-
-			transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
 			reqBody := BuildTransactionRequest{
 				Transaction: &UserTransaction{
-					Type: UserTxnInvoke,
-					Invoke: &UserInvoke{
-						UserAddress: accountAddress,
-						Calls: []Call{
-							{
-								To:       STRKContractAddress,
-								Selector: internalUtils.GetSelectorFromNameFelt("transfer"),
-								Calldata: append([]*felt.Felt{accountAddress}, transferAmount...),
-							},
-							{
-								// same ERC20 contract as in examples/simpleInvoke
-								To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
-								Selector: internalUtils.GetSelectorFromNameFelt("mint"),
-								Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
-							},
-						},
-					},
+					Type:   UserTxnInvoke,
+					Invoke: invokeData,
 				},
 				Parameters: nil,
 			}
 
-			t.Run("sponsored fee mode - without tip", func(t *testing.T) {
+			t.Run("sponsored fee mode - with nil tip", func(t *testing.T) {
 				t.Parallel()
 				pm, spy := SetupPaymaster(t)
 
@@ -290,6 +293,71 @@ func TestBuildTransaction(t *testing.T) {
 				require.NoError(t, err)
 
 				assert.Equal(t, customTip, *resp.Parameters.FeeMode.Tip.Custom)
+
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+			})
+		})
+
+		t.Run("deploy-and-invoke transaction type", func(t *testing.T) {
+			t.Parallel()
+
+			reqBody := BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type:   UserTxnDeployAndInvoke,
+					Invoke: invokeData,
+				},
+				Parameters: nil,
+			}
+			reqBody.Transaction.Deployment = deploymentData
+			reqBody.Transaction.Invoke = invokeData
+
+			t.Run("sponsored fee mode - with slow tip", func(t *testing.T) {
+				t.Parallel()
+				pm, spy := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+						Tip: &TipPriority{
+							Priority: TipPrioritySlow,
+						},
+					},
+				}
+
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
+
+				assert.Equal(t, TipPrioritySlow, resp.Parameters.FeeMode.Tip.Priority)
+
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+			})
+
+			t.Run("default fee mode - with fast tip", func(t *testing.T) {
+				t.Parallel()
+				pm, spy := SetupPaymaster(t)
+
+				request := reqBody
+				request.Parameters = &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode:     FeeModeDefault,
+						GasToken: STRKContractAddress,
+						Tip: &TipPriority{
+							Priority: TipPriorityFast,
+						},
+					},
+				}
+
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
+
+				assert.Equal(t, TipPriorityFast, resp.Parameters.FeeMode.Tip.Priority)
 
 				rawResp, err := json.Marshal(resp)
 				require.NoError(t, err)
