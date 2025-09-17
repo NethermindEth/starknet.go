@@ -473,5 +473,58 @@ func TestBuildTransaction(t *testing.T) {
 			require.NoError(t, err)
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
+
+		t.Run("deploy-and-invoke transaction type - sponsored fee mode with slow tip priority", func(t *testing.T) {
+			t.Parallel()
+			// *** build request
+			request := BuildTransactionRequest{
+				Transaction: &UserTransaction{
+					Type:       UserTxnDeployAndInvoke,
+					Deployment: deploymentData,
+					Invoke:     invokeData,
+				},
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+						Tip: &TipPriority{
+							Priority: TipPrioritySlow,
+						},
+					},
+				},
+			}
+
+			// *** assert the request marshalled is equal to the expected request
+			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-request.json", "params")
+			expectedReq := expectedReqs[0]
+
+			rawReq, err := json.Marshal(request)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(expectedReq), string(rawReq))
+
+			// *** assert the response marshalled is equal to the expected response
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-response.json", "result")
+
+			var response BuildTransactionResponse
+			err = json.Unmarshal(expectedResp, &response)
+			require.NoError(t, err)
+
+			pm := SetupMockPaymaster(t)
+			pm.c.EXPECT().CallContextWithSliceArgs(
+				context.Background(),
+				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
+				"paymaster_buildTransaction",
+				&request,
+			).Return(nil).
+				SetArg(1, response)
+
+			resp, err := pm.BuildTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expectedResp), string(rawResp))
+		})
 	})
 }
