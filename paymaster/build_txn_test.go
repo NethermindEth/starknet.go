@@ -78,11 +78,6 @@ func TestFeeModeType(t *testing.T) {
 			ErrorExpected: false,
 		},
 		{
-			Input:         `"priority"`,
-			Expected:      FeeModePriority,
-			ErrorExpected: false,
-		},
-		{
 			Input:         `"sponsored"`,
 			Expected:      FeeModeSponsored,
 			ErrorExpected: false,
@@ -154,10 +149,11 @@ func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpe
 
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
+
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
-		t.Run("'deploy' transaction type", func(t *testing.T) {
+		t.Run("deploy transaction type", func(t *testing.T) {
 			t.Parallel()
 			// *** setup account data
 			_, pubK, _ := account.GetRandomKeys()
@@ -182,7 +178,7 @@ func TestBuildTransaction(t *testing.T) {
 				Parameters: nil,
 			}
 
-			t.Run("'sponsored' fee mode", func(t *testing.T) {
+			t.Run("sponsored fee mode", func(t *testing.T) {
 				t.Parallel()
 				pm, spy := SetupPaymaster(t)
 
@@ -202,7 +198,7 @@ func TestBuildTransaction(t *testing.T) {
 				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
 			})
 
-			t.Run("'default' fee mode", func(t *testing.T) {
+			t.Run("default fee mode", func(t *testing.T) {
 				t.Parallel()
 				pm, _ := SetupPaymaster(t)
 
@@ -210,9 +206,9 @@ func TestBuildTransaction(t *testing.T) {
 				request.Parameters = &UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
-						Mode:      FeeModeDefault,
-						GasToken:  STRKContractAddress,
-						TipInStrk: internalUtils.TestHexToFelt(t, "0xfff"),
+						Mode:     FeeModeDefault,
+						GasToken: STRKContractAddress,
+						Tip:      nil,
 					},
 				}
 
@@ -221,7 +217,7 @@ func TestBuildTransaction(t *testing.T) {
 			})
 		})
 
-		t.Run("'invoke' transaction type", func(t *testing.T) {
+		t.Run("invoke transaction type", func(t *testing.T) {
 			t.Parallel()
 
 			// *** setup
@@ -251,7 +247,7 @@ func TestBuildTransaction(t *testing.T) {
 				Parameters: nil,
 			}
 
-			t.Run("'sponsored' fee mode", func(t *testing.T) {
+			t.Run("sponsored fee mode - without tip", func(t *testing.T) {
 				t.Parallel()
 				pm, spy := SetupPaymaster(t)
 
@@ -265,28 +261,35 @@ func TestBuildTransaction(t *testing.T) {
 
 				resp, err := pm.BuildTransaction(context.Background(), &request)
 				require.NoError(t, err)
+				// The default tip priority is normal
+				assert.Equal(t, TipPriorityNormal, resp.Parameters.FeeMode.Tip.Priority)
 
 				rawResp, err := json.Marshal(resp)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
 			})
 
-			t.Run("'default' fee mode", func(t *testing.T) {
+			t.Run("default fee mode - with custom tip", func(t *testing.T) {
 				t.Parallel()
 				pm, spy := SetupPaymaster(t)
 
+				customTip := uint64(1000)
 				request := reqBody
 				request.Parameters = &UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
-						Mode:      FeeModeDefault,
-						GasToken:  STRKContractAddress,
-						TipInStrk: internalUtils.TestHexToFelt(t, "0xfff"),
+						Mode:     FeeModeDefault,
+						GasToken: STRKContractAddress,
+						Tip: &TipPriority{
+							Custom: &customTip,
+						},
 					},
 				}
 
 				resp, err := pm.BuildTransaction(context.Background(), &request)
 				require.NoError(t, err)
+
+				assert.Equal(t, customTip, *resp.Parameters.FeeMode.Tip.Custom)
 
 				rawResp, err := json.Marshal(resp)
 				require.NoError(t, err)

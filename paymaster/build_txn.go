@@ -182,15 +182,12 @@ const (
 	FeeModeSponsored FeeModeType = "sponsored"
 	// Default fee mode where the transaction is paid by the user in the given gas token
 	FeeModeDefault FeeModeType = "default"
-	// Fee mode where the transaction is paid by the user in the given gas token and
-	// the user can specify a tip
-	FeeModePriority FeeModeType = "priority"
 )
 
 // MarshalJSON marshals the FeeModeType to JSON.
 func (feeMode FeeModeType) MarshalJSON() ([]byte, error) {
 	switch feeMode {
-	case FeeModeSponsored, FeeModeDefault, FeeModePriority:
+	case FeeModeSponsored, FeeModeDefault:
 		return json.Marshal(string(feeMode))
 	}
 
@@ -209,8 +206,6 @@ func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
 		*feeMode = FeeModeSponsored
 	case "default":
 		*feeMode = FeeModeDefault
-	case "priority":
-		*feeMode = FeeModePriority
 	default:
 		return fmt.Errorf("invalid fee mode: %s", s)
 	}
@@ -224,9 +219,99 @@ type FeeMode struct {
 	Mode FeeModeType `json:"mode"`
 	// The gas token to use for the transaction. Should be omitted for `sponsored` fee mode
 	GasToken *felt.Felt `json:"gas_token,omitempty"`
-	// The tip to use for the transaction. Only used for `priority` fee mode
-	TipInStrk *felt.Felt `json:"tip_in_strk,omitempty"`
+	// Relative tip priority or a custom tip value. If not provided, the default is the `normal` tip priority.
+	Tip *TipPriority `json:"tip"`
 }
+
+// MarshalJSON marshals the FeeMode to JSON.
+func (f FeeMode) MarshalJSON() ([]byte, error) {
+	if f.Tip == nil {
+		// The `TipPriority.MarshalJSON` method will set the default tip priority
+		f.Tip = &TipPriority{}
+	}
+
+	type alias FeeMode
+	return json.Marshal(alias(f))
+}
+
+// Relative tip priority or a custom tip value.
+//
+// The user must specify either the priority or the custom tip value.
+// If both fields are omitted, the default is the `normal` tip priority.
+type TipPriority struct {
+	// The relative tip priority
+	Priority TipPriorityEnum `json:"-"`
+	// A custom tip value
+	Custom *uint64 `json:"custom"`
+}
+
+// MarshalJSON marshals the TipPriority to JSON.
+func (t *TipPriority) MarshalJSON() ([]byte, error) {
+	if t.Priority != "" {
+		switch t.Priority {
+		case TipPrioritySlow:
+			return json.Marshal(TipPrioritySlow)
+		case TipPriorityNormal:
+			return json.Marshal(TipPriorityNormal)
+		case TipPriorityFast:
+			return json.Marshal(TipPriorityFast)
+		default:
+			return nil, fmt.Errorf("invalid tip priority: %s", t.Priority)
+		}
+	}
+
+	// If  neither priority nor custom are set, use the default tip priority: normal
+	if t.Custom == nil {
+		return json.Marshal(TipPriorityNormal)
+	}
+
+	// Using json.Marshal to marshal the object with the `custom` field set
+	type alias TipPriority
+
+	return json.Marshal(alias(*t))
+}
+
+// UnmarshalJSON unmarshals the JSON data into a TipPriority.
+func (t *TipPriority) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err == nil {
+		switch s {
+		case "slow":
+			t.Priority = TipPrioritySlow
+		case "normal":
+			t.Priority = TipPriorityNormal
+		case "fast":
+			t.Priority = TipPriorityFast
+		default:
+			return fmt.Errorf("invalid tip priority: %s", s)
+		}
+
+		return nil
+	}
+
+	type Alias TipPriority
+	var alias Alias
+
+	if err := json.Unmarshal(b, &alias); err != nil {
+		return fmt.Errorf("failed to unmarshal custom tip: %w", err)
+	}
+
+	t.Custom = alias.Custom
+
+	return nil
+}
+
+// Relative tip priority
+type TipPriorityEnum string
+
+const (
+	// Relative tip priority
+	TipPrioritySlow TipPriorityEnum = "slow"
+	// Relative tip priority
+	TipPriorityNormal TipPriorityEnum = "normal"
+	// Relative tip priority
+	TipPriorityFast TipPriorityEnum = "fast"
+)
 
 // Object containing timestamps corresponding to `Execute After` and `Execute Before`
 type TimeBounds struct {
