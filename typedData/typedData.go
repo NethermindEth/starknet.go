@@ -426,8 +426,16 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 			return enc, err
 		}
 
+		// The ChainId can be either `chainId` or `chain_id`.
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
-		domainMap["chain_id"] = domainMap["chainId"]
+		// We find the one that contains the value and we copy the value to the other field.
+		// It's an workaround to handle both cases.
+
+		if domainMap["chainId"] != nil {
+			domainMap["chain_id"] = domainMap["chainId"]
+		} else {
+			domainMap["chainId"] = domainMap["chain_id"]
+		}
 
 		return encodeData(typeDef, td, domainMap, false, context...)
 	}
@@ -994,7 +1002,7 @@ func (domain Domain) MarshalJSON() ([]byte, error) {
 		revision = nil
 	} else {
 		if domain.HasStringRevision {
-			revision = fmt.Sprintf("%v", domain.Revision)
+			revision = strconv.FormatUint(uint64(domain.Revision), 10)
 		} else {
 			revision = domain.Revision
 		}
