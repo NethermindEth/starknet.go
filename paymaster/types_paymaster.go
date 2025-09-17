@@ -210,29 +210,3 @@ type TrackingIdResponse struct {
 	// The status of the transaction associated with the ID
 	Status TxnStatus `json:"status"`
 }
-
-// ExecutableUserInvoke is an invoke transaction ready for execution (user address, typed data, signature).
-type ExecutableUserInvoke struct {
-	UserAddress *felt.Felt   `json:"user_address"`
-	TypedData   interface{}  `json:"typed_data"`
-	Signature   []*felt.Felt `json:"signature"`
-}
-
-// ExecutableUserTransaction is a user transaction ready for execution (deploy, invoke, or both).
-type ExecutableUserTransaction struct {
-	Type   string               `json:"type"` // "deploy", "invoke", "deploy_and_invoke"
-	Deploy interface{}          `json:"deployment,omitempty"`
-	Invoke ExecutableUserInvoke `json:"invoke,omitempty"`
-}
-
-// ExecuteTransactionRequest is the request to execute a transaction via the paymaster (transaction + parameters).
-type ExecuteTransactionRequest struct {
-	Transaction ExecutableUserTransaction `json:"transaction"`
-	Parameters  UserParameters            `json:"parameters"`
-}
-
-// ExecuteTransactionResponse is the response from executing a transaction (tracking ID and transaction hash).
-type ExecuteTransactionResponse struct {
-	TrackingId      *felt.Felt `json:"tracking_id"`
-	TransactionHash *felt.Felt `json:"transaction_hash"`
-}
