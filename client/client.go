@@ -106,6 +106,16 @@ type Client struct {
 	reqTimeout  chan *requestOp  // removes response IDs when call timeout expires
 }
 
+// ClientInt is an interface with some methods of the Client type with the purpose of
+// being used to generate mock implementations for tests.
+
+//go:generate mockgen -destination=../mocks/mock_client.go -package=mocks -mock_names=ClientI=MockClient -source=client.go ClientI
+type ClientI interface {
+	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
+	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
+}
+
 type reconnectFunc func(context.Context) (ServerCodec, error)
 
 type clientContextKey struct{}
