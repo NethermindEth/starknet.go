@@ -261,12 +261,21 @@ func TestSignature(t *testing.T) {
 
 	priv, x, _, err := GetRandomKeys()
 	require.NoError(t, err)
+	privFelt := internalUtils.BigIntToFelt(priv)
+	xFelt := internalUtils.BigIntToFelt(x)
 
 	r, s, err := Sign(hashBigInt, priv)
 	require.NoError(t, err)
 
+	// testing SignFelts
+	rFelt, sFelt, err := SignFelts(hash, privFelt)
+	require.NoError(t, err)
+	result, err := VerifyFelts(hash, rFelt, sFelt, xFelt)
+	require.NoError(t, err)
+	assert.True(t, result)
+
 	// validating the correct signatures
-	result, err := Verify(hashBigInt, r, s, x)
+	result, err = Verify(hashBigInt, r, s, x)
 	require.NoError(t, err)
 	assert.True(t, result)
 

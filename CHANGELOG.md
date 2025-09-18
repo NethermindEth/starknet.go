@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - New `client/rpcerr` package for handling RPC errors.
+- New `curve.SignFelts` function for signing messages with felt.Felt parameters.
 
 ### Changed
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.

@@ -95,6 +95,32 @@ func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
 	return r, s, err
 }
 
+// SignFelts calculates the signature of a message using the StarkCurve algorithm.
+// It does the same as Sign, but with felt.Felt parameters.
+//
+// Parameters:
+//   - msgHash: The message hash to be signed
+//   - privKey: The private key used for signing
+//
+// Returns:
+//   - r: The r component of the signature
+//   - s: The s component of the signature
+//   - error: An error if any occurred during the signing process
+func SignFelts(msgHash, privKey *felt.Felt) (r, s *felt.Felt, err error) {
+	msgHashBig := msgHash.BigInt(new(big.Int))
+	privKeyBig := privKey.BigInt(new(big.Int))
+
+	rBig, sBig, err := Sign(msgHashBig, privKeyBig)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r = new(felt.Felt).SetBigInt(rBig)
+	s = new(felt.Felt).SetBigInt(sBig)
+
+	return r, s, nil
+}
+
 // GetRandomKeys generates a random private key and its corresponding public key.
 //
 // Returns:
