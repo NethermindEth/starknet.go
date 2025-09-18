@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The `Err` function now have a specific case for the `InternalError` code.
 
 ### Dev updates
-- New `internal/tests/jsonrpc_spy.go` file containing a `spy` type for spying JSON-RPC calls in tests. The
+- New `internal/tests/jsonrpc_spy.go` file containing a `Spy` type for spying JSON-RPC calls in tests. The
 old `rpc/spy_test.go` file was removed.
 
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03

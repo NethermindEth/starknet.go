@@ -6,9 +6,12 @@ import (
 	"fmt"
 )
 
-type spy struct {
+// The purpose of the Spy type is to spy on the JSON-RPC calls made by the client.
+// It's used in the tests to mock the JSON-RPC calls and to check if the client is
+// making the correct calls.
+type Spy struct {
 	callCloser
-	buff  json.RawMessage
+	buff  []byte
 	mock  bool
 	debug bool
 }
@@ -21,7 +24,19 @@ type callCloser interface {
 	Close()
 }
 
-var _ callCloser = &spy{} //nolint:exhaustruct
+// The Spyer interface implemented by the Spy type.
+type Spyer interface {
+	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
+	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	Close()
+	LastResponse() json.RawMessage
+}
+
+// Assert that the Spy type implements the callCloser and Spyer interfaces.
+var (
+	_ callCloser = &Spy{} //nolint:exhaustruct
+	_ Spyer      = &Spy{} //nolint:exhaustruct
+)
 
 // NewJSONRPCSpy creates a new spy object.
 //
@@ -35,13 +50,13 @@ var _ callCloser = &spy{} //nolint:exhaustruct
 //
 // Returns:
 //   - spy: a new spy object
-func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
+func NewJSONRPCSpy(client callCloser, debug ...bool) Spyer {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
 	}
 	if TEST_ENV == MockEnv {
-		return &spy{
+		return &Spy{
 			callCloser: client,
 			buff:       []byte{},
 			mock:       true,
@@ -49,7 +64,7 @@ func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
 		}
 	}
 
-	return &spy{
+	return &Spy{
 		callCloser: client,
 		buff:       []byte{},
 		mock:       false,
@@ -67,7 +82,7 @@ func NewJSONRPCSpy(client callCloser, debug ...bool) *spy {
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (s *spy) CallContext(ctx context.Context, result interface{}, method string, arg interface{}) error {
+func (s *Spy) CallContext(ctx context.Context, result interface{}, method string, arg interface{}) error {
 	if s.mock {
 		return s.callCloser.CallContext(ctx, result, method, arg)
 	}
@@ -106,7 +121,7 @@ func (s *spy) CallContext(ctx context.Context, result interface{}, method string
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (s *Spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	if s.mock {
 		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
 	}
@@ -139,7 +154,7 @@ func (s *spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 
 // LastResponse returns the last response captured by the spy.
 // In other words, it returns the raw JSON response received from the server when calling a `callCloser` method.
-func (s *spy) LastResponse() json.RawMessage {
+func (s *Spy) LastResponse() json.RawMessage {
 	return s.buff
 }
 
