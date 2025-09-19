@@ -991,7 +991,7 @@ func (domain Domain) MarshalJSON() ([]byte, error) {
 	} else {
 		chainId, err = strconv.Atoi(domain.ChainId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cannot parse 'chain_id' value: %w", err)
 		}
 	}
 
