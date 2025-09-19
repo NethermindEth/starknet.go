@@ -940,9 +940,6 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 	rawChainId, ok := dec["chainId"]
 	if !ok {
 		err = errors.New("error getting the value of 'chainId' from 'domain' JSON field")
-	}
-
-	if err != nil {
 		if numRevision == 1 {
 			return err
 		}
