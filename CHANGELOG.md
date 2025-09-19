@@ -25,10 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
   - The `Err` function now have a specific case for the `InternalError` code.
 
+### Fixed
+- The `typedData.TypedData` was not being marshaled exactly as it is in the original JSON. Now, the original JSON is preserved,
+  so the output of `TypedData.MarshalJSON()` is exactly as the original JSON.
+
 ### Dev updates
 - New `internal/tests/jsonrpc_spy.go` file containing a `Spy` type for spying JSON-RPC calls in tests. The
 old `rpc/spy_test.go` file was removed.
 - New `mocks/mock_client.go` file containing a mock of the `client.Client` type (`client.ClientI` interface).
+- New benchmarks and tests for the `typedData` pkg.
 
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03
 ### Changed

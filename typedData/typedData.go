@@ -19,11 +19,11 @@ import (
 var typeNameRegexp = regexp.MustCompile(`[^\(\),\s]+`)
 
 type TypedData struct {
-	Types       map[string]TypeDefinition
-	PrimaryType string
-	Domain      Domain
-	Message     map[string]any
-	Revision    *revision
+	Types       map[string]TypeDefinition `json:"types"`
+	PrimaryType string                    `json:"primaryType"`
+	Domain      Domain                    `json:"domain"`
+	Message     map[string]any            `json:"message"`
+	Revision    *revision                 `json:"-"`
 }
 
 type Domain struct {
@@ -31,6 +31,11 @@ type Domain struct {
 	Version  string `json:"version"`
 	ChainId  string `json:"chainId"`
 	Revision uint8  `json:"revision,omitempty"`
+
+	// Flags to deal with edge cases, used to marshal the `Domain` exactly as it is in the original JSON.
+	hasStringChainId  bool `json:"-"`
+	hasOldChainIdName bool `json:"-"`
+	HasStringRevision bool `json:"-"`
 }
 
 type TypeDefinition struct {
@@ -421,8 +426,16 @@ func EncodeData(typeDef *TypeDefinition, td *TypedData, context ...string) (enc 
 			return enc, err
 		}
 
+		// The ChainId can be either `chainId` or `chain_id`.
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
-		domainMap["chain_id"] = domainMap["chainId"]
+		// We find the one that contains the value and we copy the value to the other field.
+		// It's an workaround to handle both cases.
+
+		if domainMap["chainId"] != nil {
+			domainMap["chain_id"] = domainMap["chainId"]
+		} else {
+			domainMap["chainId"] = domainMap["chain_id"]
+		}
 
 		return encodeData(typeDef, td, domainMap, false, context...)
 	}
@@ -886,7 +899,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 	getField := func(fieldName string) (string, error) {
 		value, ok := dec[fieldName]
 		if !ok {
-			return "", fmt.Errorf("error getting the value of '%s' from 'domain' struct", fieldName)
+			return "", fmt.Errorf("error getting the value of '%s' from 'domain' JSON field", fieldName)
 		}
 
 		return fmt.Sprintf("%v", value), nil
@@ -902,34 +915,125 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	revision, err := getField("revision")
-	if err != nil {
-		revision = "0"
-	}
-	numRevision, err := strconv.ParseUint(revision, 10, 8)
-	if err != nil {
-		return err
+	// Custom logic to handle the `revision` field,
+	// used to marshal the Revision exactly as it is in the original JSON.
+	rawRevision, ok := dec["revision"]
+	if !ok {
+		rawRevision = "0"
 	}
 
-	chainId, err := getField("chainId")
-	if err != nil {
+	var numRevision uint64
+	switch revision := rawRevision.(type) {
+	case string:
+		domain.HasStringRevision = true
+		numRevision, err = strconv.ParseUint(revision, 10, 8)
+		if err != nil {
+			return err
+		}
+	case float64:
+		domain.HasStringRevision = false
+		numRevision = uint64(revision)
+	}
+
+	// Custom logic to handle the `chainId` field,
+	// used to marshal the ChainId exactly as it is in the original JSON.
+	rawChainId, ok := dec["chainId"]
+	if !ok {
+		err = errors.New("error getting the value of 'chainId' from 'domain' JSON field")
 		if numRevision == 1 {
 			return err
 		}
-		var err2 error
+
+		// `chain_id` was also used in the past, so we check for it if the `chainId` field is not found
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
-		chainId, err2 = getField("chain_id")
-		if err2 != nil {
+		rawChainId, ok = dec["chain_id"]
+		if !ok {
+			err2 := errors.New("error getting the value of 'chain_id' from 'domain' JSON field")
+
 			return fmt.Errorf("%w: %w", err, err2)
 		}
+		domain.hasOldChainIdName = true
 	}
 
+	switch rawChainId.(type) {
+	case string:
+		domain.hasStringChainId = true
+	case float64:
+		domain.hasStringChainId = false
+	}
+	chainId := fmt.Sprintf("%v", rawChainId)
+
+	// Final step
 	*domain = Domain{
 		Name:     name,
 		Version:  version,
 		ChainId:  chainId,
 		Revision: uint8(numRevision),
+
+		hasStringChainId:  domain.hasStringChainId,
+		hasOldChainIdName: domain.hasOldChainIdName,
+		HasStringRevision: domain.HasStringRevision,
 	}
 
 	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface for Domain.
+// Some logic was added to marshal the `Domain` exactly as it is in the original JSON.
+func (domain Domain) MarshalJSON() ([]byte, error) {
+	var chainId any
+	var revision any
+	var err error
+
+	// E.g: if it's `1`, we will marshal it as `1`, not `"1"`.
+	if domain.hasStringChainId {
+		chainId = domain.ChainId
+	} else {
+		chainId, err = strconv.Atoi(domain.ChainId)
+		if err != nil {
+			return nil, fmt.Errorf("cannot parse 'chain_id' value: %w", err)
+		}
+	}
+
+	if domain.Revision == 0 {
+		revision = nil
+	} else {
+		if domain.HasStringRevision {
+			revision = strconv.FormatUint(uint64(domain.Revision), 10)
+		} else {
+			revision = domain.Revision
+		}
+	}
+
+	// The purpose here is to marshal the `Domain` exactly as it is in the original JSON.
+	// This is achieved by having two chainId fields, one for the old name and one for the new name,
+	// and using the `omitempty` tag to only include one of them, the one that is the same as the original JSON.
+	// Similar for the `Revision` field.
+	var temp struct {
+		Name       string `json:"name"`
+		Version    string `json:"version"`
+		ChainIdOld any    `json:"chain_id,omitempty"` // old chainId json name
+		ChainIdNew any    `json:"chainId,omitempty"`  // new chainId json name
+		Revision   any    `json:"revision,omitempty"`
+	}
+	temp.Name = domain.Name
+	temp.Version = domain.Version
+	temp.Revision = revision
+
+	if domain.hasOldChainIdName {
+		temp.ChainIdOld = chainId
+
+		return json.Marshal(temp)
+	}
+
+	temp.ChainIdNew = chainId
+
+	return json.Marshal(temp)
+}
+
+// MarshalJSON implements the json.Marshaler interface for TypeDefinition
+//
+//nolint:gocritic //  json.Marshaler interface requires a value receiver
+func (td TypeDefinition) MarshalJSON() ([]byte, error) {
+	return json.Marshal(td.Parameters)
 }
