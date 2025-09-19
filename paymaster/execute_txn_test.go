@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -19,12 +20,15 @@ func TestExecuteTransaction(t *testing.T) {
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
+		_, pubKey, _, _ := curve.GetRandomKeys()
+		pubKeyFelt := new(felt.Felt).SetBigInt(pubKey)
+
 		t.Run("execute deploy transaction", func(t *testing.T) {
 			t.Parallel()
 
-			pm, spy := SetupPaymaster(t, true)
+			pm, spy := SetupPaymaster(t)
 
-			deployTxn := buildDeployTxn(t, pm)
+			deployTxn := buildDeployTxn(t, pm, pubKeyFelt)
 			assert.NotNil(t, deployTxn)
 
 			request := ExecuteTransactionRequest{
@@ -45,6 +49,8 @@ func TestExecuteTransaction(t *testing.T) {
 
 			resp, err := pm.ExecuteTransaction(context.Background(), &request)
 			require.NoError(t, err)
+			t.Logf("Tracking ID: %s", resp.TrackingId)
+			t.Logf("Transaction Hash: %s", resp.TransactionHash)
 
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
@@ -54,16 +60,19 @@ func TestExecuteTransaction(t *testing.T) {
 
 }
 
-// buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
-func buildDeployTxn(t *testing.T, pm *Paymaster) (resp *BuildTransactionResponse) {
-	t.Helper()
+// same as account.PrecomputeAccountAddress, but to avoid circular dependency
+func precomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
+}
 
-	_, pub, _ := account.GetRandomKeys()
+// buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
+func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+	t.Helper()
 
 	// OZ account class hash
 	classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
-	constructorCalldata := []*felt.Felt{pub}
-	precAddress := account.PrecomputeAccountAddress(internalUtils.RANDOM_FELT, classHash, constructorCalldata)
+	constructorCalldata := []*felt.Felt{pubKey}
+	precAddress := precomputeAccountAddress(internalUtils.RANDOM_FELT, classHash, constructorCalldata)
 
 	deploymentData := &AccDeploymentData{
 		Address:             precAddress,

@@ -29,7 +29,7 @@ type MockPaymaster struct {
 }
 
 // Creates a real Sepolia paymaster client and a spy for integration tests.
-func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, *tests.Spy) {
+func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
 	t.Helper()
 
 	apiKey := os.Getenv("AVNU_API_KEY")
@@ -59,6 +59,7 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 }
 
 // GetStrkAccountData returns the STRK account data from the environment variables.
+// This is used for integration tests, where we need a real testnet account with STRK tokens.
 func GetStrkAccountData(t *testing.T) (privKey *felt.Felt, pubKey *felt.Felt, accountAddress *felt.Felt) {
 	t.Helper()
 

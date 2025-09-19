@@ -30,9 +30,9 @@ func (p *Paymaster) ExecuteTransaction(ctx context.Context, request *ExecuteTran
 type ExecuteTransactionRequest struct {
 	// Typed data build by calling paymaster_buildTransaction signed by the
 	// user to be executed by the paymaster service
-	Transaction ExecutableUserTransaction `json:"transaction"`
+	Transaction *ExecutableUserTransaction `json:"transaction"`
 	// Execution parameters to be used when executing the transaction
-	Parameters UserParameters `json:"parameters"`
+	Parameters *UserParameters `json:"parameters"`
 }
 
 // ExecutableUserTransaction is a user transaction ready for execution (deploy, invoke, or both).
