@@ -899,7 +899,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 	getField := func(fieldName string) (string, error) {
 		value, ok := dec[fieldName]
 		if !ok {
-			return "", fmt.Errorf("error getting the value of '%s' from 'domain' struct", fieldName)
+			return "", fmt.Errorf("error getting the value of '%s' from 'domain' JSON field", fieldName)
 		}
 
 		return fmt.Sprintf("%v", value), nil
@@ -939,7 +939,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 	// used to marshal the ChainId exactly as it is in the original JSON.
 	rawChainId, ok := dec["chainId"]
 	if !ok {
-		err = errors.New("error getting the value of 'chainId' from 'domain' struct")
+		err = errors.New("error getting the value of 'chainId' from 'domain' JSON field")
 	}
 
 	if err != nil {
@@ -951,7 +951,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
 		rawChainId, ok = dec["chain_id"]
 		if !ok {
-			err2 := errors.New("error getting the value of 'chain_id' from 'domain' struct")
+			err2 := errors.New("error getting the value of 'chain_id' from 'domain' JSON field")
 
 			return fmt.Errorf("%w: %w", err, err2)
 		}
