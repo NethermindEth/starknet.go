@@ -97,8 +97,6 @@ func TestFeeModeType(t *testing.T) {
 }
 
 // Test the UserParamVersion type
-//
-
 func TestUserParamVersion(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
