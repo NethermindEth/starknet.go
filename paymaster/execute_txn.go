@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/typedData"
 )
 
@@ -20,7 +21,16 @@ import (
 func (p *Paymaster) ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", request); err != nil {
-		return nil, err
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			ErrInvalidAddress,
+			ErrClassHashNotSupported,
+			ErrInvalidDeploymentData,
+			ErrInvalidSignature,
+			ErrUnknownError,
+			ErrMaxAmountTooLow,
+			ErrTransactionExecutionError,
+		)
 	}
 
 	return &response, nil
