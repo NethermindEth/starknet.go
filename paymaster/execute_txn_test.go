@@ -66,7 +66,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Parallel()
 
 			pm, spy := SetupPaymaster(t)
-			t.Log("paymster successfully initialized")
+			t.Log("paymaster successfully initialized")
 
 			privK, _, accAdd := GetStrkAccountData(t)
 			t.Log("account data fetched")
@@ -76,10 +76,11 @@ func TestExecuteTransaction(t *testing.T) {
 
 			mshHash, err := invokeTxn.TypedData.GetMessageHash(accAdd.String())
 			require.NoError(t, err)
+			t.Log("message hash:", mshHash)
 
 			r, s, err := curve.SignFelts(mshHash, privK)
 			require.NoError(t, err)
-			t.Log("typed data signed")
+			t.Log("typed data signature:", r, s)
 
 			t.Log("executing the invoke transaction in the paymaster")
 
@@ -166,8 +167,42 @@ func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *Build
 	return resp
 }
 
-func buildInvokeTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+// buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
+func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *BuildTransactionResponse) {
 	t.Helper()
+
+	t.Log("building deploy transaction")
+	t.Log("account address:", accAdd)
+
+	invokeData := &UserInvoke{
+		UserAddress: accAdd,
+		Calls: []Call{
+			{
+				// same ERC20 contract as in examples/simpleInvoke
+				To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+				Selector: internalUtils.GetSelectorFromNameFelt("mint"),
+				Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+			},
+		},
+	}
+	t.Logf("invoke data: %+v", invokeData)
+
+	t.Log("calling paymaster_buildTransaction method")
+	var err error
+	resp, err = pm.BuildTransaction(context.Background(), &BuildTransactionRequest{
+		Transaction: &UserTransaction{
+			Type:   UserTxnInvoke,
+			Invoke: invokeData,
+		},
+		Parameters: &UserParameters{
+			Version: UserParamV1,
+			FeeMode: FeeMode{
+				Mode: FeeModeSponsored,
+			},
+		},
+	})
+	require.NoError(t, err)
+	t.Log("invoke transaction successfully built by the paymaster")
 
 	return resp
 }
