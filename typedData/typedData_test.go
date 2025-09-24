@@ -23,6 +23,7 @@ var (
 		"v1Nested",
 		"allInOne",
 		"example_enumNested",
+		"avnu_paymaster_invoke",
 	}
 )
 
@@ -122,7 +123,6 @@ func TestGetMessageHash(t *testing.T) {
 		ExpectedMessageHash string
 	}
 
-	//nolint:dupl
 	testSet := []testSetType{
 		{
 			TypedDataName:       "baseExample",
@@ -173,6 +173,11 @@ func TestGetMessageHash(t *testing.T) {
 			TypedDataName:       "example_enumNested",
 			Address:             "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
 			ExpectedMessageHash: "0x691fc54567306a8ea5431130f1b98299e74a748ac391540a86736f20ef5f2b7",
+		},
+		{
+			TypedDataName:       "avnu_paymaster_invoke",
+			Address:             "0x05c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+			ExpectedMessageHash: "0x523f153f2a3ca228a2ea222fb5114437a9191bdade099667ef0c113f5444fa0",
 		},
 	}
 
@@ -236,6 +241,11 @@ func TestGetTypeHash(t *testing.T) {
 			TypeName:      "Example",
 			ExpectedHash:  "0x2143bb787fabace39d62e9acf8b6e97d9a369000516c3e6ffd963dc1370fc1a",
 		},
+		{
+			TypedDataName: "avnu_paymaster_invoke",
+			TypeName:      "OutsideExecution",
+			ExpectedHash:  "0x312b56c05a7965066ddbda31c016d8d05afc305071c0ca3cdc2192c3c2f1f0f",
+		},
 	}
 	for _, test := range testSet {
 		t.Run(test.TypedDataName, func(t *testing.T) {
@@ -268,7 +278,6 @@ func TestEncodeType(t *testing.T) {
 		ExpectedEncode string
 	}
 
-	//nolint:dupl
 	testSet := []testSetType{
 		{
 			TypedDataName:  "baseExample",
@@ -379,6 +388,11 @@ func TestGetStructHash(t *testing.T) {
 			TypedDataName: "example_enum",
 			TypeName:      "Example",
 			ExpectedHash:  "0x1e1bb5d477e92cbf562b3b766c5c1e5f8590f2df868d4c8249c0db8416f8c37",
+		},
+		{
+			TypedDataName: "avnu_paymaster_invoke",
+			TypeName:      "OutsideExecution",
+			ExpectedHash:  "0x117e7ef9a7d447eb4bb3d9ebbb60594e0630f463ec7875f6fcc0ffad8d71c96",
 		},
 	}
 	for _, test := range testSet {
