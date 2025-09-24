@@ -819,10 +819,25 @@ func encodePieceOfData(typeName string, data any, rev *revision) (resp *felt.Fel
 	case "selector":
 		value := fmt.Sprintf("%v", data)
 
+		// To the case of the value being an already hashed selector, so we
+		// skip the hashing step
+		if isHexString(value) {
+			return internalUtils.HexToFelt(value)
+		}
+
 		return internalUtils.GetSelectorFromNameFelt(value), nil
 	default:
 		return resp, fmt.Errorf("invalid type '%s'", typeName)
 	}
+}
+
+func isHexString(str string) bool {
+	res, err := regexp.MatchString("^0x[0-9a-fA-F]+$", str)
+	if err != nil {
+		return false
+	}
+
+	return res
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for TypedData
