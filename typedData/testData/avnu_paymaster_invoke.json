@@ -1,0 +1,81 @@
+{
+  "types": {
+    "StarknetDomain": [
+      {
+        "name": "name",
+        "type": "shortstring"
+      },
+      {
+        "name": "version",
+        "type": "shortstring"
+      },
+      {
+        "name": "chainId",
+        "type": "shortstring"
+      },
+      {
+        "name": "revision",
+        "type": "shortstring"
+      }
+    ],
+    "OutsideExecution": [
+      {
+        "name": "Caller",
+        "type": "ContractAddress"
+      },
+      {
+        "name": "Nonce",
+        "type": "felt"
+      },
+      {
+        "name": "Execute After",
+        "type": "u128"
+      },
+      {
+        "name": "Execute Before",
+        "type": "u128"
+      },
+      {
+        "name": "Calls",
+        "type": "Call*"
+      }
+    ],
+    "Call": [
+      {
+        "name": "To",
+        "type": "ContractAddress"
+      },
+      {
+        "name": "Selector",
+        "type": "selector"
+      },
+      {
+        "name": "Calldata",
+        "type": "felt*"
+      }
+    ]
+  },
+  "domain": {
+    "name": "Account.execute_from_outside",
+    "version": "2",
+    "chainId": "SN_SEPOLIA",
+    "revision": "1"
+  },
+  "primaryType": "OutsideExecution",
+  "message": {
+    "Caller": "0x75a180e18e56da1b1cae181c92a288f586f5fe22c18df21cf97886f1e4b316c",
+    "Nonce": "0x89ac3804c1e246bb124ae7c586a17cd8",
+    "Execute After": "0x1",
+    "Execute Before": "0x68d2eea3",
+    "Calls": [
+      {
+        "To": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+        "Selector": "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+        "Calldata": [
+          "0x2710",
+          "0x0"
+        ]
+      }
+    ]
+  }
+}
