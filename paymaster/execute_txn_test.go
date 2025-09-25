@@ -131,9 +131,9 @@ func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *Build
 	t.Log("building deploy transaction")
 	t.Log("public key:", pubKey)
 
-	// OZ account class hash
-	classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
-	constructorCalldata := []*felt.Felt{pubKey}
+	// Argent account class hash that supports outside executions
+	classHash := internalUtils.TestHexToFelt(t, "0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+	constructorCalldata := []*felt.Felt{&felt.Zero, pubKey, new(felt.Felt).SetUint64(1)}
 	precAddress := precomputeAccountAddress(internalUtils.RANDOM_FELT, classHash, constructorCalldata)
 	t.Log("precomputed address:", precAddress)
 
