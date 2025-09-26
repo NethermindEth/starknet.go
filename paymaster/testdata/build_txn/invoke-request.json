@@ -1,0 +1,45 @@
+{
+  "jsonrpc": "2.0",
+  "method": "paymaster_buildTransaction",
+  "params": [
+    {
+      "transaction": {
+        "type": "invoke",
+        "invoke": {
+          "user_address": "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+          "calls": [
+            {
+              "to": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+              "selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+              "calldata": [
+                "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+                "0xfff",
+                "0x0"
+              ]
+            },
+            {
+              "to": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+              "selector": "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+              "calldata": [
+                "0x2710",
+                "0x0"
+              ]
+            }
+          ]
+        }
+      },
+      "parameters": {
+        "version": "0x1",
+        "fee_mode": {
+          "mode": "default",
+          "gas_token": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          "tip": {
+            "custom": 1000
+          }
+        },
+        "time_bounds": null
+      }
+    }
+  ],
+  "id": 1
+}
