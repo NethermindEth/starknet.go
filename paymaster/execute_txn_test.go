@@ -19,6 +19,7 @@ func TestExecuteTransaction(t *testing.T) {
 	t.Parallel()
 
 	t.Run("integration", func(t *testing.T) {
+		t.Parallel()
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
 		privKey, pubKey, _, err := curve.GetRandomKeys()
@@ -31,7 +32,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Parallel()
 
 			pm, spy := SetupPaymaster(t)
-			t.Log("paymster successfully initialized")
+			t.Log("paymster successfully initialised")
 
 			deployTxn := buildDeployTxn(t, pm, pubKeyFelt)
 			assert.NotNil(t, deployTxn)
@@ -70,7 +71,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Parallel()
 
 			pm, spy := SetupPaymaster(t)
-			t.Log("paymaster successfully initialized")
+			t.Log("paymaster successfully initialised")
 
 			privK, _, accAdd := GetStrkAccountData(t)
 			t.Log("account data fetched")
@@ -124,7 +125,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Parallel()
 
 			pm, spy := SetupPaymaster(t)
-			t.Log("paymster successfully initialized")
+			t.Log("paymster successfully initialised")
 
 			builtTxn := buildDeployAndInvokeTxn(t, pm, pubKeyFelt)
 			assert.NotNil(t, builtTxn)
@@ -175,6 +176,7 @@ func TestExecuteTransaction(t *testing.T) {
 	})
 
 	t.Run("mock", func(t *testing.T) {
+		t.Parallel()
 		tests.RunTestOn(t, tests.MockEnv)
 
 		pubKey := internalUtils.TestHexToFelt(t, "0x1cf6046c81f47d488c528e52066482f6756029bed10cf5df35608bb8eebac9")
@@ -232,6 +234,7 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
+		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building invoke request")
@@ -277,6 +280,7 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
+		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute deploy_and_invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building deploy_and_invoke request")
@@ -322,7 +326,6 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 	})
-
 }
 
 // same as account.PrecomputeAccountAddress, but to avoid circular dependency
@@ -356,6 +359,8 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 }
 
 // buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
+//
+//nolint:dupl // It is similar to buildInvokeTxn, but it has small differences
 func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
 	t.Helper()
 
@@ -407,6 +412,8 @@ func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 }
 
 // buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
+//
+//nolint:dupl // It is similar to buildDeployTxn, but it has small differences
 func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *BuildTransactionResponse) {
 	t.Helper()
 

@@ -17,7 +17,7 @@ var STRKContractAddress, _ = internalUtils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cd
 
 // Test the UserTxnType type
 //
-//nolint:dupl
+
 func TestUserTxnType(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
@@ -60,7 +60,7 @@ func TestUserTxnType(t *testing.T) {
 
 // Test the FeeModeType type
 //
-//nolint:dupl
+
 func TestFeeModeType(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
@@ -186,6 +186,7 @@ func TestBuildTransaction(t *testing.T) {
 	}
 
 	t.Run("integration", func(t *testing.T) {
+		t.Parallel()
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
 		t.Run("deploy transaction type", func(t *testing.T) {
@@ -366,6 +367,7 @@ func TestBuildTransaction(t *testing.T) {
 	})
 
 	t.Run("mock", func(t *testing.T) {
+		t.Parallel()
 		tests.RunTestOn(t, tests.MockEnv)
 
 		t.Run("deploy transaction type - sponsored fee mode", func(t *testing.T) {

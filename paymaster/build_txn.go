@@ -227,10 +227,11 @@ type FeeMode struct {
 func (f FeeMode) MarshalJSON() ([]byte, error) {
 	if f.Tip == nil {
 		// The `TipPriority.MarshalJSON` method will set the default tip priority
-		f.Tip = &TipPriority{}
+		f.Tip = &TipPriority{} //nolint:exhaustruct
 	}
 
 	type alias FeeMode
+
 	return json.Marshal(alias(f))
 }
 
