@@ -184,12 +184,11 @@ func precomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []
 	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
 
-// buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
-func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+// createDeploymentData creates the deployment data for a deploy transaction
+func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 	t.Helper()
 
-	t.Log("building deploy transaction")
-	t.Log("public key:", pubKey)
+	t.Log("creating deployment data")
 
 	// Argent account class hash that supports outside executions
 	classHash := internalUtils.TestHexToFelt(t, "0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
@@ -206,6 +205,18 @@ func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *Build
 		Version:             2,
 	}
 	t.Logf("deployment data: %+v", deploymentData)
+
+	return deploymentData
+}
+
+// buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
+func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+	t.Helper()
+
+	t.Log("building deploy transaction")
+	t.Log("public key:", pubKey)
+
+	deploymentData := createDeploymentData(t, pubKey)
 
 	t.Log("calling paymaster_buildTransaction method")
 	var err error
@@ -227,12 +238,11 @@ func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *Build
 	return resp
 }
 
-// buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
-func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *BuildTransactionResponse) {
+// createInvokeData creates the invoke data for an invoke transaction
+func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 	t.Helper()
 
-	t.Log("building deploy transaction")
-	t.Log("account address:", accAdd)
+	t.Log("creating invoke data")
 
 	invokeData := &UserInvoke{
 		UserAddress: accAdd,
@@ -246,6 +256,18 @@ func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *Build
 		},
 	}
 	t.Logf("invoke data: %+v", invokeData)
+
+	return invokeData
+}
+
+// buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
+func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *BuildTransactionResponse) {
+	t.Helper()
+
+	t.Log("building deploy transaction")
+	t.Log("account address:", accAdd)
+
+	invokeData := createInvokeData(t, accAdd)
 
 	t.Log("calling paymaster_buildTransaction method")
 	var err error
