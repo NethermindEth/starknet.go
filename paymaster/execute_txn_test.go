@@ -125,15 +125,11 @@ func TestExecuteTransaction(t *testing.T) {
 			pm, spy := SetupPaymaster(t)
 			t.Log("paymster successfully initialized")
 
-			deployTxn := buildDeployTxn(t, pm, pubKeyFelt)
-			assert.NotNil(t, deployTxn)
+			builtTxn := buildDeployAndInvokeTxn(t, pm, pubKeyFelt)
+			assert.NotNil(t, builtTxn)
 
-			accAdd := deployTxn.Deployment.Address
-
-			invokeTxn := buildInvokeTxn(t, pm, accAdd)
-			assert.NotNil(t, invokeTxn)
-
-			mshHash, err := invokeTxn.TypedData.GetMessageHash(accAdd.String())
+			accAdd := builtTxn.Deployment.Address
+			mshHash, err := builtTxn.TypedData.GetMessageHash(accAdd.String())
 			require.NoError(t, err)
 			t.Log("message hash:", mshHash)
 
@@ -146,10 +142,10 @@ func TestExecuteTransaction(t *testing.T) {
 			request := ExecuteTransactionRequest{
 				Transaction: &ExecutableUserTransaction{
 					Type:       UserTxnDeployAndInvoke,
-					Deployment: deployTxn.Deployment,
+					Deployment: builtTxn.Deployment,
 					Invoke: &ExecutableUserInvoke{
 						UserAddress: accAdd,
-						TypedData:   invokeTxn.TypedData,
+						TypedData:   builtTxn.TypedData,
 						Signature:   []*felt.Felt{r, s},
 					},
 				},
@@ -285,6 +281,40 @@ func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *Build
 	})
 	require.NoError(t, err)
 	t.Log("invoke transaction successfully built by the paymaster")
+
+	return resp
+}
+
+// buildDeployAndInvokeTxn builds a deploy and invoke transaction calling the paymaster_buildTransaction method
+func buildDeployAndInvokeTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+	t.Helper()
+
+	t.Log("building deploy_and_invoke transaction")
+	t.Log("public key:", pubKey)
+
+	deploymentData := createDeploymentData(t, pubKey)
+	invokeData := createInvokeData(t, deploymentData.Address)
+
+	t.Log("calling paymaster_buildTransaction method")
+	var err error
+	resp, err = pm.BuildTransaction(context.Background(), &BuildTransactionRequest{
+		Transaction: &UserTransaction{
+			Type:       UserTxnDeployAndInvoke,
+			Deployment: deploymentData,
+			Invoke:     invokeData,
+		},
+		Parameters: &UserParameters{
+			Version: UserParamV1,
+			FeeMode: FeeMode{
+				Mode: FeeModeSponsored,
+				Tip: &TipPriority{
+					Priority: TipPriorityFast,
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+	t.Log("deploy_and_invoke transaction successfully built by the paymaster")
 
 	return resp
 }
