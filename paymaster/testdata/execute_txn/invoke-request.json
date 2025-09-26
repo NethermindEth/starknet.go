@@ -1,0 +1,108 @@
+{
+  "jsonrpc": "2.0",
+  "method": "paymaster_executeTransaction",
+  "params": [
+    {
+      "transaction": {
+        "type": "invoke",
+        "invoke": {
+          "user_address": "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+          "typed_data": {
+            "types": {
+              "Call": [
+                {
+                  "name": "To",
+                  "type": "ContractAddress"
+                },
+                {
+                  "name": "Selector",
+                  "type": "selector"
+                },
+                {
+                  "name": "Calldata",
+                  "type": "felt*"
+                }
+              ],
+              "OutsideExecution": [
+                {
+                  "name": "Caller",
+                  "type": "ContractAddress"
+                },
+                {
+                  "name": "Nonce",
+                  "type": "felt"
+                },
+                {
+                  "name": "Execute After",
+                  "type": "u128"
+                },
+                {
+                  "name": "Execute Before",
+                  "type": "u128"
+                },
+                {
+                  "name": "Calls",
+                  "type": "Call*"
+                }
+              ],
+              "StarknetDomain": [
+                {
+                  "name": "name",
+                  "type": "shortstring"
+                },
+                {
+                  "name": "version",
+                  "type": "shortstring"
+                },
+                {
+                  "name": "chainId",
+                  "type": "shortstring"
+                },
+                {
+                  "name": "revision",
+                  "type": "shortstring"
+                }
+              ]
+            },
+            "primaryType": "OutsideExecution",
+            "domain": {
+              "name": "Account.execute_from_outside",
+              "version": "2",
+              "chainId": "SN_SEPOLIA",
+              "revision": "1"
+            },
+            "message": {
+              "Caller": "0x75a180e18e56da1b1cae181c92a288f586f5fe22c18df21cf97886f1e4b316c",
+              "Calls": [
+                {
+                  "Calldata": [
+                    "0x2710",
+                    "0x0"
+                  ],
+                  "Selector": "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+                  "To": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"
+                }
+              ],
+              "Execute After": "0x1",
+              "Execute Before": "0x68d6af77",
+              "Nonce": "0xbfb889ffaccd4489e04743330626a442"
+            }
+          },
+          "signature": [
+            "0x76ad9fcf754cbd7e56931eb3995ae5d8150732cfe8b6c669266084f2255c9c6",
+            "0x7ed536fdbb7b3479cf8e7ee0b9ca2067141ddb225174f073c28753403ecec21"
+          ]
+        }
+      },
+      "parameters": {
+        "version": "0x1",
+        "fee_mode": {
+          "mode": "sponsored",
+          "tip": "normal"
+        },
+        "time_bounds": null
+      }
+    }
+  ],
+  "id": 1
+}
