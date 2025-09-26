@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
 // TrackingIdToLatestHash gets the latest transaction hash and status for a given tracking ID.
@@ -23,7 +24,7 @@ import (
 func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (TrackingIdResponse, error) {
 	var response TrackingIdResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", trackingId); err != nil {
-		return TrackingIdResponse{}, err
+		return TrackingIdResponse{}, rpcerr.UnwrapToRPCErr(err, ErrInvalidID)
 	}
 
 	return response, nil
