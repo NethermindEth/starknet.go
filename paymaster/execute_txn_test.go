@@ -276,6 +276,51 @@ func TestExecuteTransaction(t *testing.T) {
 			require.NoError(t, err)
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
+
+		t.Run("execute deploy_and_invoke transaction", func(t *testing.T) {
+			t.Parallel()
+			t.Log("building deploy_and_invoke request")
+
+			t.Log("asserting the request marshalled is equal to the expected request")
+			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/execute_txn/deploy_and_invoke-request.json", "params")
+			expectedReq := expectedReqs[0]
+
+			// since the deploy_and_invoke request is more complex, let's take it from the file
+			var request ExecuteTransactionRequest
+			err := json.Unmarshal(expectedReq, &request)
+			require.NoError(t, err)
+
+			rawReq, err := json.Marshal(request)
+			require.NoError(t, err)
+
+			// assert if the MarshalJSON is correct
+			assert.JSONEq(t, string(expectedReq), string(rawReq))
+
+			t.Log("asserting the response marshalled is equal to the expected response")
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/execute_txn/response.json", "result")
+
+			var response ExecuteTransactionResponse
+			err = json.Unmarshal(expectedResp, &response)
+			require.NoError(t, err)
+
+			t.Log("setting up mock paymaster and mock call")
+			pm := SetupMockPaymaster(t)
+			pm.c.EXPECT().CallContextWithSliceArgs(
+				context.Background(),
+				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
+				"paymaster_executeTransaction",
+				&request,
+			).Return(nil).
+				SetArg(1, response)
+
+			t.Log("executing the deploy_and_invoke transaction in the mock paymaster")
+			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expectedResp), string(rawResp))
+		})
 	})
 
 }
