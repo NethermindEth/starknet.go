@@ -12,6 +12,49 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// Test the TxnStatus enum type
+//
+//nolint:dupl // The enum tests are similar, but with different enum values
+func TestTxnStatusType(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+	t.Parallel()
+
+	type testCase struct {
+		Input         string
+		Expected      TxnStatus
+		ErrorExpected bool
+	}
+
+	testCases := []testCase{
+		{
+			Input:         `"active"`,
+			Expected:      TxnActive,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"accepted"`,
+			Expected:      TxnAccepted,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"dropped"`,
+			Expected:      TxnDropped,
+			ErrorExpected: false,
+		},
+		{
+			Input:         `"unknown"`,
+			ErrorExpected: true,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Input, func(t *testing.T) {
+			t.Parallel()
+			CompareEnumsHelper(t, test.Input, test.Expected, test.ErrorExpected)
+		})
+	}
+}
+
 // Test the 'paymaster_trackingIdToLatestHash' method
 func TestTrackingIdToLatestHash(t *testing.T) {
 	// The AVNU paymaster does not support this method yet, so we can't have integration tests
