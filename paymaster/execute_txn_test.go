@@ -20,8 +20,11 @@ func TestExecuteTransaction(t *testing.T) {
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
-		_, pubKey, _, _ := curve.GetRandomKeys()
+		privKey, pubKey, _, err := curve.GetRandomKeys()
+		require.NoError(t, err)
+
 		pubKeyFelt := new(felt.Felt).SetBigInt(pubKey)
+		privKeyFelt := new(felt.Felt).SetBigInt(privKey)
 
 		t.Run("execute deploy transaction", func(t *testing.T) {
 			t.Parallel()
@@ -99,6 +102,63 @@ func TestExecuteTransaction(t *testing.T) {
 						Mode: FeeModeSponsored,
 						Tip: &TipPriority{
 							Priority: TipPriorityNormal,
+						},
+					},
+				},
+			}
+
+			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			t.Log("transaction successfully executed")
+			t.Logf("Tracking ID: %s", resp.TrackingId)
+			t.Logf("Transaction Hash: %s", resp.TransactionHash)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+		})
+
+		t.Run("execute deploy_and_invoke transaction", func(t *testing.T) {
+			t.Parallel()
+
+			pm, spy := SetupPaymaster(t)
+			t.Log("paymster successfully initialized")
+
+			deployTxn := buildDeployTxn(t, pm, pubKeyFelt)
+			assert.NotNil(t, deployTxn)
+
+			accAdd := deployTxn.Deployment.Address
+
+			invokeTxn := buildInvokeTxn(t, pm, accAdd)
+			assert.NotNil(t, invokeTxn)
+
+			mshHash, err := invokeTxn.TypedData.GetMessageHash(accAdd.String())
+			require.NoError(t, err)
+			t.Log("message hash:", mshHash)
+
+			r, s, err := curve.SignFelts(mshHash, privKeyFelt)
+			require.NoError(t, err)
+			t.Log("typed data signature:", r, s)
+
+			t.Log("executing the deploy_and_invoke transaction in the paymaster")
+
+			request := ExecuteTransactionRequest{
+				Transaction: &ExecutableUserTransaction{
+					Type:       UserTxnDeployAndInvoke,
+					Deployment: deployTxn.Deployment,
+					Invoke: &ExecutableUserInvoke{
+						UserAddress: accAdd,
+						TypedData:   invokeTxn.TypedData,
+						Signature:   []*felt.Felt{r, s},
+					},
+				},
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+						Tip: &TipPriority{
+							Priority: TipPriorityFast,
 						},
 					},
 				},
