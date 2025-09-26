@@ -87,67 +87,6 @@ func (t TxnExecutionErrData) ErrorMessage() string {
 	return t.ExecutionError
 }
 
-// OutsideExecutionTypedData represents the EIP-712 typed data structure for outside execution (used for signing and validation).
-type OutsideExecutionTypedData struct {
-	Types       map[string][]TypedDataField `json:"types"`
-	PrimaryType string                      `json:"primaryType"`
-	Domain      TypedDataDomain             `json:"domain"`
-	Message     interface{}                 `json:"message"`
-}
-
-// OutsideCallV1 represents a single contract call within a V1 outside execution message.
-type OutsideCallV1 struct {
-	To          *felt.Felt   `json:"to"`
-	Selector    *felt.Felt   `json:"selector"`
-	CalldataLen *felt.Felt   `json:"calldata_len"`
-	Calldata    []*felt.Felt `json:"calldata"`
-}
-
-// OutsideExecutionMessageV1 is the message payload for a V1 outside execution.
-type OutsideExecutionMessageV1 struct {
-	Caller        *felt.Felt       `json:"caller"`
-	Nonce         *felt.Felt       `json:"nonce"`
-	ExecuteAfter  *felt.Felt       `json:"execute_after"`
-	ExecuteBefore *felt.Felt       `json:"execute_before"`
-	CallsLen      *felt.Felt       `json:"calls_len"`
-	Calls         []*OutsideCallV1 `json:"calls"`
-}
-
-// OutsideExecutionMessageV2 is the message payload for a V2 outside execution.
-type OutsideExecutionMessageV2 struct {
-	Caller        *felt.Felt `json:"Caller"`
-	Nonce         *felt.Felt `json:"Nonce"`
-	ExecuteAfter  string     `json:"Execute After"`  // u128
-	ExecuteBefore string     `json:"Execute Before"` // u128
-	Calls         []Call     `json:"Calls"`
-}
-
-// OutsideExecutionMessageV3 is the message payload for a V3-rc outside execution.
-// Note: The 'Fee' field is represented as an interface{} to accommodate different fee structures.
-type OutsideExecutionMessageV3 struct {
-	Caller        *felt.Felt  `json:"Caller"`
-	Nonce         *felt.Felt  `json:"Nonce"`
-	ExecuteAfter  string      `json:"Execute After"`  // u128
-	ExecuteBefore string      `json:"Execute Before"` // u128
-	Calls         []Call      `json:"Calls"`
-	Fee           interface{} `json:"Fee"`
-}
-
-// TypedDataField describes a single field in a typed data struct (name and type).
-type TypedDataField struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-// TypedDataDomain is the domain separator for EIP-712 typed data (name, version, chainId).
-type TypedDataDomain struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	ChainID string `json:"chainId"`
-}
-
-// ===== SNIP-X TYPES (Official Specification) =====
-
 // Object containing data about the token: contract address, number of decimals and current price in STRK
 type TokenData struct {
 	// Token contract address

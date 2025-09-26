@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -103,81 +102,5 @@ func TestGetSupportedTokens(t *testing.T) {
 		rawResult, err := json.Marshal(result)
 		require.NoError(t, err)
 		assert.JSONEq(t, expectedRawResult, string(rawResult))
-	})
-}
-
-func TestOutsideExecutionTypedData(t *testing.T) {
-	t.Run("GetOutsideExecutionTypedDataV1", func(t *testing.T) {
-		message := OutsideExecutionMessageV1{
-			Caller:        new(felt.Felt).SetUint64(1),
-			Nonce:         new(felt.Felt).SetUint64(2),
-			ExecuteAfter:  new(felt.Felt).SetUint64(3),
-			ExecuteBefore: new(felt.Felt).SetUint64(4),
-			CallsLen:      new(felt.Felt).SetUint64(1),
-			Calls: []*OutsideCallV1{
-				{
-					To:          new(felt.Felt).SetUint64(5),
-					Selector:    new(felt.Felt).SetUint64(6),
-					CalldataLen: new(felt.Felt).SetUint64(1),
-					Calldata:    []*felt.Felt{new(felt.Felt).SetUint64(7)},
-				},
-			},
-		}
-		typedData := GetOutsideExecutionTypedDataV1(message)
-
-		assert.Equal(t, "OutsideExecution", typedData.PrimaryType)
-		assert.Equal(t, "Account.execute_from_outside", typedData.Domain.Name)
-		assert.Equal(t, "1", typedData.Domain.Version)
-		assert.Equal(t, "0x534e5f4d41494e", typedData.Domain.ChainID)
-		assert.Equal(t, message, typedData.Message)
-
-		assert.Contains(t, typedData.Types, "StarkNetDomain")
-		assert.Contains(t, typedData.Types, "OutsideExecution")
-		assert.Contains(t, typedData.Types, "OutsideCall")
-	})
-
-	t.Run("GetOutsideExecutionTypedDataV2", func(t *testing.T) {
-		message := OutsideExecutionMessageV2{
-			Caller:        new(felt.Felt).SetUint64(1),
-			Nonce:         new(felt.Felt).SetUint64(2),
-			ExecuteAfter:  "3",
-			ExecuteBefore: "4",
-			Calls:         []Call{},
-		}
-		typedData := GetOutsideExecutionTypedDataV2(message)
-
-		assert.Equal(t, "OutsideExecution", typedData.PrimaryType)
-		assert.Equal(t, "Account.execute_from_outside", typedData.Domain.Name)
-		assert.Equal(t, "2", typedData.Domain.Version)
-		assert.Equal(t, "0x534e5f4d41494e", typedData.Domain.ChainID)
-		assert.Equal(t, message, typedData.Message)
-
-		assert.Contains(t, typedData.Types, "StarknetDomain")
-		assert.Contains(t, typedData.Types, "OutsideExecution")
-		assert.Contains(t, typedData.Types, "Call")
-	})
-
-	t.Run("GetOutsideExecutionTypedDataV3RC", func(t *testing.T) {
-		message := OutsideExecutionMessageV3{
-			Caller:        new(felt.Felt).SetUint64(1),
-			Nonce:         new(felt.Felt).SetUint64(2),
-			ExecuteAfter:  "3",
-			ExecuteBefore: "4",
-			Calls:         []Call{},
-			Fee:           map[string]interface{}{"No Fee": "test"},
-		}
-		typedData := GetOutsideExecutionTypedDataV3RC(&message)
-
-		assert.Equal(t, "OutsideExecution", typedData.PrimaryType)
-		assert.Equal(t, "Account.execute_from_outside", typedData.Domain.Name)
-		assert.Equal(t, "3", typedData.Domain.Version)
-		assert.Equal(t, "0x534e5f4d41494e", typedData.Domain.ChainID)
-		assert.Equal(t, message, typedData.Message)
-
-		assert.Contains(t, typedData.Types, "StarknetDomain")
-		assert.Contains(t, typedData.Types, "OutsideExecution")
-		assert.Contains(t, typedData.Types, "Call")
-		assert.Contains(t, typedData.Types, "Fee Mode")
-		assert.Contains(t, typedData.Types, "Fee Transfer")
 	})
 }
