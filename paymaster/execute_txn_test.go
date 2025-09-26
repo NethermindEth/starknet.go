@@ -12,6 +12,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestExecuteTransaction(t *testing.T) {
@@ -170,6 +171,66 @@ func TestExecuteTransaction(t *testing.T) {
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(spy.LastResponse()), string(rawResp))
+		})
+	})
+
+	t.Run("mock", func(t *testing.T) {
+		tests.RunTestOn(t, tests.MockEnv)
+
+		pubKey := internalUtils.TestHexToFelt(t, "0x1cf6046c81f47d488c528e52066482f6756029bed10cf5df35608bb8eebac9")
+		// privKey := internalUtils.TestHexToFelt(t, "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+
+		t.Run("execute deploy transaction", func(t *testing.T) {
+			t.Parallel()
+			// *** build request
+
+			deploymentData := createDeploymentData(t, pubKey)
+
+			request := ExecuteTransactionRequest{
+				Transaction: &ExecutableUserTransaction{
+					Type:       UserTxnDeploy,
+					Deployment: deploymentData,
+				},
+				Parameters: &UserParameters{
+					Version: UserParamV1,
+					FeeMode: FeeMode{
+						Mode: FeeModeSponsored,
+					},
+				},
+			}
+
+			t.Log("asserting the request marshalled is equal to the expected request")
+			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/execute_txn/deploy-request.json", "params")
+			expectedReq := expectedReqs[0]
+
+			rawReq, err := json.Marshal(request)
+			require.NoError(t, err)
+
+			assert.JSONEq(t, string(expectedReq), string(rawReq))
+
+			t.Log("asserting the response marshalled is equal to the expected response")
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/execute_txn/response.json", "result")
+
+			var response ExecuteTransactionResponse
+			err = json.Unmarshal(expectedResp, &response)
+			require.NoError(t, err)
+
+			t.Log("setting up mock paymaster and mock call")
+			pm := SetupMockPaymaster(t)
+			pm.c.EXPECT().CallContextWithSliceArgs(
+				context.Background(),
+				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
+				"paymaster_executeTransaction",
+				&request,
+			).Return(nil).
+				SetArg(1, response)
+
+			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			require.NoError(t, err)
+
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 	})
 
