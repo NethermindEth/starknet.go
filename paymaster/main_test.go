@@ -38,7 +38,7 @@ func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
 	require.NotEmpty(t, apiKey, "AVNU_API_KEY is not set")
 	apiHeader := client.WithHeader("x-paymaster-api-key", apiKey)
 
-	pm, err := NewPaymasterClient(avnuPaymasterURL, apiHeader)
+	pm, err := New(avnuPaymasterURL, apiHeader)
 	require.NoError(t, err, "failed to create paymaster client")
 
 	spy := tests.NewJSONRPCSpy(pm.c, debug...)

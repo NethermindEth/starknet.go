@@ -17,7 +17,8 @@ type Paymaster struct {
 	c callCloser
 }
 
-// Used to assert that the Paymaster struct implements all the paymaster methods
+// Used to assert that the Paymaster struct implements all the paymaster methods.
+// Ref: https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/assets/snip-29/paymaster_api.json
 type paymasterInterface interface {
 	IsAvailable(ctx context.Context) (bool, error)
 	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
@@ -36,8 +37,8 @@ type callCloser interface {
 	Close()
 }
 
-// NewPaymasterClient creates a new paymaster client for the given service URL.
-// The client will connect to the paymaster service at the specified URL.
+// Creates a new paymaster client for the given service URL.
+// Additional options can be passed to the client to configure the connection.
 //
 // Parameters:
 //   - url: The URL of the paymaster service
@@ -45,9 +46,7 @@ type callCloser interface {
 // Returns:
 //   - *Paymaster: A new paymaster client instance
 //   - error: An error if the client creation fails
-//
-// NewProvider creates a new HTTP rpc Provider instance.
-func NewPaymasterClient(url string, options ...client.ClientOption) (*Paymaster, error) {
+func New(url string, options ...client.ClientOption) (*Paymaster, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
