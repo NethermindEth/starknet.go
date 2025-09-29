@@ -125,24 +125,6 @@ func TestUserParamVersion(t *testing.T) {
 	}
 }
 
-// CompareEnumsHelper compares an enum type with the expected value and error expected.
-func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpected bool) {
-	t.Helper()
-
-	var actual T
-	err := json.Unmarshal([]byte(input), &actual)
-	if errorExpected {
-		assert.Error(t, err)
-	} else {
-		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
-
-		marshalled, err := json.Marshal(actual)
-		assert.NoError(t, err)
-		assert.Equal(t, input, string(marshalled))
-	}
-}
-
 // Test the BuildTransaction method with different transaction types and fee modes.
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()

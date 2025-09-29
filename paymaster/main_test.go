@@ -1,6 +1,7 @@
 package paymaster
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -72,4 +74,22 @@ func GetStrkAccountData(t *testing.T) (privKey, pubKey, accountAddress *felt.Fel
 	accountAddress = internalUtils.TestHexToFelt(t, strkAccountAddress)
 
 	return
+}
+
+// CompareEnumsHelper compares an enum type with the expected value and error expected.
+func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpected bool) {
+	t.Helper()
+
+	var actual T
+	err := json.Unmarshal([]byte(input), &actual)
+	if errorExpected {
+		assert.Error(t, err)
+	} else {
+		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+
+		marshalled, err := json.Marshal(actual)
+		assert.NoError(t, err)
+		assert.Equal(t, input, string(marshalled))
+	}
 }
