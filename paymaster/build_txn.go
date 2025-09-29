@@ -219,31 +219,19 @@ type FeeMode struct {
 	Mode FeeModeType `json:"mode"`
 	// The gas token to use for the transaction. Should be omitted for `sponsored` fee mode
 	GasToken *felt.Felt `json:"gas_token,omitempty"`
-	// Relative tip priority or a custom tip value. If not provided, the default is the `normal` tip priority.
-	Tip *TipPriority `json:"tip"`
-}
-
-// MarshalJSON marshals the FeeMode to JSON.
-func (f FeeMode) MarshalJSON() ([]byte, error) {
-	if f.Tip == nil {
-		// The `TipPriority.MarshalJSON` method will set the default tip priority
-		f.Tip = &TipPriority{} //nolint:exhaustruct
-	}
-
-	type alias FeeMode
-
-	return json.Marshal(alias(f))
+	// Relative tip priority or a custom tip value. If not provided/is `nil`, the paymaster will use the `normal` tip priority by default.
+	Tip *TipPriority `json:"tip,omitempty"`
 }
 
 // Relative tip priority or a custom tip value.
 //
 // The user must specify either the priority or the custom tip value.
-// If both fields are omitted, the default is the `normal` tip priority.
+// If both fields are omitted (or TipPriority is `nil`), the paymaster will use the `normal` tip priority by default.
 type TipPriority struct {
 	// The relative tip priority
 	Priority TipPriorityEnum `json:"-"`
 	// A custom tip value
-	Custom *uint64 `json:"custom"`
+	Custom *uint64 `json:"custom,omitempty"`
 }
 
 // MarshalJSON marshals the TipPriority to JSON.
@@ -261,12 +249,11 @@ func (t *TipPriority) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	// If  neither priority nor custom are set, use the default tip priority: normal
 	if t.Custom == nil {
-		return json.Marshal(TipPriorityNormal)
+		return nil, nil
 	}
 
-	// Using json.Marshal to marshal the object with the `custom` field set
+	// Marshal the `custom` field
 	type alias TipPriority
 
 	return json.Marshal(alias(*t))

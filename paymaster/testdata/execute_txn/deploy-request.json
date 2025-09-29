@@ -20,8 +20,7 @@
       "parameters": {
         "version": "0x1",
         "fee_mode": {
-          "mode": "sponsored",
-          "tip": "normal"
+          "mode": "sponsored"
         },
         "time_bounds": null
       }
