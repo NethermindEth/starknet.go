@@ -42,6 +42,7 @@ type callCloser interface {
 //
 // Parameters:
 //   - url: The URL of the paymaster service
+//   - options: Additional options to configure the client
 //
 // Returns:
 //   - *Paymaster: A new paymaster client instance
