@@ -17,8 +17,6 @@ Steps:
 5. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
 6. Make sure you are in the "paymaster" directory
 7. Execute `go run .` to run the basic paymaster invoke example
-8. To run the deploy examples (requires API key), uncomment the function calls at the end of main.go and execute again
+8. To run the deploy examples (requires API key), uncomment the function calls at the end of main.go and execute again. Also, uncomment, and assign your paymaster API key to the `AVNU_API_KEY` variable in the ".env" file
 
 The transaction hashes, tracking IDs, and execution status will be returned at the end of each example.
-
-**Note**: The deploy.go and deploy_and_invoke.go examples require a valid paymaster API key from AVNU. Without it, you can still examine the code but cannot execute those examples.

@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/curve"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/internal/utils"
 	pm "github.com/NethermindEth/starknet.go/paymaster"
 )
@@ -15,6 +16,9 @@ import (
 // An example of how to deploy an account and invoke a function in the same request using a paymaster.
 func deployAndInvokeWithPaymaster() {
 	fmt.Println("Starting paymaster example - deploy_and_invoke")
+
+	// Load variables from '.env' file
+	AVNU_API_KEY := setup.GetAvnuApiKey()
 
 	// Since all accounts in Starknet are smart contracts, we need to deploy them first before we can use them.
 	// And to do so, we need to calculate the address of the new account and fund it with

@@ -7,20 +7,20 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/client"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/internal/utils"
 	pm "github.com/NethermindEth/starknet.go/paymaster"
 )
 
-const (
-	AVNU_API_KEY = "your-api-key"
-
-	// OpenZeppelin account class hash that supports outside executions
-	OZ_ACCOUNT_CLASS_HASH = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
-)
+// OpenZeppelin account class hash that supports outside executions
+const OZ_ACCOUNT_CLASS_HASH = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
 
 // An example of how to deploy a contract with a paymaster.
 func deployWithPaymaster() {
 	fmt.Println("Starting paymaster example - deploying an account")
+
+	// Load variables from '.env' file
+	AVNU_API_KEY := setup.GetAvnuApiKey()
 
 	// Since all accounts in Starknet are smart contracts, we need to deploy them first before we can use them.
 	// And to do so, we need to calculate the address of the new account and fund it with
