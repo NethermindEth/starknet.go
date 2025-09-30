@@ -7,20 +7,14 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/client"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/internal/utils"
 	pm "github.com/NethermindEth/starknet.go/paymaster"
 )
 
-const (
-	AVNU_API_KEY = "your-api-key"
-
-	// OpenZeppelin account class hash that supports outside executions
-	OZ_ACCOUNT_CLASS_HASH = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
-)
-
-// An example of how to deploy a contract with a paymaster.
-func deployWithPaymaster() {
-	fmt.Println("Starting paymaster example - deploying an account")
+// An example of how to deploy an account and invoke a function in the same request using a paymaster.
+func deployAndInvokeWithPaymaster() {
+	fmt.Println("Starting paymaster example - deploy_and_invoke")
 
 	// Since all accounts in Starknet are smart contracts, we need to deploy them first before we can use them.
 	// And to do so, we need to calculate the address of the new account and fund it with
@@ -40,7 +34,7 @@ func deployWithPaymaster() {
 	}
 
 	fmt.Println("Established connection with the paymaster provider")
-	fmt.Print("Step 1: Build the deploy transaction\n\n")
+	fmt.Print("Step 1: Build the deploy_and_invoke transaction\n\n")
 
 	// First, let's get all the data we need for deploy an account.
 	_, pubKey, privK := account.GetRandomKeys() // Get random keys for the account
@@ -64,14 +58,34 @@ func deployWithPaymaster() {
 		Version:             2,              // The OZ account version is 2.
 	}
 
-	// With the deploy data, we can build the transaction by calling the `paymaster_buildTransaction` method.
+	// The next step is to define what we want to execute.
+	// The `deploy_and_invoke` transaction type requires both the deploy and invoke data in order to
+	// deploy the account and invoke a function within the same request.
+
+	// Here, we will execute a `mint` function in the `RAND_ERC20_CONTRACT_ADDRESS` contract, with the amount of `0xffffffff`.
+	amount, _ := utils.HexToU256Felt("0xffffffff")
+	invokeData := &pm.UserInvoke{
+		UserAddress: precAddress, // The `user_address` is the address of the account that will be deployed.
+		Calls: []pm.Call{
+			{ // These fields were explained in the `main.go` file of this same example.
+				To:       RAND_ERC20_CONTRACT_ADDRESS,
+				Selector: utils.GetSelectorFromNameFelt("mint"),
+				Calldata: amount,
+			},
+		},
+	}
+
+	// With the deploy and invoke data, we can build the transaction by calling the `paymaster_buildTransaction` method.
 	// REMEMBER: this will only work if you have a valid API key configured.
 	//
 	// A full explanation about the paymaster_buildTransaction method can be found in the `main.go` file of this same example.
 	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
 		Transaction: &pm.UserTransaction{
-			Type:       pm.UserTxnDeploy, // we are building an `deploy` transaction
+			Type: pm.UserTxnDeployAndInvoke, // we are building an `deploy_and_invoke` transaction
+
+			// Both the deploy and invoke data are required.
 			Deployment: deployData,
+			Invoke:     invokeData,
 		},
 		Parameters: &pm.UserParameters{
 			Version: pm.UserParamV1,
@@ -84,21 +98,50 @@ func deployWithPaymaster() {
 		},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Error building the deploy transaction: %s", err))
+		panic(fmt.Sprintf("Error building the deploy_and_invoke transaction: %s", err))
 	}
 	fmt.Println("Transaction successfully built by the paymaster")
 	PrettyPrint(builtTxn)
 
-	// Since we are deploying an account, we don't need to sign the transaction, just execute it.
+	fmt.Println("Step 2: Sign the transaction")
 
-	fmt.Println("Step 2: Send the signed transaction")
+	// Now that we have the built transaction, we need to sign it.
+	// Differently from the `deploy` transaction, where we just deploy a new account, in the `deploy_and_invoke`
+	// we both deploy the account and invoke a function using it. This function request needs to be signed by the account.
 
-	// With our built deploy transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
+	// The signing process consists of signing the SNIP-12 typed data contained in the built transaction.
+
+	// Firstly, get the message hash of the typed data using our precomputed account address as input.
+	messageHash, err := builtTxn.TypedData.GetMessageHash(precAddress.String())
+	if err != nil {
+		panic(fmt.Sprintf("Error getting the message hash of the typed data: %s", err))
+	}
+	fmt.Println("Message hash of the typed data:", messageHash)
+
+	// Now, we sign the message hash using our account.
+	r, s, err := curve.SignFelts(messageHash, privK) // You can also use the `curve` package to sign the message hash.
+	if err != nil {
+		panic(fmt.Sprintf("Error signing the transaction: %s", err))
+	}
+	signature := []*felt.Felt{r, s}
+
+	fmt.Println("Transaction successfully signed")
+	PrettyPrint(signature)
+
+	fmt.Println("Step 3: Send the signed transaction")
+
+	// With our built deploy_and_invoke transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
 	response, err := paymaster.ExecuteTransaction(context.Background(), &pm.ExecuteTransactionRequest{
 		Transaction: &pm.ExecutableUserTransaction{
-			Type:       pm.UserTxnDeploy,
+			Type: pm.UserTxnDeployAndInvoke,
+
 			Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
 			// the `builtTxn.Deployment` value.
+			Invoke: &pm.ExecutableUserInvoke{
+				UserAddress: precAddress,        // The `user_address` is the address of the account that will be deployed.
+				TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method.
+				Signature:   signature,          // The signature of the message hash made in the previous step.
+			},
 		},
 		Parameters: &pm.UserParameters{
 			Version: pm.UserParamV1,
@@ -113,10 +156,10 @@ func deployWithPaymaster() {
 		},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Error executing the deploy transaction with the paymaster: %s", err))
+		panic(fmt.Sprintf("Error executing the deploy_and_invoke transaction with the paymaster: %s", err))
 	}
 
-	fmt.Println("Deploy transaction successfully executed by the paymaster")
+	fmt.Println("Deploy_and_invoke transaction successfully executed by the paymaster")
 	fmt.Println("Tracking ID:", response.TrackingId)
 	fmt.Println("Transaction Hash:", response.TransactionHash)
 }

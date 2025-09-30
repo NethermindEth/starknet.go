@@ -13,7 +13,12 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
-const AVNU_PAYMASTER_URL = "https://sepolia.paymaster.avnu.fi"
+var (
+	AVNU_PAYMASTER_URL = "https://sepolia.paymaster.avnu.fi"
+
+	// A simple ERC20 contract with a public mint function
+	RAND_ERC20_CONTRACT_ADDRESS, _ = utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+)
 
 func main() {
 	fmt.Println("Starting paymaster example")
@@ -73,17 +78,15 @@ func main() {
 
 	fmt.Println("Step 1: Build the transaction")
 
-	// a simple ERC20 contract with a public mint function
-	simpleERC20, _ := utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+	// Here we are declaring the invoke data for the transaction.
+	// It's a call to the `mint` function in the `RAND_ERC20_CONTRACT_ADDRESS` contract, with the amount of `0xffffffff`.
 	amount, _ := utils.HexToU256Felt("0xffffffff")
 
-	// Here we are declaring the invoke data for the transaction.
-	// It's a call to the `mint` function in the `simpleERC20` contract, with the amount of `0xffffffff`.
 	invokeData := &pm.UserInvoke{
 		UserAddress: account.Address,
 		Calls: []pm.Call{
 			{
-				To:       simpleERC20,
+				To:       RAND_ERC20_CONTRACT_ADDRESS,
 				Selector: utils.GetSelectorFromNameFelt("mint"),
 				Calldata: amount,
 			},
@@ -210,7 +213,8 @@ func main() {
 	//
 	// Don't you have the API key? Well, you can't run the examples, but feel free to take a look at the code!
 
-	deployWithPaymaster()
+	// deployWithPaymaster()
+	// deployAndInvokeWithPaymaster()
 }
 
 // PrettyPrint marshals the data with indentation and prints it.
