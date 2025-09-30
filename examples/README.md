@@ -47,3 +47,5 @@ To run an example:
   R: See [typedData](./typedData/main.go).
 1. How to use WebSocket methods? How to subscribe, unsubscribe, handle errors, and read values from them?  
   R: See [websocket](./websocket/main.go).
+1. How to interact with a paymaster? How to send transactions with it?  
+  R: See [paymaster](./paymaster/main.go).
