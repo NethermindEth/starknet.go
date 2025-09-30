@@ -20,6 +20,13 @@ var (
 	RAND_ERC20_CONTRACT_ADDRESS, _ = utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
 )
 
+// This example shows how to build and execute an invoke transaction with a paymaster.
+// With a paymaster, you can send txns to the Starknet network using other tokens than STRK.
+// Read more about it in the SNIP-29: https://github.com/starknet-io/SNIPs/blob/dfd91b275ea65413f8c8aedb26677a8afff70f37/SNIPS/snip-29.md
+//
+// NOTE: IN ORDER TO RUN THIS EXAMPLE, YOU NEED TO HAVE AN ACCOUNT THAT IMPLEMENTS THE SNIP-9 STANDARD.
+// OTHERWISE, THE PAYMASTER WILL RETURN AN ERROR.
+// Ref: https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/SNIPS/snip-9.md
 func main() {
 	fmt.Println("Starting paymaster example")
 
