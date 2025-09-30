@@ -184,7 +184,7 @@ func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
 	ySquared.Add(&ySquared, &b) // ySquared equals to (x^3 + x + b)
 
 	starkY := ySquared.Sqrt(&ySquared)
-	yFelt := felt.New(*starkY)
+	yFelt := felt.Felt(*starkY)
 
 	return &yFelt
 }
