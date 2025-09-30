@@ -13,6 +13,8 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
+const AVNU_PAYMASTER_URL = "https://sepolia.paymaster.avnu.fi"
+
 func main() {
 	fmt.Println("Starting paymaster example")
 
@@ -37,7 +39,7 @@ func main() {
 	// ************* done *************
 
 	// Initialise connection to the paymaster provider - AVNU Sepolia in this case
-	paymaster, err := pm.New("https://sepolia.paymaster.avnu.fi")
+	paymaster, err := pm.New(AVNU_PAYMASTER_URL)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider: %s", err))
 	}
@@ -197,6 +199,18 @@ func main() {
 	fmt.Println("Transaction successfully executed by the paymaster")
 	fmt.Println("Tracking ID:", response.TrackingId)
 	fmt.Println("Transaction Hash:", response.TransactionHash)
+
+	// There are more two files in this example:
+	// - deploy.go: an example of how to deploy an account with a paymaster
+	// - deploy_and_invoke.go: an example of how to send a `deploy_and_invoke` transaction with a paymaster,
+	//   which is a transaction that deploys an account and then invokes a function in it in the same transaction.
+	//
+	// For these examples, you need to have a valid paymaster API key from an entity. Just uncomment the function call
+	// you want to run.
+	//
+	// Don't you have the API key? Well, you can't run the examples, but feel free to take a look at the code!
+
+	deployWithPaymaster()
 }
 
 // PrettyPrint marshals the data with indentation and prints it.
