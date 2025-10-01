@@ -46,7 +46,7 @@ func main() {
 	}
 
 	// Instantiate the account to sign the transaction (we can also use the `curve` pkg for that, we'll see later)
-	account := NewAccount(client, accountAddress, privateKey, publicKey, accountCairoVersion)
+	acc := NewAccount(client, accountAddress, privateKey, publicKey, accountCairoVersion)
 
 	// ************* done *************
 
@@ -90,7 +90,7 @@ func main() {
 	amount, _ := utils.HexToU256Felt("0xffffffff")
 
 	invokeData := &pm.UserInvoke{
-		UserAddress: account.Address,
+		UserAddress: acc.Address,
 		Calls: []pm.Call{
 			{
 				To:       RAND_ERC20_CONTRACT_ADDRESS,
@@ -163,14 +163,14 @@ func main() {
 	// The signing process consists of signing the SNIP-12 typed data contained in the built transaction.
 
 	// Firstly, get the message hash of the typed data using our account address as input.
-	messageHash, err := builtTxn.TypedData.GetMessageHash(account.Address.String())
+	messageHash, err := builtTxn.TypedData.GetMessageHash(acc.Address.String())
 	if err != nil {
 		panic(fmt.Sprintf("Error getting the message hash of the typed data: %s", err))
 	}
 	fmt.Println("Message hash of the typed data:", messageHash)
 
 	// Now, we sign the message hash using our account.
-	signature, err := account.Sign(context.Background(), messageHash)
+	signature, err := acc.Sign(context.Background(), messageHash)
 	// r, s, err := curve.SignFelts(messageHash, privateKeyFelt) // You can also use the `curve` package to sign the message hash.
 	if err != nil {
 		panic(fmt.Sprintf("Error signing the transaction: %s", err))
@@ -186,7 +186,7 @@ func main() {
 		Transaction: &pm.ExecutableUserTransaction{
 			Type: pm.UserTxnInvoke,
 			Invoke: &pm.ExecutableUserInvoke{
-				UserAddress: account.Address,    // Our account address
+				UserAddress: acc.Address,        // Our account address
 				TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method
 				Signature:   signature,          // The signature of the message hash made in the previous step
 			},
@@ -235,7 +235,11 @@ func PrettyPrint(data interface{}) {
 }
 
 // Just a helper function to instantiate the account for us.
-func NewAccount(client *rpc.Provider, accountAddress, privateKey, publicKey string, accountCairoVersion account.CairoVersion) *account.Account {
+func NewAccount(
+	client *rpc.Provider,
+	accountAddress, privateKey, publicKey string,
+	accountCairoVersion account.CairoVersion,
+) *account.Account {
 	// Initialise the account memkeyStore (set public and private keys)
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)

@@ -124,7 +124,12 @@ linters:
           - gosec
           - lll
           - mnd
+          - funlen # it's ok for the examples to have big main() functions
         path: examples/
+      - linters:
+          - gocritic #commentedOutCode: "curve.SignFelts..." is there just as an explanation
+          - unused # it's part of the example to have two unused functions
+        path: examples/paymaster/
       - linters:
           - exhaustruct
           - noctx

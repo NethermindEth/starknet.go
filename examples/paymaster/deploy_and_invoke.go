@@ -29,7 +29,7 @@ func deployAndInvokeWithPaymaster() {
 	// which will allow the paymaster to fully cover the fees for the `deploy` txn. This mode requires
 	// an API key from an entity. You can only run this example with it.
 
-	// Let's initialize the paymaster client, but now, we will also pass our API key to the client.
+	// Let's initialise the paymaster client, but now, we will also pass our API key to the client.
 	// In the AVNU paymaster, the API key is a http header called `x-paymaster-api-key`.
 	// In the current Starknet.go client, you can set a custom http header using the `client.WithHeader` option.
 	paymaster, err := pm.New(AVNU_PAYMASTER_URL, client.WithHeader("x-paymaster-api-key", AVNU_API_KEY))
