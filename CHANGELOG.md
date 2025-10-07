@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so the output of `TypedData.MarshalJSON()` is exactly as the original JSON.
 - Wrong encoding of the `selector` type in the `typedData` pkg for a specific case, when the value was already a hashed selector.
   More details in the PR [793](https://github.com/NethermindEth/starknet.go/pull/793).
+- Not using the provided `context.Context` in the `account.Nonce` method when calling the `rpc.Nonce` method.
 
 ### Dev updates
 - New `internal/tests/jsonrpc_spy.go` file containing a `Spy` type for spying JSON-RPC calls in tests. The
