@@ -71,7 +71,7 @@ linters:
         - nilness
         - shadow
     lll:
-      line-length: 140
+      line-length: 100
     misspell:
       locale: UK
     mnd:
@@ -142,7 +142,7 @@ formatters:
     - golines
   settings:
     golines:
-      max-len: 140
+      max-len: 100
     goimports:
       local-prefixes:
         - github.com/golangci/golangci-lint

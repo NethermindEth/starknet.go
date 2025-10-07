@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
+	// There is also an array version of each type. The array is defined like
+	// this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
 	revision_0_basic_types []string = []string{
 		"felt",
 		"bool",
@@ -19,8 +20,9 @@ var (
 		"merkletree",
 	}
 
-	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string"
-	// represents an arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit,
+	// Revision 1 includes all types from Revision 0 plus these. The only difference is
+	// that for Revision 1 "string" represents an arbitrary size string instead of having
+	// a 31 ASCII characters limit in Revision 0; for this limit,
 	// use the new type "shortstring" instead.
 	//
 	// There is also an array version of each type. The array is defined like this:
@@ -131,15 +133,22 @@ func GetRevision(version uint8) (rev *revision, err error) {
 }
 
 func getRevisionV1PresetTypes() map[string]TypeDefinition {
-	NftIdEnc, _ := new(felt.Felt).SetString("0xaf7d0f5e34446178d80fadf5ddaaed52347121d2fac19ff184ff508d4776f2")
-	TokenAmountEnc, _ := new(felt.Felt).SetString("0x14648649d4413eb385eea9ac7e6f2b9769671f5d9d7ad40f7b4aadd67839d4")
-	u256dEnc, _ := new(felt.Felt).SetString("0x3b143be38b811560b45593fb2a071ec4ddd0a020e10782be62ffe6f39e0e82c")
+	NftIdEnc, _ := new(
+		felt.Felt,
+	).SetString("0xaf7d0f5e34446178d80fadf5ddaaed52347121d2fac19ff184ff508d4776f2")
+	TokenAmountEnc, _ := new(
+		felt.Felt,
+	).SetString("0x14648649d4413eb385eea9ac7e6f2b9769671f5d9d7ad40f7b4aadd67839d4")
+	u256dEnc, _ := new(
+		felt.Felt,
+	).SetString("0x3b143be38b811560b45593fb2a071ec4ddd0a020e10782be62ffe6f39e0e82c")
 
 	presetTypes := []TypeDefinition{
 		{
-			Name:               "NftId",
-			Encoding:           NftIdEnc,
-			EncoddingString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")"u256"("low":"u128","high":"u128")`,
+			Name:     "NftId",
+			Encoding: NftIdEnc,
+			EncoddingString: `"NftId"("collection_address":"ContractAddress",
+			"token_id":"u256")"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
@@ -156,9 +165,10 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 			},
 		},
 		{
-			Name:               "TokenAmount",
-			Encoding:           TokenAmountEnc,
-			EncoddingString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
+			Name:     "TokenAmount",
+			Encoding: TokenAmountEnc,
+			EncoddingString: `"TokenAmount"("token_address":"ContractAddress","amount":"u256")
+			"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{

@@ -2,11 +2,8 @@ version: "2"
 linters:
   default: none
   enable:
-    - lll
     - nolintlint
   settings:
-    lll:
-      line-length: 100
     nolintlint:
       allow-unused: false
       require-explanation: true
