@@ -1,0 +1,74 @@
+# BlockNumber
+
+Gets the number (height) of the most recent block.
+
+## Method Signature
+
+```go
+func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+
+## Returns
+
+- `uint64` - The latest block number
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get latest block number
+    blockNumber, err := client.BlockNumber(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get block number:", err)
+    }
+
+    fmt.Printf("Latest block number: %d\n", blockNumber)
+}
+```
+
+## Expected Output
+
+```
+Latest block number: 1506789
+```
+
+## Use Cases
+
+- Check network synchronization status
+- Monitor for new blocks
+- Validate block references in applications
+- Track network activity and growth
+
+## Error Handling
+
+Common errors include network timeouts and RPC endpoint unavailability. Always check the error before using the returned value.
+
+```go
+blockNumber, err := client.BlockNumber(ctx)
+if err != nil {
+    log.Printf("Error getting block number: %v", err)
+    return
+}
+// Safe to use blockNumber
+```

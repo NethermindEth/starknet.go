@@ -1,0 +1,90 @@
+# BlockHashAndNumber
+
+Gets both the hash and number of the most recent block in a single call.
+
+## Method Signature
+
+```go
+func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+
+## Returns
+
+- `*BlockHashAndNumberOutput` - Contains both block hash and number
+- `error` - Error if the request fails
+
+## BlockHashAndNumberOutput Structure
+
+```go
+type BlockHashAndNumberOutput struct {
+    Number uint64      `json:"block_number,omitempty"`
+    Hash   *felt.Felt  `json:"block_hash,omitempty"`
+}
+```
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get latest block hash and number
+    result, err := client.BlockHashAndNumber(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get block hash and number:", err)
+    }
+
+    fmt.Printf("Block Number: %d\n", result.Number)
+    fmt.Printf("Block Hash: %s\n", result.Hash.String())
+}
+```
+
+## Expected Output
+
+```
+Block Number: 1506789
+Block Hash: 0x123abc...def789
+```
+
+## Use Cases
+
+- Atomic retrieval of both block identifiers
+- Verify block consistency
+- Create block references for other API calls
+- Monitor block production
+
+## Error Handling
+
+```go
+result, err := client.BlockHashAndNumber(ctx)
+if err != nil {
+    log.Printf("Error getting block info: %v", err)
+    return
+}
+
+// Check if values are present
+if result.Hash == nil {
+    log.Printf("Block hash is nil")
+    return
+}
+
+fmt.Printf("Block: %d, Hash: %s\n", result.Number, result.Hash.String())
+```
