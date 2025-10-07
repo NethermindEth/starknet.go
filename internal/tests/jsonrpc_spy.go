@@ -20,14 +20,24 @@ type Spy struct {
 // It's implemented by the `client.Client` type.
 type callCloser interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
-	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	CallContextWithSliceArgs(
+		ctx context.Context,
+		result interface{},
+		method string,
+		args ...interface{},
+	) error
 	Close()
 }
 
 // The Spyer interface implemented by the Spy type.
 type Spyer interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
-	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	CallContextWithSliceArgs(
+		ctx context.Context,
+		result interface{},
+		method string,
+		args ...interface{},
+	) error
 	Close()
 	LastResponse() json.RawMessage
 }
@@ -82,7 +92,12 @@ func NewJSONRPCSpy(client callCloser, debug ...bool) Spyer {
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (s *Spy) CallContext(ctx context.Context, result interface{}, method string, arg interface{}) error {
+func (s *Spy) CallContext(
+	ctx context.Context,
+	result interface{},
+	method string,
+	arg interface{},
+) error {
 	if s.mock {
 		return s.callCloser.CallContext(ctx, result, method, arg)
 	}
@@ -121,7 +136,12 @@ func (s *Spy) CallContext(ctx context.Context, result interface{}, method string
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (s *Spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (s *Spy) CallContextWithSliceArgs(
+	ctx context.Context,
+	result interface{},
+	method string,
+	args ...interface{},
+) error {
 	if s.mock {
 		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
 	}
@@ -153,7 +173,8 @@ func (s *Spy) CallContextWithSliceArgs(ctx context.Context, result interface{}, 
 }
 
 // LastResponse returns the last response captured by the spy.
-// In other words, it returns the raw JSON response received from the server when calling a `callCloser` method.
+// In other words, it returns the raw JSON response received from the server when
+// calling a `callCloser` method.
 func (s *Spy) LastResponse() json.RawMessage {
 	return s.buff
 }

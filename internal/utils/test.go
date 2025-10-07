@@ -26,7 +26,8 @@ func TestHexToFelt(t testing.TB, hex string) *felt.Felt {
 	return f
 }
 
-// TestHexArrToFelt generates a slice of *felt.Felt from a slice of strings representing hexadecimal values.
+// TestHexArrToFelt generates a slice of *felt.Felt from a slice of strings
+// representing hexadecimal values.
 //
 // Parameters:
 //   - t: A testing.TB interface used for test logging and error reporting
@@ -42,7 +43,8 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	return feltArr
 }
 
-// TestUnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// TestUnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it
+// into the specified type T.
 // If any error occurs during file reading or unmarshalling, it fails the test.
 //
 // Parameters:
