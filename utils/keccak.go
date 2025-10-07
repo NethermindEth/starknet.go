@@ -191,17 +191,20 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	return internalUtils.ComputeFact(programHash, programOutputs)
 }
 
-// SplitFactStr splits a given fact, with maximum 256 bits size, into two parts (felts): fact_low and fact_high.
+// SplitFactStr splits a given fact, with maximum 256 bits size, into two
+// parts (felts): fact_low and fact_high.
 //
-// The function takes a fact string as input and converts it to a big number using the HexToBN function.
-// It then converts the big number to bytes using the Bytes method.
-// If the length of the bytes is less than 32, it pads the bytes with zeros using the bytes.Repeat method.
+// The function takes a fact string as input and converts it to a big number
+// using the HexToBN function. It then converts the big number to bytes using
+// the Bytes method. If the length of the bytes is less than 32, it pads the
+// bytes with zeros using the bytes.Repeat method.
 // The padded bytes are then appended to the original bytes.
-// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it to a
-// big number using the BytesToBig function.
-// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number
-// using the BytesToBig function.
-// Finally, it converts the low and high big numbers to hexadecimal strings using the BigToHex function and returns them.
+// The function then extracts the low part of the bytes by taking the last 16
+// bytes and converts it to a big number using the BytesToBig function.
+// It also extracts the high part of the bytes by taking the first 16 bytes and
+// converts it to a big number using the BytesToBig function.
+// Finally, it converts the low and high big numbers to hexadecimal strings using
+// the BigToHex function and returns them.
 //
 // Parameters:
 //   - fact: The fact string to be split
@@ -214,17 +217,19 @@ func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
 	return internalUtils.SplitFactStr(fact)
 }
 
-// FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with a specified length.
+// FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with
+// a specified length.
 //
 // The function appends the bytes of the big.Int to a buffer and returns it.
-// If the length of the buffer is less than the specified length, the function pads the buffer with zeros.
+// If the length of the buffer is less than the specified length, the function
+// pads the buffer with zeros.
 //
 // Parameters:
 //   - in: the big.Int to be formatted
 //   - rolen: the length of the buffer
 //
 // Returns:
-// buf: the formatted buffer
+//   - buf: the formatted buffer
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	return internalUtils.FmtKecBytes(in, rolen)
 }

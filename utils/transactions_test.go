@@ -211,7 +211,12 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 
 			expectedBigInt, ok := new(big.Int).SetString(tt.expectedRes, 0)
 			require.True(t, ok)
-			assert.Equal(t, fmt.Sprintf("%#x", expectedBigInt), got.String(), "ResBoundsMapToOverallFee() returned incorrect value")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%#x", expectedBigInt),
+				got.String(),
+				"ResBoundsMapToOverallFee() returned incorrect value",
+			)
 		})
 	}
 }
@@ -256,12 +261,30 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 			name: "Multiplier less than 1",
 			feeEstimation: rpc.FeeEstimation{
 				FeeEstimationCommon: rpc.FeeEstimationCommon{
-					L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
-					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
-					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
-					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
-					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
-					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+					L1GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xabcdef1234567890abcdef1234567",
+					), // valid uint128
+					L1GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x8b2c3d4e5f607182",
+					), // valid uint64
+					L1DataGasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xa2ffe1d2c3b4a5968778695a4b3c2d15",
+					), // valid uint128
+					L1DataGasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0xac2b3c4d5e6f7a8b",
+					), // valid uint64
+					L2GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcdabcdabcd",
+					), // invalid uint128
+					L2GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcdabcdabcd",
+					), // invalid uint64
 				},
 			},
 			multiplier: 0.5,
@@ -323,17 +346,26 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 						t,
 						"0xabcdef1234567890abcdef1234567",
 					), // 55753724871440480815496793359074663
-					L1GasConsumed: internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"), // 10028457877064151426
+					L1GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x8b2c3d4e5f607182",
+					), // 10028457877064151426
 					L1DataGasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xf0e1d2c3b4a5968778695a4b3c2d1",
 					), // 78170717918204611383717257769370321
-					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"), // 1885667171979197067
+					L1DataGasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x1a2b3c4d5e6f7a8b",
+					), // 1885667171979197067
 					L2GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0x123456789abcdef0123456789abcd",
 					), // 5907679981266292691599931071900621
-					L2GasConsumed: internalUtils.TestHexToFelt(t, "0xfedcba98765432"), // 71737338064426034
+					L2GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0xfedcba98765432",
+					), // 71737338064426034
 				},
 			},
 			multiplier: 1.7,
@@ -390,12 +422,30 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 			name: "Overflow",
 			feeEstimation: rpc.FeeEstimation{
 				FeeEstimationCommon: rpc.FeeEstimationCommon{
-					L1GasPrice:        internalUtils.TestHexToFelt(t, "0xabcdef1234567890abcdef1234567"),         // valid uint128
-					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"),                      // valid uint64
-					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0xa2ffe1d2c3b4a5968778695a4b3c2d15"),      // valid uint128
-					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0xac2b3c4d5e6f7a8b"),                      // valid uint64
-					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint128
-					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x123456789abcdef0123456789abcdabcdabcd"), // invalid uint64
+					L1GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xabcdef1234567890abcdef1234567",
+					), // valid uint128
+					L1GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x8b2c3d4e5f607182",
+					), // valid uint64
+					L1DataGasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0xa2ffe1d2c3b4a5968778695a4b3c2d15",
+					), // valid uint128
+					L1DataGasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0xac2b3c4d5e6f7a8b",
+					), // valid uint64
+					L2GasPrice: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcdabcdabcd",
+					), // invalid uint128
+					L2GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x123456789abcdef0123456789abcdabcdabcd",
+					), // invalid uint64
 				},
 			},
 			multiplier: 1.7,
@@ -429,17 +479,26 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 						t,
 						"0xabcdef1234567890abcdef1234567",
 					), // 55753724871440480815496793359074663
-					L1GasConsumed: internalUtils.TestHexToFelt(t, "0x8b2c3d4e5f607182"), // 10028457877064151426
+					L1GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x8b2c3d4e5f607182",
+					), // 10028457877064151426
 					L1DataGasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xf0e1d2c3b4a5968778695a4b3c2d1",
 					), // 78170717918204611383717257769370321
-					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x1a2b3c4d5e6f7a8b"), // 1885667171979197067
+					L1DataGasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0x1a2b3c4d5e6f7a8b",
+					), // 1885667171979197067
 					L2GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0x123456789abcdef0123456789abcd",
 					), // 5907679981266292691599931071900621
-					L2GasConsumed: internalUtils.TestHexToFelt(t, "0xfedcba98765432"), // 71737338064426034
+					L2GasConsumed: internalUtils.TestHexToFelt(
+						t,
+						"0xfedcba98765432",
+					), // 71737338064426034
 				},
 			},
 			multiplier: -1.7,
