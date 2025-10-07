@@ -707,8 +707,8 @@ export function StarknetLanding() {
             <iframe
               src="/gopher-animation.html"
               style={{
-                width: '400px',
-                height: '195px',
+                width: '450px',
+                height: '220px',
                 border: 'none',
                 background: '#03032a'
               }}
@@ -901,6 +901,8 @@ export function StarknetLanding() {
                   <li key={item.name}>
                     <a
                       href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
                         color: 'rgb(156 163 175)',
                         textDecoration: 'none',
@@ -929,6 +931,8 @@ export function StarknetLanding() {
                   <li key={item.name}>
                     <a
                       href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
                         color: 'rgb(156 163 175)',
                         textDecoration: 'none',
@@ -958,6 +962,8 @@ export function StarknetLanding() {
                   <li key={item.name}>
                     <a
                       href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
                         color: 'rgb(156 163 175)',
                         textDecoration: 'none',

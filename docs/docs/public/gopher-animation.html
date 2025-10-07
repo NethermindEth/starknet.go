@@ -11,8 +11,8 @@
         /* Single stage wrapper */
         .stage {
             position: relative;
-            width: 400px;
-            height: 195px;
+            width: 450px;
+            height: 220px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -22,8 +22,8 @@
         /* Stars group - positioned in bottom left corner of gopher */
         .stars-group {
             position: absolute;
-            bottom: 64px;
-            left: 0px;
+            bottom: 44px;
+            left: 25px;
             z-index: 2;
         }
 
@@ -95,7 +95,7 @@
         // Star animations with horizontal movement, growing, and disappearing
         // Stars use easeInOut bezier: 0.44, 0, 0.56, 1 (exact from Framer)
         animate('.star1', {
-            x: [0,-40],
+            x: [0,-25],
             scale: [0.3, 1.4],
             opacity: [0, 1, 0]
         }, {
@@ -106,7 +106,7 @@
         });
 
         animate('.star2', {
-            x: [0, -50],
+            x: [0, -30],
             scale: [0.2, 1.6, 0.2],
             opacity: [0, 1, 0]
         }, {
@@ -117,7 +117,7 @@
         });
 
         animate('.star3', {
-            x: [0,-40],
+            x: [0,-25],
             scale: [0.4, 1.3, 0.4],
             opacity: [0, 1, 0]
         }, {
