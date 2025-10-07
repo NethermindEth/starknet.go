@@ -1,0 +1,23 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - lll
+    - nolintlint
+  settings:
+    lll:
+      line-length: 100
+    nolintlint:
+      allow-unused: false
+      require-explanation: true
+      require-specific: true
+    staticcheck:
+      checks:
+        - "all"
+        # note(rdr): sometimes if `type` makes more sense than `switch type`
+        - "-QF1003"
+        # note(rdr): doesn't allow the use of optional embedded fields in structs. . I am not sure
+        #            if it is beneficial
+        - "-QF1008"
+run:
+  timeout: 10m

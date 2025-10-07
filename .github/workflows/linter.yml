@@ -14,12 +14,20 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4.1.0
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: false
+      # General Linter code wide 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
+      # Linter for diffs only. Apply new lint rules gradually that would be a huge refactor
+      # to do in one go
+      - name: golangci-lint-diffs
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.4.0
+          version: latest
+          args: --config=./.golangci_diff.yaml
+          only-new-issues: true
+
