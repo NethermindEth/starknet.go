@@ -27,7 +27,14 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -164,7 +171,11 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run("Test: "+test.name, func(t *testing.T) {
-			output, err := testConfig.Provider.Call(context.Background(), test.FunctionCall, test.BlockID)
+			output, err := testConfig.Provider.Call(
+				context.Background(),
+				test.FunctionCall,
+				test.BlockID,
+			)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)
 				require.True(t, ok)

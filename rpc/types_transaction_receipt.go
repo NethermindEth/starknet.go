@@ -28,11 +28,13 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
-// MessageStatus represents the status of a message sent from an L1 transaction to an L2 contract.
+// MessageStatus represents the status of a message sent from an L1 transaction
+// to an L2 contract.
 type MessageStatus struct {
 	// The hash of the L1_HANDLER transaction in L2 that contains the message
 	Hash *felt.Felt `json:"transaction_hash"`
-	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or
+	// The finality status of the L1_HANDLER transaction, including the case the txn
+	// is still in the mempool or
 	// failed validation during the block construction phase
 	FinalityStatus TxnFinalityStatus `json:"finality_status"`
 	// The execution status of the L1_HANDLER transaction
@@ -155,7 +157,8 @@ const (
 
 // UnmarshalJSON unmarshals the JSON data into a TransactionType.
 //
-// The function modifies the value of the TransactionType pointer tt based on the unmarshaled data.
+// The function modifies the value of the TransactionType pointer tt based on the
+// unmarshaled data.
 // The supported JSON values and their corresponding TransactionType values are:
 //   - "DECLARE" maps to TransactionType_Declare
 //   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
@@ -206,7 +209,8 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 }
 
 type ExecutionResources struct {
-	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state
+	// updates if blobs are not used
 	L1Gas uint `json:"l1_gas"`
 	// data gas consumed by this transaction, 0 if blobs are not used
 	L1DataGas uint `json:"l1_data_gas"`
@@ -266,7 +270,8 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero to avoid nil pointer dereference
+	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero
+	// to avoid nil pointer dereference
 	if txnResp.BlockHash == nil {
 		txnResp.BlockHash = new(felt.Felt)
 	}

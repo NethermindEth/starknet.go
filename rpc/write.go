@@ -53,7 +53,9 @@ func (provider *Provider) AddDeclareTransaction(
 	declareTransaction *BroadcastDeclareTxnV3,
 ) (AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
-	if err := do(ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction); err != nil {
+	if err := do(
+		ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction,
+	); err != nil {
 		return AddDeclareTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrClassAlreadyDeclared,
@@ -83,13 +85,16 @@ func (provider *Provider) AddDeclareTransaction(
 //   - deployAccountTransaction: The deploy account transaction to be added
 //
 // Returns:
-//   - AddDeployAccountTransactionResponse: the response of adding the deploy account transaction or an error
+//   - AddDeployAccountTransactionResponse: the response of adding the deploy
+//     account transaction or an error
 func (provider *Provider) AddDeployAccountTransaction(
 	ctx context.Context,
 	deployAccountTransaction *BroadcastDeployAccountTxnV3,
 ) (AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
-	if err := do(ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction); err != nil {
+	if err := do(
+		ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction,
+	); err != nil {
 		return AddDeployAccountTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,

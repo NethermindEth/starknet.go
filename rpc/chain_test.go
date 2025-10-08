@@ -13,7 +13,14 @@ import (
 
 // TestChainID is a function that tests the ChainID function in the Go test file.
 func TestChainID(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 

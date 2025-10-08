@@ -9,7 +9,8 @@ import (
 )
 
 type ResultPageRequest struct {
-	// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+	// a pointer to the last element of the delivered page, use this token in a
+	// subsequent query to obtain the next page
 	ContinuationToken string `json:"continuation_token,omitempty"`
 	ChunkSize         int    `json:"chunk_size"`
 }
@@ -202,26 +203,30 @@ type TxDetails struct {
 
 // Fee estimation common fields
 type FeeEstimationCommon struct {
-	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
 	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
 
-	// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
 	L1GasPrice *felt.Felt `json:"l1_gas_price"`
 
 	// The L2 gas consumption of the transaction
 	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
 
-	// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
 	L2GasPrice *felt.Felt `json:"l2_gas_price"`
 
 	// The Ethereum data gas consumption of the transaction.
 	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
 
-	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
 	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
 
-	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to
-	// gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 }
 
@@ -247,7 +252,8 @@ const (
 // UnmarshalJSON unmarshals the JSON data into a TxnExecutionStatus struct.
 //
 // Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to
+//     be unmarshalled
 //
 // Returns:
 //   - error: an error if the unmarshaling fails
@@ -270,7 +276,8 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
 //
-// It marshals the TxnExecutionStatus into a byte slice by quoting its string representation.
+// It marshals the TxnExecutionStatus into a byte slice by quoting its string
+// representation.
 // The function returns the marshalled byte slice and a nil error.
 //
 // Parameters:
@@ -307,7 +314,8 @@ const (
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
 //
 // Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to
+//     be unmarshalled
 //
 // Returns:
 //   - error: an error if the unmarshaling fails

@@ -127,7 +127,8 @@ type ResourceBoundsMapping struct {
 	L2Gas ResourceBounds `json:"l2_gas"`
 }
 
-// DA_MODE: Specifies a storage domain in Starknet. Each domain has different guarantees regarding availability
+// DA_MODE: Specifies a storage domain in Starknet. Each domain has different
+// guarantees regarding availability
 type DataAvailabilityMode string
 
 const (
@@ -142,7 +143,10 @@ func (da DataAvailabilityMode) MarshalJSON() ([]byte, error) {
 	case DAModeL1, DAModeL2:
 		return json.Marshal(string(da))
 	default:
-		return nil, fmt.Errorf("invalid DataAvailabilityMode: %s, must be either L1 or L2", string(da))
+		return nil, fmt.Errorf(
+			"invalid DataAvailabilityMode: %s, must be either L1 or L2",
+			string(da),
+		)
 	}
 }
 
@@ -161,6 +165,8 @@ type Resource string
 
 // Values used in the Resource Bounds hash calculation
 // Ref: https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
+//
+//nolint:lll // The link would be unclickable if we break the line.
 const (
 	ResourceL1Gas     Resource = "L1_GAS"
 	ResourceL2Gas     Resource = "L2_GAS"
@@ -196,8 +202,8 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 	), nil
 }
 
-// DeployTxn The structure of a deploy transaction. Note that this transaction type is deprecated and
-// will no longer be supported in future versions
+// DeployTxn The structure of a deploy transaction. Note that this transaction type
+// is deprecated and will no longer be supported in future versions
 type DeployTxn struct {
 	// ClassHash The hash of the deployed contract's class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -243,9 +249,10 @@ type DeployAccountTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-// remarshal is a function that takes in an interface{} value 'v' and an interface{} value 'dst'.
-// It marshals the 'v' value to JSON using the json.Marshal function and then unmarshals the JSON data
-// to 'dst' using the json.Unmarshal function.
+// remarshal is a function that takes in an interface{} value 'v' and an
+// interface{} value 'dst'. It marshals the 'v' value to JSON using the
+// json.Marshal function and then unmarshals the JSON data to 'dst' using the
+// json.Unmarshal function.
 //
 // Parameters:
 //   - v: The interface{} value to be marshalled
@@ -308,7 +315,8 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 }
 
 // Int returns an integer corresponding to the transaction version.
-// For versions with query bit, it returns the base version number (e.g. TransactionV2WithQueryBit returns 2).
+// For versions with query bit, it returns the base version number (e.g.
+// TransactionV2WithQueryBit returns 2).
 // Returns -1 for invalid versions.
 //
 // Returns:
@@ -329,25 +337,32 @@ func (v *TransactionVersion) Int() int {
 	return -1
 }
 
-// SubPendingTxnsInput is the optional input of the starknet_subscribeNewTransactionReceipts subscription.
+// SubPendingTxnsInput is the optional input of the
+// starknet_subscribeNewTransactionReceipts subscription.
 type SubNewTxnReceiptsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
-	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is
+	// `ACCEPTED_ON_L2`.
 	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
-	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
+	// Optional: Filter transaction receipts to only include transactions
+	// sent by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// SubNewTxnsInput is the optional input of the starknet_subscribeNewTransactions subscription.
+// SubNewTxnsInput is the optional input of the
+// starknet_subscribeNewTransactions subscription.
 type SubNewTxnsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
-	// Support all transaction statuses, except `ACCEPTED_ON_L1`. Default is `ACCEPTED_ON_L2`.
+	// Support all transaction statuses, except `ACCEPTED_ON_L1`. Default is
+	// `ACCEPTED_ON_L2`.
 	FinalityStatus []TxnStatus `json:"finality_status,omitempty"`
-	// Optional: Filter transaction receipts to only include transactions sent by the specified addresses
+	// Optional: Filter transaction receipts to only include transactions sent
+	// by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
 }
 
-// TxnWithHashAndStatus is the response of the starknet_subscribeNewTransactions subscription.
+// TxnWithHashAndStatus is the response of the
+// starknet_subscribeNewTransactions subscription.
 type TxnWithHashAndStatus struct {
 	// Transaction with hash and status
 	BlockTransaction
@@ -381,7 +396,8 @@ func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
 
 // UnmarshalJSON unmarshals the data into a BlockTransaction object.
 //
-// It takes a byte slice as the parameter, representing the JSON data to be unmarshalled.
+// It takes a byte slice as the parameter, representing the JSON data to be
+// unmarshalled.
 // The function returns an error if the unmarshalling process fails.
 //
 // Parameters:
@@ -412,7 +428,8 @@ func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
 //
 // It takes a pointer to a BlockTransaction object as the parameter.
-// The function returns a byte slice representing the JSON data and an error if the marshalling process fails.
+// The function returns a byte slice representing the JSON data and an error if
+// the marshalling process fails.
 func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
 	// First marshal the transaction to get all its fields
 	txnData, err := json.Marshal(blockTxn.Transaction)

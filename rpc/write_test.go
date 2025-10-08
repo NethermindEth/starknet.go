@@ -34,7 +34,10 @@ func TestDeclareTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
+		resp, err := testConfig.Provider.AddDeclareTransaction(
+			context.Background(),
+			&test.DeclareTx,
+		)
 		if test.ExpectedError != nil {
 			require.Error(t, err)
 			rpcErr, ok := err.(*RPCError)
@@ -171,7 +174,10 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
+		resp, err := testConfig.Provider.AddDeployAccountTransaction(
+			context.Background(),
+			&test.DeployTx,
+		)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {

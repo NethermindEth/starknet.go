@@ -41,7 +41,8 @@ type TransactionWithReceipt struct {
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
-// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralisation.
+// The dynamic block being constructed by the sequencer. Note that this object
+// will be deprecated upon decentralisation.
 type Pre_confirmedBlockWithReceipts struct {
 	Pre_confirmedBlockHeader
 	BlockBodyWithReceipts
@@ -86,7 +87,8 @@ type BlockHeader struct {
 
 type Pre_confirmedBlockHeader struct {
 	// The block number of the block that the proposer is currently building.
-	// Note that this is a local view of the node, whose accuracy depends on its polling interval length.
+	// Note that this is a local view of the node, whose accuracy depends on its
+	// polling interval length.
 	Number uint64 `json:"block_number"`
 	// Timestamp the time in which the block was created, encoded in Unix time
 	Timestamp uint64 `json:"timestamp"`
@@ -118,7 +120,8 @@ const (
 	BlockTagPre_confirmed BlockTag = "pre_confirmed"
 	// The latest Starknet block finalised by the consensus on L2.
 	BlockTagLatest BlockTag = "latest"
-	// The latest Starknet block which was included in a state update on L1 and finalised by the consensus on L1.
+	// The latest Starknet block which was included in a state update on L1 and
+	// finalised by the consensus on L1.
 	BlockTagL1Accepted BlockTag = "l1_accepted"
 )
 
@@ -173,7 +176,8 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var tag string
 
 	if err := json.Unmarshal(data, &tag); err == nil {
-		if tag == string(BlockTagPre_confirmed) || tag == string(BlockTagLatest) || tag == string(BlockTagL1Accepted) {
+		if tag == string(BlockTagPre_confirmed) || tag == string(BlockTagLatest) ||
+			tag == string(BlockTagL1Accepted) {
 			b.Tag = BlockTag(tag)
 
 			return nil
@@ -208,8 +212,9 @@ func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON marshals the BlockID to JSON format.
 //
-// It returns a byte slice and an error. The byte slice contains the JSON representation of the BlockID,
-// while the error indicates any error that occurred during the marshalling process.
+// It returns a byte slice and an error. The byte slice contains the JSON
+// representation of the BlockID, while the error indicates any error that
+// occurred during the marshalling process.
 //
 // Parameters:
 //
@@ -246,11 +251,15 @@ func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
 	return BlockID(b).MarshalJSON()
 }
 
-// checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it does, it returns an error.
-// This is used to prevent the user from using the 'pre_confirmed' tag on methods that do not support it.
+// checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it
+// does, it returns an error. This is used to prevent the user from using the
+// 'pre_confirmed' tag on methods that do not support it.
 func checkForPre_confirmed(b BlockID) error {
 	if b.Tag == BlockTagPre_confirmed {
-		return errors.Join(ErrInvalidBlockID, errors.New("'pre_confirmed' tag is not supported on this method"))
+		return errors.Join(
+			ErrInvalidBlockID,
+			errors.New("'pre_confirmed' tag is not supported on this method"),
+		)
 	}
 
 	return nil
@@ -270,7 +279,8 @@ const (
 // The function returns an error if there is an issue unmarshaling the data.
 //
 // Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshaled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to
+//     be unmarshaled
 //
 // Returns:
 //   - error: an error if the unmarshaling fails

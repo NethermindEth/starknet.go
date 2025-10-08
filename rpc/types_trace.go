@@ -10,7 +10,8 @@ import (
 )
 
 type SimulateTransactionInput struct {
-	// a sequence of transactions to simulate, running each transaction on the state resulting from applying all the previous ones
+	// a sequence of transactions to simulate, running each transaction on the
+	// state resulting from applying all the previous ones
 	Txns            []BroadcastTxn   `json:"transactions"`
 	BlockID         BlockID          `json:"block_id"`
 	SimulationFlags []SimulationFlag `json:"simulation_flags"`
@@ -20,7 +21,8 @@ type SimulationFlag string
 
 const (
 	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
-	// Flags that indicate how to simulate a given transaction. By default, the sequencer behaviour is replicated locally
+	// Flags that indicate how to simulate a given transaction. By default, the
+	// sequencer behaviour is replicated locally
 	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
 )
 
@@ -127,9 +129,11 @@ type FnInvocation struct {
 	IsReverted bool `json:"is_reverted"`
 }
 
-// the resources consumed by an inner call (does not account for state diffs since data is squashed across the transaction)
+// the resources consumed by an inner call (does not account for state diffs
+// since data is squashed across the transaction)
 type InnerCallExecutionResources struct {
-	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and
+	// state updates if blobs are not used
 	L1Gas uint `json:"l1_gas"`
 	// l2 gas consumed by this transaction, used for computation and calldata
 	L2Gas uint `json:"l2_gas"`
@@ -224,7 +228,9 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 	if txHashData, ok := dec["transaction_hash"]; ok {
 		txHashString, ok := txHashData.(string)
 		if !ok {
-			return errors.New("failed to unmarshal transaction hash, transaction_hash is not a string")
+			return errors.New(
+				"failed to unmarshal transaction hash, transaction_hash is not a string",
+			)
 		}
 		txHash, err = internalUtils.HexToFelt(txHashString)
 		if err != nil {

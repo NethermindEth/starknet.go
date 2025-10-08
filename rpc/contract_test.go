@@ -96,39 +96,46 @@ func TestClassAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("BlockID: %v, ContractAddress: %v", test.Block, test.ContractAddress), func(t *testing.T) {
-			resp, err := testConfig.Provider.ClassAt(context.Background(), test.Block, test.ContractAddress)
-			require.NoError(t, err)
+		t.Run(
+			fmt.Sprintf("BlockID: %v, ContractAddress: %v", test.Block, test.ContractAddress),
+			func(t *testing.T) {
+				resp, err := testConfig.Provider.ClassAt(
+					context.Background(),
+					test.Block,
+					test.ContractAddress,
+				)
+				require.NoError(t, err)
 
-			switch class := resp.(type) {
-			case *contracts.DeprecatedContractClass:
-				require.NotEmpty(t, class.Program, "code should exist")
+				switch class := resp.(type) {
+				case *contracts.DeprecatedContractClass:
+					require.NotEmpty(t, class.Program, "code should exist")
 
-				assert.Condition(t, func() bool {
-					for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
-						if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
-							return true
+					assert.Condition(t, func() bool {
+						for _, deprecatedCairoEntryPoint := range class.DeprecatedEntryPointsByType.External {
+							if test.ExpectedOperation == deprecatedCairoEntryPoint.Selector.String() {
+								return true
+							}
 						}
-					}
 
-					return false
-				}, "operation not found in the class")
-			case *contracts.ContractClass:
-				require.NotEmpty(t, class.SierraProgram, "code should exist")
+						return false
+					}, "operation not found in the class")
+				case *contracts.ContractClass:
+					require.NotEmpty(t, class.SierraProgram, "code should exist")
 
-				assert.Condition(t, func() bool {
-					for _, entryPointsByType := range class.EntryPointsByType.External {
-						if test.ExpectedOperation == entryPointsByType.Selector.String() {
-							return true
+					assert.Condition(t, func() bool {
+						for _, entryPointsByType := range class.EntryPointsByType.External {
+							if test.ExpectedOperation == entryPointsByType.Selector.String() {
+								return true
+							}
 						}
-					}
 
-					return false
-				}, "operation not found in the class")
-			default:
-				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
-			}
-		})
+						return false
+					}, "operation not found in the class")
+				default:
+					t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+				}
+			},
+		)
 	}
 }
 
@@ -148,7 +155,14 @@ func TestClassAt(t *testing.T) {
 //
 //	none
 func TestClassHashAt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.DevnetEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -218,12 +232,19 @@ func TestClassHashAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("BlockID: %v, ContractHash: %v", test.Block, test.ContractHash), func(t *testing.T) {
-			classhash, err := testConfig.Provider.ClassHashAt(context.Background(), test.Block, test.ContractHash)
-			require.NoError(t, err)
-			require.NotEmpty(t, classhash, "should return a class")
-			require.Equal(t, test.ExpectedClassHash, classhash)
-		})
+		t.Run(
+			fmt.Sprintf("BlockID: %v, ContractHash: %v", test.Block, test.ContractHash),
+			func(t *testing.T) {
+				classhash, err := testConfig.Provider.ClassHashAt(
+					context.Background(),
+					test.Block,
+					test.ContractHash,
+				)
+				require.NoError(t, err)
+				require.NotEmpty(t, classhash, "should return a class")
+				require.Equal(t, test.ExpectedClassHash, classhash)
+			},
+		)
 	}
 }
 
@@ -327,20 +348,27 @@ func TestClass(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("BlockID: %v, ClassHash: %v", test.BlockID, test.ClassHash), func(t *testing.T) {
-			resp, err := testConfig.Provider.Class(context.Background(), test.BlockID, test.ClassHash)
-			require.NoError(t, err)
+		t.Run(
+			fmt.Sprintf("BlockID: %v, ClassHash: %v", test.BlockID, test.ClassHash),
+			func(t *testing.T) {
+				resp, err := testConfig.Provider.Class(
+					context.Background(),
+					test.BlockID,
+					test.ClassHash,
+				)
+				require.NoError(t, err)
 
-			switch class := resp.(type) {
-			case *contracts.DeprecatedContractClass:
-				assert.Contains(t, class.Program, test.ExpectedProgram)
-			case *contracts.ContractClass:
-				assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-				assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
-			default:
-				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
-			}
-		})
+				switch class := resp.(type) {
+				case *contracts.DeprecatedContractClass:
+					assert.Contains(t, class.Program, test.ExpectedProgram)
+				case *contracts.ContractClass:
+					assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
+					assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+				default:
+					t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+				}
+			},
+		)
 	}
 }
 
@@ -360,7 +388,14 @@ func TestClass(t *testing.T) {
 //
 //	none
 func TestStorageAt(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.DevnetEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -444,7 +479,12 @@ func TestStorageAt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		value, err := testConfig.Provider.StorageAt(context.Background(), test.ContractHash, test.StorageKey, test.Block)
+		value, err := testConfig.Provider.StorageAt(
+			context.Background(),
+			test.ContractHash,
+			test.StorageKey,
+			test.Block,
+		)
 		require.NoError(t, err)
 		require.EqualValues(t, test.ExpectedValue, value)
 	}
@@ -464,7 +504,14 @@ func TestStorageAt(t *testing.T) {
 //
 //	none
 func TestNonce(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.DevnetEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -527,12 +574,19 @@ func TestNonce(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("blockID: %v, contractAddress: %s", test.Block, test.ContractAddress), func(t *testing.T) {
-			nonce, err := testConfig.Provider.Nonce(context.Background(), test.Block, test.ContractAddress)
-			require.NoError(t, err)
-			require.NotNil(t, nonce, "should return a nonce")
-			require.Equal(t, test.ExpectedNonce, nonce)
-		})
+		t.Run(
+			fmt.Sprintf("blockID: %v, contractAddress: %s", test.Block, test.ContractAddress),
+			func(t *testing.T) {
+				nonce, err := testConfig.Provider.Nonce(
+					context.Background(),
+					test.Block,
+					test.ContractAddress,
+				)
+				require.NoError(t, err)
+				require.NotNil(t, nonce, "should return a nonce")
+				require.Equal(t, test.ExpectedNonce, nonce)
+			},
+		)
 	}
 }
 
@@ -560,8 +614,14 @@ func TestEstimateMessageFee(t *testing.T) {
 	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
 	l1Handler := MsgFromL1{
 		FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-		ToAddress:   internalUtils.TestHexToFelt(t, "0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f"),
-		Selector:    internalUtils.TestHexToFelt(t, "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"),
+		ToAddress: internalUtils.TestHexToFelt(
+			t,
+			"0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
+		),
+		Selector: internalUtils.TestHexToFelt(
+			t,
+			"0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19",
+		),
 		Payload: internalUtils.TestHexArrToFelt(t, []string{
 			"0x455448",
 			"0x2f14d277fc49e0e2d2967d019aea8d6bd9cb3998",
@@ -641,25 +701,32 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("blockID: %v, fromAddress: %s", test.BlockID, test.FromAddress), func(t *testing.T) {
-			resp, err := testConfig.Provider.EstimateMessageFee(context.Background(), test.MsgFromL1, test.BlockID)
-			if test.ExpectedError != nil {
-				rpcErr, ok := err.(*RPCError)
-				require.True(t, ok)
-				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+		t.Run(
+			fmt.Sprintf("blockID: %v, fromAddress: %s", test.BlockID, test.FromAddress),
+			func(t *testing.T) {
+				resp, err := testConfig.Provider.EstimateMessageFee(
+					context.Background(),
+					test.MsgFromL1,
+					test.BlockID,
+				)
+				if test.ExpectedError != nil {
+					rpcErr, ok := err.(*RPCError)
+					require.True(t, ok)
+					assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+					assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 
-				return
-			}
-			require.NoError(t, err)
+					return
+				}
+				require.NoError(t, err)
 
-			if test.ExpectedFeeEst != nil {
-				assert.Exactly(t, *test.ExpectedFeeEst, resp)
+				if test.ExpectedFeeEst != nil {
+					assert.Exactly(t, *test.ExpectedFeeEst, resp)
 
-				return
-			}
-			assert.NotEmpty(t, resp)
-		})
+					return
+				}
+				assert.NotEmpty(t, resp)
+			},
+		)
 	}
 }
 
@@ -929,7 +996,12 @@ func TestEstimateFee(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
-			resp, err := testConfig.Provider.EstimateFee(context.Background(), test.txs, test.simFlags, test.blockID)
+			resp, err := testConfig.Provider.EstimateFee(
+				context.Background(),
+				test.txs,
+				test.simFlags,
+				test.blockID,
+			)
 			if test.expectedError != nil {
 				require.Error(t, err)
 				rpcErr, ok := err.(*RPCError)
@@ -1163,7 +1235,10 @@ func TestGetStorageProof(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			result, err := testConfig.Provider.GetStorageProof(context.Background(), test.StorageProofInput)
+			result, err := testConfig.Provider.GetStorageProof(
+				context.Background(),
+				test.StorageProofInput,
+			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
@@ -1229,7 +1304,11 @@ func assertStorageProofJSONEquality(t *testing.T, expectedResult, result []byte)
 	require.True(t, ok)
 	resultContractsProofContractLeavesData, ok := resultContractsProof["contract_leaves_data"].([]any)
 	require.True(t, ok)
-	assert.ElementsMatch(t, expectedContractsProofContractLeavesData, resultContractsProofContractLeavesData)
+	assert.ElementsMatch(
+		t,
+		expectedContractsProofContractLeavesData,
+		resultContractsProofContractLeavesData,
+	)
 
 	// compare 'contracts_storage_proofs'
 	expectedContractsStorageProofs, ok := expectedResultMap["contracts_storage_proofs"].([]any)

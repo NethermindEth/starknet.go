@@ -71,7 +71,10 @@ func TestCompiledCasm(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](test.ExpectedResultPath, "result")
+		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](
+			test.ExpectedResultPath,
+			"result",
+		)
 		if test.ExpectedResultPath != "" {
 			require.NoError(t, err)
 		}

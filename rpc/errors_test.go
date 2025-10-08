@@ -21,7 +21,10 @@ func TestRPCError(t *testing.T) {
 		_, err := testConfig.Provider.ChainID(context.Background())
 		require.NoError(t, err)
 
-		_, err = testConfig.Provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
+		_, err = testConfig.Provider.Events(
+			context.Background(),
+			EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}},
+		)
 		require.Error(t, err)
 		rpcErr := err.(*RPCError)
 		assert.Equal(t, rpcErr.Code, rpcerr.InternalError)
@@ -45,7 +48,11 @@ func TestRPCError(t *testing.T) {
 		Payload:     []*felt.Felt{},
 	}
 
-	_, err := testConfig.Provider.EstimateMessageFee(context.Background(), msgFromL1, WithBlockNumber(523066))
+	_, err := testConfig.Provider.EstimateMessageFee(
+		context.Background(),
+		msgFromL1,
+		WithBlockNumber(523066),
+	)
 	require.Error(t, err)
 	rpcErr := err.(*RPCError)
 

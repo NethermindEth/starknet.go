@@ -115,7 +115,8 @@ var (
 		Message: "The transaction's resources don't cover validation or the minimal transaction fee",
 	}
 	ErrInsufficientAccountBalance = &RPCError{
-		Code:    54,
+		Code: 54,
+		//nolint:lll // The line break would be outputted in the error message
 		Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
 	}
 	ErrValidationFailure = &RPCError{

@@ -44,7 +44,12 @@ func (r *rpcMock) Close() {
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (r *rpcMock) CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+func (r *rpcMock) CallContextWithSliceArgs(
+	ctx context.Context,
+	result interface{},
+	method string,
+	args ...interface{},
+) error {
 	return methodsSwitchList(result, method, args...)
 }
 
@@ -57,7 +62,12 @@ func (r *rpcMock) CallContextWithSliceArgs(ctx context.Context, result interface
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func (r *rpcMock) CallContext(ctx context.Context, result interface{}, method string, args interface{}) error {
+func (r *rpcMock) CallContext(
+	ctx context.Context,
+	result interface{},
+	method string,
+	args interface{},
+) error {
 	return methodsSwitchList(result, method, args)
 }
 
@@ -381,11 +391,15 @@ func mock_starknet_getTransactionReceipt(result interface{}, args ...interface{}
 	}
 
 	arg0Felt := args[0].(*felt.Felt)
-	l1BlockHash, err := new(felt.Felt).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
+	l1BlockHash, err := new(
+		felt.Felt,
+	).SetString("0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519")
 	if err != nil {
 		return err
 	}
-	testTxnHash, err := internalUtils.HexToFelt("0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b")
+	testTxnHash, err := internalUtils.HexToFelt(
+		"0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b",
+	)
 	if err != nil {
 		return err
 	}
@@ -613,11 +627,15 @@ func mock_starknet_getEvents(result interface{}, args ...interface{}) error {
 		return errors.New("-ChuckSize error message-")
 	}
 
-	blockHash, err := internalUtils.HexToFelt("0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb")
+	blockHash, err := internalUtils.HexToFelt(
+		"0x59dbe64bf2e2f89f5f2958cff11044dca0c64dea2e37ec6eaad9a5f838793cb",
+	)
 	if err != nil {
 		return err
 	}
-	txHash, err := internalUtils.HexToFelt("0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d")
+	txHash, err := internalUtils.HexToFelt(
+		"0x568147c09d5e5db8dc703ce1da21eae47e9ad9c789bc2f2889c4413a38c579d",
+	)
 	if err != nil {
 		return err
 	}
@@ -711,7 +729,11 @@ func mock_starknet_addDeclareTransaction(result interface{}, args ...interface{}
 		return nil
 	}
 
-	return fmt.Errorf("%w: args[0] should be BroadcastDeclareTxnV3, got %T\n", errWrongArgs, args[0])
+	return fmt.Errorf(
+		"%w: args[0] should be BroadcastDeclareTxnV3, got %T\n",
+		errWrongArgs,
+		args[0],
+	)
 }
 
 // mock_starknet_estimateFee simulates the estimation of a fee in the StarkNet network.
@@ -1040,7 +1062,10 @@ func mock_starknet_getStateUpdate(result interface{}, args ...interface{}) error
 		return errWrongArgs
 	}
 
-	output, err := internalUtils.UnmarshalJSONFileToType[StateUpdateOutput]("testData/stateUpdate/sepolia_30000.json", "result")
+	output, err := internalUtils.UnmarshalJSONFileToType[StateUpdateOutput](
+		"testData/stateUpdate/sepolia_30000.json",
+		"result",
+	)
 	if err != nil {
 		return err
 	}
@@ -1369,7 +1394,8 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 	if !ok {
 		return fmt.Errorf("%w: args[0] should be BlockID, got %T\n", errWrongArgs, args[0])
 	}
-	if blockID.Hash != nil && blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
+	if blockID.Hash != nil &&
+		blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 		rawBlockTrace, err := internalUtils.UnmarshalJSONFileToType[[]Trace](
 			"testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
 			"",
@@ -1474,7 +1500,9 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 		return &RPCError{
 			Code:    100,
 			Message: "Failed to compile the contract",
-			Data:    &CompilationErrData{CompilationError: "compilation error: invalid sierra class"},
+			Data: &CompilationErrData{
+				CompilationError: "compilation error: invalid sierra class",
+			},
 		}
 	}
 
@@ -1484,7 +1512,10 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Read the test data from file
-	resp, err := internalUtils.UnmarshalJSONFileToType[json.RawMessage]("testData/compiledCasm/sepolia.json", "result")
+	resp, err := internalUtils.UnmarshalJSONFileToType[json.RawMessage](
+		"testData/compiledCasm/sepolia.json",
+		"result",
+	)
 	if err != nil {
 		return err
 	}

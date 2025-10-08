@@ -30,19 +30,37 @@ func TestTransactionByHash(t *testing.T) {
 	}
 
 	BlockDeclareTxnV2Example := BlockTransaction{
-		Hash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+		Hash: internalUtils.TestHexToFelt(
+			t,
+			"0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda",
+		),
 		Transaction: DeclareTxnV2{
-			Type:              TransactionType_Declare,
-			Version:           TransactionV2,
-			MaxFee:            internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
-			ClassHash:         internalUtils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-			CompiledClassHash: internalUtils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
-			Nonce:             internalUtils.TestHexToFelt(t, "0x16e"),
+			Type:    TransactionType_Declare,
+			Version: TransactionV2,
+			MaxFee:  internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
+			ClassHash: internalUtils.TestHexToFelt(
+				t,
+				"0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6",
+			),
+			CompiledClassHash: internalUtils.TestHexToFelt(
+				t,
+				"0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252",
+			),
+			Nonce: internalUtils.TestHexToFelt(t, "0x16e"),
 			Signature: []*felt.Felt{
-				internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
-				internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
+				internalUtils.TestHexToFelt(
+					t,
+					"0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0",
+				),
+				internalUtils.TestHexToFelt(
+					t,
+					"0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92",
+				),
 			},
-			SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
+			SenderAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
+			),
 		},
 	}
 
@@ -138,7 +156,11 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
-			tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+			tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(
+				context.Background(),
+				test.BlockID,
+				test.Index,
+			)
 			if err != nil {
 				// in case the block has no transactions
 				assert.EqualError(t, err, ErrInvalidTxnIndex.Error())
@@ -198,7 +220,10 @@ func TestTransactionReceipt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
+		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(
+			context.Background(),
+			test.TxnHash,
+		)
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}

@@ -48,10 +48,18 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := testConfig.Provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
+	require.True(
+		t,
+		strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"),
+		"current block hash should return a string starting with 0x",
+	)
 
 	if tests.TEST_ENV == tests.MockEnv {
-		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
+		require.Equal(
+			t,
+			&BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT},
+			blockHashAndNumber,
+		)
 	}
 }
 
@@ -351,7 +359,10 @@ func TestBlockWithTxs(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
-			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), test.BlockID)
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(
+				context.Background(),
+				test.BlockID,
+			)
 			require.NoError(t, err, "Unable to fetch the given block.")
 
 			switch block := blockWithTxsInterface.(type) {
@@ -504,22 +515,28 @@ func TestBlockTransactionCount(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("Count: %v, BlockID: %v", test.ExpectedCount, test.BlockID), func(t *testing.T) {
-			count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
-			if test.ExpectedError != nil {
-				require.EqualError(t, test.ExpectedError, err.Error())
+		t.Run(
+			fmt.Sprintf("Count: %v, BlockID: %v", test.ExpectedCount, test.BlockID),
+			func(t *testing.T) {
+				count, err := testConfig.Provider.BlockTransactionCount(
+					context.Background(),
+					test.BlockID,
+				)
+				if test.ExpectedError != nil {
+					require.EqualError(t, test.ExpectedError, err.Error())
 
-				return
-			}
-			require.NoError(t, err)
+					return
+				}
+				require.NoError(t, err)
 
-			if test.ExpectedCount == -1 {
-				// since 0 is the default value of an int64 var, let's set the expected count to -1 when we want to skip the count check
-				return
-			}
+				if test.ExpectedCount == -1 {
+					// since 0 is the default value of an int64 var, let's set the expected count to -1 when we want to skip the count check
+					return
+				}
 
-			assert.Equal(t, uint64(test.ExpectedCount), count)
-		})
+				assert.Equal(t, uint64(test.ExpectedCount), count)
+			},
+		)
 	}
 }
 
@@ -550,7 +567,10 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(
+				context.Background(),
+				WithBlockNumber(i),
+			)
 			require.NoError(t, err)
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
@@ -566,7 +586,9 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okdec3 := v.Transaction.(DeclareTxnV3)
 				_, okdep := v.Transaction.(DeployTxn)
 				_, okdepac := v.Transaction.(DeployAccountTxnV1)
-				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 &&
+					!okdep &&
+					!okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
@@ -708,8 +730,16 @@ func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult
 
 	// other state diff fields
 	assert.ElementsMatch(t, expectedResultMap["nonces"], resultMap["nonces"])
-	assert.ElementsMatch(t, expectedResultMap["deployed_contracts"], resultMap["deployed_contracts"])
-	assert.ElementsMatch(t, expectedResultMap["deprecated_declared_classes"], resultMap["deprecated_declared_classes"])
+	assert.ElementsMatch(
+		t,
+		expectedResultMap["deployed_contracts"],
+		resultMap["deployed_contracts"],
+	)
+	assert.ElementsMatch(
+		t,
+		expectedResultMap["deprecated_declared_classes"],
+		resultMap["deprecated_declared_classes"],
+	)
 	assert.ElementsMatch(t, expectedResultMap["declared_classes"], resultMap["declared_classes"])
 	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
