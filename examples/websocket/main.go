@@ -33,7 +33,11 @@ func main() {
 	// We then call the desired websocket method, passing in the channel and the parameters if needed.
 	// For example, to subscribe to new block headers, we call the SubscribeNewHeads method, passing in the channel and the blockID.
 	// As the description says it's optional, we pass an empty BlockID as value. That way, the latest block will be used by default.
-	sub, err := wsClient.SubscribeNewHeads(context.Background(), newHeadsChan, rpc.SubscriptionBlockID{})
+	sub, err := wsClient.SubscribeNewHeads(
+		context.Background(),
+		newHeadsChan,
+		rpc.SubscriptionBlockID{},
+	)
 	if err != nil {
 		panic(err)
 	}

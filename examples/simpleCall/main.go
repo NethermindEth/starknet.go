@@ -55,7 +55,11 @@ func main() {
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
 	}
-	decimalsResp, rpcErr := client.Call(context.Background(), getDecimalsTx, rpc.WithBlockTag("latest"))
+	decimalsResp, rpcErr := client.Call(
+		context.Background(),
+		getDecimalsTx,
+		rpc.WithBlockTag("latest"),
+	)
 	if rpcErr != nil {
 		panic(rpcErr)
 	}

@@ -15,8 +15,9 @@ type FixedSizeMerkleTree struct {
 
 // NewFixedSizeMerkleTree creates a new fixed-size Merkle tree.
 //
-// It takes a variable number of *big.Int leaves as input and returns a pointer to a FixedSizeMerkleTree and an error.
-// The function builds the Merkle tree using the given leaves and sets the tree's root.
+// It takes a variable number of *big.Int leaves as input and returns a
+// pointer to a FixedSizeMerkleTree and an error. The function builds the
+// Merkle tree using the given leaves and sets the tree's root.
 //
 // Parameters:
 //   - leaves: a slice of *big.Int representing the leaves of the tree.
@@ -98,8 +99,13 @@ func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error) {
 //
 // Returns:
 //   - []*big.Int: the Merkle proof for the given leaf
-//   - error: if the key is not found in the branch or there is an error in the nextproof calculation.
-func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, hashPath []*big.Int) ([]*big.Int, error) {
+//   - error: if the key is not found in the branch or there is an error in
+//     the next proof calculation.
+func (mt *FixedSizeMerkleTree) recursiveProof(
+	leaf *big.Int,
+	branchIndex int,
+	hashPath []*big.Int,
+) ([]*big.Int, error) {
 	if branchIndex >= len(mt.Branches) {
 		return hashPath, nil
 	}
@@ -113,7 +119,10 @@ func (mt *FixedSizeMerkleTree) recursiveProof(leaf *big.Int, branchIndex int, ha
 		}
 	}
 	if index == -1 {
-		return nil, fmt.Errorf("key 0x%s not found in branch", leaf.Text(16)) //nolint:mnd //hex base
+		return nil, fmt.Errorf(
+			"key 0x%s not found in branch",
+			leaf.Text(16), //nolint:mnd // hex base
+		)
 	}
 	nextProof := big.NewInt(0)
 	if index%2 == 0 && index+1 < len(branch) {

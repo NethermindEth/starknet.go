@@ -64,7 +64,9 @@ func BenchmarkSignatureVerify(b *testing.B) {
 func TestPrivateToPoint(t *testing.T) {
 	t.Parallel()
 	x, _ := PrivateKeyToPoint(big.NewInt(2))
-	expectedX, ok := new(big.Int).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
+	expectedX, ok := new(
+		big.Int,
+	).SetString("3324833730090626974525872402899302150520188025637965566623476530814354734325", 10)
 	require.True(t, ok)
 
 	assert.Equal(t, expectedX, x)
@@ -234,9 +236,16 @@ func TestComputeHashOnElements(t *testing.T) {
 	hashEmptyArray := ComputeHashOnElements([]*big.Int{})
 	hashEmptyArrayFelt := PedersenArray([]*felt.Felt{}...)
 
-	expectedHashEmmptyArray := internalUtils.HexToBN("0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804")
+	expectedHashEmmptyArray := internalUtils.HexToBN(
+		"0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804",
+	)
 	require.Equal(t, hashEmptyArray, expectedHashEmmptyArray, "Hash empty array wrong value.")
-	require.Equal(t, internalUtils.FeltToBigInt(hashEmptyArrayFelt), expectedHashEmmptyArray, "Hash empty array wrong value.")
+	require.Equal(
+		t,
+		internalUtils.FeltToBigInt(hashEmptyArrayFelt),
+		expectedHashEmmptyArray,
+		"Hash empty array wrong value.",
+	)
 
 	filledArray := []*big.Int{
 		big.NewInt(123782376),
@@ -247,16 +256,26 @@ func TestComputeHashOnElements(t *testing.T) {
 	hashFilledArray := ComputeHashOnElements(filledArray)
 	hashFilledArrayFelt := PedersenArray(internalUtils.BigIntArrToFeltArr(filledArray)...)
 
-	expectedHashFilledArray := internalUtils.HexToBN("0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59")
+	expectedHashFilledArray := internalUtils.HexToBN(
+		"0x7b422405da6571242dfc245a43de3b0fe695e7021c148b918cd9cdb462cac59",
+	)
 	require.Equal(t, hashFilledArray, expectedHashFilledArray, "Hash filled array wrong value.")
-	require.Equal(t, internalUtils.FeltToBigInt(hashFilledArrayFelt), expectedHashFilledArray, "Hash filled array wrong value.")
+	require.Equal(
+		t,
+		internalUtils.FeltToBigInt(hashFilledArrayFelt),
+		expectedHashFilledArray,
+		"Hash filled array wrong value.",
+	)
 }
 
 // TestSignature tests the behaviour of the Sign and Verify functions against
 // the expected values.
 func TestSignature(t *testing.T) {
 	t.Parallel()
-	hash := Pedersen(internalUtils.TestHexToFelt(t, "0x12773"), internalUtils.TestHexToFelt(t, "0x872362"))
+	hash := Pedersen(
+		internalUtils.TestHexToFelt(t, "0x12773"),
+		internalUtils.TestHexToFelt(t, "0x872362"),
+	)
 	hashBigInt := internalUtils.FeltToBigInt(hash)
 
 	priv, x, _, err := GetRandomKeys()
@@ -305,17 +324,32 @@ func TestVerifySignature(t *testing.T) {
 	t.Parallel()
 	// values verified with starknet.js
 
-	msgHash := internalUtils.TestHexToFelt(t, "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336")
-	r := internalUtils.TestHexToFelt(t, "0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4")
-	s := internalUtils.TestHexToFelt(t, "0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879")
-	pubKey := internalUtils.TestHexToFelt(t, "0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c")
+	msgHash := internalUtils.TestHexToFelt(
+		t,
+		"0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336",
+	)
+	r := internalUtils.TestHexToFelt(
+		t,
+		"0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4",
+	)
+	s := internalUtils.TestHexToFelt(
+		t,
+		"0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879",
+	)
+	pubKey := internalUtils.TestHexToFelt(
+		t,
+		"0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c",
+	)
 
 	resp, err := VerifyFelts(msgHash, r, s, pubKey)
 	require.NoError(t, err)
 	require.True(t, resp)
 
 	// Change the last digit of the message hash to test invalid signature
-	wrongMsgHash := internalUtils.TestHexToFelt(t, "0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2337")
+	wrongMsgHash := internalUtils.TestHexToFelt(
+		t,
+		"0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2337",
+	)
 	resp, err = VerifyFelts(wrongMsgHash, r, s, pubKey)
 	require.NoError(t, err)
 	require.False(t, resp)

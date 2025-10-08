@@ -24,8 +24,9 @@ type TestAccount struct {
 
 // NewDevNet creates a new DevNet instance.
 //
-// It accepts an optional baseURL parameter, which is a string representing the base URL of the DevNet server.
-// If no baseURL is provided, the default value of "http://localhost:5050" is used.
+// It accepts an optional baseURL parameter, which is a string representing
+// the base URL of the DevNet server. If no baseURL is provided, the default
+// value of "http://localhost:5050" is used.
 //
 // Parameters:
 //   - baseURL: a string representing the base URL of the DevNet server
@@ -70,7 +71,11 @@ func (devnet *DevNet) api(uri string) string {
 // Returns:
 //   - []TestAccount: a slice of TestAccount structs
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
-	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), http.NoBody)
+	req, err := http.NewRequest(
+		http.MethodGet,
+		devnet.api("/predeployed_accounts"),
+		http.NoBody,
+	)
 	if err != nil {
 		return nil, err
 	}

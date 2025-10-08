@@ -13,7 +13,12 @@ import (
 
 // verboseInvoke is a function that shows how to send an invoke transaction step by step, using only
 // a few helper functions.
-func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
+func verboseInvoke(
+	accnt *account.Account,
+	contractAddress *felt.Felt,
+	contractMethod string,
+	amount *felt.Felt,
+) {
 	// Getting the nonce from the account
 	nonce, err := accnt.Nonce(context.Background())
 	if err != nil {
@@ -26,9 +31,11 @@ func verboseInvoke(accnt *account.Account, contractAddress *felt.Felt, contractM
 	}
 	// Building the functionCall struct, where :
 	FnCall := rpc.FunctionCall{
-		ContractAddress:    contractAddress,                               // contractAddress is the contract that we want to call
-		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod), // this is the function that we want to call
-		Calldata:           u256Amount,                                    // the calldata necessary to call the function. Here
+		ContractAddress: contractAddress, // contractAddress is the contract that we want to call
+		EntryPointSelector: utils.GetSelectorFromNameFelt(
+			contractMethod,
+		), // this is the function that we want to call
+		Calldata: u256Amount, // the calldata necessary to call the function. Here
 		// we are passing the "amount" value (a u256 cairo variable) for the "mint" function
 	}
 

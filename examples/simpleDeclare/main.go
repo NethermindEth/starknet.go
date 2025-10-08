@@ -49,7 +49,13 @@ func main() {
 		panic(err)
 	}
 	// Initialise the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +69,10 @@ func main() {
 	}
 
 	// Unmarshalling the sierra contract class from a JSON file.
-	contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](sierraContractFilePath, "")
+	contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](
+		sierraContractFilePath,
+		"",
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -85,9 +94,15 @@ func main() {
 			fmt.Println("You need to: ")
 			fmt.Println("- create a different Cairo contract,")
 			fmt.Println("- compile it,")
-			fmt.Println("- paste the new casm and sierra json files in this 'examples/simpleDeclare' folder,")
-			fmt.Println("- change the 'casmContractFilePath' and 'sierraContractFilePath' variables to the new files names,")
-			fmt.Println("and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/")
+			fmt.Println(
+				"- paste the new casm and sierra json files in this 'examples/simpleDeclare' folder,",
+			)
+			fmt.Println(
+				"- change the 'casmContractFilePath' and 'sierraContractFilePath' variables to the new files names,",
+			)
+			fmt.Println(
+				"and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/",
+			)
 
 			return
 		}

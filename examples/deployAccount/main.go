@@ -74,8 +74,13 @@ func main() {
 	// At this point you need to add funds to precomputed address to use it.
 	var input string
 
-	fmt.Println("\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.")
-	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n", feeInSTRK)
+	fmt.Println(
+		"\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.",
+	)
+	fmt.Printf(
+		"You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n",
+		feeInSTRK,
+	)
 	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
 	fmt.Scan(&input) //nolint:errcheck
 
@@ -86,7 +91,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
+	fmt.Println(
+		"BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.",
+	)
 	fmt.Printf("Transaction hash: %v \n", resp.Hash)
 	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }
