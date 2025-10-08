@@ -127,7 +127,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 				var client *rpc.Provider
 				client, err = rpc.NewProvider(tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
-				acc, err = account.NewAccount(client, test.AccountAddress, test.PubKey, ks, account.CairoV0)
+				acc, err = account.NewAccount(
+					client,
+					test.AccountAddress,
+					test.PubKey,
+					ks,
+					account.CairoV0,
+				)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			if tests.TEST_ENV == "mock" {
@@ -136,7 +142,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 				mockRpcProvider.EXPECT().
 					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 					Return(internalUtils.RANDOM_FELT, nil)
-				acc, err = account.NewAccount(mockRpcProvider, test.AccountAddress, test.PubKey, ks, account.CairoV0)
+				acc, err = account.NewAccount(
+					mockRpcProvider,
+					test.AccountAddress,
+					test.PubKey,
+					ks,
+					account.CairoV0,
+				)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			invokeTxn := rpc.InvokeTxnV1{
@@ -148,7 +160,12 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
 			require.NoError(t, err, "error returned from account.TransactionHash()")
-			require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "transaction hash does not match expected")
+			require.Equal(
+				t,
+				test.ExpectedHash.String(),
+				hashResp.String(),
+				"transaction hash does not match expected",
+			)
 
 			hash2, err := hash.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
 			require.NoError(t, err)
@@ -188,14 +205,28 @@ func TestTransactionHashDeclare(t *testing.T) {
 		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acnt, err = account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
+		mockRpcProvider.EXPECT().
+			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+			Return(internalUtils.RANDOM_FELT, nil)
+		acnt, err = account.NewAccount(
+			mockRpcProvider,
+			&felt.Zero,
+			"",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
 	}
 	if tests.TEST_ENV == "testnet" {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		acnt, err = account.NewAccount(client, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
+		acnt, err = account.NewAccount(
+			client,
+			&felt.Zero,
+			"",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
 	}
 
@@ -285,7 +316,12 @@ func TestTransactionHashDeclare(t *testing.T) {
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashDeclare(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeclare not what expected")
+		require.Equal(
+			t,
+			test.ExpectedHash.String(),
+			hashResp.String(),
+			"TransactionHashDeclare not what expected",
+		)
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
@@ -307,8 +343,16 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
+	mockRpcProvider.EXPECT().
+		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+		Return(internalUtils.RANDOM_FELT, nil)
+	acnt, err := account.NewAccount(
+		mockRpcProvider,
+		&felt.Zero,
+		"",
+		account.NewMemKeystore(),
+		account.CairoV0,
+	)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -324,8 +368,14 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 				Type:    rpc.TransactionType_Invoke,
 				Version: rpc.TransactionV3,
 				Signature: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245"),
-					internalUtils.TestHexToFelt(t, "0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3"),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x17bacc700df6c82682139e8e550078a5daa75dfe356577f78f7e57fd7c56245",
+					),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3",
+					),
 				},
 				ResourceBounds: &rpc.ResourceBoundsMapping{
 					L1Gas: rpc.ResourceBounds{
@@ -344,7 +394,10 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 				Tip:                   "0x0",
 				PayMasterData:         []*felt.Felt{},
 				AccountDeploymentData: []*felt.Felt{},
-				SenderAddress:         internalUtils.TestHexToFelt(t, "0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b"),
+				SenderAddress: internalUtils.TestHexToFelt(
+					t,
+					"0x745d525a3582e91299d8d7c71730ffc4b1f191f5b219d800334bc0edad0983b",
+				),
 				Calldata: internalUtils.TestHexArrToFelt(t, []string{
 					"0x1",
 					"0x4138fd51f90d171df37e9d4419c8cdb67d525840c58f8a5c347be93a1c5277d",
@@ -354,15 +407,23 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 				NonceDataMode: rpc.DAModeL1,
 				FeeMode:       rpc.DAModeL1,
 			},
-			ExpectedHash: internalUtils.TestHexToFelt(t, "0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea"),
-			ExpectedErr:  nil,
+			ExpectedHash: internalUtils.TestHexToFelt(
+				t,
+				"0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea",
+			),
+			ExpectedErr: nil,
 		},
 	}
 
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashInvoke(test.Txn)
 		require.Equal(t, test.ExpectedErr, err)
-		require.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashInvoke not what expected")
+		require.Equal(
+			t,
+			test.ExpectedHash.String(),
+			hashResp.String(),
+			"TransactionHashInvoke not what expected",
+		)
 
 		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
 		require.NoError(t, err)
@@ -378,9 +439,17 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
 	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
+	mockRpcProvider.EXPECT().
+		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+		Return(internalUtils.RANDOM_FELT, nil)
 
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
+	acnt, err := account.NewAccount(
+		mockRpcProvider,
+		&felt.Zero,
+		"",
+		account.NewMemKeystore(),
+		account.CairoV0,
+	)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -398,18 +467,39 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 				MaxFee:  internalUtils.TestHexToFelt(t, "0x1d2109b99cf94"),
 				Version: rpc.TransactionV1,
 				Signature: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0x427df9a1a4a0b7b9011a758524b8a6c2595aac9140608fe24c66efe04b340d7"),
-					internalUtils.TestHexToFelt(t, "0x4edc73cd97dab7458a08fec6d7c0e1638c3f1111646fc8a91508b4f94b36310"),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x427df9a1a4a0b7b9011a758524b8a6c2595aac9140608fe24c66efe04b340d7",
+					),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x4edc73cd97dab7458a08fec6d7c0e1638c3f1111646fc8a91508b4f94b36310",
+					),
 				},
-				ClassHash:           internalUtils.TestHexToFelt(t, "0x1e60c8722677cfb7dd8dbea5be86c09265db02cdfe77113e77da7d44c017388"),
-				ContractAddressSalt: internalUtils.TestHexToFelt(t, "0x15d621f9515c6197d3117eb1a25c7a4a669317be8f49831e03fcc00d855352e"),
+				ClassHash: internalUtils.TestHexToFelt(
+					t,
+					"0x1e60c8722677cfb7dd8dbea5be86c09265db02cdfe77113e77da7d44c017388",
+				),
+				ContractAddressSalt: internalUtils.TestHexToFelt(
+					t,
+					"0x15d621f9515c6197d3117eb1a25c7a4a669317be8f49831e03fcc00d855352e",
+				),
 				ConstructorCalldata: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e"),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x960532cfba33384bbec41aa669727a9c51e995c87e101c86706aaf244f7e4e",
+					),
 				},
 			},
-			SenderAddress: internalUtils.TestHexToFelt(t, "0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff"),
-			ExpectedHash:  internalUtils.TestHexToFelt(t, "0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188"),
-			ExpectedErr:   nil,
+			SenderAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x05dd5faeddd4a9e01231f3bb9b95ec93426d08977b721c222e45fd98c5f353ff",
+			),
+			ExpectedHash: internalUtils.TestHexToFelt(
+				t,
+				"0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188",
+			),
+			ExpectedErr: nil,
 		},
 		{
 			// https://sepolia.voyager.online/tx/0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975
@@ -418,8 +508,14 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 				Type:    rpc.TransactionType_DeployAccount,
 				Version: rpc.TransactionV3,
 				Signature: []*felt.Felt{
-					internalUtils.TestHexToFelt(t, "0x3ef7f047c95592a04d4d754888dd8f125480a48dee23ee86c115d5da2a86573"),
-					internalUtils.TestHexToFelt(t, "0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7"),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x3ef7f047c95592a04d4d754888dd8f125480a48dee23ee86c115d5da2a86573",
+					),
+					internalUtils.TestHexToFelt(
+						t,
+						"0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7",
+					),
 				},
 				ResourceBounds: &rpc.ResourceBoundsMapping{
 					L1Gas: rpc.ResourceBounds{
@@ -439,22 +535,39 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 				PayMasterData: []*felt.Felt{},
 				NonceDataMode: rpc.DAModeL1,
 				FeeMode:       rpc.DAModeL1,
-				ClassHash:     internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"),
+				ClassHash: internalUtils.TestHexToFelt(
+					t,
+					"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+				),
 				ConstructorCalldata: internalUtils.TestHexArrToFelt(t, []string{
 					"0x2e94ba2293dfa45f86dfcf9952d7a33dc50ce2b00b932999fbe0844772604f3",
 				}),
-				ContractAddressSalt: internalUtils.TestHexToFelt(t, "0x2e94ba2293dfa45f86dfcf9952d7a33dc50ce2b00b932999fbe0844772604f3"),
+				ContractAddressSalt: internalUtils.TestHexToFelt(
+					t,
+					"0x2e94ba2293dfa45f86dfcf9952d7a33dc50ce2b00b932999fbe0844772604f3",
+				),
 			},
-			SenderAddress: internalUtils.TestHexToFelt(t, "0x48419d3cc27f158917b45255d5376c06a9524484e19a1102279cbdc715c5522"),
-			ExpectedHash:  internalUtils.TestHexToFelt(t, "0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975"),
-			ExpectedErr:   nil,
+			SenderAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x48419d3cc27f158917b45255d5376c06a9524484e19a1102279cbdc715c5522",
+			),
+			ExpectedHash: internalUtils.TestHexToFelt(
+				t,
+				"0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975",
+			),
+			ExpectedErr: nil,
 		},
 	}
 
 	for _, test := range testSet {
 		hashResp, err := acnt.TransactionHashDeployAccount(test.Txn, test.SenderAddress)
 		require.Equal(t, test.ExpectedErr, err)
-		assert.Equal(t, test.ExpectedHash.String(), hashResp.String(), "TransactionHashDeployAccount not what expected")
+		assert.Equal(
+			t,
+			test.ExpectedHash.String(),
+			hashResp.String(),
+			"TransactionHashDeployAccount not what expected",
+		)
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {

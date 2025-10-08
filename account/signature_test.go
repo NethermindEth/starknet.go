@@ -30,7 +30,10 @@ func TestVerify(t *testing.T) {
 		Return(internalUtils.RANDOM_FELT, nil)
 
 	ks := account.NewMemKeystore()
-	accAddress := internalUtils.TestHexToFelt(t, "0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457")
+	accAddress := internalUtils.TestHexToFelt(
+		t,
+		"0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457",
+	)
 	acc, err := account.NewAccount(
 		mockRpcProvider,
 		accAddress,

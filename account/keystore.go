@@ -38,7 +38,8 @@ func NewMemKeystore() *MemKeystore {
 	}
 }
 
-// SetNewMemKeystore returns a new instance of MemKeystore and sets the given public key and private key in it.
+// SetNewMemKeystore returns a new instance of MemKeystore and sets the given
+// public key and private key in it.
 //
 // Parameters:
 //   - pub: a string representing the public key
@@ -79,7 +80,11 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	defer ks.mu.Unlock()
 	k, exists := ks.keys[senderAddress]
 	if !exists {
-		return nil, fmt.Errorf("error getting key for sender %s: %w", senderAddress, ErrSenderNoExist)
+		return nil, fmt.Errorf(
+			"error getting key for sender %s: %w",
+			senderAddress,
+			ErrSenderNoExist,
+		)
 	}
 
 	return k, nil
@@ -96,7 +101,11 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 //   - *big.Int: the R component of the signature as *big.Int
 //   - *big.Int: the S component of the signature as *big.Int
 //   - error: an error if any
-func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
+func (ks *MemKeystore) Sign(
+	ctx context.Context,
+	id string,
+	msgHash *big.Int,
+) (*big.Int, *big.Int, error) {
 	k, err := ks.Get(id)
 	if err != nil {
 		return nil, nil, err

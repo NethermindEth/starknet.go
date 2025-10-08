@@ -46,7 +46,10 @@ func TestFmtCallData(t *testing.T) {
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: rpc.FunctionCall{
-				ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
+				ContractAddress: internalUtils.TestHexToFelt(
+					t,
+					"0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902",
+				),
 				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 				Calldata: []*felt.Felt{
 					internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
@@ -64,7 +67,10 @@ func TestFmtCallData(t *testing.T) {
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: rpc.FunctionCall{
-				ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
+				ContractAddress: internalUtils.TestHexToFelt(
+					t,
+					"0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA",
+				),
 				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 				Calldata: []*felt.Felt{
 					internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
@@ -83,8 +89,16 @@ func TestFmtCallData(t *testing.T) {
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
+		mockRpcProvider.EXPECT().
+			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+			Return(internalUtils.RANDOM_FELT, nil)
+		acc, err := account.NewAccount(
+			mockRpcProvider,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			test.CairoVersion,
+		)
 		require.NoError(t, err)
 
 		fmtCallData, err := acc.FmtCalldata([]rpc.FunctionCall{test.FnCall})
@@ -134,8 +148,16 @@ func TestChainIdMOCK(t *testing.T) {
 	for _, test := range testSet {
 		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
+		mockRpcProvider.EXPECT().
+			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+			Return(internalUtils.RANDOM_FELT, nil)
+		acc, err := account.NewAccount(
+			mockRpcProvider,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedID, acc.ChainId.String())
 	}
@@ -173,7 +195,13 @@ func TestChainId(t *testing.T) {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
+		acc, err := account.NewAccount(
+			client,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
 		require.Equal(t, acc.ChainId.String(), test.ExpectedID)
 	}
@@ -221,7 +249,9 @@ func TestBraavosAccountWarning(t *testing.T) {
 	for _, test := range testSet {
 		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {
 			// Set up the mock to return the Braavos class hash
-			mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(test.ClassHash, nil)
+			mockRpcProvider.EXPECT().
+				ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+				Return(test.ClassHash, nil)
 			mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 			// Create a buffer to capture stdout
@@ -231,7 +261,13 @@ func TestBraavosAccountWarning(t *testing.T) {
 			os.Stdout = w
 
 			// Create the account
-			_, err = account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), account.CairoV2)
+			_, err = account.NewAccount(
+				mockRpcProvider,
+				internalUtils.RANDOM_FELT,
+				"pubkey",
+				account.NewMemKeystore(),
+				account.CairoV2,
+			)
 			require.NoError(t, err)
 
 			// Close the writer and restore stdout
