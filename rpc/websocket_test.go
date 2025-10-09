@@ -333,7 +333,7 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		for _, test := range testSet {
-			func(t *testing.T) {
+			t.Run("test: "+test.expectedError.Error(), func(t *testing.T) {
 				t.Logf("test: %+v", test.expectedError.Error())
 				events := make(chan *EmittedEvent)
 				defer close(events)
@@ -343,7 +343,7 @@ func TestSubscribeEvents(t *testing.T) {
 				}
 				require.Nil(t, sub)
 				require.EqualError(t, err, test.expectedError.Error())
-			}(t)
+			})
 		}
 	})
 }
