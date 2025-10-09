@@ -141,7 +141,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeEvents(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -594,7 +594,7 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -864,7 +864,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactions(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 

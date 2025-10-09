@@ -78,7 +78,7 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 		if !ok {
 			return fmt.Errorf("unknown abi type %v", checkABI["type"])
 		}
-		//nolint:exhaustruct
+		//nolint:exhaustruct // Just assigning the type
 		switch abiType {
 		case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
 			ab = &FunctionABIEntry{}

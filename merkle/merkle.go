@@ -25,10 +25,10 @@ type FixedSizeMerkleTree struct {
 // Returns:
 //   - *FixedSizeMerkleTree: a pointer to a FixedSizeMerkleTree
 func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree {
-	//nolint:exhaustruct
 	mt := &FixedSizeMerkleTree{
 		Leaves:   leaves,
 		Branches: [][]*big.Int{},
+		Root:     nil,
 	}
 	mt.Root = mt.build(leaves)
 
@@ -132,9 +132,9 @@ func (mt *FixedSizeMerkleTree) recursiveProof(
 		nextProof = branch[index-1]
 	}
 	newLeaf := MerkleHash(leaf, nextProof)
-	newHashPath := append(hashPath, nextProof) //nolint:gocritic
+	hashPath = append(hashPath, nextProof)
 
-	return mt.recursiveProof(newLeaf, branchIndex+1, newHashPath)
+	return mt.recursiveProof(newLeaf, branchIndex+1, hashPath)
 }
 
 // ProofMerklePath checks if a given leaf node is part of a Merkle tree path.

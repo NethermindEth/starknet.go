@@ -43,9 +43,11 @@ type Spyer interface {
 }
 
 // Assert that the Spy type implements the callCloser and Spyer interfaces.
+//
+//nolint:exhaustruct // Just asserting interface implementations.
 var (
-	_ callCloser = &Spy{} //nolint:exhaustruct
-	_ Spyer      = &Spy{} //nolint:exhaustruct
+	_ callCloser = &Spy{}
+	_ Spyer      = &Spy{}
 )
 
 // NewJSONRPCSpy creates a new spy object.

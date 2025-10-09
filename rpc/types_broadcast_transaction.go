@@ -10,7 +10,7 @@ type BroadcastTxn interface{}
 // Note: this allow all types to pass, but are to help users of starknet.go
 // understand which types are allowed where.
 //
-//nolint:exhaustruct
+//nolint:exhaustruct // Just asserting interface implementations.
 var (
 	_ BroadcastTxn = BroadcastInvokeTxnV3{}
 	_ BroadcastTxn = BroadcastDeclareTxnV3{}

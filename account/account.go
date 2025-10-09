@@ -71,7 +71,7 @@ type AccountInterface interface {
 	) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
-var _ AccountInterface = &Account{} //nolint:exhaustruct
+var _ AccountInterface = &Account{} //nolint:exhaustruct // Just asserting interface implementation.
 
 type Account struct {
 	Provider     rpc.RpcProvider
@@ -212,8 +212,8 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 //
 //nolint:lll // The link would be unclickable if we break the line.
 func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
-	calldata := make([]*felt.Felt, 0, 10) //nolint:mnd
-	calls := make([]*felt.Felt, 0, 10)    //nolint:mnd
+	calldata := make([]*felt.Felt, 0, 10) //nolint:mnd // Randomly chosen
+	calls := make([]*felt.Felt, 0, 10)    //nolint:mnd // Randomly chosen
 
 	calldata = append(calldata, new(felt.Felt).SetUint64(uint64(len(callArray))))
 
@@ -251,7 +251,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 //
 //nolint:lll // The link would be unclickable if we break the line.
 func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
-	result := make([]*felt.Felt, 0, 10) //nolint:mnd
+	result := make([]*felt.Felt, 0, 10) //nolint:mnd // Randomly chosen
 
 	result = append(result, new(felt.Felt).SetUint64(uint64(len(callArray))))
 

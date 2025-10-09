@@ -82,7 +82,10 @@ func main() {
 		feeInSTRK,
 	)
 	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
-	fmt.Scan(&input) //nolint:errcheck
+	_, err = fmt.Scan(&input)
+	if err != nil {
+		panic(err)
+	}
 
 	// Send transaction to the network
 	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)

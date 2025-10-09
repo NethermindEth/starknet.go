@@ -48,7 +48,7 @@ func setupAcc(t *testing.T, tConfig *rpc.TestConfiguration) (*account.Account, e
 	return acc, nil
 }
 
-//nolint:tparallel
+//nolint:tparallel // I want only sub-tests to run in parallel, but the main test to run sequentially with the others.
 func TestSubscribeTransactionStatus(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 

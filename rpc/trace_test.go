@@ -189,7 +189,7 @@ func TestSimulateTransaction(t *testing.T) {
 			// read file to compare JSONs
 			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
 
-			//nolint:dupl
+			//nolint:dupl // Similar to TestTraceBlockTransactions, but they're testing different things.
 			for i, trace := range resp {
 				assert.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
 				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
@@ -307,7 +307,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			expectedRespArr := make([]any, 0)
 			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
-			//nolint:dupl
+			//nolint:dupl // Similar to TestSimulateTransaction, but they're testing different things.
 			for i, actualTrace := range resp {
 				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
 				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)

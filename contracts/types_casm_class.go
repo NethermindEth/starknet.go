@@ -192,7 +192,7 @@ type Hints struct {
 
 // UnmarshalJSON implements json.Unmarshaler interface
 //
-//nolint:dupl
+//nolint:dupl // Just a small similarity with DoubleDeref UnmarshalJSON.
 func (h *Hints) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {
@@ -576,7 +576,7 @@ type DoubleDeref struct {
 
 // UnmarshalJSON implements json.Unmarshaler
 //
-//nolint:dupl
+//nolint:dupl // Just a small similarity with Hints UnmarshalJSON.
 func (dd *DoubleDeref) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {

@@ -16,7 +16,7 @@ type (
 	StringErrData = rpcerr.StringErrData
 )
 
-//nolint:exhaustruct
+//nolint:exhaustruct // Just asserting interface implementations.
 var (
 	_ rpcerr.RPCData = &CompilationErrData{}
 	_ rpcerr.RPCData = &ContractErrData{}
@@ -24,7 +24,7 @@ var (
 	_ rpcerr.RPCData = &TraceStatusErrData{}
 )
 
-//nolint:exhaustruct
+//nolint:exhaustruct // Omitting the Data field for errors that don't have data.
 var (
 	ErrFailedToReceiveTxn = &RPCError{
 		Code:    1,

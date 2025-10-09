@@ -80,7 +80,7 @@ func BuildUDCCalldata(
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
 ) (rpc.InvokeFunctionCall, *felt.Felt, error) {
-	result := rpc.InvokeFunctionCall{} //nolint:exhaustruct
+	var result rpc.InvokeFunctionCall
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
 	}

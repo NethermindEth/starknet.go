@@ -306,7 +306,7 @@ func (v *TransactionVersion) BigInt() (*big.Int, error) {
 
 	// Handle versions with query bit.
 	// Remove the 0x prefix and convert to big.Int
-	version, ok := new(big.Int).SetString(string(*v)[2:], 16) //nolint:mnd
+	version, ok := new(big.Int).SetString(string(*v)[2:], 16) //nolint:mnd // hex base
 	if !ok {
 		return big.NewInt(-1), errors.New(fmt.Sprint("TransactionVersion %i not supported", *v))
 	}

@@ -50,7 +50,7 @@ var (
 	RevisionV1 revision
 )
 
-//nolint:gochecknoinits
+//nolint:gochecknoinits // Setup for the revisions global variables
 func init() {
 	presetMap := make(map[string]TypeDefinition)
 

@@ -57,10 +57,10 @@ func (provider *Provider) BlockHashAndNumber(
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Number: &n,
-	}
+	var blockID BlockID
+	blockID.Number = &n
+
+	return blockID
 }
 
 // WithBlockHash returns a BlockID with the given hash.
@@ -71,10 +71,10 @@ func WithBlockNumber(n uint64) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Hash: h,
-	}
+	var blockID BlockID
+	blockID.Hash = h
+
+	return blockID
 }
 
 // WithBlockTag creates a new BlockID with the specified tag.
@@ -85,10 +85,10 @@ func WithBlockHash(h *felt.Felt) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag BlockTag) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Tag: tag,
-	}
+	var blockID BlockID
+	blockID.Tag = tag
+
+	return blockID
 }
 
 // BlockWithTxHashes retrieves the block with transaction hashes for the given block ID.
@@ -101,7 +101,7 @@ func WithBlockTag(tag BlockTag) BlockID {
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl
+//nolint:dupl // Similar to BlockWithTxs, but it's a different method.
 func (provider *Provider) BlockWithTxHashes(
 	ctx context.Context,
 	blockID BlockID,
@@ -184,7 +184,7 @@ func (provider *Provider) BlockTransactionCount(
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl
+//nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {

@@ -265,7 +265,7 @@ func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
 //   - []*felt.Felt: a slice containing two felt.Felt values [low, high]
 //   - error: if conversion fails
 //
-//nolint:mnd
+//nolint:mnd // There are comments explaining each magic number.
 func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 	// Ensure the hex string has the 0x prefix
 	if !strings.HasPrefix(hexStr, "0x") && !strings.HasPrefix(hexStr, "0X") {
@@ -274,7 +274,7 @@ func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 
 	// Parse the hex string to a big.Int
 	value := new(big.Int)
-	value, success := value.SetString(hexStr[2:], 16)
+	value, success := value.SetString(hexStr[2:], 16) // hex base
 	if !success {
 		return nil, fmt.Errorf("failed to parse hex string: %s", hexStr)
 	}

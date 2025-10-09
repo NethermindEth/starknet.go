@@ -69,7 +69,7 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 	if err != nil {
 		return nil, err
 	}
-	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct
+	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
 	c, err := client.DialOptions(context.Background(), url, options...)
@@ -91,7 +91,7 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 	if err != nil {
 		return nil, err
 	}
-	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct
+	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
@@ -209,7 +209,7 @@ type WebsocketProvider interface {
 	) (*client.ClientSubscription, error)
 }
 
-//nolint:exhaustruct
+//nolint:exhaustruct // Just asserting interface implementations.
 var (
 	_ RpcProvider       = &Provider{}
 	_ WebsocketProvider = &WsProvider{}

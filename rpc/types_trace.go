@@ -33,7 +33,7 @@ type SimulatedTransaction struct {
 
 type TxnTrace interface{}
 
-//nolint:exhaustruct
+//nolint:exhaustruct // Just asserting interface implementations.
 var (
 	_ TxnTrace = InvokeTxnTrace{}
 	_ TxnTrace = DeclareTxnTrace{}

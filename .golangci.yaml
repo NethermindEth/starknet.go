@@ -88,9 +88,9 @@ linters:
       ignored-functions:
         - strings.SplitN
     nolintlint:
-      require-explanation: false
-      require-specific: false
       allow-unused: false
+      require-explanation: true
+      require-specific: true
   exclusions:
     paths:
       - client/ # it comes from go-ethereum, let's refactor it another time

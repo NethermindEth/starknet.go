@@ -221,7 +221,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl
+//nolint:dupl // The tests are similar, but they are testing different things.
 func TestFeeEstToResBoundsMap(t *testing.T) {
 	tests := []struct {
 		name          string
