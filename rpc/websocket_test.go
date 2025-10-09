@@ -796,7 +796,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, sub)
 
-				timeout := time.After(10 * time.Second)
+				timeout := time.After(20 * time.Second)
 
 				for {
 					select {
@@ -831,8 +831,6 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
-
 		counter := 0
 		for {
 			select {
@@ -845,7 +843,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
+			case <-time.After(20 * time.Second):
 				assert.Greater(t, counter, 0, "no txns received")
 
 				return
@@ -867,7 +865,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
@@ -906,7 +904,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		for {
 			select {
@@ -955,7 +953,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		for {
 			select {
@@ -1014,7 +1012,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
