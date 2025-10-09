@@ -183,6 +183,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(10 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -191,7 +194,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(10 * time.Second):
+			case <-timeout:
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -212,6 +215,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(10 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -221,7 +227,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(10 * time.Second):
+			case <-timeout:
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -242,6 +248,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(10 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -250,7 +259,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(10 * time.Second):
+			case <-timeout:
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -274,6 +283,9 @@ func TestSubscribeEvents(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
+			// outside the loop, to avoid it being resetted
+			timeout := time.After(10 * time.Second)
+
 			for {
 				select {
 				case resp := <-events:
@@ -283,7 +295,7 @@ func TestSubscribeEvents(t *testing.T) {
 					return
 				case err := <-sub.Err():
 					require.NoError(t, err)
-				case <-time.After(10 * time.Second):
+				case <-timeout:
 					t.Fatal("timeout waiting for events")
 				}
 			}
@@ -301,6 +313,9 @@ func TestSubscribeEvents(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, sub)
+
+			// outside the loop, to avoid it being resetted
+			timeout := time.After(10 * time.Second)
 
 			var preConfirmedEventFound bool
 			var acceptedOnL2EventFound bool
@@ -325,7 +340,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 				case err := <-sub.Err():
 					require.NoError(t, err)
-				case <-time.After(20 * time.Second):
+				case <-timeout:
 					t.Fatal("timeout waiting for events")
 				}
 			}
@@ -348,6 +363,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(10 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -359,7 +377,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
+			case <-timeout:
 				t.Skip("timeout reached, no events received")
 			}
 		}
@@ -381,6 +399,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -393,7 +414,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
+			case <-timeout:
 				t.Skip("timeout reached, no events received")
 			}
 		}
@@ -417,6 +438,9 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -430,7 +454,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
+			case <-timeout:
 				t.Skip("timeout reached, no events received")
 			}
 		}
@@ -576,7 +600,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
@@ -653,6 +677,8 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
+		timeout := time.After(20 * time.Second)
+
 		for {
 			select {
 			case resp := <-txnReceipts:
@@ -673,6 +699,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
+
+			case <-timeout:
+				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no txns received from both finality statuses")
+
+				return
 			}
 		}
 	})
@@ -822,6 +853,9 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
+
 		counter := 0
 		for {
 			select {
@@ -834,7 +868,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				counter++
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-time.After(20 * time.Second):
+			case <-timeout:
 				assert.Greater(t, counter, 0, "no txns received")
 
 				return
@@ -856,6 +890,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(20 * time.Second)
 
 		counter := 0
@@ -895,6 +930,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(20 * time.Second)
 
 		for {
@@ -944,6 +980,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(20 * time.Second)
 
 		for {
